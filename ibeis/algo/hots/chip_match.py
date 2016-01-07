@@ -37,7 +37,7 @@ def filtnorm_op(filtnorm_, op_, *args, **kwargs):
             [safeop(op_, xs, *args, **kwargs) for xs in filtnorm_])
 
 
-def extend_scores(num, vals):
+def extend_scores(vals, num):
     if vals is None:
         return None
     return np.append(vals, np.full(num, -np.inf))
@@ -56,7 +56,7 @@ def extend_nplists(x_list, num, shape, dtype):
 
 
 def extend_pylist(x_list, num, val):
-    return safeop(extend_pylist, x_list, num, val)
+    return safeop(extend_pylist_, x_list, num, val)
 
 
 def check_arrs_eq(arr1, arr2):
@@ -1057,6 +1057,29 @@ class ChipMatch(AnnotMatch,
         """
         returns a new cmtup_old that contains empty data for an extended set of
         aids
+
+        Args:
+            qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+            other_aids (None): (default = None)
+
+        Returns:
+            ibeis.ChipMatch: out
+
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match --exec-extend_results --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> assert len(cm.daid_list) == 9
+            >>> cm.assert_self(qreq_)
+            >>> other_aids = qreq_.ibs.get_valid_aids()
+            >>> out = cm.extend_results(qreq_, other_aids)
+            >>> assert len(out.daid_list) == 118
+            >>> out.assert_self(qreq_)
         """
         if other_aids is None:
             other_aids = qreq_.get_external_daids()
@@ -1102,13 +1125,78 @@ class ChipMatch(AnnotMatch,
             annot_score_list, filtnorm_fxs=filtnorm_fxs,
             filtnorm_aids=filtnorm_aids, autoinit=False)
         out.fs_list = fs_list
-        # FIXME: attrs should be dicts
-        for score_method in out.special_annot_scores:
-            attr = score_method + '_score_list'
-            setattr(out, attr, extend_scores(getattr(cm, attr, None), num))
-        for score_method in out.special_name_scores:
-            attr = score_method + '_score_list'
-            setattr(out, attr, extend_scores(getattr(cm, attr, None), num2))
+        # attrs should be dicts
+        #for score_method in out.special_annot_scores:
+        #    attr = score_method + '_score_list'
+        #    setattr(out, attr, extend_scores(getattr(cm, attr, None), num))
+        #for score_method in out.special_name_scores:
+        #    attr = score_method + '_score_list'
+        #    setattr(out, attr, extend_scores(getattr(cm, attr, None), num2))
+        for key in cm.algo_annot_scores.keys():
+            out.algo_annot_scores[key] = extend_scores(cm.algo_annot_scores[key], num)
+        for key in cm.algo_name_scores.keys():
+            out.algo_name_scores[key] = extend_scores(cm.algo_name_scores[key], num2)
+        out._update_daid_index()
+        out._update_unique_nid_index()
+        return out
+
+    def take_annots(cm, idx_list, inplace=False, keepscores=True):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> idx_list = list(range(cm.num_daids))
+            >>> inplace = False
+            >>> keepscores = True
+            >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
+            >>> result = ('out = %s' % (ut.repr2(out),))
+            >>> assert cm.inspect_difference(out), 'should be no difference'
+            >>> print(result)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> idx_list = [0, 2]
+            >>> inplace = False
+            >>> keepscores = True
+            >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
+            >>> result = ('out = %s' % (ut.repr2(out),))
+            >>> print(result)
+        """
+        # flags = vt.index_to_boolmask(idx_list, cm.num_daids)
+        if inplace:
+            out = cm
+        else:
+            out = ChipMatch(qaid=cm.qaid, qnid=cm.qnid,
+                            fsv_col_lbls=cm.fsv_col_lbls)
+
+        out.daid_list     = vt.take2(cm.daid_list, idx_list)
+        out.dnid_list     = safeop(vt.take2, cm.dnid_list, idx_list)
+        out.H_list        = safeop(ut.take, cm.H_list, idx_list)
+        out.fm_list       = safeop(ut.take, cm.fm_list, idx_list)
+        out.fsv_list      = safeop(ut.take, cm.fsv_list, idx_list)
+        out.fk_list       = safeop(ut.take, cm.fk_list, idx_list)
+        out.filtnorm_aids = filtnorm_op(cm.filtnorm_aids, ut.take, idx_list)
+        out.filtnorm_fxs  = filtnorm_op(cm.filtnorm_fxs, ut.take, idx_list)
+
+        if keepscores:
+            # Annot Scores
+            out.score_list = safeop(vt.take2, cm.score_list, idx_list)
+            out.annot_score_list = safeop(vt.take2, cm.annot_score_list, idx_list)
+            for key in out.algo_annot_scores.keys():
+                out.algo_annot_scores[key] = safeop(vt.take2, cm.algo_annot_scores[key], idx_list)
+
+            # Name Scores
+            # TODO; remove score of names that were removed?
+            out.nid2_nidx = cm.nid2_nidx
+            out.unique_nids = cm.unique_nids
+            out.name_score_list = cm.name_score_list
+            for key in out.algo_name_scores.keys():
+                out.algo_name_scores[key] = cm.algo_name_scores[key]
         out._update_daid_index()
         out._update_unique_nid_index()
         return out
@@ -1173,66 +1261,6 @@ class ChipMatch(AnnotMatch,
     def compress_annots(cm, flags, inplace=False, keepscores=True):
         idx_list = np.where(flags)[0]
         out = cm.take_annots(idx_list, inplace, keepscores)
-        return out
-
-    def take_annots(cm, idx_list, inplace=False, keepscores=True):
-        """
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
-            >>> idx_list = list(range(cm.num_daids))
-            >>> inplace = False
-            >>> keepscores = True
-            >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
-            >>> result = ('out = %s' % (ut.repr2(out),))
-            >>> assert cm.inspect_difference(out), 'should be no difference'
-            >>> print(result)
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
-            >>> idx_list = [0, 2]
-            >>> inplace = False
-            >>> keepscores = True
-            >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
-            >>> result = ('out = %s' % (ut.repr2(out),))
-            >>> print(result)
-        """
-        # flags = vt.index_to_boolmask(idx_list, cm.num_daids)
-        if inplace:
-            out = cm
-        else:
-            out = ChipMatch(qaid=cm.qaid, qnid=cm.qnid,
-                            fsv_col_lbls=cm.fsv_col_lbls)
-
-        out.daid_list     = vt.take2(cm.daid_list, idx_list)
-        out.dnid_list     = safeop(vt.take2, cm.dnid_list, idx_list)
-        out.H_list        = safeop(ut.take, cm.H_list, idx_list)
-        out.fm_list       = safeop(ut.take, cm.fm_list, idx_list)
-        out.fsv_list      = safeop(ut.take, cm.fsv_list, idx_list)
-        out.fk_list       = safeop(ut.take, cm.fk_list, idx_list)
-        out.filtnorm_aids = filtnorm_op(cm.filtnorm_aids, ut.take, idx_list)
-        out.filtnorm_fxs  = filtnorm_op(cm.filtnorm_fxs, ut.take, idx_list)
-
-        if keepscores:
-            # Annot Scores
-            out.score_list = safeop(vt.take2, cm.score_list, idx_list)
-            out.annot_score_list = safeop(vt.take2, cm.annot_score_list, idx_list)
-            for key in out.algo_annot_scores.keys():
-                out.algo_annot_scores[key] = safeop(vt.take2, cm.algo_annot_scores[key], idx_list)
-
-            # Name Scores
-            out.nid2_nidx = cm.nid2_nidx
-            out.unique_nids = cm.unique_nids
-            out.name_score_list = cm.name_score_list
-            for key in out.algo_name_scores.keys():
-                out.algo_name_scores[key] = cm.algo_name_scores[key]
-        out._update_daid_index()
-        out._update_unique_nid_index()
         return out
 
     def append_featscore_column(cm, filtkey, filtweight_list, inplace=True):
@@ -2080,12 +2108,15 @@ class ChipMatch(AnnotMatch,
             nFeats2_list = np.array(
                 qreq_.ibs.get_annot_num_feats(
                     cm.daid_list, config2_=qreq_.get_external_data_config2()))
-            try:
-                assert ut.list_issubset(cm.daid_list, external_daids), (
-                    'cmtup_old must be subset of daids')
-            except AssertionError as ex:
-                ut.printex(ex, keys=['daid_list', 'external_daids'])
-                raise
+            if False:
+                # This does not need to be the case especially if the daid_list
+                # was exteneded
+                try:
+                    assert ut.list_issubset(cm.daid_list, external_daids), (
+                        'cmtup_old must be subset of daids')
+                except AssertionError as ex:
+                    ut.printex(ex, keys=['daid_list', 'external_daids'])
+                    raise
             try:
                 fm_list = cm.fm_list
                 fx2s_list = [fm_.T[1] for fm_ in fm_list]

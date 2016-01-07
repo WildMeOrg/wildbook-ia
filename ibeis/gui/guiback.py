@@ -1095,9 +1095,15 @@ class MainWindowBackend(GUIBACK_BASE):
         msg_str = msg_fmtstr.format(**fmtdict)
         return msg_str
 
-    def confirm_query_dialog(back, daid_list=None, qaid_list=None, cfgdict=None, query_msg=None):
-        msg_str = back.make_confirm_query_msg(daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
-        confirm_kw = dict(use_msg=msg_str, title='Begin Identification?', default='Yes')
+    def confirm_query_dialog(back, daid_list=None, qaid_list=None,
+                             cfgdict=None, query_msg=None):
+        """
+        Asks the user to confirm starting the identification query
+        """
+        msg_str = back.make_confirm_query_msg(
+            daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
+        confirm_kw = dict(use_msg=msg_str, title='Begin Identification?',
+                          default='Yes')
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
 
@@ -1282,8 +1288,10 @@ class MainWindowBackend(GUIBACK_BASE):
             if not use_visual_selection:
                 qaid_list = back.ibs.filter_aids_custom(qaid_list)
             daid_list = back.ibs.filter_aids_custom(daid_list)
-        qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
-        back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
+        qreq_ = back.ibs.new_query_request(qaid_list, daid_list,
+                                           cfgdict=cfgdict)
+        back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict,
+                                  query_msg=query_msg)
         #if not ut.WIN32:
         #    progbar = guitool.newProgressBar(back.mainwin)
         #else:
@@ -1293,7 +1301,8 @@ class MainWindowBackend(GUIBACK_BASE):
         # Doesn't seem to work correctly
         #progbar.utool_prog_hook.show_indefinite_progress()
         progbar.utool_prog_hook.force_event_update()
-        cm_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook, return_cm=True)
+        cm_list = back.ibs.query_chips(qreq_=qreq_,
+                                       prog_hook=progbar.utool_prog_hook)
         progbar.close()
         del progbar
         # HACK IN ENCOUNTER INFO
