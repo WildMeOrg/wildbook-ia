@@ -227,7 +227,7 @@ def demo():
 class Painter(object):
     """
     References:
-        http://sta:koverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
+        http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
     """
     def __init__(self, fig, ax, img):
         self.showverts = True

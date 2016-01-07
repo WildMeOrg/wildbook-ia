@@ -343,7 +343,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         use_darkbackground = not lightbg
         #use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
-        pt.dark_background()
+        pt.dark_background(force=use_darkbackground is True)
     return fig
 
 

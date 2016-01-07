@@ -1607,7 +1607,7 @@ def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
     return ax
 
 
-def dark_background(ax=None, doubleit=False):
+def dark_background(ax=None, doubleit=False, force=False):
     r"""
     Args:
         ax (None): (default = None)
@@ -1633,7 +1633,7 @@ def dark_background(ax=None, doubleit=False):
 
     #is_using_style('classic')
     #is_using_style('ggplot')
-    HARD_DISABLE = True
+    HARD_DISABLE = not force
     if not HARD_DISABLE:
         # Should use mpl style dark background instead
         bgcolor = BLACK * .9
