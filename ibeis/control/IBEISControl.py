@@ -1533,7 +1533,7 @@ class IBEISController(BASE_CLASS):
         species = ibs.get_primary_database_species()
         # Use a url to get the icon
         url = {
-            ibs.const.TEST_SPECIES.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
+            ibs.const.TEST_SPECIES.GIR_MASAI: 'http://i.imgur.com/tGDVaKC.png',
             ibs.const.TEST_SPECIES.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
             ibs.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
         }.get(species, None)
