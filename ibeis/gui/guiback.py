@@ -359,6 +359,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def refresh_state(back):
         """ Blanket refresh function. Try not to call this """
         back.front.update_tables()
+        back.ibswgt.update_species_available(reselect=True)
 
     #@ut.indent_func
     def connect_ibeis_control(back, ibs):
@@ -896,7 +897,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.edit_prefs_wgt:
             back.edit_prefs_wgt.close()
         if species_text == 'none':
-            cfgname = const.Species.UNKNOWN  # 'cfg'
+            cfgname = const.UNKNOWN  # 'cfg'
         else:
             cfgname = species_text
         #
@@ -917,8 +918,7 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs.cfg.save()
 
         # TODO: incorporate this as a signal in guiback which connects to a slot in guifront
-        from ibeis import species
-        back.front.detect_button.setEnabled(species.species_has_detector(species_text))
+        back.front.detect_button.setEnabled(ibs.has_species_detector(species_text))
 
     def get_selected_species(back):
         species_text = back.ibs.cfg.detect_cfg.species_text
@@ -1044,7 +1044,9 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> print(result)
         """
         ibs = back.ibs
-        species_dict = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
+        species_text = ibs.get_all_species_texts()
+        species_nice = ibs.get_all_species_nice()
+        species_dict = dict(zip(species_text, species_nice))
 
         def get_unique_species_phrase(aid_list):
             def boldspecies(species):
@@ -1940,6 +1942,48 @@ class MainWindowBackend(GUIBACK_BASE):
             back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
             # FIXME: api-cache is broken here too
             back.ibs.reset_table_cache()
+
+    @blocking_slot()
+    def update_species_nice_name(back):
+        from ibeis.control.manual_species_funcs import _convert_species_nice_to_code
+        ibs = back.ibs
+        species_text = back.get_selected_species()
+        if species_text in [const.UNKNOWN, '']:
+            back.user_info(msg="Cannot rename this species...")
+            return
+        species_rowid = ibs.get_species_rowids_from_text(species_text)
+        species_nice = ibs.get_species_nice(species_rowid)
+        new_species_nice = back.user_input(
+            msg='Rename species\n    Name: %r \n    Tag:  %r' % (species_nice, species_text),
+            title='Rename Species')
+        if new_species_nice is not None:
+            species_rowid = [species_rowid]
+            new_species_nice = [new_species_nice]
+            species_code = _convert_species_nice_to_code(new_species_nice)
+            ibs._set_species_nice(species_rowid, new_species_nice)
+            ibs._set_species_code(species_rowid, species_code)
+            back.ibswgt.update_species_available(reselect=True, reselect_new_name=new_species_nice[0])
+
+    @blocking_slot()
+    def delete_selected_species(back):
+        ibs = back.ibs
+        species_text = back.get_selected_species()
+        if species_text in [const.UNKNOWN, '']:
+            back.user_info(msg="Cannot delete this species...")
+            return
+        species_rowid = ibs.get_species_rowids_from_text(species_text)
+        species_nice = ibs.get_species_nice(species_rowid)
+
+        msg_str = 'You are about to delete species\n    Name: %r \n    ' + \
+                  'Tag:  %r\n\nDo you wish to continue?\nAll annotations ' + \
+                  'with this species will be set to unknown.'
+        msg_str = msg_str % (species_nice, species_text, )
+        confirm_kw = dict(use_msg=msg_str, title='Delete Selected Species?',
+                          default='No')
+        if not back.are_you_sure(**confirm_kw):
+            raise guiexcept.UserCancel
+        ibs.delete_species([species_rowid])
+        back.ibswgt.update_species_available(deleting=True)
 
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):

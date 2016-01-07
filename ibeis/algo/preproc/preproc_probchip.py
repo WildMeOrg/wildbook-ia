@@ -271,7 +271,7 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> config2_ = None
         >>> lazy = True
-        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)[0:4]
+        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)[0:4]
         >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
@@ -287,7 +287,7 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> config2_ = None
         >>> lazy = False
-        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
@@ -445,7 +445,7 @@ def postprocess_mask(mask):
         >>> config2_ = ibs.new_query_params(cfgdict=cfgdict)
         >>> chip_fpath = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)[0]
         >>> chip = vt.imread(chip_fpath)
-        >>> #species = ibs.const.Species.ZEB_PLAIN
+        >>> #species = ibs.const.TEST_SPECIES.ZEB_PLAIN
         >>> species = ibs.get_primary_database_species()
         >>> print('species = %r' % (species,))
         >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath], species))

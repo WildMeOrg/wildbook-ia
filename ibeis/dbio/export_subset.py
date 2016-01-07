@@ -67,7 +67,9 @@ NAME_TransferData = namedtuple(
 SPECIES_TransferData = namedtuple(
     'SPECIES_TransferData', (
         'species_uuid_list',
+        'species_nice_list',
         'species_text_list',
+        'species_code_list',
         'species_note_list',
     ))
 
@@ -357,7 +359,9 @@ def export_species_transfer_data(ibs_src, species_rowid_list):
     # Create Species TransferData
     species_td = SPECIES_TransferData(
         ibs_src.get_species_uuids(species_rowid_list),
+        ibs_src.get_species_nice(species_rowid_list),
         ibs_src.get_species_texts(species_rowid_list),
+        ibs_src.get_species_codes(species_rowid_list),
         ibs_src.get_species_notes(species_rowid_list)
     )
     return species_td
@@ -682,7 +686,9 @@ def import_name_transfer_data(ibs_dst, name_td):
 def import_species_transfer_data(ibs_dst, species_td):
     # Import Species TransferData
     species_rowid_list = ibs_dst.add_species(
+        species_td.species_nice_list,
         species_td.species_text_list,
+        species_td.species_code_list,
         species_td.species_uuid_list,
         species_td.species_note_list
     )

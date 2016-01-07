@@ -19,8 +19,8 @@ import simplejson as json
 from ibeis.control import controller_inject
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
-import ibeis.constants as const
-from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, PI, TAU
+from ibeis import constants as const
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, PI, TAU
 from ibeis.web import appfuncs as ap
 from ibeis.web import zmq_task_queue  # NOQA
 import utool as ut
@@ -43,25 +43,25 @@ def default_species(ibs):
     # hack function
     dbname = ibs.get_dbname()
     if dbname == 'CHTA_Master':
-        default_species = Species.CHEETAH
+        default_species = 'cheetah'
     elif dbname == 'ELPH_Master':
-        default_species = Species.ELEPHANT_SAV
+        default_species = 'elephant_savanna'
     elif dbname == 'GIR_Master':
-        default_species = Species.GIRAFFE
+        default_species = 'giraffe_reticulated'
     elif dbname == 'GZ_Master':
-        default_species = Species.ZEB_GREVY
+        default_species = 'zebra_grevys'
     elif dbname == 'LION_Master':
-        default_species = Species.LION
+        default_species = 'lion'
     elif dbname == 'PZ_Master':
-        default_species = Species.ZEB_PLAIN
+        default_species = 'zebra_plains'
     elif dbname == 'WD_Master':
-        default_species = Species.WILDDOG
+        default_species = 'wild_dog'
     elif dbname == 'NNP_MasterGIRM':
-        default_species = Species.GIRAFFE_MASAI
+        default_species = 'giraffe_masai'
     elif 'NNP_' in dbname:
-        default_species = Species.ZEB_PLAIN
+        default_species = 'zebra_plains'
     elif 'GZC' in dbname:
-        default_species = Species.ZEB_PLAIN
+        default_species = 'zebra_plains'
     else:
         default_species = None
     print('[web] DEFAULT SPECIES: %r' % (default_species))

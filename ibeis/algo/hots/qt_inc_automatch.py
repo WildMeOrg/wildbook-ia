@@ -169,8 +169,7 @@ def incremental_test_qt(ibs, num_initial=0):
         >>> execstr = ibeis.main_loop(main_locals)
         >>> print(execstr)
     """
-    import ibeis.constants as const
-    species = const.Species.ZEB_PLAIN
+    species = 'zebra_plains'
     qaid_list = ibs.get_valid_aids(species=species)
     #daid_list = ibs.get_valid_aids()
     exec_interactive_incremental_queries(ibs, qaid_list)

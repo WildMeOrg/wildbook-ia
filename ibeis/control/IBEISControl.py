@@ -249,6 +249,9 @@ class IBEISController(BASE_CLASS):
         ibs._send_wildbook_request(wbaddr)
         ibs._init_sql(request_dbversion=request_dbversion)
         ibs._init_config()
+        if not ut.get_argflag('--noclean'):
+            # ibs._init_burned_in_species()
+            ibs._clean_species()
         ibs.job_manager = None
         print('[ibs.__init__] END new IBEISController\n')
 
@@ -436,13 +439,13 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.4.8'
+            ibs.db_version_expected = '1.4.9'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.8')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.9')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
@@ -730,7 +733,7 @@ class IBEISController(BASE_CLASS):
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
-            >>> species_text = ibeis.const.Species.ZEB_GREVY
+            >>> species_text = ibeis.const.TEST_SPECIES.ZEB_GREVY
             >>> ensure = True
             >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
             >>> resourcedir = ibs.get_ibeis_resource_dir()
@@ -873,7 +876,7 @@ class IBEISController(BASE_CLASS):
             >>> # build test data
             >>> ibs = ibeis.opendb('testdb1')
             >>> gid_list = ibs.get_valid_gids()[0:2]
-            >>> species = ibeis.const.Species.ZEB_PLAIN
+            >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
             >>> # execute function
             >>> aids_list = ibs.detect_random_forest(gid_list, species)
             >>> # Visualize results
@@ -937,6 +940,24 @@ class IBEISController(BASE_CLASS):
         """
         # FIXME: infer this
         return const.SPECIES_WITH_DETECTORS
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/working_species/', methods=['GET'])
+    def get_working_species(ibs):
+        RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = ut.get_argflag('--no-allspecies')
+
+        species_nice_list = ibs.get_all_species_nice()
+        species_text_list = ibs.get_all_species_texts()
+        species_tup_list = zip(species_nice_list, species_text_list)
+        if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
+            working_species_tups = [
+                species_tup
+                for species_tup in species_tup_list
+                if ibs.has_species_detector(species_tup[1])
+            ]
+        else:
+            working_species_tups = species_tup_list
+        return working_species_tups
 
     #
     #
@@ -1512,9 +1533,9 @@ class IBEISController(BASE_CLASS):
         species = ibs.get_primary_database_species()
         # Use a url to get the icon
         url = {
-            ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
-            ibs.const.Species.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
-            ibs.const.Species.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
+            ibs.const.TEST_SPECIES.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
+            ibs.const.TEST_SPECIES.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
+            ibs.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
         }.get(species, None)
         if url is None:
             # use an aid to get the icon

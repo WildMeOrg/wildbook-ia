@@ -689,30 +689,6 @@ def get_global_distinctiveness_modeldir(ensure=True):
     return global_distinctdir
 
 
-def resolve_species(species_code):
-    r"""
-    Args:
-        species_code (str): can either be species_code or species_text
-
-    CommandLine:
-        python -m ibeis.init.sysres --test-resolve_species
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.sysres import *  # NOQA
-        >>> # build test data
-        >>> species = 'GZ'
-        >>> # execute function
-        >>> result = resolve_species(species)
-        >>> # verify results
-        >>> print(result)
-        zebra_grevys
-    """
-    species_text = const.SPECIES_CODE_TO_TEXT.get(species_code.upper(), species_code).lower()
-    assert species_text in const.VALID_SPECIES, 'cannot resolve species_text=%r' % (species_text,)
-    return species_text
-
-
 def grab_example_smart_xml_fpath():
     """ Gets smart example xml
 

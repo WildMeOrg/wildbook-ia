@@ -200,7 +200,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         >>> config2_ = None
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
+        >>> aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> # execute function
         >>> aid_list1 = aid_list[::2]
         >>> aid_list2 = aid_list[1::3]

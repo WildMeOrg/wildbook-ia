@@ -111,7 +111,7 @@ Tadder_pl_dependant = ut.codeblock(
             # REM >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:2]
             # REM HACK
             >>> from ibeis import constants as const
-            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[:2]
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.TEST_SPECIES.ZEB_PLAIN)[:2]
             >>> if '{root}' != '{parent}':
             ...     {parent}_rowid_list = {self}.get_{root}_{parent}_rowid({root}_rowid_list, config2_=config2_, ensure=True)
             >>> {leaf}_rowid_list = {self}.add_{parent}_{leaf}({parent}_rowid_list, config2_=config2_)
@@ -123,7 +123,7 @@ Tadder_pl_dependant = ut.codeblock(
             >>> from {autogen_modname} import *  # NOQA
             >>> {self}, config2_ = testdata_{autogen_key}('PZ_MTEST')
             >>> from ibeis import constants as const
-            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[0:7]
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.TEST_SPECIES.ZEB_PLAIN)[0:7]
             >>> if '{root}' != '{parent}':
             ...     {parent}_rowid_list = {self}.get_{root}_{parent}_rowid({root}_rowid_list, config2_=config2_, ensure=True)
             >>> sub_{parent}_rowid_list1 = {parent}_rowid_list[0:6]

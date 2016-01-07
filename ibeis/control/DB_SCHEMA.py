@@ -1171,7 +1171,7 @@ def post_1_4_7(db, ibs=None):
     db.modify_table(
         const.IMAGE_TABLE,
         [
-            # change type of annot_visual_uuid
+            # change type of image_uri_original
             ('image_uri_original', '', 'TEXT NOT NULL', None),
         ],
     )
@@ -1252,6 +1252,63 @@ def update_1_4_8(db, ibs=None):
     )
 
 
+def pre_1_4_9(db, ibs=None):
+    if ibs is not None:
+        remapping_dict = {
+            'frogs'               : 'frog',
+            'giraffe'             : 'giraffe_reticulated',
+            'seals_spotted'       : 'seal_spotted',
+            'seals_saimma_ringed' : 'seal_saimma_ringed',
+        }
+        from os.path import join
+        species_rowid_list = ibs._get_all_species_rowids()
+        species_text_list = ibs.get_species_texts(species_rowid_list)
+        for rowid, text in zip(species_rowid_list, species_text_list):
+            if text in remapping_dict:
+                # Update record for reticulated giraffe
+                ibs._set_species_texts([rowid], [remapping_dict[text]])
+
+                # Delete obsolete cPkl file on disk
+                cPlk_path = join(ibs.get_dbdir(), '%s.cPkl' % (text, ))
+                ut.delete(cPlk_path)
+
+                # Recompute all effected annotation's semantic UUIDs
+                aid_list = ibs._get_all_aids()
+                annot_species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+                flag_list = [
+                    annot_species_rowid == rowid
+                    for annot_species_rowid in annot_species_rowid_list
+                ]
+                aid_list_ = ut.filter_items(aid_list, flag_list)
+                ibs.update_annot_semantic_uuids(aid_list_)
+
+
+def update_1_4_9(db, ibs=None):
+    db.modify_table(const.SPECIES_TABLE, (
+        (3, 'species_code', 'TEXT', None),
+    ))
+
+    db.modify_table(const.SPECIES_TABLE, (
+        (3, 'species_nice', 'TEXT', None),
+    ))
+
+    db.modify_table(const.SPECIES_TABLE, (
+        (None, 'species_toggle_enabled', 'INTEGER DEFAULT 1', None),
+    ))
+
+
+def post_1_4_9(db, ibs=None):
+    ibs._clean_species()
+    db.modify_table(
+        const.SPECIES_TABLE,
+        [
+            # change type of species_nice
+            ('species_nice', '', 'TEXT NOT NULL', None),
+            ('species_code', '', 'TEXT NOT NULL', None),
+        ],
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1289,6 +1346,7 @@ VALID_VERSIONS = ut.odict([
     ('1.4.6',    (None,                 update_1_4_6,       None                )),
     ('1.4.7',    (None,                 update_1_4_7,       post_1_4_7          )),
     ('1.4.8',    (pre_1_4_8,            update_1_4_8,       None                )),
+    ('1.4.9',    (pre_1_4_9,            update_1_4_9,       post_1_4_9          )),
 ])
 """
 SeeAlso:

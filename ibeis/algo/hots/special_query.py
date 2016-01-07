@@ -68,13 +68,12 @@ TestTup = ut.namedtuple(
 def testdata_special_query(dbname=None):
     """ test data for special query doctests """
     import ibeis
-    from ibeis import constants as const
     if dbname is None:
         dbname = 'testdb1'
     # build test data
     ibs = ibeis.opendb(dbname)
     #ibs = ibeis.opendb('PZ_MTEST')
-    valid_aids = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
+    valid_aids = ibs.get_valid_aids(species='zebra_plains')
     return ibs, valid_aids
 
 
@@ -679,7 +678,7 @@ def get_extern_distinctiveness(qreq_, cm, **kwargs):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qaids = daids[0:1]
         >>> cfgdict = dict(codename='vsone_unnorm_dist_ratio_extern_distinctiveness')
         >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)

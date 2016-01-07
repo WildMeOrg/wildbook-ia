@@ -5,7 +5,6 @@ import plottool as pt  # NOQA
 #from six.moves import zip
 import utool as ut
 #from ibeis import constants as const
-from ibeis import species
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[interact_annot2]')
 
 
@@ -58,9 +57,9 @@ class ANNOTATION_Interaction2(object):
         #verts_list    = ibs.get_annot_verts(self.aid_list)  # TODO
         theta_list    = ibs.get_annot_thetas(self.aid_list)
         species_list  = ibs.get_annot_species_texts(self.aid_list)
-        #valid_species = const.VALID_SPECIES
+        #valid_species = ibs.get_all_species_texts()
         valid_species = [tup[1] for tup in
-                         species.get_working_species_set()]
+                         ibs.get_working_species()]
         metadata_list = [ibs.get_annot_lazy_dict(aid) for aid in self.aid_list]
         if True:
             interact_annotations.rrr()

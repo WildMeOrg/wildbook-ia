@@ -436,7 +436,7 @@ def make_ibeis_headers_dict(ibs):
     infer_unspecified_getters(ANNOTATION_TABLE, 'annot')
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,
-        'species'    : ibs.set_annot_species,
+        'species'    : ibs.set_annot_species_and_notify,
         'yaw'        : ibs.set_annot_yaws,
         'yaw_text'    : ibs.set_annot_yaw_texts,
         'annotnotes' : ibs.set_annot_notes,

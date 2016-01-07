@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # import utool
 import six
 import numpy as np
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 import math
 from os.path import join
 import utool as ut
@@ -250,101 +250,6 @@ IMAGE_THUMB_SUFFIX = '_thumb.jpg'
 IMAGE_BARE_THUMB_SUFFIX = '_thumb_bare.jpg'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
-# FIXME UNKNOWN should not be a valid species
-
-
-class Species(object):
-    ZEB_PLAIN     = 'zebra_plains'
-    ZEB_GREVY     = 'zebra_grevys'
-    ZEB_HYBRID    = 'zebra_hybrid'
-    # TODO change to giraffe_reticulated
-    GIRAFFE       = 'giraffe'
-    GIRAFFE_MASAI = 'giraffe_masai'
-    ELEPHANT_SAV  = 'elephant_savanna'
-    JAG           = 'jaguar'
-    LEOPARD       = 'leopard'
-    SNOW_LEOPARD  = 'snow_leopard'
-    LION          = 'lion'
-    WILDDOG       = 'wild_dog'
-    WHALESHARK    = 'whale_shark'
-    LYNX          = 'lynx'
-    WHALEHUMPBACK = 'whale_humpback'
-    SNAIL         = 'snail'
-    SEALS_SPOTTED = 'seals_spotted'
-    SEALS_RINGED  = 'seals_saimma_ringed'
-    POLAR_BEAR    = 'bear_polar'
-    FROGS         = 'frogs'
-    LIONFISH      = 'lionfish'
-    WYTOADS       = 'toads_wyoming'
-    RHINO_BLACK   = 'rhino_black'
-    RHINO_WHITE   = 'rhino_white'
-    WILDEBEEST    = 'wildebeest'
-    WATER_BUFFALO = 'water_buffalo'
-    CHEETAH       = 'cheetah'
-    TIGER         = 'tiger'
-    HYENA         = 'hyena'
-    NAUT          = 'nautilus'
-    WHALE_FLUKES  = 'whale_fluke'
-    BUILDING      = 'building'
-    OTHER         = 'other'
-    UNKNOWN       = UNKNOWN
-
-# TODO: allow for custom species
-SpeciesTupleProperties = ('species_text', 'species_code', 'species_nice')
-SpeciesTuple = namedtuple('SpeciesTuple', SpeciesTupleProperties)
-
-SPECIES_TUPS = [
-    SpeciesTuple(Species.ZEB_PLAIN,          'PZ', 'Zebra (Plains)'),
-    SpeciesTuple(Species.ZEB_GREVY,          'GZ', 'Zebra (Grevy\'s)'),
-    SpeciesTuple(Species.ZEB_HYBRID,         'HZ', 'Zebra (Hybrid)'),
-    SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes (Reticulated)'),
-    SpeciesTuple(Species.GIRAFFE_MASAI,    'GIRM', 'Giraffes (Masai)'),
-    SpeciesTuple(Species.ELEPHANT_SAV,     'ELEP', 'Elephant (savanna)'),
-    SpeciesTuple(Species.POLAR_BEAR,         'PB', 'Polar Bear'),
-    SpeciesTuple(Species.WILDDOG,            'WD', 'Wild Dog'),
-    SpeciesTuple(Species.LIONFISH,           'LF', 'Lionfish'),
-    SpeciesTuple(Species.WHALESHARK,         'WS', 'Whale Shark'),
-    SpeciesTuple(Species.WILDEBEEST,         'WB', 'Wildebeest'),
-    SpeciesTuple(Species.JAG,               'JAG', 'Jaguar'),
-    SpeciesTuple(Species.LEOPARD,          'LOEP', 'Leopard'),
-    SpeciesTuple(Species.SNOW_LEOPARD,    'SLEOP', 'Snow Leopard'),
-    SpeciesTuple(Species.TIGER,           'TIGER', 'Tiger'),
-    SpeciesTuple(Species.HYENA,           'HYENA', 'Hyena'),
-    SpeciesTuple(Species.LION,             'LION', 'Lion'),
-    SpeciesTuple(Species.CHEETAH,          'CHTH', 'Cheetah'),
-    SpeciesTuple(Species.SEALS_SPOTTED,   'SEAL1', 'Seal (spotted)'),
-    SpeciesTuple(Species.SEALS_RINGED,    'SEAL2', 'Seal (Siamaa Ringed)'),
-    SpeciesTuple(Species.NAUT,             'NAUT', 'Nautilus'),
-    SpeciesTuple(Species.SNAIL,           'SNAIL', 'Snail'),
-    SpeciesTuple(Species.LYNX,             'LYNX', 'Lynx'),
-    SpeciesTuple(Species.WHALE_FLUKES,       'WF', 'Whale Fluke'),
-    SpeciesTuple(Species.BUILDING,     'BUILDING', 'Building'),
-    SpeciesTuple(Species.OTHER,           'OTHER', 'Other'),
-    SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
-]
-
-# FIXME: infer this
-SPECIES_WITH_DETECTORS = (
-    Species.ZEB_PLAIN,
-    Species.ZEB_GREVY,
-    #Species.GIRAFFE,
-    #Species.ELEPHANT_SAV,
-
-    #Species.GIRAFFE_MASAI,
-    Species.WHALEHUMPBACK,
-    Species.WHALE_FLUKES,
-)
-
-SPECIES_CODE_TO_TEXT = {
-    tup.species_code: tup.species_text for tup in SPECIES_TUPS
-}
-SPECIES_TEXT_TO_CODE = {
-    tup.species_text: tup.species_code for tup in SPECIES_TUPS
-}
-
-VALID_SPECIES = [tup.species_text for tup in SPECIES_TUPS]
-SPECIES_NICE  = [tup.species_nice for tup in SPECIES_TUPS]
-
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'
 INTRA_ENC_KEY = 'intra_encounter'
@@ -357,15 +262,6 @@ if ut.get_computer_name() == 'ibeis.cs.uic.edu':
 else:
     WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='ibeis',
                                     help_='specify the Wildbook target deployment')
-
-
-def get_species_code(species_text_):
-    " functions should not be in const """
-    species_text = species_text_.lower()
-    if species_text == 'none':
-        species_text = Species.UNKNOWN
-    species_code = SPECIES_TEXT_TO_CODE.get(species_text, species_text)
-    return species_code
 
 
 class ZIPPED_URLS(object):
@@ -406,3 +302,24 @@ DBNAME_ALIAS = {
     'GIRM_Master1': 'GIRM',
     'GZ_ALL': 'GZ',
 }
+
+
+class TEST_SPECIES(object):
+    BEAR_POLAR      = 'bear_polar'
+    BUILDING        = 'building'
+    GIR_RETICULATED = 'giraffe_reticulated'
+    GIR_MASAI       = 'giraffe_masai'
+    WHALE_FLUKE     = 'whale_fluke',
+    WHALE_HUMPBACK  = 'whale_humpback',
+    ZEB_GREVY       = 'zebra_grevys'
+    ZEB_HYBRID      = 'zebra_hybrid'
+    ZEB_PLAIN       = 'zebra_plains'
+    UNKNOWN         = UNKNOWN
+
+
+SPECIES_WITH_DETECTORS = (
+    TEST_SPECIES.ZEB_GREVY,
+    TEST_SPECIES.ZEB_PLAIN,
+    TEST_SPECIES.WHALE_FLUKE,
+    TEST_SPECIES.WHALE_HUMPBACK,
+)

@@ -207,7 +207,7 @@ def ingest_testdb1(dbname):
     from vtool.tests import grabdata   # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
         import numpy as np
-        from ibeis.constants import Species
+        from ibeis import constants as const
         print('postingest_tesdb1_func')
         # Adjust data as we see fit
         gid_list = np.array(ibs.get_valid_gids())
@@ -252,12 +252,12 @@ def ingest_testdb1(dbname):
         # Set some test species labels
         species_text_list = ibs.get_annot_species_texts(aid_list)
         for ix in range(0, 6):
-            species_text_list[ix] = Species.ZEB_PLAIN
+            species_text_list[ix] = const.TEST_SPECIES.ZEB_PLAIN
         # These are actually plains zebras.
         for ix in range(8, 10):
-            species_text_list[ix] = Species.ZEB_GREVY
+            species_text_list[ix] = const.TEST_SPECIES.ZEB_GREVY
         for ix in range(10, 12):
-            species_text_list[ix] = Species.POLAR_BEAR
+            species_text_list[ix] = const.TEST_SPECIES.BEAR_POLAR
 
         ibs.set_annot_species(aid_list, species_text_list)
         ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)
@@ -312,7 +312,7 @@ def ingest_humpbacks(dbname):
     # named folder format
     return Ingestable(dbname, ingest_type='named_folders',
                       adjust_percent=0.00,
-                      species=const.Species.WHALEHUMPBACK,
+                      species='whale_humpback',
                       # this zipfile is only on Zach's machine
                       fmtkey='name')
 
@@ -345,7 +345,7 @@ def ingest_lynx(dbname):
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='/raid/raw_rsync/iberian-lynx/CARPETAS CATALOGO INDIVIDUOS/',
                       adjust_percent=0.01,
-                      species=const.Species.LYNX,
+                      species='lynx',
                       fmtkey='name')
 
 
@@ -358,7 +358,7 @@ def ingest_whale_sharks(dbname):
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='named-left-sharkimages',
                       adjust_percent=0.01,
-                      species=const.Species.WHALESHARK,
+                      species='whale_shark',
                       fmtkey='name')
 
 
@@ -367,7 +367,7 @@ def ingest_snails_drop1(dbname):
     return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.snails_fmt,
-                      species=const.Species.SNAIL,
+                      species='snail',
                       #img_dir='/raid/raw/snails_drop1_59MB',
                       adjust_percent=.20)
 
@@ -380,7 +380,7 @@ def ingest_seals_drop2(dbname):
                       fmtkey=FMT_KEYS.seal2_fmt,
                       #img_dir='/raid/raw/snails_drop1_59MB',
                       adjust_percent=.20,
-                      species=const.Species.SEALS_RINGED
+                      species='seal_saimma_ringed'
                       )
 
 
@@ -388,7 +388,7 @@ def ingest_seals_drop2(dbname):
 def ingest_JAG_Kieryn(dbname):
     return Ingestable(dbname,
                       ingest_type='unknown',
-                      species=const.Species.JAG,
+                      species='jaguar',
                       adjust_percent=0.00)
 
 
@@ -397,7 +397,7 @@ def ingest_Giraffes1(dbname):
     return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.giraffe1_fmt,
-                      species=const.Species.GIRAFFE,
+                      species='giraffe_reticulated',
                       adjust_percent=0.00)
 
 
@@ -407,7 +407,7 @@ def ingest_Elephants_drop1(dbname):
                       zipfile='../raw_unprocessed/ID photo front_Elephants_4-29-2015-PeterGranli.zip',  # NOQA
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.elephant_fmt,
-                      species=const.Species.ELEPHANT_SAV,
+                      species='elephant_savanna',
                       adjust_percent=0.00)
 
 
@@ -857,7 +857,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         }
         qual_text_list = [_dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list]
         ibs.set_annot_quality_texts(aid_list, qual_text_list)
-        ibs._overwrite_all_annot_species_to(ibs.const.Species.BUILDING)
+        ibs._overwrite_all_annot_species_to('building')
 
         tags_list = [[note] if note in ['query', 'distractor'] else [] for note in notes_list]
         from ibeis import tag_funcs
@@ -896,8 +896,8 @@ def ingest_serengeti_mamal_cameratrap(species):
         >>> # SCRIPT
         >>> from ibeis.dbio.ingest_database import *  # NOQA
         >>> import ibeis
-        >>> species = ut.get_argval('--species', type_=str, default=ibeis.const.Species.ZEB_PLAIN)
-        >>> #species = ut.get_argval('--species', str, default=ibeis.const.Species.CHEETAH)
+        >>> species = ut.get_argval('--species', type_=str, default=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> # species = ut.get_argval('--species', type_=str, default='cheetah')
         >>> result = ingest_serengeti_mamal_cameratrap(species)
         >>> print(result)
     """
@@ -906,8 +906,12 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     if species is None:
         code = 'ALL'
+    elif species == 'zebra_plains':
+        code = 'PZ'
+    elif species == 'cheetah':
+        code = 'CHTH'
     else:
-        code = ibeis.const.SPECIES_TEXT_TO_CODE[species]
+        raise NotImplementedError()
 
     if species == 'zebra_plains':
         serengeti_sepcies = 'zebra'

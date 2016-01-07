@@ -4,10 +4,6 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip, map
-import pgmpy
-import pgmpy.inference
-import pgmpy.factors
-import pgmpy.models
 from ibeis.algo.hots import pgm_viz
 # from ibeis.algo.hots.pgm_viz import *  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[pgmext]')
@@ -17,6 +13,7 @@ def define_model(cpd_list):
     """
     Custom extensions of pgmpy modl
     """
+    import pgmpy
     input_graph = ut.flatten([
         [(evar, cpd.variable) for evar in cpd.evidence]
         for cpd in cpd_list if cpd.evidence is not None
@@ -504,6 +501,7 @@ class TemplateCPD(object):
                 values = np.full([variable_card] + list(evidence_card), fill_value)
 
         try:
+            import pgmpy
             cpd = pgmpy.factors.TabularCPD(
                 variable=variable,
                 variable_card=variable_card,
@@ -618,6 +616,7 @@ def map_example():
         from ibeis.algo.hots.pgm_ext import _debug_repr_model
         _debug_repr_model(model)
     """
+    import pgmpy
     # https://class.coursera.org/pgm-003/lecture/44
     a_cpd_t = TemplateCPD(
         'A', ['0', '1'], varpref='A', pmf_func=[[.4], [.6]])

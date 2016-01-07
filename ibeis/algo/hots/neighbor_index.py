@@ -314,7 +314,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
+        >>> ZEB_PLAIN = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> ibs = ibeis.opendb('testdb1')
         >>> use_memcache, max_covers, verbose = True, None, True
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:6]
@@ -421,7 +421,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_.qparams.min_reindex_thresh = 3
-        >>> ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
+        >>> ZEB_PLAIN = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> verbose = True
@@ -489,7 +489,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> verbose = True
@@ -548,7 +548,7 @@ def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
+        >>> ZEB_PLAIN = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> # Set the params a bit lower
@@ -622,7 +622,7 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         >>> # build test data
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
         >>> # execute function
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
@@ -688,7 +688,7 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> verbose = True
@@ -1489,7 +1489,7 @@ def request_background_nnindexer(qreq_, daid_list):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> # execute function
         >>> neighbor_index.request_background_nnindexer(qreq_, daid_list)

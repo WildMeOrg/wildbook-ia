@@ -37,7 +37,6 @@ try:
     from ibeis import constants as const
     from ibeis import params
     from ibeis import main_module
-    from ibeis import species
     from ibeis import other
     from ibeis.init import sysres
     #main_module._preload()
@@ -59,6 +58,7 @@ try:
     from ibeis import algo
 
     from ibeis import expt
+    from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
     from ibeis import depends_cache
@@ -296,7 +296,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.4.8'
+__version__ = '1.4.9'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

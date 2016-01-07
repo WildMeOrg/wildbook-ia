@@ -245,7 +245,7 @@ def submit_detection():
 from functools import partial
 import random
 from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE, REVIEW_TABLE
-import ibeis.constants as const
+from ibeis import constants as const
 
 
 ################################################################################

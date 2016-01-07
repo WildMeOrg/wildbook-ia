@@ -1,29 +1,43 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from ibeis import constants as const
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[species]', DEBUG=False)
 
+# Inject utool functions
+(print, rrr, profile) = ut.inject2(__name__, '[species]')
 
-def species_has_detector(species_text):
-    return species_text in const.SPECIES_WITH_DETECTORS
-
-
-def get_working_species_set():
-    """ hack to make only species with detectors show up """
-    # TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS
-    # TODO: allow for custom user-define species
-    #RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
-    RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = ut.get_argflag('--no-allspecies')
-    if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
-        working_species_tups = [
-            (species_tup.species_nice, species_tup.species_text)
-            for species_tup in const.SPECIES_TUPS
-            if species_has_detector(species_tup.species_text)
-        ]
-    else:
-        working_species_tups = [
-            (species_tup.species_nice, species_tup.species_text)
-            for species_tup in const.SPECIES_TUPS
-        ]
-    return working_species_tups
+species_mapping = {
+    'bear_polar'          :       ('PB', 'Polar Bear'),
+    'building'            : ('BUILDING', 'Building'),
+    'cheetah'             :     ('CHTH', 'Cheetah'),
+    'elephant_savanna'    :     ('ELEP', 'Elephant (Savanna)'),
+    'frog'                :     ('FROG', 'Frog'),
+    'giraffe_masai'       :     ('GIRM', 'Giraffe (Masai)'),
+    'giraffe_reticulated' :      ('GIR', 'Giraffe (Reticulated)'),
+    'hyena'               :    ('HYENA', 'Hyena'),
+    'jaguar'              :      ('JAG', 'Jaguar'),
+    'leopard'             :     ('LOEP', 'Leopard'),
+    'lion'                :     ('LION', 'Lion'),
+    'lionfish'            :       ('LF', 'Lionfish'),
+    'lynx'                :     ('LYNX', 'Lynx'),
+    'nautilus'            :     ('NAUT', 'Nautilus'),
+    'other'               :    ('OTHER', 'Other'),
+    'rhino_black'         :   ('BRHINO', 'Rhino (Black)'),
+    'rhino_white'         :   ('WRHINO', 'Rhino (White)'),
+    'seal_saimma_ringed'  :    ('SEAL2', 'Seal (Siamaa Ringed)'),
+    'seal_spotted'        :    ('SEAL1', 'Seal (Spotted)'),
+    'snail'               :    ('SNAIL', 'Snail'),
+    'snow_leopard'        :    ('SLEOP', 'Snow Leopard'),
+    'tiger'               :    ('TIGER', 'Tiger'),
+    'toads_wyoming'       :   ('WYTOAD', 'Toad (Wyoming)'),
+    'water_buffalo'       :     ('BUFF', 'Water Buffalo'),
+    'wildebeest'          :       ('WB', 'Wildebeest'),
+    'wild_dog'            :       ('WD', 'Wild Dog'),
+    'whale_fluke'         :       ('WF', 'Whale Fluke'),
+    'whale_humpback'      :       ('HW', 'Humpback Whale'),
+    'whale_shark'         :       ('WS', 'Whale Shark'),
+    'zebra_grevys'        :       ('GZ', 'Zebra (Grevy\'s)'),
+    'zebra_hybrid'        :       ('HZ', 'Zebra (Hybrid)'),
+    'zebra_plains'        :       ('PZ', 'Zebra (Plains)'),
+    const.UNKNOWN         :  ('UNKNOWN', 'Unknown'),
+}
