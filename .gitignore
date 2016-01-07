@@ -116,3 +116,5 @@ notebooks/tmptex
 
 raw_profile.txt
 regen_*
+DEPCACHE/
+tmp.txt

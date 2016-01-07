@@ -58,6 +58,7 @@ try:
     from ibeis import algo
 
     from ibeis import expt
+    from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
     from ibeis import depends_cache

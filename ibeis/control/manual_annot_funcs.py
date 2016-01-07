@@ -2430,6 +2430,13 @@ def set_annot_species(ibs, aid_list, species_text_list):
 
 @register_ibs_method
 @accessor_decors.setter
+def set_annot_species_and_notify(ibs, *args, **kwargs):
+    ibs.set_annot_species(*args, **kwargs)
+    ibs.notify_observers()
+
+
+@register_ibs_method
+@accessor_decors.setter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [SPECIES_ROWID], rowidx=0)
 @register_api('/api/annot/species_rowids/', methods=['PUT'])
 def set_annot_species_rowids(ibs, aid_list, species_rowid_list):

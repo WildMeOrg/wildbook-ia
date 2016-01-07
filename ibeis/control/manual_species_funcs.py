@@ -12,6 +12,7 @@ import six  # NOQA
 from six.moves import range, zip, map  # NOQA
 #import numpy as np
 #import vtool as vt
+import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
@@ -105,7 +106,7 @@ def sanitize_species_texts(ibs, species_text_list):
         >>> # verify results
         >>> result = ut.list_str(species_text_list_, nl=False)
         >>> print(result)
-        ['____', '____', 'zebra_plains']
+        ['foo', 'bar', 'zebra_plains']
     """
     # valid_species = ibs.get_all_species_texts()
     # ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
@@ -160,7 +161,7 @@ def _convert_species_nice_to_code(species_nice_list):
 @accessor_decors.adder
 @register_api('/api/species/', methods=['POST'])
 def add_species(ibs, species_nice_list, species_text_list=None,
-                species_code_list=None, species_uuid_list=None, note_list=None):
+                species_code_list=None, species_uuid_list=None, species_note_list=None):
     r"""
     Adds a list of species.
 
@@ -194,7 +195,7 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
         >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
-        ['jaguar', 'zebra_plains', 'zebra_plains', '____', '____', '____', 'zebra_grevys', 'bear_polar']
+        ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
         ['zebra_plains', 'zebra_grevys', 'bear_polar']
 
@@ -203,30 +204,51 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     [u'zebra_plains', u'zebra_grevys', u'bear_polar']
 
     """
+    # Strip all spaces
+    species_nice_list = [ _.strip() for _ in species_nice_list ]
+
     if species_text_list is None:
         species_text_list = _convert_species_nice_to_text(species_nice_list)
     if species_code_list is None:
         species_code_list = _convert_species_nice_to_code(species_nice_list)
-    if note_list is None:
-        note_list = [''] * len(species_text_list)
-    # Sanatize to remove ____
-    # species_text_list_ = ibs.sanitize_species_texts(species_text_list)
-    # Get random uuids
+    if species_note_list is None:
+        species_note_list = [''] * len(species_text_list)
     if species_uuid_list is None:
         species_uuid_list = [uuid.uuid4() for _ in range(len(species_text_list))]
+
+    # Sanatize to remove invalid names
+    flag_list = np.array([
+        species_nice is None or species_nice.strip() in ['_', const.UNKNOWN, 'none', 'None', '']
+        for species_nice in species_nice_list
+    ])
+    species_uuid_list = ut.filterfalse_items(species_uuid_list, flag_list)
+    species_nice_list = ut.filterfalse_items(species_nice_list, flag_list)
+    species_text_list = ut.filterfalse_items(species_text_list, flag_list)
+    species_code_list = ut.filterfalse_items(species_code_list, flag_list)
+    species_note_list = ut.filterfalse_items(species_note_list, flag_list)
+
     superkey_paramx = (1,)
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
     get_rowid_from_superkey = functools.partial(ibs.get_species_rowids_from_text, ensure=False)
     colnames = [SPECIES_UUID, SPECIES_TEXT, SPECIES_NICE, SPECIES_CODE, SPECIES_NOTE]
-    params_iter = list(zip(species_uuid_list, species_text_list, species_nice_list, species_code_list, note_list))
+    params_iter = list(zip(species_uuid_list, species_text_list, species_nice_list, species_code_list, species_note_list))
     species_rowid_list = ibs.db.add_cleanly(const.SPECIES_TABLE, colnames, params_iter,
                                              get_rowid_from_superkey, superkey_paramx)
+    temp_list = np.array([-1] * len(flag_list))
+    temp_list[flag_list == False] = np.array(species_rowid_list)  # NOQA
+    temp_list[flag_list == True] = const.UNKNOWN_SPECIES_ROWID  # NOQA
+    species_rowid_list = list(temp_list)
+    assert -1 not in species_rowid_list
+
+    # Clean species
+    ibs._clean_species()
+
     return species_rowid_list
     #value_list = ibs.sanitize_species_texts(species_text_list)
     #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
     #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
-    #species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, note_list)
+    #species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)
     ##species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else
     ##                      rowid for rowid in species_rowid_list]
     #return species_rowid_list
@@ -293,7 +315,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
         >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
-        ['jaguar', 'zebra_plains', 'zebra_plains', '____', '____', '____', 'zebra_grevys', 'bear_polar']
+        ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
         ['zebra_plains', 'zebra_grevys', 'bear_polar']
 
@@ -380,6 +402,7 @@ def get_species_texts(ibs, species_rowid_list):
     species_text_list = [const.UNKNOWN
                          if rowid == const.UNKNOWN_SPECIES_ROWID else species_text
                          for species_text, rowid in zip(species_text_list, species_rowid_list)]
+    species_text_list = [ const.UNKNOWN if code is None else code for code in species_text_list ]
     return species_text_list
 
 
@@ -404,10 +427,11 @@ def get_species_nice(ibs, species_rowid_list):
         >>> from ibeis.control.manual_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs._clean_species()
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_nice(ibs, species_rowid_list)
         >>> print(result)
-        [u'Zebra (Plains)', u'Zebra (Grevy\'s)', u'Polar Bear']
+        [u'Zebra (Plains)', u"Zebra (Grevy's)", u'Polar Bear']
     """
     # FIXME: use standalone species table
     #species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -415,6 +439,8 @@ def get_species_nice(ibs, species_rowid_list):
     species_nice_list = [const.UNKNOWN
                          if rowid == const.UNKNOWN_SPECIES_ROWID else species_nice
                          for species_nice, rowid in zip(species_nice_list, species_rowid_list)]
+
+    species_nice_list = [ 'Unknown' if code is None else code for code in species_nice_list ]
     return species_nice_list
 
 
@@ -430,8 +456,9 @@ def get_species_codes(ibs, species_rowid_list):
         Method: GET
         URL:    /api/species/codes/
     """
-    species_codes_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list)
-    return species_codes_list
+    species_code_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list)
+    species_code_list = [ 'UNKNOWN' if code is None else code for code in species_code_list ]
+    return species_code_list
 
 
 @register_ibs_method

@@ -2293,6 +2293,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs._clean_species()
         >>> # execute function
         >>> eid = None
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, eid=eid)
@@ -2310,6 +2311,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs._clean_species()
         >>> ibs.delete_all_encounters()
         >>> ibs.compute_encounters()
         >>> # execute function
@@ -2330,8 +2332,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     aids_list = ibs.get_name_aids(nid_list)
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
     unique_species_rowids_list = list(map(ut.unique_keep_order, species_rowids_list))
-    species_codes = ibs.get_species_codes(unique_species_rowids_list)
-    code_list = ['_'.join(codes) for codes in species_codes]
+    code_list = ibs.get_species_codes(ut.flatten(unique_species_rowids_list))
 
     _code2_count = ut.ddict(lambda: 0)
     def get_next_index(code):
@@ -2411,6 +2412,9 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> ibs2 = ibeis.opendb('PZ_MTEST')
         >>> ibs3 = ibeis.opendb('NAUT_test')
         >>> #ibs5 = ibeis.opendb('GIR_Tanya')
+        >>> ibs1._clean_species()
+        >>> ibs2._clean_species()
+        >>> ibs3._clean_species()
         >>> num = None
         >>> str_format = 2
         >>> # execute function
@@ -6148,6 +6152,39 @@ def get_annot_fgweights_subset(ibs, aid_list, fxs_list, config2_=None):
     fgweight_list = ibs.get_annot_fgweights(aid_list, config2_=config2_)
     vecs_list = vt.ziptake(fgweight_list, fxs_list, axis=0)
     return vecs_list
+
+
+@register_ibs_method
+def _clean_species(ibs):
+    print('[_clean_species] Cleaning...')
+    from ibeis.species import species_mapping
+    if ibs is not None:
+        flag = '--allow-keyboard-database-update'
+        from six.moves import input as raw_input_
+        from ibeis.control.manual_species_funcs import _convert_species_nice_to_code
+        species_rowid_list = ibs._get_all_species_rowids()
+        species_text_list = ibs.get_species_texts(species_rowid_list)
+        species_nice_list = ibs.get_species_nice(species_rowid_list)
+        for rowid, text, nice in zip(species_rowid_list, species_text_list, species_nice_list):
+            if text in species_mapping:
+                species_code, species_nice = species_mapping[text]
+            elif text is None or text.strip() in ['_', const.UNKNOWN, 'none', 'None', '']:
+                print('[_clean_species] deleting species: %r' % (text, ))
+                ibs.delete_species(rowid)
+                continue
+            elif len(nice) == 0:
+                if not ut.get_argflag(flag):
+                    species_nice = text
+                    species_code = _convert_species_nice_to_code([species_nice])[0]
+                else:
+                    print('Found an unknown species: %r' % (text, ))
+                    species_nice = raw_input_('Input a NICE name for %r: ' % (text, ))
+                    species_code = raw_input_('Input a CODE name for %r: ' % (text, ))
+                    assert len(species_code) > 0 and len(species_nice) > 0
+            else:
+                continue
+            ibs._set_species_nice([rowid], [species_nice])
+            ibs._set_species_code([rowid], [species_code])
 
 
 if __name__ == '__main__':

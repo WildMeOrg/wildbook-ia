@@ -1285,68 +1285,20 @@ def pre_1_4_9(db, ibs=None):
 
 def update_1_4_9(db, ibs=None):
     db.modify_table(const.SPECIES_TABLE, (
+        (3, 'species_code', 'TEXT', None),
+    ))
+
+    db.modify_table(const.SPECIES_TABLE, (
         (3, 'species_nice', 'TEXT', None),
-        (4, 'species_code', 'TEXT', None),
+    ))
+
+    db.modify_table(const.SPECIES_TABLE, (
         (None, 'species_toggle_enabled', 'INTEGER DEFAULT 1', None),
     ))
 
 
 def post_1_4_9(db, ibs=None):
-    species_mapping = {
-        'bear_polar'          :       ('PB', 'Polar Bear'),
-        'building'            : ('BUILDING', 'Building'),
-        'cheetah'             :     ('CHTH', 'Cheetah'),
-        'elephant_savanna'    :     ('ELEP', 'Elephant (Savanna)'),
-        'frog'                :     ('FROG', 'Frog'),
-        'giraffe_masai'       :     ('GIRM', 'Giraffe (Masai)'),
-        'giraffe_reticulated' :      ('GIR', 'Giraffe (Reticulated)'),
-        'hyena'               :    ('HYENA', 'Hyena'),
-        'jaguar'              :      ('JAG', 'Jaguar'),
-        'leopard'             :     ('LOEP', 'Leopard'),
-        'lion'                :     ('LION', 'Lion'),
-        'lionfish'            :       ('LF', 'Lionfish'),
-        'lynx'                :     ('LYNX', 'Lynx'),
-        'nautilus'            :     ('NAUT', 'Nautilus'),
-        'other'               :    ('OTHER', 'Other'),
-        'rhino_black'         :   ('BRHINO', 'Rhino (Black)'),
-        'rhino_white'         :   ('WRHINO', 'Rhino (White)'),
-        'seal_saimma_ringed'  :    ('SEAL2', 'Seal (Siamaa Ringed)'),
-        'seal_spotted'        :    ('SEAL1', 'Seal (Spotted)'),
-        'snail'               :    ('SNAIL', 'Snail'),
-        'snow_leopard'        :    ('SLEOP', 'Snow Leopard'),
-        'tiger'               :    ('TIGER', 'Tiger'),
-        'toads_wyoming'       :   ('WYTOAD', 'Toad (Wyoming)'),
-        'water_buffalo'       :     ('BUFF', 'Water Buffalo'),
-        'wildebeest'          :       ('WB', 'Wildebeest'),
-        'wild_dog'            :       ('WD', 'Wild Dog'),
-        'whale_fluke'         :       ('WF', 'Whale Fluke'),
-        'whale_humpback'      :       ('HW', 'Humpback Whale'),
-        'whale_shark'         :       ('WS', 'Whale Shark'),
-        'zebra_grevys'        :       ('GZ', 'Zebra (Grevy\'s)'),
-        'zebra_hybrid'        :       ('HZ', 'Zebra (Hybrid)'),
-        'zebra_plains'        :       ('PZ', 'Zebra (Plains)'),
-        const.UNKNOWN         :  ('UNKNOWN', 'Unknown'),
-    }
-
-    if ibs is not None:
-        from six.moves import input as raw_input_
-        species_rowid_list = ibs._get_all_species_rowids()
-        species_text_list = ibs.get_species_texts(species_rowid_list)
-        for rowid, text in zip(species_rowid_list, species_text_list):
-            if text in species_mapping:
-                species_code, species_nice = species_mapping[text]
-            else:
-                flag = '--allow-keyboard-database-update'
-                print('Found an unknown species...')
-                if not ut.get_argflag(flag):
-                    print('    cannot resolve, re-run with flag %r' % (flag, ))
-                    raise RuntimeError('Cannot resolve unknown species')
-                species_nice = raw_input_('Input a NICE name for %r: ' % (text, ))
-                species_code = raw_input_('Input a CODE name for %r: ' % (text, ))
-                assert len(species_code) > 0 and len(species_nice) > 0
-            ibs._set_species_nice([rowid], [species_nice])
-            ibs._set_species_code([rowid], [species_code])
-
+    ibs._clean_species()
     db.modify_table(
         const.SPECIES_TABLE,
         [

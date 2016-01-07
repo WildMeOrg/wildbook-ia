@@ -249,7 +249,9 @@ class IBEISController(BASE_CLASS):
         ibs._send_wildbook_request(wbaddr)
         ibs._init_sql(request_dbversion=request_dbversion)
         ibs._init_config()
-        ibs._init_burned_in_species()
+        if not ut.get_argflag('--noclean'):
+            # ibs._init_burned_in_species()
+            ibs._clean_species()
         ibs.job_manager = None
         print('[ibs.__init__] END new IBEISController\n')
 

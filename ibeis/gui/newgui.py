@@ -687,7 +687,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Update species with ones enabled in database
             ibswgt.update_species_available()
 
-    def update_species_available(ibswgt, reselect=False):
+    def update_species_available(ibswgt, reselect=False, reselect_new_name=None, deleting=False):
         ibs = ibswgt.ibs
         # TODO: update these options depending on ibs.get_species_with_detectors
         # when a controller is attached to the gui
@@ -699,7 +699,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #'none'),
         ] + sorted(list(ibs.get_working_species()))
         ibswgt.species_combo.options = detection_combo_box_options
-        ibswgt.species_combo.updateOptions(reselect=reselect)
+        species_text = ibswgt.back.get_selected_species()
+        reselect_index = None
+        if not deleting and reselect_new_name is None and species_text is not None:
+            species_rowid = ibs.get_species_rowids_from_text(species_text)
+            reselect_new_name = ibs.get_species_nice(species_rowid)
+            print('[update_species_available] Reselecting old selection: %r' % (reselect_new_name, ))
+        nice_name_list = [ str(_[0]) for _ in detection_combo_box_options ]
+        if reselect_new_name in nice_name_list:
+            reselect_index = nice_name_list.index(reselect_new_name)
+            print('[update_species_available] Reselecting renamed selection: %r' % (reselect_new_name, ))
+        print('[update_species_available] Reselecting index: %r' % (reselect_index, ))
+        ibswgt.species_combo.updateOptions(reselect=reselect, reselect_index=reselect_index)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
