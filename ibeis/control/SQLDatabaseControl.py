@@ -631,7 +631,7 @@ class SQLDatabaseController(object):
     @default_decor
     def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
-                    eager=True):
+                    eager=True, keepwrap=False):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the nInput is not given
         if nInput is None:
@@ -657,6 +657,7 @@ class SQLDatabaseController(object):
             'nInput': nInput,
             'start_transaction': True,
             'verbose': verbose,
+            'keepwrap': keepwrap,
         }
 
         with SQLExecutionContext(db, operation, **contextkw) as context:
