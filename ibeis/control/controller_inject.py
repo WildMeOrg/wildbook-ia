@@ -43,6 +43,18 @@ except Exception as ex:
     ut.printex(ex, 'Missing flask.ext.cors', iswarning=True)
     if ut.SUPER_STRICT:
         raise
+
+
+try:
+    from flask.ext.cas import CAS
+    from flask.ext.cas import login_required
+    HAS_FLASK_CAS = True
+except Exception as ex:
+    HAS_FLASK_CAS = False
+    ut.printex(ex, 'Missing flask.ext.cas', iswarning=True)
+    # sudo pip install git+https://github.com/cameronbwhite/Flask-CAS.git
+    if ut.SUPER_STRICT:
+        raise
 # </flask>
 print, rrr, profile = ut.inject2(__name__, '[controller_inject]')
 
@@ -58,6 +70,7 @@ GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
 GLOBAL_APP = None
 GLOBAL_CORS = None
+GLOBAL_CAS = None
 #JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 # REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
@@ -72,6 +85,7 @@ def get_flask_app():
     # TODO this should be initialized explicity in main_module.py only if needed
     global GLOBAL_APP
     global GLOBAL_CORS
+    global GLOBAL_CAS
     global HAS_FLASK
     if not HAS_FLASK:
         print('flask is not installed')
@@ -94,6 +108,12 @@ def get_flask_app():
                                  static_folder=static_dpath)
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
+        if HAS_FLASK_CAS:
+            GLOBAL_CAS = CAS(GLOBAL_APP, '/cas')
+            GLOBAL_APP.config['SESSION_TYPE']    = 'memcached'
+            GLOBAL_APP.config['SECRET_KEY']      = GLOBAL_APP_SECRET
+            GLOBAL_APP.config['CAS_SERVER']      = 'https://cas-auth.rpi.edu'
+            GLOBAL_APP.config['CAS_AFTER_LOGIN'] = 'root'
     return GLOBAL_APP
 
 # try and load flask
@@ -505,6 +525,7 @@ def get_ibeis_flask_route(__name__):
                 @app.route(rule, **options)
                 # @crossdomain(origin='*')
                 # @authentication_user_only
+                @login_required  # FLASK CAS Authentication
                 @wraps(func)
                 def translated_call(**kwargs):
                     #debug = {'kwargs': kwargs}
