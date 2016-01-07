@@ -42,7 +42,8 @@ class ScoreNormalizer(ut.Cachable):
         adjust=8,
         monotonize=False, if True ensures infered probability curves are monotonic
         clip_factor=None,
-        reverse (bool): True if lower scores are better, False if higher scores are better (default=None)
+        reverse (bool): True if lower scores are better, False if higher scores
+            are better (default=None)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -79,10 +80,6 @@ class ScoreNormalizer(ut.Cachable):
         if not any(encoder.thresh_kw.values()):
             encoder.thresh_kw['tpr'] = .90
         # Support data
-        # encoder.oldsupport = dict(
-        #     tp_support=None,
-        #     tn_support=None,
-        # )
         encoder.support = dict(
             X=None,
             y=None,
@@ -501,6 +498,7 @@ class ScoreNormalizer(ut.Cachable):
         Kwargs:
             fnum
             figtitle
+            with_hist
             interactive
             with_scores
             with_roc
