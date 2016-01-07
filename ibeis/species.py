@@ -1,16 +1,4 @@
-
 # -*- coding: utf-8 -*-
-"""
-developer convenience functions for ibs
-
-TODO: need to split up into sub modules:
-    consistency_checks
-    feasibility_fixes
-    move the export stuff to dbio
-
-    then there are also convineience functions that need to be ordered at least
-    within this file
-"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from ibeis import constants as const
