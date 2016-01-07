@@ -12,6 +12,11 @@ initialize = ('# Initialization', ut.codeblock(
     %load_ext autoreload
     %autoreload
 
+    def fix_figsize(w=30, h=10, dpi=256):
+        fig = mpl.pyplot.gcf()
+        fig.set_size_inches(w, h)
+        fig.set_dpi(dpi)
+
     # Set global utool flags
     import utool as ut
     ut.util_io.__PRINT_WRITES__ = False
@@ -130,7 +135,7 @@ timestamp_distribution = ('# Timestamp Distribution', ut.codeblock(
     r'''
     # STARTBLOCK
     #latex_stats = ibeis.other.dbinfo.latex_dbstats([ibs], table_position='[h]') + '\n%--'
-    ##print(latex_stats)}
+    ##print(latex_stats)
     #pdf_fpath = ut.compile_latex_text(latex_stats, dpath=None, verbose=False, quiet=True, pad_stdout=False)
     #pdf_fpath = ut.tail(pdf_fpath, n=2)
     #print(pdf_fpath)
@@ -142,7 +147,7 @@ timestamp_distribution = ('# Timestamp Distribution', ut.codeblock(
     # ENDBLOCK
     '''))
 
-detection_summary = ('# Detection Summary', ut.codeblock(
+example_annotations = ('# Example Annotations / Detections', ut.codeblock(
     r'''
     # STARTBLOCK
     # Get a sample of images
@@ -170,6 +175,22 @@ detection_summary = ('# Detection Summary', ut.codeblock(
         ibeis.viz.show_image(ibs, gid)
     # ENDBLOCK
 '''))
+
+
+example_names = ('# Example Name Graph',  ut.codeblock(
+    r'''
+    # STARTBLOCK
+    from ibeis.viz import viz_graph
+    # Sample some annotations
+    aids = ibs.sample_annots_general(filter_kw=dict(sample_size=20, min_pername=2), verbose=False)
+    # Visualize name graph
+    #print(aids)
+    namegraph = viz_graph.make_name_graph_interaction(ibs, aids=aids, zoom=.4)
+    namegraph.fig.set_size_inches(30, 15)
+    namegraph.fig.set_dpi(256)
+    # ENDBLOCK
+    ''')
+)
 
 
 #######
@@ -212,24 +233,28 @@ config_overlap = ('# Configuration Overlap', ut.codeblock(
 ))
 
 
-feat_score_sep = ('# Feature Score Separation', ut.codeblock(
+feat_score_sep = ('# Feature Correspondence Score Separation', ut.codeblock(
     r'''
     # STARTBLOCK
     test_result = ibeis.run_experiment(
         e='TestResult.draw_feat_scoresep',
         db=db,
         a=a,
-        t=t, disttypes=['L2_sift'])
-    test_result.draw_feat_scoresep(f='', disttypes=['L2_sift'])
+        t=t,
+        #disttypes=['L2_sift']
+    )
+    #test_result.draw_feat_scoresep(f='', disttypes=['L2_sift'])
+    test_result.draw_feat_scoresep(f='', disttypes=None)
+    fix_figsize()
     # ENDBLOCK
     '''))
 
 
-success_scores = ('# Scores of Success Cases', ut.codeblock(
+success_annot_scoresep = ('# Scores of Success Cases', ut.codeblock(
     r'''
     # STARTBLOCK
     testres = ibeis.run_experiment(
-        e='draw_feat_scoresep',
+        e='draw_annot_scoresep',
         db=db, a=a[0:1], t=t[0:1],
         f=[':fail=False,min_gf_timedelta=None'],
     )
@@ -237,7 +262,7 @@ success_scores = ('# Scores of Success Cases', ut.codeblock(
     # ENDBLOCK
     '''))
 
-all_scores = ('# Score Distribution', ut.codeblock(
+all_annot_scoresep = ('# All Score Distribution', ut.codeblock(
     r'''
     # STARTBLOCK
     testres = ibeis.run_experiment(

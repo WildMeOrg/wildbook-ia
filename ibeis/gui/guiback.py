@@ -2096,9 +2096,15 @@ class MainWindowBackend(GUIBACK_BASE):
         import ibeis
         ibeis.sysres.set_workdir(work_dir=None, allow_gui=True)
 
+    @slot_()
+    def launch_ipy_notebook(back):
+        from ibeis.templates import generate_notebook
+        generate_notebook.autogen_ipynb(back.ibs, launch=True)
+
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):
     import ibeis
+    print('launching ipython notebook')
     main_locals = ibeis.main(defaultdb=defaultdb, **kwargs)
     back = main_locals['back']
     return back

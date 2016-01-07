@@ -96,7 +96,32 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
     # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
     #aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
     aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_, verbose=verbose)
-    aid_list_ = filter_annots_intragroup(ibs, aid_list, filter_kw_, verbose=verbose)
+    aid_list_ = filter_annots_intragroup(ibs, aid_list_, filter_kw_, verbose=verbose)
+    return aid_list_
+
+
+@register_ibs_method
+def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwargs):
+    """ filter + sampling """
+    # hack
+    from ibeis.expt import annotation_configs
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    filter_kw_ = annotation_configs.INDEPENDENT_DEFAULTS.copy()
+    filter_kw_.update(annotation_configs.SUBINDEX_DEFAULTS.copy())
+    filter_kw_.update(annotation_configs.SAMPLE_DEFAULTS.copy())
+
+    ut.update_existing(filter_kw_, filter_kw, iswarning=True, assert_exists=True)
+    ut.update_existing(filter_kw_, kwargs, iswarning=True, assert_exists=True)
+    aid_list_ = aid_list
+    #filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
+    # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
+    #aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
+    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_, verbose=verbose)
+    aid_list_ = filter_annots_intragroup(ibs, aid_list_, filter_kw_, verbose=verbose)
+
+    aid_list_ = sample_annots(ibs, aid_list_, filter_kw_, verbose=verbose)
+    aid_list_ = subindex_annots(ibs, aid_list_, filter_kw_, verbose=verbose)
     return aid_list_
 
 

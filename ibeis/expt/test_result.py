@@ -2048,11 +2048,31 @@ class TestResult(object):
     def draw_score_pdfs(testres):
         from ibeis.expt.test_result import *  # NOQA
         from ibeis.init import main_helpers
+        import utool as ut
+        ut.ensure_pylab_qt4()
+        defaultdb = 'PZ_MTEST'
+        defaultdb = 'PZ_Master1'
         ibs, testres = main_helpers.testdata_expts(
-            defaultdb='PZ_MTEST', a=['timectrl'], t=['best'])
+            defaultdb=defaultdb, a=['timectrl'], t=['best'])
+
+        testres.draw_annot_scoresep(f='fail=False')
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=None)
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn', 'fg'])
+
+        ibs, testres = main_helpers.testdata_expts(
+            defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
         # TODO:
         return encoder
+
+    def draw_annot_scoresep(testres, f=None):
+        from ibeis.expt import experiment_drawing
+        experiment_drawing.draw_score_sep(testres.ibs, testres, f=f)
 
     def draw_feat_scoresep(testres, f=None, disttypes=None):
         r"""
@@ -2164,8 +2184,11 @@ class TestResult(object):
         encoder.visualize(
             figtitle=figtitle, fnum=fnum,
             with_scores=False,
-            with_prebayes=1,
-            with_postbayes=True,
+            #with_prebayes=True,
+            with_prebayes=False,
+            with_roc=True,
+            with_postbayes=False,
+            #with_postbayes=True,
             **vizkw
         )
         icon = qreq_.ibs.get_database_icon()

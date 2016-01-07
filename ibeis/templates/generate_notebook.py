@@ -4,7 +4,7 @@ import utool as ut
 from ibeis.templates import notebook_cells
 
 
-def autogen_ipynb(ibs):
+def autogen_ipynb(ibs, launch=None, run=None):
     r"""
     Autogenerates standard IBEIS Image Analysis IPython notebooks.
 
@@ -13,6 +13,9 @@ def autogen_ipynb(ibs):
         python -m ibeis --tf autogen_ipynb --ipynb --db lynx
         python -m ibeis --tf autogen_ipynb --ipynb  --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
         python -m ibeis --tf autogen_ipynb --ipynb  --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
+
+        python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
+
         python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
         python -m ibeis --tf autogen_ipynb --db PZ_Master1 --hacktestscore --ipynb
         python -m ibeis --tf autogen_ipynb --db PZ_Master1 --hacktestscore --run
@@ -32,12 +35,16 @@ def autogen_ipynb(ibs):
     nb_fpath = fname + '.ipynb'
     notebook_str = make_ibeis_notebook(ibs)
     ut.writeto(nb_fpath, notebook_str)
-    if ut.get_argflag('--run'):
+    run = ut.get_argflag('--run') if run is None else run
+    launch = launch if launch is not None else ut.get_argflag('--ipynb')
+    if run:
         run_nb = run_ipython_notebook(notebook_str)
         output_fpath = export_notebook(run_nb, fname)
         ut.startfile(output_fpath)
-    elif ut.get_argflag('--ipynb'):
-        ut.startfile(nb_fpath)
+    elif launch:
+        ut.cmd('jupyter-notebook', nb_fpath, detatch=True)
+        #ut.cmd('ipython-notebook', nb_fpath)
+        #ut.startfile(nb_fpath)
     else:
         print('notebook_str =\n%s' % (notebook_str,))
 
@@ -47,16 +54,19 @@ def get_default_cell_template_list():
         notebook_cells.initialize,
         notebook_cells.annot_config_info,
         notebook_cells.pipe_config_info,
-        #notebook_cells.timestamp_distribution,
-        #notebook_cells.detection_summary,
+
+        notebook_cells.timestamp_distribution,
+        notebook_cells.example_annotations,
+        notebook_cells.example_names,
+
         notebook_cells.per_annotation_accuracy,
         notebook_cells.per_name_accuracy,
         notebook_cells.timedelta_distribution,
         notebook_cells.config_overlap,
         #notebook_cells.dbsize_expt,
         notebook_cells.feat_score_sep,
-        #notebook_cells.all_scores,
-        #notebook_cells.success_scores,
+        notebook_cells.all_annot_scoresep,
+        notebook_cells.success_annot_scoresep,
         notebook_cells.success_cases,
         notebook_cells.failure_type1_cases,
         notebook_cells.failure_type2_cases,
@@ -135,6 +145,7 @@ def make_ibeis_notebook(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
+        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook --db wd_peter_blinston
         python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook
         python -m ibeis --tf make_ibeis_notebook --db lynx
         jupyter-notebook tmp.ipynb
@@ -210,21 +221,34 @@ def make_ibeis_notebook(ibs):
     _format = partial(format_cells, locals_=locals_)
     cell_list = ut.flatten(map(_format, cell_template_list))
     notebook_str = make_notebook(cell_list)
+
+    try:
+        import json
+        json.loads(notebook_str)
+    except ValueError as ex:
+        ut.printex(ex, 'Invalid notebook JSON')
+        raise
+
     return notebook_str
 
 
 def format_cells(block, locals_=None):
-    if isinstance(block, tuple):
-        header, code = block
-    else:
-        header = None
-        code = block
-    if locals_ is not None:
-        code = code.format(**locals_)
-    if header is not None:
-        return [markdown_cell(header), code_cell(code)]
-    else:
-        return [code_cell(code)]
+    try:
+        if isinstance(block, tuple):
+            header, code = block
+        else:
+            header = None
+            code = block
+        if locals_ is not None:
+            code = code.format(**locals_)
+            ut.is_valid_python(code, reraise=True, ipy_magic_workaround=True)
+        if header is not None:
+            return [markdown_cell(header), code_cell(code)]
+        else:
+            return [code_cell(code)]
+    except Exception as ex:
+        ut.printex(ex, 'failed to format cell', keys=['header', 'block'])
+        raise
 
 
 def code_cell(sourcecode):
@@ -359,12 +383,49 @@ def make_notebook(cell_list):
 
 
 def repr_single(s):
+    r"""
+    Args:
+        s (str):
+
+    Returns:
+        str: str_repr
+
+    CommandLine:
+        python -m ibeis.templates.generate_notebook --exec-repr_single --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.templates.generate_notebook import *  # NOQA
+        >>> s = '#HTML(\'<iframe src="%s" width=700 height=350></iframe>\' % pdf_fpath)'
+        >>> result = repr_single(s)
+        >>> print(result)
+    """
     if True:
         str_repr = ut.reprfunc(s)
         import re
         if str_repr.startswith('\''):
+            dq = (ut.DOUBLE_QUOTE)
+            sq = (ut.SINGLE_QUOTE)
+            bs = (ut.BACKSLASH)
+            dq_, sq_, bs_ = list(map(re.escape, [dq, sq, bs]))
+            no_bs = ut.negative_lookbehind(bs_)
+            #no_sq = ut.negative_lookbehind(sq)
+            #no_dq = ut.negative_lookbehind(dq)
+
+            #inside = str_repr[1:-1]
+            #inside = re.sub(no_bs + dq, bs + dq, inside)
+            #inside = re.sub(no_bs + bs + sq, r"\\'", r"'", inside)
+            #str_repr = '"' + inside + '"'
+            #inside = re.sub(r'"', r'\\"', inside)
+            #inside = re.sub(ut.negative_lookbehind(r"'") + r"\\'", r"'", inside)
+
             inside = str_repr[1:-1]
-            str_repr = '"' + re.sub('"', '\\"', inside) + '"'
+            # Escape double quotes
+            inside = re.sub(no_bs + r'"', r'\\"', inside)
+            # Unescape single quotes
+            inside = re.sub(no_bs + bs_ + r"'", r"'", inside)
+            # Append external double quotes
+            str_repr = '"' + inside + '"'
         return str_repr
     else:
         return '"' + ut.reprfunc('\'' + s)[2:]

@@ -238,6 +238,9 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
             for cm in cm_list:
                 # cm.prob_list = normalizer.normalize_score_list(cm.score_list)
                 cm.score_list = normalizer.normalize_score_list(cm.score_list)
+                # TODO: DO EITHER ANNOT_SCORE_LIST OR NAME_SCORE_LIST
+                cm.annot_score_list = normalizer.normalize_score_list(cm.annot_score_list)
+                cm.name_score_list = normalizer.normalize_score_list(cm.name_score_list)
 
     # <HACK>
     # FOR VSMANY DISTINCTIVENSS

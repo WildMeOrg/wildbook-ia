@@ -8,7 +8,7 @@ import utool as ut
 import functools
 from ibeis import constants as const
 import guitool
-ut.noinject(__name__, '[guimenus]', DEBUG=False)
+ut.noinject(__name__, '[guimenus]')
 
 
 class DummyBack(object):
@@ -366,6 +366,10 @@ def setup_developer_menu(mainwin, back):
     """ DEV MENU """
     mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
     menu = mainwin.menuDev
+    menu.newAction(
+        name='actionMakeIPythonNotebook',
+        text='Launch IPython Notebook',
+        slot_fn=back.launch_ipy_notebook)
     menu.newAction(
         name='actionDeveloper_mode',
         text='Developer IPython',
