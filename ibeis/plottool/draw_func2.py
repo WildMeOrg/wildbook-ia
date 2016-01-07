@@ -1633,7 +1633,8 @@ def dark_background(ax=None, doubleit=False, force=False):
 
     #is_using_style('classic')
     #is_using_style('ggplot')
-    HARD_DISABLE = not force
+    #HARD_DISABLE = force is not True
+    HARD_DISABLE = True
     if not HARD_DISABLE:
         # Should use mpl style dark background instead
         bgcolor = BLACK * .9

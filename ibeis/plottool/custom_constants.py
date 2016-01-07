@@ -12,6 +12,7 @@ SMALLER  = 8
 SMALL    = 10
 MED      = 12
 LARGE    = 14
+LARGER    = 18
 #fpargs = dict(family=None, style=None, variant=None, stretch=None, fname=None)
 
 
@@ -42,14 +43,26 @@ FONTS.largebold = FontProp(weight='bold', size=LARGE)
 
 # SPECIFIC FONTS
 
-FONTS.legend   = FONTS.small
-FONTS.figtitle = FONTS.med
-FONTS.axtitle  = FONTS.small
-FONTS.subtitle = FONTS.med
-#FONTS.xlabel   = FONTS.smaller
-FONTS.xlabel   = FONTS.small
-FONTS.ylabel   = FONTS.small
-FONTS.relative = FONTS.smallest
+if False:
+    # personal
+    FONTS.legend   = FONTS.small
+    FONTS.figtitle = FONTS.med
+    FONTS.axtitle  = FONTS.small
+    FONTS.subtitle = FONTS.med
+    #FONTS.xlabel   = FONTS.smaller
+    FONTS.xlabel   = FONTS.small
+    FONTS.ylabel   = FONTS.small
+    FONTS.relative = FONTS.smallest
+else:
+    # personal
+    FONTS.legend   = FONTS.med
+    FONTS.figtitle = FONTS.large
+    FONTS.axtitle  = FONTS.med
+    FONTS.subtitle = FONTS.med
+    #FONTS.xlabel   = FONTS.smaller
+    FONTS.xlabel   = FONTS.med
+    FONTS.ylabel   = FONTS.med
+    FONTS.relative = FONTS.med
 
 # COLORS
 
