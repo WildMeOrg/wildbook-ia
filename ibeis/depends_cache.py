@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 implicit version of dependency cache from templates/template_generator
+
+SeeAlso:
+    https://pypi.python.org/pypi/luigi
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 #from ibeis import constants as const
@@ -230,32 +233,144 @@ class DependencyCache(object):
     def __getitem__(depc, key):
         return depc.cachetable_dict[key]
 
-    def get_descendant_rowids(depc, tablename):
-        print('GET DESCENDANT ROWIDS %s ' % (tablename,))
-        pass
-
     @ut.memoize
     def get_dependencies(depc, tablename):
         """
         gets level dependences from root to tablename
+
+        CommandLine:
+            python -m ibeis.depends_cache --exec-get_dependencies --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.depends_cache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> tablename = 'fgweight'
+            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
+            >>> print(result)
+            [
+                ['dummy_annot'],
+                ['chip', 'probchip'],
+                ['keypoint'],
+                ['fgweight'],
+            ]
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.depends_cache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> tablename = 'spam'
+            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
+            >>> print(result)
+            [
+                ['dummy_annot'],
+                ['chip', 'probchip'],
+                ['keypoint'],
+                ['fgweight'],
+                ['spam'],
+            ]
         """
         root = depc.root_tablename
         children_, parents_ = list(zip(*depc.get_edges()))
         child_to_parents = ut.group_items(children_, parents_)
-        to_root = {tablename: path_to_root(tablename, root, child_to_parents)}
+        to_root = {tablename: paths_to_root(tablename, root, child_to_parents)}
         from_root = reverse_path(to_root, root, child_to_parents)
-        dependency_levels = get_levels(from_root)
+        dependency_levels_ = get_levels(from_root)
+        dependency_levels = longest_levels(dependency_levels_)
         #print('child_to_parents = %s' % (ut.repr3(child_to_parents),))
         #print('to_root = %r' % (to_root,))
         #print('from_root = %r' % (from_root,))
         return dependency_levels
 
-    def get_ancestor_rowids(depc, tablename, root_rowids, config=None,
-                            ensure=True, eager=True, nInput=None):
+    @ut.memoize
+    def get_dependants(depc, tablename):
+        """
+        gets level dependences table to the leaves
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.depends_cache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> tablename = 'chip'
+            >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
+            >>> print(result)
+            [
+                ['chip'],
+                ['keypoint'],
+                ['fgweight', 'descriptor'],
+                ['spam'],
+            ]
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.depends_cache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> tablename = 'spam'
+            >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
+            >>> print(result)
+            [
+                ['spam'],
+            ]
+
+        """
+        children_, parents_ = list(zip(*depc.get_edges()))
+        parent_to_children = ut.group_items(parents_, children_)
+        to_leafs = {tablename: path_to_leafs(tablename, parent_to_children)}
+        dependency_levels_ = get_levels(to_leafs)
+        dependency_levels = longest_levels(dependency_levels_)
+        return dependency_levels
+
+    def get_descendant_rowids(depc, tablename, root_rowids, config=None):
         r"""
         Args:
             tablename (?):
             root_rowids (?):
+            config (None): (default = None)
+
+        Returns:
+            dict: rowid_dict
+
+        CommandLine:
+            python -m ibeis.depends_cache --exec-get_descendant_rowids --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.depends_cache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> tablename = 'chip'
+            >>> root_rowids = [2, 3]
+            >>> config, ensure, eager, nInput = None, True, True, None
+            >>> result = ut.repr3(depc.get_descendant_rowids(tablename, root_rowids, config), nl=1)
+            >>> print(result)
+        """
+        print('GET DESCENDANT ROWIDS %s ' % (tablename,))
+        dependency_levels = depc.get_dependants(tablename)
+        rowid_list = depc.get_rowids(tablename, root_rowids, config)
+        rowid_dict = {tablename: rowid_list}
+        for level_keys in dependency_levels[1:]:
+            # TODO
+            # FIXME; there will be multiple rowids for children.
+            pass
+        #     #print('* level_keys %s ' % (level_keys,))
+        #     for key in level_keys:
+        #         #print('  * key = %r' % (key,))
+        #         table = depc[key]
+        #         # due to different configs
+        #         child_rowids = list(zip(*ut.dict_take(rowid_dict, table.children)))
+        #         # print('parent_rowids = %r' % (parent_rowids,))
+        #         # child_rowids = table.get_rowid_from_superkey(
+        #         #     parent_rowids, config=config, eager=eager, nInput=nInput,
+        #         #     ensure=ensure)
+        #         # print('child_rowids = %r' % (child_rowids,))
+        #         rowid_dict[key] = child_rowids
+        return rowid_dict
+
+    def get_ancestor_rowids(depc, tablename, root_rowids, config=None,
+                            ensure=True, eager=True, nInput=None):
+        r"""
+        Args:
+            tablename (str):
+            root_rowids (list):
             config (None): (default = None)
             ensure (bool):  eager evaluation if True(default = True)
             eager (bool): (default = True)
@@ -271,14 +386,22 @@ class DependencyCache(object):
             >>> tablename = 'spam'
             >>> root_rowids = [1, 2, 3]
             >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = depc.get_ancestor_rowids(tablename, root_rowids, config, ensure, eager, nInput)
+            >>> result = ut.repr3(depc.get_ancestor_rowids(tablename, root_rowids, config, ensure, eager, nInput), nl=1)
+            >>> print(result)
+            {
+                'chip': [1, 2, 3],
+                'dummy_annot': [1, 2, 3],
+                'fgweight': [1, 2, 3],
+                'keypoint': [1, 2, 3],
+                'probchip': [1, 2, 3],
+                'spam': [1, 2, 3],
+            }
         """
         # print('GET ANCESTOR ROWIDS %s ' % (tablename,))
         dependency_levels = depc.get_dependencies(tablename)
-        rowid_dict = {depc.root: root_rowids}
         # print('root_rowids = %r' % (root_rowids,))
         #print('dependency_levels = %s' % (ut.repr3(dependency_levels, nl=2),))
-
+        rowid_dict = {depc.root: root_rowids}
         for level_keys in dependency_levels[1:]:
             #print('* level_keys %s ' % (level_keys,))
             for key in level_keys:
@@ -825,11 +948,50 @@ def dict_depth(dict_, accum=0):
                 for key, val in dict_.items()])
 
 
-def path_to_root(tablename, root, child_to_parents):
+def paths_to_root(tablename, root, child_to_parents):
+    """
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.depends_cache import *  # NOQA
+        >>> child_to_parents = {
+        >>>     'chip': ['dummy_annot'],
+        >>>     'chipmask': ['dummy_annot'],
+        >>>     'descriptor': ['keypoint'],
+        >>>     'fgweight': ['keypoint', 'probchip'],
+        >>>     'keypoint': ['chip'],
+        >>>     'notch': ['dummy_annot'],
+        >>>     'probchip': ['dummy_annot'],
+        >>>     'spam': ['fgweight', 'chip', 'keypoint']
+        >>> }
+        >>> root = 'dummy_annot'
+        >>> tablename = 'fgweight'
+        >>> to_root = paths_to_root(tablename, root, child_to_parents)
+        >>> result = ut.repr3(to_root)
+        >>> print(result)
+        {
+            'keypoint': {
+                'chip': {
+                        'dummy_annot': None,
+                    },
+            },
+            'probchip': {
+                'dummy_annot': None,
+            },
+        }
+    """
     if tablename == root:
         return None
     parents = child_to_parents[tablename]
-    return {parent: path_to_root(parent, root, child_to_parents) for parent in parents}
+    return {parent: paths_to_root(parent, root, child_to_parents)
+            for parent in parents}
+
+
+def path_to_leafs(tablename, parent_to_children):
+    children = parent_to_children[tablename]
+    if len(children) == 0:
+        return None
+    return {child: path_to_leafs(child, parent_to_children) for child in children}
 
 
 def get_allkeys(dict_):
@@ -846,11 +1008,12 @@ def traverse_path(start, end, seen_, allkeys, mat):
     index = allkeys.index(start)
     sub_indexes = np.where(mat[index])[0]
     if len(sub_indexes) > 0:
-        subkeys_ = ut.take(allkeys, sub_indexes)
-        subkeys = [subkey for subkey in subkeys_
-                   if subkey not in seen_]
-        for sk in subkeys:
-            seen_.add(sk)
+        subkeys = ut.take(allkeys, sub_indexes)
+        # subkeys_ = ut.take(allkeys, sub_indexes)
+        # subkeys = [subkey for subkey in subkeys_
+        #            if subkey not in seen_]
+        # for sk in subkeys:
+        #     seen_.add(sk)
         if len(subkeys) > 0:
             return {subkey: traverse_path(subkey, end, seen_, allkeys, mat)
                     for subkey in subkeys}
@@ -858,6 +1021,51 @@ def traverse_path(start, end, seen_, allkeys, mat):
 
 
 def reverse_path(dict_, root, child_to_parents):
+    """
+    CommandLine:
+        python -m ibeis.depends_cache --exec-reverse_path --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.depends_cache import *  # NOQA
+        >>> child_to_parents = {
+        >>>     'chip': ['dummy_annot'],
+        >>>     'chipmask': ['dummy_annot'],
+        >>>     'descriptor': ['keypoint'],
+        >>>     'fgweight': ['keypoint', 'probchip'],
+        >>>     'keypoint': ['chip'],
+        >>>     'notch': ['dummy_annot'],
+        >>>     'probchip': ['dummy_annot'],
+        >>>     'spam': ['fgweight', 'chip', 'keypoint']
+        >>> }
+        >>> to_root = {
+        >>>     'fgweight': {
+        >>>         'keypoint': {
+        >>>                 'chip': {
+        >>>                             'dummy_annot': None,
+        >>>                         },
+        >>>             },
+        >>>         'probchip': {
+        >>>                 'dummy_annot': None,
+        >>>             },
+        >>>     },
+        >>> }
+        >>> reversed_ = reverse_path(to_root, 'dummy_annot', child_to_parents)
+        >>> result = ut.repr3(reversed_)
+        >>> print(result)
+        {
+            'dummy_annot': {
+                'chip': {
+                        'keypoint': {
+                                    'fgweight': None,
+                                },
+                    },
+                'probchip': {
+                        'fgweight': None,
+                    },
+            },
+        }
+    """
     # Hacky but illustrative
     # TODO; implement non-hacky version
     allkeys = get_allkeys(dict_)
@@ -875,15 +1083,129 @@ def reverse_path(dict_, root, child_to_parents):
 
 
 def get_levels(dict_, n=0, levels=None):
+    r"""
+    Args:
+        dict_ (dict_):  a dictionary
+        n (int): (default = 0)
+        levels (None): (default = None)
+
+    CommandLine:
+        python -m ibeis.depends_cache --exec-get_levels --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.depends_cache import *  # NOQA
+        >>> from_root = {
+        >>>     'dummy_annot': {
+        >>>         'chip': {
+        >>>                 'keypoint': {
+        >>>                             'fgweight': None,
+        >>>                         },
+        >>>             },
+        >>>         'probchip': {
+        >>>                 'fgweight': None,
+        >>>             },
+        >>>     },
+        >>> }
+        >>> dict_ = from_root
+        >>> n = 0
+        >>> levels = None
+        >>> levels_ = get_levels(dict_, n, levels)
+        >>> result = ut.repr2(levels_, nl=1)
+        >>> print(result)
+        [
+            ['dummy_annot'],
+            ['chip', 'probchip'],
+            ['keypoint', 'fgweight'],
+            ['fgweight'],
+        ]
+    """
     if levels is None:
-        levels = [[] for _ in range(dict_depth(dict_))]
+        levels_ = [[] for _ in range(dict_depth(dict_))]
+    else:
+        levels_ = levels
     if dict_ is None:
         return []
     for key in dict_.keys():
-        levels[n].append(key)
+        levels_[n].append(key)
     for val in dict_.values():
-        get_levels(val, n + 1, levels)
-    return levels
+        get_levels(val, n + 1, levels_)
+    return levels_
+
+
+def longest_levels(levels_):
+    r"""
+    Args:
+        levels_ (list):
+
+    CommandLine:
+        python -m ibeis.depends_cache --exec-longest_levels --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.depends_cache import *  # NOQA
+        >>> levels_ = [
+        >>>     ['dummy_annot'],
+        >>>     ['chip', 'probchip'],
+        >>>     ['keypoint', 'fgweight'],
+        >>>     ['fgweight'],
+        >>> ]
+        >>> new_levels = longest_levels(levels_)
+        >>> result = ('new_levels = %s' % (ut.repr2(new_levels, nl=1),))
+        >>> print(result)
+        new_levels = [
+            ['dummy_annot'],
+            ['chip', 'probchip'],
+            ['keypoint'],
+            ['fgweight'],
+        ]
+    """
+    return shortest_levels(levels_[::-1])[::-1]
+    # seen_ = set([])
+    # new_levels = []
+    # for level in levels_[::-1]:
+    #     new_level = [item for item in level if item not in seen_]
+    #     seen_ = seen_.union(set(new_level))
+    #     new_levels.append(new_level)
+    # new_levels = new_levels[::-1]
+    # return new_levels
+
+
+def shortest_levels(levels_):
+    r"""
+    Args:
+        levels_ (list):
+
+    CommandLine:
+        python -m ibeis.depends_cache --exec-shortest_levels --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.depends_cache import *  # NOQA
+        >>> levels_ = [
+        >>>     ['dummy_annot'],
+        >>>     ['chip', 'probchip'],
+        >>>     ['keypoint', 'fgweight'],
+        >>>     ['fgweight'],
+        >>> ]
+        >>> new_levels = shortest_levels(levels_)
+        >>> result = ('new_levels = %s' % (ut.repr2(new_levels, nl=1),))
+        >>> print(result)
+        new_levels = [
+            ['dummy_annot'],
+            ['chip', 'probchip'],
+            ['keypoint', 'fgweight'],
+        ]
+    """
+    seen_ = set([])
+    new_levels = []
+    for level in levels_:
+        new_level = [item for item in level if item not in seen_]
+        seen_ = seen_.union(set(new_level))
+        if len(new_level) > 0:
+            new_levels.append(new_level)
+    new_levels = new_levels
+    return new_levels
 
 
 #python -m ibeis.templates.template_generator --key feat --modfname={autogen_modname}
