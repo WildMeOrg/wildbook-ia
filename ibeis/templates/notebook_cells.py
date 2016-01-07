@@ -290,7 +290,7 @@ view_intereseting_tags = ('# Interesting Tags', ut.codeblock(
     # ENDBLOCK
     '''))
 
-success_cases = ('# Success Cases', ut.codeblock(
+easy_success_cases = ('# Cases: Top Success Cases', ut.codeblock(
     r'''
     # STARTBLOCK
     testres = ibeis.run_experiment(
@@ -306,12 +306,29 @@ success_cases = ('# Success Cases', ut.codeblock(
     # ENDBLOCK
     '''))
 
+hard_success_cases = ('# Cases: Challenging Success Cases', ut.codeblock(
+    r'''
+    # STARTBLOCK
+    testres = ibeis.run_experiment(
+        e='draw_cases',
+        db=db, a=a[0:1], t=t[0:1],
+        f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1'],
+        # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
+        # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
+        figsize=(15, 8),
+        **draw_case_kw)
+
+    _ = testres.draw_func()
+    # ENDBLOCK
+    '''))
+
+
 # ================
 # Individual Cases
 # ================
 
 
-failure_type2_cases =  ('# Failure Cases Cases (false neg)', ut.codeblock(
+failure_type2_cases =  ('# Cases: Failure (false neg)', ut.codeblock(
     r'''
     # STARTBLOCK
     testres = ibeis.run_experiment(
@@ -323,7 +340,7 @@ failure_type2_cases =  ('# Failure Cases Cases (false neg)', ut.codeblock(
     # ENDBLOCK
     '''))
 
-failure_type1_cases = ('# Failure Cases Cases (false pos)', ut.codeblock(
+failure_type1_cases = ('# Cases: Failure (false pos)', ut.codeblock(
     r'''
     # STARTBLOCK
     testres = ibeis.run_experiment(
@@ -336,7 +353,7 @@ failure_type1_cases = ('# Failure Cases Cases (false pos)', ut.codeblock(
     '''))
 
 
-investigate_specific_case = ('# Specific Case Investigation', ut.codeblock(
+investigate_specific_case = ('# Cases: Custom Investigation', ut.codeblock(
     r'''
     # STARTBLOCK
     test_result = ibeis.run_experiment(

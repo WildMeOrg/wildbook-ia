@@ -342,7 +342,7 @@ _repo_list = [
     'https://github.com/Erotemic/hesaff.git',
 ]
 
-if ut.get_argflag('--cnn'):
+if True or ut.get_argflag('--cnn'):
     _repo_list += [
         'https://github.com/bluemellophone/ibeis_cnn',
     ]
@@ -379,7 +379,6 @@ if ut.get_argflag('--cnn-deps'):
     #python setup.py develop
     #cd ~/code/Lasagne/
     #python setup.py develop
-
 
     # TODO: add to third party
 
