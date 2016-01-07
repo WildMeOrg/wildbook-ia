@@ -5,14 +5,8 @@ import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
 from functools import partial
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_CONTROL]')
-import six
+print, rrr, profile = utool.inject2(__name__, '[TEST_SQL_CONTROL]')
 import random
-
-if six.PY2:
-    __STR__ = unicode
-else:
-    __STR__ = str
 
 ###########################
 
@@ -69,6 +63,7 @@ def modify_table(db):
         ('test_integer', '', 'TEXT', converter),
     ))
 
+
 def reorder_columns(db, order_list):
     db.reorder_columns('test', order_list)
 
@@ -110,7 +105,7 @@ def _make_empty_controller():
 
 def TEST_SQL_MODIFY():
     db = _make_empty_controller()
-    
+
     #####################
     # Add table
     #####################
@@ -118,7 +113,7 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test')
-    coltype_list = db.get_column_types('test')   
+    coltype_list = db.get_column_types('test')
     assert colname_list == ['test_rowid', 'test_text'], 'Actual values: %r ' % colname_list
     assert coltype_list == ['INTEGER PRIMARY KEY', 'TEXT NOT NULL'], 'Actual values: %r ' % coltype_list
 
@@ -137,7 +132,7 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test')
-    coltype_list = db.get_column_types('test')   
+    coltype_list = db.get_column_types('test')
     assert colname_list == ['test_rowid', 'test_text', 'test_integer'], 'Actual values: %r ' % colname_list
     assert coltype_list == [u'INTEGER PRIMARY KEY', u'TEXT NOT NULL', u'INTEGER'], 'Actual values: %r ' % coltype_list
 
@@ -153,11 +148,11 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test')
-    coltype_list = db.get_column_types('test')   
+    coltype_list = db.get_column_types('test')
     assert colname_list == ['test_rowid', 'test_text', 'test_integer'], 'Actual values: %r ' % colname_list
     assert coltype_list == [u'INTEGER PRIMARY KEY', u'TEXT NOT NULL', u'TEXT'], 'Actual values: %r ' % coltype_list
 
-    integer_list = get_integers(db, 'test', rowid_list) 
+    integer_list = get_integers(db, 'test', rowid_list)
     assert integer_list == [ converter(integer) for integer in integer_list_ ], 'Actual values: %r ' % integer_list
 
     #####################
@@ -167,10 +162,10 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test2')
-    coltype_list = db.get_column_types('test2')   
+    coltype_list = db.get_column_types('test2')
     assert colname_list == ['test_rowid', 'test_text', 'test_integer'], 'Actual values: %r ' % colname_list
     assert coltype_list == ['INTEGER PRIMARY KEY', 'TEXT NOT NULL', 'TEXT'], 'Actual values: %r ' % coltype_list
-    
+
     text_list_ = get_text(db, 'test2', rowid_list)
     assert text_list == text_list_, 'Actual values: %r ' % text_list_
     integer_list_ = get_integers(db, 'test2', rowid_list)
@@ -183,7 +178,7 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test2')
-    coltype_list = db.get_column_types('test2')   
+    coltype_list = db.get_column_types('test2')
     assert colname_list == ['test_rowid', 'test_text', 'test_integer', 'test_integer2'], 'Actual values: %r ' % colname_list
     assert coltype_list == [u'INTEGER PRIMARY KEY', u'TEXT NOT NULL', u'TEXT', u'TEXT'], 'Actual values: %r ' % coltype_list
 
@@ -206,7 +201,7 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test3')
-    coltype_list = db.get_column_types('test3')   
+    coltype_list = db.get_column_types('test3')
     assert colname_list == ['test_rowid', 'test_text', 'test_integer', 'test_integer3'], 'Actual values: %r ' % colname_list
     assert coltype_list == [u'INTEGER PRIMARY KEY', u'TEXT NOT NULL', u'TEXT', u'TEXT'], 'Actual values: %r ' % coltype_list
 
@@ -214,7 +209,7 @@ def TEST_SQL_MODIFY():
     # Reorder table's columns
     #########################
     colname_original_list = db.get_column_names('test')
-    coltype_original_list = db.get_column_types('test')   
+    coltype_original_list = db.get_column_types('test')
 
     order_list = range(len(colname_original_list))
     while order_list == sorted(order_list):
@@ -223,7 +218,7 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list_ = db.get_column_names('test')
-    coltype_list_ = db.get_column_types('test')   
+    coltype_list_ = db.get_column_types('test')
 
     # Find correct new order
     combined = sorted(list(zip(order_list, colname_original_list, coltype_original_list)))
@@ -232,7 +227,7 @@ def TEST_SQL_MODIFY():
 
     assert colname_list_ == colname_list__, 'Actual values: %r ' % colname_list_
     assert coltype_list_ == coltype_list__, 'Actual values: %r ' % coltype_list_
-    
+
     #####################
     # Drop column
     #####################
@@ -240,7 +235,7 @@ def TEST_SQL_MODIFY():
 
     # Verify table's schema
     colname_list = db.get_column_names('test3')
-    coltype_list = db.get_column_types('test3')   
+    coltype_list = db.get_column_types('test3')
     assert colname_list == ['test_rowid', 'test_text', 'test_integer'], 'Actual values: %r ' % colname_list
     assert coltype_list == [u'INTEGER PRIMARY KEY', u'TEXT NOT NULL', u'TEXT'], 'Actual values: %r ' % coltype_list
 

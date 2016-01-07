@@ -44,8 +44,8 @@ def TEST_IBS(ibs):
     name_list = None
     notes_list = None
     aid_list = ibs.add_annots(gid_list, bbox_list, theta_list=theta_list,
-                            nid_list=nid_list, name_list=name_list,
-                            notes_list=notes_list)
+                              nid_list=nid_list, name_list=name_list,
+                              notes_list=notes_list)
     print(' * aid_list=%r' % aid_list)
 
     print('[TEST] 6. get_annot_props')

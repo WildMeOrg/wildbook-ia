@@ -4,6 +4,9 @@ TODO:
     Move flask registering into another file.
     Should also make the actual flask registration lazy.
     It should only be executed if a web instance is being started.
+
+
+python -c "import ibeis"
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
@@ -51,6 +54,7 @@ try:
     HAS_FLASK_CAS = True
 except Exception as ex:
     HAS_FLASK_CAS = False
+    login_required = ut.identity
     ut.printex(ex, 'Missing flask.ext.cas', iswarning=True)
     # sudo pip install git+https://github.com/cameronbwhite/Flask-CAS.git
     if ut.SUPER_STRICT:

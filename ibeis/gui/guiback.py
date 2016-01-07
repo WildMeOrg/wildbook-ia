@@ -571,7 +571,31 @@ class MainWindowBackend(GUIBACK_BASE):
 
     #@backblock
     def select_gid(back, gid, eid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
-        """ Table Click -> Image Table """
+        r"""
+        Table Click -> Image Table
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> print('''
+            >>>           get_valid_gids
+            >>>           ''')
+            >>> valid_gids = ibs.get_valid_gids()
+            >>> print('''
+            >>>           get_valid_aids
+            >>>           ''')
+            >>> valid_aids = ibs.get_valid_aids()
+            >>> #
+            >>> print('''
+            >>> * len(valid_aids) = %r
+            >>> * len(valid_gids) = %r
+            >>> ''' % (len(valid_aids), len(valid_gids)))
+            >>> assert len(valid_gids) > 0, 'database images cannot be empty for test'
+            >>> #
+            >>> gid = valid_gids[0]
+            >>> aid_list = ibs.get_image_aids(gid)
+            >>> aid = aid_list[-1]
+            >>> back.select_gid(gid, aids=[aid])
+        """
         # Select the first ANNOTATION in the image if unspecified
         if sel_aids is None:
             sel_aids = back.ibs.get_image_aids(gid)
@@ -1662,16 +1686,19 @@ class MainWindowBackend(GUIBACK_BASE):
         Args:
             dbdir (None): (default = None)
 
-        Returns:
-            ?:
-
         CommandLine:
             python -m ibeis.gui.guiback --test-open_database
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # GUI_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback(defaultdb='testdb1')
+            >>> testdb0 = sysres.db_to_dbdir('testdb0')
+            >>> testdb1 = sysres.db_to_dbdir('testdb1')
+            >>> print('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
+            >>> back.open_database(testdb1)
+            >>> print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
+            >>> back.open_database(testdb0)
             >>> import ibeis
             >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
             >>> dbdir = None
@@ -1735,8 +1762,37 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,
                                 clock_offset=True):
+        r"""
+        File -> Import Images From File
+
+        Example
+            # GUI_DOCTEST
+            >>> print('[TEST] GET_TEST_IMAGE_PATHS')
+            >>> # The test api returns a list of interesting chip indexes
+            >>> mode = 'FILE'
+            >>> if mode == 'FILE':
+            >>>     gpath_list = list(map(utool.unixpath, grabdata.get_test_gpaths()))
+            >>> #
+            >>>     # else:
+            >>>     #    dir_ = utool.truepath(join(sysres.get_workdir(), 'PZ_MOTHERS/images'))
+            >>>     #    gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)[::4]
+            >>>     print('[TEST] IMPORT IMAGES FROM FILE\n * gpath_list=%r' % gpath_list)
+            >>>     gid_list = back.import_images(gpath_list=gpath_list)
+            >>>     thumbtup_list = ibs.get_image_thumbtup(gid_list)
+            >>>     imgpath_list = [tup[1] for tup in thumbtup_list]
+            >>>     gpath_list2 = ibs.get_image_paths(gid_list)
+            >>>     for path in gpath_list2:
+            >>>         assert path in imgpath_list, "Imported Image not in db, path=%r" % path
+            >>> elif mode == 'DIR':
+            >>>     dir_ = grabdata.get_testdata_dir()
+            >>>     print('[TEST] IMPORT IMAGES FROM DIR\n * dir_=%r' % dir_)
+            >>>     gid_list = back.import_images(dir_=dir_)
+            >>> else:
+            >>>     raise AssertionError('unknown mode=%r' % mode)
+            >>> #
+            >>> print('[TEST] * len(gid_list)=%r' % len(gid_list))
+        """
         print('[back] import_images_from_file')
-        """ File -> Import Images From File"""
         if back.ibs is None:
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
