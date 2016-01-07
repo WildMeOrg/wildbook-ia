@@ -2330,7 +2330,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     aids_list = ibs.get_name_aids(nid_list)
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
     unique_species_rowids_list = list(map(ut.unique_keep_order, species_rowids_list))
-    species_codes = ibs.get_species_code(unique_species_rowids_list)
+    species_codes = ibs.get_species_codes(unique_species_rowids_list)
     code_list = ['_'.join(codes) for codes in species_codes]
 
     _code2_count = ut.ddict(lambda: 0)
@@ -2462,7 +2462,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
             name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
         elif str_format == 2:
             species_rowid = ibs.get_species_rowids_from_text(species_text)
-            species_code = ibs.get_species_code(species_rowid)
+            species_code = ibs.get_species_codes(species_rowid)
             name_prefix = location_text + '_' + species_code + '_'
         else:
             raise ValueError('Invalid str_format supplied')

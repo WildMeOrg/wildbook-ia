@@ -1933,6 +1933,27 @@ class MainWindowBackend(GUIBACK_BASE):
             # FIXME: api-cache is broken here too
             back.ibs.reset_table_cache()
 
+    @blocking_slot()
+    def update_species_nice_name(back):
+        from ibeis.control.manual_species_funcs import _convert_species_nice_to_code
+        ibs = back.ibs
+        species_text = back.get_selected_species()
+        if species_text in [const.UNKNOWN, '']:
+            back.user_info(msg="Contains special encounters")
+            return
+        species_rowid = ibs.get_species_rowids_from_text(species_text)
+        species_nice = ibs.get_species_nice(species_rowid)
+        new_species_nice = back.user_input(
+            msg='Rename species %r to:' % (species_nice, ),
+            title='Rename Species')
+        if new_species_nice is not None:
+            species_rowid = [species_rowid]
+            new_species_nice = [new_species_nice]
+            species_code = _convert_species_nice_to_code(new_species_nice)
+            ibs._set_species_nice(species_rowid, new_species_nice)
+            ibs._set_species_code(species_rowid, species_code)
+            back.ibswgt.update_species_available(reselect=True)
+
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):
         eid = back.get_selected_eid()

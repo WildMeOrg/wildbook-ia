@@ -1068,6 +1068,37 @@ def _init_config(ibs):
 
 
 @register_ibs_method
+def _init_burned_in_species(ibs):
+    # Add missing "required" species
+    species_nice_list = [
+        'Giraffe (Masai)',
+        'Giraffe (Reticulated)',
+        'Other',
+        'Zebra (Grevy\'s)',
+        'Zebra (Hybrid)',
+        'Zebra (Plains)',
+    ]
+    species_text_list = [
+        'giraffe_masai',
+        'giraffe_reticulated',
+        'other',
+        'zebra_grevys',
+        'zebra_hybrid',
+        'zebra_plains',
+    ]
+    species_code_list = [
+        'GIRM',
+        'GIR',
+        'OTHER',
+        'GZ',
+        'HZ',
+        'PZ',
+    ]
+    ibs.add_species(species_nice_list, species_text_list, species_code_list)
+    print('[_init_burned_in_species] Burned in mising species...')
+
+
+@register_ibs_method
 def _load_named_config(ibs, cfgname=None):
     r"""
     Auto-docstr for '_load_named_config'

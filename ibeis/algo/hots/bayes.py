@@ -14,9 +14,6 @@ import numpy as np
 from six.moves import zip
 from ibeis.algo.hots import pgm_ext
 from ibeis.algo.hots import pgm_viz
-import pgmpy
-import pgmpy.inference
-import pgmpy.inference.Sampling
 
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
@@ -484,6 +481,7 @@ def report_partitioning_statistics(new_reduced_joint):
 
 
 def _test_compute_reduced_joint(model, query_vars, evidence, method):
+    import pgmpy
     operation = 'maximize'
     variables = query_vars
 
@@ -510,6 +508,7 @@ def _test_compute_reduced_joint(model, query_vars, evidence, method):
 def compute_reduced_joint(model, query_vars, evidence, method,
                           operation='maximize'):
     if method == 'approx':
+        import pgmpy
         # TODO: incorporate operation?
         query_states = model.get_number_of_states(query_vars)
         print('model.number_of_states = %r' % (

@@ -683,18 +683,23 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 else:
                     #with ut.Indenter('[SET NEG1 ENC]'):
                     ibswgt._change_enc(-1)
-            # Update species with ones enabled in database
 
-            # TODO: update these options depending on ibs.get_species_with_detectors
-            # when a controller is attached to the gui
-            detection_combo_box_options = [
-                # Text              # Value
-                #('Select Species',  'none'),
-                ('Select Species',  const.UNKNOWN),
-                #'none'),
-            ] + sorted(list(ibs.get_working_species()))
-            ibswgt.species_combo.options = detection_combo_box_options
-            ibswgt.species_combo.updateOptions()
+            # Update species with ones enabled in database
+            ibswgt.update_species_available()
+
+    def update_species_available(ibswgt, reselect=False):
+        ibs = ibswgt.ibs
+        # TODO: update these options depending on ibs.get_species_with_detectors
+        # when a controller is attached to the gui
+        detection_combo_box_options = [
+            # Text              # Value
+            #('Select Species',  'none'),
+            ('Select Species',  const.UNKNOWN),
+            ('Unknown',  const.UNKNOWN),
+            #'none'),
+        ] + sorted(list(ibs.get_working_species()))
+        ibswgt.species_combo.options = detection_combo_box_options
+        ibswgt.species_combo.updateOptions(reselect=reselect)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()

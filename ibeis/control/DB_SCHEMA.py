@@ -1282,33 +1282,6 @@ def pre_1_4_9(db, ibs=None):
                 aid_list_ = ut.filter_items(aid_list, flag_list)
                 ibs.update_annot_semantic_uuids(aid_list_)
 
-        # Add missing "required" species
-        species_nice_list = [
-            'Giraffe (Masai)',
-            'Giraffe (Reticulated)',
-            'Other',
-            'Zebra (Grevy\'s)',
-            'Zebra (Hybrid)',
-            'Zebra (Plains)'
-        ]
-        species_text_list = [
-            'giraffe_masai',
-            'giraffe_reticulated',
-            'other',
-            'zebra_grevys',
-            'zebra_hybrid',
-            'zebra_plains',
-        ]
-        species_code_list = [
-            'GIRM',
-            'GIR',
-            'OTHER',
-            'GZ',
-            'HZ',
-            'PZ',
-        ]
-        ibs.add_species(species_nice_list, species_text_list, species_code_list)
-
 
 def update_1_4_9(db, ibs=None):
     db.modify_table(const.SPECIES_TABLE, (

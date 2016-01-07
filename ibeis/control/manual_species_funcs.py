@@ -107,30 +107,53 @@ def sanitize_species_texts(ibs, species_text_list):
         >>> print(result)
         ['____', '____', 'zebra_plains']
     """
-    valid_species = ibs.get_all_species_texts()
-    ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
-    def _sanitize_species_text(species_text):
-        if species_text is None:
-            return None
-        elif species_text in valid_species:
-            return species_text
-        else:
-            return const.UNKNOWN
-    species_text_list_ = [_sanitize_species_text(species_text)
-                          for species_text in species_text_list]
-    # old but same logic
-    #species_text_list_ = [None if species_text is None else
-    #                      species_text if species_text in valid_species else
-    #                      const.UNKNOWN
-    #                      for species_text in species_text_list]
-    # oldest different logic
-    #species_text_list_ = [None
-    #                      if species_text is None or species_text == const.UNKNOWN
-    #                      else species_text.lower()
-    #                      for species_text in species_text_list]
-    #species_text_list_ = [species_text if species_text in valid_species else None
-    #                      for species_text in species_text_list_]
-    return species_text_list_
+    # valid_species = ibs.get_all_species_texts()
+    # ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
+    # def _sanitize_species_text(species_text):
+    #     if species_text is None:
+    #         return None
+    #     elif species_text in valid_species:
+    #         return species_text
+    #     else:
+    #         return const.UNKNOWN
+    # species_text_list_ = [_sanitize_species_text(species_text)
+    #                       for species_text in species_text_list]
+    # # old but same logic
+    # #species_text_list_ = [None if species_text is None else
+    # #                      species_text if species_text in valid_species else
+    # #                      const.UNKNOWN
+    # #                      for species_text in species_text_list]
+    # # oldest different logic
+    # #species_text_list_ = [None
+    # #                      if species_text is None or species_text == const.UNKNOWN
+    # #                      else species_text.lower()
+    # #                      for species_text in species_text_list]
+    # #species_text_list_ = [species_text if species_text in valid_species else None
+    # #                      for species_text in species_text_list_]
+    # return species_text_list_
+    return species_text_list
+
+
+def _convert_species_nice_to_text(species_nice_list):
+    import re
+    def _convert(nice):
+        nice = re.sub(r'[ ]+', '_', nice)
+        nice = re.sub(r'[^a-zA-Z0-9_]+', '', nice)
+        nice = re.sub(r'[_]+', '_', nice)
+        nice = nice.lower()
+        return nice
+    return [ _convert(species_nice) for species_nice in species_nice_list ]
+
+
+def _convert_species_nice_to_code(species_nice_list):
+    import re
+    def _convert(text):
+        text = re.sub(r'[_]+', ' ', text)
+        text = text.title()
+        text = re.sub(r'[^A-Z0-9]+', '', text)
+        return text
+    species_text_list = _convert_species_nice_to_text(species_nice_list)
+    return [ _convert(species_text) for species_text in species_text_list ]
 
 
 @register_ibs_method
@@ -180,10 +203,14 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     [u'zebra_plains', u'zebra_grevys', u'bear_polar']
 
     """
+    if species_text_list is None:
+        species_text_list = _convert_species_nice_to_text(species_nice_list)
+    if species_code_list is None:
+        species_code_list = _convert_species_nice_to_code(species_nice_list)
     if note_list is None:
         note_list = [''] * len(species_text_list)
     # Sanatize to remove ____
-    species_text_list_ = ibs.sanitize_species_texts(species_text_list)
+    # species_text_list_ = ibs.sanitize_species_texts(species_text_list)
     # Get random uuids
     if species_uuid_list is None:
         species_uuid_list = [uuid.uuid4() for _ in range(len(species_text_list))]
@@ -191,8 +218,8 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
     get_rowid_from_superkey = functools.partial(ibs.get_species_rowids_from_text, ensure=False)
-    colnames = [SPECIES_UUID, SPECIES_TEXT, SPECIES_NOTE]
-    params_iter = list(zip(species_uuid_list, species_text_list_, note_list))
+    colnames = [SPECIES_UUID, SPECIES_TEXT, SPECIES_NICE, SPECIES_CODE, SPECIES_NOTE]
+    params_iter = list(zip(species_uuid_list, species_text_list, species_nice_list, species_code_list, note_list))
     species_rowid_list = ibs.db.add_cleanly(const.SPECIES_TABLE, colnames, params_iter,
                                              get_rowid_from_superkey, superkey_paramx)
     return species_rowid_list
@@ -393,18 +420,18 @@ def get_species_nice(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/species/code/', methods=['GET'])
-def get_species_code(ibs, species_rowid_list):
+@register_api('/api/species/codes/', methods=['GET'])
+def get_species_codes(ibs, species_rowid_list):
     r"""
     Returns:
-        list_ (list): code_list - species code
+        list_ (list): code_list - species codes
 
     RESTful:
         Method: GET
-        URL:    /api/species/code/
+        URL:    /api/species/codes/
     """
-    species_code_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list)
-    return species_code_list
+    species_codes_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_CODE,), species_rowid_list)
+    return species_codes_list
 
 
 @register_ibs_method

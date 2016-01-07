@@ -230,6 +230,9 @@ def setup_actions_menu(mainwin, back):
     menu.newAction(
         text='Override All Annotation Species',
         slot_fn=back.override_all_annotation_species)
+    menu.newAction(
+        text='Rename Species',
+        slot_fn=back.update_species_nice_name)
     menu.addSeparator()  # ---------
     menu.newAction(
         name='actionDeleteAllEncounters',
