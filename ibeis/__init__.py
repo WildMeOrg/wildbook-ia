@@ -51,7 +51,7 @@ try:
                                    test_main, opendb, opendb_in_background, opendb_bg_web)
     from ibeis.control.IBEISControl import IBEISController
     from ibeis.algo.hots.query_request import QueryRequest
-    from ibeis.algo.hots.chip_match import ChipMatch
+    from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
     from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
     from ibeis.init import main_helpers
 
@@ -63,6 +63,7 @@ try:
     from ibeis.templates import generate_notebook
     from ibeis import depends_cache
     from ibeis.depends_cache import register_preproc
+    register_id_algo = ut.identity
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise

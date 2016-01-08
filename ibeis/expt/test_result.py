@@ -2046,7 +2046,9 @@ class TestResult(object):
         pass
 
     def draw_score_pdfs(testres):
-        from ibeis.expt.test_result import *  # NOQA
+        """
+        >>> from ibeis.expt.test_result import *  # NOQA
+        """
         from ibeis.init import main_helpers
         import utool as ut
         ut.ensure_pylab_qt4()

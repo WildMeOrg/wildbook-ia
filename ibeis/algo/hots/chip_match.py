@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import copy
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -608,7 +609,31 @@ class _ChipMatchScorers(object):
         cm.set_cannonical_name_score(cm.csum_score_list, cm.ncov_score_list)
 
 
-class AnnotMatch(object):
+class MatchBaseIO(object):
+
+    @classmethod
+    def load_from_fpath(cls, fpath, verbose=None):
+        state_dict = ut.load_cPkl(fpath, verbose=verbose)
+        self = cls()
+        self.__setstate__(state_dict)
+        return self
+
+    def __getstate__(cm):
+        state_dict = cm.__dict__
+        return state_dict
+
+    def __setstate__(cm, state_dict):
+        cm.__dict__.update(state_dict)
+
+    def copy(self):
+        cls = self.__class__
+        out = cls()
+        state_dict = copy.deepcopy(self.__getstate__())
+        out.__setstate__(state_dict)
+        return out
+
+
+class AnnotMatch(MatchBaseIO):
     """
     This implements part the match between whole annotations and the other
     annotaions / names. This does not include algorithm specific feature
@@ -985,12 +1010,6 @@ class ChipMatch(AnnotMatch,
             if DEBUG_CHIPMATCH:
                 cm.assert_self(verbose=True)
 
-    def copy(cm):
-        import copy
-        out = ChipMatch()
-        out.__setstate__(copy.deepcopy(cm.__getstate__))
-        return out
-
     def _empty_hack(cm):
         if cm.daid_list is None:
             cm.daid_list = np.empty(0, dtype=np.int)
@@ -1007,13 +1026,6 @@ class ChipMatch(AnnotMatch,
         cm.score_list = np.empty(0)
         cm.name_score_list = np.empty(0)
         cm.annot_score_list = np.empty(0)
-
-    def __getstate__(cm):
-        state_dict = cm.__dict__
-        return state_dict
-
-    def __setstate__(cm, state_dict):
-        cm.__dict__.update(state_dict)
 
     def __eq__(cm, other):
         # if isinstance(other, cm.__class__):
@@ -1520,7 +1532,6 @@ class ChipMatch(AnnotMatch,
             >>> ut.show_if_requested()
             >>> # result = ('json_str = \n%s' % (str(json_str),))
             >>> # print(result)
-
         """
         json_str = ut.to_json(cm.__dict__)
         return json_str
@@ -1570,14 +1581,14 @@ class ChipMatch(AnnotMatch,
         #ut.save_data(fpath, cm.__getstate__(), verbose=verbose)
         ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose)
 
-    @classmethod
-    def load(cls, qreq_, qaid, dpath=None, verbose=None):
-        fname = get_chipmatch_fname(qaid, qreq_)
-        if dpath is None:
-            dpath = qreq_.get_qresdir()
-        fpath = join(dpath, fname)
-        cm = cls.load_from_fpath(fpath, verbose=verbose)
-        return cm
+    #@classmethod
+    #def load(cls, qreq_, qaid, dpath=None, verbose=None):
+    #    fname = get_chipmatch_fname(qaid, qreq_)
+    #    if dpath is None:
+    #        dpath = qreq_.get_qresdir()
+    #    fpath = join(dpath, fname)
+    #    cm = cls.load_from_fpath(fpath, verbose=verbose)
+    #    return cm
 
     @classmethod
     def load_from_fpath(cls, fpath, verbose=None):

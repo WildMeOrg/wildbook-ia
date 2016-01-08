@@ -220,6 +220,63 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     return unique_species
 
 
+class IdRequest(object):
+
+    @classmethod
+    def new_request(cls, ibs, qaid_list, daid_list, config):
+        self = cls()
+        self.qaids = qaid_list
+        self.daids = daid_list
+        self.config = config
+        self.ibs = ibs
+
+    def __init__(self):
+        self.qaids = None
+        self.daids = None
+        self.config = None
+        self.ibs = None
+
+    def get_data_hashid(self):
+        daids = self.daids
+        data_hashid = self.ibs.get_annot_hashid_semantic_uuid(
+            daids, prefix='D')
+        return data_hashid
+
+    def get_query_hashid(self):
+        qaids = self.qaids
+        query_hashid = self.ibs.get_annot_hashid_semantic_uuid(
+            qaids, prefix='Q')
+        return query_hashid
+
+    def get_pipe_cfgstr(self):
+        return ut.to_json(self.config)
+
+    def get_pipe_hashid(self):
+        return ut.hashstr27(self.get_pipe_cfgstr())
+
+    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
+        r"""
+        main cfgstring used to identify the 'querytype'
+        """
+        cfgstr_list = []
+        if with_query:
+            cfgstr_list.append(qreq_.get_query_hashid())
+        if with_data:
+            cfgstr_list.append(qreq_.get_data_hashid())
+        if with_pipe:
+            if hash_pipe:
+                cfgstr_list.append(qreq_.get_pipe_hashstr())
+            else:
+                cfgstr_list.append(qreq_.get_pipe_cfgstr())
+        cfgstr = ''.join(cfgstr_list)
+        return cfgstr
+
+    def get_full_cfgstr(qreq_):
+        """ main cfgstring used to identify the algo hash id """
+        full_cfgstr = qreq_.get_cfgstr(with_query=True)
+        return full_cfgstr
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class QueryRequest(object):
     """
@@ -721,6 +778,9 @@ class QueryRequest(object):
             qaids, prefix='Q', **hashkw)
         return query_hashid
 
+    def get_pipe_hashid(qreq_):
+        return qreq_.get_pipe_hashstr()
+
     def get_internal_query_hashid(qreq_):
         if qreq_.qparams.vsmany:
             return qreq_.get_query_hashid()
@@ -1134,6 +1194,10 @@ class QueryRequest(object):
             return cm_list[0]
         else:
             return cm_list
+
+    def execute(qreq_):
+        cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+        return cm_list
 
 
 def test_cfg_deepcopy():

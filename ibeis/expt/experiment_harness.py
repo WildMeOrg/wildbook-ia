@@ -302,8 +302,8 @@ def get_qres_name_result_info(ibs, qres, qreq_):
 
     if gt_rank is None or gf_rank is None:
         if isinstance(qres, chip_match.ChipMatch):
-            gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.get_external_daids())
-            #gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.get_external_daids())
+            gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.daids)
+            #gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
         else:
             gt_aids = cm.get_groundtruth_daids()
             #gf_aids = ibs.get_annot_groundfalse(qres.get_qaid(), daid_list=qres.get_daids())
@@ -410,13 +410,14 @@ def get_query_result_info(qreq_):
     """
     ibs = qreq_.ibs
     import vtool as vt
-    cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
+    #cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
+    cm_list = qreq_.execute()
     qx2_cm = cm_list
     #cm_list = [qres.as_chipmatch() for qres in qx2_cm]
-    qaids = qreq_.get_external_qaids()
+    qaids = qreq_.qaids
     qnids = ibs.get_annot_name_rowids(qaids)
 
-    unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.get_external_daids()))
+    unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
 
     unique_qnids, groupxs = vt.group_indices(qnids)
     cm_group_list = vt.apply_grouping_(cm_list, groupxs)
@@ -462,8 +463,8 @@ def get_query_result_info(qreq_):
         nameres_info_list.append(qnx2_nameres_info)
         nameres_info = ut.dict_stack(nameres_info_list, 'qnx2_')
 
-    qaids = qreq_.get_external_qaids()
-    daids = qreq_.get_external_daids()
+    qaids = qreq_.qaids
+    daids = qreq_.daids
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
     qx2_qresinfo = [get_qres_name_result_info(ibs, qres, qreq_) for qres in qx2_cm]

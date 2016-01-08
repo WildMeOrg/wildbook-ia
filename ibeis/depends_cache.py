@@ -36,6 +36,7 @@ if six.PY2:
 
 # List of globally registered functions
 __PREPROC_REGISTER__ = []
+__ALGO_REGISTER__ = []
 
 
 def check_register(args, kwargs):
@@ -49,6 +50,16 @@ def register_preproc(*args, **kwargs):
     dependency caches containing the parents. See
     DependencyCache._register_prop for additional information.
 
+    Args:
+        tablename (str):
+        parents (list): (default = None)
+        colnames (list): (default = None)
+        coltypes (list): (default = None)
+        docstr (str): (default = None)
+        fname (str):  file name(default = None)
+        asobject (bool): (default = False)
+        chunksize (int): (default = None)
+
     SeeAlso
         DependencyCache._register_prop - class specific version.
     """
@@ -60,9 +71,43 @@ def register_preproc(*args, **kwargs):
     return register_preproc_wrapper
 
 
+def register_algo(*args, **kwargs):
+    """
+
+    Args:
+        algoname (str):
+        algo_request_class (class):
+        docstr (None): (default = None)
+        fname (str):  file name (default = None)
+        chunksize (None): (default = None)
+
+    SeeAlso
+        DependencyCache._register_algo
+    """
+    def _wrapper(func):
+        kwargs['algo_func'] = func
+        __ALGO_REGISTER__.append((args, kwargs))
+        return func
+    return _wrapper
+
+
 class DependencyCache(object):
+    """
+
+    To use this class a user must:
+
+        * on root modification, call depc.on_root_modified
+
+        * use decorators to register relevant functions
+
+        * write an algorithm that accepts an AlgoRequest
+        object, containing root ids and a configuration object.
+
+
+    """
     def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
-                 controller=None, default_fname=None, root_asobject=None, use_globals=True):
+                 controller=None, default_fname=None, root_asobject=None,
+                 use_globals=True, get_root_hashid=None):
         # Root of all dependencies
         depc.root_tablename = root_tablename
         # Directory all cachefiles are stored in
@@ -76,6 +121,7 @@ class DependencyCache(object):
         # Function to map a root rowid to an object
         depc._root_asobject = root_asobject
         depc._use_globals = use_globals
+        depc.get_root_hashid = get_root_hashid
         if default_fname is None:
             default_fname = ':memory:'
         depc.default_fname = default_fname
@@ -88,6 +134,10 @@ class DependencyCache(object):
             depc._register_prop(*args, **kwargs)
             return func
         return register_preproc_wrapper
+
+    def _register_algo(depc, algoname, algo_func=None, docstr=None,
+                       fname=None, chunksize=None):
+        pass
 
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
@@ -484,6 +534,9 @@ class DependencyCache(object):
         except Exception as ex:
             ut.printex(ex, 'error in getobj', keys=['tablename', 'root_rowids', 'colnames'])
             raise
+
+    def request_algorithm(depc, algoname):
+        pass
 
 
 class DependencyCacheTable(object):
