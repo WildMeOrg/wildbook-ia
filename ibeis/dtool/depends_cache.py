@@ -12,7 +12,7 @@ import numpy as np
 import uuid
 import six
 from six.moves import zip, range
-from dtool import SQLDatabaseController
+from dtool.sql_control import SQLDatabaseController
 (print, rrr, profile) = ut.inject2(__name__, '[depcache]')
 
 

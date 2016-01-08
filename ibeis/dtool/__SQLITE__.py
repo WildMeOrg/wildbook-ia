@@ -2,14 +2,14 @@
 """
 custom sqlite3 module that supports numpy types
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 import sys
 import six
 import io
 import uuid
 import numpy as np
 import utool as ut
-ut.noinject(__name__, '[dtool.__SQLITE3__]')
+ut.noinject(__name__, '[dtool.__SQLITE__]')
 
 
 VERBOSE_SQL = '--veryverbose' in sys.argv or '--verbose' in sys.argv or '--verbsql' in sys.argv

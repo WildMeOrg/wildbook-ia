@@ -11,7 +11,7 @@ import utool as ut
 import collections
 from six.moves import map, zip, cStringIO
 from os.path import join, exists
-from dtool import __SQLITE3__ as lite
+from dtool import __SQLITE__ as lite
 print, rrr, profile = ut.inject2(__name__, '[sql]')
 
 
@@ -517,7 +517,7 @@ class SQLDatabaseController(object):
             iterable: rowid_list_ -- list of newly added or previously added rowids
 
         Example:
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> db = '?'
             >>> tblname = tblname_temp
             >>> colnames = dst_list
@@ -927,13 +927,13 @@ class SQLDatabaseController(object):
             list: metadata_items
 
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=PZ_Master0
-            python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=testdb1
-            python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items
+            python -m dtool.sql_control --exec-get_metadata_items --db=PZ_Master0
+            python -m dtool.sql_control --exec-get_metadata_items --db=testdb1
+            python -m dtool.sql_control --exec-get_metadata_items
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> db = ibeis.opendb(defaultdb='testdb1').db
             >>> metadata_items = db.get_metadata_items()
@@ -1386,7 +1386,7 @@ class SQLDatabaseController(object):
         """ Convenience: Autogenerates the most up-to-date database schema
 
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --exec-get_schema_current_autogeneration_str
+            python -m dtool.sql_control --exec-get_schema_current_autogeneration_str
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1399,7 +1399,7 @@ class SQLDatabaseController(object):
         # Define what tab space we want to save
         tab1 = ' ' * 4
         line_list = []
-        #autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_dbschema
+        #autogen_cmd = 'python -m dtool.DB_SCHEMA --test-test_dbschema
         #--force-incremental-db-update --dump-autogen-schema'
         # File Header
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
@@ -1557,14 +1557,14 @@ class SQLDatabaseController(object):
             list: superkeys
 
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --test-get_table_superkey_colnames
+            python -m dtool.sql_control --test-get_table_superkey_colnames
             python -m ibeis --tf get_table_superkey_colnames --tablename=contributors
             python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
             python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=contributors  # NOQA
 
         Example0:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> tablename = ut.get_argval('--tablename', type_=str, default='lblimage')
@@ -1622,11 +1622,11 @@ class SQLDatabaseController(object):
     def get_table_docstr(db, tablename):
         r"""
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --exec-get_table_docstr
+            python -m dtool.sql_control --exec-get_table_docstr
 
         Example0:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> tablename = ut.get_argval('--tablename', type_=str, default='contributors')
@@ -1663,13 +1663,13 @@ class SQLDatabaseController(object):
             http://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists
 
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --exec-get_columns
-            python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=contributors
-            python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=nonexist
+            python -m dtool.sql_control --exec-get_columns
+            python -m dtool.sql_control --exec-get_columns --tablename=contributors
+            python -m dtool.sql_control --exec-get_columns --tablename=nonexist
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> db = ibeis.opendb(defaultdb='testdb1').db
             >>> tablename = ut.get_argval('--tablename', type_=str, default=ibeis.const.NAME_TABLE)
@@ -1737,11 +1737,11 @@ class SQLDatabaseController(object):
     def get_table_column_data(db, tablename, exclude_columns=[]):
         """
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --test-get_table_column_data
+            python -m dtool.sql_control --test-get_table_column_data
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> # build test data
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
@@ -1770,16 +1770,16 @@ class SQLDatabaseController(object):
             ?: new_transferdata
 
         CommandLine:
-            python -m ibeis --tf SQLDatabaseControl.make_json_table_definition
+            python -m ibeis --tf sql_control.make_json_table_definition
 
         CommandLine:
-            python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
+            python -m utool --tf iter_module_doctestable --modname=dtool.sql_control
             --include_inherited=True
-            python -m ibeis.control.SQLDatabaseControl --exec-make_json_table_definition
+            python -m dtool.sql_control --exec-make_json_table_definition
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
@@ -1867,13 +1867,13 @@ class SQLDatabaseController(object):
     def get_table_new_transferdata(db, tablename, exclude_columns=[]):
         """
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --test-get_table_column_data
-            python -m ibeis.control.SQLDatabaseControl --test-get_table_new_transferdata
-            python -m ibeis.control.SQLDatabaseControl --test-get_table_new_transferdata:1
+            python -m dtool.sql_control --test-get_table_column_data
+            python -m dtool.sql_control --test-get_table_new_transferdata
+            python -m dtool.sql_control --test-get_table_new_transferdata:1
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
@@ -1890,7 +1890,7 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
@@ -2020,12 +2020,12 @@ class SQLDatabaseController(object):
             db_src (SQLController): merge data from db_src into db
 
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --test-merge_databases_new:0
-            python -m ibeis.control.SQLDatabaseControl --test-merge_databases_new:2
+            python -m dtool.sql_control --test-merge_databases_new:0
+            python -m dtool.sql_control --test-merge_databases_new:2
 
         Example0:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
             >>> ibs_src = ibeis.opendb(db='testdb1')
@@ -2041,7 +2041,7 @@ class SQLDatabaseController(object):
 
         Example1:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs_src = ibeis.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
@@ -2057,7 +2057,7 @@ class SQLDatabaseController(object):
 
         Example2:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs_src = ibeis.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
@@ -2302,12 +2302,12 @@ class SQLDatabaseController(object):
             str: csv_table
 
         CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --test-get_table_csv
-            python -m ibeis.control.SQLDatabaseControl --exec-get_table_csv --tablename=contributors
+            python -m dtool.sql_control --test-get_table_csv
+            python -m dtool.sql_control --exec-get_table_csv --tablename=contributors
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> tablename = ut.get_argval('--tablename', type_=str, default='names')
@@ -2379,10 +2379,10 @@ class SQLDatabaseController(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.SQLDatabaseControl
-        python -m ibeis.control.SQLDatabaseControl --allexamples
-        python -m ibeis.control.SQLDatabaseControl --allexamples --verbtest
-        python -m ibeis.control.SQLDatabaseControl --allexamples --noface --nosrc
+        python -m dtool.sql_control
+        python -m dtool.sql_control --allexamples
+        python -m dtool.sql_control --allexamples --verbtest
+        python -m dtool.sql_control --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
