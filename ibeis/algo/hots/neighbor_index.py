@@ -4,20 +4,6 @@ TODO:
     Remove Bloat
 
 module which handles the building and caching of individual flann indexes
-
-
-CommandLine:
-    # Runs the incremental query test
-    # {0:testdb1, 1:PZ_MTEST, 2:GZ_ALL, 3:PZ_Master0}
-    python -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:0
-    python -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:1
-    python -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:2
-    python -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:3
-
-    utprof.py -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:0
-    utprof.py -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:1
-    utprof.py -m ibeis.algo.hots.qt_inc_automatch --test-test_inc_query:3
-
 """
 from __future__ import absolute_import, division, print_function
 import six
