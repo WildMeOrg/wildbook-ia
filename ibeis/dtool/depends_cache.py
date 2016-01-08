@@ -25,6 +25,7 @@ EXTERN_SUFFIX = '_extern_uri'
 TYPE_TO_SQLTYPE = {
     np.ndarray: 'NDARRAY',
     uuid.UUID: 'UUID',
+    float: 'REAL',
     int: 'INTEGER',
     str: 'TEXT',
 }
@@ -37,6 +38,13 @@ if six.PY2:
 # List of globally registered functions
 __PREPROC_REGISTER__ = []
 __ALGO_REGISTER__ = []
+
+
+class AlgoRequest(object):
+    pass
+
+class AlgoParams(object):
+    pass
 
 
 def check_register(args, kwargs):
@@ -713,16 +721,21 @@ class DependencyCacheTable(object):
         #else:
         #    config_hashid = db.cfg.feat_cfg.get_cfgstr()
         if config is not None:
-            try:
-                #config_hashid = 'none'
-                config_hashid = config.get(table.tablename + '_hashid')
-            except KeyError:
+            if isinstance(config, AlgoRequest):
+                pass
+            elif isinstance(config, AlgoParams):
+                pass
+            else:
                 try:
-                    subconfig = config.get(table.tablename + '_config')
-                    config_hashid = ut.hashstr27(ut.to_json(subconfig))
+                    #config_hashid = 'none'
+                    config_hashid = config.get(table.tablename + '_hashid')
                 except KeyError:
-                    print('Warning: Config must either contain a string <tablename>_hashid or a dict <tablename>_config')
-                    raise
+                    try:
+                        subconfig = config.get(table.tablename + '_config')
+                        config_hashid = ut.hashstr27(ut.to_json(subconfig))
+                    except KeyError:
+                        print('Warning: Config must either contain a string <tablename>_hashid or a dict <tablename>_config')
+                        raise
         else:
             config_hashid = 'none'
         config_rowid = table.add_config(config_hashid)
