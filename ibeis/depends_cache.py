@@ -26,6 +26,7 @@ TYPE_TO_SQLTYPE = {
     np.ndarray: 'NDARRAY',
     uuid.UUID: 'UUID',
     int: 'INTEGER',
+    float: 'REAL',
     str: 'TEXT',
 }
 

@@ -358,7 +358,7 @@ if ut.get_argflag('--cnn-deps'):
         'https://github.com/Erotemic/Lasagne.git',
     ]
     tpl_repo_dirs2 = ut.ensure_repos(tpl_repo_urls2, checkout_dir=CODE_DIR)
-    ut.setup_develop_repos(tpl_repo_dirs2)
+    #ut.setup_develop_repos(tpl_repo_dirs2)
     """
     export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
 

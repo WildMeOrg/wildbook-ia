@@ -17,50 +17,50 @@ from os.path import exists, join, relpath
 import utool as ut
 import vtool as vt
 import functools
-from ibeis import depends_cache
-from ibeis import constants as const
+#from ibeis import depends_cache
+#from ibeis import constants as const
 #ut.noinject('[preproc_chip]')
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_chip]')
 
 
-@depends_cache.register_preproc(
-    const.CHIP_TABLE,
-    parents=[const.ANNOTATION_TABLE],
-    colnames=['img', 'width', 'height'],
-    coltypes=[('extern', vt.imread), int, int],
-    docstr='Used to store *processed* annots as chips',
-    fname='chipcache2'
-)
-def generate_chip_properties2(depc, aid_list, config=None):
-    r"""
-    Example of using the dependency cache.
+#@depends_cache.register_preproc(
+#    const.CHIP_TABLE,
+#    parents=[const.ANNOTATION_TABLE],
+#    colnames=['img', 'width', 'height'],
+#    coltypes=[('extern', vt.imread), int, int],
+#    docstr='Used to store *processed* annots as chips',
+#    fname='chipcache2'
+#)
+#def generate_chip_properties2(depc, aid_list, config=None):
+#    r"""
+#    Example of using the dependency cache.
 
-    Args:
-        depc (ibeis.depends_cache.DependencyCache):
-        aid_list (list):  list of annotation rowids
-        config2_ (dict): (default = None)
+#    Args:
+#        depc (ibeis.depends_cache.DependencyCache):
+#        aid_list (list):  list of annotation rowids
+#        config2_ (dict): (default = None)
 
-    Yields:
-        (uri, int, int): tup
+#    Yields:
+#        (uri, int, int): tup
 
-    CommandLine:
-        python -m ibeis.algo.preproc.preproc_chip --exec-generate_chip_properties2 --show
+#    CommandLine:
+#        python -m ibeis.algo.preproc.preproc_chip --exec-generate_chip_properties2 --show
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> depc = ibs.depc
-        >>> depc.print_all_tables()
-        >>> aid_list = ibs.get_valid_aids()[0:2]
-        >>> depc.get_property(const.CHIP_TABLE, aid_list)
-        >>> depc.print_all_tables()
-    """
-    ibs = depc.controller
-    for uri, w, h in generate_chip_properties(ibs, aid_list, config2_=config):
-        uri1 = join(relpath(ibs.get_chipdir(), depc.cache_dpath), uri)
-        yield uri1, w, h
+#    Example:
+#        >>> # DISABLE_DOCTEST
+#        >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
+#        >>> import ibeis
+#        >>> ibs = ibeis.opendb('testdb1')
+#        >>> depc = ibs.depc
+#        >>> depc.print_all_tables()
+#        >>> aid_list = ibs.get_valid_aids()[0:2]
+#        >>> depc.get_property(const.CHIP_TABLE, aid_list)
+#        >>> depc.print_all_tables()
+#    """
+#    ibs = depc.controller
+#    for uri, w, h in generate_chip_properties(ibs, aid_list, config2_=config):
+#        uri1 = join(relpath(ibs.get_chipdir(), depc.cache_dpath), uri)
+#        yield uri1, w, h
 
 
 #@depends_cache.register_preproc(

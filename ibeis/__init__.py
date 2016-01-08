@@ -61,9 +61,13 @@ try:
     from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
-    from ibeis import depends_cache
-    from ibeis.depends_cache import register_preproc
-    register_id_algo = ut.identity
+    try:
+        from ibeis.depends_cache import register_preproc
+    except ImportError:
+        from dtool.depends_cache import register_preproc
+        #from ibeis import depends_cache
+    def register_id_algo(*args, **kwargs):
+        return ut.identity
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise

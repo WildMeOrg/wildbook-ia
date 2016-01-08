@@ -491,7 +491,11 @@ class IBEISController(BASE_CLASS):
         )
 
         # Initialize dependency cache
-        from ibeis import depends_cache
+        try:
+            #from ibeis import depends_cache
+            from ibeis import depends_cache
+        except ImportError:
+            from dtool import depends_cache
         ibs.depc = depends_cache.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
