@@ -301,15 +301,15 @@ class DependencyCache(object):
                                             infostr_, hex(id(depc)))
         return custom_str
 
-    @property
-    def root(depc):
-        return depc.root_tablename
-
     def __repr__(depc):
         return depc._custom_str()
 
     def __str__(depc):
         return depc._custom_str()
+
+    @property
+    def root(depc):
+        return depc.root_tablename
 
     def __getitem__(depc, key):
         return depc.cachetable_dict[key]
