@@ -136,6 +136,16 @@ def connect2(fpath, text_factory=None):
     # isolation_level='DEFERRED',
     # cached_statements=1000
 
+TYPE_TO_SQLTYPE = {
+    np.ndarray: 'NDARRAY',
+    uuid.UUID: 'UUID',
+    float: 'REAL',
+    int: 'INTEGER',
+    str: 'TEXT',
+}
+
+if six.PY2:
+    TYPE_TO_SQLTYPE[six.text_type] = 'TEXT'
 
 # Clean namespace
 del REGISTER_SQLITE3_TYPES

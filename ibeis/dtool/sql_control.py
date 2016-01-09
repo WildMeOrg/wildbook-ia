@@ -2377,12 +2377,10 @@ class SQLDatabaseController(object):
         return sql_version
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m dtool.sql_control
         python -m dtool.sql_control --allexamples
-        python -m dtool.sql_control --allexamples --verbtest
-        python -m dtool.sql_control --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
