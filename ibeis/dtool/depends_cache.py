@@ -231,6 +231,8 @@ class DependencyCache(object):
                 fname_ = ut.ensure_ext(fname, '.sqlite')
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
             #print('fpath = %r' % (fpath,))
+            if ut.get_argflag('--clear-all-depcache'):
+                ut.delete(fpath)
             db = sql_control.SQLDatabaseController(fpath=fpath, simple=True)
             if not db.has_table(CONFIG_TABLE):
                 db.add_table(**config_addtable_kw)
