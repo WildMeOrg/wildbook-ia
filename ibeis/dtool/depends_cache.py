@@ -27,6 +27,10 @@ __PREPROC_REGISTER__ = ut.ddict(list)
 __ALGO_REGISTER__ = ut.ddict(list)
 
 
+def trunc_repr(obj):
+    return ut.truncate_str(repr(obj), 50, truncmsg='~//~')
+
+
 def make_depcache_decors(root_tablename):
     """
     Makes global decorators to register functions for a tablename.
@@ -538,11 +542,11 @@ class DependencyCache(object):
                     print('   * key = %r' % (key,))
                     table = depc[key]
                     parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
-                    print('   * parent_rowids = %r' % (ut.truncate_str(repr(parent_rowids), 50),))
+                    print('   * parent_rowids = %r' % (trunc_repr(parent_rowids),))
                     child_rowids = table.get_rowid_from_superkey(
                         parent_rowids, config=config, eager=eager, nInput=nInput,
                         ensure=ensure)
-                    print('   * child_rowids = %r' % (ut.truncate_str(repr(child_rowids), 50),))
+                    print('   * child_rowids = %r' % (trunc_repr(child_rowids),))
                     rowid_dict[key] = child_rowids
             print(' GOT ANCESTOR ROWIDS')
         return rowid_dict
@@ -553,13 +557,13 @@ class DependencyCache(object):
         Returns the rowids of `tablename` that correspond to `root_rowids` using `config`.
         """
         with ut.Indenter('[DEPC.GET_ROWIDS %s]' % (tablename,)):
-            print(' * root_rowids=%s' % (ut.truncate_str(repr(root_rowids), 50),))
+            print(' * root_rowids=%s' % (trunc_repr(root_rowids),))
             print(' * config = %r' % (config,))
             rowid_dict = depc.get_ancestor_rowids(tablename, root_rowids,
                                                   config=config, ensure=ensure,
                                                   eager=eager, nInput=nInput)
             rowid_list = rowid_dict[tablename]
-            print(' * return rowid_list = %r' % (ut.truncate_str(repr(rowid_list), 50),))
+            print(' * return rowid_list = %r' % (trunc_repr(rowid_list),))
         return rowid_list
 
     def delete_property(depc, tablename, root_rowids, config=None):
@@ -580,15 +584,15 @@ class DependencyCache(object):
         returned.
         """
         with ut.Indenter('[GETPROP %s]' % (tablename,)):
-            print('* root_rowids=%s' % (ut.truncate_str(repr(root_rowids), 50)))
+            print('* root_rowids=%s' % (trunc_repr(root_rowids)))
             print(' * config = %r' % (config,))
             # Vectorized get of properties
             tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
                                          ensure=ensure)
-            print('[depc.get] tbl_rowids = %s' % (ut.truncate_str(repr(tbl_rowids), 50),))
+            print('[depc.get] tbl_rowids = %s' % (trunc_repr(tbl_rowids),))
             table = depc[tablename]
             prop_list = table.get_col(tbl_rowids, colnames)
-            print('* return prop_list=%s' % (ut.truncate_str(repr(prop_list), 50),))
+            print('* return prop_list=%s' % (trunc_repr(prop_list),))
         return prop_list
 
     def get_native_property(depc, tablename, tbl_rowids, colnames=None):
@@ -859,7 +863,7 @@ class DependencyCacheTable(object):
             # Find leaf rowids that need to be computed
             initial_rowid_list = table._get_rowid_from_superkey(parent_rowids,
                                                                 config=config)
-            print('[deptbl.add] initial_rowid_list = %s' % (ut.truncate_str(repr(initial_rowid_list), 50),))
+            print('[deptbl.add] initial_rowid_list = %s' % (trunc_repr(initial_rowid_list),))
             print('[deptbl.add] config_rowid = %r' % (config_rowid,))
             # Get corresponding "dirty" parent rowids
             isdirty_list = ut.flag_None_items(initial_rowid_list)
@@ -930,13 +934,13 @@ class DependencyCacheTable(object):
                     # Now that the dirty params are added get the correct order of rowids
                     rowid_list = table._get_rowid_from_superkey(parent_rowids,
                                                                 config=config)
-                    print('[deptbl.add] rowid_list = %s' % (ut.truncate_str(repr(rowid_list), 50),))
+                    print('[deptbl.add] rowid_list = %s' % (trunc_repr(rowid_list),))
             else:
                 rowid_list = initial_rowid_list
             if return_num_dirty:
                 return rowid_list, num_dirty
             else:
-                print('[deptbl.add] rowid_list = %s' % (ut.truncate_str(repr(rowid_list), 50),))
+                print('[deptbl.add] rowid_list = %s' % (trunc_repr(rowid_list),))
                 return rowid_list
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
@@ -991,7 +995,7 @@ class DependencyCacheTable(object):
         config_rowid = table.get_config_rowid(config=config)
         print('_get_rowid_from_superkey')
         print('_get_rowid_from_superkey table.tablename = %r ' % (table.tablename,))
-        print('_get_rowid_from_superkey parent_rowids = %s' % (ut.truncate_str(repr(parent_rowids), 50)))
+        print('_get_rowid_from_superkey parent_rowids = %s' % (trunc_repr(parent_rowids)))
         print('_get_rowid_from_superkey config = %s' % (config))
         print('_get_rowid_from_superkey table.rowid_colname = %s' % (table.rowid_colname))
         print('_get_rowid_from_superkey config_rowid = %s' % (config_rowid))
@@ -1002,7 +1006,7 @@ class DependencyCacheTable(object):
         rowid_list = table.db.get_where2(table.tablename, colnames, params_iter,
                                          and_where_colnames, eager=eager,
                                          nInput=nInput)
-        print('_get_rowid_from_superkey rowid_list = %s' % (ut.truncate_str(repr(rowid_list), 50)))
+        print('_get_rowid_from_superkey rowid_list = %s' % (trunc_repr(rowid_list)))
         return rowid_list
 
     def delete_rows(table, rowid_list):
@@ -1023,7 +1027,7 @@ class DependencyCacheTable(object):
         FIXME; unpacking is confusing with sql controller
         """
         print('[deptbl.get_col] Get col of tablename=%r, colnames=%r with tbl_rowids=%s' %
-              (table, colnames, ut.truncate_str(repr(tbl_rowids), 50)))
+              (table.tablename, colnames, trunc_repr(tbl_rowids)))
         try:
             request_unpack = False
             if colnames is None:
