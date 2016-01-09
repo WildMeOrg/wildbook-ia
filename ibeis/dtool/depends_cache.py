@@ -12,7 +12,7 @@ import numpy as np
 import uuid
 import six
 from six.moves import zip, range
-from dtool.sql_control import SQLDatabaseController
+from dtool import sql_control
 (print, rrr, profile) = ut.inject2(__name__, '[depcache]')
 
 
@@ -216,7 +216,7 @@ class DependencyCache(object):
                 fname_ = ut.ensure_ext(fname, '.sqlite')
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
             #print('fpath = %r' % (fpath,))
-            db = SQLDatabaseController(fpath=fpath, simple=True)
+            db = sql_control.SQLDatabaseController(fpath=fpath, simple=True)
             if not db.has_table(CONFIG_TABLE):
                 db.add_table(**config_addtable_kw)
             depc.fname_to_db[fname] = db
