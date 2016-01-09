@@ -41,7 +41,7 @@ from ibeis.algo.hots import pipeline
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
-# register_preproc, register_algo = dtool.make_global_depcache_decors('IBEISController')
+register_preproc, register_algo = dtool.depends_cache.make_depcache_decors('IBEISController')
 
 # Import modules which define injectable functions
 
