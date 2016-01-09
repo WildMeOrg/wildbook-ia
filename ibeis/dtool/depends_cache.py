@@ -89,8 +89,13 @@ class AlgoRequest(object):
     pass
 
 
-class AlgoParams(object):
-    """ Base class for heirarchiacl params """
+class AlgoConfig(object):
+    """ Base class for heirarchical params """
+    pass
+
+
+class TableConfig(object):
+    """ Base class for heirarchical params """
     pass
 
 
@@ -281,8 +286,8 @@ class DependencyCache(object):
             >>> pt.show_netx(graph)
             >>> ut.show_if_requested()
         """
-        import networkx as nx
-        graph = nx.DiGraph()
+        import networkx as netx
+        graph = netx.DiGraph()
         nodes = list(depc.cachetable_dict.keys())
         edges = depc.get_edges()
         graph.add_nodes_from(nodes)
@@ -803,7 +808,7 @@ class DependencyCacheTable(object):
             if config is not None:
                 if isinstance(config, AlgoRequest):
                     pass
-                elif isinstance(config, AlgoParams):
+                elif isinstance(config, AlgoConfig):
                     pass
                 else:
                     try:
