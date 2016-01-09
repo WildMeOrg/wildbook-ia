@@ -584,7 +584,7 @@ class DependencyCache(object):
         returned.
         """
         with ut.Indenter('[GETPROP %s]' % (tablename,)):
-            print('* root_rowids=%s' % (trunc_repr(root_rowids)))
+            print(' * root_rowids=%s' % (trunc_repr(root_rowids)))
             print(' * config = %r' % (config,))
             # Vectorized get of properties
             tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
@@ -603,7 +603,8 @@ class DependencyCache(object):
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_obj(depc, tablename, root_rowids, config=None, ensure=True):
-        """ Convinience function. Gets data in `tablename` as a list of objects. """
+        """ Convinience function. Gets data in `tablename` as a list of
+        objects. """
         try:
             if tablename == depc.root:
                 obj_list = [depc._root_asobject(rowid) for rowid in root_rowids]
