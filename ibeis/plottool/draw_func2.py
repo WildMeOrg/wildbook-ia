@@ -3434,13 +3434,83 @@ def draw_text_annotations(text_list,
 
 
 def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
+    r"""
+    Args:
+        graph (?):
+        with_labels (bool): (default = True)
+        node_size (int): (default = 1100)
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = None)
+
+    Returns:
+        ?: e
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-show_netx --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import networkx as netx
+        >>> graph = netx.DiGraph()
+        >>> graph.add_nodes_from(['a', 'b', 'c', 'd'])
+        >>> graph.add_edges_from({'a': 'b', 'b': 'c', 'b': 'd', 'c': 'd'}.items())
+        >>> with_labels = True
+        >>> node_size = 1100
+        >>> fnum = None
+        >>> pnum = None
+        >>> e = show_netx(graph, with_labels, node_size, fnum, pnum)
+        >>> ut.show_if_requested()
+    """
     import plottool as pt
     import networkx as netx
+    from matplotlib.patches import FancyArrowPatch, Circle
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
     ax = pt.gca()
     pos = netx.pydot_layout(graph, prog='dot')
-    netx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+
+    # For fancy arrows
+    def draw_network2(graph, pos, ax, sg=None):
+        for n in graph:
+            radius = node_size / 100
+            node_color = pt.NEUTRAL_BLUE
+            c = Circle(pos[n], radius=radius, alpha=0.5, color=node_color)
+            ax.add_patch(c)
+            graph.node[n]['patch'] = c
+            x, y = pos[n]
+            pt.ax_absolute_text(x, y, n, ha='center', va='center')
+        seen = {}
+        for (u, v, d) in graph.edges(data=True):
+            n1 = graph.node[u]['patch']
+            n2 = graph.node[v]['patch']
+            rad = 0.1
+            if (u, v) in seen:
+                rad = seen.get((u, v))
+                rad = (rad + np.sign(rad) * 0.1) * -1
+            alpha = 0.5
+            color = 'k'
+
+            arrowstyle = '-' if not graph.is_directed() else '-|>'
+
+            e = FancyArrowPatch(n1.center, n2.center, patchA=n1, patchB=n2,
+                                arrowstyle=arrowstyle,
+                                connectionstyle='arc3,rad=%s' % rad,
+                                mutation_scale=10.0,
+                                lw=2,
+                                alpha=alpha,
+                                color=color)
+            seen[(u, v)] = rad
+            ax.add_patch(e)
+        return e
+
+    if False:
+        netx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+    else:
+        draw_network2(graph, pos, ax)
+        ax.autoscale()
+        pt.plt.axis('equal')
+        pt.plt.axis('off')
 
 if __name__ == '__main__':
     """
