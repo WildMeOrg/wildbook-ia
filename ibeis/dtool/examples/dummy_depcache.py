@@ -41,9 +41,8 @@ def testdata_depc(fname=None):
     depc = depends_cache.DependencyCache(
         root_tablename=dummy_root, default_fname=fname,
         root_asobject=root_asobject, use_globals=False)
-    _register_preproc = depc.register_preproc
 
-    @_register_preproc(
+    @depc.register_preproc(
         tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
         coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
     def dummy_manual_chipmask(depc, parent_rowids, config=None):
@@ -62,7 +61,7 @@ def testdata_depc(fname=None):
             w, h = vt.get_size(mask)
             yield (w, h), mask_fpath
 
-    @_register_preproc(
+    @depc.register_preproc(
         tablename='chip', parents=[dummy_root], colnames=['size', 'chip'],
         coltypes=[(int, int), vt.imread], asobject=True)
     def dummy_preproc_chip(depc, annot_list, config=None):
@@ -89,7 +88,7 @@ def testdata_depc(fname=None):
             print('* size = %r' % (size,))
             yield size, chip_fpath
 
-    @_register_preproc(
+    @depc.register_preproc(
         'probchip', [dummy_root], ['size', 'probchip'],
         coltypes=[(int, int), ('extern', vt.imread)])
     def dummy_preproc_probchip(depc, parent_rowids, config=None):
@@ -99,7 +98,7 @@ def testdata_depc(fname=None):
         for rowid in parent_rowids:
             yield (rowid, rowid), 'probchip.jpg'
 
-    @_register_preproc(
+    @depc.register_preproc(
         'keypoint', ['chip'], ['kpts', 'num'], [np.ndarray, int],
         docstr='Used to store individual chip features (ellipses)',)
     def dummy_preproc_kpts(depc, parent_rowids, config=None):
@@ -109,7 +108,7 @@ def testdata_depc(fname=None):
         for rowid in parent_rowids:
             yield np.ones((7 + rowid, 6)) + rowid, 7 + rowid
 
-    @_register_preproc('descriptor', ['keypoint'], ['vecs'], [np.ndarray],)
+    @depc.register_preproc('descriptor', ['keypoint'], ['vecs'], [np.ndarray],)
     def dummy_preproc_vecs(depc, parent_rowids, config=None):
         if config is None:
             config = {}
@@ -117,7 +116,7 @@ def testdata_depc(fname=None):
         for rowid in parent_rowids:
             yield np.ones((7 + rowid, 8), dtype=np.uint8) + rowid,
 
-    @_register_preproc('fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray],)
+    @depc.register_preproc('fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray],)
     def dummy_preproc_fgweight(depc, kpts_rowid, probchip_rowid, config=None):
         if config is None:
             config = {}
@@ -125,7 +124,7 @@ def testdata_depc(fname=None):
         for rowid1, rowid2 in zip(kpts_rowid, probchip_rowid):
             yield np.ones(7 + rowid1),
 
-    @_register_preproc('notch', [dummy_root], ['notchdata'],)
+    @depc.register_preproc('notch', [dummy_root], ['notchdata'],)
     def dummy_preproc_notch(depc, parent_rowids, config=None):
         if config is None:
             config = {}
@@ -133,10 +132,11 @@ def testdata_depc(fname=None):
         for rowid in parent_rowids:
             yield np.empty(5 + rowid),
 
-    @_register_preproc('spam', ['fgweight', 'chip', 'keypoint'],
-                       ['spam', 'eggs', 'size', 'uuid', 'vector', 'textdata'],
-                       [str, int, (int, int), uuid.UUID, np.ndarray, ('extern', ut.readfrom)],
-                       docstr='I dont like spam',)
+    @depc.register_preproc(
+        'spam', ['fgweight', 'chip', 'keypoint'],
+        ['spam', 'eggs', 'size', 'uuid', 'vector', 'textdata'],
+        [str, int, (int, int), uuid.UUID, np.ndarray, ('extern', ut.readfrom)],
+        docstr='I dont like spam',)
     def dummy_preproc_spam(depc, *args, **kwargs):
         config = kwargs.get('config', None)
         if config is None:
@@ -148,6 +148,11 @@ def testdata_depc(fname=None):
             uuid = ut.get_zero_uuid()
             vector = np.ones(3)
             yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
+
+    @depc.register_algo('dumbalgo')
+    def dummy_matching_algo(depc, aids, config=None):
+        for aid in aid_list:
+            return
 
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))
@@ -254,6 +259,12 @@ def dummy_example_depcacahe():
     print('chip_dict["size"] = %r' % (chip_dict['size'],))
     print('chip_dict["chip"] = %r' % (chip_dict['chip'],))
     print('chip_dict = %r' % (chip_dict,))
+
+    import plottool as pt
+    # pt.ensure_pylab_qt4()
+
+    graph = depc.make_digraph()
+    pt.show_netx(graph)
 
     return depc
 

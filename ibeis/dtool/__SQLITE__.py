@@ -142,6 +142,7 @@ TYPE_TO_SQLTYPE = {
     float: 'REAL',
     int: 'INTEGER',
     str: 'TEXT',
+    bool: 'INTEGER'
 }
 
 if six.PY2:

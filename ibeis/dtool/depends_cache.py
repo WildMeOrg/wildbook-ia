@@ -23,8 +23,8 @@ EXTERN_SUFFIX = '_extern_uri'
 
 
 # global function registry
-__PREPROC_REGISTER__ = ut.ddict(ut.oset)
-__ALGO_REGISTER__ = ut.ddict(ut.oset)
+__PREPROC_REGISTER__ = ut.ddict(list)
+__ALGO_REGISTER__ = ut.ddict(list)
 
 
 def make_depcache_decors(root_tablename):
@@ -143,8 +143,18 @@ class DependencyCache(object):
             return func
         return register_preproc_wrapper
 
+    def register_algo(depc, *args, **kwargs):
+        """ Decorator for registration of cachables """
+        def reg_algo_wrapper(func):
+            check_register(args, kwargs)
+            kwargs['algo_func'] = func
+            depc._register_algo(*args, **kwargs)
+            return func
+        return reg_algo_wrapper
+
     def _register_algo(depc, algoname, algo_func=None, docstr=None,
                        fname=None, chunksize=None):
+        depc._register_prop(algoname, preproc_func=algo_func)
         pass
 
     def _register_prop(depc, tablename, parents=None, colnames=None,
@@ -184,12 +194,17 @@ class DependencyCache(object):
 
     @profile
     def initialize(depc):
-        print('[depc] INITIALIZE DEPCACHE')
+        print('[depc] INITIALIZE %s DEPCACHE' % (depc.root.upper(),))
 
         if depc._use_globals:
-            print(' * regsitering %d global preproc funcs' % (len(__PREPROC_REGISTER__),))
-            for args_, kwargs_ in __PREPROC_REGISTER__:
+            print(' * regsitering %d global preproc funcs' % (len(__PREPROC_REGISTER__[depc.root]),))
+            for args_, kwargs_ in __PREPROC_REGISTER__[depc.root]:
                 depc._register_prop(*args_, **kwargs_)
+
+            print(' * regsitering %d global algos ' % (len(__ALGO_REGISTER__[depc.root]),))
+            for args_, kwargs_ in __ALGO_REGISTER__[depc.root]:
+                pass
+                # depc._register_algo(*args_, **kwargs_)
 
         ut.ensuredir(depc.cache_dpath)
         #print('depc.cache_dpath = %r' % (depc.cache_dpath,))
@@ -252,16 +267,12 @@ class DependencyCache(object):
             >>> # ENABLE_DOCTEST
             >>> from dtool.depends_cache import *  # NOQA
             >>> from dtool.examples.dummy_depcache import testdata_depc
-            >>> import networkx as netx
             >>> depc = testdata_depc()
             >>> graph = depc.make_digraph()
             >>> ut.quit_if_noshow()
-            >>> pos = netx.pydot_layout(graph, prog='dot')
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> pt.figure()
-            >>> ax = pt.gca()
-            >>> netx.draw(graph, pos=pos, ax=ax, with_labels=True, node_size=1100)
+            >>> pt.show_netx(graph)
             >>> ut.show_if_requested()
         """
         import networkx as nx
