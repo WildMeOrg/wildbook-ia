@@ -496,7 +496,7 @@ class IBEISController(BASE_CLASS):
         ibs.depc = dtool.depends_cache.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
-            default_fname='default_dbcache',
+            default_fname=const.ANNOTATION_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
             controller=ibs
         )
