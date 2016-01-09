@@ -517,7 +517,9 @@ class DependencyCache(object):
             >>> tablename = 'spam'
             >>> root_rowids = [1, 2, 3]
             >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = ut.repr3(depc.get_ancestor_rowids(tablename, root_rowids, config, ensure, eager, nInput), nl=1)
+            >>> result = ut.repr3(depc.get_ancestor_rowids(tablename, root_rowids,
+            >>>                                            config, ensure, eager,
+            >>>                                            nInput), nl=1)
             >>> print(result)
             {
                 'chip': [1, 2, 3],
@@ -591,20 +593,24 @@ class DependencyCache(object):
                                          ensure=ensure)
             print('[depc.get] tbl_rowids = %s' % (trunc_repr(tbl_rowids),))
             table = depc[tablename]
-            prop_list = table.get_col(tbl_rowids, colnames)
+            prop_list = table.get_row_data(tbl_rowids, colnames)
             print('* return prop_list=%s' % (trunc_repr(prop_list),))
         return prop_list
 
     def get_native_property(depc, tablename, tbl_rowids, colnames=None):
         with ut.Indenter('[GETNATIVE %s]' % (tablename,)):
+            print(' * tablename = %r' % (tablename,))
+            print(' * colnames = %r' % (colnames,))
+            print(' * tbl_rowids=%s' % (trunc_repr(tbl_rowids)))
             table = depc[tablename]
-            prop_list = table.get_col(tbl_rowids, colnames)
+            prop_list = table.get_row_data(tbl_rowids, colnames)
         return prop_list
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_obj(depc, tablename, root_rowids, config=None, ensure=True):
         """ Convinience function. Gets data in `tablename` as a list of
         objects. """
+        print('WARNING EXPERIMENTAL')
         try:
             if tablename == depc.root:
                 obj_list = [depc._root_asobject(rowid) for rowid in root_rowids]
@@ -675,20 +681,24 @@ class DependencyCacheTable(object):
             else:
                 if len(args) < 3:
                     print('args = %r' % (args,))
-                    assert False, 'preproc func must have a depcache arg, at least one parent rowid arg, and a config arg'
+                    assert False, ('preproc func must have a depcache arg, at'
+                                   ' least one parent rowid arg, and a config'
+                                   ' arg')
                 rowid_args = args[1:-1]
                 if len(rowid_args) != len(table.parents):
                     print('table.preproc_func = %r' % (table.preproc_func,))
                     print('args = %r' % (args,))
                     print('rowid_args = %r' % (rowid_args,))
                     msg = (
-                        'preproc function for table=%s must have as many rowids %d args as parents %d' % (
+                        ('preproc function for table=%s must have as many '
+                         'rowids %d args as parents %d') % (
                             table.tablename, len(rowid_args), len(table.parents))
                     )
                     assert False, msg
 
     def _update_internals(table):
         extern_read_funcs = {}
+        # TODO: can rewrite much of this
         internal_data_colnames = []
         internal_data_coltypes = []
         _nested_idxs2 = []
@@ -1021,13 +1031,13 @@ class DependencyCacheTable(object):
         num_deleted = len(ut.filter_Nones(rowid_list))
         return num_deleted
 
-    def get_col(table, tbl_rowids, colnames=None):
+    def get_row_data(table, tbl_rowids, colnames=None):
         """
         colnames = ('mask', 'size')
 
         FIXME; unpacking is confusing with sql controller
         """
-        print('[deptbl.get_col] Get col of tablename=%r, colnames=%r with tbl_rowids=%s' %
+        print('[deptbl.get_row_data] Get col of tablename=%r, colnames=%r with tbl_rowids=%s' %
               (table.tablename, colnames, trunc_repr(tbl_rowids)))
         try:
             request_unpack = False

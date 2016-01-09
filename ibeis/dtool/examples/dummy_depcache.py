@@ -151,7 +151,7 @@ def testdata_depc(fname=None):
 
     @depc.register_algo('dumbalgo')
     def dummy_matching_algo(depc, aids, config=None):
-        for aid in aid_list:
+        for aid in aids:
             return
 
     # table = depc['spam']
@@ -188,7 +188,9 @@ def dummy_example_depcacahe():
     # print('[test] descriptor =\n%s' % (ut.repr3(depc.get_dependencies('descriptor'), nl=1),))
     # print('[test] spam =\n%s' % (ut.repr3(depc.get_dependencies('spam'), nl=1),))
 
-    desc_rowids = depc.get_rowids('descriptor', [1, 2, 3])  # NOQA
+    root_rowids = [5, 3, 2]
+
+    desc_rowids = depc.get_rowids('descriptor', root_rowids)  # NOQA
 
     root_rowids = [1]
     if 1:
@@ -223,15 +225,15 @@ def dummy_example_depcacahe():
     # The rowids can be used to lookup data values directly. By default all data
     # in a row is returned.
 
-    datas = depc[tablename].get_col(tbl_rowids)  # NOQA
+    datas = depc[tablename].get_row_data(tbl_rowids)  # NOQA
 
     # But you can also ask for a specific column
 
-    col1_data = depc[tablename].get_col(tbl_rowids, col1)  # NOQA
+    col1_data = depc[tablename].get_row_data(tbl_rowids, col1)  # NOQA
 
     # In the case of external columns, you can lookup the hidden id as follows
 
-    col1_paths = depc[tablename].get_col(tbl_rowids, (col1 + depends_cache.EXTERN_SUFFIX,))  # NOQA
+    col1_paths = depc[tablename].get_row_data(tbl_rowids, (col1 + depends_cache.EXTERN_SUFFIX,))  # NOQA
 
     # But you can also just the root rowids directly. This is the simplest way to
     # access data and really "all you need to know"
