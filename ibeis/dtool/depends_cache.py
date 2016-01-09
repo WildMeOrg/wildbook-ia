@@ -165,10 +165,14 @@ class DependencyCache(object):
         """
         # print('Registering tablename=%r' % (tablename,))
         # print('Registering preproc_func=%r' % (preproc_func,))
+        if isinstance(tablename, six.string_types):
+            tablename = six.text_type(tablename)
         if parents is None:
             parents = [depc.root]
         if colnames is None:
             colnames = ['data']
+        else:
+            colnames = ut.lmap(six.text_type, colnames)
         if coltypes is None:
             coltypes = [np.ndarray] * len(colnames)
         if fname is None:
@@ -310,7 +314,7 @@ class DependencyCache(object):
     def __getitem__(depc, key):
         return depc.cachetable_dict[key]
 
-    @ut.memoize
+    # @ut.memoize
     def get_dependencies(depc, tablename):
         """
         gets level dependences from root to tablename
@@ -363,19 +367,37 @@ class DependencyCache(object):
                 ['spam'],
             ]
         """
-        root = depc.root_tablename
-        children_, parents_ = list(zip(*depc.get_edges()))
-        child_to_parents = ut.group_items(children_, parents_)
-        to_root = {tablename: ut.paths_to_root(tablename, root, child_to_parents)}
-        from_root = ut.reverse_path(to_root, root, child_to_parents)
-        dependency_levels_ = ut.get_levels(from_root)
-        dependency_levels = ut.longest_levels(dependency_levels_)
-        #print('child_to_parents = %s' % (ut.repr3(child_to_parents),))
-        #print('to_root = %r' % (to_root,))
+        try:
+            assert tablename in depc.cachetable_dict, 'tablename=%r does not exist' % (tablename,)
+            root = depc.root_tablename
+            children_, parents_ = list(zip(*depc.get_edges()))
+            child_to_parents = ut.group_items(children_, parents_)
+            if ut.VERBOSE:
+                print('root = %r' % (root,))
+                print('tablename = %r' % (tablename,))
+                print('child_to_parents = %s' % (ut.repr3(child_to_parents),))
+            to_root = {tablename: ut.paths_to_root(tablename, root, child_to_parents)}
+            if ut.VERBOSE:
+                print('to_root = %r' % (to_root,))
+            from_root = ut.reverse_path(to_root, root, child_to_parents)
+            dependency_levels_ = ut.get_levels(from_root)
+            dependency_levels = ut.longest_levels(dependency_levels_)
+        except Exception as ex:
+            ut.printex(ex, 'error getting dependencies',
+                       keys=[
+                           'root',
+                           'children_to_parents',
+                           'to_root',
+                           'from_root',
+                           'dependency_levels_',
+                           'dependency_levels',
+                       ])
+            raise
+
         #print('from_root = %r' % (from_root,))
         return dependency_levels
 
-    @ut.memoize
+    # @ut.memoize
     def get_dependants(depc, tablename):
         """
         gets level dependences table to the leaves
@@ -439,7 +461,7 @@ class DependencyCache(object):
             >>> result = ut.repr3(depc.get_descendant_rowids(tablename, root_rowids, config), nl=1)
             >>> print(result)
         """
-        print('GET DESCENDANT ROWIDS %s ' % (tablename,))
+        print('[depc.descendant] GET DESCENDANT ROWIDS %s ' % (tablename,))
         dependency_levels = depc.get_dependants(tablename)
         rowid_list = depc.get_rowids(tablename, root_rowids, config)
         rowid_dict = {tablename: rowid_list}
@@ -464,6 +486,9 @@ class DependencyCache(object):
     def get_ancestor_rowids(depc, tablename, root_rowids, config=None,
                             ensure=True, eager=True, nInput=None):
         r"""
+        Connects `root_rowids` to rowids in `tablename`, and computes all
+        values needed along the way.
+
         Args:
             tablename (str):
             root_rowids (list):
@@ -494,23 +519,27 @@ class DependencyCache(object):
                 'spam': [1, 2, 3],
             }
         """
-        # print('GET ANCESTOR ROWIDS %s ' % (tablename,))
-        dependency_levels = depc.get_dependencies(tablename)
-        # print('root_rowids = %r' % (root_rowids,))
-        #print('dependency_levels = %s' % (ut.repr3(dependency_levels, nl=2),))
-        rowid_dict = {depc.root: root_rowids}
-        for level_keys in dependency_levels[1:]:
-            #print('* level_keys %s ' % (level_keys,))
-            for key in level_keys:
-                #print('  * key = %r' % (key,))
-                table = depc[key]
-                parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
-                # print('parent_rowids = %r' % (parent_rowids,))
-                child_rowids = table.get_rowid_from_superkey(
-                    parent_rowids, config=config, eager=eager, nInput=nInput,
-                    ensure=ensure)
-                # print('child_rowids = %r' % (child_rowids,))
-                rowid_dict[key] = child_rowids
+        # if True:
+        with ut.Indenter('[ANCE %s]' % (tablename,)):
+            print(' * GET ANCESTOR ROWIDS %s ' % (tablename,))
+            print(' * config = %r' % (config,))
+            dependency_levels = depc.get_dependencies(tablename)
+            # print('root_rowids = %r' % (root_rowids,))
+            print('[depc.ancestor] dependency_levels = %s' % (ut.repr3(dependency_levels, nl=2),))
+            rowid_dict = {depc.root: root_rowids}
+            for level_keys in dependency_levels[1:]:
+                print(' * level_keys %s ' % (level_keys,))
+                for key in level_keys:
+                    print('   * key = %r' % (key,))
+                    table = depc[key]
+                    parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
+                    print('   * parent_rowids = %r' % (ut.truncate_str(repr(parent_rowids), 50),))
+                    child_rowids = table.get_rowid_from_superkey(
+                        parent_rowids, config=config, eager=eager, nInput=nInput,
+                        ensure=ensure)
+                    print('   * child_rowids = %r' % (ut.truncate_str(repr(child_rowids), 50),))
+                    rowid_dict[key] = child_rowids
+            print(' GOT ANCESTOR ROWIDS')
         return rowid_dict
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
@@ -518,10 +547,14 @@ class DependencyCache(object):
         """
         Returns the rowids of `tablename` that correspond to `root_rowids` using `config`.
         """
-        rowid_dict = depc.get_ancestor_rowids(tablename, root_rowids,
-                                              config=config, ensure=ensure,
-                                              eager=eager, nInput=nInput)
-        rowid_list = rowid_dict[tablename]
+        with ut.Indenter('[DEPC.GET_ROWIDS %s]' % (tablename,)):
+            print(' * root_rowids=%s' % (ut.truncate_str(repr(root_rowids), 50),))
+            print(' * config = %r' % (config,))
+            rowid_dict = depc.get_ancestor_rowids(tablename, root_rowids,
+                                                  config=config, ensure=ensure,
+                                                  eager=eager, nInput=nInput)
+            rowid_list = rowid_dict[tablename]
+            print(' * return rowid_list = %r' % (ut.truncate_str(repr(rowid_list), 50),))
         return rowid_list
 
     def delete_property(depc, tablename, root_rowids, config=None):
@@ -541,18 +574,22 @@ class DependencyCache(object):
         `root_rowids` using `config`.  if colnames is None, all columns are
         returned.
         """
-        # Allow scalar input
-        # is_scalar = not ut.isiterable(root_rowids)
-        # if is_scalar:
-        #     root_rowids = [root_rowids]
-        # Vectorized get of properties
-        tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
-                                     ensure=ensure)
-        table = depc[tablename]
-        prop_list = table.get_col(tbl_rowids, colnames)
-        # Scalar output if scalar input
-        # if is_scalar:
-        #     prop_list = prop_list[0]
+        with ut.Indenter('[GETPROP %s]' % (tablename,)):
+            print('* root_rowids=%s' % (ut.truncate_str(repr(root_rowids), 50)))
+            print(' * config = %r' % (config,))
+            # Vectorized get of properties
+            tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
+                                         ensure=ensure)
+            print('[depc.get] tbl_rowids = %s' % (ut.truncate_str(repr(tbl_rowids), 50),))
+            table = depc[tablename]
+            prop_list = table.get_col(tbl_rowids, colnames)
+            print('* return prop_list=%s' % (ut.truncate_str(repr(prop_list), 50),))
+        return prop_list
+
+    def get_native_property(depc, tablename, tbl_rowids, colnames=None):
+        with ut.Indenter('[GETNATIVE %s]' % (tablename,)):
+            table = depc[tablename]
+            prop_list = table.get_col(tbl_rowids, colnames)
         return prop_list
 
     @ut.accepts_scalar_input2(argx_list=[1])
@@ -762,24 +799,26 @@ class DependencyCacheTable(object):
         # TODO store config_rowid in qparams
         #else:
         #    config_hashid = db.cfg.feat_cfg.get_cfgstr()
-        if config is not None:
-            if isinstance(config, AlgoRequest):
-                pass
-            elif isinstance(config, AlgoParams):
-                pass
-            else:
-                try:
-                    #config_hashid = 'none'
-                    config_hashid = config.get(table.tablename + '_hashid')
-                except KeyError:
+        if False:
+            if config is not None:
+                if isinstance(config, AlgoRequest):
+                    pass
+                elif isinstance(config, AlgoParams):
+                    pass
+                else:
                     try:
-                        subconfig = config.get(table.tablename + '_config')
-                        config_hashid = ut.hashstr27(ut.to_json(subconfig))
+                        #config_hashid = 'none'
+                        config_hashid = config.get(table.tablename + '_hashid')
                     except KeyError:
-                        print('Warning: Config must either contain a string <tablename>_hashid or a dict <tablename>_config')
-                        raise
-        else:
-            config_hashid = 'none'
+                        try:
+                            subconfig = config.get(table.tablename + '_config')
+                            config_hashid = ut.hashstr27(ut.to_json(subconfig))
+                        except KeyError:
+                            print('[deptbl.config] Warning: Config must either contain a string <tablename>_hashid or a dict <tablename>_config')
+                            raise
+            else:
+                config_hashid = 'none'
+        config_hashid = ut.hashstr27(ut.to_json(config))
         config_rowid = table.add_config(config_hashid)
         return config_rowid
 
@@ -790,11 +829,14 @@ class DependencyCacheTable(object):
         return config_rowid_list
 
     def add_config(table, config_hashid):
+        print('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
         config_rowid_list = table.db.add_cleanly(
             CONFIG_TABLE, (CONFIG_HASHID,), [(config_hashid,)],
             get_rowid_from_superkey)
+        print('config_rowid_list = %r' % (config_rowid_list,))
         config_rowid = config_rowid_list[0]
+        print('config_rowid = %r' % (config_rowid,))
         return config_rowid
 
     # ----------------------
@@ -812,73 +854,88 @@ class DependencyCacheTable(object):
             # Find leaf rowids that need to be computed
             initial_rowid_list = table._get_rowid_from_superkey(parent_rowids,
                                                                 config=config)
+            print('[deptbl.add] initial_rowid_list = %s' % (ut.truncate_str(repr(initial_rowid_list), 50),))
+            print('[deptbl.add] config_rowid = %r' % (config_rowid,))
             # Get corresponding "dirty" parent rowids
             isdirty_list = ut.flag_None_items(initial_rowid_list)
             dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
             num_dirty = len(dirty_parent_rowids)
             num_total = len(parent_rowids)
+            verbose = True
             if num_dirty > 0:
-                if verbose:
-                    fmtstr = 'adding %d / %d new props to %r for config_rowid=%r'
-                    print(fmtstr % (num_dirty, num_total, table.tablename,
-                                    config_rowid))
-                args = zip(*dirty_parent_rowids)
-                if table._asobject:
-                    # Convinience
-                    args = [table.depc.get_obj(parent, rowids)
-                            for parent, rowids in zip(table.parents, args)]
-                # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
-                proptup_gen = table.preproc_func(table.depc, *args, config=config)
+                with ut.Indenter('[ADD]'):
+                    if verbose:
+                        fmtstr = '[deptbl.add] adding %d / %d new props to %r for config_rowid=%r'
+                        print(fmtstr % (num_dirty, num_total, table.tablename,
+                                        config_rowid))
+                    args = zip(*dirty_parent_rowids)
+                    if table._asobject:
+                        # Convinience
+                        args = [table.depc.get_obj(parent, rowids)
+                                for parent, rowids in zip(table.parents, args)]
+                    # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
+                    proptup_gen = table.preproc_func(table.depc, *args, config=config)
 
-                #proptup_gen = list(proptup_gen)
+                    #proptup_gen = list(proptup_gen)
 
-                if len(table._nested_idxs) > 0:
-                    # TODO: rewrite
-                    nested_nCols = len(table.data_colnames)
-                    idxs1 = table._nested_idxs
-                    mask1 = ut.index_to_boolmask(idxs1, nested_nCols)
-                    mask2 = ut.not_list(mask1)
-                    idxs2 = ut.where(mask2)
-                    def unnest_data(data):
-                        unnested_cols = list(zip(ut.take(data, idxs2)))
-                        nested_cols = ut.take(data, idxs1)
-                        grouped_items = [nested_cols, unnested_cols]
-                        groupxs = [idxs1, idxs2]
-                        unflat = ut.ungroup(grouped_items, groupxs, nested_nCols - 1)
-                        return tuple(ut.flatten(unflat))
-                    # Hack when a sql schema has tuples defined in it
-                    proptup_gen = (unnest_data(data) for data in proptup_gen)
+                    if len(table._nested_idxs) > 0:
+                        # TODO: rewrite
+                        nested_nCols = len(table.data_colnames)
+                        idxs1 = table._nested_idxs
+                        mask1 = ut.index_to_boolmask(idxs1, nested_nCols)
+                        mask2 = ut.not_list(mask1)
+                        idxs2 = ut.where(mask2)
+                        def unnest_data(data):
+                            unnested_cols = list(zip(ut.take(data, idxs2)))
+                            nested_cols = ut.take(data, idxs1)
+                            grouped_items = [nested_cols, unnested_cols]
+                            groupxs = [idxs1, idxs2]
+                            unflat = ut.ungroup(grouped_items, groupxs, nested_nCols - 1)
+                            return tuple(ut.flatten(unflat))
+                        # Hack when a sql schema has tuples defined in it
+                        proptup_gen = (unnest_data(data) for data in proptup_gen)
 
-                #proptup_gen = list(proptup_gen)
+                    #proptup_gen = list(proptup_gen)
+                    def concat_rowids_data(dirty_parent_rowids, proptup_gen):
+                        for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
+                            try:
+                                yield parent_rowids + (config_rowid,) + data_cols
+                            except Exception as ex:
+                                ut.printex(ex, 'cat error', keys=['config_rowid', 'data_cols', 'parent_rowids'])
+                                raise
 
-                dirty_params_iter = (
-                    parent_rowids + (config_rowid,) + data_cols
-                    for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen))
-                #dirty_params_iter = list(dirty_params_iter)
-                #print('dirty_params_iter = %s' % (ut.repr2(dirty_params_iter, nl=1),))
-                CHUNKED_ADD = table.chunksize is not None
-                if CHUNKED_ADD:
-                    for dirty_params_chunk in ut.ichunks(dirty_params_iter,
-                                                         chunksize=table.chunksize):
+                    dirty_params_iter = concat_rowids_data(dirty_parent_rowids, proptup_gen)
+
+                    # dirty_params_iter = (
+                    #     parent_rowids + (config_rowid,) + data_cols
+                    #     for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen))
+                    #dirty_params_iter = list(dirty_params_iter)
+                    #print('dirty_params_iter = %s' % (ut.repr2(dirty_params_iter, nl=1),))
+                    CHUNKED_ADD = table.chunksize is not None
+                    if CHUNKED_ADD:
+                        for dirty_params_chunk in ut.ichunks(dirty_params_iter,
+                                                             chunksize=table.chunksize):
+                            table.db._add(table.tablename, table._table_colnames,
+                                          dirty_params_chunk,
+                                          nInput=len(dirty_params_chunk))
+                    else:
+                        nInput = num_dirty
                         table.db._add(table.tablename, table._table_colnames,
-                                      dirty_params_chunk,
-                                      nInput=len(dirty_params_chunk))
-                else:
-                    nInput = num_dirty
-                    table.db._add(table.tablename, table._table_colnames,
-                                  dirty_params_iter, nInput=nInput)
-                # Now that the dirty params are added get the correct order of rowids
-                rowid_list = table._get_rowid_from_superkey(parent_rowids,
-                                                            config=config)
+                                      dirty_params_iter, nInput=nInput)
+                    # Now that the dirty params are added get the correct order of rowids
+                    rowid_list = table._get_rowid_from_superkey(parent_rowids,
+                                                                config=config)
+                    print('[deptbl.add] rowid_list = %s' % (ut.truncate_str(repr(rowid_list), 50),))
             else:
                 rowid_list = initial_rowid_list
             if return_num_dirty:
                 return rowid_list, num_dirty
             else:
+                print('[deptbl.add] rowid_list = %s' % (ut.truncate_str(repr(rowid_list), 50),))
                 return rowid_list
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
-                'table', 'parent_rowids', 'config', 'args',
+                'table', 'parent_rowids', 'config', 'args', 'config_rowid',
                 'dirty_parent_rowids', 'table.preproc_func'])
             raise
 
@@ -900,8 +957,10 @@ class DependencyCacheTable(object):
         Returns:
             list: rowid_list
         """
-        # print('Lookup %s rowids from superkey with %d parents' % (
-        #     table.tablename, len(parent_rowids)))
+        print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parents' % (
+            table.tablename, len(parent_rowids)))
+        print('[deptbl.get_rowid] config = %r' % (config,))
+        print('[deptbl.get_rowid] ensure = %r' % (ensure,))
         #rowid_list = parent_rowids
         #return rowid_list
 
@@ -925,6 +984,12 @@ class DependencyCacheTable(object):
         """
         colnames = (table.rowid_colname,)
         config_rowid = table.get_config_rowid(config=config)
+        print('_get_rowid_from_superkey')
+        print('_get_rowid_from_superkey table.tablename = %r ' % (table.tablename,))
+        print('_get_rowid_from_superkey parent_rowids = %s' % (ut.truncate_str(repr(parent_rowids), 50)))
+        print('_get_rowid_from_superkey config = %s' % (config))
+        print('_get_rowid_from_superkey table.rowid_colname = %s' % (table.rowid_colname))
+        print('_get_rowid_from_superkey config_rowid = %s' % (config_rowid))
         and_where_colnames = table.superkey_colnames
         params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
         params_iter = list(params_iter)
@@ -932,6 +997,7 @@ class DependencyCacheTable(object):
         rowid_list = table.db.get_where2(table.tablename, colnames, params_iter,
                                          and_where_colnames, eager=eager,
                                          nInput=nInput)
+        print('_get_rowid_from_superkey rowid_list = %s' % (ut.truncate_str(repr(rowid_list), 50)))
         return rowid_list
 
     def delete_rows(table, rowid_list):
@@ -951,7 +1017,8 @@ class DependencyCacheTable(object):
 
         FIXME; unpacking is confusing with sql controller
         """
-        # print('Get prop of %r, colnames=%r' % (table, colnames))
+        print('[deptbl.get_col] Get col of tablename=%r, colnames=%r with tbl_rowids=%s' %
+              (table, colnames, ut.truncate_str(repr(tbl_rowids), 50)))
         try:
             request_unpack = False
             if colnames is None:
