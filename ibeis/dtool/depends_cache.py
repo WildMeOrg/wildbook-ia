@@ -283,6 +283,11 @@ class DependencyCache(object):
         graph.add_edges_from(edges)
         return graph
 
+    def show_digraph(depc, **kwargs):
+        import plottool as pt
+        graph = depc.make_digraph()
+        pt.show_netx(graph, **kwargs)
+
     def _custom_str(depc):
         typestr = depc.__class__.__name__
         infostr_ = 'nTables=%d' % len(depc.cachetable_dict)
@@ -309,7 +314,21 @@ class DependencyCache(object):
         gets level dependences from root to tablename
 
         CommandLine:
-            python -m dtool.depends_cache --exec-get_dependencies --show
+            python -m dtool.depends_cache --exec-get_dependencies
+            python -m dtool.depends_cache --exec-get_dependencies:0
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depends_cache import *  # NOQA
+            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'chip'
+            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
+            >>> print(result)
+            [
+                ['dummy_annot'],
+                ['chip'],
+            ]
 
         Example:
             >>> # ENABLE_DOCTEST
