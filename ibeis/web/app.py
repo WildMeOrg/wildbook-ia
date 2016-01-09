@@ -17,8 +17,6 @@ import logging
 import socket
 import simplejson as json
 from ibeis.control import controller_inject
-from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
-                                              SQLAtomicContext)
 from ibeis import constants as const
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, PI, TAU
 from ibeis.web import appfuncs as ap

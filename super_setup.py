@@ -335,6 +335,7 @@ for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
 _repo_list = [
     'https://github.com/Erotemic/utool.git',
     'https://github.com/Erotemic/vtool.git',
+    'https://github.com/Erotemic/dtool.git',
     'https://github.com/Erotemic/guitool.git',
     'https://github.com/Erotemic/plottool.git',
     'https://github.com/bluemellophone/detecttools.git',
@@ -342,13 +343,13 @@ _repo_list = [
     'https://github.com/Erotemic/hesaff.git',
 ]
 
-if True or ut.get_argflag('--cnn'):
-    _repo_list += [
-        'https://github.com/bluemellophone/ibeis_cnn',
-    ]
-    _repo_list += [
-        'http://github.com/zmjjmz/ibeis-flukematch-module.git'
-    ]
+# if True or ut.get_argflag('--cnn'):
+_repo_list += [
+    'https://github.com/bluemellophone/ibeis_cnn',
+]
+_repo_list += [
+    'http://github.com/zmjjmz/ibeis-flukematch-module.git'
+]
 
 if ut.get_argflag('--cnn-deps'):
     # TODO: Integrate properly
@@ -358,7 +359,7 @@ if ut.get_argflag('--cnn-deps'):
         'https://github.com/Erotemic/Lasagne.git',
     ]
     tpl_repo_dirs2 = ut.ensure_repos(tpl_repo_urls2, checkout_dir=CODE_DIR)
-    #ut.setup_develop_repos(tpl_repo_dirs2)
+    ut.setup_develop_repos(tpl_repo_dirs2)
     """
     export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
 
@@ -457,8 +458,28 @@ if GET_ARGFLAG('--install'):
     ut.gg_command('python setup.py install'.format(**locals()))
 
 if GET_ARGFLAG('--test'):
-    import ibeis
-    print('found ibeis=%r' % (ibeis,))
+    failures = []
+    for repo_dpath in IBEIS_REPO_DIRS:
+        # ut.getp_
+        mod_dpaths = ut.get_submodules_from_dpath(repo_dpath, recursive=False,
+                                                  only_packages=True)
+        modname_list = ut.lmap(ut.get_modname_from_modpath, mod_dpaths)
+        print('Checking modules = %r' % (modname_list,))
+
+        for modname in modname_list:
+            try:
+                ut.import_modname(modname)
+                print(modname + ' success')
+            except ImportError as ex:
+                failures += [modname]
+                print(modname + ' failure')
+
+    print('failures = %s' % (ut.repr3(failures),))
+    # print('repo_dpath = %r' % (repo_dpath,))
+    # print('modules = %r' % (modules,))
+
+    # import ibeis
+    # print('found ibeis=%r' % (ibeis,))
 
 if GET_ARGFLAG('--push'):
     ut.gg_command('git push')

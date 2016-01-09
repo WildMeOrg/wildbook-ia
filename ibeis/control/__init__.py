@@ -10,7 +10,6 @@ ut.noinject(__name__, '[ibeis.control.__init__]', DEBUG=False)
 from ibeis.control import DBCACHE_SCHEMA
 from ibeis.control import DB_SCHEMA
 from ibeis.control import IBEISControl
-from ibeis.control import SQLDatabaseControl
 from ibeis.control import _sql_helpers
 from ibeis.control import accessor_decors
 import utool
@@ -34,7 +33,6 @@ IMPORT_TUPLES = [
     ('DBCACHE_SCHEMA', None, False),
     ('DB_SCHEMA', None, False),
     ('IBEISControl', None, False),
-    ('SQLDatabaseControl', None, False),
     ('_sql_helpers', None, False),
     ('accessor_decors', None, False),
 ]

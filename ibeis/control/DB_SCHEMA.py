@@ -847,8 +847,8 @@ def update_1_3_4(db, ibs=None):
         yaw = (-angle + (TAU / 2)) % TAU
         return yaw
 
-    from ibeis.control import SQLDatabaseControl
-    assert isinstance(db,  SQLDatabaseControl.SQLDatabaseController)
+    from dtool.sql_control import SQLDatabaseController
+    assert isinstance(db,  SQLDatabaseController)
 
     db.modify_table(const.IMAGE_TABLE, (
         # Add original image path to image table for more data persistance and
@@ -1298,15 +1298,16 @@ def update_1_4_9(db, ibs=None):
 
 
 def post_1_4_9(db, ibs=None):
-    ibs._clean_species()
-    db.modify_table(
-        const.SPECIES_TABLE,
-        [
-            # change type of species_nice
-            ('species_nice', '', 'TEXT NOT NULL', None),
-            ('species_code', '', 'TEXT NOT NULL', None),
-        ],
-    )
+    if ibs is not None:
+        ibs._clean_species()
+        db.modify_table(
+            const.SPECIES_TABLE,
+            [
+                # change type of species_nice
+                ('species_nice', '', 'TEXT NOT NULL', None),
+                ('species_code', '', 'TEXT NOT NULL', None),
+            ],
+        )
 
 
 # ========================

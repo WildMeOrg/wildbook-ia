@@ -2,11 +2,8 @@
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
 from ibeis import params
-from ibeis.control import __SQLITE3__ as lite
 from os.path import split, splitext, join, exists
 import datetime
-import logging
-import re
 import utool as ut
 import distutils
 (print, rrr, profile) = ut.inject2(__name__, '[sql-helpers]')
@@ -17,47 +14,6 @@ import distutils
 VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 #AUTODUMP = ut.get_argflag('--auto-dump')
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
-
-
-def default_decor(func):
-    return profile(func)
-    #return func
-
-
-@default_decor
-def _results_gen(cur, get_last_id=False, keepwrap=False):
-    """ HELPER - Returns as many results as there are.
-    Careful. Overwrites the results once you call it.
-    Basically: Dont call this twice.
-    """
-    if get_last_id:
-        # The sqlite3_last_insert_rowid(D) interface returns the
-        # <b> rowid of the most recent successful INSERT </b>
-        # into a rowid table in D
-        cur.execute('SELECT last_insert_rowid()', ())
-    # Wraping fetchone in a generator for some pretty tight calls.
-    while True:
-        result = cur.fetchone()
-        if not result:
-            raise StopIteration()
-        else:
-            # Results are always returned wraped in a tuple
-            if keepwrap:
-                result_ = result
-            else:
-                result_ = result[0] if len(result) == 1 else result
-            #if get_last_id and result == 0:
-            #    result = None
-            yield result_
-
-
-def _unpacker(results_):
-    """ HELPER: Unpacks results if unpack_scalars is True.
-    FIXME: hacky function
-    """
-    results = None if len(results_) == 0 else results_[0]
-    assert len(results_) < 2, 'throwing away results! { %r }' % (results_,)
-    return results
 
 
 def compare_string_versions(a, b):
@@ -359,8 +315,6 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
             ut.copy(db_backup_fpath, db_fpath)
             if clearbackup:
                 ut.remove_file(db_backup_fpath)
-            # Why are we using the logging module when ut does it for us?
-            logging.exception(msg)
             raise
         else:
             ut.printex(ex, (
@@ -371,166 +325,11 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
         ut.remove_file(db_backup_fpath)
 
 
-# =======================
-# SQL Context Class
-# =======================
-
-
-class SQLExecutionContext(object):
-    """
-    Context manager for transactional database calls
-
-    FIXME: hash out details. I don't think anybody who programmed this
-    knows what is going on here. So much for fine grained control.
-
-    Referencs:
-        http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
-
-    """
-    def __init__(context, db, operation, nInput=None, auto_commit=True,
-                 start_transaction=False, keepwrap=False, verbose=VERBOSE_SQL):
-        context.auto_commit = auto_commit
-        context.db = db  # Reference to sqldb
-        context.operation = operation
-        context.nInput = nInput
-        context.start_transaction = start_transaction
-        #context.__dict__.update(locals())  # Too mystic?
-        context.operation_type = get_operation_type(operation)  # Parse the optype
-        context.verbose = verbose
-        context.is_insert = context.operation_type.startswith('INSERT')
-        context.keepwrap = keepwrap
-
-    @default_decor
-    def __enter__(context):
-        """ Checks to see if the operating will change the database """
-        #ut.printif(lambda: '[sql] Callers: ' + ut.get_caller_name(range(3, 6)), DEBUG)
-        if context.nInput is not None:
-            context.operation_lbl = ('[sql] execute nInput=%d optype=%s: '
-                                       % (context.nInput, context.operation_type))
-        else:
-            context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
-        # Start SQL Transaction
-        context.cur = context.db.connection.cursor()  # HACK in a new cursor
-        #context.cur = context.db.cur  # OR USE DB CURSOR??
-        if context.start_transaction:
-            #context.cur.execute('BEGIN', ())
-            context.cur.execute('BEGIN')
-        if context.verbose or VERBOSE_SQL:
-            print(context.operation_lbl)
-            if context.verbose:
-                print('[sql] operation=\n' + context.operation)
-        # Comment out timeing code
-        #if __debug__:
-        #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-        #        context.tt = ut.tic(context.operation_lbl)
-        return context
-
-    # --- with SQLExecutionContext: statment code happens here ---
-
-    @default_decor
-    def execute_and_generate_results(context, params):
-        """ helper for context statment """
-        try:
-            #print(context.cur.rowcount)
-            #print(id(context.cur))
-            context.cur.execute(context.operation, params)
-            #print(context.cur.rowcount)
-        except lite.Error as ex:
-            print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
-            ut.printex(ex, 'sql.Error', keys=['params'])
-            #print('[sql.Error] %r' % (type(ex),))
-            #print('[sql.Error] params=<%r>' % (params,))
-            raise
-        return _results_gen(context.cur, get_last_id=context.is_insert,
-                            keepwrap=context.keepwrap)
-
-    @default_decor
-    def __exit__(context, type_, value, trace):
-        """ Finalization of an SQLController call """
-        #print('exit context')
-        #if __debug__:
-        #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-        #        ut.toc(context.tt)
-        if trace is not None:
-            # An SQLError is a serious offence.
-            print('[sql] FATAL ERROR IN QUERY CONTEXT')
-            print('[sql] operation=\n' + context.operation)
-            DUMP_ON_EXCEPTION = False
-            if DUMP_ON_EXCEPTION:
-                context.db.dump()  # Dump on error
-            print('[sql] Error in context manager!: ' + str(value))
-            return False  # return a falsey value on error
-        else:
-            # Commit the transaction
-            if context.auto_commit:
-                #print('commit %r' % context.operation_lbl)
-                context.db.connection.commit()
-                #if context.start_transaction:
-                #    context.cur.execute('COMMIT')
-            else:
-                print('no commit %r' % context.operation_lbl)
-                #context.db.commit(verbose=False)
-                #context.cur.commit()
-            #context.cur.close()
-
-
-def get_operation_type(operation):
-    """
-    Parses the operation_type from an SQL operation
-    """
-    operation = ' '.join(operation.split('\n')).strip()
-    operation_type = operation.split(' ')[0].strip()
-    if operation_type.startswith('SELECT'):
-        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('INSERT'):
-        operation_args = ut.str_between(operation, operation_type, '(').strip()
-    elif operation_type.startswith('DROP'):
-        operation_args = ''
-    elif operation_type.startswith('ALTER'):
-        operation_args = ''
-    elif operation_type.startswith('UPDATE'):
-        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('DELETE'):
-        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('CREATE'):
-        operation_args = ut.str_between(operation, operation_type, '(').strip()
-    else:
-        operation_args = None
-    operation_type += ' ' + operation_args.replace('\n', ' ')
-    return operation_type.upper()
-
-
-def sanitize_sql(db, tablename, columns=None):
-    """ Sanatizes an sql tablename and column. Use sparingly """
-    tablename = re.sub('[^a-z_0-9]', '', tablename)
-    valid_tables = db.get_table_names()
-    if tablename not in valid_tables:
-        raise Exception('UNSAFE TABLE: tablename=%r. Column names and table names should be different' % tablename)
-    if columns is None:
-        return tablename
-    else:
-        def _sanitize_sql_helper(column):
-            column_ = re.sub('[^a-z_0-9]', '', column)
-            valid_columns = db.get_column_names(tablename)
-            if column_ not in valid_columns:
-                raise Exception('UNSAFE COLUMN: must be all lowercase. tablename=%r column=%r' %
-                                (tablename, column))
-                return None
-            else:
-                return column_
-
-        columns = [_sanitize_sql_helper(column) for column in columns]
-        columns = [column for column in columns if columns is not None]
-
-        return tablename, columns
-
-
 def autogenerate_nth_schema_version(schema_spec, n=-1):
     r"""
     dumps, prints, or diffs autogen schema based on command line
 
     Args:
-        schema_spec (?):
         n (int):
 
     CommandLine:
@@ -602,14 +401,14 @@ def get_nth_test_schema_version(schema_spec, n=-1):
         schema_spec (module): schema module to get nth version of
         n (int): version index (-1 is the latest)
     """
-    from ibeis.control import SQLDatabaseControl as sqldbc
+    from dtool.sql_control import SQLDatabaseController
     dbname = schema_spec.__name__
     print('[_SQL] getting n=%r-th version of %r' % (n, dbname))
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]
     cachedir = ut.ensure_app_resource_dir('ibeis_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
-    db = sqldbc.SQLDatabaseController(cachedir, db_fname, text_factory=unicode)
+    db = SQLDatabaseController(cachedir, db_fname, text_factory=unicode)
     ensure_correct_version(
         None, db, version_expected, schema_spec, dobackup=False)
     return db

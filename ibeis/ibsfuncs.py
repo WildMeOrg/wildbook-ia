@@ -738,9 +738,9 @@ def check_annot_consistency(ibs, aid_list=None):
 @register_ibs_method
 def check_annot_corrupt_uuids(ibs, aid_list=None):
     """
-    del ibeis.control.__SQLITE3__.converters['UUID']
-    import uuid
-    del ibeis.control.__SQLITE3__.adapters[(uuid.UUID, ibeis.control.__SQLITE3__.PrepareProtocol)]
+    # del dtool.__SQLITE__.converters['UUID']
+    # import uuid
+    # del dtool.__SQLITE__.adapters[(uuid.UUID, dtool.__SQLITE__.PrepareProtocol)]
 
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA

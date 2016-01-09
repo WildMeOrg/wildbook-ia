@@ -25,6 +25,7 @@ Note:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
+import dtool
 #import sys
 import atexit
 import weakref
@@ -39,6 +40,8 @@ import xml.etree.ElementTree as ET
 from ibeis.algo.hots import pipeline
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
+
+# register_preproc, register_algo = dtool.make_global_depcache_decors('IBEISController')
 
 # Import modules which define injectable functions
 
@@ -423,7 +426,6 @@ class IBEISController(BASE_CLASS):
             ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
         """
         from ibeis.control import _sql_helpers
-        from ibeis.control import SQLDatabaseControl as sqldbc
         from ibeis.control import DB_SCHEMA
         # Before load, ensure database has been backed up for the day
         if not ut.get_argflag('--nobackup'):
@@ -443,14 +445,14 @@ class IBEISController(BASE_CLASS):
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
-        new_version, new_fname = sqldbc.dev_test_new_schema_version(
+        new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
             ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.9')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
-        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
-                                              text_factory=const.__STR__,
-                                              inmemory=False, )
+        ibs.db = dtool.sql_control.SQLDatabaseController(
+            ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=const.__STR__,
+            inmemory=False, )
         # Ensure correct schema versions
         _sql_helpers.ensure_correct_version(
             ibs,
@@ -466,19 +468,19 @@ class IBEISController(BASE_CLASS):
     def _init_sqldbcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
         from ibeis.control import _sql_helpers
-        from ibeis.control import SQLDatabaseControl as sqldbc
+        from dtool import sql_control
         from ibeis.control import DBCACHE_SCHEMA
         # IBEIS SQL Features & Chips database
         ibs.dbcache_version_expected = '1.0.4'
         # Test a new schema if developer
-        new_version, new_fname = sqldbc.dev_test_new_schema_version(
+        new_version, new_fname = sql_control.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_cachedir(),
             ibs.sqldbcache_fname, ibs.dbcache_version_expected,
             version_next='1.0.4')
         ibs.dbcache_version_expected = new_version
         ibs.sqldbcache_fname = new_fname
         # Create cache sql database
-        ibs.dbcache = sqldbc.SQLDatabaseController(
+        ibs.dbcache = sql_control.SQLDatabaseController(
             ibs.get_cachedir(), ibs.sqldbcache_fname,
             text_factory=const.__STR__)
         _sql_helpers.ensure_correct_version(
@@ -491,12 +493,7 @@ class IBEISController(BASE_CLASS):
         )
 
         # Initialize dependency cache
-        try:
-            #from ibeis import depends_cache
-            from ibeis import depends_cache
-        except ImportError:
-            from dtool import depends_cache
-        ibs.depc = depends_cache.DependencyCache(
+        ibs.depc = dtool.depends_cache.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
             default_fname='default_dbcache',

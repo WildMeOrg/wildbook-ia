@@ -7,11 +7,16 @@ TODO: LAZY IMPORTS?
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool
-import utool as ut
-import sys
 
-utool.noinject(__name__, '[ibeis.__init__]')
+try:
+    import utool as ut
+    import dtool
+except ImportError as ex:
+    print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
+    print('[ibeis !!!] Perhaps try super_setup.py pull')
+    raise
+
+ut.noinject(__name__, '[ibeis.__init__]')
 if ut.VERBOSE:
     print('[ibeis] importing ibeis __init__')
 
@@ -61,13 +66,8 @@ try:
     from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
-    try:
-        from ibeis.depends_cache import register_preproc
-    except ImportError:
-        from dtool.depends_cache import register_preproc
-        #from ibeis import depends_cache
-    def register_id_algo(*args, **kwargs):
-        return ut.identity
+    # from dtool.depends_cache import register_preproc, register_algo
+    # from dtool.depends_cache import register_preproc, register_algo
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise
@@ -274,7 +274,7 @@ testdata_expanded_aids = main_helpers.testdata_expanded_aids
 testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
-print, rrr, profile = utool.inject2(__name__, '[ibeis]')
+print, rrr, profile = ut.inject2(__name__, '[ibeis]')
 
 def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """
