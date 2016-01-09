@@ -3432,6 +3432,16 @@ def draw_text_annotations(text_list,
                 offset_box._text.set_transform(T + A)
     return hack_fix_centeralign
 
+
+def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
+    import plottool as pt
+    import networkx as netx
+    fnum = pt.ensure_fnum(fnum)
+    pt.figure(fnum=fnum, pnum=pnum)
+    ax = pt.gca()
+    pos = netx.pydot_layout(graph, prog='dot')
+    netx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+
 if __name__ == '__main__':
     """
     CommandLine:
