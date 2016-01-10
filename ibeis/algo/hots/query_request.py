@@ -1164,15 +1164,24 @@ class QueryRequest(object):
         """
         Efficient function to get a list of chipmatch paths
         """
+        fname_list = qreq_.get_result_fnames(qaid_list)
         dpath = qreq_.get_qresdir()
+        fpath_list = [join(dpath, fname) for fname in fname_list]
+        return fpath_list
+
+    @profile
+    def get_result_fnames(qreq_, qaid_list):
+        """
+        Efficient function to get a list of chipmatch paths
+        """
         cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
         qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
-        fpath_list = [
-            join(dpath, chip_match.get_chipmatch_fname(
-                qaid, qreq_, qauuid=qauuid, cfgstr=cfgstr))
+        fname_list = [
+            chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,
+                                           cfgstr=cfgstr)
             for qaid, qauuid in zip(qaid_list, qauuid_list)
         ]
-        return fpath_list
+        return fname_list
 
     @profile
     def load_cached_chipmatch(qreq_, qaid=None):

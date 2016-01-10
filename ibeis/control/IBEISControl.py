@@ -41,7 +41,7 @@ from ibeis.algo.hots import pipeline
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
-register_preproc, register_algo = dtool.depends_cache.make_depcache_decors(const.ANNOTATION_TABLE)
+register_preproc, register_algo = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
 
 # Import modules which define injectable functions
 
@@ -468,19 +468,18 @@ class IBEISController(BASE_CLASS):
     def _init_sqldbcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
         from ibeis.control import _sql_helpers
-        from dtool import sql_control
         from ibeis.control import DBCACHE_SCHEMA
         # IBEIS SQL Features & Chips database
         ibs.dbcache_version_expected = '1.0.4'
         # Test a new schema if developer
-        new_version, new_fname = sql_control.dev_test_new_schema_version(
+        new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_cachedir(),
             ibs.sqldbcache_fname, ibs.dbcache_version_expected,
             version_next='1.0.4')
         ibs.dbcache_version_expected = new_version
         ibs.sqldbcache_fname = new_fname
         # Create cache sql database
-        ibs.dbcache = sql_control.SQLDatabaseController(
+        ibs.dbcache = dtool.sql_control.SQLDatabaseController(
             ibs.get_cachedir(), ibs.sqldbcache_fname,
             text_factory=const.__STR__)
         _sql_helpers.ensure_correct_version(

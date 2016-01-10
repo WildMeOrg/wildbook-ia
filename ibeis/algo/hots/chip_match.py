@@ -618,6 +618,31 @@ class MatchBaseIO(object):
         self.__setstate__(state_dict)
         return self
 
+    def save_to_fpath(cm, fpath, verbose=None):
+        """
+        CommandLine:
+            python ibeis --tf MatchBaseIO.save_to_fpath --verbtest --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> qaid = 18
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> dpath = ut.get_app_resource_dir('ibeis')
+            >>> fpath = join(dpath, 'tmp_chipmatch.cPkl')
+            >>> ut.delete(fpath)
+            >>> cm.save_to_fpath(fpath)
+            >>> cm2 = ChipMatch.load_from_fpath(fpath)
+            >>> assert cm == cm2
+            >>> ut.quit_if_noshow()
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
+        """
+        #ut.save_data(fpath, cm.__getstate__(), verbose=verbose)
+        ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose)
+
     def __getstate__(cm):
         state_dict = cm.__dict__
         return state_dict
@@ -1556,30 +1581,6 @@ class ChipMatch(AnnotMatch,
     def save(cm, qreq_, verbose=None):
         fpath = cm.get_fpath(qreq_)
         cm.save_to_fpath(fpath, verbose=verbose)
-
-    def save_to_fpath(cm, fpath, verbose=None):
-        """
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ChipMatch.save_to_fpath --verbtest --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qaid = 18
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
-            >>> cm = cm_list[0]
-            >>> dpath = ut.get_app_resource_dir('ibeis')
-            >>> fpath = join(dpath, 'tmp_chipmatch.cPkl')
-            >>> ut.delete(fpath)
-            >>> cm.save_to_fpath(fpath)
-            >>> cm2 = ChipMatch.load_from_fpath(fpath)
-            >>> assert cm == cm2
-            >>> ut.quit_if_noshow()
-            >>> cm.ishow_analysis(qreq_)
-            >>> ut.show_if_requested()
-        """
-        #ut.save_data(fpath, cm.__getstate__(), verbose=verbose)
-        ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose)
 
     #@classmethod
     #def load(cls, qreq_, qaid, dpath=None, verbose=None):
