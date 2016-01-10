@@ -2045,30 +2045,40 @@ class TestResult(object):
         #cfgx2_qres
         pass
 
-    def draw_score_pdfs(testres):
+    def compare_score_pdfs(testres):
         """
-        >>> from ibeis.expt.test_result import *  # NOQA
+        CommandLine:
+            python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> import ibeis
+            >>> defaultdb = 'PZ_MTEST'
+            >>> defaultdb = 'PZ_Master1'
+            >>> ibs, testres = ibeis.testdata_expts(
+            >>>     defaultdb=defaultdb, a=['timectrl'], t=['best'])
+            >>> testres.compare_score_pdfs()
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> ut.show_if_requested()
         """
-        from ibeis.init import main_helpers
+        #from ibeis.init import main_helpers
         import utool as ut
         ut.ensure_pylab_qt4()
-        defaultdb = 'PZ_MTEST'
-        defaultdb = 'PZ_Master1'
-        ibs, testres = main_helpers.testdata_expts(
-            defaultdb=defaultdb, a=['timectrl'], t=['best'])
 
         testres.draw_annot_scoresep(f='fail=False')
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=None)
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn', 'fg'])
 
-        ibs, testres = main_helpers.testdata_expts(
-            defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
+        #ibs, testres = main_helpers.testdata_expts(
+        #    defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
         # TODO:
         return encoder
 
