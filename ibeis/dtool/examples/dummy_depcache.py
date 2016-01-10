@@ -220,14 +220,12 @@ def testdata_depc(fname=None):
 
         def get_param_info_list(self):
             return [
-                ut.ParamInfo('score_method', 'csum')
+                ut.ParamInfo('score_method', 'csum'),
+                ut.ParamInfo('daid_list', None),
             ]
 
     algo_config = DummyAlgoConfig()
     print(algo_config)
-
-    import utool
-    utool.embed()
 
     class DummyAnnotMatch(dtool.AlgoResult):
         def __init__(self, qaid=None, daid_list=None, dnid_list=None,
@@ -239,11 +237,9 @@ def testdata_depc(fname=None):
             self.annot_score_list = annot_score_list
             self.name_score_list = name_score_list
 
-    @depc.register_algo('dumbalgo', DummyAnnotMatch, config_class=DummyKptsConfig)
+    @depc.register_algo('dumbalgo', DummyAnnotMatch, config_class=DummyAlgoConfig)
     def dummy_matching_algo(depc, aids, config=None):
-        if config is None:
-            config = {'daids': [1, 2, 3, 4]}
-        daid_list = config['daids']
+        daid_list = config['daid_list']
         for qaid in aids:
             dnid_list = [1, 1, 2, 2]
             unique_nids = [1, 2]

@@ -222,6 +222,22 @@ class DependencyCacheTable(object):
     # ---------------------------
 
     def get_config_rowid(table, config=None):
+        config_rowid = table.add_config(config)
+        return config_rowid
+
+    def get_config_hashid(table, config_rowid_list):
+        hashid_list = table.db.get(
+            CONFIG_TABLE, (CONFIG_HASHID,), config_rowid_list,
+            id_colname=CONFIG_ROWID)
+        return hashid_list
+
+    def get_config_rowid_from_hashid(table, config_hashid_list):
+        config_rowid_list = table.db.get(
+            CONFIG_TABLE, (CONFIG_ROWID,), config_hashid_list,
+            id_colname=CONFIG_HASHID)
+        return config_rowid_list
+
+    def add_config(table, config):
         #config_hashid = config.get('feat_cfgstr')
         #assert config_hashid is not None
         # TODO store config_rowid in qparams
@@ -237,7 +253,9 @@ class DependencyCacheTable(object):
                         subconfig = config.get(table.tablename + '_config')
                         config_hashid = ut.hashstr27(ut.to_json(subconfig))
                     except KeyError:
-                        print('[deptbl.config] Warning: Config must either contain a string <tablename>_hashid or a dict <tablename>_config')
+                        print('[deptbl.config] Warning: Config must either'
+                              'contain a string <tablename>_hashid or a dict'
+                              '<tablename>_config')
                         raise
             else:
                 config_hashid = 'none'
@@ -249,23 +267,8 @@ class DependencyCacheTable(object):
         else:
             config_strid = ut.to_json(config)
         config_hashid = ut.hashstr27(config_strid)
-        config_rowid = table.add_config(config_hashid)
-        return config_rowid
-
-    def get_config_hashid(table, config_rowid_list):
-        hashid_list = table.db.get(
-            CONFIG_TABLE, (CONFIG_HASHID,), config_rowid_list,
-            id_colname=CONFIG_ROWID)
-        return hashid_list
-
-    def get_config_rowid_from_hashid(table, config_hashid_list):
-        config_rowid_list = table.db.get(
-            CONFIG_TABLE, (CONFIG_ROWID,), config_hashid_list,
-            id_colname=CONFIG_HASHID)
-        return config_rowid_list
-
-    def add_config(table, config_hashid):
         if table.depc._debug:
+            print('config_strid = %r' % (config_strid,))
             print('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
         config_rowid_list = table.db.add_cleanly(

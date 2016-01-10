@@ -156,7 +156,7 @@ class AlgoResult(object):
         return self
 
     def save_to_fpath(cm, fpath, verbose=None):
-        ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose, n=4)
+        ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose, n=2)
 
     def __getstate__(self):
         state_dict = self.__dict__

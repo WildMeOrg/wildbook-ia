@@ -533,6 +533,7 @@ class DependencyCache(object):
             >>> from dtool.depends_cache import *  # NOQA
             >>> from dtool.examples.dummy_depcache import testdata_depc
             >>> depc = testdata_depc()
+            >>> depc._debug = True
             >>> tablename = 'spam'
             >>> root_rowids = [1, 2, 3]
             >>> config, ensure, eager, nInput = None, True, True, None
@@ -548,6 +549,20 @@ class DependencyCache(object):
                 'probchip': [1, 2, 3],
                 'spam': [1, 2, 3],
             }
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depends_cache import *  # NOQA
+            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> depc._debug = True
+            >>> tablename = 'dumbalgo'
+            >>> root_rowids = [1, 2, 3]
+            >>> config, ensure, eager, nInput = None, True, True, None
+            >>> result = ut.repr3(depc.get_ancestor_rowids(tablename, root_rowids,
+            >>>                                            config, ensure, eager,
+            >>>                                            nInput), nl=1)
+            >>> print(result)
         """
         # if config is None:
         configclass = depc.configclass_dict[tablename]
@@ -560,17 +575,30 @@ class DependencyCache(object):
                 print(' * GET ANCESTOR ROWIDS %s ' % (tablename,))
                 print(' * config = %r' % (config,))
             dependency_levels = depc.get_dependencies(tablename)
-            # print('root_rowids = %r' % (root_rowids,))
+            configclass_levels = [[depc.configclass_dict.get(key, None)
+                                   for key in keys] for keys in dependency_levels]
             if depc._debug:
                 print('[depc.ancestor] dependency_levels = %s' %
                       (ut.repr3(dependency_levels, nl=2),))
+                print('[depc.ancestor] dependency_levels = %s' %
+                      (ut.repr3(configclass_levels, nl=2),))
             rowid_dict = {depc.root: root_rowids}
             for level_keys in dependency_levels[1:]:
                 if depc._debug:
                     print(' * level_keys %s ' % (level_keys,))
+                #[depc.configclass_dict.get(key, None) for key in level_keys]
                 for key in level_keys:
+                    configclass = depc.configclass_dict.get(key, None)
                     if depc._debug:
                         print('   * key = %r' % (key,))
+                        print('   * configclass = %r' % (configclass,))
+                    if configclass is None:
+                        config_ = config
+                    else:
+                        if config is None:
+                            config_ = configclass()
+                        else:
+                            config_ = configclass(**config)
                     table = depc[key]
                     parent_rowids = list(zip(*ut.dict_take(rowid_dict,
                                                            table.parents)))
@@ -578,7 +606,7 @@ class DependencyCache(object):
                         print('   * parent_rowids = %r' %
                               (ut.trunc_repr(parent_rowids),))
                     child_rowids = table.get_rowid_from_superkey(
-                        parent_rowids, config=config, eager=eager, nInput=nInput,
+                        parent_rowids, config=config_, eager=eager, nInput=nInput,
                         ensure=ensure)
                     if depc._debug:
                         print('   * child_rowids = %r' %
