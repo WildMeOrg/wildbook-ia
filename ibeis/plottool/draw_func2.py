@@ -3464,7 +3464,6 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     """
     import plottool as pt
     import networkx as netx
-    from matplotlib.patches import FancyArrowPatch, Circle
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
     ax = pt.gca()
@@ -3472,12 +3471,26 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
 
     # For fancy arrows
     def draw_network2(graph, pos, ax, sg=None):
-        for n in graph:
+        for n, nattrs in graph.nodes(data=True):
+            # shape = nattrs.get('shape', 'circle')
+            alpha = nattrs.get('alpha', .5)
+            node_color = nattrs.get('color', None)
+            if node_color is None:
+                node_color = pt.NEUTRAL_BLUE
+            xy = pos[n]
+            patch_kw = dict(alpha=alpha, color=node_color)
+            # if shape == 'circle':
             radius = node_size / 100
-            node_color = pt.NEUTRAL_BLUE
-            c = Circle(pos[n], radius=radius, alpha=0.5, color=node_color)
-            ax.add_patch(c)
-            graph.node[n]['patch'] = c
+            patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
+            # elif shape == 'rhombus':
+            #     height = width = node_size / 10
+            #     patch = mpl.patches.Rectangle(xy, width, height, angle=45,
+            #                                   **patch_kw)
+            #     patch.center = (xy[0] + width // 2, xy[1] + height // 2)
+            # elif shape == 'star':
+            #     pass
+            ax.add_patch(patch)
+            graph.node[n]['patch'] = patch
             x, y = pos[n]
             pt.ax_absolute_text(x, y, n, ha='center', va='center')
         seen = {}
@@ -3493,13 +3506,10 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
 
             arrowstyle = '-' if not graph.is_directed() else '-|>'
 
-            e = FancyArrowPatch(n1.center, n2.center, patchA=n1, patchB=n2,
-                                arrowstyle=arrowstyle,
-                                connectionstyle='arc3,rad=%s' % rad,
-                                mutation_scale=10.0,
-                                lw=2,
-                                alpha=alpha,
-                                color=color)
+            e = mpl.patches.FancyArrowPatch(
+                n1.center, n2.center, patchA=n1, patchB=n2,
+                arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
+                mutation_scale=10.0, lw=2, alpha=alpha, color=color)
             seen[(u, v)] = rad
             ax.add_patch(e)
         return e
