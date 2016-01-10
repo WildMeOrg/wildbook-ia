@@ -366,8 +366,14 @@ def open_image_size(image_fpath):
         assert t2 < t5
         assert t3 < t4
     """
-    pil_img = Image.open(image_fpath)
-    size = pil_img.size
+    try:
+        pil_img = Image.open(image_fpath)
+        size = pil_img.size
+    except IOError as ex:
+        print('ERROR: Failed open image size')
+        ut.checkpath(image_fpath, verbose=True)
+        ut.printex(ex, 'ERROR: Failed open image size')
+        raise
     return size
 
 
