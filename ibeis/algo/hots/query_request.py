@@ -150,6 +150,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         cfgdict['K'] = compute_K(nDaids, model_params)
 
     # <HACK>
+
+    if not hasattr(ibs, 'generate_species_background_mask'):
+        print('HACKING FG OFF')
+        cfgdict['fg_on'] = False
+        #pass
+
     if unique_species is None:
         unique_species_ = apply_species_with_detector_hack(
             ibs, cfgdict, qaid_list, daid_list)
