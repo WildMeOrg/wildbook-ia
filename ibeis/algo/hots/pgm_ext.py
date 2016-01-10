@@ -79,7 +79,7 @@ class ApproximateFactor(object):
         python -m ibeis.algo.hots.pgm_ext --exec-ApproximateFactor --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
         >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
         >>> weights = [.1, .2, .1]
@@ -196,7 +196,7 @@ class ApproximateFactor(object):
         """ removes duplicate entries
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # UNSTABLE_DOCTEST
             >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[1, 0, 1], [1, 0, 1], [1, 0, 2]]
             >>> weights = [.1, .2, .1]
@@ -246,7 +246,7 @@ class ApproximateFactor(object):
             python -m ibeis.algo.hots.pgm_ext --exec-normalize
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # UNSTABLE_DOCTEST
             >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
@@ -278,7 +278,7 @@ class ApproximateFactor(object):
             python -m ibeis.algo.hots.pgm_ext --exec-reorder
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # UNSTABLE_DOCTEST
             >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]
             >>> weights = [.1, .2, .1]
@@ -541,7 +541,7 @@ def mustbe_example():
         python -m ibeis.algo.hots.pgm_ext --exec-mustbe_example --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
         >>> model = mustbe_example()
         >>> model.print_templates()
@@ -609,7 +609,7 @@ def map_example():
         https://class.coursera.org/pgm-003/lecture/44
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
         >>> model = map_example()
         >>> ut.quit_if_noshow()
@@ -660,7 +660,7 @@ def coin_example():
         python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show --cmd
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
         >>> model = coin_example()
         >>> model.print_templates()
