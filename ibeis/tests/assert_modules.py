@@ -187,7 +187,8 @@ def vtool_version():
 
 
 #@checkinfo('1.1.7')
-@checkinfo('2.4.0')
+#@checkinfo('2.4.0')
+@checkinfo('3.1.0')
 def pillow_version():
     from PIL import Image
     import PIL

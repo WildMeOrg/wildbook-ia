@@ -450,7 +450,7 @@ class IBEISController(BASE_CLASS):
             ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.9')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
-        ibs.db = dtool.sql_control.SQLDatabaseController(
+        ibs.db = dtool.SQLDatabaseController(
             ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=const.__STR__,
             inmemory=False, )
         # Ensure correct schema versions
@@ -479,7 +479,7 @@ class IBEISController(BASE_CLASS):
         ibs.dbcache_version_expected = new_version
         ibs.sqldbcache_fname = new_fname
         # Create cache sql database
-        ibs.dbcache = dtool.sql_control.SQLDatabaseController(
+        ibs.dbcache = dtool.SQLDatabaseController(
             ibs.get_cachedir(), ibs.sqldbcache_fname,
             text_factory=const.__STR__)
         _sql_helpers.ensure_correct_version(
@@ -492,7 +492,7 @@ class IBEISController(BASE_CLASS):
         )
 
         # Initialize dependency cache
-        ibs.depc = dtool.depends_cache.DependencyCache(
+        ibs.depc = dtool.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
             default_fname=const.ANNOTATION_TABLE + '_depcache',
