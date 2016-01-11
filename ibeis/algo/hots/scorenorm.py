@@ -590,10 +590,10 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
             nfxs_list  = ut.take(cm.nfxs_list, idxs)
             nvecs_flat = ibs.lookup_annot_vecs_subset(naids_list, nfxs_list, config2_=data_config2_,
                                                       annots=data_annots)
-            import utool
-            with utool.embed_on_exception_context:
-                #nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
-                nvecs_flat_m = vt.safe_vstack(ut.compress(nvecs_flat, nvecs_flat), qvecs_flat_m.shape, qvecs_flat_m.dtype)
+            #import utool
+            #with utool.embed_on_exception_context:
+            #nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
+            nvecs_flat_m = vt.safe_vstack(ut.compress(nvecs_flat, nvecs_flat), qvecs_flat_m.shape, qvecs_flat_m.dtype)
             vdist = vt.L2_sift(qvecs_flat_m, dvecs_flat_m)
             ndist = vt.L2_sift(qvecs_flat_m, nvecs_flat_m)
 
@@ -603,7 +603,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
             if 'fg' in special_lbls:
                 # hack for fgweights (could get them directly from fsv)
                 qfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset([qaid] * len(qfxs_list), qfxs_list, config2_=query_config2_))
-                dfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset(daid_list, qfxs_list, config2_=query_config2_))
+                dfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset(daid_list, dfxs_list, config2_=data_config2_))
                 fgweights = np.sqrt(qfgweights_flat_m * dfgweights_flat_m)
                 special_dist_list.append(fgweights)
 
