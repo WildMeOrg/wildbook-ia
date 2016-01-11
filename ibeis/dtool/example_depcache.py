@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    python -m dtool.examples.dummy_depcache --exec-dummy_example_depcacahe --show
-    python -m dtool.depends_cache --exec-make_digraph --show
+    python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
+    python -m dtool.depcache_control --exec-make_digraph --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -10,12 +10,12 @@ import numpy as np
 import uuid
 from os.path import join
 from six.moves import zip
-from dtool import depends_cache
+from dtool import depcache_control
 
 
 if False:
     DUMMY_ROOT_TABLENAME = 'dummy_annot'
-    register_preproc, register_algo = depends_cache.make_depcache_decors(DUMMY_ROOT_TABLENAME)
+    register_preproc, register_algo = depcache_control.make_depcache_decors(DUMMY_ROOT_TABLENAME)
 
     # Example of global preproc function
     @register_preproc(tablename='dummy', parents=[DUMMY_ROOT_TABLENAME], colnames=['data'], coltypes=[str])
@@ -34,19 +34,14 @@ def testdata_depc(fname=None):
 
     dummy_root = 'dummy_annot'
 
-    def root_asobject(aid):
-        """ Convinience for writing preproc funcs """
-        gpath = gpath_list[aid]
-        root_obj = ut.LazyDict({
-            'aid': aid,
-            'gpath': gpath,
-            'image': lambda: vt.imread(gpath)
-        })
-        return root_obj
+    def get_root_uuid(aid_list):
+        return ut.lmap(ut.hashable_to_uuid, aid_list)
 
     depc = dtool.DependencyCache(
         root_tablename=dummy_root, default_fname=fname,
-        root_asobject=root_asobject, use_globals=False)
+        get_root_uuid=get_root_uuid,
+        #root_asobject=root_asobject,
+        use_globals=False)
 
     @depc.register_preproc(
         tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
@@ -85,11 +80,11 @@ def testdata_depc(fname=None):
     cfg.histeq = False
     print(cfg)
 
-    @depc.register_preproc(
-        tablename='chip', parents=[dummy_root], colnames=['size', 'chip'],
-        coltypes=[(int, int), vt.imread], config_class=DummyChipConfig,
-        asobject=True)
-    def dummy_preproc_chip(depc, annot_list, config=None):
+    @depc.register_preproc(tablename='chip', parents=[dummy_root],
+                           colnames=['size', 'chip'],
+                           coltypes=[(int, int), vt.imread],
+                           config_class=DummyChipConfig)
+    def dummy_preproc_chip(depc, annot_rowid_list, config=None):
         """
         TODO: Infer properties from docstr
 
@@ -104,9 +99,12 @@ def testdata_depc(fname=None):
             config = {}
         # Demonstates using asobject to get input to function as a dictionary
         # of properties
-        for annot in annot_list:
-            print('[preproc] Computing chips of annot=%r' % (annot,))
-            chip_fpath = annot['gpath']
+        #for annot in annot_list:
+        for aid in annot_rowid_list:
+            #aid = annot['aid']
+            #chip_fpath = annot['gpath']
+            print('[preproc] Computing chips of aid=%r' % (aid,))
+            chip_fpath = gpath_list[aid]
             w, h = vt.image.open_image_size(chip_fpath)
             size = (w, h)
             print('* chip_fpath = %r' % (chip_fpath,))
@@ -137,9 +135,16 @@ def testdata_depc(fname=None):
     def dummy_preproc_kpts(depc, parent_rowids, config=None):
         if config is None:
             config = {}
+        print('config = %r' % (config,))
+        adapt_shape = config['adapt_shape']
         print('[preproc] Computing kpts')
         for rowid in parent_rowids:
-            yield np.ones((7 + rowid, 6)) + rowid, 7 + rowid
+            if adapt_shape:
+                kpts = np.zeros((7 + rowid, 6)) + rowid
+            else:
+                kpts = np.ones((7 + rowid, 6)) + rowid
+            num = len(kpts)
+            yield kpts, num
 
     @depc.register_preproc('descriptor', ['keypoint'], ['vecs'], [np.ndarray],)
     def dummy_preproc_vecs(depc, parent_rowids, config=None):
@@ -201,7 +206,7 @@ def testdata_depc(fname=None):
     class DummySVERConfig(dtool.AlgoConfig):
         def get_param_info_list(self):
             return [
-                ut.ParamInfo('sv_on', True),
+                ut.ParamInfo('sver_on', True),
                 ut.ParamInfo('xy_thresh', .01)
             ]
 
@@ -211,7 +216,8 @@ def testdata_depc(fname=None):
             # as well as dependencies that were not
             # explicitly enumerated in the tree structure
             return [
-                DummyChipConfig,  # I guess different annots might want different configs ...
+                # I guess different annots might want different configs ...
+                DummyChipConfig,
                 DummyKptsConfig,
                 DummyIndexerConfig,
                 DummyNNConfig,
@@ -220,32 +226,53 @@ def testdata_depc(fname=None):
 
         def get_param_info_list(self):
             return [
-                ut.ParamInfo('score_method', 'csum'),
-                ut.ParamInfo('daid_list', None),
+                #ut.ParamInfo('score_method', 'csum'),
+                # should this be the only thing here?
+                #ut.ParamInfo('daids', None),
+                ut.ParamInfo('distinctiveness_model', None),
             ]
 
     algo_config = DummyAlgoConfig()
     print(algo_config)
 
+    class DummyMatchRequest(dtool.AlgoRequest):
+        pass
+
     class DummyAnnotMatch(dtool.AlgoResult):
-        def __init__(self, qaid=None, daid_list=None, dnid_list=None,
+        def __init__(self, qaid=None, daids=None, dnid_list=None,
                      annot_score_list=None, unique_nids=None,
                      name_score_list=None):
             self.qaid = qaid
-            self.daid_list = daid_list
+            self.daids = daids
             self.dnid_list = dnid_list
             self.annot_score_list = annot_score_list
             self.name_score_list = name_score_list
 
-    @depc.register_algo('dumbalgo', DummyAnnotMatch, config_class=DummyAlgoConfig)
-    def dummy_matching_algo(depc, aids, config=None):
-        daid_list = config['daid_list']
-        for qaid in aids:
+    @depc.register_algo(algoname='dumbalgo',
+                        algo_result_class=DummyAnnotMatch,
+                        algo_request_class=DummyMatchRequest,
+                        config_class=DummyAlgoConfig,
+                       )
+    #def dummy_matching_algo(depc, aids, config=None):
+    def dummy_matching_algo(depc, request):
+        print('RUNNING DUMMY ALGO')
+        daids = request.daids
+        qaids = request.qaids
+        print('request.config = %r' % (request.config,))
+        print('request.params = %r' % (request.params,))
+        sver_on = request.params['sver_on']
+        kpts_list = depc.get_property('keypoint', qaids)
+        #dummy_preproc_kpts
+        for qaid in qaids:
             dnid_list = [1, 1, 2, 2]
             unique_nids = [1, 2]
-            annot_score_list = [.2, .2, .4, .5]
-            name_score_list = [.2, .5]
-            annot_match = DummyAnnotMatch(qaid, daid_list, dnid_list,
+            if sver_on:
+                annot_score_list = [.2, .2, .4, .5]
+                name_score_list = [.2, .5]
+            else:
+                annot_score_list = [.3, .3, .6, .9]
+                name_score_list = [.1, .7]
+            annot_match = DummyAnnotMatch(qaid, daids, dnid_list,
                                           annot_score_list, unique_nids,
                                           name_score_list)
             yield annot_match
@@ -338,23 +365,24 @@ def test_getters(depc):
     cols = depc.get_property('chip', 1, 'size')
     print('[test] cols = %r' % (cols,))
 
-    chip_dict = depc.get_obj('chip', 1)
+    if False:
+        chip_dict = depc.get_obj('chip', 1)
 
-    print('chip_dict = %r' % (chip_dict,))
-    for key in chip_dict.keys():
-        print(ut.varinfo_str(chip_dict[key], 'chip_dict["%s"]' % (key,)))
-    # print('chip_dict["chip"] = %s' % (ut.trunc_repr(chip_dict['chip']),))
-    print('chip_dict = %r' % (chip_dict,))
+        print('chip_dict = %r' % (chip_dict,))
+        for key in chip_dict.keys():
+            print(ut.varinfo_str(chip_dict[key], 'chip_dict["%s"]' % (key,)))
+        # print('chip_dict["chip"] = %s' % (ut.trunc_repr(chip_dict['chip']),))
+        print('chip_dict = %r' % (chip_dict,))
 
 
 def dummy_example_depcacahe():
     r"""
     CommandLine:
-        python -m dtool.examples.dummy_depcache --exec-dummy_example_depcacahe --show
+        python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from dtool.examples.dummy_depcache import *  # NOQA
+        >>> from dtool.example_depcache import *  # NOQA
         >>> depc = dummy_example_depcacahe()
         >>> ut.show_if_requested()
     """
@@ -375,8 +403,7 @@ def dummy_example_depcacahe():
 
     table = depc[tablename]  # NOQA
 
-    # Try testing the algorithm
-    example_getter_methods(depc, 'dumbalgo', root_rowids)
+    #example_getter_methods(depc, 'dumbalgo', root_rowids)
 
     # example_getter_methods(depc, 'chipmask', root_rowids)
     # example_getter_methods(depc, 'keypoint', root_rowids)
@@ -388,15 +415,37 @@ def dummy_example_depcacahe():
     # pt.ensure_pylab_qt4()
 
     graph = depc.make_digraph()
-    pt.show_netx(graph)
+    #pt.show_netx(graph)
+
+    print('---------- 111 -----------')
+
+    # Try testing the algorithm
+    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {})
+    print('req = %r' % (req,))
+    req.execute()
+
+    print('---------- 222 -----------')
+
+    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {'sver_on': False})
+    req.execute()
+
+    print('---------- 333 -----------')
+
+    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {'sver_on': False, 'adapt_shape': False})
+    req.execute()
+
+    print('---------- 444 -----------')
+
+    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {})
+    req.execute()
 
     return depc
 
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool.examples.dummy_depcache
-        python -m dtool.examples.dummy_depcache --allexamples
+        python -m dtool.example_depcache
+        python -m dtool.example_depcache --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -101,7 +101,9 @@ class DependencyCache(object):
           object, containing root ids and a configuration object.
     """
     def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
-                 controller=None, default_fname=None, root_asobject=None,
+                 controller=None, default_fname=None,
+                 #root_asobject=None,
+                 get_root_uuid=None,
                  use_globals=True, get_root_hashid=None):
         if default_fname is None:
             default_fname = ':memory:'
@@ -114,14 +116,17 @@ class DependencyCache(object):
         # Internal dictionary of dependant tables
         depc.cachetable_dict = {}
         depc.configclass_dict = {}
+        depc.requestclass_dict = {}
+        depc.resultclass_dict = {}
         # Mapping of different files properties are stored in
         depc.fname_to_db = {}
         # Function to map a root rowid to an object
-        depc._root_asobject = root_asobject
+        #depc._root_asobject = root_asobject
         depc._use_globals = use_globals
         depc.get_root_hashid = get_root_hashid
         depc.default_fname = default_fname
         depc._debug = False
+        depc.get_root_uuid = get_root_uuid
         # depc._debug = True
 
     @ut.apply_docstr(REG_PREPROC_DOC)
@@ -135,42 +140,6 @@ class DependencyCache(object):
             depc._register_prop(*args, **kwargs)
             return func
         return register_preproc_wrapper
-
-    @ut.apply_docstr(REG_ALGO_DOC)
-    def register_algo(depc, *args, **kwargs):
-        def reg_algo_wrapper(func):
-            check_register(args, kwargs)
-            kwargs['algo_func'] = func
-            depc._register_algo(*args, **kwargs)
-            return func
-        return reg_algo_wrapper
-
-    @ut.apply_docstr(REG_ALGO_DOC)
-    def _register_algo(depc, algoname, algo_result_class=None,
-                       config_class=None, algo_func=None,
-                       docstr=None, fname=None, chunksize=None):
-        """
-        Registers an algorithm for the root of this dependency cache
-        """
-        if algo_result_class is None:
-            import dtool
-            algo_result_class = dtool.AlgoResult
-
-        unbound_args = ut.get_unbound_args(algo_result_class.__init__)
-        if len(unbound_args) > 1:
-            msg = ut.codeblock(
-                '''
-                {classname} __init__ should not have any (non-self) unbound args.
-                Detected len({unbound_args}) > 1 unbound args
-                ''').format(classname=ut.get_classname(algo_result_class),
-                            unbound_args=unbound_args)
-            raise ValueError(msg)
-
-        depc._register_prop(algoname,
-                            coltypes=[algo_result_class.load_from_fpath],
-                            config_class=config_class,
-                            preproc_func=algo_func,
-                            isalgo=True)
 
     # @ut.ut.apply_docstr()
     @ut.apply_docstr(REG_PREPROC_DOC)
@@ -216,6 +185,50 @@ class DependencyCache(object):
         depc.configclass_dict[tablename] = config_class
         return table
 
+    @ut.apply_docstr(REG_ALGO_DOC)
+    def register_algo(depc, *args, **kwargs):
+        def reg_algo_wrapper(func):
+            check_register(args, kwargs)
+            kwargs['algo_func'] = func
+            depc._register_algo(*args, **kwargs)
+            return func
+        return reg_algo_wrapper
+
+    @ut.apply_docstr(REG_ALGO_DOC)
+    def _register_algo(depc, algoname,
+                       algo_result_class=None,
+                       algo_request_class=None,
+                       config_class=None,
+                       algo_func=None,
+                       docstr=None, fname=None, chunksize=None):
+        """
+        Registers an algorithm for the root of this dependency cache
+        """
+        import dtool
+        if algo_result_class is None:
+            algo_result_class = dtool.AlgoResult
+        if algo_request_class is None:
+            algo_request_class = dtool.AlgoRequest
+
+        depc.requestclass_dict[algoname] = algo_request_class
+        depc.resultclass_dict[algoname] = algo_result_class
+
+        unbound_args = ut.get_unbound_args(algo_result_class.__init__)
+        if len(unbound_args) > 1:
+            msg = ut.codeblock(
+                '''
+                {classname} __init__ should not have any (non-self) unbound args.
+                Detected len({unbound_args}) > 1 unbound args
+                ''').format(classname=ut.get_classname(algo_result_class),
+                            unbound_args=unbound_args)
+            raise ValueError(msg)
+
+        depc._register_prop(algoname,
+                            coltypes=[algo_result_class.load_from_fpath],
+                            config_class=config_class,
+                            preproc_func=algo_func,
+                            isalgo=True)
+
     @profile
     def initialize(depc):
         print('[depc] INITIALIZE %s DEPCACHE' % (depc.root.upper(),))
@@ -231,18 +244,13 @@ class DependencyCache(object):
                 depc._register_algo(*args_, **kwargs_)
 
         ut.ensuredir(depc.cache_dpath)
-        #print('depc.cache_dpath = %r' % (depc.cache_dpath,))
-        #print(ut.repr3(config_addtable_kw))
 
-        #print('depc.fname_to_db.keys = %r' % (depc.fname_to_db,))
         for fname in depc.fname_to_db.keys():
-            #print('fname = %r' % (fname,))
             if fname == ':memory:':
                 fpath = fname
             else:
                 fname_ = ut.ensure_ext(fname, '.sqlite')
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
-            #print('fpath = %r' % (fpath,))
             if ut.get_argflag('--clear-all-depcache'):
                 ut.delete(fpath)
             db = sql_control.SQLDatabaseController(fpath=fpath, simple=True)
@@ -279,8 +287,8 @@ class DependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> graph = depc.make_digraph()
             >>> ut.quit_if_noshow()
@@ -335,12 +343,12 @@ class DependencyCache(object):
     def __str__(depc):
         return depc._custom_str()
 
+    def __getitem__(depc, key):
+        return depc.cachetable_dict[key]
+
     @property
     def root(depc):
         return depc.root_tablename
-
-    def __getitem__(depc, key):
-        return depc.cachetable_dict[key]
 
     # @ut.memoize
     def get_dependencies(depc, tablename):
@@ -348,13 +356,13 @@ class DependencyCache(object):
         gets level dependences from root to tablename
 
         CommandLine:
-            python -m dtool.depends_cache --exec-get_dependencies
-            python -m dtool.depends_cache --exec-get_dependencies:0
+            python -m dtool.depcache_control --exec-get_dependencies
+            python -m dtool.depcache_control --exec-get_dependencies:0
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'chip'
             >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
@@ -366,8 +374,8 @@ class DependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'fgweight'
             >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
@@ -381,8 +389,8 @@ class DependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'spam'
             >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
@@ -432,8 +440,8 @@ class DependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'chip'
             >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
@@ -447,8 +455,8 @@ class DependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'spam'
             >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
@@ -476,12 +484,12 @@ class DependencyCache(object):
             dict: rowid_dict
 
         CommandLine:
-            python -m dtool.depends_cache --exec-get_descendant_rowids --show
+            python -m dtool.depcache_control --exec-get_descendant_rowids --show
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'chip'
             >>> root_rowids = [2, 3]
@@ -504,7 +512,7 @@ class DependencyCache(object):
         #         # due to different configs
         #         child_rowids = list(zip(*ut.dict_take(rowid_dict, table.children)))
         #         # print('parent_rowids = %r' % (parent_rowids,))
-        #         # child_rowids = table.get_rowid_from_superkey(
+        #         # child_rowids = table.get_rowid(
         #         #     parent_rowids, config=config, eager=eager, nInput=nInput,
         #         #     ensure=ensure)
         #         # print('child_rowids = %r' % (child_rowids,))
@@ -526,12 +534,12 @@ class DependencyCache(object):
             nInput (None): (default = None)
 
         CommandLine:
-            python -m dtool.depends_cache --exec-get_ancestor_rowids
+            python -m dtool.depcache_control --exec-get_ancestor_rowids
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc._debug = True
             >>> tablename = 'spam'
@@ -552,8 +560,8 @@ class DependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depends_cache import *  # NOQA
-            >>> from dtool.examples.dummy_depcache import testdata_depc
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> depc._debug = True
             >>> tablename = 'dumbalgo'
@@ -589,9 +597,11 @@ class DependencyCache(object):
                 #[depc.configclass_dict.get(key, None) for key in level_keys]
                 for key in level_keys:
                     configclass = depc.configclass_dict.get(key, None)
+                    requestclass = depc.requestclass_dict.get(key, None)
                     if depc._debug:
                         print('   * key = %r' % (key,))
                         print('   * configclass = %r' % (configclass,))
+                        print('   * requestclass = %r' % (requestclass,))
                     if configclass is None:
                         config_ = config
                     else:
@@ -605,7 +615,7 @@ class DependencyCache(object):
                     if depc._debug:
                         print('   * parent_rowids = %r' %
                               (ut.trunc_repr(parent_rowids),))
-                    child_rowids = table.get_rowid_from_superkey(
+                    child_rowids = table.get_rowid(
                         parent_rowids, config=config_, eager=eager, nInput=nInput,
                         ensure=ensure)
                     if depc._debug:
@@ -615,6 +625,11 @@ class DependencyCache(object):
             if depc._debug:
                 print(' GOT ANCESTOR ROWIDS')
         return rowid_dict
+
+    def new_algo_request(depc, algoname, *args, **kwargs):
+        requestclass = depc.requestclass_dict[algoname]
+        request = requestclass.new_algo_request(depc, algoname, *args, **kwargs)
+        return request
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
                    eager=True, nInput=None):
@@ -627,23 +642,13 @@ class DependencyCache(object):
             if depc._debug:
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
                 print(' * config = %r' % (config,))
-            rowid_dict = depc.get_ancestor_rowids(tablename, root_rowids,
-                                                  config=config, ensure=ensure,
-                                                  eager=eager, nInput=nInput)
+            rowid_dict = depc.get_ancestor_rowids(
+                tablename, root_rowids, config=config, ensure=ensure,
+                eager=eager, nInput=nInput)
             rowid_list = rowid_dict[tablename]
             if depc._debug:
                 print(' * return rowid_list = %r' % (ut.trunc_repr(rowid_list),))
         return rowid_list
-
-    def delete_property(depc, tablename, root_rowids, config=None):
-        """
-        Deletes the rowids of `tablename` that correspond to `root_rowids`
-        using `config`.
-        """
-        rowid_list = depc.get_rowids(root_rowids, config=config, ensure=False)
-        table = depc[tablename]
-        num_deleted = table.delete_rows(rowid_list)
-        return num_deleted
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
@@ -678,44 +683,22 @@ class DependencyCache(object):
             prop_list = table.get_row_data(tbl_rowids, colnames)
         return prop_list
 
-    @ut.accepts_scalar_input2(argx_list=[1])
-    def get_obj(depc, tablename, root_rowids, config=None, ensure=True):
-        """ Convinience function. Gets data in `tablename` as a list of
-        objects. """
-        print('WARNING EXPERIMENTAL')
-        try:
-            if tablename == depc.root:
-                obj_list = [depc._root_asobject(rowid) for rowid in root_rowids]
-            else:
-                def make_property_getter(rowid, colname):
-                    def wrapper():
-                        return depc.get_property(
-                            tablename, rowid, colnames=colname, config=config,
-                            ensure=ensure)
-                    return wrapper
-                colnames = depc[tablename].data_colnames
-                obj_list = [
-                    ut.LazyDict({colname: make_property_getter(rowid, colname)
-                                 for colname in colnames})
-                    for rowid in root_rowids
-                ]
-            return obj_list
-            # data_list = depc.get_property(tablename, root_rowids, config)
-            # # TODO: lazy dict
-            # return [dict(zip(colnames, data)) for data in data_list]
-        except Exception as ex:
-            ut.printex(ex, 'error in getobj', keys=['tablename', 'root_rowids', 'colnames'])
-            raise
-
-    def request_algorithm(depc, algoname):
-        pass
+    def delete_property(depc, tablename, root_rowids, config=None):
+        """
+        Deletes the rowids of `tablename` that correspond to `root_rowids`
+        using `config`.
+        """
+        rowid_list = depc.get_rowids(root_rowids, config=config, ensure=False)
+        table = depc[tablename]
+        num_deleted = table.delete_rows(rowid_list)
+        return num_deleted
 
 
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m dtool.depends_cache
-        python -m dtool.depends_cache --allexamples
+        python -m dtool.depcache_control
+        python -m dtool.depcache_control --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -75,22 +75,24 @@ class DependencyCacheTable(object):
             if argspec.varargs and argspec.keywords:
                 assert len(args) == 1, 'varargs and kwargs must have one arg for depcache'
             else:
-                if len(args) < 3:
-                    print('args = %r' % (args,))
-                    assert False, ('preproc func must have a depcache arg, at'
-                                   ' least one parent rowid arg, and a config'
-                                   ' arg')
-                rowid_args = args[1:-1]
-                if len(rowid_args) != len(table.parents):
-                    print('table.preproc_func = %r' % (table.preproc_func,))
-                    print('args = %r' % (args,))
-                    print('rowid_args = %r' % (rowid_args,))
-                    msg = (
-                        ('preproc function for table=%s must have as many '
-                         'rowids %d args as parents %d') % (
-                            table.tablename, len(rowid_args), len(table.parents))
-                    )
-                    assert False, msg
+                if not table.isalgo:
+                    if len(args) < 3:
+                        print('args = %r' % (args,))
+                        msg = ('preproc_func=%r for table=%s must have a depcache arg, at'
+                               ' least one parent rowid arg, and a config'
+                               ' arg') % (table.preproc_func, table.tablename,)
+                        raise AssertionError(msg)
+                    rowid_args = args[1:-1]
+                    if len(rowid_args) != len(table.parents):
+                        print('table.preproc_func = %r' % (table.preproc_func,))
+                        print('args = %r' % (args,))
+                        print('rowid_args = %r' % (rowid_args,))
+                        msg = (
+                            ('preproc function for table=%s must have as many '
+                             'rowids %d args as parents %d') % (
+                                table.tablename, len(rowid_args), len(table.parents))
+                        )
+                        raise AssertionError(msg)
 
     def _update_internals(table):
         extern_read_funcs = {}
@@ -147,12 +149,14 @@ class DependencyCacheTable(object):
 
     def get_addtable_kw(table):
         primary_coldef = [(table.rowid_colname, 'INTEGER PRIMARY KEY')]
-        parent_coldef = [(key, 'INTEGER NOT NULL') for key in table.parent_rowid_colnames]
+        parent_coldef = [(key, 'INTEGER NOT NULL')
+                         for key in table.parent_rowid_colnames]
         config_coldef = [(CONFIG_ROWID, 'INTEGER DEFAULT 0')]
         internal_data_coldef = list(zip(table._internal_data_colnames,
                                         table._internal_data_coltypes))
 
-        coldef_list = primary_coldef + parent_coldef + config_coldef + internal_data_coldef
+        coldef_list = (primary_coldef + parent_coldef +
+                       config_coldef + internal_data_coldef)
         add_table_kw = ut.odict([
             ('tablename', table.tablename,),
             ('coldef_list', coldef_list,),
@@ -221,8 +225,11 @@ class DependencyCacheTable(object):
     # --- CONFIGURATION TABLE ---
     # ---------------------------
 
-    def get_config_rowid(table, config=None):
-        config_rowid = table.add_config(config)
+    def get_config_rowid(table, config=None, _debug=None):
+        if isinstance(config, int):
+            config_rowid = config
+        else:
+            config_rowid = table.add_config(config, _debug)
         return config_rowid
 
     def get_config_hashid(table, config_rowid_list):
@@ -237,37 +244,15 @@ class DependencyCacheTable(object):
             id_colname=CONFIG_HASHID)
         return config_rowid_list
 
-    def add_config(table, config):
-        #config_hashid = config.get('feat_cfgstr')
-        #assert config_hashid is not None
-        # TODO store config_rowid in qparams
-        #else:
-        #    config_hashid = db.cfg.feat_cfg.get_cfgstr()
-        if False:
-            if config is not None:
-                try:
-                    #config_hashid = 'none'
-                    config_hashid = config.get(table.tablename + '_hashid')
-                except KeyError:
-                    try:
-                        subconfig = config.get(table.tablename + '_config')
-                        config_hashid = ut.hashstr27(ut.to_json(subconfig))
-                    except KeyError:
-                        print('[deptbl.config] Warning: Config must either'
-                              'contain a string <tablename>_hashid or a dict'
-                              '<tablename>_config')
-                        raise
-            else:
-                config_hashid = 'none'
+    def add_config(table, config, _debug=None):
         if isinstance(config, base.TableConfig):
             config_strid = config.get_cfgstr()
         elif isinstance(config, base.AlgoRequest):
-            # config_strid = config.get_cfgstr()
-            raise NotImplementedError('')
+            config_strid = config.get_cfgstr()
         else:
             config_strid = ut.to_json(config)
         config_hashid = ut.hashstr27(config_strid)
-        if table.depc._debug:
+        if table.depc._debug or _debug:
             print('config_strid = %r' % (config_strid,))
             print('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
@@ -343,7 +328,8 @@ class DependencyCacheTable(object):
                       for rowids in parent_rowids]
         return fname_list
 
-    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, config, verbose=True):
+    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, config,
+                        verbose=True):
         """ Does work of adding dirty rowids """
         try:
             args = zip(*dirty_parent_rowids)
@@ -353,32 +339,32 @@ class DependencyCacheTable(object):
                         for parent, rowids in zip(table.parents, args)]
 
             # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
-            proptup_gen = table.preproc_func(table.depc, *args, config=config)
-
-            if len(table._nested_idxs) > 0:
-                assert not table.isalgo
-                unnest_data = table._make_unnester()
-                proptup_gen = (unnest_data(data) for data in proptup_gen)
-
             if table.isalgo:
+                # HACK: config here is a request
+                request = config
+                #subreq = request.shallow_copy # TODO
+                subreq = request
+                proptup_gen = table.preproc_func(table.depc, subreq)
                 dirty_params_iter = table._concat_rowids_algo_result(
                     dirty_parent_rowids, proptup_gen, config_rowid)
             else:
+                proptup_gen = table.preproc_func(table.depc, *args,
+                                                 config=config)
+                if len(table._nested_idxs) > 0:
+                    assert not table.isalgo
+                    unnest_data = table._make_unnester()
+                    proptup_gen = (unnest_data(data) for data in proptup_gen)
                 dirty_params_iter = table._concat_rowids_data(
                     dirty_parent_rowids, proptup_gen, config_rowid)
 
-            CHUNKED_ADD = table.chunksize is not None
-            if CHUNKED_ADD:
-                _iter = ut.ichunks(dirty_params_iter,
-                                   chunksize=table.chunksize)
-                for dirty_params_chunk in _iter:
-                    table.db._add(table.tablename, table._table_colnames,
-                                  dirty_params_chunk,
-                                  nInput=len(dirty_params_chunk))
-            else:
-                nInput = len(dirty_parent_rowids)
+            chunksize = (len(dirty_parent_rowids)
+                         if table.chunksize is None else table.chunksize)
+
+            chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
+            for dirty_params_chunk in chunk_iter:
+                nInput = len(dirty_params_chunk)
                 table.db._add(table.tablename, table._table_colnames,
-                              dirty_params_iter, nInput=nInput)
+                              dirty_params_chunk, nInput=nInput)
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table',
@@ -399,8 +385,7 @@ class DependencyCacheTable(object):
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
-        initial_rowid_list = table._get_rowid_from_superkey(parent_rowids,
-                                                            config=config)
+        initial_rowid_list = table._get_rowid(parent_rowids, config=config)
         if table.depc._debug:
             print('[deptbl.add] initial_rowid_list = %s' %
                   (ut.trunc_repr(initial_rowid_list),))
@@ -419,7 +404,7 @@ class DependencyCacheTable(object):
                                     config_rowid))
                 table._add_dirty_rows(dirty_parent_rowids, config_rowid, config)
                 # Get correct order, now that everything is clean in the database
-                rowid_list = table._get_rowid_from_superkey(parent_rowids,
+                rowid_list = table._get_rowid(parent_rowids,
                                                             config=config)
         else:
             rowid_list = initial_rowid_list
@@ -428,8 +413,8 @@ class DependencyCacheTable(object):
                   (ut.trunc_repr(rowid_list),))
         return rowid_list
 
-    def get_rowid_from_superkey(table, parent_rowids, config=None, ensure=True,
-                                eager=True, nInput=None, recompute=False):
+    def get_rowid(table, parent_rowids, config=None, ensure=True, eager=True,
+                  nInput=None, recompute=False):
         r"""
         get feat rowids of chip under the current state configuration
         if ensure is True, this function is equivalent to add_rows_from_parent
@@ -456,31 +441,30 @@ class DependencyCacheTable(object):
 
         if recompute:
             # get existing rowids, delete them, recompute the request
-            rowid_list = table._get_rowid_from_superkey(
-                parent_rowids, config=config, eager=eager, nInput=nInput)
+            rowid_list = table._get_rowid(parent_rowids, config=config,
+                                          eager=eager, nInput=nInput)
             table.delete_rows(rowid_list)
             rowid_list = table.add_rows_from_parent(parent_rowids, config=config)
         elif ensure:
             rowid_list = table.add_rows_from_parent(parent_rowids, config=config)
         else:
-            rowid_list = table._get_rowid_from_superkey(
+            rowid_list = table._get_rowid(
                 parent_rowids, config=config, eager=eager, nInput=nInput)
         return rowid_list
 
-    def _get_rowid_from_superkey(table, parent_rowids, config=None, eager=True,
-                                 nInput=None):
+    def _get_rowid(table, parent_rowids, config=None, eager=True, nInput=None):
         """
-        equivalent to get_rowid_from_superkey except ensure is constrained to be False.
+        equivalent to get_rowid except ensure is constrained to be False.
         """
         colnames = (table.rowid_colname,)
         config_rowid = table.get_config_rowid(config=config)
         if table.depc._debug:
-            print('_get_rowid_from_superkey')
-            print('_get_rowid_from_superkey table.tablename = %r ' % (table.tablename,))
-            print('_get_rowid_from_superkey parent_rowids = %s' % (ut.trunc_repr(parent_rowids)))
-            print('_get_rowid_from_superkey config = %s' % (config))
-            print('_get_rowid_from_superkey table.rowid_colname = %s' % (table.rowid_colname))
-            print('_get_rowid_from_superkey config_rowid = %s' % (config_rowid))
+            print('_get_rowid')
+            print('_get_rowid table.tablename = %r ' % (table.tablename,))
+            print('_get_rowid parent_rowids = %s' % (ut.trunc_repr(parent_rowids)))
+            print('_get_rowid config = %s' % (config))
+            print('_get_rowid table.rowid_colname = %s' % (table.rowid_colname))
+            print('_get_rowid config_rowid = %s' % (config_rowid))
         and_where_colnames = table.superkey_colnames
         params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
         params_iter = list(params_iter)
@@ -489,7 +473,7 @@ class DependencyCacheTable(object):
                                          and_where_colnames, eager=eager,
                                          nInput=nInput)
         if table.depc._debug:
-            print('_get_rowid_from_superkey rowid_list = %s' % (ut.trunc_repr(rowid_list)))
+            print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
     def delete_rows(table, rowid_list):

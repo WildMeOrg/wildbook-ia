@@ -141,8 +141,80 @@ ConfigMetaclass = make_config_metaclass()
 
 
 class AlgoRequest(object):
-    """ Base class for algo request objects """
-    pass
+    """
+    Base class for algo request objects
+    Need this for TestResult Integration
+
+    This class might not be need, and is being added for
+    compatibility support.
+    The problem it solve is having daids as part of a config.  A config should
+    be used to specify algorithm parameters, but a referense set of matchable
+    annotations seems to go beyond that.  Therefore, AlgoRequest.
+    """
+    @classmethod
+    def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
+        self = cls()
+        self.depc = depc
+        self.qaids = qaids
+        self.daids = daids
+        if cfgdict is None:
+            cfgdict = {}
+        configclass = depc.configclass_dict[algoname]
+        config = configclass(**cfgdict)
+
+        self.config = config
+        self.algoname = algoname
+
+        # hack
+        self.params = dict(config.parse_items())
+        return self
+
+    def execute(self):
+        tablename = self.algoname
+        table = self.depc[tablename]
+        table.get_rowid(list(zip(self.qaids)), self)
+
+    def get_query_hashid(self):
+        return self._get_rootset_hashid(self.qaids, 'Q')
+
+    def get_data_hashid(self):
+        return self._get_rootset_hashid(self.daids, 'D')
+
+    def _get_rootset_hashid(self, root_rowids, preffix):
+        uuid_type = 'S'
+        label = ''.join((preffix, uuid_type, 'UUIDS'))
+        uuid_list = self.depc.get_root_uuid(root_rowids)
+        #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
+        uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
+        return uuid_hashid
+
+    def get_pipe_cfgstr(self):
+        return self.config.get_cfgstr()
+
+    def get_pipe_hashid(self):
+        return ut.hashstr27(self.get_pipe_cfgstr())
+
+    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
+        r"""
+        main cfgstring used to identify the 'querytype'
+        """
+        cfgstr_list = []
+        if with_query:
+            cfgstr_list.append(qreq_.get_query_hashid())
+        if with_data:
+            cfgstr_list.append(qreq_.get_data_hashid())
+        if with_pipe:
+            if hash_pipe:
+                cfgstr_list.append(qreq_.get_pipe_hashstr())
+            else:
+                cfgstr_list.append(qreq_.get_pipe_cfgstr())
+        cfgstr = '_'.join(cfgstr_list)
+        return cfgstr
+
+    def get_full_cfgstr(qreq_):
+        """ main cfgstring used to identify the algo hash id """
+        full_cfgstr = qreq_.get_cfgstr(with_query=True)
+        return full_cfgstr
 
 
 class AlgoResult(object):
@@ -175,7 +247,7 @@ class AlgoResult(object):
 
 @six.add_metaclass(ConfigMetaclass)
 class TableConfig(ut.DictLike):
-    """ Base class for heirarchical params """
+    """ Base class for heirarchical config """
 
     def __init__(cfg, **kwargs):
         cfg.initialize_params(**kwargs)
@@ -197,7 +269,7 @@ class TableConfig(ut.DictLike):
 
 
 class AlgoConfig(TableConfig):
-    """ Base class for heirarchical params """
+    """ Base class for heirarchical config """
     pass
 
 

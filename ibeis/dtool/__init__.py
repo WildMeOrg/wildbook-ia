@@ -6,11 +6,10 @@ import utool as ut
 ut.noinject(__name__, '[dtool]')
 
 from dtool import sql_control
-from dtool import depends_cache
+from dtool import depcache_control
 from dtool import depcache_table
-from dtool import examples
 
-from dtool.depends_cache import DependencyCache, make_depcache_decors
+from dtool.depcache_control import DependencyCache, make_depcache_decors
 from dtool.base import (AlgoResult, AlgoRequest, AlgoConfig, TableConfig,)
 from dtool.sql_control import SQLDatabaseController
 
