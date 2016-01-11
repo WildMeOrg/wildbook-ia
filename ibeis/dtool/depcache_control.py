@@ -240,7 +240,7 @@ class DependencyCache(object):
             for args_, kwargs_ in reg_preproc:
                 depc._register_prop(*args_, **kwargs_)
             print(' * regsitering %d global algos ' % len(reg_algos))
-            for args_, kwargs_ in reg_preproc:
+            for args_, kwargs_ in reg_algos:
                 depc._register_algo(*args_, **kwargs_)
 
         ut.ensuredir(depc.cache_dpath)
