@@ -74,7 +74,110 @@ def intra_encounter_matching():
     pt.imshow(dense / dense.max() * 255)
     pt.show_if_requested()
 
+    # load image and convert to LAB
+    img_fpath = str(ut.grab_test_imgpath(str('lena.png')))
+    img = vigra.impex.readImage(img_fpath)
+    imgLab = vigra.colors.transform_RGB2Lab(img)
+
+    superpixelDiameter = 15   # super-pixel size
+    slicWeight = 15.0        # SLIC color - spatial weight
+    labels, nseg = vigra.analysis.slicSuperpixels(imgLab, slicWeight,
+                                                  superpixelDiameter)
+    labels = vigra.analysis.labelImage(labels)-1
+
+    # get 2D grid graph and RAG
+    gridGraph = graphs.gridGraph(img.shape[0:2])
+    rag = graphs.regionAdjacencyGraph(gridGraph, labels)
+
+    nodeFeatures = rag.accumulateNodeFeatures(imgLab)
+    nodeFeaturesImg = rag.projectNodeFeaturesToGridGraph(nodeFeatures)
+    nodeFeaturesImg = vigra.taggedView(nodeFeaturesImg, "xyc")
+    nodeFeaturesImgRgb = vigra.colors.transform_Lab2RGB(nodeFeaturesImg)
+
+    #from sklearn.cluster import MiniBatchKMeans, KMeans
+    from sklearn import mixture
+    nCluster   = 3
+    g = mixture.GMM(n_components=nCluster)
+    g.fit(nodeFeatures[:,:])
+    clusterProb = g.predict_proba(nodeFeatures)
+
+    import numpy
+    #https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Irregular%20Factor%20Graphs.ipynb
+    #https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Hard%20and%20Soft%20Constraints.ipynb
+
+    clusterProbImg = rag.projectNodeFeaturesToGridGraph(clusterProb.astype(numpy.float32))
+    clusterProbImg = vigra.taggedView(clusterProbImg, "xyc")
+
+    # strength of potts regularizer
+    beta = 40.0
+    # graphical model with as many variables
+    # as superpixels, each has 3 states
+    gm = opengm.gm(numpy.ones(rag.nodeNum,dtype=opengm.label_type)*nCluster)
+    # convert probabilites to energies
+    probs = numpy.clip(clusterProb, 0.00001, 0.99999)
+    costs = -1.0*numpy.log(probs)
+    # add ALL unaries AT ONCE
+    fids = gm.addFunctions(costs)
+    gm.addFactors(fids,numpy.arange(rag.nodeNum))
+    # add a potts function
+    regularizer = opengm.pottsFunction([nCluster]*2,0.0,beta)
+    fid = gm.addFunction(regularizer)
+    # get variable indices of adjacent superpixels
+    # - or "u" and "v" node id's for edges
+    uvIds = rag.uvIds()
+    uvIds = numpy.sort(uvIds,axis=1)
+    # add all second order factors at once
+    gm.addFactors(fid,uvIds)
+
+    # get super-pixels with slic on LAB image
+
     import opengm
+    # Matching Graph
+    cost_matrix = np.array([
+        [0.5, 0.6, 0.2, 0.4, 0.1],
+        [0.0, 0.5, 0.2, 0.9, 0.2],
+        [0.0, 0.0, 0.5, 0.1, 0.1],
+        [0.0, 0.0, 0.0, 0.5, 0.1],
+        [0.0, 0.0, 0.0, 0.0, 0.5],
+    ])
+    cost_matrix += cost_matrix.T
+    number_of_labels = 5
+    num_annots = 5
+    cost_matrix = (cost_matrix * 2) - 1
+    #gm = opengm.gm(number_of_labels)
+    gm = opengm.gm(np.ones(num_annots) * number_of_labels)
+    aids = np.arange(num_annots)
+    aid_pairs = np.array([(a1, a2) for a1, a2 in ut.iprod(aids, aids) if a1 != a2], dtype=np.uint32)
+    aid_pairs.sort(axis=1)
+    # 2nd order function
+    fid = gm.addFunction(cost_matrix)
+    gm.addFactors(fid, aid_pairs)
+    Inf = opengm.inference.BeliefPropagation
+    #Inf = opengm.inference.Multicut
+    parameter = opengm.InfParam(steps=10, damping=0.5, convergenceBound=0.001)
+    parameter = opengm.InfParam()
+    inf = Inf(gm, parameter=parameter)
+    class PyCallback(object):
+        def __init__(self,):
+            self.labels=[]
+            pass
+        def begin(self,inference):
+            print("begin of inference")
+            pass
+        def end(self,inference):
+            self.labels.append(inference.arg())
+            pass
+        def visit(self,inference):
+            gm=inference.gm()
+            labelVector=inference.arg()
+            print("energy  %r" % (gm.evaluate(labelVector),))
+            self.labels.append(labelVector)
+            pass
+    callback=PyCallback()
+    visitor=inf.pythonVisitor(callback,visitNth=1)
+    inf.infer(visitor)
+    print(callback.labels)
+    # baseline jobid
     # https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/OpenGM%20tutorial.ipynb
     numVar = 10
     unaries = np.ones([numVar, 3], dtype=opengm.value_type)
