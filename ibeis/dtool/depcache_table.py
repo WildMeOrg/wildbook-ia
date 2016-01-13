@@ -487,14 +487,16 @@ class DependencyCacheTable(object):
         num_deleted = len(ut.filter_Nones(rowid_list))
         return num_deleted
 
-    def get_row_data(table, tbl_rowids, colnames=None):
+    def get_row_data(table, tbl_rowids, colnames=None, _debug=None):
         """
         colnames = ('mask', 'size')
 
         FIXME; unpacking is confusing with sql controller
         """
-        if table.depc._debug:
-            print('[deptbl.get_row_data] Get col of tablename=%r, colnames=%r with tbl_rowids=%s' %
+        _debug = table.depc._debug if _debug is None else _debug
+        if _debug:
+            print(('[deptbl.get_row_data] Get col of tablename=%r, colnames=%r '
+                   'with tbl_rowids=%s') %
                   (table.tablename, colnames, ut.trunc_repr(tbl_rowids)))
         try:
             request_unpack = False
@@ -502,13 +504,14 @@ class DependencyCacheTable(object):
                 resolved_colnames = table.data_colnames
                 #table._internal_data_colnames
             else:
-                if isinstance(colnames, six.text_type):
+                if isinstance(colnames, six.string_types):
                     request_unpack = True
                     resolved_colnames = (colnames,)
                 else:
                     resolved_colnames = colnames
-            if table.depc._debug:
-                print('[deptbl.get_row_data] resolved_colnames = %r' % (resolved_colnames,))
+            if _debug:
+                print('[deptbl.get_row_data] resolved_colnames = %r' %
+                      (resolved_colnames,))
 
             eager = True
             nInput = None
@@ -536,8 +539,9 @@ class DependencyCacheTable(object):
                     total += 1
 
             flat_intern_colnames = tuple(ut.flatten(intern_colnames))
-            if table.depc._debug:
-                print('[deptbl.get_row_data] flat_intern_colnames = %r' % (flat_intern_colnames,))
+            if _debug:
+                print('[deptbl.get_row_data] flat_intern_colnames = %r' %
+                      (flat_intern_colnames,))
 
             # do sql read
             # FIXME: understand unpack_scalars and keepwrap
@@ -551,7 +555,7 @@ class DependencyCacheTable(object):
             prop_listT = list(zip(*raw_prop_list))
             for extern_colx, read_func in extern_resolve_colxs:
                 data_list = []
-                if table.depc._debug:
+                if _debug:
                     print('[deptbl.get_row_data] read_func = %r' % (read_func,))
                 for uri in prop_listT[extern_colx]:
                     try:

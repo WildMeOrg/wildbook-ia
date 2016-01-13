@@ -55,10 +55,9 @@ def make_depcache_decors(root_tablename):
     """
     Makes global decorators to register functions for a tablename.
 
-    A preproc function is meant to belong only to a single parent
-
-    An algo function belongs to the root node, and may depend on a set of root
-    nodes rather than just a single one.
+    A preproc function is meant to belong only to a single parent An algo
+    function belongs to the root node, and may depend on a set of root nodes
+    rather than just a single one.
     """
 
     @ut.apply_docstr(REG_PREPROC_DOC)
@@ -92,66 +91,20 @@ def check_register(args, kwargs):
     assert 'preproc_func' not in kwargs, 'cannot specify func in wrapper'
 
 
-class DependencyCache(object):
-    """
-    To use this class a user must:
-        * on root modification, call depc.on_root_modified
-        * use decorators to register relevant functions
-        * write an algorithm that accepts an AlgoRequest
-          object, containing root ids and a configuration object.
-    """
-    def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
-                 controller=None, default_fname=None,
-                 #root_asobject=None,
-                 get_root_uuid=None,
-                 use_globals=True, get_root_hashid=None):
-        if default_fname is None:
-            default_fname = ':memory:'
-        # Root of all dependencies
-        depc.root_tablename = root_tablename
-        # Directory all cachefiles are stored in
-        depc.cache_dpath = ut.truepath(cache_dpath)
-        # Parent (ibs) controller
-        depc.controller = controller
-        # Internal dictionary of dependant tables
-        depc.cachetable_dict = {}
-        depc.configclass_dict = {}
-        depc.requestclass_dict = {}
-        depc.resultclass_dict = {}
-        # Mapping of different files properties are stored in
-        depc.fname_to_db = {}
-        # Function to map a root rowid to an object
-        #depc._root_asobject = root_asobject
-        depc._use_globals = use_globals
-        depc.get_root_hashid = get_root_hashid
-        depc.default_fname = default_fname
-        depc._debug = False
-        depc.get_root_uuid = get_root_uuid
-        # depc._debug = True
+class _CoreDependencyCache(object):
+    """ Core worker functions for the depcache """
 
-    @ut.apply_docstr(REG_PREPROC_DOC)
-    def register_preproc(depc, *args, **kwargs):
-        """
-        Decorator for registration of cachables
-        """
-        def register_preproc_wrapper(func):
-            check_register(args, kwargs)
-            kwargs['preproc_func'] = func
-            depc._register_prop(*args, **kwargs)
-            return func
-        return register_preproc_wrapper
-
-    # @ut.ut.apply_docstr()
     @ut.apply_docstr(REG_PREPROC_DOC)
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
-                       fname=None, chunksize=None,
-                       config_class=None, isalgo=False, asobject=False):
+                       fname=None, chunksize=None, config_class=None,
+                       isalgo=False, asobject=False):
         """
         Registers a table with this dependency cache.
         """
-        # print('Registering tablename=%r' % (tablename,))
-        # print('Registering preproc_func=%r' % (preproc_func,))
+        if depc._debug:
+            print('[depc] Registering tablename=%r' % (tablename,))
+            print('[depc]  * preproc_func=%r' % (preproc_func,))
         if isinstance(tablename, six.string_types):
             tablename = six.text_type(tablename)
         if parents is None:
@@ -184,15 +137,6 @@ class DependencyCache(object):
         depc.cachetable_dict[tablename] = table
         depc.configclass_dict[tablename] = config_class
         return table
-
-    @ut.apply_docstr(REG_ALGO_DOC)
-    def register_algo(depc, *args, **kwargs):
-        def reg_algo_wrapper(func):
-            check_register(args, kwargs)
-            kwargs['algo_func'] = func
-            depc._register_algo(*args, **kwargs)
-            return func
-        return reg_algo_wrapper
 
     @ut.apply_docstr(REG_ALGO_DOC)
     def _register_algo(depc, algoname,
@@ -231,15 +175,18 @@ class DependencyCache(object):
 
     @profile
     def initialize(depc):
+        """
+        Creates all registered tables
+        """
         print('[depc] INITIALIZE %s DEPCACHE' % (depc.root.upper(),))
 
         if depc._use_globals:
             reg_preproc = __PREPROC_REGISTER__[depc.root]
             reg_algos = __ALGO_REGISTER__[depc.root]
-            print(' * regsitering %d global preproc funcs' % len(reg_preproc))
+            print('[depc.init] Regsitering %d global preproc funcs' % len(reg_preproc))
             for args_, kwargs_ in reg_preproc:
                 depc._register_prop(*args_, **kwargs_)
-            print(' * regsitering %d global algos ' % len(reg_algos))
+            print('[depc.init] Regsitering %d global algos ' % len(reg_algos))
             for args_, kwargs_ in reg_algos:
                 depc._register_algo(*args_, **kwargs_)
 
@@ -260,95 +207,6 @@ class DependencyCache(object):
 
         for table in depc.cachetable_dict.values():
             table.initialize()
-
-    def get_edges(depc):
-        edges = [(parent, key)
-                 for key, table in depc.cachetable_dict.items()
-                 for parent in table.parents]
-        return edges
-
-    def print_schemas(depc):
-        for fname, db in depc.fname_to_db.items():
-            print('fname = %r' % (fname,))
-            db.print_schema()
-
-    def print_table_csv(depc, tablename):
-        depc[tablename]
-
-    def print_all_tables(depc):
-        for tablename, table in depc.cachetable_dict.items():
-            db = table.db
-            db.print_table_csv(tablename)
-
-    def make_digraph(depc):
-        """
-        CommandLine:
-            python -m dtool --tf DependencyCache.make_digraph --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> graph = depc.make_digraph()
-            >>> ut.quit_if_noshow()
-            >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
-            >>> pt.show_netx(graph)
-            >>> ut.show_if_requested()
-        """
-        import networkx as netx
-        graph = netx.DiGraph()
-        nodes = list(depc.cachetable_dict.keys())
-        edges = depc.get_edges()
-        graph.add_nodes_from(nodes)
-        graph.add_edges_from(edges)
-
-        shape_dict = {
-            # 'algo': 'star',
-            'algo': 'circle',
-            'node': 'circle',
-            # 'root': 'rhombus',
-            'root': 'circle',
-        }
-        color_dict = {
-            'algo': 'g',
-            'node': None,
-            'root': 'r',
-        }
-        def _node_attrs(dict_):
-            props = {k: dict_[v.tabletype] for k, v in
-                     depc.cachetable_dict.items()}
-            props[depc.root] = dict_['root']
-            return props
-        netx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
-        netx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
-        return graph
-
-    def show_digraph(depc, **kwargs):
-        import plottool as pt
-        graph = depc.make_digraph()
-        pt.show_netx(graph, **kwargs)
-
-    def _custom_str(depc):
-        typestr = depc.__class__.__name__
-        infostr_ = 'nTables=%d' % len(depc.cachetable_dict)
-        custom_str = '<%s(%s) %s at %s>' % (typestr, depc.root_tablename,
-                                            infostr_, hex(id(depc)))
-        return custom_str
-
-    def __repr__(depc):
-        return depc._custom_str()
-
-    def __str__(depc):
-        return depc._custom_str()
-
-    def __getitem__(depc, key):
-        return depc.cachetable_dict[key]
-
-    @property
-    def root(depc):
-        return depc.root_tablename
 
     # @ut.memoize
     def get_dependencies(depc, tablename):
@@ -404,7 +262,8 @@ class DependencyCache(object):
             ]
         """
         try:
-            assert tablename in depc.cachetable_dict, 'tablename=%r does not exist' % (tablename,)
+            assert tablename in depc.cachetable_dict, (
+                'tablename=%r does not exist' % (tablename,))
             root = depc.root_tablename
             children_, parents_ = list(zip(*depc.get_edges()))
             child_to_parents = ut.group_items(children_, parents_)
@@ -494,7 +353,8 @@ class DependencyCache(object):
             >>> tablename = 'chip'
             >>> root_rowids = [2, 3]
             >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = ut.repr3(depc.get_descendant_rowids(tablename, root_rowids, config), nl=1)
+            >>> result = ut.repr3(depc.get_descendant_rowids(
+            >>>     tablename, root_rowids, config), nl=1)
             >>> print(result)
         """
         print('[depc.descendant] GET DESCENDANT ROWIDS %s ' % (tablename,))
@@ -578,7 +438,7 @@ class DependencyCache(object):
             # TODO: configclass should belong here
             pass
         # if True:
-        with ut.Indenter('[ANCE %s]' % (tablename,), enabled=depc._debug):
+        with ut.Indenter('[Ancest-%s]' % (tablename,), enabled=depc._debug):
             if depc._debug:
                 print(' * GET ANCESTOR ROWIDS %s ' % (tablename,))
                 print(' * config = %r' % (config,))
@@ -632,55 +492,60 @@ class DependencyCache(object):
         return request
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
-                   eager=True, nInput=None):
+                   eager=True, nInput=None, _debug=None):
         """
         Returns the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
         """
-        with ut.Indenter('[DEPC.GET_ROWIDS %s]' % (tablename,),
-                         enabled=depc._debug):
-            if depc._debug:
+        _debug = depc._debug if _debug is None else _debug
+        with ut.Indenter('[GetRowID-%s]' % (tablename,),
+                         enabled=_debug):
+            if _debug:
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
                 print(' * config = %r' % (config,))
             rowid_dict = depc.get_ancestor_rowids(
                 tablename, root_rowids, config=config, ensure=ensure,
                 eager=eager, nInput=nInput)
             rowid_list = rowid_dict[tablename]
-            if depc._debug:
-                print(' * return rowid_list = %r' % (ut.trunc_repr(rowid_list),))
+            if _debug:
+                print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
-                     ensure=True):
+                     ensure=True, _debug=None):
         """
         Gets the data in `colnames` of `tablename` that correspond to
         `root_rowids` using `config`.  if colnames is None, all columns are
         returned.
         """
-        with ut.Indenter('[GETPROP %s]' % (tablename,), enabled=depc._debug):
-            if depc._debug:
+        _debug = depc._debug if _debug is None else _debug
+        with ut.Indenter('[GetProp-%s]' % (tablename,), enabled=_debug):
+            if _debug:
+                print(' * tablename=%s' % (tablename))
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
+                print(' * colnames = %r' % (colnames,))
                 print(' * config = %r' % (config,))
             # Vectorized get of properties
             tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
-                                         ensure=ensure)
-            if depc._debug:
+                                         ensure=ensure, _debug=_debug)
+            if _debug:
                 print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
             table = depc[tablename]
-            prop_list = table.get_row_data(tbl_rowids, colnames)
-            if depc._debug:
+            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug)
+            if _debug:
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
 
-    def get_native_property(depc, tablename, tbl_rowids, colnames=None):
-        with ut.Indenter('[GETNATIVE %s]' % (tablename,), enabled=depc._debug):
-            if depc._debug:
+    def get_native_property(depc, tablename, tbl_rowids, colnames=None, _debug=None):
+        _debug = depc._debug if _debug is None else _debug
+        with ut.Indenter('[GetNative %s]' % (tablename,), enabled=_debug):
+            if _debug:
                 print(' * tablename = %r' % (tablename,))
                 print(' * colnames = %r' % (colnames,))
                 print(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
             table = depc[tablename]
-            prop_list = table.get_row_data(tbl_rowids, colnames)
+            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug)
         return prop_list
 
     def delete_property(depc, tablename, root_rowids, config=None):
@@ -692,6 +557,157 @@ class DependencyCache(object):
         table = depc[tablename]
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
+
+
+# Define the class with some "nice extras """
+class DependencyCache(_CoreDependencyCache):
+    """
+    To use this class a user must:
+        * on root modification, call depc.on_root_modified
+        * use decorators to register relevant functions
+        * write an algorithm that accepts an AlgoRequest
+          object, containing root ids and a configuration object.
+    """
+    def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
+                 controller=None, default_fname=None,
+                 #root_asobject=None,
+                 get_root_uuid=None,
+                 use_globals=True):
+        if default_fname is None:
+            default_fname = ':memory:'
+        # Root of all dependencies
+        depc.root_tablename = root_tablename
+        # Directory all cachefiles are stored in
+        depc.cache_dpath = ut.truepath(cache_dpath)
+        # Parent (ibs) controller
+        depc.controller = controller
+        # Internal dictionary of dependant tables
+        depc.cachetable_dict = {}
+        depc.configclass_dict = {}
+        depc.requestclass_dict = {}
+        depc.resultclass_dict = {}
+        # Mapping of different files properties are stored in
+        depc.fname_to_db = {}
+        # Function to map a root rowid to an object
+        #depc._root_asobject = root_asobject
+        depc._use_globals = use_globals
+        depc.default_fname = default_fname
+        depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
+        depc.get_root_uuid = get_root_uuid
+        # depc._debug = True
+
+    @ut.apply_docstr(REG_PREPROC_DOC)
+    def register_preproc(depc, *args, **kwargs):
+        """
+        Decorator for registration of cachables
+        """
+        def register_preproc_wrapper(func):
+            check_register(args, kwargs)
+            kwargs['preproc_func'] = func
+            depc._register_prop(*args, **kwargs)
+            return func
+        return register_preproc_wrapper
+
+    @ut.apply_docstr(REG_ALGO_DOC)
+    def register_algo(depc, *args, **kwargs):
+        def reg_algo_wrapper(func):
+            check_register(args, kwargs)
+            kwargs['algo_func'] = func
+            depc._register_algo(*args, **kwargs)
+            return func
+        return reg_algo_wrapper
+
+    def print_schemas(depc):
+        for fname, db in depc.fname_to_db.items():
+            print('fname = %r' % (fname,))
+            db.print_schema()
+
+    def print_table_csv(depc, tablename):
+        depc[tablename]
+
+    def print_all_tables(depc):
+        for tablename, table in depc.cachetable_dict.items():
+            db = table.db
+            db.print_table_csv(tablename)
+
+    def get_edges(depc):
+        edges = [(parent, key)
+                 for key, table in depc.cachetable_dict.items()
+                 for parent in table.parents]
+        return edges
+
+    def make_digraph(depc):
+        """
+        Helper "fluff" function
+
+        CommandLine:
+            python -m dtool --tf DependencyCache.make_digraph --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> graph = depc.make_digraph()
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> pt.show_netx(graph)
+            >>> ut.show_if_requested()
+        """
+        import networkx as netx
+        graph = netx.DiGraph()
+        nodes = list(depc.cachetable_dict.keys())
+        edges = depc.get_edges()
+        graph.add_nodes_from(nodes)
+        graph.add_edges_from(edges)
+
+        shape_dict = {
+            # 'algo': 'star',
+            'algo': 'circle',
+            'node': 'circle',
+            # 'root': 'rhombus',
+            'root': 'circle',
+        }
+        color_dict = {
+            'algo': 'g',
+            'node': None,
+            'root': 'r',
+        }
+        def _node_attrs(dict_):
+            props = {k: dict_[v.tabletype] for k, v in
+                     depc.cachetable_dict.items()}
+            props[depc.root] = dict_['root']
+            return props
+        netx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
+        netx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
+        return graph
+
+    def show_digraph(depc, **kwargs):
+        """ Helper "fluff" function """
+        import plottool as pt
+        graph = depc.make_digraph()
+        pt.show_netx(graph, **kwargs)
+
+    def _custom_str(depc):
+        typestr = depc.__class__.__name__
+        infostr_ = 'nTables=%d' % len(depc.cachetable_dict)
+        custom_str = '<%s(%s) %s at %s>' % (typestr, depc.root_tablename,
+                                            infostr_, hex(id(depc)))
+        return custom_str
+
+    def __repr__(depc):
+        return depc._custom_str()
+
+    def __str__(depc):
+        return depc._custom_str()
+
+    def __getitem__(depc, key):
+        return depc.cachetable_dict[key]
+
+    @property
+    def root(depc):
+        return depc.root_tablename
 
 
 if __name__ == '__main__':
