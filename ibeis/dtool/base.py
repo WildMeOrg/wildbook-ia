@@ -108,7 +108,8 @@ def make_config_metaclass():
     @_register
     def get_cfgstr(cfg, **kwargs):
         str_ = ''.join(cfg.get_cfgstr_list(**kwargs))
-        return '_'.join([str_] + [cfg[subcfg_name].get_cfgstr() for subcfg_name in cfg._subconfig_names])
+        return '_'.join([str_] + [cfg[subcfg_name].get_cfgstr()
+                                  for subcfg_name in cfg._subconfig_names])
 
     class ConfigMetaclass(type):
         """
@@ -176,7 +177,9 @@ class AlgoRequest(object):
     def execute(self):
         tablename = self.algoname
         table = self.depc[tablename]
-        table.get_rowid(list(zip(self.qaids)), self)
+        rowids = table.get_rowid(list(zip(self.qaids)), self)
+        result_list = table.get_row_data(rowids)
+        return ut.get_list_column(result_list, 0)
 
     def get_query_hashid(self):
         return self._get_rootset_hashid(self.qaids, 'Q')
