@@ -17,6 +17,9 @@ import vtool.keypoint as ktool
 import utool as ut
 from os.path import dirname, join, realpath
 
+# TODO: move to utool?
+from vtool.other import assert_output_equal, compare_implementations  # NOQA
+
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[sver_c]')
 
 TAU = 2 * np.pi  # References: tauday.com
@@ -34,9 +37,17 @@ kpts_t = np.ctypeslib.ndpointer(dtype=kpts_dtype, ndim=2, flags=FLAGS_RO)
 fm_t  = np.ctypeslib.ndpointer(dtype=fm_dtype, ndim=2, flags=FLAGS_RO)
 fs_t  = np.ctypeslib.ndpointer(dtype=fs_dtype, ndim=1, flags=FLAGS_RO)
 
-inliers_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.bool, ndim=ndim, flags=FLAGS_RW)
-errs_t    = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
-mats_t    = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
+
+def inliers_t(ndim):
+    return np.ctypeslib.ndpointer(dtype=np.bool, ndim=ndim, flags=FLAGS_RW)
+
+
+def errs_t(ndim):
+    return np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
+
+
+def mats_t(ndim):
+    return np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
 
 dpath = dirname(__file__)
 
@@ -57,7 +68,12 @@ if __name__ != '__main__':
             cmd_str = cmd_fmtstr.format(**locals())
             ut.cmd(cmd_str)
 
-    c_sver = C.cdll[lib_fname]
+    try:
+        c_sver = C.cdll[lib_fname]
+    except Exception as ex:
+        print('Failed to open lib_fname = %r' % (lib_fname,))
+        ut.checkpath(lib_fname, verbose=True)
+        raise
     c_getaffineinliers = c_sver['get_affine_inliers']
     c_getaffineinliers.restype = C.c_int
     # for every affine hypothesis, for every keypoint pair (is
@@ -119,149 +135,6 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
     out_inliers = np.where(out_inlier_flags)[0]
     out_errors = tuple(out_errors)
     return out_inliers, out_errors, out_mat
-
-
-def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, lbl1='', lbl2='', output_lbl=None):
-    """ recursive equality checks """
-    # Setup
-    if nestpath is None:
-        # record the path through the nested structure as testing goes on
-        nestpath = []
-    # print out these variables in all error cases
-    common_keys = ['lbl1', 'lbl2', 'level', 'nestpath']
-    # CHECK: types
-    try:
-        assert type(output1) == type(output2), 'types are not equal'
-    except AssertionError as ex:
-        print(type(output1))
-        print(type(output2))
-        ut.printex(ex, 'FAILED TYPE CHECKS',
-                   keys=common_keys + [(type, 'output1'), (type, 'output2'), ])
-        raise
-    # CHECK: length
-    if hasattr(output1, '__len__'):
-        try:
-            assert len(output1) == len(output2), 'lens are not equal'
-        except AssertionError as ex:
-            keys = common_keys + [(len, 'output1'), (len, 'output2'), ]
-            ut.printex(ex, 'FAILED LEN CHECKS. ', keys=keys)
-            raise
-    # CHECK: ndarrays
-    if isinstance(output1, np.ndarray):
-        ndarray_keys = ['output1.shape', 'output2.shape']
-        # CHECK: ndarray shape
-        try:
-            assert output1.shape == output2.shape, 'ndarrays have different shapes'
-        except AssertionError as ex:
-            keys = common_keys + ndarray_keys
-            ut.printex(ex, 'FAILED NUMPY SHAPE CHECKS.', keys=keys)
-            raise
-        # CHECK: ndarray equality
-        try:
-            passed, error = ut.almost_eq(output1, output2, thresh, ret_error=True)
-            assert np.all(passed), 'ndarrays are unequal.'
-        except AssertionError as ex:
-            ut.embed()
-            error_stats = ut.get_stats_str(error)  # NOQA
-            bad_error_stats = ut.get_stats_str(error[error >= thresh])  # NOQA
-            keys = common_keys + ndarray_keys + [
-                (len, 'output1'), (len, 'output2'), ('error_stats'), ('bad_error_stats'), ('thresh'),
-            ]
-            ut.printex(ex, 'FAILED NUMPY CHECKS.', keys=keys)
-            raise
-    # CHECK: list/tuple items
-    elif isinstance(output1, (tuple, list)):
-        for count, (item1, item2) in enumerate(zip(output1, output2)):
-            # recursive call
-            try:
-                assert_output_equal(
-                    item1, item2, lbl1=lbl2, lbl2=lbl1, thresh=thresh, nestpath=nestpath + [count], level=level + 1)
-            except AssertionError as ex:
-                ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2', 'count'])
-                raise
-    # CHECK: scalars
-    else:
-        try:
-            assert output1 == output2, 'output1 != output2'
-        except AssertionError as ex:
-            print('nestpath= %r' % (nestpath,))
-            ut.printex(ex, 'FAILED SCALAR CHECK.', keys=common_keys + ['output1', 'output2'])
-            raise
-
-
-def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2='', output_lbl=None):
-    """
-    tests two different implementations of the same function
-    """
-    print('+ --- BEGIN COMPARE IMPLEMENTATIONS ---')
-    func1_name = ut.get_funcname(func1)
-    func2_name = ut.get_funcname(func2)
-    print('func1_name = %r' % (func1_name,))
-    print('func2_name = %r' % (func2_name,))
-    # test both versions
-    with ut.Timer('time func1=' + func1_name) as t1:
-        output1 = func1(*args)
-    with ut.Timer('time func2=' + func2_name) as t2:
-        output2 = func2(*args)
-    if t2.ellapsed == 0:
-        t2.ellapsed = 1e9
-    print('speedup = %r' % (t1.ellapsed / t2.ellapsed))
-    try:
-        assert_output_equal(output1, output2, lbl1=lbl1, lbl2=lbl2, output_lbl=output_lbl)
-        print('implementations are in agreement :) ')
-    except AssertionError as ex:
-        # prints out a nested list corresponding to nested structure
-        ut.printex(ex, 'IMPLEMENTATIONS DO NOT AGREE', keys=[
-            ('func1_name'),
-            ('func2_name'), ]
-        )
-        raise
-    finally:
-        depth_profile1 = ut.depth_profile(output1)
-        depth_profile2 = ut.depth_profile(output2)
-        type_profile1 = ut.list_type_profile(output1)
-        type_profile2 = ut.list_type_profile(output2)
-        print('depth_profile1 = ' + ut.list_str(depth_profile1))
-        print('depth_profile2 = ' + ut.list_str(depth_profile2))
-        print('type_profile1 = ' + (type_profile1))
-        print('type_profile2 = ' + (type_profile2))
-    print('L ___ END COMPARE IMPLEMENTATIONS ___')
-    return output1
-
-    #out_inliers_py, out_errors_py, out_mats_py = py_output
-    #out_inliers_c, out_errors_c, out_mats_c = c_output
-    #if show_output:
-    #    print('python output:')
-    #    print(out_inliers_py)
-    #    print(out_errors_py)
-    #    print(out_mats_py)
-    #    print('c output:')
-    #    print(out_inliers_c)
-    #    print(out_errors_c)
-    #    print(out_mats_c)
-    #msg =  'c and python disagree'
-    #try:
-    #    assert ut.lists_eq(out_inliers_c, out_inliers_py), msg
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
-    #try:
-    #    passed, error = ut.almost_eq(out_errors_c, out_errors_py, 1E-7, ret_error=True)
-    #    assert np.all(passed), msg
-    #except AssertionError as ex:
-    #    passed_flat = passed.ravel()
-    #    error_flat = error.ravel()
-    #    failed_indexes = np.where(~passed_flat)[0]
-    #    failing_errors = error_flat.take(failed_indexes)
-    #    print(failing_errors)
-    #    ut.printex(ex)
-    #    raise
-    #try:
-    #    assert np.all(ut.almost_eq(out_mats_c, out_mats_py, 1E-9)), msg
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
-    #return out_inliers_c
 
 
 def test_sver_wrapper2():
@@ -388,7 +261,7 @@ def test_sver_wrapper():
 
     try:
         with ut.Indenter('[TEST1] '):
-            inlier_tup = compare_implementations(
+            inlier_tup = vt.compare_implementations(
                 sver.get_affine_inliers,
                 get_affine_inliers_cpp,
                 args, lbl1='py', lbl2='c',
@@ -402,7 +275,7 @@ def test_sver_wrapper():
     try:
         import functools
         with ut.Indenter('[TEST2] '):
-            bestinlier_tup = compare_implementations(
+            bestinlier_tup = vt.compare_implementations(
                 functools.partial(sver.get_best_affine_inliers, forcepy=True),
                 get_best_affine_inliers_cpp,
                 args, show_output=True, lbl1='py', lbl2='c',

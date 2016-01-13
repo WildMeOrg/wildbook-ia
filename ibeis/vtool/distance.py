@@ -472,7 +472,7 @@ def L2_sift(hist1, hist2):
         hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
 
     Returns:
-        ndarray: squared euclidean distance between 0-1 normalized sift descriptors
+        ndarray: euclidean distance between 0-1 normalized sift descriptors
 
     CommandLine:
         python -m vtool.distance --test-L2_sift
@@ -488,16 +488,54 @@ def L2_sift(hist1, hist2):
     """
     # remove the pseudo max hack
     psuedo_max = 512.0
+    max_l2_dist = np.sqrt(2)  # maximum L2 distance should always be sqrt 2
     sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
     sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
-    if DEBUG_DIST:
-        _assert_siftvec(sift1)
-        _assert_siftvec(sift2)
-    #sift1 /= np.linalg.norm(sift1, axis=-1)
-    #sift2 /= np.linalg.norm(sift2, axis=-1)
     l2_dist = L2(sift1, sift2)
-    max_l2_dist = np.sqrt(2)  # maximum L2 distance should always be sqrt 2
     return l2_dist / max_l2_dist
+
+
+def L2_root_sift(hist1, hist2):
+    """
+    Normalized SIFT L2
+
+    Args:
+        hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
+        hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
+
+    Returns:
+        ndarray: euclidean distance between 0-1 normalized sift descriptors
+    """
+    # remove the pseudo max hack
+    psuedo_max = 512.0
+    max_root_l2_dist = 2  # This is a guess
+    sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
+    sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
+    root_sift1 = np.sqrt(sift1)
+    root_sift2 = np.sqrt(sift2)
+    l2_dist = L2(root_sift1, root_sift2)
+    l2_root_dist =  l2_dist / max_root_l2_dist
+    return l2_root_dist
+
+
+def L2_sift_sqrd(hist1, hist2):
+    """
+    Normalized SIFT L2
+
+    Args:
+        hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
+        hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
+
+    Returns:
+        ndarray: squared euclidean distance between 0-1 normalized sift descriptors
+    """
+    # remove the pseudo max hack
+    psuedo_max = 512.0
+    max_l2_dist_sqrd = 2
+    sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
+    sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
+    l2_sqrd_dist = L2_sqrd(sift1, sift2)
+    return l2_sqrd_dist / max_l2_dist_sqrd
 
 
 def bar_cos_sift(hist1, hist2):
