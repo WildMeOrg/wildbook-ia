@@ -1146,7 +1146,7 @@ class NeighborIndex(object):
                         distance is normalized squared euclidean distance.
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-knn:0
+            python -m ibeis.algo.hots.neighbor_index --test-knn:0 --debug2
             python -m ibeis.algo.hots.neighbor_index --test-knn:1
 
         Example:

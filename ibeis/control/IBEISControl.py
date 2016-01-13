@@ -497,7 +497,8 @@ class IBEISController(BASE_CLASS):
             root_tablename=const.ANNOTATION_TABLE,
             default_fname=const.ANNOTATION_TABLE + '_depcache',
             cache_dpath=ibs.get_cachedir(),
-            controller=ibs
+            controller=ibs,
+            get_root_uuid=ibs.get_annot_visual_uuids,
         )
         ibs.depc.initialize()
 

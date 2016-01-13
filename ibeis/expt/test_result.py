@@ -2049,6 +2049,8 @@ class TestResult(object):
         """
         CommandLine:
             python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present
+            python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present --nocache
+            python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present -a timectrl:qindex=0:50
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -2065,14 +2067,18 @@ class TestResult(object):
         """
         #from ibeis.init import main_helpers
         import utool as ut
+        import plottool as pt
         ut.ensure_pylab_qt4()
 
         testres.draw_annot_scoresep(f='fail=False')
+        pt.adjust_subplots(bottom=.25, top=.8)
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=None)
+        pt.adjust_subplots(bottom=.25, top=.8)
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn', 'fg'])
+        pt.adjust_subplots(bottom=.25, top=.8)
 
         #ibs, testres = main_helpers.testdata_expts(
         #    defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
@@ -2160,7 +2166,7 @@ class TestResult(object):
         cache_hashid = ut.hashstr27(cache_cfgstr)
         cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
-                        use_cache=None)
+                        use_cache=False)
         def get_cfgx_feat_scores(qreq_):
             from ibeis.algo.hots import scorenorm
             cm_list = qreq_.load_cached_chipmatch()

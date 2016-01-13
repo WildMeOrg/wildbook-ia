@@ -341,7 +341,6 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
         ibs = qreq_.ibs
         data_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.data_config2_)
         query_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.query_config2_)
-
         train_getter = partial(get_training_desc_dist,
                                fsv_col_lbls=fsv_col_lbls, qreq_=qreq_,
                                data_annots=data_annots,
@@ -497,6 +496,7 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
+        >>> num = None
         >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
         >>> (tp_fsv, tn_fsv) = get_training_fsv(cm, namemode=False)
         >>> result = ('(tp_fsv, tn_fsv) = %s' % (ut.repr2((tp_fsv, tn_fsv), nl=1),))
@@ -508,31 +508,39 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
         tp_idxs, tn_idxs = get_topannot_training_idxs(cm, num=num)
 
     # Keep only the top scoring half of the feature matches
-    cm_orig = cm
-    tophalf_indicies = [
-        ut.take_percentile(fs.argsort()[::-1], top_percent)
-        for fs in cm.get_fsv_prod_list()
-    ]
-    cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
+    top_percent = None
+    if top_percent is not None:
+        cm_orig = cm
+        #cm_orig.assert_self(qreq_)
 
-    tp_fsv = ut.take(cm.fsv_list, tp_idxs)
-    tn_fsv = ut.take(cm.fsv_list, tn_idxs)
+        tophalf_indicies = [
+            ut.take_percentile(fs.argsort()[::-1], top_percent)
+            for fs in cm.get_fsv_prod_list()
+        ]
+        cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
+
+        assert cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs)
+        assert cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs)
+        #cm.assert_self(qreq_)
+
+    tp_fsv = np.vstack(ut.take(cm.fsv_list, tp_idxs))
+    tn_fsv = np.vstack(ut.take(cm.fsv_list, tn_idxs))
     return tp_fsv, tn_fsv
 
 
 @profile
 def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
                            top_percent=.5, data_annots=None,
-                           query_annots=None):
+                           query_annots=None, num=None):
     r"""
     computes custom distances on prematched descriptors
 
+    SeeAlso:
+        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
+
     CommandLine:
         python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist
-
-    SeeAlso:
-        # python -m ibeis --tf learn_featscore_normalizer --show
-        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
+        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -545,28 +553,56 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         >>>                                           namemode=namemode)
         >>> result = ut.repr2((tp_fsv.T, tn_fsv.T), nl=1)
         >>> print(result)
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
+        >>> fsv_col_lbls = cm.fsv_col_lbls
+        >>> num = None
+        >>> namemode = False
+        >>> top_percent = None
+        >>> data_annots = None
+        >>> (tp_fsv1, tn_fsv1) = get_training_fsv(cm, namemode=namemode,
+        >>>                                       top_percent=top_percent)
+        >>> (tp_fsv, tn_fsv) = get_training_desc_dist(cm, qreq_, fsv_col_lbls,
+        >>>                                           namemode=namemode,
+        >>>                                           top_percent=top_percent)
+        >>> vt.assert_output_equal(tp_fsv1, tp_fsv)
+        >>> vt.assert_output_equal(tn_fsv1, tn_fsv)
     """
+    if namemode:
+        tp_idxs, tn_idxs = get_topname_training_idxs(cm, num=num)
+    else:
+        tp_idxs, tn_idxs = get_topannot_training_idxs(cm, num=num)
+
+    top_percent = None
+    if top_percent is not None:
+        cm_orig = cm
+        cm_orig.assert_self(qreq_)
+
+        # Keep only the top scoring half of the feature matches
+        tophalf_indicies = [
+            ut.take_percentile(fs.argsort()[::-1], top_percent)
+            for fs in cm.get_fsv_prod_list()
+        ]
+        cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
+
+        assert cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs)
+        assert cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs)
+
+        cm.assert_self(qreq_)
+
     ibs = qreq_.ibs
     query_config2_ = qreq_.extern_query_config2
     data_config2_ = qreq_.extern_data_config2
     special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg', 'ratio', 'lnbnn'])
     dist_lbls = ut.take(fsv_col_lbls, dist_xs)
     special_lbls = ut.take(fsv_col_lbls, special_xs)
-    cm_orig = cm
 
-    # Keep only the top scoring half of the feature matches
-    tophalf_indicies = [
-        ut.take_percentile(fs.argsort()[::-1], top_percent)
-        for fs in cm.get_fsv_prod_list()
-    ]
-    cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
     qaid = cm.qaid
     # cm.assert_self(qreq_=qreq_)
-
-    if namemode:
-        tp_idxs, tn_idxs = get_topname_training_idxs(cm)
-    else:
-        tp_idxs, tn_idxs = get_topannot_training_idxs(cm)
 
     fsv_list = []
     for idxs in [tp_idxs, tn_idxs]:
@@ -593,9 +629,20 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
             #import utool
             #with utool.embed_on_exception_context:
             #nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
-            nvecs_flat_m = vt.safe_vstack(ut.compress(nvecs_flat, nvecs_flat), qvecs_flat_m.shape, qvecs_flat_m.dtype)
+            _nvecs_flat_m = ut.compress(nvecs_flat, nvecs_flat)
+            nvecs_flat_m = vt.safe_vstack(_nvecs_flat_m, qvecs_flat_m.shape, qvecs_flat_m.dtype)
+
             vdist = vt.L2_sift(qvecs_flat_m, dvecs_flat_m)
             ndist = vt.L2_sift(qvecs_flat_m, nvecs_flat_m)
+
+            #vdist = vt.L2_sift_sqrd(qvecs_flat_m, dvecs_flat_m)
+            #ndist = vt.L2_sift_sqrd(qvecs_flat_m, nvecs_flat_m)
+
+            #vdist = vt.L2_root_sift(qvecs_flat_m, dvecs_flat_m)
+            #ndist = vt.L2_root_sift(qvecs_flat_m, nvecs_flat_m)
+
+            #x = cm.fsv_list[0][0:5].T[0]
+            #y = (ndist - vdist)[0:5]
 
         if len(special_xs) > 0:
             special_dist_list = []

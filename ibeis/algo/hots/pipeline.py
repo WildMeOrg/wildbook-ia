@@ -55,7 +55,7 @@ from ibeis.algo.hots import hstypes  # NOQA
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import nn_weights
 from ibeis.algo.hots import scoring
-from ibeis.algo.hots import _pipeline_helpers as plh
+from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 import utool as ut
 #profile = ut.profile
@@ -181,7 +181,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         if qreq_.prog_hook is not None:
             qreq_.prog_hook.initialize_subhooks(4)
 
-        qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
+        #qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
+        qreq_.lazy_preload(verbose=(verbose and ut.NOT_QUIET))
         impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
 
         # Nearest neighbors (nns_list)
@@ -474,6 +475,10 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
 @profile
 def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, verbose):
+    # Cant do this here because of get_nn_aids. bleh
+    # Could make this slightly more efficient
+    #qreq_.load_indexer(verbose=verbose)
+
     internal_qaids = qreq_.get_internal_qaids()
     # Get only the data that needs to be computed
     internal_qaids = internal_qaids.compress(flags_list)
@@ -494,6 +499,9 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, verbose):
     nns_list = [
         qreq_.indexer.knn(qfx2_vec, num_neighbors)
         for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+
+    if verbose:
+        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
     return nns_list
 
 
@@ -509,19 +517,17 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
+    qreq_.load_indexer(verbose=verbose)
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
     #USE_NN_MID_CACHE = ut.is_developer()
     nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(
         qreq_, Kpad_list)
 
-    nns_list = ut.tryload_cache_list_with_compute(nn_cachedir,
-                                                  'neighbs4',
-                                                  nn_mid_cacheid_list,
-                                                  cachemiss_nn_compute_fn,
-                                                  qreq_, Kpad_list, K, Knorm,
-                                                  verbose)
-
+    use_cache = USE_NN_MID_CACHE
+    nns_list = ut.tryload_cache_list_with_compute(
+        use_cache, nn_cachedir, 'neighbs4', nn_mid_cacheid_list,
+        cachemiss_nn_compute_fn, qreq_, Kpad_list, K, Knorm, verbose)
     return nns_list
 
 
@@ -553,37 +559,38 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(qfx2_idx.shape[1], num_neighbors)
         >>> ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)
     """
-    if USE_NN_MID_CACHE:
-        return nearest_neighbors_withcache(qreq_, Kpad_list, verbose)
-    # Neareset neighbor configuration
-    K      = qreq_.qparams.K
-    Knorm  = qreq_.qparams.Knorm
-    #checks = qreq_.qparams.checks
-    # Get both match neighbors (including padding) and normalizing neighbors
-    num_neighbors_list = [(K + Kpad + Knorm) for Kpad in Kpad_list]
-    if verbose:
-        print('[hs] Step 1) Assign nearest neighbors: %s' %
-              (qreq_.qparams.nn_cfgstr,))
-    internal_qaids = qreq_.get_internal_qaids()
-    #num_deleted = qreq_.ibs.delete_annot_feats(
-    #    internal_qaids, config2_=qreq_.get_internal_query_config2())
-    qvecs_list = qreq_.ibs.get_annot_vecs(
-        internal_qaids, config2_=qreq_.get_internal_query_config2())
-    # Mark progress ane execute nearest indexer nearest neighbor code
-    prog_hook = (None if qreq_.prog_hook is None else
-                 qreq_.prog_hook.next_subhook())
-    qvec_iter = ut.ProgressIter(
-        qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
-    nns_list = [
-        qreq_.indexer.knn(qfx2_vec, num_neighbors)
-        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+    #if True or USE_NN_MID_CACHE:
+    return nearest_neighbors_withcache(qreq_, Kpad_list, verbose)
+    #if False:
+    #    # Neareset neighbor configuration
+    #    K      = qreq_.qparams.K
+    #    Knorm  = qreq_.qparams.Knorm
+    #    #checks = qreq_.qparams.checks
+    #    # Get both match neighbors (including padding) and normalizing neighbors
+    #    num_neighbors_list = [(K + Kpad + Knorm) for Kpad in Kpad_list]
+    #    if verbose:
+    #        print('[hs] Step 1) Assign nearest neighbors: %s' %
+    #              (qreq_.qparams.nn_cfgstr,))
+    #    internal_qaids = qreq_.get_internal_qaids()
+    #    #num_deleted = qreq_.ibs.delete_annot_feats(
+    #    #    internal_qaids, config2_=qreq_.get_internal_query_config2())
+    #    qvecs_list = qreq_.ibs.get_annot_vecs(
+    #        internal_qaids, config2_=qreq_.get_internal_query_config2())
+    #    # Mark progress ane execute nearest indexer nearest neighbor code
+    #    prog_hook = (None if qreq_.prog_hook is None else
+    #                 qreq_.prog_hook.next_subhook())
+    #    qvec_iter = ut.ProgressIter(
+    #        qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
+    #    nns_list = [
+    #        qreq_.indexer.knn(qfx2_vec, num_neighbors)
+    #        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
 
-    # Verbose statistics reporting
-    if verbose:
-        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
-    #if qreq_.qparams.with_metadata:
-    #    qreq_.metadata['nns'] = nns_list
-    return nns_list
+    #    # Verbose statistics reporting
+    #    if verbose:
+    #        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
+    #    #if qreq_.qparams.with_metadata:
+    #    #    qreq_.metadata['nns'] = nns_list
+    #    return nns_list
 
 
 #============================
@@ -766,6 +773,9 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     # for filtname in soft_weights:
     #     pass
     # hard_weights = ['ratio']
+
+    if not config2_.sqrd_dist_on:
+        nns_list = [(qfx2_idx, np.sqrt(qfx2_dist)) for qfx2_idx, qfx2_dist in nns_list]
 
     if config2_.lnbnn_on:
         filtname = 'lnbnn'
