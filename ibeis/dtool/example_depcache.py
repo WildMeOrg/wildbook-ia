@@ -238,21 +238,13 @@ def testdata_depc(fname=None):
     class DummyMatchRequest(dtool.AlgoRequest):
         pass
 
-    class DummyAnnotMatch(dtool.AlgoResult):
-        def __init__(self, qaid=None, daids=None, dnid_list=None,
-                     annot_score_list=None, unique_nids=None,
-                     name_score_list=None):
-            self.qaid = qaid
-            self.daids = daids
-            self.dnid_list = dnid_list
-            self.annot_score_list = annot_score_list
-            self.name_score_list = name_score_list
+    class DummyAnnotMatch(dtool.MatchResult):
+        pass
 
     @depc.register_algo(algoname='dumbalgo',
                         algo_result_class=DummyAnnotMatch,
                         algo_request_class=DummyMatchRequest,
-                        config_class=DummyAlgoConfig,
-                       )
+                        config_class=DummyAlgoConfig)
     #def dummy_matching_algo(depc, aids, config=None):
     def dummy_matching_algo(depc, request):
         print('RUNNING DUMMY ALGO')
@@ -261,7 +253,7 @@ def testdata_depc(fname=None):
         print('request.config = %r' % (request.config,))
         print('request.params = %r' % (request.params,))
         sver_on = request.params['sver_on']
-        kpts_list = depc.get_property('keypoint', qaids)
+        kpts_list = depc.get_property('keypoint', qaids)  # NOQA
         #dummy_preproc_kpts
         for qaid in qaids:
             dnid_list = [1, 1, 2, 2]
@@ -411,10 +403,10 @@ def dummy_example_depcacahe():
 
     test_getters(depc)
 
-    import plottool as pt
+    #import plottool as pt
     # pt.ensure_pylab_qt4()
 
-    graph = depc.make_digraph()
+    graph = depc.make_digraph()  # NOQA
     #pt.show_netx(graph)
 
     print('---------- 111 -----------')

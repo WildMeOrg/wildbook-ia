@@ -150,6 +150,10 @@ class AlgoRequest(object):
     The problem it solve is having daids as part of a config.  A config should
     be used to specify algorithm parameters, but a referense set of matchable
     annotations seems to go beyond that.  Therefore, AlgoRequest.
+
+    Ignore:
+        cls = dtool.AlgoRequest
+
     """
     @classmethod
     def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
@@ -243,6 +247,39 @@ class AlgoResult(object):
         state_dict = copy.deepcopy(self.__getstate__())
         out.__setstate__(state_dict)
         return out
+
+
+class MatchResult(AlgoResult):
+    def __init__(self, qaid=None, daids=None, qnid=None, dnid_list=None,
+                 annot_score_list=None, unique_nids=None,
+                 name_score_list=None):
+        self.qaid = qaid
+        self.daid_list = daids
+        self.dnid_list = dnid_list
+        self.annot_score_list = annot_score_list
+        self.name_score_list = name_score_list
+
+    @property
+    def num_daids(cm):
+        return None if cm.daid_list is None else len(cm.daid_list)
+
+    @property
+    def daids(cm):
+        return cm.daid_list
+
+    @property
+    def qaids(cm):
+        return cm.qaid
+
+    def __repr__(cm):
+        typestr = cm.__class__.__name__
+        infostr_ = 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+        return '<%s %s at %s>' % (typestr, infostr_, hex(id(cm)))
+
+    def __str__(cm):
+        typestr = cm.__class__.__name__
+        infostr_ = 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+        return '<%s %s>' % (typestr, infostr_)
 
 
 @six.add_metaclass(ConfigMetaclass)

@@ -119,6 +119,19 @@ class _CoreDependencyCache(object):
             fname = depc.default_fname
         if docstr is None:
             docstr = 'no docstr'
+        if isinstance(config_class, dict):
+            # Dynamically make config class
+            default_cfgdict = config_class
+            import dtool
+            def make_new_config(default_cfgdict):
+                class UnnamedConfig(dtool.TableConfig):
+                    def get_param_info_list(self):
+                        print('default_cfgdict = %r' % (default_cfgdict,))
+                        return [ut.ParamInfo(key, val)
+                                for key, val in default_cfgdict.items()]
+                UnnamedConfig.__name__ = str(tablename + 'Config')
+                return UnnamedConfig
+            config_class = make_new_config(default_cfgdict)
 
         depc.fname_to_db[fname] = None
         table = depcache_table.DependencyCacheTable(
@@ -486,9 +499,9 @@ class _CoreDependencyCache(object):
                 print(' GOT ANCESTOR ROWIDS')
         return rowid_dict
 
-    def new_algo_request(depc, algoname, *args, **kwargs):
+    def new_algo_request(depc, algoname, qaids, daids, cfgdict=None):
         requestclass = depc.requestclass_dict[algoname]
-        request = requestclass.new_algo_request(depc, algoname, *args, **kwargs)
+        request = requestclass.new_algo_request(depc, algoname, qaids, daids, cfgdict)
         return request
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
