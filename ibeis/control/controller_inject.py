@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import sys
+import dtool
 from datetime import timedelta
 from functools import update_wrapper
 from functools import wraps
@@ -25,6 +26,7 @@ from hashlib import sha1
 import os
 #import numpy as np
 import hmac
+from ibeis import constants as const
 import string
 import random
 # <flask>
@@ -692,6 +694,9 @@ class ExternalStorageException(Exception):
     """ TODO move to a common place for templated SQL functions """
     def __init__(self, *args, **kwargs):
         super(ExternalStorageException, self).__init__(*args, **kwargs)
+
+
+register_preproc, register_algo = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
 
 
 if __name__ == '__main__':
