@@ -6,7 +6,6 @@ import numpy.linalg as npl
 # VTool
 from vtool import linalg as ltool
 from vtool import image as gtool
-from vtool import image_filters as gfilt_tool
 import utool as ut
 try:
     import cv2
@@ -237,6 +236,9 @@ def gridsearch_chipextract():
 
 def get_scaled_size_with_width(target_width, w, h):
     """
+    returns new_size which scales (w, h) as close to target_width as possible
+    and maintains aspect ratio
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.chip import *  # NOQA
@@ -288,7 +290,8 @@ def get_scaled_sizes_with_area(target_area, size_list):
 
 
 #@profile
-def compute_chip(gfpath, bbox, theta, new_size, filter_list=[], interpolation=cv2.INTER_LANCZOS4):
+def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
+                 interpolation=cv2.INTER_LANCZOS4):
     """ Extracts a chip and applies filters
 
     Args:
@@ -336,23 +339,6 @@ def apply_filter_funcs(chipBGR, filter_funcs):
     for func in filter_funcs:
         chipBGR_ = func(chipBGR)
     return chipBGR_
-
-
-def get_filter_list(chipcfg_dict):
-    filter_list = []
-    if chipcfg_dict.get('adapteq'):
-        filter_list.append(gfilt_tool.adapteq_fn)
-    if chipcfg_dict.get('histeq'):
-        filter_list.append(gfilt_tool.histeq_fn)
-    #if chipcfg_dict.get('maxcontrast'):
-        #filter_list.append(maxcontr_fn)
-    #if chipcfg_dict.get('rank_eq'):
-        #filter_list.append(rankeq_fn)
-    #if chipcfg_dict.get('local_eq'):
-        #filter_list.append(localeq_fn)
-    if chipcfg_dict.get('grabcut'):
-        filter_list.append(gfilt_tool.grabcut_fn)
-    return filter_list
 
 if __name__ == '__main__':
     """

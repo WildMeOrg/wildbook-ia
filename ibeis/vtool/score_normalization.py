@@ -1254,7 +1254,7 @@ def inspect_pdfs(tn_support, tp_support,
             fnum=fnum,
             pnum=pnum,
             bin_width=kwargs.get('bin_width', None),
-            num_bins=kwargs.get('num_bins', 40),
+            num_bins=kwargs.get('num_bins', None),
             overlay_prob_given_list=(p_score_given_tn, p_score_given_tp),
             overlay_score_domain=score_domain,
             xlim=score_range,
@@ -1269,7 +1269,7 @@ def inspect_pdfs(tn_support, tp_support,
             fnum=fnum,
             pnum=pnum,
             bin_width=kwargs.get('bin_width', None),
-            num_bins=kwargs.get('num_bins', 40),
+            num_bins=kwargs.get('num_bins', None),
             **support_kw)
 
     def _prob_support_sorted(fnum, pnum):
