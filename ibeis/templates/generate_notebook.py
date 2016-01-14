@@ -22,7 +22,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW
+        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW -a default:has_any=hasnotch
 
     Example:
         >>> # SCRIPT

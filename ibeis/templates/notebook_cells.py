@@ -75,16 +75,19 @@ initialize = ('# Initialization', ut.codeblock(
 fluke_select = ('# Humpback Select',  ut.codeblock(
     r'''
     # STARTBLOCK
+    # Tag annotations which have been given manual notch points
     from ibeis_flukematch.plugin import *  # NOQA
     ibs = ibeis.opendb(defaultdb='humpbacks')
     all_aids = ibs.get_valid_aids()
     isvalid = ibs.depc.get_property('Has_Notch', all_aids, 'flag')
     aid_list = ut.compress(all_aids, isvalid)
-    depc = ibs.depc
-    qaid_override = aid_list[0:5]
-    daid_override = aid_list[0:7]
-    print(qaid_override)
-    print(daid_override)
+    # Tag the appropriate annots
+    ibs.append_annot_case_tags(aid_list, ['hasnotch'] * len(aid_list))
+    #depc = ibs.depc
+    #qaid_override = aid_list[0:5]
+    #daid_override = aid_list[0:7]
+    #print(qaid_override)
+    #print(daid_override)
     # ENDBLOCK
     '''))
 
@@ -153,19 +156,27 @@ timedelta_distribution = ('# Result Timedelta Distribution', ut.codeblock(
     ''')
 )
 
+
+#latex_stats = ibeis.other.dbinfo.latex_dbstats([ibs], table_position='[h]') + '\n%--'
+##print(latex_stats)
+#pdf_fpath = ut.compile_latex_text(latex_stats, dpath=None, verbose=False, quiet=True, pad_stdout=False)
+#pdf_fpath = ut.tail(pdf_fpath, n=2)
+#print(pdf_fpath)
+#from IPython.display import HTML
+#HTML('<iframe src="%s" width=700 height=350></iframe>' % pdf_fpath)
+#_ = ibeis.other.dbinfo.get_dbinfo(ibs)
 timestamp_distribution = ('# Timestamp Distribution', ut.codeblock(
     r'''
     # STARTBLOCK
-    #latex_stats = ibeis.other.dbinfo.latex_dbstats([ibs], table_position='[h]') + '\n%--'
-    ##print(latex_stats)
-    #pdf_fpath = ut.compile_latex_text(latex_stats, dpath=None, verbose=False, quiet=True, pad_stdout=False)
-    #pdf_fpath = ut.tail(pdf_fpath, n=2)
-    #print(pdf_fpath)
-    #from IPython.display import HTML
-    #HTML('<iframe src="%s" width=700 height=350></iframe>' % pdf_fpath)
+    # Get images of those used in the tests
+    ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
+    aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
+    gids = ut.unique_keep_order(ibs.get_annot_gids(aids))
+    ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
 
-    #_ = ibeis.other.dbinfo.get_dbinfo(ibs)
-    ibeis.other.dbinfo.show_image_time_distributions(ibs, ibs.get_valid_gids())
+    # Or just get time delta of all images
+    #gids = ibs.get_valid_gids()
+    #ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
     # ENDBLOCK
     '''))
 
