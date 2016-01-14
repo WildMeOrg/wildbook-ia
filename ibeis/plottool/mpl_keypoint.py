@@ -90,6 +90,14 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
+    if kpts_.shape[1] == 2:
+        # pad out structure if only xy given
+        kpts = np.zeros((len(kpts_), 6))
+        kpts[:, 0:2] = kpts_
+        kpts[:, 2] = 1
+        kpts[:, 4] = 1
+        kpts_ = kpts
+
     if scale_factor is None:
         scale_factor = 1.0
     #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.dict_str(kwargs))
