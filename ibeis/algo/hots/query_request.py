@@ -142,47 +142,57 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
 
-    DYNAMIC_K = False
-    if DYNAMIC_K and 'K' not in cfgdict:
-        model_params = [0.2,  0.5]
-        from ibeis.other.optimize_k import compute_K
-        nDaids = len(daid_list)
-        cfgdict['K'] = compute_K(nDaids, model_params)
-
-    # <HACK>
-
-    if not hasattr(ibs, 'generate_species_background_mask'):
-        print('HACKING FG OFF')
-        cfgdict['fg_on'] = False
-        #pass
-
-    if unique_species is None:
-        unique_species_ = apply_species_with_detector_hack(
-            ibs, cfgdict, qaid_list, daid_list)
+    # HACK FOR DEPC REQUESTS:
+    algoname = cfg.get_config_name()
+    if algoname != 'Query':
+        requestclass = ibs.depc.requestclass_dict[algoname]
+        cfgdict = dict(cfg.parse_items())
+        qreq_ = request = requestclass.new_algo_request(  # NOQA
+            ibs.depc, algoname, qaid_list, daid_list, cfgdict)
     else:
-        unique_species_ = unique_species
-    # </HACK>
-    qparams = query_params.QueryParams(cfg, cfgdict)
-    data_config2_ = qparams
-    #
-    # <HACK>
-    # MAKE A SECOND CONFIG FOR QUERIES AND DATABASE VECTORS ONLY
-    # allow query and database annotations to have different feature configs
-    if qparams.augment_queryside_hack:
-        query_cfgdict = cfgdict.copy()
-        query_cfgdict['augment_orientation'] = True
-        query_config2_ = query_params.QueryParams(cfg, query_cfgdict)
-    else:
-        query_config2_ = qparams
-    # </HACK>
-    _indexer_request_params = dict(use_memcache=use_memcache)
-    qreq_ = QueryRequest.new_query_request(
-        qaid_list, daid_list, qparams, qresdir, ibs, _indexer_request_params)
-    qreq_.query_config2_ = query_config2_
-    qreq_.data_config2_ = data_config2_
-    qreq_.unique_species = unique_species_  # HACK
+        #if cfgdict.get('pipeline_root', None)
+
+        DYNAMIC_K = False
+        if DYNAMIC_K and 'K' not in cfgdict:
+            model_params = [0.2,  0.5]
+            from ibeis.other.optimize_k import compute_K
+            nDaids = len(daid_list)
+            cfgdict['K'] = compute_K(nDaids, model_params)
+
+        # <HACK>
+
+        if not hasattr(ibs, 'generate_species_background_mask'):
+            print('HACKING FG OFF')
+            cfgdict['fg_on'] = False
+            #pass
+
+        if unique_species is None:
+            unique_species_ = apply_species_with_detector_hack(
+                ibs, cfgdict, qaid_list, daid_list)
+        else:
+            unique_species_ = unique_species
+        # </HACK>
+        qparams = query_params.QueryParams(cfg, cfgdict)
+        data_config2_ = qparams
+        #
+        # <HACK>
+        # MAKE A SECOND CONFIG FOR QUERIES AND DATABASE VECTORS ONLY
+        # allow query and database annotations to have different feature configs
+        if qparams.augment_queryside_hack:
+            query_cfgdict = cfgdict.copy()
+            query_cfgdict['augment_orientation'] = True
+            query_config2_ = query_params.QueryParams(cfg, query_cfgdict)
+        else:
+            query_config2_ = qparams
+        # </HACK>
+        _indexer_request_params = dict(use_memcache=use_memcache)
+        qreq_ = QueryRequest.new_query_request(
+            qaid_list, daid_list, qparams, qresdir, ibs, _indexer_request_params)
+        qreq_.query_config2_ = query_config2_
+        qreq_.data_config2_ = data_config2_
+        qreq_.unique_species = unique_species_  # HACK
     if verbose:
-        print('[qreq] * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+        print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
         print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
         print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
         print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
@@ -271,7 +281,7 @@ class IdRequest(object):
             cfgstr_list.append(qreq_.get_data_hashid())
         if with_pipe:
             if hash_pipe:
-                cfgstr_list.append(qreq_.get_pipe_hashstr())
+                cfgstr_list.append(qreq_.get_pipe_hashid())
             else:
                 cfgstr_list.append(qreq_.get_pipe_cfgstr())
         cfgstr = ''.join(cfgstr_list)
@@ -402,7 +412,7 @@ class QueryRequest(object):
         dbname = None if qreq_.ibs is None else qreq_.ibs.get_dbname()
         # hashkw = dict(_new=True, pathsafe=False)
         # infostr_ = qreq_.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
-        infostr_ = 'nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashstr())
+        infostr_ = 'nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashid())
         custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(qreq_)))
         return custom_str
 
@@ -784,9 +794,6 @@ class QueryRequest(object):
             qaids, prefix='Q', **hashkw)
         return query_hashid
 
-    def get_pipe_hashid(qreq_):
-        return qreq_.get_pipe_hashstr()
-
     def get_internal_query_hashid(qreq_):
         if qreq_.qparams.vsmany:
             return qreq_.get_query_hashid()
@@ -807,7 +814,7 @@ class QueryRequest(object):
         pipe_cfgstr = qreq_.qparams.query_cfgstr
         return pipe_cfgstr
 
-    def get_pipe_hashstr(qreq_):
+    def get_pipe_hashid(qreq_):
         # this changes invalidates match_chip4 bibcaches generated before
         # august 24 2015
         #pipe_hashstr = ut.hashstr(qreq_.get_pipe_cfgstr())
@@ -853,7 +860,7 @@ class QueryRequest(object):
             cfgstr_list.append(qreq_.get_data_hashid(**hashkw))
         if with_pipe:
             if hash_pipe:
-                cfgstr_list.append(qreq_.get_pipe_hashstr())
+                cfgstr_list.append(qreq_.get_pipe_hashid())
             else:
                 cfgstr_list.append(qreq_.get_pipe_cfgstr())
         cfgstr = ''.join(cfgstr_list)

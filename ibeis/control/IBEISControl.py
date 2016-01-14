@@ -74,6 +74,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_feat_funcs',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
+    #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
     #'ibeis.web.zmq_task_queue',
 ]
 
@@ -234,6 +235,11 @@ class IBEISController(BASE_CLASS):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
+        # HACK
+        try:
+            from ibeis_flukematch import plugin  # NOQA
+        except ImportError:
+            print('[ibeis] plugin hack')
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const

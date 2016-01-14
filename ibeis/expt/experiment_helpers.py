@@ -16,10 +16,16 @@ print, rrr, profile = ut.inject2(__name__, '[expt_helpers]')
 QUIET = ut.QUIET
 
 
-def get_varied_pipecfg_lbls(cfgdict_list):
-    from ibeis.algo import Config
-    cfg_default_dict = dict(Config.QueryConfig().parse_items())
-    cfgx2_lbl = cfghelpers.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
+def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):
+    if pipecfg_list is None:
+        from ibeis.algo import Config
+        #cls_list = [Config] * len(cfgdict_list)
+        cfg_default_dict = dict(Config.QueryConfig().parse_items())
+        cfgx2_lbl = ut.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
+    else:
+        # TODO: group cfgdict by config type and then get varied labels
+        cfg_default_dict = None
+        cfgx2_lbl = ut.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
     return cfgx2_lbl
 
 
@@ -40,8 +46,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
                 If there is just one config then nothing is varied
 
     CommandLine:
-        python -m ibeis.expt.experiment_helpers --test-get_pipecfg_list
-        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list
+        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list:0
+        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list:1 --db humpbacks
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -63,6 +69,19 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
             'default:',
             'default:sv_on=False',
         ]
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis_flukematch.plugin
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='humpbacks')
+        >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average', 'default:K=[1,4]']
+        >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
+        >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
+        >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))
+        >>> print(result)
+        >>> print_pipe_configs(pcfgdict_list, pipecfg_list)
     """
     if ut.VERBOSE:
         print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
@@ -71,6 +90,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         test_cfg_name_list = [test_cfg_name_list]
     _standard_cfg_names = []
     _pcfgdict_list = []
+
     # HACK: Parse out custom configs first
     for test_cfg_name in test_cfg_name_list:
         if test_cfg_name.startswith('custom:') or test_cfg_name == 'custom':
@@ -95,8 +115,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     # Handle stanndard configs next
     if len(_standard_cfg_names) > 0:
         # Get parsing information
-        cfg_default_dict = dict(Config.QueryConfig().parse_items())
-        valid_keys = list(cfg_default_dict.keys())
+        #cfg_default_dict = dict(Config.QueryConfig().parse_items())
+        #valid_keys = list(cfg_default_dict.keys())
         cfgstr_list = _standard_cfg_names
         named_defaults_dict = ut.dict_subset(
             experiment_configs.__dict__, experiment_configs.TEST_NAMES)
@@ -104,13 +124,30 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         # Parse standard pipeline cfgstrings
         metadata = {'ibs': ibs}
         dict_comb_list = cfghelpers.parse_cfgstr_list2(
-            cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=alias_keys,
-            valid_keys=valid_keys, metadata=metadata)
+            cfgstr_list,
+            named_defaults_dict,
+            cfgtype=None,
+            alias_keys=alias_keys,
+            # Hack out valid keys for humpbacks
+            #valid_keys=valid_keys,
+            strict=False,
+            metadata=metadata
+        )
         # Get varied params (there may be duplicates)
         _pcfgdict_list.extend(ut.flatten(dict_comb_list))
 
+    # TODO: respsect different algorithm parameters
+    # like flukes
+
     # Expand cfgdicts into PipelineConfig config objects
-    _pipecfg_list = [Config.QueryConfig(**_cfgdict) for _cfgdict in _pcfgdict_list]
+    if ibs is None:
+        configclass_list = [Config.QueryConfig] * len(_pcfgdict_list)
+    else:
+        root_to_config = ibs.depc.configclass_dict
+        configclass_list = [
+            root_to_config.get(_cfgdict.get('pipeline_root', 'vsmany'), Config.QueryConfig)
+            for _cfgdict in _pcfgdict_list]
+    _pipecfg_list = [cls(**_cfgdict) for cls, _cfgdict in zip(configclass_list, _pcfgdict_list)]
 
     # Enforce rule that removes duplicate configs
     # by using feasiblity from ibeis.algo.Config
@@ -134,8 +171,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
 
 
 def print_pipe_configs(cfgdict_list, pipecfg_list):
-    pipecfg_lbls = get_varied_pipecfg_lbls(cfgdict_list)
-    assert len(pipecfg_lbls) == len(pipecfg_lbls), 'unequal lens'
+    pipecfg_lbls = get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list)
+    #pipecfg_lbls = pipecfg_list
+    #assert len(pipecfg_lbls) == len(pipecfg_lbls), 'unequal lens'
     for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
         print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
         ut.colorprint(lbl, 'white')

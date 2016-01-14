@@ -63,6 +63,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list, qaid_override=qaid_override,
         daid_override=daid_override, initial_aids=initial_aids)
+
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
         test_cfg_name_list, ibs=ibs)
@@ -170,6 +171,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
     if ut.NOT_QUIET:
         print('Constructing query requests')
+
     cfgx2_qreq_ = [
         ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
         for pipe_cfg in ut.ProgressIter(pipecfg_list, lbl='Building qreq_',
@@ -193,6 +195,10 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 ut.colorprint('Experiment Harness Cache Hit... Returning', 'turquoise')
             return testres
 
+    if ibs.table_cache:
+        # HACK
+        prev_feat_cfgstr = None
+
     cfgx2_cfgresinfo = []
     #nPipeCfg = len(pipecfg_list)
     cfgiter = subindexer_partial(range(len(cfgx2_qreq_)),
@@ -200,7 +206,6 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                                  freq=1, adjust=False,
                                  separate=True)
     # Run each pipeline configuration
-    prev_feat_cfgstr = None
     for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
 
@@ -211,7 +216,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         ut.colorprint('pipe_cfgstr= %s' % (
             qreq_.get_cfgstr(with_data=False),), 'turquoise')
         ut.colorprint('pipe_hashstr = %s' % (
-            qreq_.get_pipe_hashstr(),), 'teal')
+            qreq_.get_pipe_hashid(),), 'teal')
         if DRY_RUN:
             continue
 
@@ -239,13 +244,16 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 else:
                     _need_compute = False
             if _need_compute:
-                if prev_feat_cfgstr is not None and prev_feat_cfgstr != qreq_.qparams.feat_cfgstr:
-                    # Clear features to preserve memory
-                    ibs.clear_table_cache()
-                    #qreq_.ibs.print_cachestats_str()
+                if ibs.table_cache:
+                    if (len(prev_feat_cfgstr is not None and
+                            prev_feat_cfgstr != qreq_.qparams.feat_cfgstr)):
+                        # Clear features to preserve memory
+                        ibs.clear_table_cache()
+                        #qreq_.ibs.print_cachestats_str()
                 cfgres_info = get_query_result_info(qreq_)
                 # record previous feature configuration
-                prev_feat_cfgstr = qreq_.qparams.feat_cfgstr
+                if ibs.table_cache:
+                    prev_feat_cfgstr = qreq_.qparams.feat_cfgstr
                 if use_cache:
                     ut.save_cache(st_cachedir, st_cachename, st_cfgstr, cfgres_info)
         if not NOMEMORY:
@@ -268,7 +276,12 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     testres.cfgdict_list = cfgdict_list
     testres.aidcfg = None
     if use_cache:
-        ut.save_cache(*tuple(list(cachetup) + [testres]))
+        try:
+            ut.save_cache(*tuple(list(cachetup) + [testres]))
+        except Exception as ex:
+            ut.printex(ex, 'error saving testres cache', iswarning=True)
+            if ut.SUPER_STRICT:
+                raise
     return testres
 
 
@@ -281,19 +294,10 @@ def get_qres_name_result_info(ibs, qres, qreq_):
 
     """
     from ibeis.algo.hots import chip_match
-    if isinstance(qres, chip_match.ChipMatch):
-        cm = qres
-        qaid = cm.qaid
-        qnid = cm.qnid
-        nscoretup = cm.get_ranked_nids_and_aids()
-        sorted_nids, sorted_nscores, sorted_aids, sorted_scores = nscoretup
-    else:
-        qaid = qres.get_qaid()
-        qnid = ibs.get_annot_name_rowids(qaid)
-        nscoretup = qres.get_nscoretup(ibs)
-        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
-        sorted_nids = np.array(sorted_nids)
-        #sorted_score_diff = -np.diff(sorted_nscores.tolist())
+    cm = qres
+    qnid = cm.qnid
+    nscoretup = cm.get_ranked_nids_and_aids()
+    sorted_nids, sorted_nscores, sorted_aids, sorted_scores = nscoretup
 
     is_positive = sorted_nids == qnid
     is_negative = np.logical_and(~is_positive, sorted_nids > 0)
@@ -306,7 +310,7 @@ def get_qres_name_result_info(ibs, qres, qreq_):
             #gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
         else:
             gt_aids = cm.get_groundtruth_daids()
-            #gf_aids = ibs.get_annot_groundfalse(qres.get_qaid(), daid_list=qres.get_daids())
+            #gf_aids = ibs.get_annot_groundfalse(qres.qaid, daid_list=qres.get_daids())
         #gt_aids = qres.get_groundtruth_aids(ibs)
         cm.get_groundtruth_daids()
         gt_aid = gt_aids[0] if len(gt_aids) > 0 else None
@@ -403,12 +407,20 @@ def get_query_result_info(qreq_):
 
     Ignore:
 
+        ibeis -e rank_cdf --db humpbacks -a default:is_known=True -t default:pipeline_root=BC_DTW --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22
+        --show --debug-depc
+        ibeis -e rank_cdf --db humpbacks -a default:is_known=True -t default:pipeline_root=BC_DTW --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 --show --debug-depc
+        --clear-all-depcache
+
         for qaid, qres in six.iteritems(qaid2_qres):
             break
         for qaid, qres in six.iteritems(qaid2_qres):
             qres.ishow_top(ibs)
     """
-    ibs = qreq_.ibs
+    try:
+        ibs = qreq_.ibs
+    except AttributeError:
+        ibs = qreq_.depc.controller
     import vtool as vt
     #cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     cm_list = qreq_.execute()

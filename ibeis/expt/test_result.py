@@ -139,14 +139,20 @@ class TestResult(object):
         infostr_ = 'nCfg=%s'  % testres.nConfig
         if testres.nConfig ==  1:
             qreq_ = testres.cfgx2_qreq_[0]
-            infostr_ += ' nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashstr())
-        # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashstr())
+            infostr_ += ' nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashid())
+        # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashid())
         custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(testres)))
         return custom_str
 
     @property
     def ibs(testres):
-        ibs_list = [qreq_.ibs for qreq_ in testres.cfgx2_qreq_]
+        def tryget_ibs(qreq_):
+            try:
+                return qreq_.ibs
+            except AttributeError:
+                return qreq_.depc.controller
+
+        ibs_list = [tryget_ibs(qreq_) for qreq_ in testres.cfgx2_qreq_]
         ibs = ibs_list[0]
         for ibs_ in ibs_list:
             assert ibs is ibs_, 'not all query requests are using the same controller'
@@ -172,12 +178,12 @@ class TestResult(object):
 
     @property
     def cfgx2_daids(testres):
-        daids_list = [qreq_.get_external_daids() for qreq_ in testres.cfgx2_qreq_]
+        daids_list = [qreq_.daids for qreq_ in testres.cfgx2_qreq_]
         return daids_list
 
     @property
     def cfgx2_qaids(testres):
-        qaids_list = [qreq_.get_external_qaids() for qreq_ in testres.cfgx2_qreq_]
+        qaids_list = [qreq_.qaids for qreq_ in testres.cfgx2_qreq_]
         return qaids_list
 
     def has_constant_daids(testres):
@@ -232,7 +238,7 @@ class TestResult(object):
 
     def get_worst_possible_rank(testres):
         #worst_possible_rank = max(9001, len(testres.daids) + 1)
-        worst_possible_rank = max([len(qreq_.get_external_daids()) for qreq_ in testres.cfgx2_qreq_]) + 1
+        worst_possible_rank = max([len(qreq_.daids) for qreq_ in testres.cfgx2_qreq_]) + 1
         #worst_possible_rank = len(testres.daids) + 1
         return worst_possible_rank
 

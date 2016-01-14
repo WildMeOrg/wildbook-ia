@@ -22,6 +22,8 @@ def autogen_ipynb(ibs, launch=None, run=None):
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
+        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW
+
     Example:
         >>> # SCRIPT
         >>> from ibeis.templates.generate_notebook import *  # NOQA
@@ -49,36 +51,41 @@ def autogen_ipynb(ibs, launch=None, run=None):
         print('notebook_str =\n%s' % (notebook_str,))
 
 
-def get_default_cell_template_list():
+def get_default_cell_template_list(ibs):
+    cells = notebook_cells
+
     cell_template_list = [
-        notebook_cells.initialize,
-        notebook_cells.annot_config_info,
-        notebook_cells.pipe_config_info,
+        cells.initialize,
 
-        notebook_cells.timestamp_distribution,
-        notebook_cells.example_annotations,
-        notebook_cells.example_names,
+        None if ibs.get_dbname() != 'humpbacks' else cells.fluke_select,
 
-        notebook_cells.per_annotation_accuracy,
-        notebook_cells.per_name_accuracy,
-        notebook_cells.timedelta_distribution,
-        notebook_cells.config_overlap,
-        #notebook_cells.dbsize_expt,
-        notebook_cells.feat_score_sep,
-        notebook_cells.all_annot_scoresep,
-        notebook_cells.success_annot_scoresep,
-        notebook_cells.easy_success_cases,
-        notebook_cells.hard_success_cases,
-        notebook_cells.failure_type1_cases,
-        notebook_cells.failure_type2_cases,
-        #notebook_cells.investigate_specific_case,
-        #notebook_cells.view_intereseting_tags,
+        cells.pipe_config_info,
+        cells.annot_config_info,
 
+        cells.timestamp_distribution,
+        cells.example_annotations,
+        cells.example_names,
+
+        cells.per_annotation_accuracy,
+        cells.per_name_accuracy,
+        cells.timedelta_distribution,
+        cells.config_overlap,
+        #cells.dbsize_expt,
+        cells.feat_score_sep,
+        cells.all_annot_scoresep,
+        cells.success_annot_scoresep,
+        cells.easy_success_cases,
+        cells.hard_success_cases,
+        cells.failure_type1_cases,
+        cells.failure_type2_cases,
+        #cells.investigate_specific_case,
+        #cells.view_intereseting_tags,
 
         # TODO:
         # show query chips
 
     ]
+    cell_template_list = ut.filter_Nones(cell_template_list)
     return cell_template_list
 
 
@@ -166,7 +173,7 @@ def make_ibeis_notebook(ibs):
         >>> notebook_str = make_ibeis_notebook(ibs)
         >>> print(notebook_str)
     """
-    cell_template_list = get_default_cell_template_list()
+    cell_template_list = get_default_cell_template_list(ibs)
     autogen_str = make_autogen_str()
     dbname = ibs.get_dbname()
     #if ut.get_argflag('--hacktestscore'):
