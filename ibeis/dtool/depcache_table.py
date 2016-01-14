@@ -50,6 +50,7 @@ class DependencyCacheTable(object):
         table.data_colnames = tuple(data_colnames)
         table.data_coltypes = data_coltypes
         table.preproc_func = preproc_func
+        table.on_delete = None
 
         table._internal_data_colnames = []
         table._internal_data_coltypes = []
@@ -168,11 +169,17 @@ class DependencyCacheTable(object):
 
     def initialize(table):
         table.db = table.depc.fname_to_db[table.fname]
+        print('Checking sql for table=%r' % (table.tablename,))
+
         if not table.db.has_table(table.tablename):
+            print('Initializing table=%r' % (table.tablename,))
             table.db.add_table(**table.get_addtable_kw())
 
     def print_schemadef(table):
         print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
+
+    def print_csv(table):
+        print(table.db.get_table_csv(table.tablename))
 
     def _get_all_rowids(table):
         pass
@@ -476,22 +483,25 @@ class DependencyCacheTable(object):
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
-    def delete_rows(table, rowid_list):
+    def delete_rows(table, rowid_list, verbose=None):
         #from dtool.algo.preproc import preproc_feat
         if table.on_delete is not None:
             table.on_delete()
-        if ut.VERBOSE:
-            print('deleting %d rows' % len(rowid_list))
+        if not ut.NOT_QUIET:
+            print('deleting %d rows from %s' % (len(rowid_list), table.tablename))
         # Finalize: Delete table
         table.db.delete_rowids(table.tablename, rowid_list)
         num_deleted = len(ut.filter_Nones(rowid_list))
         return num_deleted
 
-    def get_row_data(table, tbl_rowids, colnames=None, _debug=None):
+    def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
+                     read_extern=True, extra_tries=1):
         """
         colnames = ('mask', 'size')
 
         FIXME; unpacking is confusing with sql controller
+
+        TODO: Clean up and allow for eager=False
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
@@ -551,29 +561,48 @@ class DependencyCacheTable(object):
             # unpack_scalars=not
             # request_unpack)
             # print('depth(raw_prop_list) = %r' % (ut.depth_profile(raw_prop_list),))
+            #import utool
+            #utool.embed()
 
             prop_listT = list(zip(*raw_prop_list))
             for extern_colx, read_func in extern_resolve_colxs:
                 data_list = []
+                failed_list = []
                 if _debug:
                     print('[deptbl.get_row_data] read_func = %r' % (read_func,))
                 for uri in prop_listT[extern_colx]:
                     try:
                         # FIXME: only do this for a localpath
-                        uri1 = join(table.depc.cache_dpath, uri)
-                        data = read_func(uri1)
+                        uri_full = join(table.depc.cache_dpath, uri)
+                        if read_extern:
+                            data = read_func(uri_full)
+                        else:
+                            ut.assertpath(uri_full)
+                            data = uri_full
                     except Exception as ex:
                         ut.printex(ex, 'failed to load external data',
                                    iswarning=False,
                                    keys=[
+                                       'extra_tries',
                                        'uri',
-                                       'uri1',
-                                       (exists, 'uri1'),
+                                       'uri_full',
+                                       (exists, 'uri_full'),
                                        'read_func'])
-                        raise
-                        # FIXME
-                        #data = None
+                        #raise
+                        if extra_tries == 0:
+                            raise
+                        failed_list.append(True)
+                        data = None
+                    else:
+                        failed_list.append(False)
                     data_list.append(data)
+                if any(failed_list):
+                    # FIXME: should directly recompute the data in the rows
+                    # rather than deleting the rowids.  Need the parent ids and
+                    # config to do that.
+                    failed_rowids = ut.compress(tbl_rowids, failed_list)
+                    table.delete_rows(failed_rowids)
+                    raise Exception('Non existant data on disk. Need to recompute rows')
                 prop_listT[extern_colx] = data_list
 
             nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)

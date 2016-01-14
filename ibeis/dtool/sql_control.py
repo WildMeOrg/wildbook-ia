@@ -189,21 +189,27 @@ def get_operation_type(operation):
     return operation_type.upper()
 
 
-def sanitize_sql(db, tablename, columns=None):
+def sanitize_sql(db, tablename_, columns=None):
     """ Sanatizes an sql tablename and column. Use sparingly """
-    tablename = re.sub('[^a-z_0-9]', '', tablename)
+    tablename = re.sub('[^a-zA-Z_0-9]', '', tablename_)
     valid_tables = db.get_table_names()
     if tablename not in valid_tables:
-        raise Exception('UNSAFE TABLE: tablename=%r. Column names and table names should be different' % tablename)
+        print('tablename_ = %r' % (tablename_,))
+        print('valid_tables = %r' % (valid_tables,))
+        raise Exception(
+            'UNSAFE TABLE: tablename=%r. '
+            'Column names and table names should be different' % tablename)
     if columns is None:
         return tablename
     else:
         def _sanitize_sql_helper(column):
-            column_ = re.sub('[^a-z_0-9]', '', column)
+            column_ = re.sub('[^a-zA-Z_0-9]', '', column)
             valid_columns = db.get_column_names(tablename)
             if column_ not in valid_columns:
-                raise Exception('UNSAFE COLUMN: must be all lowercase. tablename=%r column=%r' %
-                                (tablename, column))
+                raise Exception(
+                    'UNSAFE COLUMN: must be all lowercase. '
+                    'tablename=%r column=%r' %
+                    (tablename, column))
                 return None
             else:
                 return column_
@@ -241,6 +247,8 @@ class SQLAtomicContext(object):
 def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname,
                                 version_current, version_next=None):
     """
+    HACK
+
     hacky function to ensure that only developer sees the development schema
     and only on test databases
     """

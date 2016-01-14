@@ -122,8 +122,8 @@ class _CoreDependencyCache(object):
         if isinstance(config_class, dict):
             # Dynamically make config class
             default_cfgdict = config_class
-            import dtool
             def make_new_config(default_cfgdict):
+                import dtool
                 class UnnamedConfig(dtool.TableConfig):
                     def get_param_info_list(self):
                         #print('default_cfgdict = %r' % (default_cfgdict,))
@@ -345,55 +345,61 @@ class _CoreDependencyCache(object):
         dependency_levels = ut.longest_levels(dependency_levels_)
         return dependency_levels
 
-    def get_descendant_rowids(depc, tablename, root_rowids, config=None):
+    def get_all_ancestor_rowids(depc, tablename, native_rowids):
         r"""
+        Gets the root_rowids of the root table associated with the
+        `native_rowids` of `tablename.
         Args:
-            tablename (?):
-            root_rowids (?):
+            tablename (str):
+            root_rowids (list):
             config (None): (default = None)
 
         Returns:
             dict: rowid_dict
 
         CommandLine:
-            python -m dtool.depcache_control --exec-get_descendant_rowids --show
+            python -m dtool.depcache_control --exec-get_all_ancestor_rowids --show
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> tablename = 'chip'
-            >>> root_rowids = [2, 3]
-            >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = ut.repr3(depc.get_descendant_rowids(
-            >>>     tablename, root_rowids, config), nl=1)
-            >>> print(result)
+            >>> tablename = 'spam'
+            >>> target_root_rowids = [4, 9, 7]
+            >>> native_rowids = depc.get_rowids(tablename, target_root_rowids)
+            >>> rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
+            >>> root_rowids = list(rowid_dict[depc.root])
+            >>> print(ut.repr3(rowid_dict, nl=1))
+            >>> assert root_rowids == target_root_rowids
         """
-        print('[depc.descendant] GET DESCENDANT ROWIDS %s ' % (tablename,))
-        dependency_levels = depc.get_dependants(tablename)
-        rowid_list = depc.get_rowids(tablename, root_rowids, config)
-        rowid_dict = {tablename: rowid_list}
-        for level_keys in dependency_levels[1:]:
-            # TODO
-            # FIXME; there will be multiple rowids for children.
-            pass
-        #     #print('* level_keys %s ' % (level_keys,))
-        #     for key in level_keys:
-        #         #print('  * key = %r' % (key,))
-        #         table = depc[key]
-        #         # due to different configs
-        #         child_rowids = list(zip(*ut.dict_take(rowid_dict, table.children)))
-        #         # print('parent_rowids = %r' % (parent_rowids,))
-        #         # child_rowids = table.get_rowid(
-        #         #     parent_rowids, config=config, eager=eager, nInput=nInput,
-        #         #     ensure=ensure)
-        #         # print('child_rowids = %r' % (child_rowids,))
-        #         rowid_dict[key] = child_rowids
+        if depc._debug:
+            print('[depc.descendant] GET ANSCESTOR ROWIDS %s ' % (tablename,))
+        #get_native_property
+        dependency_levels = depc.get_dependencies(tablename)
+        rowid_dict = {}
+        rowid_dict[tablename] = native_rowids
+
+        # FIXME: not implemented very efficiently
+        # Can do shortest existing path instead
+        for level_keys in dependency_levels[::-1]:
+            for key in level_keys:
+                if key == depc.root:
+                    break
+                table = depc[key]
+                child_rowids = rowid_dict[key]
+                colnames = table.parent_rowid_colnames
+                parent_rowids_listT = table.get_internal_columns(child_rowids,
+                                                                 colnames,
+                                                                 keepwrap=True)
+                parent_rowids_list = list(zip(*parent_rowids_listT))
+
+                for parent_key, parent_rowids in zip(table.parents, parent_rowids_list):
+                    rowid_dict[parent_key] = parent_rowids
         return rowid_dict
 
-    def get_ancestor_rowids(depc, tablename, root_rowids, config=None,
-                            ensure=True, eager=True, nInput=None):
+    def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
+                                  ensure=True, eager=True, nInput=None):
         r"""
         Connects `root_rowids` to rowids in `tablename`, and computes all
         values needed along the way.
@@ -407,7 +413,8 @@ class _CoreDependencyCache(object):
             nInput (None): (default = None)
 
         CommandLine:
-            python -m dtool.depcache_control --exec-get_ancestor_rowids
+            python -m dtool.depcache_control --exec-get_all_descendant_rowids:0
+            python -m dtool.depcache_control --exec-get_all_descendant_rowids:1
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -418,9 +425,9 @@ class _CoreDependencyCache(object):
             >>> tablename = 'spam'
             >>> root_rowids = [1, 2, 3]
             >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = ut.repr3(depc.get_ancestor_rowids(tablename, root_rowids,
-            >>>                                            config, ensure, eager,
-            >>>                                            nInput), nl=1)
+            >>> result = ut.repr3(depc.get_all_descendant_rowids(tablename, root_rowids,
+            >>>                                              config, ensure, eager,
+            >>>                                              nInput), nl=1)
             >>> print(result)
             {
                 'chip': [1, 2, 3],
@@ -439,10 +446,10 @@ class _CoreDependencyCache(object):
             >>> depc._debug = True
             >>> tablename = 'dumbalgo'
             >>> root_rowids = [1, 2, 3]
-            >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = ut.repr3(depc.get_ancestor_rowids(tablename, root_rowids,
-            >>>                                            config, ensure, eager,
-            >>>                                            nInput), nl=1)
+            >>> config, ensure, eager, nInput = None, False, True, None
+            >>> result = ut.repr3(depc.get_all_descendant_rowids(tablename, root_rowids,
+            >>>                                              config, ensure, eager,
+            >>>                                              nInput), nl=1)
             >>> print(result)
         """
         # if config is None:
@@ -451,17 +458,17 @@ class _CoreDependencyCache(object):
             # TODO: configclass should belong here
             pass
         # if True:
-        with ut.Indenter('[Ancest-%s]' % (tablename,), enabled=depc._debug):
+        with ut.Indenter('[Descend-%s]' % (tablename,), enabled=depc._debug):
             if depc._debug:
-                print(' * GET ANCESTOR ROWIDS %s ' % (tablename,))
+                print(' * GET DESCENDANT ROWIDS %s ' % (tablename,))
                 print(' * config = %r' % (config,))
             dependency_levels = depc.get_dependencies(tablename)
             configclass_levels = [[depc.configclass_dict.get(key, None)
                                    for key in keys] for keys in dependency_levels]
             if depc._debug:
-                print('[depc.ancestor] dependency_levels = %s' %
+                print('[depc] dependency_levels = %s' %
                       (ut.repr3(dependency_levels, nl=2),))
-                print('[depc.ancestor] dependency_levels = %s' %
+                print('[depc] dependency_levels = %s' %
                       (ut.repr3(configclass_levels, nl=2),))
             rowid_dict = {depc.root: root_rowids}
             for level_keys in dependency_levels[1:]:
@@ -496,13 +503,26 @@ class _CoreDependencyCache(object):
                               (ut.trunc_repr(child_rowids),))
                     rowid_dict[key] = child_rowids
             if depc._debug:
-                print(' GOT ANCESTOR ROWIDS')
+                print(' GOT DESCENDANT ROWIDS')
         return rowid_dict
 
     def new_algo_request(depc, algoname, qaids, daids, cfgdict=None):
         requestclass = depc.requestclass_dict[algoname]
         request = requestclass.new_algo_request(depc, algoname, qaids, daids, cfgdict)
         return request
+
+    def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename):
+        """
+        anscestor_tablename = depc.root
+        native_rowids = cid_list
+        tablename = const.CHIP_TABLE
+        """
+        rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
+        anscestor_rowids = list(rowid_dict[anscestor_tablename])
+        return anscestor_rowids
+
+    def get_root_rowids(depc, tablename, native_rowids):
+        return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
                    eager=True, nInput=None, _debug=None):
@@ -516,7 +536,7 @@ class _CoreDependencyCache(object):
             if _debug:
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
                 print(' * config = %r' % (config,))
-            rowid_dict = depc.get_ancestor_rowids(
+            rowid_dict = depc.get_all_descendant_rowids(
                 tablename, root_rowids, config=config, ensure=ensure,
                 eager=eager, nInput=nInput)
             rowid_list = rowid_dict[tablename]
@@ -550,7 +570,8 @@ class _CoreDependencyCache(object):
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
 
-    def get_native_property(depc, tablename, tbl_rowids, colnames=None, _debug=None):
+    def get_native_property(depc, tablename, tbl_rowids, colnames=None,
+                            _debug=None, read_extern=True):
         _debug = depc._debug if _debug is None else _debug
         with ut.Indenter('[GetNative %s]' % (tablename,), enabled=_debug):
             if _debug:
@@ -558,7 +579,8 @@ class _CoreDependencyCache(object):
                 print(' * colnames = %r' % (colnames,))
                 print(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
             table = depc[tablename]
-            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug)
+            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
+                                           read_extern=read_extern)
         return prop_list
 
     def delete_property(depc, tablename, root_rowids, config=None):

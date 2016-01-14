@@ -112,6 +112,10 @@ def make_config_metaclass():
         return '_'.join([str_] + [cfg[subcfg_name].get_cfgstr()
                                   for subcfg_name in cfg._subconfig_names])
 
+    @_register
+    def get_hashid(cfg):
+        return ut.hashstr27(cfg.get_cfgstr())
+
     class ConfigMetaclass(type):
         """
         Defines extra methods for Configs
