@@ -139,14 +139,20 @@ class TestResult(object):
         infostr_ = 'nCfg=%s'  % testres.nConfig
         if testres.nConfig ==  1:
             qreq_ = testres.cfgx2_qreq_[0]
-            infostr_ += ' nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashstr())
-        # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashstr())
+            infostr_ += ' nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashid())
+        # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashid())
         custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(testres)))
         return custom_str
 
     @property
     def ibs(testres):
-        ibs_list = [qreq_.ibs for qreq_ in testres.cfgx2_qreq_]
+        def tryget_ibs(qreq_):
+            try:
+                return qreq_.ibs
+            except AttributeError:
+                return qreq_.depc.controller
+
+        ibs_list = [tryget_ibs(qreq_) for qreq_ in testres.cfgx2_qreq_]
         ibs = ibs_list[0]
         for ibs_ in ibs_list:
             assert ibs is ibs_, 'not all query requests are using the same controller'
@@ -172,12 +178,12 @@ class TestResult(object):
 
     @property
     def cfgx2_daids(testres):
-        daids_list = [qreq_.get_external_daids() for qreq_ in testres.cfgx2_qreq_]
+        daids_list = [qreq_.daids for qreq_ in testres.cfgx2_qreq_]
         return daids_list
 
     @property
     def cfgx2_qaids(testres):
-        qaids_list = [qreq_.get_external_qaids() for qreq_ in testres.cfgx2_qreq_]
+        qaids_list = [qreq_.qaids for qreq_ in testres.cfgx2_qreq_]
         return qaids_list
 
     def has_constant_daids(testres):
@@ -232,7 +238,7 @@ class TestResult(object):
 
     def get_worst_possible_rank(testres):
         #worst_possible_rank = max(9001, len(testres.daids) + 1)
-        worst_possible_rank = max([len(qreq_.get_external_daids()) for qreq_ in testres.cfgx2_qreq_]) + 1
+        worst_possible_rank = max([len(qreq_.daids) for qreq_ in testres.cfgx2_qreq_]) + 1
         #worst_possible_rank = len(testres.daids) + 1
         return worst_possible_rank
 
@@ -2049,6 +2055,8 @@ class TestResult(object):
         """
         CommandLine:
             python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present
+            python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present --nocache
+            python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present -a timectrl:qindex=0:50
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -2065,14 +2073,18 @@ class TestResult(object):
         """
         #from ibeis.init import main_helpers
         import utool as ut
+        import plottool as pt
         ut.ensure_pylab_qt4()
 
         testres.draw_annot_scoresep(f='fail=False')
+        pt.adjust_subplots(bottom=.25, top=.8)
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=None)
+        pt.adjust_subplots(bottom=.25, top=.8)
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
         encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn', 'fg'])
+        pt.adjust_subplots(bottom=.25, top=.8)
 
         #ibs, testres = main_helpers.testdata_expts(
         #    defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
@@ -2160,7 +2172,7 @@ class TestResult(object):
         cache_hashid = ut.hashstr27(cache_cfgstr)
         cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
-                        use_cache=None)
+                        use_cache=False)
         def get_cfgx_feat_scores(qreq_):
             from ibeis.algo.hots import scorenorm
             cm_list = qreq_.load_cached_chipmatch()

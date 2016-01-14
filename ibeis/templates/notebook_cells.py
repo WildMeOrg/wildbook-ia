@@ -43,6 +43,10 @@ initialize = ('# Initialization', ut.codeblock(
         #'unctrl:been_adjusted=True',
     ]
 
+    # Set to override any special configs
+    qaid_override = None
+    daid_override = None
+
     # Uncomment one or more of the following pipeline configurations to choose
     # how the algorithm will run.  If multiple configurations are chosen, they
     # will be compared in the histograms, but only the first configuration will
@@ -67,11 +71,28 @@ initialize = ('# Initialization', ut.codeblock(
     # ENDBLOCK
     '''))
 
+
+fluke_select = ('# Humpback Select',  ut.codeblock(
+    r'''
+    # STARTBLOCK
+    from ibeis_flukematch.plugin import *  # NOQA
+    ibs = ibeis.opendb(defaultdb='humpbacks')
+    all_aids = ibs.get_valid_aids()
+    isvalid = ibs.depc.get_property('Has_Notch', all_aids, 'flag')
+    aid_list = ut.compress(all_aids, isvalid)
+    depc = ibs.depc
+    qaid_override = aid_list[0:5]
+    daid_override = aid_list[0:7]
+    print(qaid_override)
+    print(daid_override)
+    # ENDBLOCK
+    '''))
+
 annot_config_info =  ('# Annotation Config Info', ut.codeblock(
     r'''
     # STARTBLOCK
     acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
-        ibs, acfg_name_list=a)
+        ibs, acfg_name_list=a, qaid_override=qaid_override, daid_override=daid_override)
     ibeis.expt.annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, per_qual=True)
     # ENDBLOCK
     ''')
@@ -125,6 +146,7 @@ timedelta_distribution = ('# Result Timedelta Distribution', ut.codeblock(
         db=db,
         a=a[0:1],
         t=t[0:1],
+        qaid_override=qaid_override, daid_override=daid_override,
         truepos=True)
     test_result.draw_func()
     # ENDBLOCK
@@ -203,7 +225,7 @@ per_annotation_accuracy = ('# Query Accuracy (% correct annotations)', ut.codebl
     # STARTBLOCK
     testres = ibeis.run_experiment(
         e='rank_cdf',
-        db=db, a=a, t=t)
+        db=db, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
     #testres.print_unique_annot_config_stats()
     _ = testres.draw_func()
     # ENDBLOCK
@@ -215,7 +237,7 @@ per_name_accuracy = ('# Query Accuracy (% correct names)', ut.codeblock(
     # STARTBLOCK
     testres = ibeis.run_experiment(
         e='rank_cdf',
-        db=db, a=a, t=t, do_per_annot=False)
+        db=db, a=a, t=t, do_per_annot=False, qaid_override=qaid_override, daid_override=daid_override)
     #testres.print_unique_annot_config_stats()
     _ = testres.draw_func()
     # ENDBLOCK
@@ -268,6 +290,7 @@ all_annot_scoresep = ('# All Score Distribution', ut.codeblock(
     testres = ibeis.run_experiment(
         e='scores',
         db=db, a=a[0:1], t=t[0:1],
+        qaid_override=qaid_override, daid_override=daid_override,
         f=[':fail=None,min_gf_timedelta=None']
     )
     _ = testres.draw_func()

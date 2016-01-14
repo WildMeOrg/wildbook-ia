@@ -605,6 +605,9 @@ class NNWeightConfig(ConfigBase):
                                  hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename',
                                  hideif=True),
+                # Hacked in
+                #ut.ParamInfoBool('root_sift_on', False,  hideif=False),
+                ut.ParamInfoBool('sqrd_dist_on', False,  hideif=True),
             ],
         ])
         return param_info_list

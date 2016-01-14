@@ -108,13 +108,26 @@ def rsync_ibsdb_main():
     assert mode in ['push', 'pull'], 'mode=%r must be push or pull' % (mode,)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
     remote_map = {
-        'hyrule': '@hyrule.cs.rpi.edu:/raid/work',
-        'pachy': '@pachy.cs.uic.edu:/home/shared_ibeis/data/work',
-        'lewa': '@41.203.223.178:/data/ibeis',
-        'lev': '@lev.cs.rpi.edu:/media/hdd/work',
+        'hyrule': 'hyrule.cs.rpi.edu',
+        'pachy': 'pachy.cs.uic.edu',
+        'lewa': '41.203.223.178',
+        'lev': 'lev.cs.rpi.edu',
     }
-    remote = remote_map.get(remote_key, remote_key)
-    remote_uri = user + remote
+    remote_workdir_map = {
+        'hyrule': '/raid/work',
+        'pachy': '/home/shared_ibeis/data/work',
+        'lewa': '/data/ibeis',
+        'lev': '/media/hdd/work',
+    }
+    if ':' in remote_key:
+        remote_key_, remote_workdir = remote_key.split(':')
+    else:
+        remote_key_ = remote_key
+        remote_workdir = remote_workdir_map.get(remote_key, '')
+
+    remote = remote_map.get(remote_key_, remote_key_)
+    remote_uri = user + '@' + remote + ':' + remote_workdir
+
     ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
     sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
 
@@ -156,12 +169,10 @@ if __name__ == '__main__':
         # make sure group read bits are set
         ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
-
-
         rsync -avhzP -e "ssh -p 22" joncrall@hyrule.cs.rpi.edu/raid/raw_rsync/iberian-lynx .
         rsync -avhzP joncrall@hyrule.cs.rpi.edu:/raid/raw_rsync/iberian-lynx .
 
-
-
+        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
+        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
     """
     rsync_ibsdb_main()

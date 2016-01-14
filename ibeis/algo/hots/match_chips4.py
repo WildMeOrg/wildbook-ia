@@ -142,7 +142,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
         dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
-        pipe_hashstr = qreq_.get_pipe_hashstr()
+        pipe_hashstr = qreq_.get_pipe_hashid()
         #bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid, pipe_hashstr))
         bc_fname = ''.join((ibs.get_dbname(), '_BIG_CM', qhashid, dhashid, pipe_hashstr))
         bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams

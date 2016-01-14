@@ -174,13 +174,13 @@ def testdata_expts(defaultdb='testdb1',
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=default_test_cfg_name_list)
-    daid_override = ut.get_argval('--daids-override', type_=list, default=daid_override)
-    qaid_override = ut.get_argval(('--qaid', '--qaids-override'), type_=list, default=qaid_override)
+    daid_override = ut.get_argval(('--daid-override', '--daids-override'), type_=list, default=daid_override)
+    qaid_override = ut.get_argval(('--qaid', '--qaids-override', '--qaid-override'), type_=list, default=qaid_override)
 
     # Hack a cache here
     use_bigtest_cache3 = not ut.get_argflag(('--nocache', '--nocache-hs'))
     use_bigtest_cache3 &= ut.is_developer()
-    # use_bigtest_cache3 &= False
+    use_bigtest_cache3 &= False
     if use_bigtest_cache3:
         from os.path import dirname, join
         cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))

@@ -154,9 +154,9 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
                          '-t', ' '.join(t),
                         ]
         if qaid_override is not None:
-            command_parts.extend(['--qaid=', ','.join(map(str, qaid_override))])
+            command_parts.extend(['--qaid=' + ','.join(map(str, qaid_override))])
         if daid_override is not None:
-            command_parts.extend(['--daid-override=', ','.join(map(str, daid_override))])
+            command_parts.extend(['--daid-override=' + ','.join(map(str, daid_override))])
         if 'disttypes' in kwargs:
             command_parts.extend(['--disttypes=', ','.join(map(str, kwargs['disttypes']))])
 

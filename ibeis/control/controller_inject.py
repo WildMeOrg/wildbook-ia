@@ -55,8 +55,11 @@ try:
 except Exception as ex:
     HAS_FLASK_CAS = False
     login_required = ut.identity
-    ut.printex(ex, 'Missing flask.ext.cas', iswarning=True)
-    # sudo pip install git+https://github.com/cameronbwhite/Flask-CAS.git
+    msg = ('Missing flask.ext.cas.\n'
+           'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
+    ut.printex(ex, msg, iswarning=True)
+    # sudo
+    print('')
     if ut.SUPER_STRICT:
         raise
 # </flask>
