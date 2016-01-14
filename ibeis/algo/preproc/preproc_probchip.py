@@ -248,8 +248,6 @@ def get_annot_probchip_fpath_list(ibs, aid_list, config2_=None, species=None):
     cachedir = ibs.get_probchip_dir()
     ut.ensuredir(cachedir)
     probchip_fname_fmt = get_probchip_fname_fmt(ibs, config2_=config2_, species=species)
-    #probchip_fpath_list = preproc_chip.format_aid_bbox_theta_gid_fnames(
-    #    ibs, aid_list, probchip_fname_fmt, cachedir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
     probchip_fpath_list = [ut.unixjoin(cachedir, probchip_fname_fmt.format(avuuid=avuuid))
                            for avuuid in annot_visual_uuid_list]

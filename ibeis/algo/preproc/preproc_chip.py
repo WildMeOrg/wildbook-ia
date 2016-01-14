@@ -6,61 +6,19 @@ Extracts annotation chips from imaages and applies optional image
 normalizations.
 
 TODO:
-    * Have controller delete cached chip_fpath if there is a cache miss.
-    * T_ExternFileGetter
-DONE:
-    * Implemented funcs based on custom qparams in non None `qreq_` objects
+    * Dependency Cache from flukes
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter  # NOQA
-from os.path import exists, join, relpath
+from os.path import exists, relpath
 import utool as ut
 import vtool as vt
 import functools
 #from ibeis import depends_cache
+#from ibeis.control.controller_inject import register_preproc
 #from ibeis import constants as const
 #ut.noinject('[preproc_chip]')
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_chip]')
-
-
-#@depends_cache.register_preproc(
-#    const.CHIP_TABLE,
-#    parents=[const.ANNOTATION_TABLE],
-#    colnames=['img', 'width', 'height'],
-#    coltypes=[('extern', vt.imread), int, int],
-#    docstr='Used to store *processed* annots as chips',
-#    fname='chipcache2'
-#)
-#def generate_chip_properties2(depc, aid_list, config=None):
-#    r"""
-#    Example of using the dependency cache.
-
-#    Args:
-#        depc (ibeis.depends_cache.DependencyCache):
-#        aid_list (list):  list of annotation rowids
-#        config2_ (dict): (default = None)
-
-#    Yields:
-#        (uri, int, int): tup
-
-#    CommandLine:
-#        python -m ibeis.algo.preproc.preproc_chip --exec-generate_chip_properties2 --show
-
-#    Example:
-#        >>> # DISABLE_DOCTEST
-#        >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
-#        >>> import ibeis
-#        >>> ibs = ibeis.opendb('testdb1')
-#        >>> depc = ibs.depc
-#        >>> depc.print_all_tables()
-#        >>> aid_list = ibs.get_valid_aids()[0:2]
-#        >>> depc.get_property(const.CHIP_TABLE, aid_list)
-#        >>> depc.print_all_tables()
-#    """
-#    ibs = depc.controller
-#    for uri, w, h in generate_chip_properties(ibs, aid_list, config2_=config):
-#        uri1 = join(relpath(ibs.get_chipdir(), depc.cache_dpath), uri)
-#        yield uri1, w, h
 
 
 #@depends_cache.register_preproc(
@@ -386,6 +344,24 @@ def gen_chip2(tup):
     return chipBGR, cfpath, width, height
 
 
+def get_filter_list(chipcfg_dict):
+    from vtool import image_filters as gfilt_tool
+    filter_list = []
+    if chipcfg_dict.get('adapteq'):
+        filter_list.append(gfilt_tool.adapteq_fn)
+    if chipcfg_dict.get('histeq'):
+        filter_list.append(gfilt_tool.histeq_fn)
+    #if chipcfg_dict.get('maxcontrast'):
+        #filter_list.append(maxcontr_fn)
+    #if chipcfg_dict.get('rank_eq'):
+        #filter_list.append(rankeq_fn)
+    #if chipcfg_dict.get('local_eq'):
+        #filter_list.append(localeq_fn)
+    if chipcfg_dict.get('grabcut'):
+        filter_list.append(gfilt_tool.grabcut_fn)
+    return filter_list
+
+
 def compute_and_write_chips(ibs, aid_list, config2_=None):
     r"""
     Starts the compute chip process
@@ -597,13 +573,9 @@ def make_annot_chip_uri_list(ibs, aid_list, config2_=None):
     chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
     """
     cfname_fmt = get_chip_fname_fmt(ibs, config2_=config2_)
-    #chipdir = ibs.get_chipdir()
-    #cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
-    #cfpath_list = [ut.unixjoin(chipdir, cfname_fmt.format(avuuid=avuuid)) for
-    #avuuid in annot_visual_uuid_list]
-    cfpath_list = [cfname_fmt.format(avuuid=avuuid) for avuuid in annot_visual_uuid_list]
-    return cfpath_list
+    cfname_list = [cfname_fmt.format(avuuid=avuuid) for avuuid in annot_visual_uuid_list]
+    return cfname_list
 
 
 def get_chip_fname_fmt(ibs, config2_=None):
@@ -643,59 +615,6 @@ def get_chip_fname_fmt(ibs, config2_=None):
     #cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%s_gid=%d' , suffix])
     cfname_fmt = ''.join(['chip_avuuid={avuuid}' , suffix])
     return cfname_fmt
-
-
-def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
-    r"""
-    format_aid_bbox_theta_gid_fnames
-
-    Args:
-        ibs (IBEISController):
-        aid_list (list):
-        fname_fmt (str):
-        dpath (str):
-
-    Returns:
-        list: fpath_list
-
-    Example:
-        >>> from ibeis.algo.preproc.preproc_chip import *   # NOQA
-        >>> import ibeis
-        >>> from os.path import basename
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> fname_fmt = get_chip_fname_fmt(ibs)
-        >>> dpath = ibs.get_chipdir()
-        >>> fpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath)
-        >>> result = str(basename(fpath_list[0]))
-        >>> print(result)
-        chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
-    """
-    # TODO: can use visual_uuids instead
-    annot_bbox_list  = ibs.get_annot_bboxes(aid_list)
-    annot_theta_list = ibs.get_annot_thetas(aid_list)
-    annot_gid_list   = ibs.get_annot_gids(aid_list)
-    try:
-        annot_bboxstr_list = list([ut.bbox_str(bbox, pad=0, sep=',') for bbox in annot_bbox_list])
-        annot_thetastr_list = list([ut.theta_str(theta, taustr='tau')
-                                    for theta in annot_theta_list])
-    except Exception as ex:
-        ut.printex(ex, 'problem in chip_fname', keys=[
-            'aid_list',
-            'annot_bbox_list',
-            'annot_theta_list',
-            'annot_gid_list',
-            'annot_bboxstr_list',
-            'annot_thetastr_list',
-        ]
-        )
-        raise
-    tup_iter = zip(aid_list, annot_bboxstr_list, annot_thetastr_list, annot_gid_list)
-    fname_iter = (None if tup[0] is None else fname_fmt % tup
-                   for tup in tup_iter)
-    fpath_list = [None if fname is None else join(dpath, fname)
-                   for fname in fname_iter]
-    return fpath_list
 
 
 #-------------

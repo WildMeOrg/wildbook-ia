@@ -41,8 +41,6 @@ from ibeis.algo.hots import pipeline
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
-register_preproc, register_algo = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
-
 # Import modules which define injectable functions
 
 # tuples represent conditional imports with the flags in the first part of the
