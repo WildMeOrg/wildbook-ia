@@ -164,9 +164,11 @@ class AlgoRequest(object):
     @classmethod
     def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
         self = cls()
+        self._qaids = None
+        self._daids = None
         self.depc = depc
-        self.qaids = safeop(np.array, qaids)
-        self.daids = safeop(np.array, daids)
+        self.qaids = qaids
+        self.daids = daids
         if cfgdict is None:
             cfgdict = {}
         configclass = depc.configclass_dict[algoname]
@@ -179,12 +181,53 @@ class AlgoRequest(object):
         self.params = dict(config.parse_items())
         return self
 
-    def execute(self):
-        tablename = self.algoname
-        table = self.depc[tablename]
-        rowids = table.get_rowid(list(zip(self.qaids)), self)
-        result_list = table.get_row_data(rowids)
-        return ut.get_list_column(result_list, 0)
+    @property
+    def ibs(self):
+        if self.depc is None:
+            return None
+        return self.depc.controller
+
+    def get_external_data_config2(self):
+        # HACK
+        return None
+    #self.params
+
+    def get_external_query_config2(self):
+        # HACK
+        return None
+    #self.params
+
+    @property
+    def qaids(self):
+        return self._qaids
+
+    @qaids.setter
+    def qaids(self, qaids):
+        self._qaids = safeop(np.array, qaids)
+
+    @property
+    def daids(self):
+        return self._daids
+
+    @daids.setter
+    def daids(self, daids):
+        self._daids = safeop(np.array, daids)
+
+    def execute(req, qaids=None, use_cache=None):
+        if qaids is not None:
+            qaids = [qaids] if not ut.isiterable(qaids) else qaids
+            subreq = req.shallowcopy(qaids=qaids)
+            return subreq.execute(use_cache=True)
+        else:
+            tablename = req.algoname
+            table = req.depc[tablename]
+            if use_cache is None:
+                use_cache = not ut.get_argflag('--nocache')
+
+            rowids = table.get_rowid(list(zip(req.qaids)), req, recompute=not use_cache)
+
+            result_list = table.get_row_data(rowids)
+            return ut.get_list_column(result_list, 0)
 
     def get_query_hashid(self):
         return self._get_rootset_hashid(self.qaids, 'Q')
@@ -231,7 +274,7 @@ class AlgoRequest(object):
     def _custom_str(req):
         # typestr = ut.type_str(type(ibs)).split('.')[-1]
         typestr = req.__class__.__name__
-        dbname = None if req.depc.controller is None else req.depc.controller.get_dbname()
+        dbname = None if req.depc is None or req.depc.controller is None else req.depc.controller.get_dbname()
         # hashkw = dict(_new=True, pathsafe=False)
         # infostr_ = req.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
         infostr_ = 'nQ=%s, nD=%s %s' % (len(req.qaids), len(req.daids), req.get_pipe_hashid())
@@ -244,15 +287,15 @@ class AlgoRequest(object):
     def __str__(req):
         return req._custom_str()
 
-    def __getstate__(qreq_):
-        state_dict = qreq_.__dict__.copy()
+    def __getstate__(req):
+        state_dict = req.__dict__.copy()
         # SUPER HACK
-        state_dict['dbdir'] = qreq_.depc.controller.get_dbdir()
+        state_dict['dbdir'] = req.depc.controller.get_dbdir()
         del state_dict['depc']
         del state_dict['config']
         return state_dict
 
-    def __setstate__(qreq_, state_dict):
+    def __setstate__(req, state_dict):
         import ibeis
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
@@ -262,7 +305,23 @@ class AlgoRequest(object):
         config = configclass(**params)
         state_dict['depc'] = depc
         state_dict['config'] = config
-        qreq_.__dict__.update(state_dict)
+        req.__dict__.update(state_dict)
+
+    def shallowcopy(req, qmask=None, qaids=None):
+        """
+        Creates a copy of qreq with the same qparams object and a subset of the
+        qx and dx objects.  used to generate chunks of vsone and vsmany queries
+        """
+        #subreq = copy.copy(req)  # copy calls setstate and getstate
+        subreq = req.__class__()
+        subreq.__dict__.update(req.__dict__)
+        if qmask is not None:
+            assert qaids is None, 'cannot specify both'
+            qaid_list  = subreq.qaids
+            subreq.qaids = ut.compress(qaid_list, qmask)
+        elif qaids is not None:
+            subreq.qaids = qaids
+        return subreq
 
 
 class AlgoResult(object):

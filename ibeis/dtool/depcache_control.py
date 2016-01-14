@@ -184,7 +184,8 @@ class _CoreDependencyCache(object):
                             coltypes=[algo_result_class.load_from_fpath],
                             config_class=config_class,
                             preproc_func=algo_func,
-                            isalgo=True)
+                            isalgo=True,
+                            chunksize=chunksize)
 
     @profile
     def initialize(depc):

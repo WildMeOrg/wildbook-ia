@@ -43,6 +43,7 @@ class DependencyCacheTable(object):
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, isalgo=False):
 
+        table.db = None
         table.fpath_to_db = {}
 
         table.parent_tablenames = parent_tablenames
@@ -63,8 +64,7 @@ class DependencyCacheTable(object):
         table.docstr = docstr
         table.fname = fname
         table.depc = depc
-        table.db = None
-        table.chunksize = None
+        table.chunksize = chunksize
         table._asobject = asobject
         table._update_internals()
         table._assert_self()
@@ -312,6 +312,26 @@ class DependencyCacheTable(object):
         fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
         for parent_rowids, algo_result, extern_fpath in zip(dirty_parent_rowids, proptup_gen, fpath_list):
             try:
+                algo_result.save_to_fpath(extern_fpath)
+                yield parent_rowids + (config_rowid,) + (extern_fpath,)
+            except Exception as ex:
+                ut.printex(ex, 'cat2 error', keys=[
+                    'config_rowid', 'data_cols', 'parent_rowids'])
+                raise
+
+    def _yeild_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
+        # TODO: generalize to all external data that needs to be written
+        # explicitly
+        extern_fname_list = table._get_extern_fnames(dirty_parent_rowids, config_rowid)
+        extern_dpath = table._get_extern_dpath()
+        ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
+        fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
+        for parent_rowids, algo_result, extern_fpath in zip(dirty_parent_rowids, proptup_gen, fpath_list):
+            yield parent_rowids, config_rowid, algo_result, extern_fpath
+
+    def _save_algo_result(table, dirty_params_chunk):
+        for parent_rowids, config_rowid, algo_result, extern_fpath in dirty_params_chunk:
+            try:
                 algo_result.save_to_fpath(extern_fpath, True)
                 yield parent_rowids + (config_rowid,) + (extern_fpath,)
             except Exception as ex:
@@ -335,26 +355,27 @@ class DependencyCacheTable(object):
                       for rowids in parent_rowids]
         return fname_list
 
-    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, config,
+    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, isdirty_list, config,
                         verbose=True):
         """ Does work of adding dirty rowids """
         try:
-            args = zip(*dirty_parent_rowids)
-            if table._asobject:
-                # Convinience
-                args = [table.depc.get_obj(parent, rowids)
-                        for parent, rowids in zip(table.parents, args)]
-
             # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
             if table.isalgo:
                 # HACK: config here is a request
                 request = config
                 #subreq = request.shallow_copy # TODO
-                subreq = request
+                subreq = request.shallowcopy(qmask=isdirty_list)
                 proptup_gen = table.preproc_func(table.depc, subreq)
-                dirty_params_iter = table._concat_rowids_algo_result(
+                #dirty_params_iter = table._concat_rowids_algo_result(
+                #    dirty_parent_rowids, proptup_gen, config_rowid)
+                dirty_params_iter = table._yeild_algo_result(
                     dirty_parent_rowids, proptup_gen, config_rowid)
             else:
+                args = zip(*dirty_parent_rowids)
+                if table._asobject:
+                    # Convinience
+                    args = [table.depc.get_obj(parent, rowids)
+                            for parent, rowids in zip(table.parents, args)]
                 proptup_gen = table.preproc_func(table.depc, *args,
                                                  config=config)
                 if len(table._nested_idxs) > 0:
@@ -367,11 +388,22 @@ class DependencyCacheTable(object):
             chunksize = (len(dirty_parent_rowids)
                          if table.chunksize is None else table.chunksize)
 
+            from math import ceil
+            num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
             chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
-            for dirty_params_chunk in chunk_iter:
+            lbl = 'adding %s chunk' % (table.tablename)
+            prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
+            for dirty_params_chunk in prog_iter:
                 nInput = len(dirty_params_chunk)
-                table.db._add(table.tablename, table._table_colnames,
-                              dirty_params_chunk, nInput=nInput)
+                if table.isalgo:
+                    # HACKS, really this should be for anything that has a
+                    # extern write function
+                    sql_chunks = table._save_algo_result(dirty_params_chunk)
+                    table.db._add(table.tablename, table._table_colnames,
+                                  sql_chunks, nInput=nInput)
+                else:
+                    table.db._add(table.tablename, table._table_colnames,
+                                  dirty_params_chunk, nInput=nInput)
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table',
@@ -385,10 +417,12 @@ class DependencyCacheTable(object):
             ])
             raise
 
-    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True):
+    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True, _debug=None):
         """
         Lazy addition
         """
+        if _debug is None:
+            _debug = table.depc._debug
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
@@ -402,20 +436,23 @@ class DependencyCacheTable(object):
         dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
         num_dirty = len(dirty_parent_rowids)
         num_total = len(parent_rowids)
+
         if num_dirty > 0:
-            with ut.Indenter('[ADD]', enabled=table.depc._debug):
-                if verbose or table.depc._debug:
+            with ut.Indenter('[ADD]', enabled=_debug):
+                if verbose or _debug:
                     fmtstr = ('[deptbl.add] adding %d / %d new props to %r '
                               'for config_rowid=%r')
                     print(fmtstr % (num_dirty, num_total, table.tablename,
                                     config_rowid))
-                table._add_dirty_rows(dirty_parent_rowids, config_rowid, config)
+                print("ADD DIRTY")
+                table._add_dirty_rows(dirty_parent_rowids, config_rowid, isdirty_list, config)
                 # Get correct order, now that everything is clean in the database
+                print("GET ROWID")
                 rowid_list = table._get_rowid(parent_rowids,
                                                             config=config)
         else:
             rowid_list = initial_rowid_list
-        if table.depc._debug:
+        if _debug:
             print('[deptbl.add] rowid_list = %s' %
                   (ut.trunc_repr(rowid_list),))
         return rowid_list
@@ -487,7 +524,7 @@ class DependencyCacheTable(object):
         #from dtool.algo.preproc import preproc_feat
         if table.on_delete is not None:
             table.on_delete()
-        if not ut.NOT_QUIET:
+        if ut.NOT_QUIET:
             print('deleting %d rows from %s' % (len(rowid_list), table.tablename))
         # Finalize: Delete table
         table.db.delete_rowids(table.tablename, rowid_list)
