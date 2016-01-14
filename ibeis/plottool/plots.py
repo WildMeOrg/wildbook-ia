@@ -815,8 +815,17 @@ def plot_score_histograms(scores_list,
     bins = None
     bin_width = kwargs.get('bin_width', None)
     if bin_width is not None:
-        num_bins = kwargs.get('num_bins', 40)
-        bins = [bin_width * count for count in range(num_bins)]
+        total_min = np.floor(min([min(scores) for scores in scores_list]))
+        total_max = np.ceil(max([max(scores) for scores in scores_list]))
+        #ave_diff = np.mean(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
+        #std_diff = np.std(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
+        #(total_max - total_min) / bin_width
+        start = min(0, total_min)
+        num_bins = kwargs.get('num_bins', None)
+        if num_bins is None:
+            num_bins = int((total_max - start) // bin_width)
+        #end = total_max
+        bins = [start + (bin_width * count) for count in range(num_bins)]
 
     # Plot each datapoint on a line
     _n_max = 0
@@ -834,17 +843,25 @@ def plot_score_histograms(scores_list,
             bins = dmax - dmin
             bins = 50
         ax  = df2.gca()
-        _n, _bins, _patches = ax.hist(
-            data, bins=bins,
+
+        try:
+            _n, _bins, _patches = ax.hist(
+                data, bins=bins, label=str(label), color=color,
+                histtype='stepfilled', alpha=.7, stacked=True)
             #range=(dmin, dmax),
-            label=str(label), color=color,
-            histtype='stepfilled',
-            alpha=.7, stacked=True)
-        #for _p in _patches:
-        #    _p.set_edgecolor(None)
-        _n_min = min(_n_min, _n.min())
-        _n_max = max(_n_max, _n.max())
-        _bin_max = max(_bin_max, max(_bins))
+            #for _p in _patches:
+            #    _p.set_edgecolor(None)
+            _n_min = min(_n_min, _n.min())
+            _n_max = max(_n_max, _n.max())
+            _bin_max = max(_bin_max, max(_bins))
+        except Exception as ex:
+            ut.printex(ex, 'probably gave negative scores', keys=['bins', 'data', 'total_min'])
+            import utool
+            utool.embed()
+            raise
+
+            if ut.SUPER_STRICT:
+                raise
 
     if overlay_score_domain is not None:
         p_max = max([prob.max() for prob in overlay_prob_given_list])
@@ -1677,7 +1694,13 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
     width = .95
     ymax = freq.max() if len(freq) > 0 else 0
     print('ymax = %r' % (ymax,))
-    color = plt.cm.get_cmap('inferno')((freq / freq.max()) * .6 + .3)
+
+    if len(freq) == 0:
+        freq_max = 1
+    else:
+        freq_max = freq.max()
+
+    color = plt.cm.get_cmap('inferno')((freq / freq_max) * .6 + .3)
     pt.multi_plot(xints, [freq], xpad=0, ypad_high=.5,
                   #kind='plot',
                   kind='bar',
@@ -1855,7 +1878,7 @@ def wordcloud(text, fnum=None, pnum=None):
         wordcloud = _wc.generate(text)
         pt.plt.imshow(wordcloud)
     else:
-        pt.imshow_null()
+        pt.imshow_null('NO WORDCLOUD DATA')
     pt.plt.axis('off')
 
 

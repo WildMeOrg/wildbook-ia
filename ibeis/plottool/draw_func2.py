@@ -334,6 +334,7 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         zoom = 1.0
     else:
         zoom = .5
+
     imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
     #imagebox = OffsetImage2(icon, zoom=.3)
     if coord_type == 'axes':
@@ -3202,9 +3203,12 @@ def remove_patches(ax=None):
         del patch
 
 
-def imshow_null(**kwargs):
+def imshow_null(msg=None, **kwargs):
     imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
-    draw_boxedX()
+    if msg is None:
+        draw_boxedX()
+    else:
+        ax_relative_text(.5, .5, msg, color='r', horizontalalignment='center')
 
 
 def axes_bottom_button_bar(ax, text_list=[]):
