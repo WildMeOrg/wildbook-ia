@@ -152,6 +152,7 @@ timedelta_distribution = ('# Result Timedelta Distribution', ut.codeblock(
         qaid_override=qaid_override, daid_override=daid_override,
         truepos=True)
     test_result.draw_func()
+    fix_figsize()
     # ENDBLOCK
     ''')
 )
@@ -239,6 +240,7 @@ per_annotation_accuracy = ('# Query Accuracy (% correct annotations)', ut.codebl
         db=db, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
     #testres.print_unique_annot_config_stats()
     _ = testres.draw_func()
+    fix_figsize()
     # ENDBLOCK
     '''
 ))
@@ -251,6 +253,7 @@ per_name_accuracy = ('# Query Accuracy (% correct names)', ut.codeblock(
         db=db, a=a, t=t, do_per_annot=False, qaid_override=qaid_override, daid_override=daid_override)
     #testres.print_unique_annot_config_stats()
     _ = testres.draw_func()
+    fix_figsize()
     # ENDBLOCK
     '''
 ))
@@ -292,6 +295,7 @@ success_annot_scoresep = ('# Scores of Success Cases', ut.codeblock(
         f=[':fail=False,min_gf_timedelta=None'],
     )
     _ = testres.draw_func()
+    fix_figsize()
     # ENDBLOCK
     '''))
 
@@ -305,7 +309,9 @@ all_annot_scoresep = ('# All Score Distribution', ut.codeblock(
         f=[':fail=None,min_gf_timedelta=None']
     )
     _ = testres.draw_func()
+    fix_figsize()
     test_result.draw_taghist()()
+    fix_figsize()
     # ENDBLOCK
     '''))
 
@@ -333,7 +339,7 @@ easy_success_cases = ('# Cases: Top Success Cases', ut.codeblock(
         f=[':fail=False,index=0:3,sortdsc=gtscore,max_pername=1'],
         # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
         # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
-        figsize=(15, 8),
+        figsize=(30, 8),
         **draw_case_kw)
 
     _ = testres.draw_func()
@@ -349,7 +355,7 @@ hard_success_cases = ('# Cases: Challenging Success Cases', ut.codeblock(
         f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1'],
         # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
         # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
-        figsize=(15, 8),
+        figsize=(30, 8),
         **draw_case_kw)
 
     _ = testres.draw_func()
@@ -369,6 +375,7 @@ failure_type2_cases =  ('# Cases: Failure (false neg)', ut.codeblock(
         e='draw_cases',
         db=db, a=a[0:1], t=t[0:1],
         f=[':fail=True,index=0:3,sortdsc=gtscore,max_pername=1'],
+        figsize=(30, 8),
         **draw_case_kw)
     _ = testres.draw_func()
     # ENDBLOCK
@@ -381,6 +388,7 @@ failure_type1_cases = ('# Cases: Failure (false pos)', ut.codeblock(
     e='draw_cases',
     db=db, a=a[0:1], t=t[0:1],
     f=[':fail=True,index=0:3,sortdsc=gfscore,max_pername=1'],
+    figsize=(30, 8),
     **draw_case_kw)
     _ = testres.draw_func()
     # ENDBLOCK
@@ -397,6 +405,7 @@ investigate_specific_case = ('# Cases: Custom Investigation', ut.codeblock(
         #t=t,
         t=[t[0], t[0] + 'SV=False'],
         qaid_override=[2604],  # CHOOSE A SPECIFIC ANNOTATION
+        figsize=(30, 8),
         **draw_case_kw)
     _ = test_result.draw_func()
     # ENDBLOCK

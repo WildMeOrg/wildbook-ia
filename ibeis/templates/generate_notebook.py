@@ -23,6 +23,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         killall python
 
         python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW -a default:has_any=hasnotch
+        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW -a default:has_any=hasnotch,mingt=2
 
     Example:
         >>> # SCRIPT
@@ -71,7 +72,9 @@ def get_default_cell_template_list(ibs):
         cells.timedelta_distribution,
         cells.config_overlap,
         #cells.dbsize_expt,
-        cells.feat_score_sep,
+
+        None if ibs.get_dbname() == 'humpbacks' else cells.feat_score_sep,
+
         cells.all_annot_scoresep,
         cells.success_annot_scoresep,
         cells.easy_success_cases,

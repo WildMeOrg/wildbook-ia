@@ -439,7 +439,10 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         best_aid_list = flat_grouped_aids[annot_idx_list]
         best_idx_list = ut.dict_take(daid2_idx, best_aid_list)
         # give the annotation domain a name score
-        score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
+        #score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
+        score_list = np.full(len(annot_score_list), np.full(10, -np.inf), dtype=name_score_list.dtype)
+        # HACK: we need to set these to 'low' values and we also have to respect negatives
+        #score_list[:] = -np.inf
         # make sure that the nid_list from group_indicies and the nids belonging to
         # name_score_list (cm.unique_nids) are in alignment
         #nidx_list = np.array(ut.dict_take(nid2_nidx, nid_list))

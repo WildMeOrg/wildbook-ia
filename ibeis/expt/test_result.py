@@ -1087,6 +1087,7 @@ class TestResult(object):
         from ibeis.expt import cfghelpers
         if verbose is None:
             verbose = ut.NOT_QUIET
+            print('[testres] case_sample2')
 
         if isinstance(filt_cfg, six.string_types):
             filt_cfg = [filt_cfg]

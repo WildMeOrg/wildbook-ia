@@ -346,6 +346,10 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     CommandLine:
         python -m ibeis --tf -draw_match_cases
 
+        ibeis -e draw_cases --db humpbacks -a default:has_any=hasnotch,mingt=2,qindex=0:30 -t default:pipeline_root=BC_DTW -f :fail=False,index=0:3,sortdsc=gtscore,max_pername=1 --show
+        ibeis -e draw_cases --db humpbacks -a default -t default:pipeline_root=BC_DTW -f :fail=False,index=0:3,sortdsc=gtscore,max_pername=1 --show  --qaid-override=167,166,4616,4617  --daid-override=167,166,4616,4617 --nocache
+
+
         python -m ibeis.dev -e draw_match_cases --figdir=individual_results
         python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
         python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
@@ -514,7 +518,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
         # TODO: use chip_match
-        cm_list = [qreq_.load_cached_chipmatch(qaids[qx]) for qreq_ in qreq_list]
+        cm_list = [qreq_.execute(qaids=qaids[qx])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
 
         if show_in_notebook:
@@ -564,6 +568,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                             if figsize is not None:
                                 fig = pt.gcf()
                                 fig.set_size_inches(*figsize)
+                                fig.set_dpi(256)
 
                     cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
                     if cmdaug is not None:
