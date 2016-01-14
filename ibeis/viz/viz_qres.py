@@ -4,7 +4,7 @@ import plottool as pt
 import utool as ut  # NOQA
 import numpy as np
 from ibeis import ibsfuncs
-from ibeis.algo.hots import chip_match
+#from ibeis.algo.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches  # NOQA
@@ -21,11 +21,11 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
     Wrapper around show_qres.
     """
     N = kwargs.get('N', DEFAULT_NTOP)
-    name_scoring = kwargs.get('name_scoring', False)
-    if isinstance(cm, chip_match.ChipMatch):
-        top_aids = cm.get_top_aids(N)
-    else:
-        top_aids = cm.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)
+    #name_scoring = kwargs.get('name_scoring', False)
+    #if isinstance(cm, chip_match.ChipMatch):
+    top_aids = cm.get_top_aids(N)
+    #else:
+    #    top_aids = cm.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)
     aidstr = ibsfuncs.aidstr(cm.qaid)
     figtitle = kwargs.get('figtitle', '')
     if len(figtitle) > 0:
@@ -118,13 +118,12 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     showgt_aids = []
     if show_gt:
         # Get the missed groundtruth annotations
-        # cm.daids comes from qreq_.get_external_daids()
-        if isinstance(cm, chip_match.ChipMatch):
-            assert qreq_ is not None
-            matchable_aids = qreq_.get_external_daids()
-            #matchable_aids = cm.daid_list
-        else:
-            matchable_aids = cm.daids
+        #if isinstance(cm, chip_match.ChipMatch):
+        assert qreq_ is not None
+        matchable_aids = qreq_.daids
+        #matchable_aids = cm.daid_list
+        #else:
+        #    matchable_aids = cm.daids
         #matchable_aids = ibs.get_recognition_database_aids()
         #matchable_aids = list(cm.aid2_fm.keys())
         _gtaids = ibs.get_annot_groundtruth(cm.qaid, daid_list=matchable_aids)
@@ -264,7 +263,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     show_query     = kwargs.get('show_query', False)
     in_image       = kwargs.get('in_image', False)
     sidebyside     = kwargs.get('sidebyside', True)
-    name_scoring   = kwargs.get('name_scoring', False)
+    #name_scoring   = kwargs.get('name_scoring', False)
     viz_name_score = kwargs.get('viz_name_score', qreq_ is not None)
     max_nCols      = kwargs.get('max_nCols', None)
 
@@ -286,10 +285,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     fig = pt.figure(fnum=fnum, docla=True, doclf=True)
 
     if isinstance(top_aids, int):
-        if isinstance(cm, chip_match.ChipMatch):
-            top_aids = cm.get_top_aids(top_aids)
-        else:
-            top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
+        #if isinstance(cm, chip_match.ChipMatch):
+        top_aids = cm.get_top_aids(top_aids)
+        #else:
+        #    top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
 
     nTop   = len(top_aids)
 
@@ -311,6 +310,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         print(cm.get_inspect_str())
 
     ranked_aids = cm.get_top_aids()
+
     #--------------------------------------------------
     # Get grid / cell information to build subplot grid
     #--------------------------------------------------
@@ -361,7 +361,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     _color_list = pt.distinct_colors(nTop)
     aid2_color = {aid: _color_list[ox] for ox, aid in enumerate(top_aids)}
 
-    assert isinstance(cm, chip_match.ChipMatch), 'qres is no longer supported'
+    #assert isinstance(cm, chip_match.ChipMatch), 'qres is no longer supported'
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
@@ -405,11 +405,11 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             if sidebyside:
                 # Draw each match side by side the query
                 if viz_name_score:
-                    if isinstance(cm, chip_match.ChipMatch):
-                        cm_ = cm
-                    else:
-                        cm_ = chip_match.ChipMatch.from_qres(cm)
-                        cm_.score_nsum(qreq_)
+                    #if isinstance(cm, chip_match.ChipMatch):
+                    cm_ = cm
+                    #else:
+                    #    cm_ = chip_match.ChipMatch.from_qres(cm)
+                    #    cm_.score_nsum(qreq_)
                     cm_.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
                 else:
                     _kwshow['draw_border'] = False

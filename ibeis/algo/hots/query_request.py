@@ -450,6 +450,7 @@ class QueryRequest(object):
             qreq2_.set_external_qaids(qaid_list)  # , quuid_list)
         elif qaids is not None:
             assert qx is None, 'cannot specify both qx and qaids'
+            qaids = [qaids] if not ut.isiterable(qaids) else qaids
             _intersect = np.intersect1d(qaids, qreq2_.get_external_qaids())
             assert len(_intersect) == len(qaids), 'not a subset'
             qreq2_.set_external_qaids(qaids)  # , quuid_list)
@@ -459,6 +460,7 @@ class QueryRequest(object):
             #duuid_list = qreq2_.get_external_duuids()
             #duuid_list = duuid_list[dx:dx + 1]
             qreq2_.set_external_daids(daid_list)
+
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
         #qreq2_.metadata = {}
@@ -1211,14 +1213,19 @@ class QueryRequest(object):
         shallow_qreq_.set_external_qaids(qaid_list)
         cm_list = shallow_qreq_.ibs.query_chips(
             qaid_list, qreq_.get_external_daids(), use_cache=True,
-            use_bigcache=False, qreq_=shallow_qreq_, return_cm=True)
+            use_bigcache=False, qreq_=shallow_qreq_)
         if is_scalar:
             return cm_list[0]
         else:
             return cm_list
 
-    def execute(qreq_):
-        cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    def execute(qreq_, qaid=None):
+        if qaid is not None:
+            shallow_qreq_ = qreq_.shallowcopy(qaids=qaid)
+            cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,
+                                            use_bigcache=False)
+        else:
+            cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
         return cm_list
 
 

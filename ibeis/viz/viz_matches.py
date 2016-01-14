@@ -332,7 +332,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
                 pt.absolute_lbl(x + w, y, lbl)
     # No matches draw a red box
     if True:
-        no_matches = all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
+        no_matches = name_fm_list is None or all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
         if no_matches:
             xy, w, h = pt.get_axis_xy_width_height(ax)
             #axes_bbox = (xy[0], xy[1], w, h)

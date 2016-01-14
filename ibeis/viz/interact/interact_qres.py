@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-from ibeis.algo.hots import chip_match
+#from ibeis.algo.hots import chip_match
 import plottool as pt
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih  # NOQA
@@ -81,10 +81,10 @@ class InteractQres(BASE_CLASS):
             print('clicked none')
         self.kwargs['annot_mode'] = self.kwargs.get('annot_mode', 0) + toggle
         self.kwargs['fnum'] = self.fnum
-        if isinstance(self.cm, chip_match.ChipMatch):
-            fig = self.cm.show_analysis(self.qreq_, **self.kwargs)
-        else:
-            fig = self.cm.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)
+        #if isinstance(self.cm, chip_match.ChipMatch):
+        fig = self.cm.show_analysis(self.qreq_, **self.kwargs)
+        #else:
+        #    fig = self.cm.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)
         self.draw()
         return fig
 
@@ -100,10 +100,10 @@ class InteractQres(BASE_CLASS):
         if self.verbose:
             print('clicked aid2=%r' % aid2)
         fnum_ = pt.next_fnum()
-        if isinstance(self.cm, chip_match.ChipMatch):
-            self.cm.ishow_match(self.qreq_, aid2, fnum=fnum_)
-        else:
-            self.cm.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
+        #if isinstance(self.cm, chip_match.ChipMatch):
+        self.cm.ishow_match(self.qreq_, aid2, fnum=fnum_)
+        #else:
+        #    self.cm.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
         self.draw()
         #self.bring_to_front()
         #fig = pt.gcf()

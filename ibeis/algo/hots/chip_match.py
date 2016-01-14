@@ -117,7 +117,7 @@ class _ChipMatchVisualization(object):
             #cm.print_inspect_str(qreq_)
             #cm_orig = cm  # NOQA
             #cm_orig.assert_self(qreq_)
-            #other_aids = qreq_.get_external_daids()
+            #other_aids = qreq_.daids
             # Hack to get rid of key error
             cm.assert_self(verbose=False)
             cm2 = cm.extend_results(qreq_)
@@ -134,7 +134,7 @@ class _ChipMatchVisualization(object):
         # </GET NAME GROUPXS>
         # sort annots in this name by the chip score
         # HACK USE cm.annot_score_list
-        group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
+        group_sortx = cm.annot_score_list.take(groupxs).argsort()[::-1]
         sorted_groupxs = groupxs.take(group_sortx)
         # get the info for this name
         name_fm_list  = ut.take(cm.fm_list, sorted_groupxs)
@@ -161,7 +161,7 @@ class _ChipMatchVisualization(object):
         # Get the scores for names and chips
         name_score = cm.name_score_list[nidx]
         name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
-        name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
+        name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
         _ = viz_matches.show_name_matches(
             qreq_.ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
@@ -610,6 +610,8 @@ class _ChipMatchScorers(object):
 
 
 class MatchBaseIO(object):
+    """
+    """
 
     @classmethod
     def load_from_fpath(cls, fpath, verbose=ut.VERBOSE):
@@ -958,6 +960,82 @@ class AnnotMatch(MatchBaseIO):
             cm.annot_score_list, cm.daid_list, cm.daid2_idx, cm.name_groupxs,
             cm.name_score_list)
 
+    def show_analysis(cm, qreq_, **kwargs):
+        # HACK FOR ANNOT MATCH
+        from ibeis.viz import viz_qres
+        kwshow = {
+            'show_query': False,
+            'show_timedelta': True,
+        }
+        kwshow.update(kwargs)
+        return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
+
+    def ishow_analysis(cm, qreq_, **kwargs):
+        # HACK FOR ANNOT MATCH
+        from ibeis.viz.interact import interact_qres
+        kwshow = {
+            'show_query': False,
+            'show_timedelta': True,
+        }
+        kwshow.update(kwargs)
+        return interact_qres.ishow_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
+
+    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None,
+                              homog=ut.get_argflag('--homog'), **kwargs):
+        """
+        HACK FOR ANNOT MATCH
+        """
+        from ibeis.viz import viz_matches
+        qaid = cm.qaid
+        if cm.nid2_nidx is None:
+            raise AssertionError('cm.nid2_nidx has not been evaluated yet')
+            #cm.score_nsum(qreq_)
+        # <GET NAME GROUPXS>
+        try:
+            nidx = cm.nid2_nidx[dnid]
+        except KeyError:
+            #cm.print_inspect_str(qreq_)
+            cm_orig = cm  # NOQA
+            cm_orig.assert_self(qreq_)
+            # Hack to get rid of key error
+            cm.assert_self(verbose=False)
+            cm2 = cm.extend_results(qreq_)
+            cm2.assert_self(verbose=False)
+            cm = cm2
+            nidx = cm.nid2_nidx[dnid]
+            #raise
+        # </GET NAME GROUPXS>
+        groupxs = cm.name_groupxs[nidx]
+        daids = vt.take2(cm.daid_list, groupxs)
+        dnids = vt.take2(cm.dnid_list, groupxs)
+        assert np.all(dnid == dnids), (
+            'inconsistent naming, dnid=%r, dnids=%r' % (dnid, dnids,))
+        groupxs = groupxs.compress(daids != cm.qaid)
+        # </GET NAME GROUPXS>
+        # sort annots in this name by the chip score
+        # HACK USE cm.annot_score_list
+        #group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
+        group_sortx = cm.annot_score_list.take(groupxs).argsort()[::-1]
+        sorted_groupxs = groupxs.take(group_sortx)
+        # get the info for this name
+        name_daid_list = ut.take(cm.daid_list, sorted_groupxs)
+        # find features marked as invalid by name scoring
+        # Get the scores for names and chips
+        name_score = cm.name_score_list[nidx]
+        name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
+        #name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
+        name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
+
+        kwargs = kwargs.copy()
+        kwargs['draw_fmatches'] = False
+        kwargs['show_matches'] = False
+
+        _ = viz_matches.show_name_matches(
+            qreq_.ibs, qaid, name_daid_list, None, None, None, None, name_score=name_score, name_rank=name_rank,
+            name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
+            pnum=pnum, **kwargs)
+        return _
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch(AnnotMatch,
@@ -1119,7 +1197,7 @@ class ChipMatch(AnnotMatch,
             >>> out.assert_self(qreq_)
         """
         if other_aids is None:
-            other_aids = qreq_.get_external_daids()
+            other_aids = qreq_.daids
         ibs = qreq_.ibs
         other_aids_ = other_aids
         other_aids_ = np.setdiff1d(other_aids_, cm.daid_list)
@@ -1339,6 +1417,7 @@ class ChipMatch(AnnotMatch,
 
     def sortself(cm):
         """ reorders the internal data using cm.score_list """
+        print('Warning using sortself')
         sortx = cm.argsort()
         cm.daid_list = vt.trytake(cm.daid_list, sortx)
         cm.dnid_list = vt.trytake(cm.dnid_list, sortx)
@@ -1347,7 +1426,8 @@ class ChipMatch(AnnotMatch,
         cm.fs_list = vt.trytake(cm.fs_list, sortx)
         cm.fk_list = vt.trytake(cm.fk_list, sortx)
         cm.score_list = vt.trytake(cm.score_list, sortx)
-        cm.csum_score_list = vt.trytake(cm.csum_score_list, sortx)
+        # FIXME: Not all properties covered
+        cm.algo_annot_scores['csum'] = vt.trytake(cm.algo_annot_scores['csum'], sortx)
         cm.H_list = vt.trytake(cm.H_list, sortx)
         cm._update_daid_index()
 
@@ -2103,8 +2183,8 @@ class ChipMatch(AnnotMatch,
         # testlog.log_passed('filtkey and fsv shapes are ok')
 
         if strict or qreq_ is not None:
-            external_qaids = qreq_.get_external_qaids().tolist()
-            external_daids = qreq_.get_external_daids().tolist()
+            external_qaids = qreq_.qaids.tolist()
+            external_daids = qreq_.daids.tolist()
             if qreq_.qparams.pipeline_root == 'vsone':
                 assert len(external_qaids) == 1, 'only one external qaid for vsone'
                 if strict or qreq_.indexer is not None:
