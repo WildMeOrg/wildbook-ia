@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import numpy as np
 import copy
 import six
 from os.path import splitext
@@ -160,8 +161,8 @@ class AlgoRequest(object):
     def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
         self = cls()
         self.depc = depc
-        self.qaids = qaids
-        self.daids = daids
+        self.qaids = safeop(np.array, qaids)
+        self.daids = safeop(np.array, daids)
         if cfgdict is None:
             cfgdict = {}
         configclass = depc.configclass_dict[algoname]
@@ -188,7 +189,7 @@ class AlgoRequest(object):
         return self._get_rootset_hashid(self.daids, 'D')
 
     def _get_rootset_hashid(self, root_rowids, preffix):
-        uuid_type = 'S'
+        uuid_type = 'V'
         label = ''.join((preffix, uuid_type, 'UUIDS'))
         uuid_list = self.depc.get_root_uuid(root_rowids)
         #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
@@ -201,27 +202,63 @@ class AlgoRequest(object):
     def get_pipe_hashid(self):
         return ut.hashstr27(self.get_pipe_cfgstr())
 
-    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
+    def get_cfgstr(req, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
         r"""
         main cfgstring used to identify the 'querytype'
         """
         cfgstr_list = []
         if with_query:
-            cfgstr_list.append(qreq_.get_query_hashid())
+            cfgstr_list.append(req.get_query_hashid())
         if with_data:
-            cfgstr_list.append(qreq_.get_data_hashid())
+            cfgstr_list.append(req.get_data_hashid())
         if with_pipe:
             if hash_pipe:
-                cfgstr_list.append(qreq_.get_pipe_hashstr())
+                cfgstr_list.append(req.get_pipe_hashid())
             else:
-                cfgstr_list.append(qreq_.get_pipe_cfgstr())
+                cfgstr_list.append(req.get_pipe_cfgstr())
         cfgstr = '_'.join(cfgstr_list)
         return cfgstr
 
-    def get_full_cfgstr(qreq_):
+    def get_full_cfgstr(req):
         """ main cfgstring used to identify the algo hash id """
-        full_cfgstr = qreq_.get_cfgstr(with_query=True)
+        full_cfgstr = req.get_cfgstr(with_query=True)
         return full_cfgstr
+
+    def _custom_str(req):
+        # typestr = ut.type_str(type(ibs)).split('.')[-1]
+        typestr = req.__class__.__name__
+        dbname = None if req.depc.controller is None else req.depc.controller.get_dbname()
+        # hashkw = dict(_new=True, pathsafe=False)
+        # infostr_ = req.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
+        infostr_ = 'nQ=%s, nD=%s %s' % (len(req.qaids), len(req.daids), req.get_pipe_hashid())
+        custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(req)))
+        return custom_str
+
+    def __repr__(req):
+        return req._custom_str()
+
+    def __str__(req):
+        return req._custom_str()
+
+    def __getstate__(qreq_):
+        state_dict = qreq_.__dict__.copy()
+        # SUPER HACK
+        state_dict['dbdir'] = qreq_.depc.controller.get_dbdir()
+        del state_dict['depc']
+        del state_dict['config']
+        return state_dict
+
+    def __setstate__(qreq_, state_dict):
+        import ibeis
+        dbdir = state_dict['dbdir']
+        del state_dict['dbdir']
+        params = state_dict['params']
+        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
+        configclass = depc.configclass_dict[state_dict['algoname'] ]
+        config = configclass(**params)
+        state_dict['depc'] = depc
+        state_dict['config'] = config
+        qreq_.__dict__.update(state_dict)
 
 
 class AlgoResult(object):
@@ -252,15 +289,19 @@ class AlgoResult(object):
         return out
 
 
+def safeop(op_, xs, *args, **kwargs):
+    return None if xs is None else op_(xs, *args, **kwargs)
+
+
 class MatchResult(AlgoResult):
     def __init__(self, qaid=None, daids=None, qnid=None, dnid_list=None,
                  annot_score_list=None, unique_nids=None,
                  name_score_list=None):
         self.qaid = qaid
-        self.daid_list = daids
-        self.dnid_list = dnid_list
-        self.annot_score_list = annot_score_list
-        self.name_score_list = name_score_list
+        self.daid_list = safeop(np.array, daids)
+        self.dnid_list = safeop(np.array, dnid_list)
+        self.annot_score_list = safeop(np.array, annot_score_list)
+        self.name_score_list = safeop(np.array, name_score_list)
 
     @property
     def num_daids(cm):
