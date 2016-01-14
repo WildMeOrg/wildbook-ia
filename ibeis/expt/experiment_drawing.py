@@ -199,7 +199,7 @@ def draw_score_sep(ibs, testres, f=None):
         with_roc=True,
         attr_callback=attr_callback,
         #bin_width=.125,
-        bin_width=.05,
+        #bin_width=.05,
     )
 
     icon = ibs.get_database_icon()

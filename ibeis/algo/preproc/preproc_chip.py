@@ -448,7 +448,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     # source information (image, annotation_bbox, theta)
     # Get how big to resize each chip, etc...
     nChips = len(aid_list)
-    filter_list = vt.get_filter_list(chip_cfg_dict)
+    filter_list = get_filter_list(chip_cfg_dict)
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)

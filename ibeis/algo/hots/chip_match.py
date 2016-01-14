@@ -612,13 +612,13 @@ class _ChipMatchScorers(object):
 class MatchBaseIO(object):
 
     @classmethod
-    def load_from_fpath(cls, fpath, verbose=None):
+    def load_from_fpath(cls, fpath, verbose=ut.VERBOSE):
         state_dict = ut.load_cPkl(fpath, verbose=verbose)
         self = cls()
         self.__setstate__(state_dict)
         return self
 
-    def save_to_fpath(cm, fpath, verbose=None):
+    def save_to_fpath(cm, fpath, verbose=ut.VERBOSE):
         """
         CommandLine:
             python ibeis --tf MatchBaseIO.save_to_fpath --verbtest --show

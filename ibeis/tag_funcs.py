@@ -808,12 +808,16 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
     """
     Generally appends tags to annotations. Careful not to introduce too many
     random tags. Maybe we should just let that happen and introduce tag-aliases
+
+    Note: this is more of a set add rather than a list append
+
+    TODO: remove
     """
     tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
     text_list = ibs.get_annot_tag_text(aid_list)
     orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
     new_tags_list = [t1 + t2 for t1, t2 in zip(tags_list, orig_tags_list)]
-    new_text_list = [';'.join(tags) for tags in new_tags_list]
+    new_text_list = [';'.join(sorted(list(set(tags)))) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
 
 
