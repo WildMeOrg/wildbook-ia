@@ -269,13 +269,13 @@ class AlgoResult(object):
     """ Base class for algo result objects """
 
     @classmethod
-    def load_from_fpath(cls, fpath, verbose=None):
+    def load_from_fpath(cls, fpath, verbose=ut.VERBOSE):
         state_dict = ut.load_cPkl(fpath, verbose=verbose)
         self = cls()
         self.__setstate__(state_dict)
         return self
 
-    def save_to_fpath(cm, fpath, verbose=None):
+    def save_to_fpath(cm, fpath, verbose=ut.VERBOSE):
         ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose, n=2)
 
     def __getstate__(self):
