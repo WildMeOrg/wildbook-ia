@@ -3541,6 +3541,13 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
         pt.plt.axis('equal')
         pt.plt.axis('off')
 
+
+def set_figsize(w, h, dpi):
+    fig = plt.gcf()
+    fig.set_size_inches(w, h)
+    fig.set_dpi(dpi)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
