@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 import warnings  # NOQA # TODO enable these warnings in strict mode
 from collections import OrderedDict
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[dist]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[dist]', DEBUG=False)
 #profile = utool.profile
 
-TEMP_VEC_DTYPE = np.float32
+#TEMP_VEC_DTYPE = np.float32
+TEMP_VEC_DTYPE = np.float64
 
 #DEBUG_DIST = __debug__
 DEBUG_DIST = False
@@ -27,24 +27,24 @@ def testdata_hist():
 def signed_ori_distance(ori1, ori2):
     r"""
     Args:
-        ori1 (?):
-        ori2 (?):
+        ori1 (ndarray):
+        ori2 (ndarray):
 
     Returns:
-        ?: ori_dist
+        ndarray: ori_dist
 
     CommandLine:
         python -m vtool.distance --exec-signed_ori_distance
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.distance import *  # NOQA
         >>> ori1 = np.array([0,  0, 3, 4, 0, 0])
         >>> ori2 = np.array([3,  4, 0, 0, np.pi, np.pi - .1])
         >>> ori_dist = signed_ori_distance(ori1, ori2)
-        >>> result = ('ori_dist = %s' % (ut.numpy_str(ori_dist, precision=3),))
+        >>> result = ('ori_dist = %s' % (ut.repr2(ori_dist, precision=3),))
         >>> print(result)
-        ori_dist = np.array([ 3.   , -2.283, -3.   ,  2.283, -3.142,  3.042], dtype=np.float64)
+        ori_dist = np.array([ 3.   , -2.283, -3.   ,  2.283, -3.142,  3.042])
     """
     ori_dist = ori2 - ori1
     ori_dist = (ori_dist + np.pi) % TAU - np.pi
@@ -59,18 +59,11 @@ def ori_distance(ori1, ori2, out=None):
     References:
         http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
 
-    Cyth:
-        #if CYTH
-        #CYTH_INLINE
-        #CYTH_PARAM_TYPES:
-            np.ndarray ori1
-            np.ndarray ori2
-        #endif
-
     Timeit:
         >>> import utool as ut
         >>> setup = ut.codeblock(
-        ...     '''
+        >>>     r'''
+                # STARTBLOCK
                 import numpy as np
                 TAU = np.pi * 2
                 rng = np.random.RandomState(53)
@@ -87,13 +80,14 @@ def ori_distance(ori1, ori2, out=None):
                     ori_dist = np.abs(ori1 - ori2) % TAU
                     ori_dist = np.minimum(ori_dist, TAU - ori_dist)
                     return ori_dist
+                # ENDBLOCK
                 ''')
         >>> stmt_list = ut.codeblock(
-        ...     '''
+        >>>    '''
                 func_outvars()
                 func_orig()
                 '''
-        ... ).split('\n')
+        >>> ).split('\n')
         >>> ut.util_dev.rrr()
         >>> ut.util_dev.timeit_compare(stmt_list, setup, int(1E3))
 
@@ -107,13 +101,13 @@ def ori_distance(ori1, ori2, out=None):
         >>> ori1 = (rng.rand(10) * TAU) - np.pi
         >>> ori2 = (rng.rand(10) * TAU) - np.pi
         >>> dist_ = ori_distance(ori1, ori2)
-        >>> result = ut.numpy_str(ori1, precision=1)
-        >>> result += '\n' + ut.numpy_str(ori2, precision=1)
-        >>> result += '\n' + ut.numpy_str(dist_, precision=1)
+        >>> result = ut.repr2(ori1, precision=1)
+        >>> result += '\n' + ut.repr2(ori2, precision=1)
+        >>> result += '\n' + ut.repr2(dist_, precision=1)
         >>> print(result)
-        np.array([ 0.3,  1.4,  0.6,  0.3, -0.5,  0.9, -0.4,  2.5,  2.9, -0.7], dtype=np.float64)
-        np.array([ 1.8,  0.2,  0.4,  2.7, -2.7, -2.6, -3. ,  2.1,  1.7,  2.3], dtype=np.float64)
-        np.array([ 1.5,  1.2,  0.2,  2.4,  2.2,  2.8,  2.6,  0.4,  1.2,  3.1], dtype=np.float64)
+        np.array([ 0.3,  1.4,  0.6,  0.3, -0.5,  0.9, -0.4,  2.5,  2.9, -0.7])
+        np.array([ 1.8,  0.2,  0.4,  2.7, -2.7, -2.6, -3. ,  2.1,  1.7,  2.3])
+        np.array([ 1.5,  1.2,  0.2,  2.4,  2.2,  2.8,  2.6,  0.4,  1.2,  3.1])
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -121,9 +115,9 @@ def ori_distance(ori1, ori2, out=None):
         >>> ori1 = np.array([ 0.3,  7.0,  0.0,  3.1], dtype=np.float64)
         >>> ori2 = np.array([ 6.8, -1.0,  0.0, -3.1], dtype=np.float64)
         >>> dist_ = ori_distance(ori1, ori2)
-        >>> result = ut.numpy_str(dist_, precision=2)
+        >>> result = ut.repr2(dist_, precision=2)
         >>> print(result)
-        np.array([ 0.22,  1.72,  0.  ,  0.08], dtype=np.float64)
+        np.array([ 0.22,  1.72,  0.  ,  0.08])
 
     Example3:
         >>> # ENABLE_DOCTEST
@@ -131,9 +125,9 @@ def ori_distance(ori1, ori2, out=None):
         >>> ori1 = .3
         >>> ori2 = 6.8
         >>> dist_ = ori_distance(ori1, ori2)
-        >>> result = ut.numpy_str(dist_, precision=2)
+        >>> result = ut.repr2(dist_, precision=2)
         >>> print(result)
-        np.float64(0.21681469282041377)
+        0.21681469282041377
 
     Ignore:
         # This also works
@@ -169,38 +163,13 @@ def det_distance(det1, det2):
         >>> det1 = rng.rand(1000)
         >>> det2 = rng.rand(1000)
         >>> scaledist = det_distance(det1, det2)
-        >>> result = ut.numpy_str(scaledist, precision=2, threshold=2)
+        >>> result = ut.repr2(scaledist, precision=2, threshold=2)
         >>> print(result)
-        np.array([ 1.03,  1.19,  1.21, ...,  1.25,  1.83,  1.43], dtype=np.float64)
-
-    Cyth::
-        #CYTH_INLINE
-        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=1] det1
-            np.ndarray[np.float64_t, ndim=1] det2
-        #if CYTH
-        # TODO: Move to ktool?
-        cdef unsigned int nDets = det1.shape[0]
-        # Prealloc output
-        out = np.zeros((nDets,), dtype=det1.dtype)
-        cdef size_t ix
-        for ix in range(nDets):
-            # simple determinant: ad - bc
-            if det1[ix] > det2[ix]:
-                out[ix] = det1[ix] / det2[ix]
-            else:
-                out[ix] = det2[ix] / det1[ix]
-        return out
-        #else
+        np.array([ 1.03,  1.19,  1.21, ...,  1.25,  1.83,  1.43])
     """
-    #with warnings.catch_warnings():
-    #    warnings.simplefilter("ignore")
-    # TODO: Cython
     det_dist = det1 / det2
     # Flip ratios that are less than 1
     _flip_flag = det_dist < 1
-    #det_dist[_flip_flag] = (1.0 / det_dist[_flip_flag])
     det_dist[_flip_flag] = np.reciprocal(det_dist[_flip_flag])
     return det_dist
 
@@ -226,9 +195,9 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         >>> hist1 = rng.rand(1000, 2)
         >>> hist2 = rng.rand(1000, 2)
         >>> l2dist = L2_sqrd(hist1, hist2)
-        >>> result = ut.numpy_str(l2dist, precision=2, threshold=2)
+        >>> result = ut.repr2(l2dist, precision=2, threshold=2)
         >>> print(result)
-        np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66], dtype=np.float32)
+        np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66])
 
     Cyth::
         #CYTH_INLINE
@@ -249,18 +218,9 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         return out
         #else
     """
-    # TODO: np.ufunc
-    # TODO: Cython
-    # temp memory
-    #temp = np.empty(hist1.shape, dtype=hist1.dtype)
-    #np.subtract(hist1, hist2, temp)
-    #np.abs(temp, temp)
-    #np.power(temp, 2, temp)
-    #out = temp.sum(-1)
     # Carefull, this will not return the correct result if the types are unsigned.
     #return ((hist1 - hist2) ** 2).sum(-1)  # this is faster
     return ((hist1.astype(dtype) - hist2.astype(dtype)) ** 2).sum(-1)  # this is faster
-    #return out
 
 
 def understanding_pseudomax_props(mode=2):
@@ -378,7 +338,6 @@ def hist_isect(hist1, hist2):
 
 #from six.moves import zip
 #from utool import util_inject
-#print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dist]')
 VALID_DISTS = [
     'L1',
     'L2',
@@ -456,9 +415,9 @@ def bar_L2_sift(hist1, hist2):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> barl2_dist = bar_L2_sift(hist1, hist2)
-        >>> result = ut.numpy_str(barl2_dist, precision=2)
+        >>> result = ut.repr2(barl2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.55,  0.51,  0.49,  0.51,  0.49,  0.52,  0.48,  0.48,  0.51,  0.45], dtype=np.float32)
+        np.array([ 0.55,  0.51,  0.49,  0.51,  0.49,  0.52,  0.48,  0.48,  0.51,  0.45])
     """
     return 1.0 - L2_sift(hist1, hist2)
 
@@ -482,9 +441,9 @@ def L2_sift(hist1, hist2):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> l2_dist = L2_sift(hist1, hist2)
-        >>> result = ut.numpy_str(l2_dist, precision=2)
+        >>> result = ut.repr2(l2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.45,  0.49,  0.51,  0.49,  0.51,  0.48,  0.52,  0.52,  0.49,  0.55], dtype=np.float32)
+        np.array([ 0.45,  0.49,  0.51,  0.49,  0.51,  0.48,  0.52,  0.52,  0.49,  0.55])
     """
     # remove the pseudo max hack
     psuedo_max = 512.0
@@ -497,7 +456,7 @@ def L2_sift(hist1, hist2):
 
 def L2_root_sift(hist1, hist2):
     """
-    Normalized SIFT L2
+    Normalized Root-SIFT L2
 
     Args:
         hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
@@ -514,13 +473,14 @@ def L2_root_sift(hist1, hist2):
     root_sift1 = np.sqrt(sift1)
     root_sift2 = np.sqrt(sift2)
     l2_dist = L2(root_sift1, root_sift2)
+    # Usure if correct;
     l2_root_dist =  l2_dist / max_root_l2_dist
     return l2_root_dist
 
 
 def L2_sift_sqrd(hist1, hist2):
     """
-    Normalized SIFT L2
+    Normalized SIFT L2**2
 
     Args:
         hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
@@ -555,9 +515,9 @@ def cos_sift(hist1, hist2):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> l2_dist = cos_sift(hist1, hist2)
-        >>> result = ut.numpy_str(l2_dist, precision=2)
+        >>> result = ut.repr2(l2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.77,  0.74,  0.72,  0.74,  0.72,  0.75,  0.71,  0.72,  0.74,  0.68], dtype=np.float32)
+        np.array([ 0.77,  0.74,  0.72,  0.74,  0.72,  0.75,  0.71,  0.72,  0.74,  0.68])
     """
     psuedo_max = 512.0
     sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
@@ -567,8 +527,6 @@ def cos_sift(hist1, hist2):
         _assert_siftvec(sift2)
     #sift1 /= np.linalg.norm(sift1, axis=-1)
     #sift2 /= np.linalg.norm(sift2, axis=-1)
-    #import utool as ut
-    #ut.embed()
     return (sift1 * sift2).sum(-1)
 
 
@@ -610,10 +568,10 @@ def emd(hist1, hist2, cost_matrix='sift'):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> emd_dists = emd(hist1, hist2)
-        >>> result = ut.numpy_str(emd_dists, precision=2)
+        >>> result = ut.repr2(emd_dists, precision=2)
         >>> print(result)
         np.array([ 2063.99,  2078.02,  2109.03,  2011.99,  2130.99,  2089.01,
-                   2030.99,  2294.98,  2026.02,  2426.01], dtype=np.float64)
+                   2030.99,  2294.98,  2026.02,  2426.01])
 
     References:
         pip install pyemd

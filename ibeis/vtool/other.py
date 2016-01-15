@@ -6,7 +6,7 @@ import six
 import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[other]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[other]')
 
 
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
@@ -149,10 +149,10 @@ def pdist_argsort(x):
     x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
 
     Args:
-        x (?):
+        x (ndarray):
 
     Returns:
-        ?: sortx_2d
+        ndarray: sortx_2d
 
     CommandLine:
         python -m vtool.other --test-pdist_argsort
@@ -282,7 +282,7 @@ def get_crop_slices(isfill):
 def get_undirected_edge_ids(directed_edges):
     r"""
     Args:
-        directed_edges (?):
+        directed_edges (ndarray[ndims=2]):
 
     Returns:
         list: edgeid_list
@@ -313,11 +313,11 @@ def get_undirected_edge_ids(directed_edges):
 def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
     r"""
     Args:
-        directed_edges (?):
-        score_arr (?):
+        directed_edges (ndarray[ndims=2]):
+        score_arr (ndarray):
 
     Returns:
-        ?: unique_edge_xs
+        list: unique_edge_xs
 
     CommandLine:
         python -m vtool.other --test-find_best_undirected_edge_indexes
@@ -665,9 +665,9 @@ def rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes):
     Inverts work done by index_partition
 
     Args:
-        part1_vals (?):
-        part2_vals (dict):
-        part1_indexes (?):
+        part1_vals (list):
+        part2_vals (list):
+        part1_indexes (dict):
         part2_indexes (dict):
 
     CommandLine:
@@ -795,7 +795,7 @@ def zipcat(arr1_list, arr2_list, axis=None):
 
 
 def atleast_nd(arr, n, tofront=False):
-    """
+    r"""
     View inputs as arrays with at least n dimensions.
     TODO: Commit to numpy
 
@@ -804,7 +804,10 @@ def atleast_nd(arr, n, tofront=False):
                 converted to arrays.  Arrays that already have n or more dimensions
                 are preserved.
         n (int):
-        tofront (bool); if True new dimensions are added to the front of the array
+        tofront (bool): if True new dimensions are added to the front of the array
+
+    CommandLine:
+        python -m vtool.other --exec-atleast_nd --show
 
     Returns:
         ndarray :
@@ -823,7 +826,9 @@ def atleast_nd(arr, n, tofront=False):
         >>> n = 2
         >>> arr = np.array([1, 1, 1])
         >>> arr_ = atleast_nd(arr, n)
-        array([[[ 3.]]])
+        >>> result = ut.repr2(arr_.tolist())
+        >>> print(result)
+        [[1], [1], [1]]
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -835,10 +840,14 @@ def atleast_nd(arr, n, tofront=False):
         >>> arr1_ = atleast_nd(arr1, n)
         >>> arr2_ = atleast_nd(arr2, n)
         >>> arr3_ = atleast_nd(arr3, n)
-        >>> print(arr1_)
-        >>> print(arr2_)
-        >>> print(arr3_)
-        array([[[ 3.]]])
+        >>> result1 = ut.repr2(arr1_.tolist())
+        >>> result2 = ut.repr2(arr2_.tolist())
+        >>> result3 = ut.repr2(arr3_.tolist())
+        >>> result = '\n'.join([result1, result2, result3])
+        >>> print(result)
+        [[[[1]]], [[[1]]], [[[1]]]]
+        [[[[0]]]]
+        [[[[[1]]]]]
 
     Ignore:
         # Hmm, mine is actually faster
@@ -1658,7 +1667,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
         >>>     return warped_patches
         >>> data_lists1 = multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func)
         >>> data_lists2 = multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func)
-        >>> vt.sver_c_wrapper.assert_output_equal(data_lists1, data_lists2)
+        >>> vt.sver_c_wrapper.asserteq(data_lists1, data_lists2)
 
     Example:
         >>> keys_list = [np.array([]), np.array([]), np.array([])]
@@ -1712,8 +1721,18 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     return data_lists
 
 
-def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, lbl1='', lbl2='', output_lbl=None):
-    """ recursive equality checks """
+def asserteq(output1, output2, thresh=1E-8, nestpath=None, level=0, lbl1=None,
+             lbl2=None, output_lbl=None, verbose=True, iswarning=False):
+    """
+    recursive equality checks
+
+    asserts that output1 and output2 are close to equal.
+    """
+    failed = False
+    if lbl1 is None:
+        lbl1 = ut.get_varname_from_stack(output1, N=1)
+    if lbl2 is None:
+        lbl2 = ut.get_varname_from_stack(output2, N=1)
     # Setup
     if nestpath is None:
         # record the path through the nested structure as testing goes on
@@ -1727,8 +1746,11 @@ def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, l
         print(type(output1))
         print(type(output2))
         ut.printex(ex, 'FAILED TYPE CHECKS',
-                   keys=common_keys + [(type, 'output1'), (type, 'output2'), ])
-        raise
+                   keys=common_keys + [(type, 'output1'), (type, 'output2')],
+                   iswarning=iswarning)
+        failed = True
+        if not iswarning:
+            raise
     # CHECK: length
     if hasattr(output1, '__len__'):
         try:
@@ -1742,42 +1764,68 @@ def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, l
         ndarray_keys = ['output1.shape', 'output2.shape']
         # CHECK: ndarray shape
         try:
-            assert output1.shape == output2.shape, 'ndarrays have different shapes'
+            assert output1.shape == output2.shape, 'ndarray shapes are unequal'
         except AssertionError as ex:
             keys = common_keys + ndarray_keys
-            ut.printex(ex, 'FAILED NUMPY SHAPE CHECKS.', keys=keys)
-            raise
+            ut.printex(ex, 'FAILED NUMPY SHAPE CHECKS.', keys=keys,
+                       iswarning=iswarning)
+            failed = True
+            if not iswarning:
+                raise
         # CHECK: ndarray equality
         try:
-            passed, error = ut.almost_eq(output1, output2, thresh, ret_error=True)
+            passed, error = ut.almost_eq(output1, output2, thresh,
+                                         ret_error=True)
             assert np.all(passed), 'ndarrays are unequal.'
         except AssertionError as ex:
-            #ut.embed()
-            error_stats = ut.get_stats_str(error)  # NOQA
-            bad_error_stats = ut.get_stats_str(error[error >= thresh])  # NOQA
+            # Statistics on value difference and value difference
+            # above the thresholds
+            diff_stats = ut.get_stats(error)  # NOQA
+            error_stats = ut.get_stats(error[error >= thresh])  # NOQA
             keys = common_keys + ndarray_keys + [
-                (len, 'output1'), (len, 'output2'), ('error_stats'), ('bad_error_stats'), ('thresh'),
+                (len, 'output1'), (len, 'output2'), ('diff_stats'),
+                ('error_stats'), ('thresh'),
             ]
-            ut.printex(ex, 'FAILED NUMPY CHECKS.', keys=keys)
-            raise
+            PRINT_VAL_SAMPLE = True
+            if PRINT_VAL_SAMPLE:
+                keys += ['output1', 'output2']
+            ut.printex(ex, 'FAILED NUMPY CHECKS.', keys=keys,
+                       iswarning=iswarning)
+            failed = True
+            if not iswarning:
+                raise
     # CHECK: list/tuple items
     elif isinstance(output1, (tuple, list)):
         for count, (item1, item2) in enumerate(zip(output1, output2)):
             # recursive call
             try:
-                assert_output_equal(
-                    item1, item2, lbl1=lbl2, lbl2=lbl1, thresh=thresh, nestpath=nestpath + [count], level=level + 1)
+                asserteq(
+                    item1, item2, lbl1=lbl2, lbl2=lbl1, thresh=thresh,
+                    nestpath=nestpath + [count], level=level + 1)
             except AssertionError as ex:
-                ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2', 'count'])
-                raise
+                ut.printex(ex, 'recursive call failed',
+                           keys=common_keys + ['item1', 'item2', 'count'],
+                           iswarning=iswarning)
+                failed = True
+                if not iswarning:
+                    raise
     # CHECK: scalars
     else:
         try:
             assert output1 == output2, 'output1 != output2'
         except AssertionError as ex:
             print('nestpath= %r' % (nestpath,))
-            ut.printex(ex, 'FAILED SCALAR CHECK.', keys=common_keys + ['output1', 'output2'])
-            raise
+            ut.printex(ex, 'FAILED SCALAR CHECK.',
+                       keys=common_keys + ['output1', 'output2'],
+                       iswarning=iswarning)
+            failed = True
+            if not iswarning:
+                raise
+    if verbose and level == 0:
+        if not failed:
+            print('PASSED %s == %s' % (lbl1, lbl2))
+        else:
+            print('WARNING %s != %s' % (lbl1, lbl2))
 
 
 def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2='', output_lbl=None):
@@ -1798,7 +1846,7 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         t2.ellapsed = 1e9
     print('speedup = %r' % (t1.ellapsed / t2.ellapsed))
     try:
-        assert_output_equal(output1, output2, lbl1=lbl1, lbl2=lbl2, output_lbl=output_lbl)
+        asserteq(output1, output2, lbl1=lbl1, lbl2=lbl2, output_lbl=output_lbl)
         print('implementations are in agreement :) ')
     except AssertionError as ex:
         # prints out a nested list corresponding to nested structure

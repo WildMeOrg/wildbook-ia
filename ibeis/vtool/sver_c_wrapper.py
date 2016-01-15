@@ -18,7 +18,7 @@ import utool as ut
 from os.path import dirname, join, realpath
 
 # TODO: move to utool?
-from vtool.other import assert_output_equal, compare_implementations  # NOQA
+from vtool.other import asserteq, compare_implementations  # NOQA
 
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[sver_c]')
 

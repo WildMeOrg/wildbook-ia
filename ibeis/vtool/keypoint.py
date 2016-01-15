@@ -133,9 +133,9 @@ from six.moves import zip, range, reduce
 import numpy as np
 import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
-from vtool import linalg as ltool
-from vtool import chip as ctool
-from vtool import distance as dtool
+from vtool import linalg as linalgtool
+from vtool import chip as chiptool
+from vtool import distance
 from vtool import trig
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[kpts]')
@@ -229,7 +229,7 @@ def get_scales(kpts):
 def get_ori_mats(kpts):
     """ Returns keypoint orientation matrixes """
     _oris = get_oris(kpts)
-    R_mats = [ltool.rotation_mat2x2(ori) for ori in _oris]
+    R_mats = [linalgtool.rotation_mat2x2(ori) for ori in _oris]
     return R_mats
 
 
@@ -617,14 +617,14 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
     half_width  = (patch_w / 2.0)  # - .5
     half_height = (patch_h / 2.0)  # - .5
     # Center src image
-    T1 = ltool.translation_mat3x3(-half_width + .5, -half_height + .5)
+    T1 = linalgtool.translation_mat3x3(-half_width + .5, -half_height + .5)
     # Scale src to the unit circle
-    #S1 = ltool.scale_mat3x3(1.0 / patch_w, 1.0 / patch_h)
-    S1 = ltool.scale_mat3x3(1.0 / half_width, 1.0 / half_height)
+    #S1 = linalgtool.scale_mat3x3(1.0 / patch_w, 1.0 / patch_h)
+    S1 = linalgtool.scale_mat3x3(1.0 / half_width, 1.0 / half_height)
     # Transform the source image to the keypoint ellipse
     invVR_aff2Ds = get_invVR_mats3x3(kpts)
     # Adjust for the requested scale factor
-    S2 = ltool.scale_mat3x3(scale_factor, scale_factor)
+    S2 = linalgtool.scale_mat3x3(scale_factor, scale_factor)
     #perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
     M_list = reduce(matrix_multiply, (S2, invVR_aff2Ds, S1.dot(T1)))
     return M_list
@@ -641,7 +641,7 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     # Get keypoints in matrix format
     invV_mats = get_invV_mats(kpts, with_trans=True, with_ori=True)
     # Get chip to imagespace transform
-    invC = ctool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
+    invC = chiptool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
     # Apply transform to keypoints
     invCinvV_mats = matrix_multiply(invC, invV_mats)
     # Flatten back into keypoint (x, y, a, c, d, o) format
@@ -789,10 +789,10 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         sfx = sfy = scale_factor
     #with ut.embed_on_exception_context:
     tx, ty = offset
-    T = ltool.translation_mat3x3(tx, ty)
-    S = ltool.scale_mat3x3(sfx, sfy)
+    T = linalgtool.translation_mat3x3(tx, ty)
+    S = linalgtool.scale_mat3x3(sfx, sfy)
     M = T.dot(S)
-    #M = ltool.scaleedoffset_mat3x3(offset, scale_factor)
+    #M = linalgtool.scaleedoffset_mat3x3(offset, scale_factor)
     kpts_ = transform_kpts(kpts, M)
     return kpts_
 
@@ -871,7 +871,7 @@ def transform_kpts(kpts, M):
         # TRANSFORM MATRIX INTO THE 6 COMPONENT KEYPOINT VECTOR.
         #print(ex)
         #oris = get_invVR_mats_oris(MinvVR_mats3x3)
-        #Lmats = [ltool.rotation_mat3x3(-ori) for ori in oris]
+        #Lmats = [linalgtool.rotation_mat3x3(-ori) for ori in oris]
         #matrix_multiply(MinvVR_mats3x3, Lmats)
         #matrix_multiply(Lmats, MinvVR_mats3x3)
         #scipy.linalg.lu(MinvVR_mats3x3[0])
@@ -924,11 +924,11 @@ def transform_kpts_xys(H, kpts):
         pt.update()
     """
     xy = get_xys(kpts)
-    xy_t = ltool.transform_points_with_homography(H, xy)
+    xy_t = linalgtool.transform_points_with_homography(H, xy)
     return xy_t
     #xyz   = get_homog_xyzs(kpts)
     #xyz_t = matrix_multiply(H, xyz)
-    #xy_t  = ltool.add_homogenous_coordinate(xyz_t)
+    #xy_t  = linalgtool.add_homogenous_coordinate(xyz_t)
     #return xy_t
 
 #---------------------
@@ -1637,7 +1637,7 @@ def get_invV_xy_axis_extents(invV_mats):
     if invV_mats.shape[1] == 3:
         # Take the SVD of only the shape part
         invV_mats = invV_mats[:, 0:2, 0:2]
-    Us_list = [ltool.svd(invV)[0:2] for invV in invV_mats]
+    Us_list = [linalgtool.svd(invV)[0:2] for invV in invV_mats]
     def Us_axis_extent(U, s):
         """ Columns of U.dot(S) are in principle scaled directions """
         return np.sqrt(U.dot(np.diag(s)) ** 2).T.sum(0)
@@ -1914,13 +1914,13 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         ...                   [ 115.95,   53.13,   12.96,    1.73,    8.77,    0.  ],
         ...                   [ 324.88,  172.58,  127.69,   41.29,   50.5 ,    0.  ],
         ...                   [ 285.44,  254.61,  136.06,   -4.77,   76.69,    0.  ],
-        ...                   [ 367.72,  140.81,  172.13,   12.99,   96.15,    0.  ]], dtype=np.float32)
+        ...                   [ 367.72,  140.81,  172.13,   12.99,   96.15,    0.  ]], dtype=np.float64)
         >>> kpts2 = np.array([[ 318.93,   11.98,   12.11,    0.38,    8.04,    0.  ],
         ...                   [ 509.47,   12.53,   22.4 ,    1.31,    5.04,    0.  ],
         ...                   [ 514.03,   13.04,   19.25,    1.74,    4.72,    0.  ],
         ...                   [ 490.19,  185.49,   95.67,   -4.84,   88.23,    0.  ],
         ...                   [ 316.97,  206.07,   90.87,    0.07,   80.45,    0.  ],
-        ...                   [ 366.07,  140.05,  161.27,  -47.01,   85.62,    0.  ]], dtype=np.float32)
+        ...                   [ 366.07,  140.05,  161.27,  -47.01,   85.62,    0.  ]], dtype=np.float64)
         >>> H = np.array([[ -0.70098,   0.12273,   5.18734],
         >>>               [  0.12444,  -0.63474,  14.13995],
         >>>               [  0.00004,   0.00025,  -0.64873]])
@@ -1933,14 +1933,14 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
         >>> # verify results
-        >>> result = ut.numpy_str(fx2_to_xyerr, precision=3)
+        >>> result = ut.repr2(fx2_to_xyerr, precision=3)
         >>> print(result)
         np.array([[  82.848,  186.238,  183.979,  192.639],
                   [ 382.988,  374.356,  122.179,  289.16 ],
                   [ 387.563,  378.93 ,  126.389,  292.391],
                   [ 419.246,  176.668,  400.175,  167.411],
                   [ 174.269,  274.289,  281.03 ,   33.521],
-                  [  54.083,  269.645,   94.711,  277.706]], dtype=np.float32)
+                  [  54.083,  269.645,   94.711,  277.706]])
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1960,11 +1960,11 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
         >>> # verify results
-        >>> result = ut.numpy_str(fx2_to_xyerr, precision=3)
+        >>> result = ut.repr2(fx2_to_xyerr, precision=3)
         >>> print(result)
         np.array([[  0.   ,  16.125,  10.44 ],
                   [  7.616,  13.153,   3.   ],
-                  [  4.   ,  12.166,   6.708]], dtype=np.float32)
+                  [  4.   ,  12.166,   6.708]])
     """
     DEBUG = True
     if DEBUG:
@@ -1986,7 +1986,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     # get spatial keypoint distance to all neighbor candidates
     bcast_xy2   = xy2[:, None, :].T
     bcast_xy1_t = xy1_t.T[fx2_to_fx1]
-    fx2_to_xyerr_sqrd = dtool.L2_sqrd(bcast_xy2, bcast_xy1_t)
+    fx2_to_xyerr_sqrd = distance.L2_sqrd(bcast_xy2, bcast_xy1_t)
     return fx2_to_xyerr_sqrd
 
 
