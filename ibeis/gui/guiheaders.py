@@ -95,7 +95,7 @@ def make_table_declarations(ibs):
             #'rdconf',
             #'nGt',  # ## <put back in
             'annotnotes',  # ## <put back in
-            'annot_tag_text',  # < Hack should have actual tag structure
+            'tag_text',  # < Hack should have actual tag structure
             #'annot_visual_uuid',
             #'annot_semantic_uuid',
             #'nFeats',
@@ -335,7 +335,8 @@ def make_ibeis_headers_dict(ibs):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 if ut.VERBOSE:
-                    print('[guiheaders] infering %r' % (getters[tablename][colname],))
+                    print('[guiheaders] infering getter for tablename=%r, colname=%r' % (tablename, colname,))
+                    #print('[guiheaders] infering %r' % (getters[tablename][colname],))
                 try:
                     getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
                 except AttributeError:
