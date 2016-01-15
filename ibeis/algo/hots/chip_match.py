@@ -301,7 +301,7 @@ class _ChipMatchVisualization(object):
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
             >>> aid2 = None
-            >>> result = cm.ishow_single_annotmatch(qreq_, aid2)
+            >>> result = cm.ishow_single_annotmatch(qreq_, aid2, noupdate=True)
             >>> print(result)
             >>> ut.show_if_requested()
         """
@@ -315,10 +315,8 @@ class _ChipMatchVisualization(object):
             aid2 = cm.get_top_aids(ntop=1)[0]
         kwshow.update(**kwargs)
         try:
-            match_interaction = interact_matches.MatchInteraction(qreq_.ibs,
-                                                                  cm, aid2,
-                                                                  qreq_=qreq_,
-                                                                  **kwshow)
+            match_interaction = interact_matches.MatchInteraction(
+                qreq_.ibs, cm, aid2, qreq_=qreq_, **kwshow)
             return match_interaction
         except Exception as ex:
             ut.printex(ex, 'failed in cm.show_matches', keys=['aid', 'qreq_'])
@@ -2308,13 +2306,16 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+        >>> qreq_, args = plh.testdata_pre('spatial_verification',
+        >>>                                defaultdb='PZ_MTEST', qaid_override=[18],
+        >>>                                p='default:sqrd_dist_on=True')
+        >>> cm_list = args.cm_list_FILT
         >>> cm = cm_list[0]
         >>> fname = get_chipmatch_fname(cm.qaid, qreq_, qauuid=None,
         >>>                             TRUNCATE_UUIDS=False, MAX_FNAME_LEN=200)
-        >>> result = ut.repr2(fname)
+        >>> result = fname
         >>> print(result)
-        'qaid=18_cm_qjjzmjiwwwdhyzrw_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl'
+        qaid=18_cm_kdyczvphbkaogiar_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
     """
     if qauuid is None:
         print('[chipmatch] Warning qasuuid should be given')

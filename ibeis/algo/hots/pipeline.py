@@ -775,7 +775,10 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     # hard_weights = ['ratio']
 
     if not config2_.sqrd_dist_on:
-        nns_list = [(qfx2_idx, np.sqrt(qfx2_dist)) for qfx2_idx, qfx2_dist in nns_list]
+        # Take the square root of the squared distances
+        nns_list_ = [(qfx2_idx, np.sqrt(qfx2_dist.astype(np.float64)))
+                     for qfx2_idx, qfx2_dist in nns_list]
+        nns_list = nns_list_
 
     if config2_.lnbnn_on:
         filtname = 'lnbnn'
@@ -940,7 +943,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone'])
+        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone,sqrd_dist_on=True'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
@@ -1041,7 +1044,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
-        >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2'])
+        >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
         >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk_list, Knorm = args
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)

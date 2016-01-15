@@ -6131,7 +6131,7 @@ def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, annots=None, config2_
     unflat_vecs =  unflat_vecs2 = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)  # NOQA
     # import utool
     # with utool.embed_on_exception_context:
-    # vt.sver_c_wrapper.assert_output_equal(unflat_vecs1, unflat_vecs2)
+    # vt.sver_c_wrapper.asserteq(unflat_vecs1, unflat_vecs2)
     # unflat_vecs = unflat_vecs2
     # unflat_vecs = unflat_vecs1
     # import utool
