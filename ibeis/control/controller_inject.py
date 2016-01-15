@@ -534,7 +534,7 @@ def get_ibeis_flask_route(__name__):
                 @app.route(rule, **options)
                 # @crossdomain(origin='*')
                 # @authentication_user_only
-                @login_required  # FLASK CAS Authentication
+                # @login_required  # FLASK CAS Authentication
                 @wraps(func)
                 def translated_call(**kwargs):
                     #debug = {'kwargs': kwargs}

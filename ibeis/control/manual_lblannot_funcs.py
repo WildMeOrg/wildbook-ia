@@ -83,7 +83,7 @@ def get_lblannot_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
     where_clause = 'lbltype_rowid=? AND lblannot_value=?'
     lblannot_rowid_list = ibs.db.get_where(const.LBLANNOT_TABLE, colnames, params_iter, where_clause)
     # BIG HACK FOR ENFORCING UNKNOWN LBLANNOTS HAVE ROWID 0
-    lblannot_rowid_list = [ibs.UNKNOWN_LBLANNOT_ROWID if val is None or val == const.UNKNOWN else rowid
+    lblannot_rowid_list = [const.UNKNOWN_LBLANNOT_ROWID if val is None or val == const.UNKNOWN else rowid
                            for rowid, val in zip(lblannot_rowid_list, value_list)]
     return lblannot_rowid_list
 

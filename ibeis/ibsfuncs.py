@@ -1136,16 +1136,16 @@ def fix_invalid_nids(ibs):
     nid_list = ibs._get_all_known_name_rowids()
     # Get actual names from sql database (no postprocessing)
     name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
-    is_invalid_nid_list = [nid <= ibs.UNKNOWN_NAME_ROWID for nid in nid_list]
+    is_invalid_nid_list = [nid <= const.UNKNOWN_NAME_ROWID for nid in nid_list]
     if any(is_invalid_nid_list):
         invalid_nids = ut.compress(nid_list, is_invalid_nid_list)
         invalid_texts = ut.compress(name_text_list, is_invalid_nid_list)
         if (len(invalid_nids) == 0 and
-              invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
+              invalid_nids[0] == const.UNKNOWN_NAME_ROWID and
               invalid_texts[0] == const.UNKNOWN):
             print('[ibs] found bad name rowids = %r' % (invalid_nids,))
             print('[ibs] found bad name texts  = %r' % (invalid_texts,))
-            ibs.delete_names([ibs.UNKNOWN_NAME_ROWID])
+            ibs.delete_names([const.UNKNOWN_NAME_ROWID])
         else:
             errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
             errmsg += ut.list_str(list(zip(invalid_nids, invalid_texts)))

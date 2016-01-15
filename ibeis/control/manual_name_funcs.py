@@ -117,7 +117,7 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
     #nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
-    ##nid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
+    ##nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
     #return nid_list
 
 
@@ -797,7 +797,7 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     name_text_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
     if apply_fix:
         name_text_list = [const.UNKNOWN
-                          if rowid == ibs.UNKNOWN_NAME_ROWID or name_text is None
+                          if rowid == const.UNKNOWN_NAME_ROWID or name_text is None
                           else name_text
                           for name_text, rowid in zip(name_text_list, name_rowid_list)]
     return name_text_list
@@ -914,7 +914,7 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
     name_text_list_ = ibs.sanitize_name_texts(name_text_list)
     name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,),
                                  name_text_list_, id_colname=NAME_TEXT)
-    name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
+    name_rowid_list = [const.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
                            for rowid, text in zip(name_rowid_list, name_text_list_)]
     return name_rowid_list
 

@@ -7,6 +7,7 @@ get_dbinfo is probably the only usefull funciton in here
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
+from ibeis import constants as const
 import numpy as np
 from collections import OrderedDict
 from utool import util_latex
@@ -155,7 +156,7 @@ def get_dbinfo(ibs, verbose=True,
         valid_aids = aid_list
         valid_nids = list(
             set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)) -
-            {ibs.UNKNOWN_NAME_ROWID}
+            {const.UNKNOWN_NAME_ROWID}
         )
         valid_gids = list(set(ibs.get_annot_gids(aid_list)))
     #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
