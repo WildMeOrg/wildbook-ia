@@ -12,11 +12,6 @@ initialize = ('# Initialization', ut.codeblock(
     %load_ext autoreload
     %autoreload
 
-    def fix_figsize(w=30, h=10, dpi=256):
-        fig = mpl.pyplot.gcf()
-        fig.set_size_inches(w, h)
-        fig.set_dpi(dpi)
-
     # Set global utool flags
     import utool as ut
     ut.util_io.__PRINT_WRITES__ = False
@@ -24,6 +19,9 @@ initialize = ('# Initialization', ut.codeblock(
     ut.util_parallel.__FORCE_SERIAL__ = True
     ut.util_cache.VERBOSE_CACHE = False
     ut.NOT_QUIET = False
+
+    import plottool as pt
+    fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)
 
     draw_case_kw = dict(show_in_notebook=True, annot_modes=[0, 1])
 
@@ -34,13 +32,6 @@ initialize = ('# Initialization', ut.codeblock(
     # to choose the query and database annotations
     a = [
         {annotconfig_list_body}
-        #'default:is_known=True',
-        #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
-        #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
-        #'timectrl:',
-        #'timectrl:qsize=10,dsize=20',
-        #'timectrl:been_adjusted=True,dpername=3',
-        #'unctrl:been_adjusted=True',
     ]
 
     # Set to override any special configs
@@ -53,12 +44,6 @@ initialize = ('# Initialization', ut.codeblock(
     # be used for inspecting results.
     t = [
         {pipeline_list_body}
-        #'default',
-        #'default:K=1',
-        #'default:K=1,adapteq=True',
-        #'default:K=1,AI=False',
-        #'default:K=1,AI=False,QRH=True',
-        #'default:K=1,RI=True,AI=False',
     ]
 
     # Load database for this test run
@@ -173,10 +158,10 @@ timestamp_distribution = ('# Timestamp Distribution', ut.codeblock(
     ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
     aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
     gids = ut.unique_keep_order(ibs.get_annot_gids(aids))
-    ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
-
     # Or just get time delta of all images
     #gids = ibs.get_valid_gids()
+
+    ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
     #ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
     # ENDBLOCK
     '''))
@@ -185,16 +170,12 @@ example_annotations = ('# Example Annotations / Detections', ut.codeblock(
     r'''
     # STARTBLOCK
     # Get a sample of images
-    if False:
-        gids = ibs.get_valid_gids()
-    else:
-        from ibeis.init.filter_annots import expand_single_acfg
-        from ibeis.expt import experiment_helpers
-        acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
-            ibs, [a[0]], use_cache=False)
-        qaids, daids = expanded_aids_list[0]
-        all_aids = ut.flatten([qaids, daids])
-        gids = ut.unique_keep_order(ibs.get_annot_gids(all_aids))
+    #gids = ibs.get_valid_gids()
+    ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
+    aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
+    gids = ut.unique_keep_order(ibs.get_annot_gids(aids))
+    # Or just get time delta of all images
+    #gids = ibs.get_valid_gids()
 
     aids = ibs.get_image_aids(gids)
 
@@ -215,13 +196,13 @@ example_names = ('# Example Name Graph',  ut.codeblock(
     r'''
     # STARTBLOCK
     from ibeis.viz import viz_graph
+    ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
+    aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
     # Sample some annotations
-    aids = ibs.sample_annots_general(filter_kw=dict(sample_size=20, min_pername=2), verbose=False)
+    aids = ibs.sample_annots_general(aids, filter_kw=dict(sample_size=20, min_pername=2), verbose=False)
     # Visualize name graph
-    #print(aids)
     namegraph = viz_graph.make_name_graph_interaction(ibs, aids=aids, zoom=.4)
-    namegraph.fig.set_size_inches(30, 15)
-    namegraph.fig.set_dpi(256)
+    fix_figsize()
     # ENDBLOCK
     ''')
 )
