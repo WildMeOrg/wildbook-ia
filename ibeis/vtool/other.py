@@ -1602,12 +1602,12 @@ def ensure_rng(seed=None):
     return rng
 
 
-def safe_max(arr):
-    return np.nan if arr is None or len(arr) == 0 else arr.max()
+def safe_max(arr, fill=np.nan):
+    return fill if arr is None or len(arr) == 0 else arr.max()
 
 
-def safe_min(arr):
-    return np.nan if arr is None or len(arr) == 0 else arr.min()
+def safe_min(arr, fill=np.nan):
+    return fill if arr is None or len(arr) == 0 else arr.min()
 
 
 @profile
