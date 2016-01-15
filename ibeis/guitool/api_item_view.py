@@ -176,9 +176,6 @@ def _update_headers(view, **headers):
     print('[view] updating headers')
     col_width_list = headers.get('col_width_list', None)
     if col_width_list is not None:
-        #try:
-        #if view.model().name == 'encounters':
-        #    ut.embed()
         if isinstance(view, QtGui.QTreeView):
             horizontal_header = view.header()
         else:
