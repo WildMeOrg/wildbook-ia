@@ -1473,7 +1473,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
 #============================
 
 
-def vsone_reranking(qreq_, cm_list, verbose=VERB_PIPELINE):
+def vsone_reranking(qreq_, cm_list_SVER, verbose=VERB_PIPELINE):
     r"""
     CommandLine:
         python -m ibeis.algo.hots.pipeline --test-vsone_reranking
@@ -1499,6 +1499,7 @@ def vsone_reranking(qreq_, cm_list, verbose=VERB_PIPELINE):
     from ibeis.algo.hots import vsone_pipeline
     if verbose:
         print('Step 5.5ish) vsone reranking')
+    cm_list = cm_list_SVER
     cm_list_VSONE = vsone_pipeline.vsone_reranking(qreq_, cm_list, verbose)
     return cm_list_VSONE
 

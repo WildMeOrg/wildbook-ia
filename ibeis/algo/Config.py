@@ -322,6 +322,7 @@ class AggregateConfig(ConfigBase):
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
         agg_cfg.score_normalization = None
+        agg_cfg.normsum = False
         #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
@@ -351,6 +352,8 @@ class AggregateConfig(ConfigBase):
             agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
         if agg_cfg.score_normalization:
             agg_cfgstr.append(',norm')
+        if agg_cfg.normsum:
+            agg_cfgstr.append(',normsum')
         agg_cfgstr.append(')')
         return agg_cfgstr
 

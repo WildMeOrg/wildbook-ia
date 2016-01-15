@@ -18,14 +18,13 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
 
         python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best --ipynb
+        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
         python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
         python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2
-        python -m ibeis --tf autogen_ipynb --db humpbacks --cells -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2
+        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
 
     Example:
         >>> # SCRIPT
@@ -61,6 +60,8 @@ def autogen_ipynb(ibs, launch=None, run=None):
 def get_default_cell_template_list(ibs):
     cells = notebook_cells
 
+    noexample = ut.get_argflag('--noexample')
+
     cell_template_list = [
         cells.initialize,
 
@@ -69,9 +70,9 @@ def get_default_cell_template_list(ibs):
         cells.pipe_config_info,
         cells.annot_config_info,
 
-        cells.timestamp_distribution,
-        cells.example_annotations,
-        cells.example_names,
+        None if noexample else cells.timestamp_distribution,
+        None if noexample else cells.example_annotations,
+        None if noexample else cells.example_names,
 
         cells.per_annotation_accuracy,
         cells.per_name_accuracy,

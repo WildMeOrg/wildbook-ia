@@ -2,15 +2,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map  # NOQA
 import numpy as np
-import itertools
 import vtool as vt
-from ibeis.algo.hots import hstypes
 import utool as ut
-#import six
-#from ibeis.algo.hots import scoring
+import itertools
+from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[nscoring]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[nscoring]')
 
 NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
                                            'sorted_aids', 'sorted_scores'))
@@ -399,6 +397,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> ut.show_if_requested()
 
     Example:
+        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
         >>> annot_score_list = []
         >>> annot_aid_list   = []
         >>> daid2_idx        = {}
@@ -447,6 +446,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         # give the annotation domain a name score
         #score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
         score_list = np.full(len(annot_score_list), fill_value=-np.inf, dtype=name_score_list.dtype)
+        #score_list = np.full(len(annot_score_list), fill_value=np.nan, dtype=name_score_list.dtype)
+        #score_list = np.nan(len(annot_score_list), dtype=name_score_list.dtype)
         # HACK: we need to set these to 'low' values and we also have to respect negatives
         #score_list[:] = -np.inf
         # make sure that the nid_list from group_indicies and the nids belonging to
