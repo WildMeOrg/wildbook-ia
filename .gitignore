@@ -112,6 +112,7 @@ _ibeis_setup.py
 experiment_*.sh
 
 notebooks/Experiment-Presentable-*
+notebooks/Experiments-*
 notebooks/tmptex
 
 raw_profile.txt
