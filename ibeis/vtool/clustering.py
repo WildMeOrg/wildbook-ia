@@ -1,16 +1,17 @@
+# -*- coding: utf-8 -*-
 # LICENCE
 """
 DEPRICATED USE clustering2.py
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import range
-import utool
+import utool as ut
 import sys
 import numpy as np
 import scipy.sparse as spsparse
 import vtool.nearest_neighbors as nn
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[akmeans]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[akmeans]', DEBUG=False)
 
 
 CLUSTERS_FNAME = 'akmeans_clusters'
@@ -40,10 +41,10 @@ def akmeans(data, num_clusters, max_iters=5, flann_params={},
     datax2_clusterx_old = -np.ones(len(data), dtype=datax_rand.dtype)
     # This function does the work
     (datax2_clusterx, centroids) = _akmeans_iterate(data, centroids,
-                                                   datax2_clusterx_old,
-                                                   max_iters, flann_params,
-                                                   ave_unchanged_thresh,
-                                                   ave_unchanged_iterwin)
+                                                    datax2_clusterx_old,
+                                                    max_iters, flann_params,
+                                                    ave_unchanged_thresh,
+                                                    ave_unchanged_iterwin)
     return (datax2_clusterx, centroids)
 
 
@@ -62,8 +63,8 @@ def precompute_akmeans(data, num_clusters, max_iters=5, flann_params={},
         # Try and load a previous clustering
         if force_recomp:
             raise UserWarning('forceing recommpute')
-        centroids        = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
-        datax2_clusterx = utool.load_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr)
+        centroids        = ut.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
+        datax2_clusterx = ut.load_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr)
         print('[akmeans.precompute] load successful')
         if refine:
             # Refines the cluster centers if specified
@@ -73,15 +74,15 @@ def precompute_akmeans(data, num_clusters, max_iters=5, flann_params={},
                                cache_dir=cache_dir, akmeans_cfgstr=akmeans_cfgstr)
         return (datax2_clusterx, centroids)
     except IOError as ex:
-        utool.printex(ex, 'cache miss', iswarning=True)
+        ut.printex(ex, 'cache miss', iswarning=True)
     except UserWarning:
         pass
     # First time computation
     print('[akmeans.precompute] pre_akmeans(): calling akmeans')
     (datax2_clusterx, centroids) = akmeans(data, num_clusters, max_iters, flann_params)
     print('[akmeans.precompute] save and return')
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
-    utool.save_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr, datax2_clusterx)
+    ut.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
+    ut.save_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr, datax2_clusterx)
     return (datax2_clusterx, centroids)
 
 
@@ -94,8 +95,8 @@ def refine_akmeans(data, datax2_clusterx, centroids, max_iters=5,
         akmeans_cfgstr = nn.get_flann_cfgstr(data, flann_params, cfgstr, use_data_hash)
     datax2_clusterx_old = datax2_clusterx
     (datax2_clusterx, centroids) = _akmeans_iterate(data, centroids, datax2_clusterx_old, max_iters, flann_params, 0, 10)
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
-    utool.save_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr, datax2_clusterx)
+    ut.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
+    ut.save_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr, datax2_clusterx)
     return (datax2_clusterx, centroids)
 
 
@@ -115,14 +116,15 @@ def sparse_multiply_rows(csr_mat, vec):
 def force_quit_akmeans(signal, frame):
     # FIXME OR DEPRICATE
     try:
-        print(utool.unindedent('''
+        print(ut.unindedent('''
                               --- algos ---
                               Caught Ctrl+C in:
                               function: %r
                               stacksize: %r
                               line_no: %r
-                              ''') %
-             (frame.f_code.co_name, frame.f_code.co_stacksize, frame.f_lineno))
+                              ''') % (frame.f_code.co_name,
+                                      frame.f_code.co_stacksize,
+                                      frame.f_lineno))
         #exec(df2.present())
         target_frame = frame
         target_frame_coname = '_akmeans_iterate'
@@ -141,10 +143,10 @@ def force_quit_akmeans(signal, frame):
         #data            = target_frame.f_locals['data']
         centroids        = target_frame.f_locals['centroids']
         datax2_clusterx = target_frame.f_locals['datax2_clusterx']
-        utool.save_npz(fpath + '.earlystop', datax2_clusterx, centroids)
+        ut.save_npz(fpath + '.earlystop', datax2_clusterx, centroids)
     except Exception as ex:
         print(repr(ex))
-        exec(utool.IPYTHON_EMBED_STR)
+        ut.embed()
 
 
 def _compute_cluster_centers(num_data, num_clusters, data, centroids, datax2_clusterx):
@@ -155,13 +157,13 @@ def _compute_cluster_centers(num_data, num_clusters, data, centroids, datax2_clu
     clusterx_sort = datax2_clusterx[datax_sort]
     # group datapoints by cluster using a sliding grouping algorithm
     _L = 0
-    clusterx2_dataLRx = utool.alloc_nones(num_clusters)
+    clusterx2_dataLRx = ut.alloc_nones(num_clusters)
     for _R in range(len(datax_sort) + 1):  # Slide R
         if _R == num_data or clusterx_sort[_L] != clusterx_sort[_R]:
             clusterx2_dataLRx[clusterx_sort[_L]] = (_L, _R)
             _L = _R
     # Compute the centers of each group (cluster) of datapoints
-    utool.print_('+')
+    ut.print_('+')
     for clusterx, dataLRx in enumerate(clusterx2_dataLRx):
         if dataLRx is None:
             continue  # ON EMPTY CLUSTER
@@ -188,20 +190,20 @@ def _akmeans_iterate(data, centroids, datax2_clusterx_old, max_iters,
     #print('[akmeans] Printing akmeans info in format: time (iterx, ave(#changed), #unchanged)')
     xx = 0
     for xx in range(0, max_iters):
-        tt = utool.tic()
-        utool.print_('...tic')
+        tt = ut.tic()
+        ut.print_('...tic')
         # 1) Find each datapoints nearest cluster center
         (datax2_clusterx, _dist) = nn.ann_flann_once(centroids, data, 1, flann_params)
-        ellapsed = utool.toc(tt)
-        utool.print_('...toc(%.2fs)' % ellapsed)
+        ellapsed = ut.toc(tt)
+        ut.print_('...toc(%.2fs)' % ellapsed)
         # 2) Compute new cluster centers
         centroids = _compute_cluster_centers(num_data, num_clusters, data, centroids, datax2_clusterx)
         # 3) Check for convergence (no change of cluster index)
-        #utool.print_('+')
+        #ut.print_('+')
         num_changed = (datax2_clusterx_old != datax2_clusterx).sum()
         xx2_unchanged[xx % ave_unchanged_iterwin] = num_changed
         ave_unchanged = xx2_unchanged.mean()
-        #utool.print_('  (%d, %.2f, %d)\n' % (xx, ave_unchanged, num_changed))
+        #ut.print_('  (%d, %.2f, %d)\n' % (xx, ave_unchanged, num_changed))
         if ave_unchanged < ave_unchanged_thresh:
             break
         else:  # Iterate
@@ -274,7 +276,7 @@ def plot_clusters(data, datax2_clusterx, centroids, num_pca_dims=3,
         ax.set_aspect('equal')
         df2.dark_background(ax)
         #ax.set_alpha(.1)
-        #utool.embed()
+        #ut.embed()
         #ax.set_frame_on(False)
     ax = df2.plt.gca()
     waswhitestr = ' +whitening' * whiten
