@@ -1416,7 +1416,7 @@ class SQLDatabaseController(object):
         line_list.append('# -*- coding: utf-8 -*-')
         #line_list.append('from __future__ import absolute_import, division, print_function')
         line_list.append('from __future__ import absolute_import, division, print_function, unicode_literals')
-        line_list.append('from ibeis import constants as const')
+        # line_list.append('from ibeis import constants as const')
         line_list.append('\n')
         line_list.append('# =======================')
         line_list.append('# Schema Version Current')
@@ -1439,11 +1439,11 @@ class SQLDatabaseController(object):
         return '\n'.join(line_list)
 
     def get_table_autogen_str(db, tablename):
-        # Hack to find the name of the constant variable
         line_list = []
         tab1 = ' ' * 4
         tab2 = ' ' * 8
         constant_name = None
+        # Hack to find the name of the constant variable
         #for variable, value in const.__dict__.iteritems():
         #    if value == tablename:
         #        constant_name = variable
@@ -1454,8 +1454,12 @@ class SQLDatabaseController(object):
         else:
             line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
         column_list = db.get_columns(tablename)
-        for column in column_list:
-            col_name = ('%s,' % ut.repr2(six.text_type(column[1]))).ljust(32)
+        colnamerepr_list = [ut.repr2(six.text_type(column[1]))
+                            for column in column_list]
+        # max_colsize = max(1, 2 + max(map(len, colnamerepr_list)))
+        max_colsize = max(32, 2 + max(map(len, colnamerepr_list)))
+        for column, colname_repr in zip(column_list, colnamerepr_list):
+            col_name = ('%s,' % colname_repr).ljust(max_colsize)
             col_type = str(column[2])
             if column[5] == 1:  # Check if PRIMARY KEY
                 col_type += ' PRIMARY KEY'
@@ -1533,6 +1537,7 @@ class SQLDatabaseController(object):
         return [str(tablename[0]) for tablename in tablename_list]
 
     def has_table(db, tablename, colnames=None, lazy=True):
+        """ checks if a table exists """
         if not lazy or db._tablenames is None:
             db._tablenames = db.get_table_names()
         return tablename in db._tablenames
