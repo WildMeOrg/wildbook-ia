@@ -470,7 +470,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                       fontkw=primary_fontkw)
 
         ibswgt.batch_intra_occurrence_query_button = _NEWBUT(
-            'Intra ImageSet',
+            'Intra Occurrrence',
             functools.partial(
                 back.compute_queries, query_is_known=None,
                 daids_mode=const.INTRA_OCCUR_KEY,
@@ -911,6 +911,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #print('model.name = %r' % (model.name,))
         if model.name == gh.IMAGE_TABLE:
             cur_gid = model._get_row_id(qtindex)
+        # elif model.name == gh.IMAGE_GRID:
+        #     cur_gid = model._get_row_id(qtindex)
         elif model.name == gh.NAMES_TREE:
             cur_level = model._get_level(qtindex)
             if cur_level == 1:

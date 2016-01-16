@@ -162,8 +162,8 @@ def setup_actions_menu(mainwin, back):
     mainwin.menuActions = guitool.newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
     menu = mainwin.menuActions
     menu.newAction(
-        name='actionCompute_ImageSets',
-        text='Group ImageSets',
+        name='actionCompute_Occurrences',
+        text='Group Occurrences',
         #shortcut='Ctrl+2',
         slot_fn=back.compute_occurrences)
     menu.addSeparator()  # ---------
@@ -179,8 +179,8 @@ def setup_actions_menu(mainwin, back):
         shortcut='Q',
         slot_fn=functools.partial(back.compute_queries, use_visual_selection=True))
     menu.newAction(
-        name='actionBatchIntraImageSetQueries',
-        text='Query: Intra ImageSet',
+        name='actionBatchIntraOccurrenceQueries',
+        text='Query: Intra Occurrence',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY),
     )
     menu.newAction(
@@ -219,9 +219,9 @@ def setup_actions_menu(mainwin, back):
 
     menu.addSeparator()  # ---------
     menu.newAction(
-        name='actionShipProcessedImageSets',
-        text='Ship Processed ImageSets',
-        tooltip='''This action will ship to WildBook any imagesets that have
+        name='actionShipProcessedOccurrences',
+        text='Ship Processed Occurrences',
+        tooltip='''This action will ship to WildBook any occurrences that have
                     been marked as processed.  This can also be used to send
                     processed imagesets that failed to ship correctly.''',
         #shortcut='Ctrl+5',
@@ -413,12 +413,12 @@ def setup_developer_menu(mainwin, back):
         text='Train RF with Open ImageSet',
         slot_fn=back.train_rf_with_imageset)
     menu.addSeparator()  # ---------
-    adv_ieq_menu = mainwin.menuAdvancedIEQuery = guitool.newMenu(mainwin, menu, 'menuAdvancedIEQuery', 'Advanced Intra ImageSet Queries')
+    adv_ieq_menu = mainwin.menuAdvancedIEQuery = guitool.newMenu(mainwin, menu, 'menuAdvancedIEQuery', 'Advanced Intra Occurrence Queries')
     adv_exq_menu = mainwin.menuAdvancedEXQuery = guitool.newMenu(mainwin, menu, 'menuAdvancedEXQuery', 'Advanced Vs Exemplar Queries')
     menu.addSeparator()  # ---------
     adv_ieq_menu.newAction(
         name='actionBatchUnknownIntraImageSetQueries',
-        text='Query: Unknown Intra ImageSet',
+        text='Query: Unknown Intra Occurrence',
         slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_OCCUR_KEY),
     )
     adv_exq_menu.newAction(
@@ -445,7 +445,7 @@ def setup_developer_menu(mainwin, back):
     )
     adv_ieq_menu.newAction(
         name='actionQueryInEncMode1',
-        text='Query: Names Intra ImageSet With OriAugment',
+        text='Query: Names Intra Occurrence With OriAugment',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY,
                                   use_prioritized_name_subset=True,
                                   cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
@@ -551,7 +551,7 @@ def setup_depricated_menu(mainwin, back):
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
     menu.newAction(
-        text='Reviewed All ImageSet Images',
+        text='Reviewed All Occurrence Images',
         slot_fn=back.imageset_reviewed_all_images)
 
 if __name__ == '__main__':

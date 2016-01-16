@@ -35,7 +35,9 @@ import utool as ut
 import lockfile
 import os
 import requests
-from os.path import join
+import time
+import subprocess
+from os.path import dirname, join, basename, splitext
 from ibeis.control import controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__, '[manual_wildbook]')
@@ -83,8 +85,6 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
         >>> print(result)
     """
-    import utool as ut
-    import os
     fname_list = ['Tomcat', 'tomcat']
     if ALLOW_SYSTEM_TOMCAT:
         # Places for system install of tomcat
@@ -127,7 +127,6 @@ def download_tomcat():
         # Reset
         python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))"
     """
-    from os.path import splitext, dirname
     print('Grabbing tomcat')
     # FIXME: need to make a stable link
     if ut.WIN32:
@@ -265,7 +264,6 @@ def reset_local_wildbook():
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> reset_local_wildbook()
     """
-    import utool as ut
     try:
         shutdown_wildbook_server()
     except ImportError:
@@ -303,10 +301,6 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         >>> print(result)
     """
     # TODO: allow custom specified tomcat directory
-    from os.path import basename, splitext, join
-    import time
-    import re
-    import subprocess
     try:
         output = subprocess.check_output(['java', '-version'],
                                          stderr=subprocess.STDOUT)
@@ -389,7 +383,8 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     ut.assertpath(permission_fpath)
     permission_text = ut.readfrom(permission_fpath)
     lines_to_remove = [
-        '/ImageSetSetMarkedIndividual = authc, roles[admin]'
+        # '/ImageSetSetMarkedIndividual = authc, roles[admin]'
+        '/EncounterSetMarkedIndividual = authc, roles[admin]'
     ]
     new_permission_text = permission_text[:]
     for line in lines_to_remove:
@@ -435,8 +430,6 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    from os.path import join
-    import time
     import ibeis
     tomcat_dpath = find_installed_tomcat()
 
@@ -471,8 +464,6 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    from os.path import join
-    import time
     tomcat_dpath = find_installed_tomcat(check_unpacked=False)
 
     # Ensure environment variables
@@ -641,7 +632,7 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False,
 def update_wildbook_config(ibs, wildbook_tomcat_path, dryrun=False):
     wildbook_properteis_dpath = join(wildbook_tomcat_path,
                                      'WEB-INF/classes/bundles/')
-    print('[ibs.wildbook_signal_imgsetid_list()] Wildbook properties=%r' % (
+    print('[ibs.update_wildbook_config()] Wildbook properties=%r' % (
         wildbook_properteis_dpath, ))
     # The src file is non-standard. It should be remove here as well
     wildbook_config_fpath_dst = join(wildbook_properteis_dpath,
@@ -748,7 +739,8 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
     print('[ibs.wildbook_signal_imgsetid_list()] signaling any annotation name changes to wildbook')
 
     wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
-    url_command = 'ImageSetSetMarkedIndividual'
+    # url_command = 'ImageSetSetMarkedIndividual'
+    url_command = 'EncounterSetMarkedIndividual'
     BASIC_AUTH = False
     if BASIC_AUTH:
         #url_command += '=authcBasicWildbook'
@@ -804,9 +796,10 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
 @register_ibs_method
 @register_api('/api/core/wildbook_signal_imgsetid_list/', methods=['PUT'])
-def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None, set_shipped_flag=True,
-                             open_url_on_complete=True, tomcat_dpath=None,
-                             wb_target=None, dryrun=False):
+def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
+                                  set_shipped_flag=True,
+                                  open_url_on_complete=True, tomcat_dpath=None,
+                                  wb_target=None, dryrun=False):
     """
     Exports specified imagesets to wildbook. This is a synchronous call.
 
@@ -945,7 +938,9 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None, set_shipped_flag=True
         tomcat_dpath, wb_target)
     submit_imgsetid_url_fmtstr  = (
         wildbook_base_url +
-        '/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}')
+        # TODO: wildbook should rename their function
+        # '/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}')
+        '/OccurrenceCreateIBEIS?ibeis_encounter_id={imageset_uuid!s}')
     complete_url_fmtstr = (
         wildbook_base_url + '/occurrence.jsp?number={imageset_uuid!s}')
     # Call Wildbook url to signal update

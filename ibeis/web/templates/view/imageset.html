@@ -13,10 +13,10 @@
 {% endblock %}
 {% block content %}
   {% if filtered %}
-    {% if num_eids > 0 %}
+    {% if num_imgsetids > 0 %}
       <div class="alert alert-info" role="alert">
-        Filtering for eids: {{ eid_list }}
-        <a href="{{ url_for('view_encounters') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        Filtering for gsids: {{ gsid_list }}
+        <a href="{{ url_for('view_imagesets') }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
   {% endif %}
@@ -37,21 +37,21 @@
           </tr>
         </thead>
         <tbody>
-          {% if num_encounters == 0 %}
+          {% if num_imagesets == 0 %}
             <tr>
-              <th class="no-items" colspan="99">Sorry, no encounters to display</th>
+              <th class="no-items" colspan="99">Sorry, no imagesets to display</th>
             </tr>
           {% else %}
-            {% for (eid, enctext, num_gids, num_processed_gids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in encounter_list %}
+            {% for (gsid, imagesettext, num_gids, num_processed_gids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in imageset_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
-              <th scope="row">{{ eid }}</th>
-              <td>{{ enctext }}</td>
+              <th scope="row">{{ gsid }}</th>
+              <td>{{ imagesettext }}</td>
               <td>{{ num_gids }} / {{ num_processed_gids }}</td>
               <td>{{ num_aids }} / {{ num_processed_viewpoint_aids }} / {{ num_processed_quality_aids }}</td>
               <td>{{ start }}</td>
-              <td><a href="{{ url_for('view_images') }}?eid={{ eid }}">Review</a></td>
-              <td><a href="{{ url_for('view_annotations') }}?eid={{ eid }}">Review</a></td>
-              <td><a href="{{ url_for('turk_detection') }}?eid={{ eid }}">Detections</a> | <a href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}">Viewpoint</a> | <a href="{{ url_for('turk_quality') }}?eid={{ eid }}">Quality</a> | <a href="{{ url_for('turk_additional') }}?eid={{ eid }}">Additional</a></td>
+              <td><a href="{{ url_for('view_images') }}?gsid={{ gsid }}">Review</a></td>
+              <td><a href="{{ url_for('view_annotations') }}?gsid={{ gsid }}">Review</a></td>
+              <td><a href="{{ url_for('turk_detection') }}?gsid={{ gsid }}">Detections</a> | <a href="{{ url_for('turk_viewpoint') }}?gsid={{ gsid }}">Viewpoint</a> | <a href="{{ url_for('turk_quality') }}?gsid={{ gsid }}">Quality</a> | <a href="{{ url_for('turk_additional') }}?gsid={{ gsid }}">Additional</a></td>
             </tr>
             {% endfor %}
           {% endif %}

@@ -34,9 +34,9 @@
 
   <div class="row marketing" style="text-align: center;">
     <!-- <div class="col-lg-3">
-      <a href="{{ url_for('view_encounters') }}"><h4>Encounters</h4></a>
+      <a href="{{ url_for('view_imagesets') }}"><h4>Encounters</h4></a>
       <br/>
-      <h4 class="total-label" id="encounter-total"></h4>
+      <h4 class="total-label" id="imageset-total"></h4>
     </div> -->
 
     <div class="col-lg-4">
@@ -185,7 +185,7 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k&libraries=visualization">
 </script>
 <script type="text/javascript">
-  // var encounterNumber  = new countUp("encounter-total",             0, {{ num_eids }}, 0, 2.0);
+  // var imagesetNumber  = new countUp("imageset-total",             0, {{ num_imgsetids }}, 0, 2.0);
   var imageNumber           = new countUp("image-total",            0, {{ num_gids }}, 0, 2.0);
   var imageUsedNumber       = new countUp("image-used",             0, {{ num_used_gids }}, 0, 2.0);
   var contribNumber         = new countUp("contrib-total",          0, {{ num_contribs }}, 0, 2.0);
@@ -197,7 +197,7 @@
   var namesCountNumber      = new countUp("names-count-total",      0, {{ num_nids_count }}, 0, 2.0);
   var plNumber              = new countUp("pl-total",               0, {{ pl_index }}, 0, 2.0);
   var errorNumber           = new countUp("error-total",            0, {{ pl_error }}, 0, 2.0);
-  // encounterNumber.start();
+  // imagesetNumber.start();
   imageNumber.start();
   imageUsedNumber.start();
   contribNumber.start();
