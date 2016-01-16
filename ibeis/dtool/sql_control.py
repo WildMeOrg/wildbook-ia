@@ -1047,9 +1047,6 @@ class SQLDatabaseController(object):
                              len(superkeys) > 0)
             if has_superkeys:
                 # Add in superkeys to constraints
-                #SELECT image_rowid
-                #FROM encounter_image_relationship
-                #WHERE image_rowid=? AND encounter_rowid=?
                 constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
                 assert isinstance(superkeys, list), (
                     'must be list got %r, superkeys=%r' % (type(superkeys), superkeys))
@@ -2072,7 +2069,6 @@ class SQLDatabaseController(object):
             >>> ibs_src.fix_invalid_annotmatches()
             >>> ibs_dst = ibeis.opendb(dbdir='test_sql_subexport_dst2', allow_newdir=True, delete_ibsdir=True)
             >>> ibs_src.ensure_contributor_rowids()
-            >>> #ibs_src.delete_all_encounters()
             >>> # build test data
             >>> db = ibs_dst.db
             >>> db_src = ibs_src.db
