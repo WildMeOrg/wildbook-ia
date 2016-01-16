@@ -2079,7 +2079,7 @@ class SQLDatabaseController(object):
             ...                  NAME_TABLE: ibs_src.get_annot_nids(aid_subset),
             ...                  IMAGE_TABLE: ibs_src.get_annot_gids(aid_subset),
             ...                  ANNOTMATCH_TABLE: [],
-            ...                  EG_RELATION_TABLE: [],
+            ...                  GSG_RELATION_TABLE: [],
             ...                  }
             >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets)
         """
