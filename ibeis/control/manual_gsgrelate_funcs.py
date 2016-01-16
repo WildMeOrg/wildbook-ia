@@ -117,22 +117,22 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
         >>> assert len(gids_list[0]) == 7
         >>> assert len(gids_list[1]) == 6
         >>> # Add imageset 2 gids to imageset 1 so an image belongs to multiple imagesets
-        >>> enc2_gids = gids_list[1][0:1]
-        >>> enc1_imgsetids = imgsetid_list[0:1]
-        >>> ibs.add_image_relationship(enc2_gids, enc1_imgsetids)
+        >>> imgset2_gids = gids_list[1][0:1]
+        >>> imgset1_imgsetids = imgsetid_list[0:1]
+        >>> ibs.add_image_relationship(imgset2_gids, imgset1_imgsetids)
         >>> # Now delete the image from the imageset 2
-        >>> enc2_imgsetids = imgsetid_list[1:2]
+        >>> imgset2_imgsetids = imgsetid_list[1:2]
         >>> # execute function
-        >>> ibs.unrelate_images_and_imagesets(enc2_gids, enc2_imgsetids)
+        >>> ibs.unrelate_images_and_imagesets(imgset2_gids, imgset2_imgsetids)
         >>> # verify results
         >>> ibs.print_egpairs_table()
         >>> imgsetid_list_ = ibs.get_valid_imgsetids()
         >>> gids_list_ = ibs.get_imageset_gids(imgsetid_list_)
         >>> result = str(gids_list_)
         >>> print(result)
-        >>> # enc2_gids should now only be in imageset1
-        >>> assert enc2_gids[0] in gids_list_[0]
-        >>> assert enc2_gids[0] not in gids_list_[1]
+        >>> # imgset2_gids should now only be in imageset1
+        >>> assert imgset2_gids[0] in gids_list_[0]
+        >>> assert imgset2_gids[0] not in gids_list_[1]
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:

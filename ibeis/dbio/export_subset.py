@@ -292,9 +292,9 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
         print(ut.list_str(list(zip(configid_list, config_suffix_list))))
 
         imgsetid_list = ibs.get_valid_imgsetids()
-        enc_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
-        enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)
-        print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))
+        imageset_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
+        imageset_suffix_list = ibs.get_config_suffixes(config_rowid_list)
+        print(ut.list_str(list(zip(imageset_config_rowid_list, imageset_suffix_list))))
 
     """
     # Get configs

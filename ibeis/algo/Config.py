@@ -1150,32 +1150,57 @@ class DetectionConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class ImageSetConfig(ConfigBase):
-    """ ImageSetConfig """
-    valid_cluster_algos = ['meanshift', 'agglomerative']
+class OccurrenceConfig(ConfigBase):
+    """ OccurrenceConfig
 
-    def __init__(enc_cfg, **kwargs):
-        super(ImageSetConfig, enc_cfg).__init__(name='enc_cfg')
-        enc_cfg.min_imgs_per_occurrence = 1
-        #enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
-        enc_cfg.cluster_algo = 'agglomerative'
-        enc_cfg.quantile = .01  # depends meanshift
-        enc_cfg.seconds_thresh = 60    # depends agglomerative
-        enc_cfg.use_gps = False
+    CommandLine:
+        python -m ibeis.algo.Config --exec-OccurrenceConfig --show
 
-    def get_cfgstr_list(enc_cfg):
-        enc_cfgstrs = []
-        if enc_cfg.cluster_algo == 'meanshift':
-            enc_cfgstrs.append('ms')
-            enc_cfgstrs.append('quant_%r' % enc_cfg.quantile)
-        elif enc_cfg.cluster_algo == 'agglomerative':
-            enc_cfgstrs.append('agg')
-            enc_cfgstrs.append('sec_%r' % enc_cfg.seconds_thresh)
-        if enc_cfg.use_gps:
-            enc_cfgstrs.append('gps')
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.Config import *  # NOQA
+        >>> occur_cfg = OccurrenceConfig()
+        >>> print(occur_cfg.get_cfgstr())
+    """
+    # valid_cluster_algos = ['meanshift', 'agglomerative']
 
-        enc_cfgstrs.append(str(enc_cfg.min_imgs_per_occurrence))
-        return ['_ENC(', ','.join(enc_cfgstrs), ')']
+    # def __init__(occur_cfg, **kwargs):
+    #     super(OccurrenceConfig, occur_cfg).__init__(name='occur_cfg')
+    #     occur_cfg.min_imgs_per_occurrence = 1
+    #     #occur_cfg.cluster_algo = 'meanshift'  # [agglomerative]
+    #     occur_cfg.cluster_algo = 'agglomerative'
+    #     occur_cfg.quantile = .01  # depends meanshift
+    #     occur_cfg.seconds_thresh = 60    # depends agglomerative
+    #     occur_cfg.use_gps = False
+
+    # def get_cfgstr_list(occur_cfg):
+    #     occur_cfgstrs = []
+    #     if occur_cfg.cluster_algo == 'meanshift':
+    #         occur_cfgstrs.append('ms')
+    #         occur_cfgstrs.append('quant_%r' % occur_cfg.quantile)
+    #     elif occur_cfg.cluster_algo == 'agglomerative':
+    #         occur_cfgstrs.append('agg')
+    #         occur_cfgstrs.append('sec_%r' % occur_cfg.seconds_thresh)
+    #     if occur_cfg.use_gps:
+    #         occur_cfgstrs.append('gps')
+
+    #     occur_cfgstrs.append(str(occur_cfg.min_imgs_per_occurrence))
+    #     return ['_OCCUR(', ','.join(occur_cfgstrs), ')']
+
+    def __init__(occur_cfg, **kwargs):
+        super(OccurrenceConfig, occur_cfg).__init__(name='occur_cfg')
+        occur_cfg.initialize_params()
+        occur_cfg.update(**kwargs)
+
+    def get_param_info_list(occur_cfg):
+        param_info_list = [
+            ut.ParamInfo('min_imgs_per_occurrence', 1, 'minper='),
+            ut.ParamInfo('cluster_algo', 'agglomerative', ''),
+            ut.ParamInfo('quantile', .01, 'quant', hideif=lambda cfg: cfg['cluster_algo'] != 'meanshift'),
+            ut.ParamInfo('seconds_thresh', 60, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
+            ut.ParamInfo('use_gps', False, hideif=False),
+        ]
+        return param_info_list
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -1366,7 +1391,7 @@ def _default_config(cfg, cfgname=None, new=True):
         cfg.z_cfgname = cfgname
     query_cfg = QueryConfig(pipeline_root='vsmany')
     set_query_cfg(cfg, query_cfg)
-    cfg.enc_cfg     = ImageSetConfig()
+    cfg.occur_cfg   = OccurrenceConfig()
     cfg.detect_cfg  = DetectionConfig()
     cfg.other_cfg   = OtherConfig()
     _default_named_config(cfg, cfgname)

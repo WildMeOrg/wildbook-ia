@@ -140,9 +140,8 @@ class MainWindowBackend(GUIBACK_BASE):
         back.sel_nids = []
         back.sel_gids = []
         back.sel_cm = []
-        back.active_enc = 0
         if ut.is_developer():
-            back.daids_mode = const.INTRA_ENC_KEY
+            back.daids_mode = const.INTRA_OCCUR_KEY
         else:
             back.daids_mode = const.VS_EXEMPLARS_KEY
         #back.imageset_query_results = ut.ddict(dict)
@@ -166,7 +165,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def set_daids_mode(back, new_mode):
         if new_mode == 'toggle':
             if back.daids_mode == const.VS_EXEMPLARS_KEY:
-                back.daids_mode = const.INTRA_ENC_KEY
+                back.daids_mode = const.INTRA_OCCUR_KEY
             else:
                 back.daids_mode = const.VS_EXEMPLARS_KEY
         else:
@@ -813,7 +812,7 @@ class MainWindowBackend(GUIBACK_BASE):
         species = back.ibs.cfg.detect_cfg.species_text
         if species == 'none':
             species = None
-        print("[train_rf_with_imageset] Training Random Forest trees with enc=%r and species=%r" % (imgsetid, species, ))
+        print("[train_rf_with_imageset] Training Random Forest trees with imgsetid=%r and species=%r" % (imgsetid, species, ))
         randomforest.train_gid_list(back.ibs, gid_list, teardown=False, species=species)
 
     @blocking_slot(int)
@@ -838,7 +837,7 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs.set_image_imgsetids(gid_list, imgsetid_list)
         ibs.delete_imagesets(deprecated_imgsetids)
         for imgsetid in deprecated_imgsetids:
-            back.front.enc_tabwgt._close_tab_with_imgsetid(imgsetid)
+            back.front.imageset_tabwgt._close_tab_with_imgsetid(imgsetid)
         back.front.update_tables([gh.IMAGESET_TABLE], clear_view_selection=True)
 
     @blocking_slot(int)
@@ -1023,7 +1022,7 @@ class MainWindowBackend(GUIBACK_BASE):
             const.VS_EXEMPLARS_KEY: {
                 'is_exemplar': True,
             },
-            const.INTRA_ENC_KEY: {
+            const.INTRA_OCCUR_KEY: {
                 'imgsetid': imgsetid,
             },
             'all': {
@@ -1035,7 +1034,7 @@ class MainWindowBackend(GUIBACK_BASE):
         }
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',
-            const.INTRA_ENC_KEY: 'intra_imageset',
+            const.INTRA_OCCUR_KEY: 'intra_occurrence',
             'all': 'all'
         }[daids_mode]
         valid_kw.update(daids_mode_valid_kw_dict[daids_mode])
@@ -1294,7 +1293,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if daids_mode == const.VS_EXEMPLARS_KEY:
             query_title += ' vs exemplars'
-        elif daids_mode == const.INTRA_ENC_KEY:
+        elif daids_mode == const.INTRA_OCCUR_KEY:
             query_title += ' intra imageset'
         elif daids_mode == 'all':
             query_title += ' all'
@@ -1308,7 +1307,7 @@ class MainWindowBackend(GUIBACK_BASE):
             raise guiexcept.InvalidRequest('No database annotations. Is the species correctly set?')
 
         # HACK
-        #if daids_mode == const.INTRA_ENC_KEY:
+        #if daids_mode == const.INTRA_OCCUR_KEY:
         FILTER_HACK = True
         if FILTER_HACK:
             if not use_visual_selection:
@@ -1332,7 +1331,7 @@ class MainWindowBackend(GUIBACK_BASE):
         progbar.close()
         del progbar
         # HACK IN IMAGESET INFO
-        if daids_mode == const.INTRA_ENC_KEY:
+        if daids_mode == const.INTRA_OCCUR_KEY:
             for cm in cm_list:
                 #if cm is not None:
                 cm.imgsetid = imgsetid
@@ -1424,7 +1423,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.ibs.compute_occurrences()
         back.ibs.update_special_imagesets()
         print('[back] about to finish computing imagesets')
-        back.front.enc_tabwgt._close_all_tabs()
+        back.front.imageset_tabwgt._close_all_tabs()
         if refresh:
             back.front.update_tables()
         print('[back] finished computing imagesets')
@@ -1443,7 +1442,7 @@ class MainWindowBackend(GUIBACK_BASE):
             # Set imageset to be processed
             back.ibs.set_imageset_processed_flags([imgsetid], [1])
             back.ibs.wildbook_signal_imgsetid_list([imgsetid])
-            back.front.enc_tabwgt._close_tab_with_imgsetid(imgsetid)
+            back.front.imageset_tabwgt._close_tab_with_imgsetid(imgsetid)
             if refresh:
                 back.front.update_tables([gh.IMAGESET_TABLE])
 

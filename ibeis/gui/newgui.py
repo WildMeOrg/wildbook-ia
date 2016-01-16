@@ -32,9 +32,9 @@ from ibeis.viz.interact import interact_annotations2
 from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, IMAGESET_TABLE)  # NOQA
 from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         IBEISItemModel, IBEISTreeView,
-                                        EncTableModel, EncTableView,
+                                        ImagesetTableModel, ImagesetTableView,
                                         IBEISTableWidget, IBEISTreeWidget,
-                                        EncTableWidget)
+                                        ImagesetTableWidget)
 import guitool
 from plottool import color_funcs
 import utool as ut
@@ -101,92 +101,83 @@ class APITabWidget(QtGui.QTabWidget):
     #    #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
-class EncoutnerTabWidget(QtGui.QTabWidget):
+class ImagesetTabWidget(QtGui.QTabWidget):
     """
     Handles the super-tabs for the imagesets that hold the table-tabs
     """
-    def __init__(enc_tabwgt, parent=None, horizontalStretch=1):
-        QtGui.QTabWidget.__init__(enc_tabwgt, parent)
-        enc_tabwgt.ibswgt = parent
-        enc_tabwgt.setTabsClosable(True)
-        enc_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
-        enc_tabwgt.tabbar = enc_tabwgt.tabBar()
-        enc_tabwgt.tabbar.setMovable(False)
-        enc_tabwgt.setStyleSheet('border: none;')
-        enc_tabwgt.tabbar.setStyleSheet('border: none;')
-        sizePolicy = guitool.newSizePolicy(enc_tabwgt, horizontalStretch=horizontalStretch)
-        enc_tabwgt.setSizePolicy(sizePolicy)
+    def __init__(imageset_tabwgt, parent=None, horizontalStretch=1):
+        QtGui.QTabWidget.__init__(imageset_tabwgt, parent)
+        imageset_tabwgt.ibswgt = parent
+        imageset_tabwgt.setTabsClosable(True)
+        imageset_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
+        imageset_tabwgt.tabbar = imageset_tabwgt.tabBar()
+        imageset_tabwgt.tabbar.setMovable(False)
+        imageset_tabwgt.setStyleSheet('border: none;')
+        imageset_tabwgt.tabbar.setStyleSheet('border: none;')
+        sizePolicy = guitool.newSizePolicy(imageset_tabwgt, horizontalStretch=horizontalStretch)
+        imageset_tabwgt.setSizePolicy(sizePolicy)
 
-        enc_tabwgt.tabCloseRequested.connect(enc_tabwgt._close_tab)
-        enc_tabwgt.currentChanged.connect(enc_tabwgt._on_enctab_change)
+        imageset_tabwgt.tabCloseRequested.connect(imageset_tabwgt._close_tab)
+        imageset_tabwgt.currentChanged.connect(imageset_tabwgt._on_imagesettab_change)
 
-        enc_tabwgt.imgsetid_list = []
+        imageset_tabwgt.imgsetid_list = []
         # TURNING ON / OFF ALL IMAGES
-        # enc_tabwgt._add_enc_tab(-1, const.ALL_IMAGE_IMAGESETTEXT)
+        # imageset_tabwgt._add_imageset_tab(-1, const.ALL_IMAGE_IMAGESETTEXT)
 
     @slot_(int)
-    def _on_enctab_change(enc_tabwgt, index):
+    def _on_imagesettab_change(imageset_tabwgt, index):
         """ Switch to the current imageset tab """
         print('[imageset_tab_widget] _onchange(index=%r)' % (index,))
-        if 0 <= index and index < len(enc_tabwgt.imgsetid_list):
-            imgsetid = enc_tabwgt.imgsetid_list[index]
+        if 0 <= index and index < len(imageset_tabwgt.imgsetid_list):
+            imgsetid = imageset_tabwgt.imgsetid_list[index]
             #if ut.VERBOSE:
-            print('[ENCTAB.ONCHANGE] imgsetid = %r' % (imgsetid,))
-            enc_tabwgt.ibswgt._change_enc(imgsetid)
+            print('[IMAGESETTAB.ONCHANGE] imgsetid = %r' % (imgsetid,))
+            imageset_tabwgt.ibswgt._change_imageset(imgsetid)
         else:
-            enc_tabwgt.ibswgt._change_enc(-1)
+            imageset_tabwgt.ibswgt._change_imageset(-1)
 
     @slot_(int)
-    def _close_tab(enc_tabwgt, index):
+    def _close_tab(imageset_tabwgt, index):
         print('[imageset_tab_widget] _close_tab(index=%r)' % (index,))
-        if enc_tabwgt.imgsetid_list[index] is not None:
-            enc_tabwgt.imgsetid_list.pop(index)
-            enc_tabwgt.removeTab(index)
+        if imageset_tabwgt.imgsetid_list[index] is not None:
+            imageset_tabwgt.imgsetid_list.pop(index)
+            imageset_tabwgt.removeTab(index)
 
     @slot_()
-    def _close_all_tabs(enc_tabwgt):
+    def _close_all_tabs(imageset_tabwgt):
         print('[imageset_tab_widget] _close_all_tabs()')
-        while len(enc_tabwgt.imgsetid_list) > 0:
+        while len(imageset_tabwgt.imgsetid_list) > 0:
             index = 0
-            enc_tabwgt.imgsetid_list.pop(index)
-            enc_tabwgt.removeTab(index)
+            imageset_tabwgt.imgsetid_list.pop(index)
+            imageset_tabwgt.removeTab(index)
 
     @slot_(int)
-    def _close_tab_with_imgsetid(enc_tabwgt, imgsetid):
+    def _close_tab_with_imgsetid(imageset_tabwgt, imgsetid):
         print('[imageset_tab_widget] _close_tab_with_imgsetid(imgsetid=%r)' % (imgsetid))
         try:
-            index = enc_tabwgt.imgsetid_list.index(imgsetid)
-            enc_tabwgt._close_tab(index)
+            index = imageset_tabwgt.imgsetid_list.index(imgsetid)
+            imageset_tabwgt._close_tab(index)
         except:
             pass
 
-    def _add_enc_tab(enc_tabwgt, imgsetid, imagesettext):
-        # <HACK>
-        # if imagesettext == const.ALL_IMAGE_IMAGESETTEXT:
-        #     imgsetid = None
-        # </HACK>
-        #with ut.Indenter('[_ADD_ENC_TAB]'):
-        print('[_add_enc_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
-        if imgsetid not in enc_tabwgt.imgsetid_list:
-            # tab_name = str(imgsetid) + ' - ' + str(imagesettext)
+    def _add_imageset_tab(imageset_tabwgt, imgsetid, imagesettext):
+        print('[_add_imageset_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
+        if imgsetid not in imageset_tabwgt.imgsetid_list:
             tab_name = str(imagesettext)
-            enc_tabwgt.addTab(QtGui.QWidget(), tab_name)
+            imageset_tabwgt.addTab(QtGui.QWidget(), tab_name)
 
-            enc_tabwgt.imgsetid_list.append(imgsetid)
-            index = len(enc_tabwgt.imgsetid_list) - 1
+            imageset_tabwgt.imgsetid_list.append(imgsetid)
+            index = len(imageset_tabwgt.imgsetid_list) - 1
         else:
-            index = enc_tabwgt.imgsetid_list.index(imgsetid)
+            index = imageset_tabwgt.imgsetid_list.index(imgsetid)
 
-        #with BlockContext(enc_tabwgt):
-        #print('SET CURRENT INDEX')
-        enc_tabwgt.setCurrentIndex(index)
-        #print('DONE SETTING CURRENT INDEX')
-        enc_tabwgt._on_enctab_change(index)
+        imageset_tabwgt.setCurrentIndex(index)
+        imageset_tabwgt._on_imagesettab_change(index)
 
-    def _update_enc_tab_name(enc_tabwgt, imgsetid, imagesettext):
-        for index, _id in enumerate(enc_tabwgt.imgsetid_list):
+    def _update_imageset_tab_name(imageset_tabwgt, imgsetid, imagesettext):
+        for index, _id in enumerate(imageset_tabwgt.imgsetid_list):
             if imgsetid == _id:
-                enc_tabwgt.setTabText(index, imagesettext)
+                imageset_tabwgt.setTabText(index, imagesettext)
 
 
 #############################
@@ -294,8 +285,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                           IBEISItemModel, IBEISTreeView))
         # ADD IMAGESET TABLE
         ibswgt.super_tblname_list = ibswgt.tblname_list + [IMAGESET_TABLE]
-        ibswgt.modelview_defs.append((IMAGESET_TABLE,  EncTableWidget,
-                                      EncTableModel, EncTableView))
+        ibswgt.modelview_defs.append((IMAGESET_TABLE,  ImagesetTableWidget,
+                                      ImagesetTableModel, ImagesetTableView))
 
         # DO INITALIZATION
         # Create and layout components
@@ -426,7 +417,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt._table_tab_wgt.addTab(ibswgt.widgets[tblname], tblname)
             ibswgt._table_tab_wgt.addTab(ibswgt.views[tblname], tblname)
         # Custom ImageSet Tab Wiget
-        ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
+        ibswgt.imageset_tabwgt = ImagesetTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
                                                   visible=WITH_GUILOG, verticalStretch=6)
@@ -478,11 +469,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                       ibswgt.back.change_detection_species,
                                       fontkw=primary_fontkw)
 
-        ibswgt.batch_intra_imageset_query_button = _NEWBUT(
+        ibswgt.batch_intra_occurrence_query_button = _NEWBUT(
             'Intra ImageSet',
             functools.partial(
                 back.compute_queries, query_is_known=None,
-                daids_mode=const.INTRA_ENC_KEY,
+                daids_mode=const.INTRA_OCCUR_KEY,
                 use_prioritized_name_subset=False,
                 cfgdict={'can_match_samename': False, 'use_k_padding': False}),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.01, -0.7, 0.0),
@@ -549,7 +540,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.species_combo,
                 _NEWLBL(''),
                 _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
-                ibswgt.batch_intra_imageset_query_button,
+                ibswgt.batch_intra_occurrence_query_button,
                 ibswgt.batch_vsexemplar_query_button,
                 _NEWLBL(''),
             ],
@@ -558,7 +549,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def _init_layout(ibswgt):
         """ Lays out the defined components """
         # Add elements to the layout
-        ibswgt.vlayout.addWidget(ibswgt.enc_tabwgt)
+        ibswgt.vlayout.addWidget(ibswgt.imageset_tabwgt)
         ibswgt.vlayout.addWidget(ibswgt.vsplitter)
         ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
         ibswgt.vsplitter.addWidget(ibswgt.status_wgt)
@@ -613,7 +604,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
         print('[newgui] connecting ibs control. ibs=%r' % (ibs,))
-        ibswgt.enc_tabwgt._close_all_tabs()
+        ibswgt.imageset_tabwgt._close_all_tabs()
         if ibs is None:
             print('[newgui] invalid ibs')
             title = 'No Database Opened'
@@ -668,7 +659,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # TODO: load previously loaded imageset or nothing
             LOAD_IMAGESET_ON_START = True
             if LOAD_IMAGESET_ON_START:
-                #with ut.Indenter('[LOAD_ENC]'):
                 imgsetid_list = ibs.get_valid_imgsetids(shipped=False)
                 if len(imgsetid_list) > 0:
                     DEFAULT_LARGEST_IMAGESET = False
@@ -678,11 +668,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         imgsetid = imgsetid_list[argx]
                     else:  # Grab "first" imageset
                         imgsetid = imgsetid_list[0]
-                    #ibswgt._change_enc(imgsetid)
+                    #ibswgt._change_imageset(imgsetid)
                     ibswgt.select_imageset_tab(imgsetid)
                 else:
-                    #with ut.Indenter('[SET NEG1 ENC]'):
-                    ibswgt._change_enc(-1)
+                    ibswgt._change_imageset(-1)
 
             # Update species with ones enabled in database
             ibswgt.update_species_available()
@@ -719,16 +708,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
-    def _change_enc(ibswgt, imgsetid):
-        print('[newgui] _change_enc(imgsetid=%r, uuid=%r)' %
+    def _change_imageset(ibswgt, imgsetid):
+        print('[newgui] _change_imageset(imgsetid=%r, uuid=%r)' %
               (imgsetid, ibswgt.back.ibs.get_imageset_uuid(imgsetid)))
         for tblname in ibswgt.tblname_list:
             view = ibswgt.views[tblname]
             view.clearSelection()
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             view = ibswgt.views[tblname]
-            view._change_enc(imgsetid)
-            #ibswgt.models[tblname]._change_enc(imgsetid)  # the view should take care of this call
+            view._change_imageset(imgsetid)
+            #ibswgt.models[tblname]._change_imageset(imgsetid)  # the view should take care of this call
         try:
             #if imgsetid is None:
             #    # HACK
@@ -755,8 +744,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ut.printex(ex, iswarning=True)
         ibswgt.set_table_tab(IMAGE_TABLE)
 
-    def _update_enc_tab_name(ibswgt, imgsetid, imagesettext):
-        ibswgt.enc_tabwgt._update_enc_tab_name(imgsetid, imagesettext)
+    def _update_imageset_tab_name(ibswgt, imgsetid, imagesettext):
+        ibswgt.imageset_tabwgt._update_imageset_tab_name(imgsetid, imagesettext)
 
     #------------
     # SLOT HELPERS
@@ -803,7 +792,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             imagesettext = ibswgt.ibs.get_imageset_text(imgsetid)
         #ibswgt.back.select_imgsetid(imgsetid)
-        ibswgt.enc_tabwgt._add_enc_tab(imgsetid, imagesettext)
+        ibswgt.imageset_tabwgt._add_imageset_tab(imgsetid, imagesettext)
 
     def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, imgsetid, model=None, qtindex=None):
         """

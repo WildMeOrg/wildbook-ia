@@ -65,7 +65,7 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
         """ Overrides the API model ider to give only selected imageset ids """
         return model.original_iders[0](imgsetid=model.imgsetid)
 
-    def _change_enc(model, imgsetid):
+    def _change_imageset(model, imgsetid):
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             IBEISSTRIPEMODEL_BASE._update_rows(model)
@@ -79,11 +79,11 @@ class IBEISTableView(APITableView):
         APITableView.__init__(tblview, parent)
         tblview.ibswin = parent
 
-    def _change_enc(tblview, imgsetid):
+    def _change_imageset(tblview, imgsetid):
         tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
-            model._change_enc(imgsetid)
+            model._change_imageset(imgsetid)
 
 
 class IBEISItemModel(IBEISITEMMODEL_BASE):
@@ -113,7 +113,7 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
         """
         return model.original_iders[0](imgsetid=model.imgsetid)
 
-    def _change_enc(model, imgsetid):
+    def _change_imageset(model, imgsetid):
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             IBEISITEMMODEL_BASE._update_rows(model)
@@ -127,13 +127,13 @@ class IBEISTreeView(APITreeView):
         APITreeView.__init__(treeview, parent)
         treeview.ibswin = parent
 
-    def _change_enc(treeview, imgsetid):
+    def _change_imageset(treeview, imgsetid):
         treeview.verticalScrollBar().setSliderPosition(0)
         model = treeview.model()
         if model is not None:
             # FIXME: should defer the change of imageset until
             # the view becomes visible
-            model._change_enc(imgsetid)
+            model._change_imageset(imgsetid)
 
 
 #-------------------------
@@ -141,22 +141,22 @@ class IBEISTreeView(APITreeView):
 #-------------------------
 
 
-class EncTableWidget(APIItemWidget):
+class ImagesetTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
         APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=EncTableModel,
-                                view_class=EncTableView)
+                                model_class=ImagesetTableModel,
+                                view_class=ImagesetTableView)
 
 
-class EncTableModel(APIItemModel):
+class ImagesetTableModel(APIItemModel):
     def __init__(model, headers=None, parent=None):
         model.ibswin = parent
         model.headers = headers
         APIItemModel.__init__(model, headers=headers, parent=parent)
 
 
-class EncTableView(APITableView):
+class ImagesetTableView(APITableView):
     """
     View for ImageSet Table
     """

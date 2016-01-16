@@ -1877,7 +1877,7 @@ def get_special_imgsetids(ibs):
         const.EXEMPLAR_IMAGESETTEXT,
     ]
     special_imgsetids_ = [get_imagesettext_imgsetid(imagesettext, ensure=False)
-                     for imagesettext in special_imagesettext_list]
+                          for imagesettext in special_imagesettext_list]
     special_imgsetids = [i for i in special_imgsetids_ if i is not None]
     return special_imgsetids
 
@@ -2249,9 +2249,9 @@ def is_aid_unknown(ibs, aid_list):
     return ibs.is_nid_unknown(nid_list)
 
 
-def make_imagesettext_list(imgsetid_list, enc_cfgstr):
+def make_imagesettext_list(imgsetid_list, occur_cfgstr):
     # DEPRICATE
-    imagesettext_list = [str(imgsetid) + enc_cfgstr for imgsetid in imgsetid_list]
+    imagesettext_list = [str(imgsetid) + occur_cfgstr for imgsetid in imgsetid_list]
     return imagesettext_list
 
 
@@ -2322,7 +2322,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         >>> print(result)
         (
             [4, 5, 6, 7],
-            ['IBEIS_UNKNOWN_ImageSet_1_0001', 'IBEIS_GZ_ImageSet_1_0001', 'IBEIS_PB_ImageSet_1_0001', 'IBEIS_UNKNOWN_ImageSet_1_0002'],
+            ['IBEIS_UNKNOWN_Occurrence_1_0001', 'IBEIS_GZ_Occurrence_1_0001', 'IBEIS_PB_Occurrence_1_0001', 'IBEIS_UNKNOWN_Occurrence_1_0002'],
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
@@ -2341,10 +2341,10 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
 
     location_text = ibs.cfg.other_cfg.location_for_names
     if imgsetid is not None:
-        enc_text = ibs.get_imageset_text(imgsetid)
-        enc_text = enc_text.replace(' ', '_').replace('\'', '').replace('"', '')
+        imgset_text = ibs.get_imageset_text(imgsetid)
+        imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
         new_name_list = [
-            '%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code))
+            '%s_%s_%s_%04d' % (location_text, code, imgset_text, get_next_index(code))
             for code in code_list]
     else:
         new_name_list = [
@@ -4053,23 +4053,6 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         if verbose:
             print('L ___')
     return new_aid_list, new_flag_list
-
-
-#@register_ibs_method
-#def query_enc_names_vs_exemplars(ibs, exemplars_per_view=2, imgsetid=None):
-#    """
-
-#    """
-#    aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
-#    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
-#        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
-#    qaids = ut.compress(new_aid_list, new_flag_list)
-#    daids = ibs.get_valid_aids(is_exemplar=True, minqual='poor')
-#    cfgdict = dict(can_match_samename=False)
-#    #, use_k_padding=True)
-#    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
-#    qres_list = ibs.query_chips(qreq_=qreq_)
-#    return qres_list
 
 
 def detect_join_cases(ibs):

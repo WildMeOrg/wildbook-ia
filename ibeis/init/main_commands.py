@@ -112,7 +112,7 @@ def postload_commands(ibs, back):
         # Whoa: this doesnt work. weird.
         #back.select_imgsetid(select_imgsetid)
         # This might be the root of gui problems
-        #back.front._change_enc(select_imgsetid)
+        #back.front._change_imageset(select_imgsetid)
         back.front.select_imageset_tab(select_imgsetid)
         print('L ___ CMD SELECT EID=%r ___\n' % (select_imgsetid,))
     # Send commands to GUIBack

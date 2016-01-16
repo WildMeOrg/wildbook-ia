@@ -249,7 +249,7 @@ CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'
-INTRA_ENC_KEY = 'intra_imageset'
+INTRA_OCCUR_KEY = 'intra_occurrence'
 
 HARD_NOTE_TAG = '<HARDCASE>'
 

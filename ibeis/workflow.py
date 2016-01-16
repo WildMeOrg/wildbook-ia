@@ -56,7 +56,7 @@ def find_most_disitnctive_keypoints():
     pass
 
 
-def intra_imageset_matching():
+def intra_occurrence_matching():
     qreq_, cm_list = testdata_workflow()
     # qaids = [cm.qaid for cm in cm_list]
     # top_aids = [cm.get_top_aids(5) for cm in cm_list]

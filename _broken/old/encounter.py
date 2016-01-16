@@ -62,7 +62,7 @@ def intra_query_cxs(ibs, aids):
     return qcx2_res
 
 
-#def intra_imageset_match(ibs, aids, **kwargs):
+#def intra_occurrence_match(ibs, aids, **kwargs):
     # Make a graph between the chips
     #qcx2_res = intra_query_cxs(aids)
     #graph = make_chip_graph(qcx2_res)
@@ -74,7 +74,7 @@ def intra_query_cxs(ibs, aids):
     #return graph
 
 
-def execute_all_intra_imageset_match(ibs, **kwargs):
+def execute_all_intra_occurrence_match(ibs, **kwargs):
     # Group images / chips into imagesets
     ex2_cxs = get_chip_imagesets(ibs)
     # For each imageset
@@ -82,7 +82,7 @@ def execute_all_intra_imageset_match(ibs, **kwargs):
     for ex, aids in enumerate(ex2_cxs):
         pass
         # Perform Intra-ImageSet Matching
-        #nid2_cxs = intra_imageset_match(ibs, aids)
+        #nid2_cxs = intra_occurrence_match(ibs, aids)
         #ex2_names[ex] = nid2_cxs
     return ex2_names
 
@@ -90,7 +90,7 @@ def execute_all_intra_imageset_match(ibs, **kwargs):
 def inter_imageset_match(ibs, imgsetid2_names=None, **kwargs):
     # Perform Inter-ImageSet Matching
     #if imgsetid2_names is None:
-        #imgsetid2_names = intra_imageset_match(ibs, **kwargs)
+        #imgsetid2_names = intra_occurrence_match(ibs, **kwargs)
     all_nxs = utool.flatten(imgsetid2_names.values())
     for nid2_cxs in imgsetid2_names:
         qnxs = nid2_cxs

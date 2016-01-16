@@ -63,7 +63,7 @@ def flow():
     # meanshift clustering
     import sklearn
     bandwidth = sklearn.cluster.estimate_bandwidth(X[:, None])  # , quantile=quantile, n_samples=500)
-    assert bandwidth != 0, ('[enc] bandwidth is 0. Cannot cluster')
+    assert bandwidth != 0, ('bandwidth is 0. Cannot cluster')
     # bandwidth is with respect to the RBF used in clustering
     #ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
     ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=False)

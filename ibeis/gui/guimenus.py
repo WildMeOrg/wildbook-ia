@@ -181,7 +181,7 @@ def setup_actions_menu(mainwin, back):
     menu.newAction(
         name='actionBatchIntraImageSetQueries',
         text='Query: Intra ImageSet',
-        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY),
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY),
     )
     menu.newAction(
         name='actionBatchVsExemplarQueries',
@@ -419,7 +419,7 @@ def setup_developer_menu(mainwin, back):
     adv_ieq_menu.newAction(
         name='actionBatchUnknownIntraImageSetQueries',
         text='Query: Unknown Intra ImageSet',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_ENC_KEY),
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_OCCUR_KEY),
     )
     adv_exq_menu.newAction(
         name='actionBatchUnknownVsExemplarQueries',
@@ -446,7 +446,7 @@ def setup_developer_menu(mainwin, back):
     adv_ieq_menu.newAction(
         name='actionQueryInEncMode1',
         text='Query: Names Intra ImageSet With OriAugment',
-        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY,
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY,
                                   use_prioritized_name_subset=True,
                                   cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
     )

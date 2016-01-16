@@ -340,7 +340,7 @@ class CustomFilterModel(FilterProxyModel):
         """ Overrides the API model ider to give only selected imageset ids """
         return model.original_iders[0]()
 
-    def _change_enc(model, imgsetid):
+    def _change_imageset(model, imgsetid):
         model.imgsetid = imgsetid
         # seems unused
         with ChangeLayoutContext([model]):
