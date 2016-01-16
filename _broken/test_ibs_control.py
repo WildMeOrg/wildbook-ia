@@ -9,21 +9,21 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS_CONTRO
 
 
 def TEST_IBS_CONTROL(ibs):
-    ibs.delete_all_encounters()
-    ibs.compute_encounters()
+    ibs.delete_all_imagesets()
+    ibs.compute_occurrences()
 
-    """ get_image_eids / get_encounter_gids """
-    eid_list = ibs.get_valid_eids()
-    assert eid_list, 'eid_list is empty'
-    gids_list = ibs.get_encounter_gids(eid_list)
+    """ get_image_imgsetids / get_imageset_gids """
+    imgsetid_list = ibs.get_valid_imgsetids()
+    assert imgsetid_list, 'imgsetid_list is empty'
+    gids_list = ibs.get_imageset_gids(imgsetid_list)
     # print('[TEST] gids_list = %r' % gids_list)
     assert gids_list, 'gids_list is empty'
-    for gids, eid in zip(gids_list, eid_list):
-        eid_list2 = ibs.get_image_eids(gids)
+    for gids, imgsetid in zip(gids_list, imgsetid_list):
+        imgsetid_list2 = ibs.get_image_imgsetids(gids)
         try:
-            assert ([[eid]] * len(eid_list2)) == eid_list2
+            assert ([[imgsetid]] * len(imgsetid_list2)) == imgsetid_list2
         except AssertionError as ex:
-            utool.printex(ex, key_list=['eid_list2', 'eid'])
+            utool.printex(ex, key_list=['imgsetid_list2', 'imgsetid'])
             raise
 
     """ set_annot_notes / get_annot_notes """
@@ -121,19 +121,19 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_image_gps(gid_list, gps_list_orig)
     assert gps_list_orig == ibs.get_image_gps(gid_list), 'gps was not reset to original state'
 
-    """ set encounter enctext / get encounter enctext """
-    eid_list = ibs.get_valid_eids()
-    enc_text_list_orig = ibs.get_encounter_text(eid_list)
-    enc_text_list = [str(x) for x in range(len(eid_list))]
-    assert eid_list, 'eid_list is empty'
-    print('len eid_list: %d' % len(eid_list))
-    ibs.set_encounter_text(eid_list, enc_text_list)
-    enc_text_list2 = ibs.get_encounter_text(eid_list)
+    """ set imageset imagesettext / get imageset imagesettext """
+    imgsetid_list = ibs.get_valid_imgsetids()
+    enc_text_list_orig = ibs.get_imageset_text(imgsetid_list)
+    enc_text_list = [str(x) for x in range(len(imgsetid_list))]
+    assert imgsetid_list, 'imgsetid_list is empty'
+    print('len imgsetid_list: %d' % len(imgsetid_list))
+    ibs.set_imageset_text(imgsetid_list, enc_text_list)
+    enc_text_list2 = ibs.get_imageset_text(imgsetid_list)
     print('enc_text_list = %r' % enc_text_list)
     print('enc_text_list2 = %r' % enc_text_list2)
-    assert enc_text_list == enc_text_list2, 'encounter text lists do not match'
-    ibs.set_encounter_text(eid_list, enc_text_list_orig)
-    assert enc_text_list_orig == ibs.get_encounter_text(eid_list), 'enc text was not reset'
+    assert enc_text_list == enc_text_list2, 'imageset text lists do not match'
+    ibs.set_imageset_text(imgsetid_list, enc_text_list_orig)
+    assert enc_text_list_orig == ibs.get_imageset_text(imgsetid_list), 'enc text was not reset'
 
     """ set annotation names / get_annot_names """
     aid_list = ibs.get_valid_aids()

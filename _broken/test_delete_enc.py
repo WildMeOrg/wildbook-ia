@@ -9,13 +9,13 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ENC
 
 def TEST_DELETE_ENC(ibs, back):
     from ibeis import ibsfuncs
-    ibsfuncs.update_special_encounters(ibs)
-    eid_list = ibs.get_valid_eids()
-    assert len(eid_list) != 0, "All Image encounter not created"
-    eid = eid_list[0]
-    ibs.delete_encounters(eid)
-    eid_list = ibs.get_valid_eids()
-    assert eid not in eid_list, "eid=%r still exists" % (eid,)
+    ibsfuncs.update_special_imagesets(ibs)
+    imgsetid_list = ibs.get_valid_imgsetids()
+    assert len(imgsetid_list) != 0, "All Image imageset not created"
+    imgsetid = imgsetid_list[0]
+    ibs.delete_imagesets(imgsetid)
+    imgsetid_list = ibs.get_valid_imgsetids()
+    assert imgsetid not in imgsetid_list, "imgsetid=%r still exists" % (imgsetid,)
     return locals()
 
 

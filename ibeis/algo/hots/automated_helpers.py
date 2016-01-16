@@ -78,13 +78,13 @@ Tasks:
              - name_member_annot_rowids_evalstr
              - name_member_num_annot_rowids
 
-         * New Encounter Columns
-             - encounter_start_time
-             - encounter_end_time
-             - encounter_lat
-             - encounter_lon
-             - encounter_processed_flag
-             - encounter_shipped_flag
+         * New ImageSet Columns
+             - imageset_start_time
+             - imageset_end_time
+             - imageset_lat
+             - imageset_lon
+             - imageset_processed_flag
+             - imageset_shipped_flag
 
     Decision UIs::
         * Query versus top N results
@@ -106,14 +106,14 @@ Tasks:
     GUI::
         * NameTree needs to not refresh unless absolutely necessary
         * Time Sync
-        * Encounter metadata sync from the SMART
-        * Hide shipped encounters
+        * ImageSet metadata sync from the SMART
+        * Hide shipped imagesets
             - put flag to turn them on
-        * Mark processed encounters
+        * Mark processed imagesets
         * Gui naturally ensures that all annotations in the query belong
            to the same species
         * Garbage collection function that removes all non-exemplar
-          information from encounters that have been shipped.
+          information from imagesets that have been shipped.
         * Spawn process that reindexes large chunks of descriptors as the
           database grows.
 

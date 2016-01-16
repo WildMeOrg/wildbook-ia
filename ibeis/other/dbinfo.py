@@ -132,7 +132,7 @@ def get_dbinfo(ibs, verbose=True,
         L============================
     """
     # TODO Database size in bytes
-    # TODO: encounters, contributors, etc...
+    # TODO: occurrence, contributors, etc...
 
     # Basic variables
     request_annot_subset = False

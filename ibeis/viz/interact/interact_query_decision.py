@@ -28,7 +28,7 @@ class QueryVerificationInteraction(AbstractInteraction):
     """
     CommandLine:
         python -m ibeis.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show
-        python -m ibeis --eid 2 --inc-query --yes
+        python -m ibeis --imgsetid 2 --inc-query --yes
 
     Example:
         >>> # DISABLE_DOCTEST

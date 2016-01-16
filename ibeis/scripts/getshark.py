@@ -51,8 +51,8 @@ def download_sharks(XMLdata, number):
 
     for shark in dom.getElementsByTagName('shark'):
         localCount = 0
-        for encounter in shark.getElementsByTagName('encounter'):
-            for img in encounter.getElementsByTagName('img'):
+        for imageset in shark.getElementsByTagName('imageset'):
+            for img in imageset.getElementsByTagName('img'):
                 localCount += 1
 
                 img_url = img.getAttribute('href')
@@ -161,7 +161,7 @@ def parse_shark_tags(orig_fname_list):
         'australien',
         'australia',
         'nick', 'tim\\d*',
-        'encounter',
+        'imageset',
         'holiday', 'visit', 'tour', 'trip', 'pec', 'sv',
         'a', 'b',
         'gender', 'sex',

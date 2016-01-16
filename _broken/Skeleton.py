@@ -51,26 +51,26 @@ class Ui_mainSkel(object):
             #                               slot_fn.func_name))
             getattr(obj, attr).connect(slot_fn)
 
-    def ensureEncounterTab(ui, front, enctext):
-        """ Ensure encounter tab for specific enctext """
-        parent = ui.encountersTabWidget
-        # EncounterText Sanitization
-        if enctext == '' or enctext == 'None':
-            enctext = None
-        if enctext not in ui.enctext_dict:
-            # Create the encounter tab
-            tabWidget = newEncounterTabs(front, parent, enctext=enctext)
-            ui.enctext_dict[enctext] = tabWidget
+    def ensureImageSetTab(ui, front, imagesettext):
+        """ Ensure imageset tab for specific imagesettext """
+        parent = ui.imagesetsTabWidget
+        # ImageSetText Sanitization
+        if imagesettext == '' or imagesettext == 'None':
+            imagesettext = None
+        if imagesettext not in ui.imagesettext_dict:
+            # Create the imageset tab
+            tabWidget = newImageSetTabs(front, parent, imagesettext=imagesettext)
+            ui.imagesettext_dict[imagesettext] = tabWidget
         ui.retranslateUi(front)
 
-    def deleteEncounterTab(ui, front, enctext):
-        """ Delete encounter tab for specific enctext """
-        # EncounterText Sanitization
-        if enctext == '' or enctext == 'None':
-            enctext = None
-        try:  # Remove the encounter tab
-            tabWiget = ui.enctext_dict[enctext]
-            ui.deleteEncounterTab(front, enctext)
+    def deleteImageSetTab(ui, front, imagesettext):
+        """ Delete imageset tab for specific imagesettext """
+        # ImageSetText Sanitization
+        if imagesettext == '' or imagesettext == 'None':
+            imagesettext = None
+        try:  # Remove the imageset tab
+            tabWiget = ui.imagesettext_dict[imagesettext]
+            ui.deleteImageSetTab(front, imagesettext)
             del tabWiget
         except KeyError:
             pass
@@ -78,7 +78,7 @@ class Ui_mainSkel(object):
 
 
 def setup_ui(ui, front, back):
-    ui.enctext_dict = {}
+    ui.imagesettext_dict = {}
     ui.connected_signals = set()
     ui.connection_dict  = {}  # dict of signal / slots to connect
     ui.retranslate_dict = {}
@@ -89,10 +89,10 @@ def setup_ui(ui, front, back):
 
     setup_main_layout(ui, front, back)
 
-    # ENCOUNTER SUPERTABS
-    ui.encountersTabWidget = newTabWidget(front, ui.splitter,
-                                          'encountersTabWidget', vstretch=10)
-    ui.ensureEncounterTab(front, enctext=None)
+    # IMAGESET SUPERTABS
+    ui.imagesetsTabWidget = newTabWidget(front, ui.splitter,
+                                          'imagesetsTabWidget', vstretch=10)
+    ui.ensureImageSetTab(front, imagesettext=None)
 
     # Split Panes
     ui.progressBar = newProgressBar(ui.splitter, visible=False)
@@ -107,30 +107,30 @@ def setup_ui(ui, front, back):
     setup_developer_menu(ui, front, back)
 
 
-def newEncounterTabs(front, parent, enctext=None):
-    if enctext is None or enctext == 'None' or enctext == '':
+def newImageSetTabs(front, parent, imagesettext=None):
+    if imagesettext is None or imagesettext == 'None' or imagesettext == '':
         tab_text = 'database'
-        enctext = ''
+        imagesettext = ''
     else:
-        tab_text = str(enctext)
+        tab_text = str(imagesettext)
     tabWidget = newTabbedTabWidget(front, parent,
-                                   'tablesView' + enctext,
-                                   'tablesTabWidget' + enctext,
+                                   'tablesView' + imagesettext,
+                                   'tablesTabWidget' + imagesettext,
                                    tab_text,
                                    vstretch=10)
-    tabWidget.newTabbedTable('gids', enctext, 'Image Table',
+    tabWidget.newTabbedTable('gids', imagesettext, 'Image Table',
                              clicked_slot_fn=front.gids_tbl_clicked,
                              pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.gids_tbl_changed)
-    tabWidget.newTabbedTable('rids', enctext, 'ROI Table',
+    tabWidget.newTabbedTable('rids', imagesettext, 'ROI Table',
                              clicked_slot_fn=front.rids_tbl_clicked,
                              pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.rids_tbl_changed)
-    tabWidget.newTabbedTable('nids', enctext, 'Name Table',
+    tabWidget.newTabbedTable('nids', imagesettext, 'Name Table',
                              clicked_slot_fn=front.nids_tbl_clicked,
                              pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.nids_tbl_clicked)
-    tabWidget.newTabbedTable('qres', enctext, 'Query Result Table',
+    tabWidget.newTabbedTable('qres', imagesettext, 'Query Result Table',
                              clicked_slot_fn=front.qres_tbl_clicked,
                              pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.qres_tbl_changed)
@@ -252,10 +252,10 @@ def setup_batch_menu(ui, front, back):
         slot_fn=back.detect_grevys_fine)
     ui.menuBatch.addSeparator()
     ui.menuBatch.newAction(
-        name='actionCompute_Encounters',
-        text='Compute Encounters',
+        name='actionCompute_ImageSets',
+        text='Compute ImageSets',
         shortcut='Ctrl+E',
-        slot_fn=back.compute_encounters)
+        slot_fn=back.compute_occurrences)
     ui.menuBatch.addSeparator()
 
 

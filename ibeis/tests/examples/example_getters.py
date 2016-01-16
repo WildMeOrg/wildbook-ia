@@ -27,7 +27,7 @@ def run_example(ibs):
     gid_list = ibs.get_valid_gids()  # Valid Image IDS
     aid_list = ibs.get_valid_aids()  # Valid ANNOTATION IDs
     nid_list = ibs.get_valid_nids()  # Valid Name IDs
-    eid_list = ibs.get_valid_eids()  # Valid Encounter IDs
+    imgsetid_list = ibs.get_valid_imgsetids()  # Valid ImageSet IDs
     #
     #
     # IBEIS getter methods primarily deal with lists of rowids as input

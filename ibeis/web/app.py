@@ -66,22 +66,22 @@ def default_species(ibs):
     return default_species
 
 
-def encounter_image_processed(ibs, gid_list):
+def imageset_image_processed(ibs, gid_list):
     images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
     return images_reviewed
 
 
-def encounter_annot_viewpoint_processed(ibs, aid_list):
+def imageset_annot_viewpoint_processed(ibs, aid_list):
     annots_reviewed = [ reviewed is not None for reviewed in ibs.get_annot_yaws(aid_list) ]
     return annots_reviewed
 
 
-def encounter_annot_quality_processed(ibs, aid_list):
+def imageset_annot_quality_processed(ibs, aid_list):
     annots_reviewed = [ reviewed is not None and reviewed is not -1 for reviewed in ibs.get_annot_qualities(aid_list) ]
     return annots_reviewed
 
 
-def encounter_annot_additional_processed(ibs, aid_list, nid_list):
+def imageset_annot_additional_processed(ibs, aid_list, nid_list):
     sex_list = ibs.get_annot_sex(aid_list)
     age_list = ibs.get_annot_age_months_est(aid_list)
     annots_reviewed = [
@@ -280,7 +280,7 @@ def view():
     # value_list += [0] * (len(index_list) - len(value_list))
 
     # Counts
-    eid_list = ibs.get_valid_eids()
+    imgsetid_list = ibs.get_valid_imgsetids()
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
     nid_list = ibs.get_valid_nids()
@@ -406,9 +406,9 @@ def view():
                        age_ambiguous=age_ambiguous,
                        age_unreviewed=age_unreviewed,
                        dbinfo_str=dbinfo_str,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
+                       imgsetid_list=imgsetid_list,
+                       imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                       num_imgsetids=len(imgsetid_list),
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
@@ -436,70 +436,70 @@ def view():
                        num_used_contribs=len(used_contrib_tags))
 
 
-@register_route('/view/encounters')
-def view_encounters():
+@register_route('/view/imagesets')
+def view_imagesets():
     ibs = current_app.ibs
     filtered = True
-    eid = request.args.get('eid', '')
-    if len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+    imgsetid = request.args.get('imgsetid', '')
+    if len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
     else:
-        eid_list = ibs.get_valid_eids()
+        imgsetid_list = ibs.get_valid_imgsetids()
         filtered = False
-    start_time_posix_list = ibs.get_encounter_start_time_posix(eid_list)
+    start_time_posix_list = ibs.get_imageset_start_time_posix(imgsetid_list)
     datetime_list = [
         ut.unixtime_to_datetimestr(start_time_posix)
         if start_time_posix is not None else
         'Unknown'
         for start_time_posix in start_time_posix_list
     ]
-    gids_list = [ ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ]
+    gids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ]
     aids_list = [ ut.flatten(ibs.get_image_aids(gid_list)) for gid_list in gids_list ]
-    images_reviewed_list           = [ encounter_image_processed(ibs, gid_list) for gid_list in gids_list ]
-    annots_reviewed_viewpoint_list = [ encounter_annot_viewpoint_processed(ibs, aid_list) for aid_list in aids_list ]
-    annots_reviewed_quality_list   = [ encounter_annot_quality_processed(ibs, aid_list) for aid_list in aids_list ]
+    images_reviewed_list           = [ imageset_image_processed(ibs, gid_list) for gid_list in gids_list ]
+    annots_reviewed_viewpoint_list = [ imageset_annot_viewpoint_processed(ibs, aid_list) for aid_list in aids_list ]
+    annots_reviewed_quality_list   = [ imageset_annot_quality_processed(ibs, aid_list) for aid_list in aids_list ]
     image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
     annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
     annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
     reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
-    encounter_list = zip(
-        eid_list,
-        ibs.get_encounter_text(eid_list),
-        ibs.get_encounter_num_gids(eid_list),
+    imageset_list = zip(
+        imgsetid_list,
+        ibs.get_imageset_text(imgsetid_list),
+        ibs.get_imageset_num_gids(imgsetid_list),
         image_processed_list,
-        ibs.get_encounter_num_aids(eid_list),
+        ibs.get_imageset_num_aids(imgsetid_list),
         annot_processed_viewpoint_list,
         annot_processed_quality_list,
         start_time_posix_list,
         datetime_list,
         reviewed_list,
     )
-    encounter_list.sort(key=lambda t: t[7])
-    return ap.template('view', 'encounters',
+    imageset_list.sort(key=lambda t: t[7])
+    return ap.template('view', 'imagesets',
                        filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
-                       encounter_list=encounter_list,
-                       num_encounters=len(encounter_list))
+                       imgsetid_list=imgsetid_list,
+                       imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                       num_imgsetids=len(imgsetid_list),
+                       imageset_list=imageset_list,
+                       num_imagesets=len(imageset_list))
 
 
 @register_route('/view/images')
 def view_images():
     ibs = current_app.ibs
     filtered = True
-    eid_list = []
+    imgsetid_list = []
     gid = request.args.get('gid', '')
-    eid = request.args.get('eid', '')
+    imgsetid = request.args.get('imgsetid', '')
     page = max(0, int(request.args.get('page', 1)))
     if len(gid) > 0:
         gid_list = gid.strip().split(',')
         gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
-    elif len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(eid=eid) for eid_ in eid_list ])
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list ])
     else:
         gid_list = ibs.get_valid_gids()
         filtered = False
@@ -521,7 +521,7 @@ def view_images():
     ]
     image_list = zip(
         gid_list,
-        [ ','.join(map(str, eid_list_)) for eid_list_ in ibs.get_image_eids(gid_list) ],
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_image_imgsetids(gid_list) ],
         ibs.get_image_gnames(gid_list),
         image_unixtime_list,
         datetime_list,
@@ -529,14 +529,14 @@ def view_images():
         ibs.get_image_party_tag(gid_list),
         ibs.get_image_contributor_tag(gid_list),
         ibs.get_image_notes(gid_list),
-        encounter_image_processed(ibs, gid_list),
+        imageset_image_processed(ibs, gid_list),
     )
     image_list.sort(key=lambda t: t[3])
     return ap.template('view', 'images',
                        filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
+                       imgsetid_list=imgsetid_list,
+                       imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                       num_imgsetids=len(imgsetid_list),
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
@@ -554,11 +554,11 @@ def view_images():
 def view_annotations():
     ibs = current_app.ibs
     filtered = True
-    eid_list = []
+    imgsetid_list = []
     gid_list = []
     aid = request.args.get('aid', '')
     gid = request.args.get('gid', '')
-    eid = request.args.get('eid', '')
+    imgsetid = request.args.get('imgsetid', '')
     page = max(0, int(request.args.get('page', 1)))
     if len(aid) > 0:
         aid_list = aid.strip().split(',')
@@ -567,10 +567,10 @@ def view_annotations():
         gid_list = gid.strip().split(',')
         gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-    elif len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ])
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     else:
         aid_list = ibs.get_valid_aids()
@@ -586,7 +586,7 @@ def view_annotations():
     annotation_list = zip(
         aid_list,
         ibs.get_annot_gids(aid_list),
-        [ ','.join(map(str, eid_list_)) for eid_list_ in ibs.get_annot_eids(aid_list) ],
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list) ],
         ibs.get_annot_image_names(aid_list),
         ibs.get_annot_names(aid_list),
         ibs.get_annot_exemplar_flags(aid_list),
@@ -595,14 +595,14 @@ def view_annotations():
         ibs.get_annot_quality_texts(aid_list),
         ibs.get_annot_sex_texts(aid_list),
         ibs.get_annot_age_months_est(aid_list),
-        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(ibs, aid_list), encounter_annot_quality_processed(ibs, aid_list)) ],
+        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(imageset_annot_viewpoint_processed(ibs, aid_list), imageset_annot_quality_processed(ibs, aid_list)) ],
     )
     annotation_list.sort(key=lambda t: t[0])
     return ap.template('view', 'annotations',
                        filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
+                       imgsetid_list=imgsetid_list,
+                       imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                       num_imgsetids=len(imgsetid_list),
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
@@ -624,12 +624,12 @@ def view_names():
     ibs = current_app.ibs
     filtered = True
     aid_list = []
-    eid_list = []
+    imgsetid_list = []
     gid_list = []
     nid = request.args.get('nid', '')
     aid = request.args.get('aid', '')
     gid = request.args.get('gid', '')
-    eid = request.args.get('eid', '')
+    imgsetid = request.args.get('imgsetid', '')
     page = max(0, int(request.args.get('page', 1)))
     if len(nid) > 0:
         nid_list = nid.strip().split(',')
@@ -643,10 +643,10 @@ def view_names():
         gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         nid_list = ibs.get_annot_name_rowids(aid_list)
-    elif len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
-        gid_list = ut.flatten([ ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ])
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         nid_list = ibs.get_annot_name_rowids(aid_list)
     else:
@@ -665,7 +665,7 @@ def view_names():
     annotations_list = [ zip(
         aid_list_,
         ibs.get_annot_gids(aid_list_),
-        [ ','.join(map(str, eid_list_)) for eid_list_ in ibs.get_annot_eids(aid_list_) ],
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list_) ],
         ibs.get_annot_image_names(aid_list_),
         ibs.get_annot_names(aid_list_),
         ibs.get_annot_exemplar_flags(aid_list_),
@@ -674,7 +674,7 @@ def view_names():
         ibs.get_annot_quality_texts(aid_list_),
         ibs.get_annot_sex_texts(aid_list_),
         ibs.get_annot_age_months_est(aid_list_),
-        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(ibs, aid_list_), encounter_annot_quality_processed(ibs, aid_list_)) ],
+        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(imageset_annot_viewpoint_processed(ibs, aid_list_), imageset_annot_quality_processed(ibs, aid_list_)) ],
     ) for aid_list_ in aids_list ]
     name_list = zip(
         nid_list,
@@ -683,9 +683,9 @@ def view_names():
     name_list.sort(key=lambda t: t[0])
     return ap.template('view', 'names',
                        filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
+                       imgsetid_list=imgsetid_list,
+                       imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                       num_imgsetids=len(imgsetid_list),
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
@@ -707,23 +707,23 @@ def view_names():
 
 @register_route('/turk')
 def turk():
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    return ap.template('turk', None, eid=eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+    return ap.template('turk', None, imgsetid=imgsetid)
 
 
 @register_route('/turk/detection')
 def turk_detection():
     ibs = current_app.ibs
     refer_aid = request.args.get('refer_aid', None)
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-    gid_list = ibs.get_valid_gids(eid=eid)
-    reviewed_list = encounter_image_processed(ibs, gid_list)
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    reviewed_list = imageset_image_processed(ibs, gid_list)
     progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
 
-    enctext = None if eid is None else ibs.get_encounter_text(eid)
+    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
     gid = request.args.get('gid', '')
     if len(gid) > 0:
         gid = int(gid)
@@ -774,14 +774,14 @@ def turk_detection():
         image_src = None
         annotation_list = []
     return ap.template('turk', 'detection',
-                       eid=eid,
+                       imgsetid=imgsetid,
                        gid=gid,
                        refer_aid=refer_aid,
                        species=species,
                        image_path=gpath,
                        image_src=image_src,
                        previous=previous,
-                       enctext=enctext,
+                       imagesettext=imagesettext,
                        progress=progress,
                        finished=finished,
                        annotation_list=annotation_list,
@@ -792,23 +792,23 @@ def turk_detection():
 
 def get_turk_annot_args(is_reviewed_func):
     """
-    Helper to return aids in an encounter or a group review
+    Helper to return aids in an imageset or a group review
     """
     ibs = current_app.ibs
     def _ensureid(_id):
         return None if _id == 'None' or _id == '' else int(_id)
 
-    eid = request.args.get('eid', '')
+    imgsetid = request.args.get('imgsetid', '')
     src_ag = request.args.get('src_ag', '')
     dst_ag = request.args.get('dst_ag', '')
 
-    eid = _ensureid(eid)
+    imgsetid = _ensureid(imgsetid)
     src_ag = _ensureid(src_ag)
     dst_ag = _ensureid(dst_ag)
 
     group_review_flag = src_ag is not None and dst_ag is not None
     if not group_review_flag:
-        gid_list = ibs.get_valid_gids(eid=eid)
+        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
@@ -841,7 +841,7 @@ def get_turk_annot_args(is_reviewed_func):
     print('aid = %r' % (aid,))
     #print(ut.dict_str(ibs.get_annot_info(aid)))
     print(ut.obj_str(ibs.get_annot_info(aid, default=True, nl=True)))
-    return aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous
+    return aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous
 
 
 @register_route('/turk/viewpoint')
@@ -860,8 +860,8 @@ def turk_viewpoint():
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = get_turk_annot_args(encounter_annot_viewpoint_processed)
-    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+    tup = get_turk_annot_args(imageset_annot_viewpoint_processed)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     value = convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
     review = 'review' in request.args.keys()
@@ -877,9 +877,9 @@ def turk_viewpoint():
         gpath     = None
         image_src = None
 
-    enctext = ibs.get_encounter_text(eid)
+    imagesettext = ibs.get_imageset_text(imgsetid)
     return ap.template('turk', 'viewpoint',
-                       eid=eid,
+                       imgsetid=imgsetid,
                        src_ag=src_ag,
                        dst_ag=dst_ag,
                        gid=gid,
@@ -888,7 +888,7 @@ def turk_viewpoint():
                        image_path=gpath,
                        image_src=image_src,
                        previous=previous,
-                       enctext=enctext,
+                       imagesettext=imagesettext,
                        progress=progress,
                        finished=finished,
                        display_instructions=display_instructions,
@@ -928,8 +928,8 @@ def turk_quality():
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = get_turk_annot_args(encounter_annot_quality_processed)
-    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+    tup = get_turk_annot_args(imageset_annot_quality_processed)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     value = ibs.get_annot_qualities(aid)
     if value == -1:
@@ -948,9 +948,9 @@ def turk_quality():
         gid       = None
         gpath     = None
         image_src = None
-    enctext = ibs.get_encounter_text(eid)
+    imagesettext = ibs.get_imageset_text(imgsetid)
     return ap.template('turk', 'quality',
-                       eid=eid,
+                       imgsetid=imgsetid,
                        src_ag=src_ag,
                        dst_ag=dst_ag,
                        gid=gid,
@@ -959,7 +959,7 @@ def turk_quality():
                        image_path=gpath,
                        image_src=image_src,
                        previous=previous,
-                       enctext=enctext,
+                       imagesettext=imagesettext,
                        progress=progress,
                        finished=finished,
                        display_instructions=display_instructions,
@@ -969,9 +969,9 @@ def turk_quality():
 ##@register_route('/turk/viewpoint')
 #def old_turk_viewpoint():
 #    #ibs = current_app.ibs
-#    #eid = request.args.get('eid', '')
-#    #eid = None if eid == 'None' or eid == '' else int(eid)
-#    #enctext = None if eid is None else ibs.get_encounter_text(eid)
+#    #imgsetid = request.args.get('imgsetid', '')
+#    #imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+#    #imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
 #    #src_ag = request.args.get('src_ag', '')
 #    #src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
 #    #dst_ag = request.args.get('dst_ag', '')
@@ -979,9 +979,9 @@ def turk_quality():
 
 #    #group_review_flag = src_ag is not None and dst_ag is not None
 #    #if not group_review_flag:
-#    #    gid_list = ibs.get_valid_gids(eid=eid)
+#    #    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
 #    #    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-#    #    reviewed_list = encounter_annot_viewpoint_processed(ibs, aid_list)
+#    #    reviewed_list = imageset_annot_viewpoint_processed(ibs, aid_list)
 #    #else:
 #    #    src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
 #    #    dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
@@ -991,8 +991,8 @@ def turk_quality():
 #    #    reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
 #    #previous = request.args.get('previous', None)
 #    ibs = current_app.ibs
-#    tup = get_turk_annot_args(encounter_annot_viewpoint_processed)
-#    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+#    tup = get_turk_annot_args(imageset_annot_viewpoint_processed)
+#    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
 #    value = convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
 #    review = 'review' in request.args.keys()
@@ -1007,9 +1007,9 @@ def turk_quality():
 #        gid       = None
 #        gpath     = None
 #        image_src = None
-#    enctext = ibs.get_encounter_text(eid)
+#    imagesettext = ibs.get_imageset_text(imgsetid)
 #    return ap.template('turk', 'viewpoint',
-#                       eid=eid,
+#                       imgsetid=imgsetid,
 #                       src_ag=src_ag,
 #                       dst_ag=dst_ag,
 #                       gid=gid,
@@ -1018,7 +1018,7 @@ def turk_quality():
 #                       image_path=gpath,
 #                       image_src=image_src,
 #                       previous=previous,
-#                       enctext=enctext,
+#                       imagesettext=imagesettext,
 #                       progress=progress,
 #                       finished=finished,
 #                       display_instructions=display_instructions,
@@ -1028,12 +1028,12 @@ def turk_quality():
 #@register_route('/turk/quality')
 #def old_turk_quality():
 #    #ibs = current_app.ibs
-#    #eid = request.args.get('eid', '')
-#    #eid = None if eid == 'None' or eid == '' else int(eid)
+#    #imgsetid = request.args.get('imgsetid', '')
+#    #imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-#    #gid_list = ibs.get_valid_gids(eid=eid)
+#    #gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
 #    #aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-#    #reviewed_list = encounter_annot_quality_processed(ibs, aid_list)
+#    #reviewed_list = imageset_annot_quality_processed(ibs, aid_list)
 #    #try:
 #    #    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 #    #except ZeroDivisionError:
@@ -1052,8 +1052,8 @@ def turk_quality():
 #    #previous = request.args.get('previous', None)
 
 #    ibs = current_app.ibs
-#    tup = get_turk_annot_args(encounter_annot_quality_processed)
-#    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+#    tup = get_turk_annot_args(imageset_annot_quality_processed)
+#    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
 #    value = ibs.get_annot_qualities(aid)
 #    if value == -1:
@@ -1072,9 +1072,9 @@ def turk_quality():
 #        gid       = None
 #        gpath     = None
 #        image_src = None
-#    enctext = ibs.get_encounter_text(eid)
+#    imagesettext = ibs.get_imageset_text(imgsetid)
 #    return ap.template('turk', 'quality',
-#                       eid=eid,
+#                       imgsetid=imgsetid,
 #                       src_ag=src_ag,
 #                       dst_ag=dst_ag,
 #                       gid=gid,
@@ -1083,7 +1083,7 @@ def turk_quality():
 #                       image_path=gpath,
 #                       image_src=image_src,
 #                       previous=previous,
-#                       enctext=enctext,
+#                       imagesettext=imagesettext,
 #                       progress=progress,
 #                       finished=finished,
 #                       display_instructions=display_instructions,
@@ -1093,19 +1093,19 @@ def turk_quality():
 @register_route('/turk/additional')
 def turk_additional():
     ibs = current_app.ibs
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
-    gid_list = ibs.get_valid_gids(eid=eid)
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     nid_list = ibs.get_annot_nids(aid_list)
-    reviewed_list = encounter_annot_additional_processed(ibs, aid_list, nid_list)
+    reviewed_list = imageset_annot_additional_processed(ibs, aid_list, nid_list)
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
     except ZeroDivisionError:
         progress = '0.00'
 
-    enctext = None if eid is None else ibs.get_encounter_text(eid)
+    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
     aid = request.args.get('aid', '')
     if len(aid) > 0:
         aid = int(aid)
@@ -1167,7 +1167,7 @@ def turk_additional():
 
         name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
     return ap.template('turk', 'additional',
-                       eid=eid,
+                       imgsetid=imgsetid,
                        gid=gid,
                        aid=aid,
                        value_sex=value_sex,
@@ -1176,7 +1176,7 @@ def turk_additional():
                        name_aid_combined_list=name_aid_combined_list,
                        image_src=image_src,
                        previous=previous,
-                       enctext=enctext,
+                       imagesettext=imagesettext,
                        progress=progress,
                        finished=finished,
                        display_instructions=display_instructions,
@@ -1187,8 +1187,8 @@ def turk_additional():
 def submit_detection():
     ibs = current_app.ibs
     method = request.form.get('detection-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)
 
@@ -1253,7 +1253,7 @@ def submit_detection():
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_detection', eid=eid, previous=gid))
+        return redirect(url_for('turk_detection', imgsetid=imgsetid, previous=gid))
 
 
 def movegroup_aid(ibs, aid, src_ag, dst_ag):
@@ -1271,8 +1271,8 @@ def movegroup_aid(ibs, aid, src_ag, dst_ag):
 def submit_viewpoint():
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
@@ -1344,7 +1344,7 @@ def submit_viewpoint():
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_viewpoint', eid=eid, src_ag=src_ag,
+        return redirect(url_for('turk_viewpoint', imgsetid=imgsetid, src_ag=src_ag,
                                 dst_ag=dst_ag, previous=aid))
 
 
@@ -1352,8 +1352,8 @@ def submit_viewpoint():
 def submit_quality():
     ibs = current_app.ibs
     method = request.form.get('quality-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['quality-aid'])
     turk_id = request.cookies.get('turk_id', -1)
 
@@ -1377,7 +1377,7 @@ def submit_quality():
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_quality', eid=eid, src_ag=src_ag,
+        return redirect(url_for('turk_quality', imgsetid=imgsetid, src_ag=src_ag,
                                 dst_ag=dst_ag, previous=aid))
 
 
@@ -1385,8 +1385,8 @@ def submit_quality():
 def submit_additional():
     ibs = current_app.ibs
     method = request.form.get('additional-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['additional-aid'])
     turk_id = request.cookies.get('turk_id', -1)
 
@@ -1443,7 +1443,7 @@ def submit_additional():
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_additional', eid=eid, previous=aid))
+        return redirect(url_for('turk_additional', imgsetid=imgsetid, previous=aid))
 
 
 @register_route('/ajax/cookie')

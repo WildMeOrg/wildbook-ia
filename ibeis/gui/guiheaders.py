@@ -8,7 +8,7 @@ delters as well)
 Different columns can be hidden / shown by modifying this file
 
 TODO: need to cache the total number of annotations or something about
-encounters on disk to help startuptime.
+imagesets on disk to help startuptime.
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -18,7 +18,7 @@ from functools import partial
 #from ibeis.control import
 (print, rrr, profile) = ut.inject2(__name__, '[headers]')
 
-ENCOUNTER_TABLE  = const.ENCOUNTER_TABLE
+IMAGESET_TABLE  = const.IMAGESET_TABLE
 IMAGE_TABLE      = const.IMAGE_TABLE
 ANNOTATION_TABLE = const.ANNOTATION_TABLE
 IMAGE_GRID       = 'image_grid'
@@ -41,7 +41,7 @@ def make_table_declarations(ibs):
         IMAGE_TABLE,
         ANNOTATION_TABLE,
         #NAME_TABLE,
-        ENCOUNTER_TABLE,
+        IMAGESET_TABLE,
         IMAGE_GRID,
         THUMB_TABLE,
         NAMES_TREE
@@ -53,7 +53,7 @@ def make_table_declarations(ibs):
         ANNOTATION_TABLE : 'Annotations Table',
         NAME_TABLE       : 'Name Table',
         QRES_TABLE       : 'Query Results Table',
-        ENCOUNTER_TABLE  : 'Encounter Table',
+        IMAGESET_TABLE  : 'ImageSet Table',
         IMAGE_GRID       : 'Thumbnail Grid',
         THUMB_TABLE      : 'Thumbnail Table',
         NAMES_TREE       : 'Tree of Names',
@@ -119,15 +119,15 @@ def make_table_declarations(ibs):
             'aid'
         ],
 
-        ENCOUNTER_TABLE : [
-            'enctext',
+        IMAGESET_TABLE : [
+            'imagesettext',
             'nImgs',
             #'num_imgs_reviewed',
             #'num_annotmatch_reviewed',
-            #'encounter_end_datetime',
-            # 'encounter_processed_flag',
-            # 'encounter_shipped_flag',
-            'eid',
+            #'imageset_end_datetime',
+            # 'imageset_processed_flag',
+            # 'imageset_shipped_flag',
+            'imgsetid',
         ],
 
         NAMES_TREE      : [
@@ -165,19 +165,19 @@ def make_table_declarations(ibs):
         from ibeis.control import accessor_decors
         if accessor_decors.API_CACHE:
             # Too slow without api cache
-            TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
+            TABLE_COLNAMES[IMAGESET_TABLE].extend([
                 'percent_annotmatch_reviewed_str',
                 'percent_names_with_exemplar_str',
             ])
-        TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
+        TABLE_COLNAMES[IMAGESET_TABLE].extend([
             #'percent_imgs_reviewed_str',
-            'encounter_start_datetime',
+            'imageset_start_datetime',
         ])
 
-    if ibs.cfg.other_cfg.show_shipped_encounters:
-        TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
-            'encounter_processed_flag',
-            'encounter_shipped_flag',
+    if ibs.cfg.other_cfg.show_shipped_imagesets:
+        TABLE_COLNAMES[IMAGESET_TABLE].extend([
+            'imageset_processed_flag',
+            'imageset_shipped_flag',
         ])
 
     #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
@@ -209,7 +209,7 @@ def make_table_declarations(ibs):
         ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
         NAME_TABLE       : set(['name', 'namenotes']),
         QRES_TABLE       : set(['name']),
-        ENCOUNTER_TABLE  : set(['enctext', 'encounter_shipped_flag', 'encounter_processed_flag']),
+        IMAGESET_TABLE  : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
         IMAGE_GRID       : set([]),
         THUMB_TABLE      : set([]),
         NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
@@ -237,7 +237,7 @@ def make_table_declarations(ibs):
         ('gid',         (int,      'Image ID')),
         ('aid',         (int,      'Annotation ID')),
         ('nid',         (int,      'Name ID')),
-        ('eid',         (int,      'Encounter ID')),
+        ('imgsetid',    (int,      'ImageSet ID')),
         ('nAids',       (int,      '#Annots')),
         ('nExAids',     (int,      '#Exemplars')),
         ('nGt',         (int,      '#GT')),
@@ -265,15 +265,15 @@ def make_table_declarations(ibs):
         ('theta',       (str,      'Theta')),
         ('reviewed',    (bool,     'Detection Reviewed')),
         ('exemplar',    (bool,     'Is Exemplar')),
-        ('enctext',     (str,      'Encounter Text')),
+        ('imagesettext',     (str,      'ImageSet')),
         ('datetime',    (str,      'Date / Time')),
         ('ext',         (str,      'EXT')),
         ('thumb',       ('PIXMAP', 'Thumb')),
         ('gps',         (str,      'GPS')),
-        ('encounter_processed_flag',       (bool,      'Processed')),
-        ('encounter_shipped_flag',         (bool,      'Commited')),
-        ('encounter_start_datetime',     (str,      'Start Time')),
-        ('encounter_end_datetime',       (str,      'End Time')),
+        ('imageset_processed_flag',       (bool,      'Processed')),
+        ('imageset_shipped_flag',         (bool,      'Commited')),
+        ('imageset_start_datetime',     (str,      'Start Time')),
+        ('imageset_end_datetime',       (str,      'End Time')),
         ('party_tag', (str, 'Party')),
         ('contributor_tag', (str, 'Contributor')),
         ('percent_imgs_reviewed_str', (str, '%Imgs Reviewed')),
@@ -344,35 +344,35 @@ def make_ibeis_headers_dict(ibs):
                     # try to "just make things work"
                     getters[tablename][colname] = getattr(ibs, 'get_' + colname)
     # +--------------------------
-    # Encounter Iders/Setters/Getters
-    #ibs.cfg.other_cfg.ensure_attr(show_shipped_encounters, ut.is_developer())
-    SHOW_SHIPPED_ENCOUNTERS = ibs.cfg.other_cfg.show_shipped_encounters
-    #SHOW_SHIPPED_ENCOUNTERS = True
-    if SHOW_SHIPPED_ENCOUNTERS:
-        iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
+    # ImageSet Iders/Setters/Getters
+    #ibs.cfg.other_cfg.ensure_attr(show_shipped_imagesets, ut.is_developer())
+    SHOW_SHIPPED_IMAGESETS = ibs.cfg.other_cfg.show_shipped_imagesets
+    #SHOW_SHIPPED_IMAGESETS = True
+    if SHOW_SHIPPED_IMAGESETS:
+        iders[IMAGESET_TABLE]   = [ibs.get_valid_imgsetids]
     else:
-        iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
+        iders[IMAGESET_TABLE]   = [ partial(ibs.get_valid_imgsetids, shipped=False)]
 
-    getters[ENCOUNTER_TABLE] = {
-        'eid'        : lambda eids: eids,
-        'nImgs'      : ibs.get_encounter_num_gids,
-        'enctext'    : ibs.get_encounter_text,
-        'encounter_shipped_flag'     : ibs.get_encounter_shipped_flags,
-        'encounter_processed_flag'   : ibs.get_encounter_processed_flags,
+    getters[IMAGESET_TABLE] = {
+        'imgsetid'        : lambda imgsetids: imgsetids,
+        'nImgs'      : ibs.get_imageset_num_gids,
+        'imagesettext'    : ibs.get_imageset_text,
+        'imageset_shipped_flag'     : ibs.get_imageset_shipped_flags,
+        'imageset_processed_flag'   : ibs.get_imageset_processed_flags,
         #
-        'encounter_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetimestr, ibs.get_encounter_start_time_posix),
-        'encounter_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetimestr, ibs.get_encounter_end_time_posix),
+        'imageset_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetimestr, ibs.get_imageset_start_time_posix),
+        'imageset_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetimestr, ibs.get_imageset_end_time_posix),
         #
-        'encounter_start_time_posix' : ibs.get_encounter_start_time_posix,
-        'encounter_end_time_posix'   : ibs.get_encounter_end_time_posix,
+        'imageset_start_time_posix' : ibs.get_imageset_start_time_posix,
+        'imageset_end_time_posix'   : ibs.get_imageset_end_time_posix,
     }
-    infer_unspecified_getters(ENCOUNTER_TABLE, 'encounter')
-    setters[ENCOUNTER_TABLE] = {
-        'enctext'    : ibs.set_encounter_text,
-        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
-        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
+    infer_unspecified_getters(IMAGESET_TABLE, 'imageset')
+    setters[IMAGESET_TABLE] = {
+        'imagesettext'    : ibs.set_imageset_text,
+        'imageset_shipped_flag'    : ibs.set_imageset_shipped_flags,
+        'imageset_processed_flag'  : ibs.set_imageset_processed_flags,
     }
-    widths[ENCOUNTER_TABLE] = {
+    widths[IMAGESET_TABLE] = {
         'nImgs': 55,
     }
     # +--------------------------
@@ -380,8 +380,8 @@ def make_ibeis_headers_dict(ibs):
     iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
-        'eid'        : ibs.get_image_eids,
-        'enctext'    : partial_imap_1to1(ut.tupstr, ibs.get_image_enctext),
+        'imgsetid'        : ibs.get_image_imgsetids,
+        'imagesettext'    : partial_imap_1to1(ut.tupstr, ibs.get_image_imagesettext),
         'reviewed'   : ibs.get_image_reviewed,
         'img_gname'  : ibs.get_image_gnames,
         'nAids'      : ibs.get_image_num_annotations,

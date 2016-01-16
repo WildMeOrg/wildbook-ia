@@ -164,44 +164,44 @@ def update_current(db, ibs=None):
         superkeys=[('contributor_tag',)],
     )
 
-    db.add_table(const.EG_RELATION_TABLE, [
-        ('egr_rowid',                    'INTEGER PRIMARY KEY'),
+    db.add_table(const.GSG_RELATION_TABLE, [
+        ('gsgr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
-        ('encounter_rowid',              'INTEGER'),
+        ('imageset_rowid',              'INTEGER'),
     ],
         docstr='''
-        Relationship between encounters and images (many to many mapping) the
-        many-to-many relationship between images and encounters is encoded
-        here encounter_image_relationship stands for encounter-image-pairs.
+        Relationship between imagesets and images (many to many mapping) the
+        many-to-many relationship between images and imagesets is encoded
+        here imageset_image_relationship stands for imageset-image-pairs.
         ''',
-        superkeys=[('image_rowid', 'encounter_rowid')],
-        relates=('images', 'encounters'),
-        shortname='egr',
+        superkeys=[('image_rowid', 'imageset_rowid')],
+        relates=('images', 'imagesets'),
+        shortname='gsgr',
         dependsmap={
-            'encounter_rowid': ('encounters', ('encounter_rowid',), ('encounter_text',)),
+            'imageset_rowid': ('imagesets', ('imageset_rowid',), ('imageset_text',)),
             'image_rowid'    : ('images', ('image_rowid',), ('image_uuid',)),
     },
     )
 
-    db.add_table(const.ENCOUNTER_TABLE, [
-        ('encounter_rowid',              'INTEGER PRIMARY KEY'),
-        ('encounter_uuid',               'UUID NOT NULL'),
+    db.add_table(const.IMAGESET_TABLE, [
+        ('imageset_rowid',              'INTEGER PRIMARY KEY'),
+        ('imageset_uuid',               'UUID NOT NULL'),
         ('config_rowid',                 'INTEGER'),
-        ('encounter_text',               'TEXT NOT NULL'),
-        ('encounter_note',               'TEXT NOT NULL'),
-        ('encounter_start_time_posix',   'INTEGER'),
-        ('encounter_end_time_posix',     'INTEGER'),
-        ('encounter_gps_lat',            'INTEGER'),
-        ('encounter_gps_lon',            'INTEGER'),
-        ('encounter_processed_flag',     'INTEGER DEFAULT 0'),
-        ('encounter_shipped_flag',       'INTEGER DEFAULT 0'),
-        ('encounter_smart_xml_fname',    'TEXT'),
-        ('encounter_smart_waypoint_id',  'INTEGER'),
+        ('imageset_text',               'TEXT NOT NULL'),
+        ('imageset_note',               'TEXT NOT NULL'),
+        ('imageset_start_time_posix',   'INTEGER'),
+        ('imageset_end_time_posix',     'INTEGER'),
+        ('imageset_gps_lat',            'INTEGER'),
+        ('imageset_gps_lon',            'INTEGER'),
+        ('imageset_processed_flag',     'INTEGER DEFAULT 0'),
+        ('imageset_shipped_flag',       'INTEGER DEFAULT 0'),
+        ('imageset_smart_xml_fname',    'TEXT'),
+        ('imageset_smart_waypoint_id',  'INTEGER'),
     ],
         docstr='''
-        List of all encounters
+        List of all imagesets
         ''',
-        superkeys=[('encounter_text',)],
+        superkeys=[('imageset_text',)],
         dependsmap={
             'config_rowid': ('configs', ('config_rowid',), ('config_suffix',)),
     },

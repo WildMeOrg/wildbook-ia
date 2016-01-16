@@ -148,9 +148,6 @@ UNKNOWN_SPECIES_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
-# Name used to denote that idkwtfthisis
-ENCTEXT_PREFIX = 'enc_'
-
 INDIVIDUAL_KEY = 'INDIVIDUAL_KEY'
 SPECIES_KEY    = 'SPECIES_KEY'
 EMPTY_KEY      = ''
@@ -198,8 +195,8 @@ ANNOTATION_TABLE     = 'annotations'
 CHIP_TABLE           = 'chips'
 CONFIG_TABLE         = 'configs'
 CONTRIBUTOR_TABLE    = 'contributors'
-EG_RELATION_TABLE    = 'encounter_image_relationship'
-ENCOUNTER_TABLE      = 'encounters'
+GSG_RELATION_TABLE   = 'imageset_image_relationship'
+IMAGESET_TABLE       = 'imagesets'
 FEATURE_TABLE        = 'features'
 FEATURE_WEIGHT_TABLE = 'feature_weights'
 GL_RELATION_TABLE    = 'image_lblimage_relationship'
@@ -232,17 +229,17 @@ NAME_BLUE_RGBA01      = NAME_BLUE_RGBA255 / 255.0
 NAME_RED_RGBA01       = NAME_RED_RGBA255 / 255.0
 NEW_YELLOW_RGBA01     = NEW_YELLOW_RGBA255 / 255.0
 
-EXEMPLAR_ENCTEXT         = '*Exemplars'
-ALL_IMAGE_ENCTEXT        = '*All Images'
-UNREVIEWED_IMAGE_ENCTEXT = '*Unreviewed Images'
-REVIEWED_IMAGE_ENCTEXT   = '*Reviewed Images'
-UNGROUPED_IMAGES_ENCTEXT = '*Ungrouped Images'
-SPECIAL_ENCOUNTER_LABELS = [EXEMPLAR_ENCTEXT,
-                            ALL_IMAGE_ENCTEXT,
-                            UNREVIEWED_IMAGE_ENCTEXT,
-                            REVIEWED_IMAGE_ENCTEXT,
-                            UNGROUPED_IMAGES_ENCTEXT]
-NEW_ENCOUNTER_ENCTEXT = 'NEW ENCOUNTER'
+EXEMPLAR_IMAGESETTEXT         = '*Exemplars'
+ALL_IMAGE_IMAGESETTEXT        = '*All Images'
+UNREVIEWED_IMAGE_IMAGESETTEXT = '*Unreviewed Images'
+REVIEWED_IMAGE_IMAGESETTEXT   = '*Reviewed Images'
+UNGROUPED_IMAGES_IMAGESETTEXT = '*Ungrouped Images'
+SPECIAL_IMAGESET_LABELS = [EXEMPLAR_IMAGESETTEXT,
+                           ALL_IMAGE_IMAGESETTEXT,
+                           UNREVIEWED_IMAGE_IMAGESETTEXT,
+                           REVIEWED_IMAGE_IMAGESETTEXT,
+                           UNGROUPED_IMAGES_IMAGESETTEXT]
+NEW_IMAGESET_IMAGESETTEXT = 'NEW IMAGESET'
 
 #IMAGE_THUMB_SUFFIX = '_thumb.png'
 #CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
@@ -252,7 +249,7 @@ CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'
-INTRA_ENC_KEY = 'intra_encounter'
+INTRA_ENC_KEY = 'intra_imageset'
 
 HARD_NOTE_TAG = '<HARDCASE>'
 

@@ -167,7 +167,7 @@ def get_num_feats_in_matches(qres):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class QueryResult(__OBJECT_BASE__):
-    #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
+    #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'imgsetid',
     #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
     #             'metadata']
     def __init__(qres, qaid, qauuid, cfgstr, daids):
@@ -177,7 +177,7 @@ class QueryResult(__OBJECT_BASE__):
               another list of keys that all the (previously dicts) share.
             * make sure cfgstr includes database semantic uuid information
             * qaid should also be a semantic uuids
-            * eid should have a uuid
+            * imgsetid should have a uuid
 
         """
         raise AssertionError('USE CHIPMATCH INSTEAD')
@@ -192,7 +192,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.daids = daids  # matchable database chips. external_daids from qreq_. (should this be duuids?)
         #qres.qauuid = qauuid
         qres.cfgstr = cfgstr  # should have database info hashed in from qreq
-        qres.eid = None  # encounter id
+        qres.imgsetid = None  # imageset id
         # Assigned features matches
         qres.aid2_fm = None   # feat_match_list
         qres.aid2_fs = None   # feat_score_list
@@ -337,7 +337,7 @@ class QueryResult(__OBJECT_BASE__):
         return all([
             self.qaid == other.qaid,
             self.cfgstr == other.cfgstr,
-            self.eid == other.eid,
+            self.imgsetid == other.imgsetid,
             _qres_dicteq(self.aid2_fm, other.aid2_fm),
             _qres_dicteq(self.aid2_fs, self.aid2_fs),
             _qres_dicteq(self.aid2_fk, self.aid2_fk),

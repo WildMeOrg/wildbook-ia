@@ -122,7 +122,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
         ----------------------
         Found 4 line(s) in 'code\\ibeis\\ibeis\\ibsfuncs.py':
         ibsfuncs.py :  426 |        ibs.delete_chips(invalid_cids, verbose=True)
-        ibsfuncs.py :  681 |def delete_cache(ibs, delete_chips=False, delete_encounters=False):
+        ibsfuncs.py :  681 |def delete_cache(ibs, delete_chips=False, delete_imagesets=False):
         ibsfuncs.py :  689 |    if delete_chips:
         ibsfuncs.py :  743 |    ibs.delete_chips(all_cids)
         ----------------------
@@ -136,7 +136,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
         duct_tape.py :  93 |    if delete_chips_for_missing_annotations:
         ----------------------
         Found 1 line(s) in 'code\\ibeis\\ibeis\\dev\\main_commands.py':
-        main_commands.py :  89 |        ibs.delete_cache(delete_chips=True, delete_encounters=True)
+        main_commands.py :  89 |        ibs.delete_cache(delete_chips=True, delete_imagesets=True)
         ----------------------
         Found 4 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
         preproc_chip.py : 122 |def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):

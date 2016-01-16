@@ -17,7 +17,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui_models]')
 class IBEISTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
-        widget.eid = None
+        widget.imgsetid = None
         APIItemWidget.__init__(widget, headers=headers, parent=parent,
                                 model_class=IBEISStripeModel,
                                 view_class=IBEISTableView)
@@ -26,7 +26,7 @@ class IBEISTableWidget(APIItemWidget):
 class IBEISTreeWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
-        widget.eid = None
+        widget.imgsetid = None
         APIItemWidget.__init__(widget, headers=headers, parent=parent,
                                 model_class=IBEISItemModel,
                                 view_class=IBEISTreeView)
@@ -41,7 +41,7 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
         IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
         model.ibswin = parent
-        model.eid = -1  # negative one is an invalid eid
+        model.imgsetid = -1  # negative one is an invalid imgsetid
         model.original_ider = None
         if IBEISSTRIPEMODEL_BASE == StripeProxyModel:
             model.sourcemodel = APIItemModel(parent=parent)
@@ -62,11 +62,11 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
         #return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
-        """ Overrides the API model ider to give only selected encounter ids """
-        return model.original_iders[0](eid=model.eid)
+        """ Overrides the API model ider to give only selected imageset ids """
+        return model.original_iders[0](imgsetid=model.imgsetid)
 
-    def _change_enc(model, eid):
-        model.eid = eid
+    def _change_enc(model, imgsetid):
+        model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             IBEISSTRIPEMODEL_BASE._update_rows(model)
 
@@ -79,18 +79,18 @@ class IBEISTableView(APITableView):
         APITableView.__init__(tblview, parent)
         tblview.ibswin = parent
 
-    def _change_enc(tblview, eid):
+    def _change_enc(tblview, imgsetid):
         tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
-            model._change_enc(eid)
+            model._change_enc(imgsetid)
 
 
 class IBEISItemModel(IBEISITEMMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
         IBEISITEMMODEL_BASE.__init__(model, parent=parent, *args)
         model.ibswin = parent
-        model.eid = -1
+        model.imgsetid = -1
         model.original_ider = None
 
     def _update_headers(model, **headers):
@@ -109,12 +109,12 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
     def _ider(model):
         """
         Overrides the API model ider to give filtered output,
-        ie: only selected encounter ids
+        ie: only selected imageset ids
         """
-        return model.original_iders[0](eid=model.eid)
+        return model.original_iders[0](imgsetid=model.imgsetid)
 
-    def _change_enc(model, eid):
-        model.eid = eid
+    def _change_enc(model, imgsetid):
+        model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             IBEISITEMMODEL_BASE._update_rows(model)
 
@@ -127,17 +127,17 @@ class IBEISTreeView(APITreeView):
         APITreeView.__init__(treeview, parent)
         treeview.ibswin = parent
 
-    def _change_enc(treeview, eid):
+    def _change_enc(treeview, imgsetid):
         treeview.verticalScrollBar().setSliderPosition(0)
         model = treeview.model()
         if model is not None:
-            # FIXME: should defer the change of encounter until
+            # FIXME: should defer the change of imageset until
             # the view becomes visible
-            model._change_enc(eid)
+            model._change_enc(imgsetid)
 
 
 #-------------------------
-# --- ENCOUNTER TABLES ---
+# --- IMAGESET TABLES ---
 #-------------------------
 
 
@@ -158,7 +158,7 @@ class EncTableModel(APIItemModel):
 
 class EncTableView(APITableView):
     """
-    View for Encounter Table
+    View for ImageSet Table
     """
     def __init__(tblview, parent=None):
         APITableView.__init__(tblview, parent)

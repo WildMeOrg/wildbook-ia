@@ -16,13 +16,13 @@ COLUMN_DEFS = [
     (int,   'gid',        'Image ID'),
     (int,   'rid',        'ROI ID'),
     (int,   'nid',        'Name ID'),
-    (int,   'eid',        'Encounter ID'),
+    (int,   'imgsetid',        'ImageSet ID'),
     (int,   'nRids',      '#ROIs'),
     (int,   'nGt',        '#GT'),
     (int,   'nFeats',     '#Features'),
     (str,   'rank',       'Rank'),  # needs to be a string for !Query
     (float, 'unixtime',   'unixtime'),
-    (str,   'enctext',    'Encounter'),
+    (str,   'imagesettext',    'ImageSet'),
     (str,   'gname',      'Image Name'),
     (str,   'name',       'Name'),
     (str,   'notes',      'Notes'),
@@ -52,8 +52,8 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
     elif tblname == IMAGE_TABLE:
         cols = {
             'gid':      lambda gids: gids,
-            'eid':      lambda gids: ibs.get_image_eids(gids),
-            'enctext':  lambda gids: map(utool.tupstr, ibs.get_image_enctext(gids)),
+            'imgsetid':      lambda gids: ibs.get_image_imgsetids(gids),
+            'imagesettext':  lambda gids: map(utool.tupstr, ibs.get_image_imagesettext(gids)),
             'aif':      lambda gids: ibs.get_image_aifs(gids),
             'gname':    lambda gids: ibs.get_image_gnames(gids),
             'nRids':    lambda gids: ibs.get_image_num_rois(gids),
@@ -130,14 +130,14 @@ def qt_cast(qtinput):
     return qtoutput
 
 
-def qt_enctext_cast(enctext):
-    if enctext is None:
+def qt_imagesettext_cast(imagesettext):
+    if imagesettext is None:
         return None
-    enctext = qt_cast(enctext)
-    # Sanatize enctext
-    if enctext in ['None', '', 'database']:
-        enctext = None
-    return enctext
+    imagesettext = qt_cast(imagesettext)
+    # Sanatize imagesettext
+    if imagesettext in ['None', '', 'database']:
+        imagesettext = None
+    return imagesettext
 
 # Table names (should reflect SQL tables)
 IMAGE_TABLE = 'gids'
@@ -150,7 +150,7 @@ QRES_TABLE  = 'qres'
 # tblname, fancyname, headers, editable_headers
 TABLE_DEF = [
     (IMAGE_TABLE, 'Image Table',
-     ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext', 'unixtime'],
+     ['gid', 'gname', 'nRids', 'aif', 'notes', 'imagesettext', 'unixtime'],
      ['notes', 'aif']),
 
     (ROI_TABLE, 'ROIs Table',
@@ -218,13 +218,13 @@ def _get_table_headers_editable(tblname):
 def _get_table_datatup_list(ibs, tblname, col_headers, col_editable,
                             extra_cols={}, index_list=None, prefix_cols=[],
                             **kwargs):
-    enctext = kwargs.get('enctext')
+    imagesettext = kwargs.get('imagesettext')
     if index_list is None:
-        if enctext is None or enctext == '' or enctext == 'None':
-            eid = None
+        if imagesettext is None or imagesettext == '' or imagesettext == 'None':
+            imgsetid = None
         else:
-            eid = ibs.get_encounter_eids(enctext)
-        index_list = ibs.get_valid_ids(tblname, eid=eid)
+            imgsetid = ibs.get_imageset_imgsetids(imagesettext)
+        index_list = ibs.get_valid_ids(tblname, imgsetid=imgsetid)
     printDBG('[tables] len(index_list) = %r' % len(index_list))
     # Prefix datatup
     prefix_datatup = [[prefix_col.get(header, 'error')
@@ -242,7 +242,7 @@ def emit_populate_table(back, tblname, *args, **kwargs):
     col_headers, col_editable = _get_table_headers_editable(tblname)
     #printDBG('[rowidtbls] col_headers = %r' % col_headers)
     #printDBG('[rowidtbls] col_editable = %r' % col_editable)
-    enctext = kwargs.get('enctext', '')
+    imagesettext = kwargs.get('imagesettext', '')
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
     #printDBG('[rowidtbls] datatup_list = %r' % datatup_list)
@@ -258,7 +258,7 @@ def emit_populate_table(back, tblname, *args, **kwargs):
                                   col_types,
                                   row_list,
                                   datatup_list,
-                                  enctext)
+                                  imagesettext)
 
 
 def _type_from_data(data):
@@ -349,6 +349,6 @@ def populate_item_table(tbl,
     tbl.blockSignals(tblWasBlocked)
 
 
-def populate_encounter_tab(front, enctext):
-    #print('[rowidtbls] populate_encounter_tab')
-    front.ui.ensureEncounterTab(front, enctext)
+def populate_imageset_tab(front, imagesettext):
+    #print('[rowidtbls] populate_imageset_tab')
+    front.ui.ensureImageSetTab(front, imagesettext)

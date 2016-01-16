@@ -320,7 +320,7 @@ class CustomFilterModel(FilterProxyModel):
     def __init__(model, headers=None, parent=None, *args):
         FilterProxyModel.__init__(model, parent=parent, *args)
         model.ibswin = parent
-        model.eid = -1  # negative one is an invalid eid  # seems unused
+        model.imgsetid = -1  # negative one is an invalid imgsetid  # seems unused
         model.original_ider = None
         model.sourcemodel = APIItemModel(parent=parent)
         model.setSourceModel(model.sourcemodel)
@@ -337,11 +337,11 @@ class CustomFilterModel(FilterProxyModel):
         model.sourcemodel._update_headers(**headers)
 
     def _ider(model):
-        """ Overrides the API model ider to give only selected encounter ids """
+        """ Overrides the API model ider to give only selected imageset ids """
         return model.original_iders[0]()
 
-    def _change_enc(model, eid):
-        model.eid = eid
+    def _change_enc(model, imgsetid):
+        model.imgsetid = imgsetid
         # seems unused
         with ChangeLayoutContext([model]):
             FilterProxyModel._update_rows(model)

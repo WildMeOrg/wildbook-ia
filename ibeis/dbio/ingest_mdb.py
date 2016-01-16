@@ -47,11 +47,11 @@ if __name__ == '__main__':
 
     print('''
           =====================
-          PROCESSING ENCOUNTERS
+          PROCESSING IMAGESETS
           =====================
           ''')
     used = []
-    # encounters = open(join(prefix, 'encounters.csv'),'w')
+    # e ncounters = open(join(prefix, 'e ncounters.csv'),'w')
     # animals = open(join(prefix, 'animals.csv'),'w')
     linenum = 0
     processed = []
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                     processed.append(line)
                     # animals.write(','.join(line) + '\n')
                     used.append(filename)
-                # encounters.write(','.join(line) + '\n')
+                # e ncounters.write(','.join(line) + '\n')
 
     print('USED:', float(len(used)) / len(images.files()))
     #print('processed: %s' % processed)

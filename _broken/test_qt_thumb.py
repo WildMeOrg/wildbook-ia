@@ -102,7 +102,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #id_ = model._get_row_id(qtindex)
         if model.name == THUMB_TABLE:
             tblview = ibswgt.view
-            # eid = model.eid
+            # imgsetid = model.imgsetid
             # gid = id_
             guitool.popup_menu(tblview, pos, [
                 ('right click action', lambda: None),
@@ -115,7 +115,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
         if model.name == THUMB_TABLE:
-            # eid = model.eid
+            # imgsetid = model.imgsetid
             gid = id_
             if gid is None:
                 return
@@ -129,7 +129,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_ = model._get_row_id(qtindex)
         print('dblclick (%r,%r)' % (qtindex.row(), qtindex.column()))
         if model.name == THUMB_TABLE:
-            # eid = model.eid
+            # imgsetid = model.imgsetid
             gid = id_
             if gid is None:
                 return

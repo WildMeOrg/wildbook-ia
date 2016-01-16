@@ -52,7 +52,6 @@ PARTY_TAG           = 'party_tag'
 CONFIG_ROWID        = 'config_rowid'
 IMAGE_UUID          = 'image_uuid'
 CONFIG_SUFFIX       = 'config_suffix'
-ENCOUNTER_ROWID     = 'encounter_rowid'
 
 # =======================
 # Schema Version 1.0.0
@@ -80,8 +79,8 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         First class table used to store image locations and meta-data''')
 
-    db.add_table(const.ENCOUNTER_TABLE, (
-        (ENCOUNTER_ROWID,                'INTEGER PRIMARY KEY'),
+    db.add_table('encounters', (
+        ('encounter_rowid',                'INTEGER PRIMARY KEY'),
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
         ('encounter_note',               'TEXT NOT NULL'),
@@ -188,12 +187,12 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
-    db.add_table(const.EG_RELATION_TABLE, (
+    db.add_table('encounter_image_relationship', (
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
-        (ENCOUNTER_ROWID,                'INTEGER'),
+        ('encounter_rowid',                'INTEGER'),
     ),
-        superkeys=[(IMAGE_ROWID, ENCOUNTER_ROWID,)],
+        superkeys=[(IMAGE_ROWID, 'encounter_rowid',)],
         docstr='''
         Relationship between encounters and images (many to many mapping) the
         many-to-many relationship between images and encounters is encoded here
@@ -628,7 +627,7 @@ def update_1_1_0(db, ibs=None):
     )
 
     # Add config to encounters
-    db.modify_table(const.ENCOUNTER_TABLE, (
+    db.modify_table('encounters', (
         # add column to v1.0.2 at index 2
         (2, 'config_rowid', 'INTEGER', None),
     ),
@@ -727,7 +726,7 @@ def update_1_3_0(db, ibs=None):
 
     db.drop_table(NAME_TABLE_v121)
 
-    db.modify_table(const.ENCOUNTER_TABLE, (
+    db.modify_table('encounters', (
         (None, 'encounter_start_time_posix', 'INTEGER',           None),
         (None, 'encounter_end_time_posix',   'INTEGER',           None),
         (None, 'encounter_gps_lat',          'INTEGER',           None),
@@ -788,7 +787,7 @@ def update_1_3_2(db, ibs=None):
     """
     for SMART DATA
     """
-    db.modify_table(const.ENCOUNTER_TABLE, (
+    db.modify_table('encounters', (
         (None, 'encounter_smart_xml_fpath',   'TEXT',           None),
         (None, 'encounter_smart_waypoint_id', 'INTEGER',        None),
     ))
@@ -796,7 +795,7 @@ def update_1_3_2(db, ibs=None):
 
 def update_1_3_3(db, ibs=None):
     # we should only be storing names here not paths
-    db.modify_table(const.ENCOUNTER_TABLE, (
+    db.modify_table('encounters', (
         ('encounter_smart_xml_fpath', 'encounter_smart_xml_fname',  'TEXT',           None),
     ))
 
@@ -934,9 +933,9 @@ def update_1_3_6(db, ibs=None):
 
     # add metadata props
     db.modify_table(
-        const.EG_RELATION_TABLE,
+        'encounter_image_relationship',
         shortname='egr',
-        relates=(const.IMAGE_TABLE, const.ENCOUNTER_TABLE))
+        relates=(const.IMAGE_TABLE, 'encounters'))
 
     db.modify_table(
         const.AL_RELATION_TABLE,
@@ -989,17 +988,17 @@ def update_1_3_7(db, ibs=None):
     )
 
     db.modify_table(
-        const.ENCOUNTER_TABLE,
+        'encounters',
         dependsmap={
             'config_rowid':       (const.CONFIG_TABLE,       ('config_rowid',),          ('contributor_rowid', CONFIG_SUFFIX,)),
         }
     )
 
     db.modify_table(
-        const.EG_RELATION_TABLE,
+        'encounter_image_relationship',
         dependsmap={
             'image_rowid':       (const.IMAGE_TABLE,     (IMAGE_ROWID,),   (IMAGE_UUID,)),
-            ENCOUNTER_ROWID:     (const.ENCOUNTER_TABLE,  (ENCOUNTER_ROWID,),   ('encounter_text',)),
+            'encounter_rowid':     ('encounters',  ('encounter_rowid',),   ('encounter_text',)),
         }
     )
 
@@ -1008,7 +1007,7 @@ def update_1_3_8(db, ibs=None):
     # Encounters only care about their text again as a uuid We are removing
     # config_rowid from encounters. Thus the dependency is not encoded
     db.modify_table(
-        const.ENCOUNTER_TABLE,
+        'encounters',
         superkeys=[('encounter_text',)],
     )
 
@@ -1034,15 +1033,15 @@ def update_1_3_9(db, ibs=None):
 def update_1_4_0(db, ibs=None):
     # Remove contributors from configs
     db.modify_table(
-        const.EG_RELATION_TABLE,
-        superkeys=[(IMAGE_ROWID, ENCOUNTER_ROWID,)],
+        'encounter_image_relationship',
+        superkeys=[(IMAGE_ROWID, 'encounter_rowid',)],
         #superkeys=[(CONFIG_SUFFIX,)]
     )
 
 
 def update_1_4_1(db, ibs=None):
     db.modify_table(
-        const.ENCOUNTER_TABLE,
+        'encounters',
         dependsmap={
             'config_rowid':       (const.CONFIG_TABLE,       ('config_rowid',),          (CONFIG_SUFFIX,)),
         }
@@ -1310,6 +1309,52 @@ def post_1_4_9(db, ibs=None):
         )
 
 
+def update_1_5_0(db, ibs=None):
+    # Rename encounters to imagesets
+    db.rename_table('encounters', 'imagesets')
+    db.rename_table('encounter_image_relationship', 'imageset_image_relationship')
+    db.modify_table(
+        'imagesets', [
+            ('encounter_rowid',             'imageset_rowid',              'INTEGER PRIMARY KEY', None),
+            ('encounter_uuid',              'imageset_uuid',               'UUID NOT NULL', None),
+            ('encounter_text',              'imageset_text',               'TEXT NOT NULL', None),
+            ('encounter_note',              'imageset_note',               'TEXT NOT NULL', None),
+            ('encounter_start_time_posix',  'imageset_start_time_posix',   'INTEGER', None),
+            ('encounter_end_time_posix',    'imageset_end_time_posix',     'INTEGER', None),
+            ('encounter_gps_lat',           'imageset_gps_lat',            'INTEGER', None),
+            ('encounter_gps_lon',           'imageset_gps_lon',            'INTEGER', None),
+            ('encounter_processed_flag',    'imageset_processed_flag',     'INTEGER DEFAULT 0', None),
+            ('encounter_shipped_flag',      'imageset_shipped_flag',       'INTEGER DEFAULT 0', None),
+            ('encounter_smart_xml_fname',   'imageset_smart_xml_fname',    'TEXT', None),
+            ('encounter_smart_waypoint_id', 'imageset_smart_waypoint_id',  'INTEGER', None),
+        ],
+        docstr='''
+        List of all imagesets. This used to be called the encounter table.
+        It represents a group of potentially many individuals seen in a
+        specific place at a specific time.
+        ''',
+        superkeys=[('imageset_text',)],
+    )
+    db.modify_table(
+        'imageset_image_relationship', [
+            ('egr_rowid',       'gsgr_rowid',      'INTEGER PRIMARY KEY', None),
+            ('encounter_rowid', 'imageset_rowid',  'INTEGER', None),
+        ],
+        docstr='''
+        Relationship between imagesets and images (many to many mapping) the
+        many-to-many relationship between images and imagesets is encoded
+        here imageset_image_relationship stands for imageset-image-pairs.
+        ''',
+        superkeys=[('image_rowid', 'imageset_rowid')],
+        relates=('images', 'imagesets'),
+        shortname='gsgr',
+        dependsmap={
+            'imageset_rowid': ('imagesets', ('imageset_rowid',), ('imageset_text',)),
+            'image_rowid'    : ('images', ('image_rowid',), ('image_uuid',)),
+        },
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1348,6 +1393,7 @@ VALID_VERSIONS = ut.odict([
     ('1.4.7',    (None,                 update_1_4_7,       post_1_4_7          )),
     ('1.4.8',    (pre_1_4_8,            update_1_4_8,       None                )),
     ('1.4.9',    (pre_1_4_9,            update_1_4_9,       post_1_4_9          )),
+    ('1.5.0',    (None,                 update_1_5_0,       None                )),
 ])
 """
 SeeAlso:

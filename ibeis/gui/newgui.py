@@ -7,8 +7,8 @@ logic.
 
 
 BUGS:
-    * Copying the ungrouped encounter raises an error. Should have the option
-    to copy or move it. Other special encounter should not have this option.
+    * Copying the ungrouped imageset raises an error. Should have the option
+    to copy or move it. Other special imageset should not have this option.
 
     Should gray out an option if it is not available.
 
@@ -29,7 +29,7 @@ from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six
 from ibeis.viz.interact import interact_annotations2
-from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)  # NOQA
+from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, IMAGESET_TABLE)  # NOQA
 from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         IBEISItemModel, IBEISTreeView,
                                         EncTableModel, EncTableView,
@@ -50,7 +50,7 @@ WITH_GUILOG = ut.get_argflag('--guilog')
 
 """
 from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
-                                  NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+                                  NAME_TABLE, NAMES_TREE, IMAGESET_TABLE)
 ibsgwt = back.front
 view   = ibsgwt.views[IMAGE_TABLE]
 model  = ibsgwt.models[IMAGE_TABLE]
@@ -81,7 +81,7 @@ class APITabWidget(QtGui.QTabWidget):
 
     @slot_(int)
     def _on_tabletab_change(tabwgt, index):
-        """ Switch to the current encounter tab """
+        """ Switch to the current imageset tab """
         print('[apitab] _onchange(index=%r)' % (index,))
         tblname = tabwgt.ibswgt.tblname_list[index]
         tabwgt.current_tblname = tblname
@@ -103,7 +103,7 @@ class APITabWidget(QtGui.QTabWidget):
 
 class EncoutnerTabWidget(QtGui.QTabWidget):
     """
-    Handles the super-tabs for the encounters that hold the table-tabs
+    Handles the super-tabs for the imagesets that hold the table-tabs
     """
     def __init__(enc_tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(enc_tabwgt, parent)
@@ -120,62 +120,62 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         enc_tabwgt.tabCloseRequested.connect(enc_tabwgt._close_tab)
         enc_tabwgt.currentChanged.connect(enc_tabwgt._on_enctab_change)
 
-        enc_tabwgt.eid_list = []
+        enc_tabwgt.imgsetid_list = []
         # TURNING ON / OFF ALL IMAGES
-        # enc_tabwgt._add_enc_tab(-1, const.ALL_IMAGE_ENCTEXT)
+        # enc_tabwgt._add_enc_tab(-1, const.ALL_IMAGE_IMAGESETTEXT)
 
     @slot_(int)
     def _on_enctab_change(enc_tabwgt, index):
-        """ Switch to the current encounter tab """
-        print('[encounter_tab_widget] _onchange(index=%r)' % (index,))
-        if 0 <= index and index < len(enc_tabwgt.eid_list):
-            eid = enc_tabwgt.eid_list[index]
+        """ Switch to the current imageset tab """
+        print('[imageset_tab_widget] _onchange(index=%r)' % (index,))
+        if 0 <= index and index < len(enc_tabwgt.imgsetid_list):
+            imgsetid = enc_tabwgt.imgsetid_list[index]
             #if ut.VERBOSE:
-            print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
-            enc_tabwgt.ibswgt._change_enc(eid)
+            print('[ENCTAB.ONCHANGE] imgsetid = %r' % (imgsetid,))
+            enc_tabwgt.ibswgt._change_enc(imgsetid)
         else:
             enc_tabwgt.ibswgt._change_enc(-1)
 
     @slot_(int)
     def _close_tab(enc_tabwgt, index):
-        print('[encounter_tab_widget] _close_tab(index=%r)' % (index,))
-        if enc_tabwgt.eid_list[index] is not None:
-            enc_tabwgt.eid_list.pop(index)
+        print('[imageset_tab_widget] _close_tab(index=%r)' % (index,))
+        if enc_tabwgt.imgsetid_list[index] is not None:
+            enc_tabwgt.imgsetid_list.pop(index)
             enc_tabwgt.removeTab(index)
 
     @slot_()
     def _close_all_tabs(enc_tabwgt):
-        print('[encounter_tab_widget] _close_all_tabs()')
-        while len(enc_tabwgt.eid_list) > 0:
+        print('[imageset_tab_widget] _close_all_tabs()')
+        while len(enc_tabwgt.imgsetid_list) > 0:
             index = 0
-            enc_tabwgt.eid_list.pop(index)
+            enc_tabwgt.imgsetid_list.pop(index)
             enc_tabwgt.removeTab(index)
 
     @slot_(int)
-    def _close_tab_with_eid(enc_tabwgt, eid):
-        print('[encounter_tab_widget] _close_tab_with_eid(eid=%r)' % (eid))
+    def _close_tab_with_imgsetid(enc_tabwgt, imgsetid):
+        print('[imageset_tab_widget] _close_tab_with_imgsetid(imgsetid=%r)' % (imgsetid))
         try:
-            index = enc_tabwgt.eid_list.index(eid)
+            index = enc_tabwgt.imgsetid_list.index(imgsetid)
             enc_tabwgt._close_tab(index)
         except:
             pass
 
-    def _add_enc_tab(enc_tabwgt, eid, enctext):
+    def _add_enc_tab(enc_tabwgt, imgsetid, imagesettext):
         # <HACK>
-        # if enctext == const.ALL_IMAGE_ENCTEXT:
-        #     eid = None
+        # if imagesettext == const.ALL_IMAGE_IMAGESETTEXT:
+        #     imgsetid = None
         # </HACK>
         #with ut.Indenter('[_ADD_ENC_TAB]'):
-        print('[_add_enc_tab] eid=%r, enctext=%r' % (eid, enctext))
-        if eid not in enc_tabwgt.eid_list:
-            # tab_name = str(eid) + ' - ' + str(enctext)
-            tab_name = str(enctext)
+        print('[_add_enc_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
+        if imgsetid not in enc_tabwgt.imgsetid_list:
+            # tab_name = str(imgsetid) + ' - ' + str(imagesettext)
+            tab_name = str(imagesettext)
             enc_tabwgt.addTab(QtGui.QWidget(), tab_name)
 
-            enc_tabwgt.eid_list.append(eid)
-            index = len(enc_tabwgt.eid_list) - 1
+            enc_tabwgt.imgsetid_list.append(imgsetid)
+            index = len(enc_tabwgt.imgsetid_list) - 1
         else:
-            index = enc_tabwgt.eid_list.index(eid)
+            index = enc_tabwgt.imgsetid_list.index(imgsetid)
 
         #with BlockContext(enc_tabwgt):
         #print('SET CURRENT INDEX')
@@ -183,10 +183,10 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         #print('DONE SETTING CURRENT INDEX')
         enc_tabwgt._on_enctab_change(index)
 
-    def _update_enc_tab_name(enc_tabwgt, eid, enctext):
-        for index, _id in enumerate(enc_tabwgt.eid_list):
-            if eid == _id:
-                enc_tabwgt.setTabText(index, enctext)
+    def _update_enc_tab_name(enc_tabwgt, imgsetid, imagesettext):
+        for index, _id in enumerate(enc_tabwgt.imgsetid_list):
+            if imgsetid == _id:
+                enc_tabwgt.setTabText(index, imagesettext)
 
 
 #############################
@@ -292,9 +292,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.tblname_list.append(NAMES_TREE)
             ibswgt.modelview_defs.append((NAMES_TREE, IBEISTreeWidget,
                                           IBEISItemModel, IBEISTreeView))
-        # ADD ENCOUNTER TABLE
-        ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
-        ibswgt.modelview_defs.append((ENCOUNTER_TABLE,  EncTableWidget,
+        # ADD IMAGESET TABLE
+        ibswgt.super_tblname_list = ibswgt.tblname_list + [IMAGESET_TABLE]
+        ibswgt.modelview_defs.append((IMAGESET_TABLE,  EncTableWidget,
                                       EncTableModel, EncTableView))
 
         # DO INITALIZATION
@@ -313,7 +313,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
             #tblview.clicked.connect(ibswgt.on_click)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
-            if tblname != gh.ENCOUNTER_TABLE:
+            if tblname != gh.IMAGESET_TABLE:
                 tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
             #front.printSignal.connect(back.backend_print)
             #front.raiseExceptionSignal.connect(back.backend_exception)
@@ -425,7 +425,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for tblname in ibswgt.tblname_list:
             #ibswgt._table_tab_wgt.addTab(ibswgt.widgets[tblname], tblname)
             ibswgt._table_tab_wgt.addTab(ibswgt.views[tblname], tblname)
-        # Custom Encounter Tab Wiget
+        # Custom ImageSet Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
@@ -447,7 +447,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         identify_color = (255, 150, 0)
 
         ibswgt.tablename_to_status_widget_index = {
-            ENCOUNTER_TABLE: 1,
+            IMAGESET_TABLE: 1,
             IMAGE_TABLE: 3,
             IMAGE_GRID: 3,
             gh.ANNOTATION_TABLE: 5,
@@ -455,7 +455,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             NAME_TABLE: 7,
         }
         ibswgt.status_widget_list = [
-            _NEWLBL('Selected Encounter: ', fontkw=secondary_fontkw, align='right'),
+            _NEWLBL('Selected ImageSet: ', fontkw=secondary_fontkw, align='right'),
             _NEWTEXT(enabled=True, readOnly=True),
             ##
             _NEWLBL('Selected Image: ', fontkw=secondary_fontkw, align='right'),
@@ -478,8 +478,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                       ibswgt.back.change_detection_species,
                                       fontkw=primary_fontkw)
 
-        ibswgt.batch_intra_encounter_query_button = _NEWBUT(
-            'Intra Encounter',
+        ibswgt.batch_intra_imageset_query_button = _NEWBUT(
+            'Intra ImageSet',
             functools.partial(
                 back.compute_queries, query_is_known=None,
                 daids_mode=const.INTRA_ENC_KEY,
@@ -504,9 +504,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             back.import_images_from_dir,
             bgcolor=(235, 200, 200), fontkw=primary_fontkw)
 
-        ibswgt.encounter_button = _NEWBUT(
+        ibswgt.imageset_button = _NEWBUT(
             '2) Group',
-            ibswgt.back.compute_encounters,
+            ibswgt.back.compute_occurrences,
             bgcolor=(255, 255, 150), fontkw=primary_fontkw)
 
         ibswgt.detect_button = _NEWBUT(
@@ -530,7 +530,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.reviewed_button = _NEWBUT(
             '5) Complete',
-            ibswgt.back.encounter_reviewed_all_images,
+            ibswgt.back.imageset_reviewed_all_images,
             bgcolor=color_funcs.adjust_hsv_of_rgb255((0, 232, 211), 0., -.9, 0.),
             fontkw=primary_fontkw,
             enabled=enable_complete)
@@ -538,8 +538,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.control_widget_lists = [
             [
                 ibswgt.import_button,
-                ibswgt.encounter_button,
-                _NEWLBL('Encounter: ', align='right', fontkw=primary_fontkw),
+                ibswgt.imageset_button,
+                _NEWLBL('ImageSet: ', align='right', fontkw=primary_fontkw),
                 ibswgt.detect_button,
                 ibswgt.inc_query_button,
                 ibswgt.reviewed_button,
@@ -549,7 +549,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.species_combo,
                 _NEWLBL(''),
                 _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
-                ibswgt.batch_intra_encounter_query_button,
+                ibswgt.batch_intra_imageset_query_button,
                 ibswgt.batch_vsexemplar_query_button,
                 _NEWLBL(''),
             ],
@@ -563,7 +563,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
         ibswgt.vsplitter.addWidget(ibswgt.status_wgt)
         # Horizontal Upper
-        ibswgt.hsplitter.addWidget(ibswgt.views[ENCOUNTER_TABLE])
+        ibswgt.hsplitter.addWidget(ibswgt.views[IMAGESET_TABLE])
         ibswgt.hsplitter.addWidget(ibswgt._table_tab_wgt)
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
@@ -624,7 +624,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Give the frontend the new control
             ibswgt.ibs = ibs
             with ut.Timer('update special'):
-                ibs.update_special_encounters()
+                ibs.update_special_imagesets()
             # Update the api models to use the new control
             with ut.Timer('make headers'):
                 header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
@@ -665,21 +665,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt._table_tab_wgt.blockSignals(block_wgt_flag)
 
             # FIXME: bad code
-            # TODO: load previously loaded encounter or nothing
-            LOAD_ENCOUNTER_ON_START = True
-            if LOAD_ENCOUNTER_ON_START:
+            # TODO: load previously loaded imageset or nothing
+            LOAD_IMAGESET_ON_START = True
+            if LOAD_IMAGESET_ON_START:
                 #with ut.Indenter('[LOAD_ENC]'):
-                eid_list = ibs.get_valid_eids(shipped=False)
-                if len(eid_list) > 0:
-                    DEFAULT_LARGEST_ENCOUNTER = False
-                    if DEFAULT_LARGEST_ENCOUNTER:
-                        numImg_list = ibs.get_encounter_num_gids(eid_list)
+                imgsetid_list = ibs.get_valid_imgsetids(shipped=False)
+                if len(imgsetid_list) > 0:
+                    DEFAULT_LARGEST_IMAGESET = False
+                    if DEFAULT_LARGEST_IMAGESET:
+                        numImg_list = ibs.get_imageset_num_gids(imgsetid_list)
                         argx = ut.list_argsort(numImg_list)[-1]
-                        eid = eid_list[argx]
-                    else:  # Grab "first" encounter
-                        eid = eid_list[0]
-                    #ibswgt._change_enc(eid)
-                    ibswgt.select_encounter_tab(eid)
+                        imgsetid = imgsetid_list[argx]
+                    else:  # Grab "first" imageset
+                        imgsetid = imgsetid_list[0]
+                    #ibswgt._change_enc(imgsetid)
+                    ibswgt.select_imageset_tab(imgsetid)
                 else:
                     #with ut.Indenter('[SET NEG1 ENC]'):
                     ibswgt._change_enc(-1)
@@ -719,44 +719,44 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
-    def _change_enc(ibswgt, eid):
-        print('[newgui] _change_enc(eid=%r, uuid=%r)' %
-              (eid, ibswgt.back.ibs.get_encounter_uuid(eid)))
+    def _change_enc(ibswgt, imgsetid):
+        print('[newgui] _change_enc(imgsetid=%r, uuid=%r)' %
+              (imgsetid, ibswgt.back.ibs.get_imageset_uuid(imgsetid)))
         for tblname in ibswgt.tblname_list:
             view = ibswgt.views[tblname]
             view.clearSelection()
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             view = ibswgt.views[tblname]
-            view._change_enc(eid)
-            #ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call
+            view._change_enc(imgsetid)
+            #ibswgt.models[tblname]._change_enc(imgsetid)  # the view should take care of this call
         try:
-            #if eid is None:
+            #if imgsetid is None:
             #    # HACK
-            #    enctext = const.ALL_IMAGE_ENCTEXT
+            #    imagesettext = const.ALL_IMAGE_IMAGESETTEXT
             #else:
-            #    enctext = ibswgt.ibs.get_encounter_text(eid)
-            ibswgt.back.select_eid(eid)
+            #    imagesettext = ibswgt.ibs.get_imageset_text(imgsetid)
+            ibswgt.back.select_imgsetid(imgsetid)
             ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species_text)
             #text_list = [
-            #    'Identify Mode: Within-Encounter (%s vs. %s)' % (enctext, enctext),
-            #    'Identify Mode: Exemplars (%s vs. %s)' % (enctext, const.EXEMPLAR_ENCTEXT)]
+            #    'Identify Mode: Within-ImageSet (%s vs. %s)' % (imagesettext, imagesettext),
+            #    'Identify Mode: Exemplars (%s vs. %s)' % (imagesettext, const.EXEMPLAR_IMAGESETTEXT)]
             #text_list = [
-            #    'Identify Mode: Within-Encounter' ,
+            #    'Identify Mode: Within-ImageSet' ,
             #    'Identify Mode: Exemplars']
             #query_text =
             #ibswgt.query_button
             #ibswgt.querydb_combo.setOptionText(text_list)
             #ibswgt.query_
             #ibswgt.control_widget_lists[1][0].setText('Identify
-            #(intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            #(intra-imageset)\nQUERY(%r vs. %r)' % (imagesettext, imagesettext))
             #ibswgt.control_widget_lists[1][1].setText('Identify (vs exemplar
-            #database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
+            #database)\nQUERY(%r vs. %r)' % (imagesettext, const.EXEMPLAR_IMAGESETTEXT))
         except Exception as ex:
             ut.printex(ex, iswarning=True)
         ibswgt.set_table_tab(IMAGE_TABLE)
 
-    def _update_enc_tab_name(ibswgt, eid, enctext):
-        ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
+    def _update_enc_tab_name(ibswgt, imgsetid, imagesettext):
+        ibswgt.enc_tabwgt._update_enc_tab_name(imgsetid, imagesettext)
 
     #------------
     # SLOT HELPERS
@@ -788,7 +788,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         index = ibswgt.get_table_tab_index(tblname)
         ibswgt._table_tab_wgt.setCurrentIndex(index)
 
-    def select_encounter_tab(ibswgt, eid):
+    def select_imageset_tab(ibswgt, imgsetid):
         if False:
             prefix = ut.get_caller_name(range(0, 10))
             prefix = prefix.replace('[wrp_noexectb]', 'w')
@@ -796,16 +796,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             prefix = prefix.replace('[X]', 'x')
         else:
             prefix = ''
-        print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
-        if isinstance(eid, six.string_types):
+        print(prefix + '[newgui] select_imageset_tab imgsetid=%r' % (imgsetid,))
+        if isinstance(imgsetid, six.string_types):
             # Hack
-            enctext = eid
+            imagesettext = imgsetid
         else:
-            enctext = ibswgt.ibs.get_encounter_text(eid)
-        #ibswgt.back.select_eid(eid)
-        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
+            imagesettext = ibswgt.ibs.get_imageset_text(imgsetid)
+        #ibswgt.back.select_imgsetid(imgsetid)
+        ibswgt.enc_tabwgt._add_enc_tab(imgsetid, imagesettext)
 
-    def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, eid, model=None, qtindex=None):
+    def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, imgsetid, model=None, qtindex=None):
         """
         hack for letting annots spawn image editing
 
@@ -820,8 +820,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ibswgt = back.ibswgt  # NOQA
             >>> aid = 4
-            >>> eid = 1
-            >>> ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)
+            >>> imgsetid = 1
+            >>> ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid)
             >>> if ut.show_was_requested():
             >>>    guitool.qtapp_loop(qwin=ibswgt)
         """
@@ -830,9 +830,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             view = ibswgt.views[IMAGE_TABLE]
             model = view.model()
             qtindex, row = view.get_row_and_qtindex_from_id(gid)
-        ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, eid)
+        ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, imgsetid)
 
-    def spawn_edit_image_annotation_interaction(ibswgt, model, qtindex, gid, eid):
+    def spawn_edit_image_annotation_interaction(ibswgt, model, qtindex, gid, imgsetid):
         """
         TODO: needs reimplement using more standard interaction methods
 
@@ -840,7 +840,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         print('[newgui] Creating new annotation interaction: gid=%r' % (gid,))
         ibs = ibswgt.ibs
         # Select gid
-        ibswgt.back.select_gid(gid, eid, show=False)
+        ibswgt.back.select_gid(gid, imgsetid, show=False)
         # Interact with gid
         nextcb, prevcb, current_gid = ibswgt._interactannot2_callbacks(model, qtindex)
         iannot2_kw = {
@@ -910,7 +910,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         callbacks for the edit image annotation (from image table) interaction
 
-        python -m ibeis --db lynx --eid 2
+        python -m ibeis --db lynx --imgsetid 2
 
         TODO: needs reimplement
         """
@@ -1079,8 +1079,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if VERBOSE_GUI:
             print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
         #printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
-        if tblname == ENCOUNTER_TABLE:  # Hack
-            print('... tblname == ENCOUNTER_TABLE, ...hack return')
+        if tblname == IMAGESET_TABLE:  # Hack
+            print('... tblname == IMAGESET_TABLE, ...hack return')
             return
         tblname = str(tblname)
         TABLE_NICE = ibswgt.declare_tup[1]  # hack
@@ -1104,7 +1104,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Context menus on right click of a table
 
         CommandLine:
-            python -m ibeis --db WS_ALL --eid 2 --select-name=A-003
+            python -m ibeis --db WS_ALL --imgsetid 2 --select-name=A-003
         """
         if not qtindex.isValid():
             return
@@ -1123,7 +1123,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibs = ibswgt.back.ibs
         back = ibswgt.back
 
-        def build_annot_context_options(ibswgt, ibs, aid_list, eid, **kwargs):
+        def build_annot_context_options(ibswgt, ibs, aid_list, imgsetid, **kwargs):
             context_options = []
             if len(aid_list) == 1:
                 aid = aid_list[0]
@@ -1147,21 +1147,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 if kwargs.get('canedit', True):
                     context_options += [
                         ('Edit Annotation in Image',
-                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
+                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid)),
                     ]
 
                 context_options += [
                     ('----', lambda: None),
                     ('View annotation in Web',
-                        #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        #lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),
                         lambda: ibswgt.back.show_annotation(aid, web=True)),
                     ('View image in Web',
-                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
+                        lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
                     #('View annotation in Matplotlib',
-                    #    #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    #    #lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),
                     #    lambda: ibswgt.back.show_annotation(aid, web=False)),
                     #('View image in Matplotlib',
-                    #    lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                    #    lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=False)),
                     #('View detection chip (probability) [dev]',
                     #    lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),
@@ -1185,11 +1185,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
             return context_options
 
-        def name_context_options(ibswgt, ibs, nid_list, aid_list, eid, **kwargs):
+        def name_context_options(ibswgt, ibs, nid_list, aid_list, imgsetid, **kwargs):
             context_options = []
             if len(aid_list) == 1:
                 aid = aid_list[0]
-                context_options += build_annot_context_options(ibswgt, ibs, [aid], eid)
+                context_options += build_annot_context_options(ibswgt, ibs, [aid], imgsetid)
                 #[
                 #    ('Go to image',
                 #     lambda: ibswgt.goto_table_id(IMAGE_TABLE,
@@ -1198,13 +1198,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #     lambda: ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)),
                 #    ('----', lambda: None),
                 #    ('View annotation in Matplotlib',
-                #     lambda: ibswgt.back.select_aid(aid, eid, show=False)),
+                #     lambda: ibswgt.back.select_aid(aid, imgsetid, show=False)),
                 #    ('View annotation in Web',
-                #     lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                #     lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),
                 #    ('View image in Matplotlib',
-                #     lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                #     lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=False)),
                 #    ('View image in Web',
-                #     lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
+                #     lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
                 #]
             if len(aid_list) > 0:
                 def set_annot_names_to_same_new_name(ibswgt, aid_list):
@@ -1228,17 +1228,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         return
                     export_subset.export_names(ibs, nid_list)
 
-                def create_new_encounter_from_names_(ibs, nid_list):
-                    ibs.create_new_encounter_from_names(nid_list)
-                    ibswgt.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=False)
+                def create_new_imageset_from_names_(ibs, nid_list):
+                    ibs.create_new_imageset_from_names(nid_list)
+                    ibswgt.update_tables([gh.IMAGESET_TABLE], clear_view_selection=False)
 
                 context_options += [
                     ('View name(s) in Web', lambda: ibswgt.back.show_nid_list_in_web(nid_list)),
                     ('----', lambda: None),
                     ('Check for splits', lambda: run_splits(ibs, nid_list)),
                     ('Export names', lambda: export_nids(ibs, nid_list)),
-                    ('Create Encounter From Name(s)',
-                     lambda: create_new_encounter_from_names_(ibs, nid_list)),
+                    ('Create ImageSet From Name(s)',
+                     lambda: create_new_imageset_from_names_(ibs, nid_list)),
                 ]
 
                 from ibeis.viz.interact import interact_name
@@ -1252,8 +1252,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 pass
             return context_options
 
-        def build_image_context_options(ibswgt, ibs, gid_list, eid, **kwargs):
-            current_enctext = ibswgt.back.ibs.get_encounter_text(eid)
+        def build_image_context_options(ibswgt, ibs, gid_list, imgsetid, **kwargs):
+            current_imagesettext = ibswgt.back.ibs.get_imageset_text(imgsetid)
             context_options = []
             # Conditional context menu
             context_options = [
@@ -1262,12 +1262,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ]
             if len(gid_list) == 1:
                 gid = gid_list[0]
-                eid = model.eid
+                imgsetid = model.imgsetid
                 aid_list = ibs.get_image_aids(gid)
 
                 annot_options = [
                     ('Options aid=%r' % (aid,),
-                     build_annot_context_options(ibswgt, ibs, [aid], eid, goto_image=False))
+                     build_annot_context_options(ibswgt, ibs, [aid], imgsetid, goto_image=False))
                     for aid in aid_list
                 ]
                 if len(aid_list) == 1:
@@ -1285,9 +1285,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 context_options += [
                     ('View image in Matplotlib',
-                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=False)),
+                        lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=False)),
                     ('View image in Web',
-                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=True)),
+                        lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image(gid)),
                     annot_option_item,
@@ -1310,20 +1310,20 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Run detection on images (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_images(gid_list)),
                 ]
-            # Special condition for encounters
-            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
+            # Special condition for imagesets
+            if current_imagesettext != const.NEW_IMAGESET_IMAGESETTEXT:
                 context_options += [
                     ('----', lambda: None),
-                    ('Move to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='move')),
-                    ('Copy to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='copy')),
+                    ('Move to new imageset',
+                        lambda: ibswgt.back.send_to_new_imageset(gid_list, mode='move')),
+                    ('Copy to new imageset',
+                        lambda: ibswgt.back.send_to_new_imageset(gid_list, mode='copy')),
                 ]
-            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
+            if current_imagesettext != const.UNGROUPED_IMAGES_IMAGESETTEXT:
                 context_options += [
                     ('----', lambda: None),
-                    ('Remove from encounter',
-                        lambda: ibswgt.back.remove_from_encounter(gid_list)),
+                    ('Remove from imageset',
+                        lambda: ibswgt.back.remove_from_imageset(gid_list)),
                 ]
             # Continue the conditional context menu
             if len(gid_list) == 1:
@@ -1345,56 +1345,56 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
             return context_options
 
-        # ---- ENCOUNTER CONTEXT ----
-        if model.name == ENCOUNTER_TABLE:
-            # This is for the benefit of merge encounters
+        # ---- IMAGESET CONTEXT ----
+        if model.name == IMAGESET_TABLE:
+            # This is for the benefit of merge imagesets
             merge_destination_id = model._get_row_id(qtindex)
-            enctext = ibswgt.back.ibs.get_encounter_text(merge_destination_id)
-            eid_list = level2_ids[0]
+            imagesettext = ibswgt.back.ibs.get_imageset_text(merge_destination_id)
+            imgsetid_list = level2_ids[0]
             # Conditional context menu
             # TODO: remove duplicate code
-            if len(eid_list) == 1:
+            if len(imgsetid_list) == 1:
                 context_options += [
-                    ('View encounter in Web', lambda: ibswgt.back.show_eid_list_in_web(eid_list)),
+                    ('View imageset in Web', lambda: ibswgt.back.show_imgsetid_list_in_web(imgsetid_list)),
                     ('----', lambda: None),
-                    ('Run detection on encounter (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
-                    ('Merge %d encounter into %s' %  (len(eid_list), (enctext)),
-                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
-                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
-                    ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
+                    ('Run detection on imageset (can cause duplicates)',
+                        lambda: ibswgt.back.run_detection_on_imageset(imgsetid_list)),
+                    ('Merge %d imageset into %s' %  (len(imgsetid_list), (imagesettext)),
+                        lambda: ibswgt.back.merge_imagesets(imgsetid_list, merge_destination_id)),
+                    ('Copy imageset', lambda: ibswgt.back.copy_imageset(imgsetid_list)),
+                    ('Export imageset', lambda: ibswgt.back.export_imagesets(imgsetid_list)),
                     ('----', lambda: None),
-                    ('Delete encounter', lambda: ibswgt.back.delete_encounter(eid_list)),
+                    ('Delete imageset', lambda: ibswgt.back.delete_imageset(imgsetid_list)),
                     ('----', lambda: None),
-                    ('Delete encounter AND images',
-                     lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
+                    ('Delete imageset AND images',
+                     lambda: ibswgt.back.delete_imageset_and_images(imgsetid_list)),
                 ]
             else:
                 context_options += [
-                    ('Run detection on encounters (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
-                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
-                    ('Merge %d encounters into %s' %  (len(eid_list), (enctext)),
-                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
+                    ('Run detection on imagesets (can cause duplicates)',
+                        lambda: ibswgt.back.run_detection_on_imageset(imgsetid_list)),
+                    ('Copy imageset', lambda: ibswgt.back.copy_imageset(imgsetid_list)),
+                    ('Merge %d imagesets into %s' %  (len(imgsetid_list), (imagesettext)),
+                        lambda: ibswgt.back.merge_imagesets(imgsetid_list, merge_destination_id)),
                     ('----', lambda: None),
-                    ('Delete encounters', lambda: ibswgt.back.delete_encounter(eid_list)),
+                    ('Delete imagesets', lambda: ibswgt.back.delete_imageset(imgsetid_list)),
                     ('----', lambda: None),
-                    ('Delete encounters AND images',
-                     lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
-                    # ('export encounters', lambda: ibswgt.back.export_encounters(eid_list)),
+                    ('Delete imagesets AND images',
+                     lambda: ibswgt.back.delete_imageset_and_images(imgsetid_list)),
+                    # ('export imagesets', lambda: ibswgt.back.export_imagesets(imgsetid_list)),
                 ]
         # ---- IMAGE CONTEXT ----
         elif model.name == IMAGE_TABLE:
             gid_list = level2_ids[0]
-            eid = ibswgt.back.get_selected_eid()
+            imgsetid = ibswgt.back.get_selected_imgsetid()
             context_options += build_image_context_options(ibswgt, ibs,
-                                                           gid_list, eid)
+                                                           gid_list, imgsetid)
         # ---- IMAGE GRID CONTEXT ----
         elif model.name == IMAGE_GRID:
             gid_list = level2_ids[0]
-            eid = ibswgt.back.get_selected_eid()
+            imgsetid = ibswgt.back.get_selected_imgsetid()
             context_options += build_image_context_options(ibswgt, ibs,
-                                                           gid_list, eid,
+                                                           gid_list, imgsetid,
                                                            goto_image_in_imgtbl=True)
         # ---- ANNOTATION CONTEXT ----
         elif model.name == gh.ANNOTATION_TABLE:
@@ -1402,7 +1402,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Conditional context menu
             # TODO: UNIFY COMMMON CONTEXT MENUS
             context_options += build_annot_context_options(
-                ibswgt, ibs, aid_list, model.eid, goto_annot=False)
+                ibswgt, ibs, aid_list, model.imgsetid, goto_annot=False)
         # ---- NAMES TREE CONTEXT ----
         elif model.name == NAMES_TREE:
             # TODO: map level list to tablename more reliably
@@ -1415,8 +1415,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 print('multiple types of indicies selected')
                 return
             else:
-                eid = model.eid
-                context_options += name_context_options(ibswgt, ibs, nid_list, aid_list, eid)
+                imgsetid = model.imgsetid
+                context_options += name_context_options(ibswgt, ibs, nid_list, aid_list, imgsetid)
         # Show the context menu
         #ut.print_list(context_options, nl=2)
         if len(context_options) > 0:
@@ -1428,7 +1428,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Double clicking anywhere in the GUI
 
         CommandLine:
-            python -m ibeis --db lynx --eid 2 --select-name=goku
+            python -m ibeis --db lynx --imgsetid 2 --select-name=goku
         """
         print('\n+--- DOUBLE CLICK ---')
         if not qtindex.isValid():
@@ -1437,29 +1437,29 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
-        if model.name == ENCOUNTER_TABLE:
-            eid = id_
-            ibswgt.select_encounter_tab(eid)
+        if model.name == IMAGESET_TABLE:
+            imgsetid = id_
+            ibswgt.select_imageset_tab(imgsetid)
         else:
-            eid = model.eid
+            imgsetid = model.imgsetid
             if (model.name == IMAGE_TABLE) or (model.name == IMAGE_GRID):
                 gid = id_
-                ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, eid)
+                ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, imgsetid)
             elif model.name == gh.ANNOTATION_TABLE:
                 aid = id_
-                ibswgt.back.select_aid(aid, eid)
+                ibswgt.back.select_aid(aid, imgsetid)
             elif model.name == NAME_TABLE:
                 nid = id_
-                ibswgt.back.select_nid(nid, eid)
+                ibswgt.back.select_nid(nid, imgsetid)
             elif model.name == NAMES_TREE:
                 level = model._get_level(qtindex)
                 if level == 0:
                     nid = id_
-                    ibswgt.back.select_nid(nid, eid, show=True)
+                    ibswgt.back.select_nid(nid, imgsetid, show=True)
                 elif level == 1:
                     aid = id_
-                    ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid, model, qtindex)
-                    #ibswgt.back.select_aid(aid, eid, show=True)
+                    ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid, model, qtindex)
+                    #ibswgt.back.select_aid(aid, imgsetid, show=True)
 
     @slot_(list)
     def imagesDropped(ibswgt, url_list):
@@ -1536,9 +1536,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 pass
 
         # If no link, process normally
-        if model.name == ENCOUNTER_TABLE:
+        if model.name == IMAGESET_TABLE:
             pass
-            #printDBG('clicked encounter')
+            #printDBG('clicked imageset')
         else:
             table_key = model.name
             # FIXME: stripe model needs to forward get_level
@@ -1546,10 +1546,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 level = 0
             else:
                 level = model._get_level(qtindex)
-            eid = model.eid
-            ibswgt.select_table_id(table_key, level, id_, eid)
+            imgsetid = model.imgsetid
+            ibswgt.select_table_id(table_key, level, id_, imgsetid)
 
-    def select_table_id(ibswgt, table_key, level, id_, eid):
+    def select_table_id(ibswgt, table_key, level, id_, imgsetid):
         select_func_dict = {
             (IMAGE_TABLE, 0)         : ibswgt.back.select_gid,
             (IMAGE_GRID, 0)          : ibswgt.back.select_gid,
@@ -1559,7 +1559,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             (NAMES_TREE, 1)          : ibswgt.back.select_aid,
         }
         select_func = select_func_dict[(table_key, level)]
-        select_func(id_, eid, show=False)
+        select_func(id_, imgsetid, show=False)
 
     def edit_image_time(ibswgt, gid_list):
         """
@@ -1588,7 +1588,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         TODO:  Finish implementation
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --eid 2
+            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
 
         Example:
             >>> # DISABLE_DOCTEST

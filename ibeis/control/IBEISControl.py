@@ -60,8 +60,8 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_lblannot_funcs',  # DEPRICATE
     'ibeis.control.manual_lblimage_funcs',  # DEPRICATE
     'ibeis.control.manual_image_funcs',
-    'ibeis.control.manual_encounter_funcs',
-    'ibeis.control.manual_egrelate_funcs',
+    'ibeis.control.manual_imageset_funcs',
+    'ibeis.control.manual_gsgrelate_funcs',
     'ibeis.control.manual_garelate_funcs',
     'ibeis.control.manual_annot_funcs',
     'ibeis.control.manual_name_funcs',
@@ -218,7 +218,7 @@ class IBEISController(BASE_CLASS):
         cid   - chip unique id
         gid   - image unique id (could just be the relative file path)
         name  - name unique id
-        eid   - encounter unique id
+        imgsetid   - imageset unique id
         aid   - region of interest unique id
         annot - an annotation i.e. region of interest for a chip
         theta - angle of rotation for a chip
@@ -430,7 +430,7 @@ class IBEISController(BASE_CLASS):
             %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
             # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
 
-            ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
+            ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
         """
         from ibeis.control import _sql_helpers
         from ibeis.control import DB_SCHEMA
@@ -454,7 +454,7 @@ class IBEISController(BASE_CLASS):
         # TODO: add this functionality to SQLController
         new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.9')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.0')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = dtool.SQLDatabaseController(
@@ -970,15 +970,15 @@ class IBEISController(BASE_CLASS):
     #
     #
     #-----------------------------
-    # --- ENCOUNTER CLUSTERING ---
+    # --- IMAGESET CLUSTERING ---
     #-----------------------------
 
     def _parse_smart_xml(back, xml_path, nTotal, offset=1):
-        # Storage for the patrol encounters
+        # Storage for the patrol imagesets
         xml_dir, xml_name = split(xml_path)
-        encounter_info_list = []
+        imageset_info_list = []
         last_photo_number = None
-        last_encounter_info = None
+        last_imageset_info = None
         # Parse the XML file for the information
         patrol_tree = ET.parse(xml_path)
         namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
@@ -1055,13 +1055,13 @@ class IBEISController(BASE_CLASS):
                         # ending index is extracted as the next waypoint's
                         # photonum minus 1.
                         if (last_photo_number is not None and
-                             last_encounter_info is not None):
-                            encounter_info = (
-                                last_encounter_info + [(last_photo_number,
+                             last_imageset_info is not None):
+                            imageset_info = (
+                                last_imageset_info + [(last_photo_number,
                                                         photo_number)])
-                            encounter_info_list.append(encounter_info)
+                            imageset_info_list.append(imageset_info)
                         last_photo_number = photo_number
-                        last_encounter_info = waypoint_info
+                        last_imageset_info = waypoint_info
                     else:
                         # raise IOError('The photonumber value is missing from
                         # waypoint, waypoint_id: %r' % (waypoint_id, ))
@@ -1074,13 +1074,13 @@ class IBEISController(BASE_CLASS):
                            '"categoryKey": %r, waypoint_id: %r') %
                           (categoryKey, waypoint_id, ))
         # Append the last photo_number
-        if last_photo_number is not None and last_encounter_info is not None:
-            encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
-            encounter_info_list.append(encounter_info)
-        return encounter_info_list
+        if last_photo_number is not None and last_imageset_info is not None:
+            imageset_info = last_imageset_info + [(last_photo_number, nTotal)]
+            imageset_info_list.append(imageset_info)
+        return imageset_info_list
 
-    #@ut.indent_func('[ibs.compute_encounters]')
-    def compute_encounters_smart(ibs, gid_list, smart_xml_fpath):
+    #@ut.indent_func('[ibs.compute_occurrences]')
+    def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         """
         Function to load and process a SMART patrol XML file
         """
@@ -1091,7 +1091,7 @@ class IBEISController(BASE_CLASS):
         # Process the XML File
         print('[ibs] Processing Patrol XML file: %r' % (dst_xml_path, ))
         try:
-            encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
+            imageset_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
         except Exception as e:
             ibs.delete_images(gid_list)
             print(('[ibs] ERROR: Parsing Patrol XML file failed, '
@@ -1100,47 +1100,47 @@ class IBEISController(BASE_CLASS):
             raise e
         if len(gid_list) > 0:
             # Sanity check
-            assert len(encounter_info_list) > 0, (
+            assert len(imageset_info_list) > 0, (
                 ('Trying to added %d images, but the Patrol  '
                  'XML file has no observations') % (len(gid_list), ))
-        # Display the patrol encounters
-        for index, encounter_info in enumerate(encounter_info_list):
-            smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
+        # Display the patrol imagesets
+        for index, imageset_info in enumerate(imageset_info_list):
+            smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = imageset_info
             start, end = range_
             gid_list_ = gid_list[start:end]
-            print('[ibs]     Found Patrol Encounter: %r' % (encounter_info, ))
+            print('[ibs]     Found Patrol ImageSet: %r' % (imageset_info, ))
             print('[ibs]         GIDs: %r' % (gid_list_, ))
             if len(gid_list_) == 0:
-                print('[ibs]         SKIPPING EMPTY ENCOUNTER')
+                print('[ibs]         SKIPPING EMPTY IMAGESET')
                 continue
             # Add the GPS data to the iamges
             gps_list  = [ gps ] * len(gid_list_)
             ibs.set_image_gps(gid_list_, gps_list)
-            # Create a new encounter
-            enctext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1, )
-            eid = ibs.add_encounters(enctext)
-            # Add images to the encounters
-            eid_list = [eid] * len(gid_list_)
-            ibs.set_image_eids(gid_list_, eid_list)
-            # Set the encounter's smart fields
-            ibs.set_encounter_smart_xml_fnames([eid], [smart_xml_fname])
-            ibs.set_encounter_smart_waypoint_ids([eid], [smart_waypoint_id])
-            # Set the encounter's time based on the images
+            # Create a new imageset
+            imagesettext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1, )
+            imgsetid = ibs.add_imagesets(imagesettext)
+            # Add images to the imagesets
+            imgsetid_list = [imgsetid] * len(gid_list_)
+            ibs.set_image_imgsetids(gid_list_, imgsetid_list)
+            # Set the imageset's smart fields
+            ibs.set_imageset_smart_xml_fnames([imgsetid], [smart_xml_fname])
+            ibs.set_imageset_smart_waypoint_ids([imgsetid], [smart_waypoint_id])
+            # Set the imageset's time based on the images
             unixtime_list = sorted(ibs.get_image_unixtime(gid_list_))
             start_time = unixtime_list[0]
             end_time = unixtime_list[-1]
-            ibs.set_encounter_start_time_posix([eid], [start_time])
-            ibs.set_encounter_end_time_posix([eid], [end_time])
+            ibs.set_imageset_start_time_posix([imgsetid], [start_time])
+            ibs.set_imageset_end_time_posix([imgsetid], [end_time])
         # Complete
         print('[ibs] ...Done processing Patrol XML file')
 
-    #@ut.indent_func('[ibs.compute_encounters]')
-    def compute_encounters(ibs):
+    #@ut.indent_func('[ibs.compute_occurrences]')
+    def compute_occurrences(ibs):
         """
-        Clusters ungrouped images into encounters
+        Clusters ungrouped images into imagesets representing occurrences
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-compute_encounters
+            python -m ibeis.control.IBEISControl --test-compute_occurrences
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1148,47 +1148,47 @@ class IBEISController(BASE_CLASS):
             >>> import ibeis  # NOQA
             >>> # build test data
             >>> ibs = ibeis.opendb('testdb1')
-            >>> ibs.compute_encounters()
-            >>> ibs.update_special_encounters()
-            >>> # Now we want to remove some images from a non-special encounter
-            >>> nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]
-            >>> images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]
-            >>> ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))
-            >>> ibs.update_special_encounters()
-            >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
-            >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
-            >>> #Now let's make sure that when we recompute encounters, our non-special eid remains the same
-            >>> print('PRE COMPUTE: Encounters are %r' % ibs.get_valid_eids())
-            >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
-            >>> ibs.compute_encounters()
-            >>> print('COMPUTE: New encounters are %r' % ibs.get_valid_eids())
-            >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
-            >>> ibs.update_special_encounters()
-            >>> print('UPDATE SPECIAL: New encounters are %r' % ibs.get_valid_eids())
-            >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
-            >>> assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])
+            >>> ibs.compute_occurrences()
+            >>> ibs.update_special_imagesets()
+            >>> # Now we want to remove some images from a non-special imageset
+            >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
+            >>> images_to_remove = ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0][0:1]
+            >>> ibs.unrelate_images_and_imagesets(images_to_remove,nonspecial_imgsetids[0:1] * len(images_to_remove))
+            >>> ibs.update_special_imagesets()
+            >>> ungr_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNGROUPED_IMAGES_IMAGESETTEXT)
+            >>> ungr_gids = ibs.get_imageset_gids([ungr_imgsetid])[0]
+            >>> #Now let's make sure that when we recompute imagesets, our non-special imgsetid remains the same
+            >>> print('PRE COMPUTE: ImageSets are %r' % ibs.get_valid_imgsetids())
+            >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
+            >>> ibs.compute_occurrences()
+            >>> print('COMPUTE: New imagesets are %r' % ibs.get_valid_imgsetids())
+            >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
+            >>> ibs.update_special_imagesets()
+            >>> print('UPDATE SPECIAL: New imagesets are %r' % ibs.get_valid_imgsetids())
+            >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
+            >>> assert(images_to_remove[0] not in ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0])
         """
-        from ibeis.algo.preproc import preproc_encounter
-        print('[ibs] Computing and adding encounters.')
+        from ibeis.algo.preproc import preproc_occurrence
+        print('[ibs] Computing and adding imagesets.')
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         # only cluster ungrouped images
         gid_list = ibs.get_ungrouped_gids()
-        with ut.Timer('computing encounters'):
-            flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(
+        with ut.Timer('computing imagesets'):
+            flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
                 ibs, gid_list)
-        valid_eids = ibs.get_valid_eids()
-        eid_offset = 0 if len(valid_eids) == 0 else max(valid_eids)
-        # This way we can make sure that manually separated encounters
-        flat_eids_offset = [eid + eid_offset for eid in flat_eids]
-        # remain untouched, and ensure that new encounters are created
-        enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
-        #print('enctext_list: %r; flat_gids: %r' % (enctext_list, flat_gids))
-        print('[ibs] Finished computing, about to add encounter.')
-        ibs.set_image_enctext(flat_gids, enctext_list)
-        # HACK TO UPDATE ENCOUNTER POSIX TIMES
+        valid_imgsetids = ibs.get_valid_imgsetids()
+        imgsetid_offset = 0 if len(valid_imgsetids) == 0 else max(valid_imgsetids)
+        # This way we can make sure that manually separated imagesets
+        flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
+        # remain untouched, and ensure that new imagesets are created
+        imagesettext_list = ['Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset]
+        #print('imagesettext_list: %r; flat_gids: %r' % (imagesettext_list, flat_gids))
+        print('[ibs] Finished computing, about to add imageset.')
+        ibs.set_image_imagesettext(flat_gids, imagesettext_list)
+        # HACK TO UPDATE IMAGESET POSIX TIMES
         # CAREFUL THIS BLOWS AWAY SMART DATA
-        ibs.update_encounter_info(ibs.get_valid_eids())
-        print('[ibs] Finished computing and adding encounters.')
+        ibs.update_imageset_info(ibs.get_valid_imgsetids())
+        print('[ibs] Finished computing and adding imagesets.')
 
     #
     #

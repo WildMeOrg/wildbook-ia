@@ -11,32 +11,32 @@ from uuid import UUID
 # Tools
 import utool
 from ibeis.control.IBEISControl import IBEISController
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ENCOUNTERS]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IMAGESETS]')
 
 
-def TEST_ENCOUNTERS(ibs):
-    print('[TEST_ENCOUNTERS]')
+def TEST_IMAGESETS(ibs):
+    print('[TEST_IMAGESETS]')
     assert isinstance(ibs, IBEISController), 'type enforment'
-    # Delete all encounters
-    _eid_list1 = ibs.get_valid_eids()
-    ibs.delete_encounters(_eid_list1)
-    _eid_list2 = ibs.get_valid_eids()
-    assert len(_eid_list2) == 0, 'eids should have been deleted'
-    # Recompute encounters
-    ibs.compute_encounters()
+    # Delete all imagesets
+    _imgsetid_list1 = ibs.get_valid_imgsetids()
+    ibs.delete_imagesets(_imgsetid_list1)
+    _imgsetid_list2 = ibs.get_valid_imgsetids()
+    assert len(_imgsetid_list2) == 0, 'imgsetids should have been deleted'
+    # Recompute imagesets
+    ibs.compute_occurrences()
 
-    eid_list = sorted(ibs.get_valid_eids())
-    gids_list = ibs.get_encounter_gids(eid_list)
-    aids_list = ibs.get_encounter_aids(eid_list)
-    nids_list = ibs.get_encounter_nids(eid_list)
+    imgsetid_list = sorted(ibs.get_valid_imgsetids())
+    gids_list = ibs.get_imageset_gids(imgsetid_list)
+    aids_list = ibs.get_imageset_aids(imgsetid_list)
+    nids_list = ibs.get_imageset_nids(imgsetid_list)
 
-    enctext_list   = ibs.get_encounter_text(eid_list)
+    imagesettext_list   = ibs.get_imageset_text(imgsetid_list)
     gid_uuids_list = list(map(list, ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)))
     annotation_uuids_list = list(map(list, ibsfuncs.unflat_map(ibs.get_annot_uuids, aids_list)))
     names_list     = list(map(list, ibsfuncs.unflat_map(ibs.get_name_texts, nids_list)))
 
-    #target_enctexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
-    target_enctexts = [u'Encounter 0', u'Encounter 1']
+    #target_imagesettexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
+    target_imagesettexts = [u'ImageSet 0', u'ImageSet 1']
 
     target_gid_uuids = [[UUID('66ec193a-1619-b3b6-216d-1784b4833b61'),
                          UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'),
@@ -60,7 +60,7 @@ def TEST_ENCOUNTERS(ibs):
 
     ibs.print_lblannot_table()
     ibs.print_egpairs_table()
-    ibs.print_encounter_table()
+    ibs.print_imageset_table()
     ibs.print_alr_table()
     gids_test_list = ibsfuncs.unflat_map(ibs.get_image_gids_from_uuid, gid_uuids_list)
     gids_target_list = ibsfuncs.unflat_map(ibs.get_image_gids_from_uuid, target_gid_uuids)
@@ -71,8 +71,8 @@ def TEST_ENCOUNTERS(ibs):
         print('1) gid_uuids_list = %s' % (utool.list_str(gid_uuids_list),))
         print('1) target_gid_uuids = %s' % (utool.list_str(target_gid_uuids),))
         print('')
-        print('2) enctext_list = %r' % (enctext_list,))
-        print('2) target_enctexts = %r' % (target_enctexts,))
+        print('2) imagesettext_list = %r' % (imagesettext_list,))
+        print('2) target_imagesettexts = %r' % (target_imagesettexts,))
         print('')
 
         aids_test_list = ibsfuncs.unflat_map(ibs.get_image_aids, gids_test_list)
@@ -92,12 +92,12 @@ def TEST_ENCOUNTERS(ibs):
 
         assert gid_uuids_list == target_gid_uuids, 'gid_uuids_list does not match target_gid_uuids'
 
-        assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
+        assert imagesettext_list == target_imagesettexts, 'imagesettext_list does not match target_imagesettexts'
 
         assert names_list == target_name_texts, 'names_list does not match target_name_texts'
 
     except AssertionError as ex:
-        utool.printex(ex, 'failed test_encounter')
+        utool.printex(ex, 'failed test_imageset')
         raise
 
     gids_list2 = list(map(list, ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)))
@@ -111,6 +111,6 @@ if __name__ == '__main__':
     import ibeis
     main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']
-    test_locals = utool.run_test(TEST_ENCOUNTERS, ibs)
+    test_locals = utool.run_test(TEST_IMAGESETS, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

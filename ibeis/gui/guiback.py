@@ -145,7 +145,7 @@ class MainWindowBackend(GUIBACK_BASE):
             back.daids_mode = const.INTRA_ENC_KEY
         else:
             back.daids_mode = const.VS_EXEMPLARS_KEY
-        #back.encounter_query_results = ut.ddict(dict)
+        #back.imageset_query_results = ut.ddict(dict)
 
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
@@ -206,18 +206,18 @@ class MainWindowBackend(GUIBACK_BASE):
         bbox = interact.iselect_bbox(back.ibs, gid)
         return bbox
 
-    def show_eid_list_in_web(back, eid_list, **kwargs):
+    def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
 
-        if not isinstance(eid_list, (tuple, list)):
-            eid_list = [eid_list]
-        if len(eid_list) > 0:
-            eid_str = ','.join( map(str, eid_list) )
+        if not isinstance(imgsetid_list, (tuple, list)):
+            imgsetid_list = [imgsetid_list]
+        if len(imgsetid_list) > 0:
+            imgsetid_str = ','.join( map(str, imgsetid_list) )
         else:
-            eid_str = ''
+            imgsetid_str = ''
 
-        url = 'http://%s/view/images?eid=%s' % (WEB_DOMAIN, eid_str, )
+        url = 'http://%s/view/images?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
@@ -309,8 +309,8 @@ class MainWindowBackend(GUIBACK_BASE):
         viz.show_hough_image(back.ibs, gid, **kwargs)
         viz.draw()
 
-    def run_detection_on_encounter(back, eid_list, refresh=True, **kwargs):
-        gid_list = ut.flatten(back.ibs.get_encounter_gids(eid_list))
+    def run_detection_on_imageset(back, imgsetid_list, refresh=True, **kwargs):
+        gid_list = ut.flatten(back.ibs.get_imageset_gids(imgsetid_list))
         back.run_detection_on_images(gid_list, refresh=refresh, **kwargs)
 
     def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
@@ -372,7 +372,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.register_self()
         # deselect
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
-                            sel_eids=[None])
+                            sel_imgsetids=[None])
         back.front.connect_ibeis_control(ibs)
 
     @blocking_slot()
@@ -410,12 +410,12 @@ class MainWindowBackend(GUIBACK_BASE):
         return back.sel_aids
 
     @ut.indent_func
-    def get_selected_eid(back):
-        """ selected encounter id """
-        if len(back.sel_eids) == 0:
-            raise guiexcept.InvalidRequest('There are no selected Encounters')
-        eid = back.sel_eids[0]
-        return eid
+    def get_selected_imgsetid(back):
+        """ selected imageset id """
+        if len(back.sel_imgsetids) == 0:
+            raise guiexcept.InvalidRequest('There are no selected ImageSets')
+        imgsetid = back.sel_imgsetids[0]
+        return imgsetid
 
     @ut.indent_func
     def get_selected_qres(back):
@@ -509,18 +509,18 @@ class MainWindowBackend(GUIBACK_BASE):
     def update_selection_texts(back):
         if back.ibs is None:
             return
-        sel_enctexts = back.ibs.get_encounter_text(back.sel_eids)
-        if sel_enctexts == [None]:
-            sel_enctexts = []
+        sel_imagesettexts = back.ibs.get_imageset_text(back.sel_imgsetids)
+        if sel_imagesettexts == [None]:
+            sel_imagesettexts = []
         else:
-            sel_enctexts = map(str, sel_enctexts)
-        back.ibswgt.set_status_text(gh.ENCOUNTER_TABLE, repr(sel_enctexts,))
+            sel_imagesettexts = map(str, sel_imagesettexts)
+        back.ibswgt.set_status_text(gh.IMAGESET_TABLE, repr(sel_imagesettexts,))
         back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(back.sel_gids,))
         back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(back.sel_aids,))
         back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
 
     def _set_selection(back, sel_gids=None, sel_aids=None, sel_nids=None,
-                       sel_cm=None, sel_eids=None, mode='set', **kwargs):
+                       sel_cm=None, sel_imgsetids=None, mode='set', **kwargs):
         def modify_collection_attr(self, attr, aug, mode):
             aug = ut.ensure_iterable(aug)
             old = getattr(self, attr)
@@ -534,15 +534,15 @@ class MainWindowBackend(GUIBACK_BASE):
                 raise AssertionError('uknown mode=%r' % (mode,))
             setattr(self, attr, new)
 
-        if sel_eids is not None:
-            sel_eids = ut.ensure_iterable(sel_eids)
-            back.sel_eids = sel_eids
-            sel_enctexts = back.ibs.get_encounter_text(back.sel_eids)
-            if sel_enctexts == [None]:
-                sel_enctexts = []
+        if sel_imgsetids is not None:
+            sel_imgsetids = ut.ensure_iterable(sel_imgsetids)
+            back.sel_imgsetids = sel_imgsetids
+            sel_imagesettexts = back.ibs.get_imageset_text(back.sel_imgsetids)
+            if sel_imagesettexts == [None]:
+                sel_imagesettexts = []
             else:
-                sel_enctexts = map(str, sel_enctexts)
-            back.ibswgt.set_status_text(gh.ENCOUNTER_TABLE, repr(sel_enctexts,))
+                sel_imagesettexts = map(str, sel_imagesettexts)
+            back.ibswgt.set_status_text(gh.IMAGESET_TABLE, repr(sel_imagesettexts,))
         if sel_gids is not None:
             modify_collection_attr(back, 'sel_gids', sel_gids, mode)
             back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(back.sel_gids,))
@@ -559,18 +559,18 @@ class MainWindowBackend(GUIBACK_BASE):
             back.sel_sel_qres = sel_cm
 
     #@backblock
-    def select_eid(back, eid=None, **kwargs):
+    def select_imgsetid(back, imgsetid=None, **kwargs):
         """ Table Click -> Result Table """
-        eid = cast_from_qt(eid)
+        imgsetid = cast_from_qt(imgsetid)
         if False:
             prefix = ut.get_caller_name(range(1, 8))
         else:
             prefix = ''
-        print(prefix + '[back] select encounter eid=%r' % (eid))
-        back._set_selection(sel_eids=eid, **kwargs)
+        print(prefix + '[back] select imageset imgsetid=%r' % (imgsetid))
+        back._set_selection(sel_imgsetids=imgsetid, **kwargs)
 
     #@backblock
-    def select_gid(back, gid, eid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
+    def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
         r"""
         Table Click -> Image Table
 
@@ -603,41 +603,41 @@ class MainWindowBackend(GUIBACK_BASE):
                 sel_aids = sel_aids[0:1]
             else:
                 sel_aids = []
-        print('[back] select_gid(gid=%r, eid=%r, sel_aids=%r)' % (gid, eid, sel_aids))
-        back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_eids=eid, **kwargs)
+        print('[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)' % (gid, imgsetid, sel_aids))
+        back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_imgsetids=imgsetid, **kwargs)
         if show:
             back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
     #@backblock
-    def select_gid_from_aid(back, aid, eid=None, show=True, web=False):
+    def select_gid_from_aid(back, aid, imgsetid=None, show=True, web=False):
         gid = back.ibs.get_annot_gids(aid)
-        back.select_gid(gid, eid=eid, show=show, web=web, sel_aids=[aid])
+        back.select_gid(gid, imgsetid=imgsetid, show=show, web=web, sel_aids=[aid])
 
     #@backblock
-    def select_aid(back, aid, eid=None, show=True, show_annotation=True, web=False, **kwargs):
+    def select_aid(back, aid, imgsetid=None, show=True, show_annotation=True, web=False, **kwargs):
         """ Table Click -> Chip Table """
-        print('[back] select aid=%r, eid=%r' % (aid, eid))
+        print('[back] select aid=%r, imgsetid=%r' % (aid, imgsetid))
         gid = back.ibs.get_annot_gids(aid)
         nid = back.ibs.get_annot_name_rowids(aid)
-        back._set_selection(sel_aids=aid, sel_gids=gid, sel_nids=nid, sel_eids=eid, **kwargs)
+        back._set_selection(sel_aids=aid, sel_gids=gid, sel_nids=nid, sel_imgsetids=imgsetid, **kwargs)
         if show and show_annotation:
             back.show_annotation(aid, web=web, **kwargs)
 
     @backblock
-    def select_nid(back, nid, eid=None, show=True, show_name=True, **kwargs):
+    def select_nid(back, nid, imgsetid=None, show=True, show_name=True, **kwargs):
         """ Table Click -> Name Table """
         nid = cast_from_qt(nid)
-        print('[back] select nid=%r, eid=%r' % (nid, eid))
-        back._set_selection(sel_nids=nid, sel_eids=eid, **kwargs)
+        print('[back] select nid=%r, imgsetid=%r' % (nid, imgsetid))
+        back._set_selection(sel_nids=nid, sel_imgsetids=imgsetid, **kwargs)
         if show and show_name:
             back.show_name(nid, **kwargs)
 
     @backblock
-    def select_qres_aid(back, aid, eid=None, show=True, **kwargs):
+    def select_qres_aid(back, aid, imgsetid=None, show=True, **kwargs):
         """ Table Click -> Result Table """
-        eid = cast_from_qt(eid)
+        imgsetid = cast_from_qt(imgsetid)
         aid = cast_from_qt(aid)
-        print('[back] select result aid=%r, eid=%r' % (aid, eid))
+        print('[back] select result aid=%r, imgsetid=%r' % (aid, imgsetid))
 
     #--------------------------------------------------------------------------
     # Action menu slots
@@ -679,10 +679,10 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
             >>> ibs = back.ibs
-            >>> eid_list = back.ibs.get_valid_eids()
-            >>> eid = ut.take(eid_list, ut.list_argmax(list(map(len, back.ibs.get_encounter_gids(eid_list)))))
-            >>> back.front.select_encounter_tab(eid)
-            >>> gid = back.ibs.get_encounter_gids(eid)[0]
+            >>> imgsetid_list = back.ibs.get_valid_imgsetids()
+            >>> imgsetid = ut.take(imgsetid_list, ut.list_argmax(list(map(len, back.ibs.get_imageset_gids(imgsetid_list)))))
+            >>> back.front.select_imageset_tab(imgsetid)
+            >>> gid = back.ibs.get_imageset_gids(imgsetid)[0]
             >>> # add a test annotation to delete
             >>> aid_list = back.add_annotation_from_image([gid])
             >>> # delte annotations
@@ -751,48 +751,48 @@ class MainWindowBackend(GUIBACK_BASE):
         back.front.update_tables()
 
     @blocking_slot()
-    def delete_all_encounters(back):
-        print('\n\n[back] delete all encounters')
-        if not back.are_you_sure(action='delete ALL encounters'):
+    def delete_all_imagesets(back):
+        print('\n\n[back] delete all imagesets')
+        if not back.are_you_sure(action='delete ALL imagesets'):
             return
-        back.ibs.delete_all_encounters()
-        back.ibs.update_special_encounters()
+        back.ibs.delete_all_imagesets()
+        back.ibs.update_special_imagesets()
         back.front.update_tables()
 
     @blocking_slot()
-    def update_special_encounters(back):
-        back.ibs.update_special_encounters()
-        back.front.update_tables([gh.ENCOUNTER_TABLE])
+    def update_special_imagesets(back):
+        back.ibs.update_special_imagesets()
+        back.front.update_tables([gh.IMAGESET_TABLE])
 
     @blocking_slot(int)
-    def delete_encounter_and_images(back, eid_list):
-        print('\n\n[back] delete_encounter_and_images')
-        if back.contains_special_encounters(eid_list):
-            back.display_special_encounters_error()
+    def delete_imageset_and_images(back, imgsetid_list):
+        print('\n\n[back] delete_imageset_and_images')
+        if back.contains_special_imagesets(imgsetid_list):
+            back.display_special_imagesets_error()
             return
-        if not back.are_you_sure(action='delete this encounter AND ITS IMAGES!'):
+        if not back.are_you_sure(action='delete this imageset AND ITS IMAGES!'):
             return
-        gid_list = ut.flatten(back.ibs.get_encounter_gids(eid_list))
+        gid_list = ut.flatten(back.ibs.get_imageset_gids(imgsetid_list))
         back.ibs.delete_images(gid_list)
-        back.ibs.delete_encounters(eid_list)
-        back.ibs.update_special_encounters()
+        back.ibs.delete_imagesets(imgsetid_list)
+        back.ibs.update_special_imagesets()
         back.front.update_tables()
 
     @blocking_slot(int)
-    def delete_encounter(back, eid_list):
-        print('\n\n[back] delete_encounter')
-        if back.contains_special_encounters(eid_list):
-            back.display_special_encounters_error()
+    def delete_imageset(back, imgsetid_list):
+        print('\n\n[back] delete_imageset')
+        if back.contains_special_imagesets(imgsetid_list):
+            back.display_special_imagesets_error()
             return
-        if not back.are_you_sure(action='delete %d encounters' % (len(eid_list))):
+        if not back.are_you_sure(action='delete %d imagesets' % (len(imgsetid_list))):
             return
-        back.ibs.delete_encounters(eid_list)
-        back.ibs.update_special_encounters()
+        back.ibs.delete_imagesets(imgsetid_list)
+        back.ibs.update_special_imagesets()
         back.front.update_tables()
 
     @blocking_slot(int)
-    def export_encounters(back, eid_list):
-        print('\n\n[back] export encounter')
+    def export_imagesets(back, imgsetid_list):
+        print('\n\n[back] export imageset')
 
         #new_dbname = back.user_input(
         #    msg='What do you want to name the new database?',
@@ -800,84 +800,84 @@ class MainWindowBackend(GUIBACK_BASE):
         #if new_dbname is None or len(new_dbname) == 0:
         #    print('Abort export to new database. new_dbname=%r' % new_dbname)
         #    return
-        back.ibs.export_encounters(eid_list, new_dbdir=None)
+        back.ibs.export_imagesets(imgsetid_list, new_dbdir=None)
 
     @blocking_slot()
-    def train_rf_with_encounter(back, **kwargs):
+    def train_rf_with_imageset(back, **kwargs):
         from ibeis.algo.detect import randomforest
-        eid = back._eidfromkw(kwargs)
-        if eid < 0:
+        imgsetid = back._eidfromkw(kwargs)
+        if imgsetid < 0:
             gid_list = back.ibs.get_valid_gids()
         else:
-            gid_list = back.ibs.get_valid_gids(eid=eid)
+            gid_list = back.ibs.get_valid_gids(imgsetid=imgsetid)
         species = back.ibs.cfg.detect_cfg.species_text
         if species == 'none':
             species = None
-        print("[train_rf_with_encounter] Training Random Forest trees with enc=%r and species=%r" % (eid, species, ))
+        print("[train_rf_with_imageset] Training Random Forest trees with enc=%r and species=%r" % (imgsetid, species, ))
         randomforest.train_gid_list(back.ibs, gid_list, teardown=False, species=species)
 
     @blocking_slot(int)
-    def merge_encounters(back, eid_list, destination_eid):
-        assert len(eid_list) > 1, "Cannot merge fewer than two encounters"
-        print('[back] merge_encounters: %r, %r' % (destination_eid, eid_list))
-        if back.contains_special_encounters(eid_list):
-            back.display_special_encounters_error()
+    def merge_imagesets(back, imgsetid_list, destination_imgsetid):
+        assert len(imgsetid_list) > 1, "Cannot merge fewer than two imagesets"
+        print('[back] merge_imagesets: %r, %r' % (destination_imgsetid, imgsetid_list))
+        if back.contains_special_imagesets(imgsetid_list):
+            back.display_special_imagesets_error()
             return
         ibs = back.ibs
         try:
-            destination_index = eid_list.index(destination_eid)
+            destination_index = imgsetid_list.index(destination_imgsetid)
         except:
-            # Default to the first value selected if the eid doesn't exist in eid_list
-            print('[back] merge_encounters cannot find index for %r' % (destination_eid,))
+            # Default to the first value selected if the imgsetid doesn't exist in imgsetid_list
+            print('[back] merge_imagesets cannot find index for %r' % (destination_imgsetid,))
             destination_index = 0
-            destination_eid = eid_list[destination_index]
-        deprecated_eids = list(eid_list)
-        deprecated_eids.pop(destination_index)
-        gid_list = ut.flatten([ ibs.get_valid_gids(eid=eid) for eid in eid_list] )
-        eid_list = [destination_eid] * len(gid_list)
-        ibs.set_image_eids(gid_list, eid_list)
-        ibs.delete_encounters(deprecated_eids)
-        for eid in deprecated_eids:
-            back.front.enc_tabwgt._close_tab_with_eid(eid)
-        back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
+            destination_imgsetid = imgsetid_list[destination_index]
+        deprecated_imgsetids = list(imgsetid_list)
+        deprecated_imgsetids.pop(destination_index)
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid in imgsetid_list] )
+        imgsetid_list = [destination_imgsetid] * len(gid_list)
+        ibs.set_image_imgsetids(gid_list, imgsetid_list)
+        ibs.delete_imagesets(deprecated_imgsetids)
+        for imgsetid in deprecated_imgsetids:
+            back.front.enc_tabwgt._close_tab_with_imgsetid(imgsetid)
+        back.front.update_tables([gh.IMAGESET_TABLE], clear_view_selection=True)
 
     @blocking_slot(int)
-    def copy_encounter(back, eid_list):
-        print('[back] copy_encounter: %r' % (eid_list,))
-        if back.contains_special_encounters(eid_list):
-            back.display_special_encounters_error()
+    def copy_imageset(back, imgsetid_list):
+        print('[back] copy_imageset: %r' % (imgsetid_list,))
+        if back.contains_special_imagesets(imgsetid_list):
+            back.display_special_imagesets_error()
             return
         ibs = back.ibs
-        new_eid_list = ibs.copy_encounters(eid_list)
-        print('[back] new_eid_list: %r' % (new_eid_list,))
-        back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
+        new_imgsetid_list = ibs.copy_imagesets(imgsetid_list)
+        print('[back] new_imgsetid_list: %r' % (new_imgsetid_list,))
+        back.front.update_tables([gh.IMAGESET_TABLE], clear_view_selection=True)
 
     @blocking_slot(list)
-    def remove_from_encounter(back, gid_list):
-        eid = back.get_selected_eid()
-        back.ibs.unrelate_images_and_encounters(gid_list, [eid] * len(gid_list))
-        back.ibs.update_special_encounters()
-        back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE], clear_view_selection=True)
+    def remove_from_imageset(back, gid_list):
+        imgsetid = back.get_selected_imgsetid()
+        back.ibs.unrelate_images_and_imagesets(gid_list, [imgsetid] * len(gid_list))
+        back.ibs.update_special_imagesets()
+        back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
 
     @blocking_slot(list)
-    def send_to_new_encounter(back, gid_list, mode='move'):
-        assert len(gid_list) > 0, "Cannot create a new encounter with no images"
-        print('\n\n[back] send_to_new_encounter')
+    def send_to_new_imageset(back, gid_list, mode='move'):
+        assert len(gid_list) > 0, "Cannot create a new imageset with no images"
+        print('\n\n[back] send_to_new_imageset')
         ibs = back.ibs
-        #enctext = const.NEW_ENCOUNTER_ENCTEXT
-        #enctext_list = [enctext] * len(gid_list)
-        #ibs.set_image_enctext(gid_list, enctext_list)
-        new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
+        #imagesettext = const.NEW_IMAGESET_IMAGESETTEXT
+        #imagesettext_list = [imagesettext] * len(gid_list)
+        #ibs.set_image_imagesettext(gid_list, imagesettext_list)
+        new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA
         if mode == 'move':
-            eid = back.get_selected_eid()
-            eid_list = [eid] * len(gid_list)
-            ibs.unrelate_images_and_encounters(gid_list, eid_list)
+            imgsetid = back.get_selected_imgsetid()
+            imgsetid_list = [imgsetid] * len(gid_list)
+            ibs.unrelate_images_and_imagesets(gid_list, imgsetid_list)
         elif mode == 'copy':
             pass
         else:
             raise AssertionError('invalid mode=%r' % (mode,))
-        back.ibs.update_special_encounters()
-        back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE], clear_view_selection=True)
+        back.ibs.update_special_imagesets()
+        back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
 
     @blocking_slot()
     def select_next(back):
@@ -898,15 +898,15 @@ class MainWindowBackend(GUIBACK_BASE):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def encounter_set_species(back, refresh=True):
+    def imageset_set_species(back, refresh=True):
         """
-        HACK: sets the species columns of all annotations in the encounter
+        HACK: sets the species columns of all annotations in the imageset
         to be whatever is currently in the detect config
         """
-        print('[back] encounter_set_species')
+        print('[back] imageset_set_species')
         ibs = back.ibs
-        eid = back.get_selected_eid()
-        aid_list = back.ibs.get_valid_aids(eid=eid)
+        imgsetid = back.get_selected_imgsetid()
+        aid_list = back.ibs.get_valid_aids(imgsetid=imgsetid)
         species_list = [ibs.cfg.detect_cfg.species_text] * len(aid_list)
         ibs.set_annot_species(aid_list, species_list)
         if refresh:
@@ -961,9 +961,9 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def run_detection(back, refresh=True, **kwargs):
         print('\n\n')
-        eid = back._eidfromkw(kwargs)
+        imgsetid = back._eidfromkw(kwargs)
         ibs = back.ibs
-        gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
+        gid_list = ibsfuncs.get_empty_gids(ibs, imgsetid=imgsetid)
         species = ibs.cfg.detect_cfg.species_text
         # Construct message
         msg_fmtstr_list = ['You are about to run detection...']
@@ -981,7 +981,7 @@ class MainWindowBackend(GUIBACK_BASE):
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
         if back.are_you_sure(use_msg=msg_str):
-            print('[back] run_detection(species=%r, eid=%r)' % (species, eid))
+            print('[back] run_detection(species=%r, imgsetid=%r)' % (species, imgsetid))
             ibs.detect_random_forest(gid_list, species)
             print('[back] about to finish detection')
             if refresh:
@@ -992,8 +992,8 @@ class MainWindowBackend(GUIBACK_BASE):
     def compute_feats(back, refresh=True, **kwargs):
         """ Batch -> Precompute Feats"""
         print('[back] compute_feats')
-        eid = back._eidfromkw(kwargs)
-        ibsfuncs.compute_all_features(back.ibs, eid=eid)
+        imgsetid = back._eidfromkw(kwargs)
+        ibsfuncs.compute_all_features(back.ibs, imgsetid=imgsetid)
         if refresh:
             back.front.update_tables()
 
@@ -1001,15 +1001,15 @@ class MainWindowBackend(GUIBACK_BASE):
     def compute_thumbs(back, refresh=True, **kwargs):
         """ Batch -> Precompute Thumbs"""
         print('[back] compute_thumbs')
-        eid = back._eidfromkw(kwargs)
-        back.ibs.preprocess_image_thumbs(eid=eid)
+        imgsetid = back._eidfromkw(kwargs)
+        back.ibs.preprocess_image_thumbs(imgsetid=imgsetid)
         if refresh:
             back.front.update_tables()
 
-    def get_selected_qaids(back, eid=None, minqual='poor', is_known=None):
+    def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None):
         species = back.get_selected_species()
         valid_kw = dict(
-            eid=eid,
+            imgsetid=imgsetid,
             minqual=minqual,
             is_known=is_known,
             species=species,
@@ -1017,14 +1017,14 @@ class MainWindowBackend(GUIBACK_BASE):
         qaid_list = back.ibs.get_valid_aids(**valid_kw)
         return qaid_list
 
-    def get_selected_daids(back, eid=None, daids_mode=None):
+    def get_selected_daids(back, imgsetid=None, daids_mode=None):
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
         daids_mode_valid_kw_dict = {
             const.VS_EXEMPLARS_KEY: {
                 'is_exemplar': True,
             },
             const.INTRA_ENC_KEY: {
-                'eid': eid,
+                'imgsetid': imgsetid,
             },
             'all': {
             }
@@ -1035,7 +1035,7 @@ class MainWindowBackend(GUIBACK_BASE):
         }
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',
-            const.INTRA_ENC_KEY: 'intra_encounter',
+            const.INTRA_ENC_KEY: 'intra_imageset',
             'all': 'all'
         }[daids_mode]
         valid_kw.update(daids_mode_valid_kw_dict[daids_mode])
@@ -1217,8 +1217,8 @@ class MainWindowBackend(GUIBACK_BASE):
         Batch -> Compute OldStyle Queries
         and Actions -> Query
 
-        Computes query results for all annotations in an encounter.
-        Results are either vs-exemplar or intra-encounter
+        Computes query results for all annotations in an imageset.
+        Results are either vs-exemplar or intra-imageset
 
         CommandLine:
             ./main.py --query 1 -y
@@ -1241,23 +1241,23 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> # execute function
             >>> refresh = True
             >>> daids_mode = None
-            >>> eid = None
+            >>> imgsetid = None
             >>> kwargs = {}
             >>> # verify results
             >>> print(result)
         """
-        eid = back._eidfromkw(kwargs)
+        imgsetid = back._eidfromkw(kwargs)
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
         print('------')
         print('\n\n')
-        print('[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
+        print('[back] compute_queries: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode))
         print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
         print('[back] use_visual_selection        = %r' % (use_visual_selection,))
         print('[back] daids_mode                  = %r' % (daids_mode,))
         print('[back] cfgdict                     = %r' % (cfgdict,))
         print('[back] query_is_known              = %r' % (query_is_known,))
-        if eid is None:
-            print('[back] invalid eid')
+        if imgsetid is None:
+            print('[back] invalid imgsetid')
             return
         #back.compute_feats(refresh=False, **kwargs)
         # Get the query annotation ids to search and
@@ -1269,11 +1269,11 @@ class MainWindowBackend(GUIBACK_BASE):
                 # old style Actions->Query execution
                 qaid_list = back.get_selected_aids()
                 query_title += 'selection'
-                #qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
+                #qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
             else:
-                # if not visual selection, then qaids are selected by encounter
-                qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
-                query_title += 'encounter=' + back.ibs.get_encounter_text(eid)
+                # if not visual selection, then qaids are selected by imageset
+                qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
+                query_title += 'imageset=' + back.ibs.get_imageset_text(imgsetid)
         else:
             if custom_qaid_list_title is None:
                 custom_qaid_list_title = 'custom'
@@ -1295,13 +1295,13 @@ class MainWindowBackend(GUIBACK_BASE):
         if daids_mode == const.VS_EXEMPLARS_KEY:
             query_title += ' vs exemplars'
         elif daids_mode == const.INTRA_ENC_KEY:
-            query_title += ' intra encounter'
+            query_title += ' intra imageset'
         elif daids_mode == 'all':
             query_title += ' all'
         else:
             print('Unknown daids_mode=%r' % (daids_mode,))
 
-        daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
+        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
         if len(daid_list) == 0:
@@ -1331,12 +1331,12 @@ class MainWindowBackend(GUIBACK_BASE):
                                        prog_hook=progbar.utool_prog_hook)
         progbar.close()
         del progbar
-        # HACK IN ENCOUNTER INFO
+        # HACK IN IMAGESET INFO
         if daids_mode == const.INTRA_ENC_KEY:
             for cm in cm_list:
                 #if cm is not None:
-                cm.eid = eid
-        print('[back] About to finish compute_queries: eid=%r' % (eid,))
+                cm.imgsetid = imgsetid
+        print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
         # Filter duplicate names if running vsexemplar
         filter_duplicate_namepair_matches = daids_mode == const.VS_EXEMPLARS_KEY
 
@@ -1346,7 +1346,7 @@ class MainWindowBackend(GUIBACK_BASE):
             qreq_=qreq_, query_title=query_title, **kwargs)
         if refresh:
             back.front.update_tables()
-        print('[back] FINISHED compute_queries: eid=%r' % (eid,))
+        print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
 
     #@blocking_slot()
     @slot_()
@@ -1376,23 +1376,23 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         from ibeis.algo.hots import qt_inc_automatch as iautomatch
         from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
-        eid = back._eidfromkw(kwargs)
+        imgsetid = back._eidfromkw(kwargs)
         print('------')
-        print('\n\n[back] incremental_query: eid=%r, mode=%r' % (eid, back.daids_mode))
-        if eid is None:
-            print('[back] invalid eid')
+        print('\n\n[back] incremental_query: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode))
+        if imgsetid is None:
+            print('[back] invalid imgsetid')
             return
         # daid list is computed inside the incremental query so there is
         # no need to specify it here
-        qaid_list = back.get_selected_qaids(eid=eid, is_known=False)
+        qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=False)
         if any(back.ibs.get_annot_exemplar_flags(qaid_list)):
             raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True. Run Help->Fix/Clean Database')
         if len(qaid_list) == 0:
             msg = ut.codeblock(
                 '''
-                There are no annotations (of species=%r) left in this encounter.
+                There are no annotations (of species=%r) left in this imageset.
 
-                * Has the encounter been completed?
+                * Has the imageset been completed?
                 * Is the species correctly set?
                 * Do you need to run detection?
                 ''') % (set(back.ibs.get_annot_species(qaid_list)),)
@@ -1407,9 +1407,9 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def review_detections(back, **kwargs):
         from plottool.interact_multi_image import MultiImageInteraction
-        eid = back.get_selected_eid()
+        imgsetid = back.get_selected_imgsetid()
         ibs = back.ibs
-        gid_list = ibs.get_valid_gids(eid=eid)
+        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
         gpath_list = ibs.get_image_paths(gid_list)
         bboxes_list = ibs.get_image_annotation_bboxes(gid_list)
         thetas_list = ibs.get_image_annotation_thetas(gid_list)
@@ -1417,41 +1417,41 @@ class MainWindowBackend(GUIBACK_BASE):
         back.multi_image_interaction = multi_image_interaction
 
     @blocking_slot()
-    def compute_encounters(back, refresh=True):
-        """ Batch -> Compute Encounters """
-        print('[back] compute_encounters')
-        #back.ibs.delete_all_encounters()
-        back.ibs.compute_encounters()
-        back.ibs.update_special_encounters()
-        print('[back] about to finish computing encounters')
+    def compute_occurrences(back, refresh=True):
+        """ Batch -> Compute ImageSets """
+        print('[back] compute_occurrences')
+        #back.ibs.delete_all_imagesets()
+        back.ibs.compute_occurrences()
+        back.ibs.update_special_imagesets()
+        print('[back] about to finish computing imagesets')
         back.front.enc_tabwgt._close_all_tabs()
         if refresh:
             back.front.update_tables()
-        print('[back] finished computing encounters')
+        print('[back] finished computing imagesets')
 
     @blocking_slot()
-    def encounter_reviewed_all_images(back, refresh=True, all_image_bypass=False):
+    def imageset_reviewed_all_images(back, refresh=True, all_image_bypass=False):
         """
-        Sets all encounters as reviwed and ships them to wildbook
+        Sets all imagesets as reviwed and ships them to wildbook
         """
-        eid = back.get_selected_eid()
-        if eid is not None or all_image_bypass:
+        imgsetid = back.get_selected_imgsetid()
+        if imgsetid is not None or all_image_bypass:
             # Set all images to be reviewed
-            gid_list = back.ibs.get_valid_gids(eid=eid)
-            #gid_list = ibs.get_encounter_gids(eid)
+            gid_list = back.ibs.get_valid_gids(imgsetid=imgsetid)
+            #gid_list = ibs.get_imageset_gids(imgsetid)
             back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
-            # Set encounter to be processed
-            back.ibs.set_encounter_processed_flags([eid], [1])
-            back.ibs.wildbook_signal_eid_list([eid])
-            back.front.enc_tabwgt._close_tab_with_eid(eid)
+            # Set imageset to be processed
+            back.ibs.set_imageset_processed_flags([imgsetid], [1])
+            back.ibs.wildbook_signal_imgsetid_list([imgsetid])
+            back.front.enc_tabwgt._close_tab_with_imgsetid(imgsetid)
             if refresh:
-                back.front.update_tables([gh.ENCOUNTER_TABLE])
+                back.front.update_tables([gh.IMAGESET_TABLE])
 
-    def send_unshipped_processed_encounters(back, refresh=True):
-        processed_set = set(back.ibs.get_valid_eids(processed=True))
-        shipped_set = set(back.ibs.get_valid_eids(shipped=True))
-        eid_list = list(processed_set - shipped_set)
-        back.ibs.wildbook_signal_eid_list(eid_list)
+    def send_unshipped_processed_imagesets(back, refresh=True):
+        processed_set = set(back.ibs.get_valid_imgsetids(processed=True))
+        shipped_set = set(back.ibs.get_valid_imgsetids(shipped=True))
+        imgsetid_list = list(processed_set - shipped_set)
+        back.ibs.wildbook_signal_imgsetid_list(imgsetid_list)
 
     #--------------------------------------------------------------------------
     # Option menu slots
@@ -1892,16 +1892,16 @@ class MainWindowBackend(GUIBACK_BASE):
                 # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
                 assert len(xml_path_list) == 1, "Must specity one Patrol XML file"
                 smart_xml_fpath = xml_path_list[0]
-            back.ibs.compute_encounters_smart(gid_list, smart_xml_fpath)
+            back.ibs.compute_occurrences_smart(gid_list, smart_xml_fpath)
         if refresh:
-            back.ibs.update_special_encounters()
-            #back.front.update_tables([gh.ENCOUNTER_TABLE])
+            back.ibs.update_special_imagesets()
+            #back.front.update_tables([gh.IMAGESET_TABLE])
             back.front.update_tables()
 
     def _process_new_images(back, refresh, gid_list, clock_offset=True):
         if refresh:
-            back.ibs.update_special_encounters()
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
+            back.ibs.update_special_imagesets()
+            back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE])
         if clock_offset:
             co_wgt = clock_offset_gui.ClockOffsetWidget(back.ibs, gid_list)
             co_wgt.show()
@@ -1933,9 +1933,9 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list = [aid_list]
         ibs = back.ibs
         gid_list  = ibs.get_annot_gids(aid_list)
-        eids_list = ibs.get_image_eids(gid_list)
-        for aid, gid, eids in zip(aid_list, gid_list, eids_list):
-            back.user_info(msg='aid=%r, gid=%r, eids=%r' % (aid, gid, eids))
+        imgsetids_list = ibs.get_image_imgsetids(gid_list)
+        for aid, gid, imgsetids in zip(aid_list, gid_list, imgsetids_list):
+            back.user_info(msg='aid=%r, gid=%r, imgsetids=%r' % (aid, gid, imgsetids))
 
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)
@@ -1972,18 +1972,18 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
 
     def _eidfromkw(back, kwargs):
-        if 'eid' not in kwargs:
-            eid = back.get_selected_eid()
+        if 'imgsetid' not in kwargs:
+            imgsetid = back.get_selected_imgsetid()
         else:
-            eid = kwargs['eid']
-        return eid
+            imgsetid = kwargs['imgsetid']
+        return imgsetid
 
-    def contains_special_encounters(back, eid_list):
-        isspecial_list = back.ibs.is_special_encounter(eid_list)
+    def contains_special_imagesets(back, imgsetid_list):
+        isspecial_list = back.ibs.is_special_imageset(imgsetid_list)
         return any(isspecial_list)
 
-    def display_special_encounters_error(back):
-        back.user_info(msg="Contains special encounters")
+    def display_special_imagesets_error(back):
+        back.user_info(msg="Contains special imagesets")
 
     @slot_()
     def override_all_annotation_species(back):
@@ -2043,17 +2043,17 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):
-        eid = back.get_selected_eid()
-        print('set_exemplars_from_quality_and_viewpoint, eid=%r' % (eid,))
-        back.ibs.set_exemplars_from_quality_and_viewpoint(eid=eid)
+        imgsetid = back.get_selected_imgsetid()
+        print('set_exemplars_from_quality_and_viewpoint, imgsetid=%r' % (imgsetid,))
+        back.ibs.set_exemplars_from_quality_and_viewpoint(imgsetid=imgsetid)
 
     @slot_()
     def batch_rename_consecutive_via_species(back):
-        #eid = back.get_selected_eid()
-        #back.ibs.batch_rename_consecutive_via_species(eid=eid)
-        eid = None
-        print('batch_rename_consecutive_via_species, eid=%r' % (eid,))
-        back.ibs.batch_rename_consecutive_via_species(eid=eid)
+        #imgsetid = back.get_selected_imgsetid()
+        #back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid)
+        imgsetid = None
+        print('batch_rename_consecutive_via_species, imgsetid=%r' % (imgsetid,))
+        back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid)
 
     @slot_()
     def run_tests(back):

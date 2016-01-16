@@ -1150,13 +1150,13 @@ class DetectionConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class EncounterConfig(ConfigBase):
-    """ EncounterConfig """
+class ImageSetConfig(ConfigBase):
+    """ ImageSetConfig """
     valid_cluster_algos = ['meanshift', 'agglomerative']
 
     def __init__(enc_cfg, **kwargs):
-        super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
-        enc_cfg.min_imgs_per_encounter = 1
+        super(ImageSetConfig, enc_cfg).__init__(name='enc_cfg')
+        enc_cfg.min_imgs_per_occurrence = 1
         #enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
         enc_cfg.cluster_algo = 'agglomerative'
         enc_cfg.quantile = .01  # depends meanshift
@@ -1174,7 +1174,7 @@ class EncounterConfig(ConfigBase):
         if enc_cfg.use_gps:
             enc_cfgstrs.append('gps')
 
-        enc_cfgstrs.append(str(enc_cfg.min_imgs_per_encounter))
+        enc_cfgstrs.append(str(enc_cfg.min_imgs_per_occurrence))
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
 
@@ -1212,14 +1212,14 @@ class OtherConfig(ConfigBase):
         other_cfg.exemplar_distinctiveness_thresh  = .95
         other_cfg.detect_add_after = 1
         # other_cfg.detect_use_chunks = True
-        other_cfg.use_more_special_encounters = True
+        other_cfg.use_more_special_imagesets = True
         other_cfg.location_for_names = 'IBEIS'
         #other_cfg.location_for_names = 'MUGU'
         other_cfg.smart_enabled = True
         other_cfg.enable_custom_filter = False
         other_cfg.hots_batch_size = 256
         other_cfg.use_augmented_indexer = True
-        other_cfg.show_shipped_encounters = ut.is_developer()
+        other_cfg.show_shipped_imagesets = ut.is_developer()
         other_cfg.update(**kwargs)
 
 
@@ -1366,7 +1366,7 @@ def _default_config(cfg, cfgname=None, new=True):
         cfg.z_cfgname = cfgname
     query_cfg = QueryConfig(pipeline_root='vsmany')
     set_query_cfg(cfg, query_cfg)
-    cfg.enc_cfg     = EncounterConfig()
+    cfg.enc_cfg     = ImageSetConfig()
     cfg.detect_cfg  = DetectionConfig()
     cfg.other_cfg   = OtherConfig()
     _default_named_config(cfg, cfgname)

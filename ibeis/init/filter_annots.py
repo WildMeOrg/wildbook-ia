@@ -304,7 +304,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
         python -m ibeis --tf parse_acfg_combo_list  \
                 -a varysize
         ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
-        #ibeis --tf get_annotcfg_list --db lynx -a default:hack_encounter=True
+        #ibeis --tf get_annotcfg_list --db lynx -a default:hack_imageset=True
         ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
         ibeis --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
         ibeis --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
@@ -610,8 +610,8 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         dcfg[key] = None
 
     try:
-        #if aidcfg['qcfg']['hack_encounter'] is True:
-        #    return ibs.get_encounter_expanded_aids()
+        #if aidcfg['qcfg']['hack_imageset'] is True:
+        #    return ibs.get_imageset_expanded_aids()
         # Hack: Make hierarchical filters to supersede this
         if initial_aids is None:
             initial_aids = ibs._get_all_aids()
@@ -907,20 +907,20 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
 
     metadata = ut.LazyDict(species=lambda: expand_species(ibs, aidcfg['species'], avail_aids))
 
-    if aidcfg['same_encounter'] is not None:
+    if aidcfg['same_imageset'] is not None:
         """
         ibeis --tf get_annotcfg_list \
-                -a default:qsame_encounter=True,been_adjusted=True,excluderef=True \
+                -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
                 --db lynx --veryverbtd --nocache-aid
         """
-        same_encounter = aidcfg['same_encounter']
-        assert same_encounter is True
-        eid_list = ibs.get_annot_primary_encounter(avail_aids)
+        same_imageset = aidcfg['same_imageset']
+        assert same_imageset is True
+        imgsetid_list = ibs.get_annot_primary_imageset(avail_aids)
         nid_list = ibs.get_annot_nids(avail_aids)
-        multiprop2_aids = ut.hierarchical_group_items(avail_aids, [nid_list, eid_list])
+        multiprop2_aids = ut.hierarchical_group_items(avail_aids, [nid_list, imgsetid_list])
         qaid_list = []
         # TODO: sampling using different enouncters
-        for eid, nid2_aids in multiprop2_aids.iteritems():
+        for imgsetid, nid2_aids in multiprop2_aids.iteritems():
             if len(nid2_aids) == 1:
                 pass
             else:
@@ -928,7 +928,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                 idx = ut.list_argmax(list(map(len, aids_list)))
                 qaids = aids_list[idx]
                 qaid_list.extend(qaids)
-        with VerbosityContext('same_encounter'):
+        with VerbosityContext('same_imageset'):
             avail_aids = qaid_list
         avail_aids = sorted(avail_aids)
 

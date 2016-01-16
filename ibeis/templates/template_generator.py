@@ -24,12 +24,12 @@ CommandLine:
     python ibeis/templates/template_generator.py
     python -m ibeis.templates.template_generator --key featweight --write
     python -m ibeis.templates.template_generator --key featweight
-    python -m ibeis.templates.template_generator --key encounter
-    python -m ibeis.templates.template_generator --key encounter
-    python -m ibeis.templates.template_generator --key encounter --onlyfn
-    python -m ibeis.templates.template_generator --key encounter --onlyfn --Tcfg with_native=False
-    python -m ibeis.templates.template_generator --key egr --Tcfg with_relations=True with_getters=True
-    python -m ibeis.templates.template_generator --key egr --Tcfg with_native=False
+    python -m ibeis.templates.template_generator --key imageset
+    python -m ibeis.templates.template_generator --key imageset
+    python -m ibeis.templates.template_generator --key imageset --onlyfn
+    python -m ibeis.templates.template_generator --key imageset --onlyfn --Tcfg with_native=False
+    python -m ibeis.templates.template_generator --key gsgr --Tcfg with_relations=True with_getters=True
+    python -m ibeis.templates.template_generator --key gsgr --Tcfg with_native=False
 
     python -m ibeis.templates.template_generator --key match --Tcfg with_native=False
     python -m ibeis.templates.template_generator --key party --Tcfg with_native=False
@@ -96,7 +96,7 @@ TBLNAME_LIST = [
     #const.FEATURE_TABLE,
     #const.FEATURE_WEIGHT_TABLE,
     #const.RESIDUAL_TABLE
-    #const.ENCOUNTER_TABLE
+    #const.IMAGESET_TABLE
     #const.LBLIMAGE_TABLE
 ]
 
@@ -1313,7 +1313,7 @@ if __name__ == '__main__':
         Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
         Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
 
-        sh Tgen.sh --tbls encounters --Tcfg with_getters:True with_setters=True strip_docstr:False
+        sh Tgen.sh --tbls imagesets --Tcfg with_getters:True with_setters=True strip_docstr:False
     """
     if 'ibs' not in vars():
         import ibeis
