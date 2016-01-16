@@ -135,8 +135,10 @@ def postload_commands(ibs, back):
         back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name,
                                                     allow_table_change=True)
 
-    if params.args.query_aid is not None:
-        qaid_list = params.args.query_aid
+    qaid_list = ut.get_argval(('--query-aid', '--query'), type_=list, default=None)
+
+    if qaid_list is not None:
+        #qaid_list = params.args.query_aid
         # fix stride case
         if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
             qaid_list = list(qaid_list[0])

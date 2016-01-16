@@ -12,6 +12,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[cfgbank]')
 
 
 ALIAS_KEYS = {
+    'proot': 'pipeline_root',
     'RI': 'rotation_invariance',
     'AI': 'affine_invariance',
     #'AQH': 'augment_queryside_hack',

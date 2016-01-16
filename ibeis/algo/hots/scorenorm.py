@@ -569,8 +569,8 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         >>> (tp_fsv, tn_fsv) = get_training_desc_dist(cm, qreq_, fsv_col_lbls,
         >>>                                           namemode=namemode,
         >>>                                           top_percent=top_percent)
-        >>> vt.assert_output_equal(tp_fsv1, tp_fsv)
-        >>> vt.assert_output_equal(tn_fsv1, tn_fsv)
+        >>> vt.asserteq(tp_fsv1, tp_fsv)
+        >>> vt.asserteq(tn_fsv1, tn_fsv)
     """
     if namemode:
         tp_idxs, tn_idxs = get_topname_training_idxs(cm, num=num)

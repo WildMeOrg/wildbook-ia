@@ -199,7 +199,9 @@ def testdata_expts(defaultdb='testdb1',
 
 
 def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
-                           ibs=None, verbose=False, return_annot_info=False):
+                           ibs=None, verbose=False, return_annot_info=False,
+                           qaid_override=None,
+                           daid_override=None):
     r"""
     Args:
         default_qaids (list): (default = [1])
@@ -256,7 +258,9 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
                                                  default=a,
                                                  return_specified=True)
 
-    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
+        ibs, aidcfg_name_list, qaid_override=qaid_override,
+        daid_override=daid_override)
 
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
     assert len(acfg_list) == 1, (

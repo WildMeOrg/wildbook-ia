@@ -7,7 +7,7 @@ here and they should eventually be integrated into this module (hopefully
 automagically)
 
 TODO:
-    generate this module automagically from
+nnkj/enerate this module automagically from
     import utool as ut
     utool_parse_codeblock = ut.util_arg.autogen_argparse_block(extra_args=parsed_args)
     ut.util_arg.reset_argrecord()
@@ -124,6 +124,8 @@ def parse_args():
         #parser2.add_flag('--gvim-notes')
         parser2.add_flag(('--view-database-directory', '--vdd'),
                          help='opens the database directory')
+
+        # NEED TO DEPCIRATE THIS VERY BADLY
         parser2.add_strs(('--update-query-cfg', '--set-cfg', '--cfg'), default=None,
                          help=('set query parameters from the commandline: e.g. '
                                '--cfg xy_thresh=.01 score_method=csum'))

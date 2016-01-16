@@ -325,7 +325,7 @@ def post_1_2_0(db, ibs=None):
             species_lbltype_rowid = ibs.db.get('keys', ('lbltype_rowid',), ('SPECIES_KEY',), id_colname='lbltype_text')[0]
             alrids_list = get_annot_alrids_oftype(aid_list, species_lbltype_rowid)
             lblannot_rowids_list = ibs.unflat_map(get_alr_lblannot_rowids, alrids_list)
-            speciesid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
+            speciesid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else const.UNKNOWN_LBLANNOT_ROWID for
                               lblannot_rowids in lblannot_rowids_list]
             return speciesid_list
 
@@ -336,7 +336,7 @@ def post_1_2_0(db, ibs=None):
             lblannot_rowids_list = ibs.unflat_map(get_alr_lblannot_rowids, alrids_list)
             # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
             # TODO: get index of highest confidencename
-            nid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
+            nid_list = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else const.UNKNOWN_LBLANNOT_ROWID for
                          lblannot_rowids in lblannot_rowids_list]
             return nid_list
 

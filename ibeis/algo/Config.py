@@ -322,6 +322,7 @@ class AggregateConfig(ConfigBase):
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
         agg_cfg.score_normalization = None
+        agg_cfg.normsum = False
         #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
@@ -351,6 +352,8 @@ class AggregateConfig(ConfigBase):
             agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
         if agg_cfg.score_normalization:
             agg_cfgstr.append(',norm')
+        if agg_cfg.normsum:
+            agg_cfgstr.append(',normsum')
         agg_cfgstr.append(')')
         return agg_cfgstr
 
@@ -567,10 +570,10 @@ class NNWeightConfig(ConfigBase):
         ... ]
         >>> result = '\n'.join([cfg.get_cfgstr() for cfg in cfg_list])
         >>> print(result)
-        _NNWeight(lnbnn,fg,last)
-        _NNWeight(lnbnn,fg,last,sameimg,nosamename)
-        _NNWeight(ratio_thresh=0.625,fg,last)
-        _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5)
+        _NNWeight(lnbnn,fg,last,nosqrd_dist)
+        _NNWeight(lnbnn,fg,last,sameimg,nosamename,nosqrd_dist)
+        _NNWeight(ratio_thresh=0.625,fg,last,nosqrd_dist)
+        _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)
     """
     def __init__(nnweight_cfg, **kwargs):
         super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')

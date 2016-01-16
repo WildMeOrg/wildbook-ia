@@ -301,7 +301,7 @@ class _ChipMatchVisualization(object):
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
             >>> aid2 = None
-            >>> result = cm.ishow_single_annotmatch(qreq_, aid2)
+            >>> result = cm.ishow_single_annotmatch(qreq_, aid2, noupdate=True)
             >>> print(result)
             >>> ut.show_if_requested()
         """
@@ -315,10 +315,8 @@ class _ChipMatchVisualization(object):
             aid2 = cm.get_top_aids(ntop=1)[0]
         kwshow.update(**kwargs)
         try:
-            match_interaction = interact_matches.MatchInteraction(qreq_.ibs,
-                                                                  cm, aid2,
-                                                                  qreq_=qreq_,
-                                                                  **kwshow)
+            match_interaction = interact_matches.MatchInteraction(
+                qreq_.ibs, cm, aid2, qreq_=qreq_, **kwshow)
             return match_interaction
         except Exception as ex:
             ut.printex(ex, 'failed in cm.show_matches', keys=['aid', 'qreq_'])
@@ -476,7 +474,27 @@ class _ChipMatchScorers(object):
     @profile
     def evaluate_csum_score(cm, qreq_):
         csum_score_list = scoring.compute_csum_score(cm)
-        cm.csum_score_list = csum_score_list
+        cm.algo_annot_scores['csum'] = csum_score_list
+        #cm.csum_score_list = csum_score_list
+
+    @profile
+    def evaluate_nsum_score(cm, qreq_):
+        """ Calls name scoring logic """
+        cm.evaluate_dnids(qreq_.ibs)
+        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
+        assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
+
+        if qreq_.qparams.normsum:
+            # Normalize name scores
+            num_unmatched = len(cm.unique_nids) - len(nsum_score_list)
+            valid_scores = nsum_score_list.compress(np.isfinite(nsum_score_list))
+            unmatched_score = vt.safe_min(valid_scores, 0)
+            zsum = unmatched_score * num_unmatched + valid_scores.sum()
+            nsum_score_list_ = nsum_score_list / zsum
+            nsum_score_list = nsum_score_list_
+
+        cm.algo_name_scores['nsum'] = nsum_score_list
+        #cm.nsum_score_list = nsum_score_list
 
     @profile
     def score_csum(cm, qreq_):
@@ -498,8 +516,6 @@ class _ChipMatchScorers(object):
         cm.evaluate_csum_score(qreq_)
         cm.set_cannonical_annot_score(cm.csum_score_list)
 
-    # --- MaxChipSum Score
-
     @profile
     def score_maxcsum(cm, qreq_):
         cm.evaluate_dnids(qreq_.ibs)
@@ -511,27 +527,20 @@ class _ChipMatchScorers(object):
         ])
         cm.set_cannonical_name_score(cm.csum_score_list, cm.maxcsum_score_list)
 
-    # --- NameSum Score
-
-    @profile
-    def evaluate_nsum_score(cm, qreq_):
-        cm.evaluate_dnids(qreq_.ibs)
-        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
-        assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
-        cm.nsum_score_list = nsum_score_list
-
     @profile
     def score_nsum(cm, qreq_):
         """
         CommandLine:
             python -m ibeis.algo.hots.chip_match --test-score_nsum --show --qaid 1
-            python -m ibeis.algo.hots.chip_match --test-score_nsum --show --qaid 18
+            python -m ibeis.algo.hots.chip_match --test-score_nsum --show --qaid 18 -t default:normsum=True
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
-            >>> cm = cm_list[0]
+            >>> qreq_, args = plh.testdata_pre('vsone_reranking', defaultdb='PZ_MTEST', a=['default'], qaid_override=[18])
+            >>> cm = args.cm_list_SVER[0]
+            >>> #ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
+            >>> #cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
             >>> gt_score = cm.score_list.compress(cm.get_groundtruth_flags()).max()
             >>> cm.print_csv()
@@ -2308,13 +2317,16 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+        >>> qreq_, args = plh.testdata_pre('spatial_verification',
+        >>>                                defaultdb='PZ_MTEST', qaid_override=[18],
+        >>>                                p='default:sqrd_dist_on=True')
+        >>> cm_list = args.cm_list_FILT
         >>> cm = cm_list[0]
         >>> fname = get_chipmatch_fname(cm.qaid, qreq_, qauuid=None,
         >>>                             TRUNCATE_UUIDS=False, MAX_FNAME_LEN=200)
-        >>> result = ut.repr2(fname)
+        >>> result = fname
         >>> print(result)
-        'qaid=18_cm_qjjzmjiwwwdhyzrw_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl'
+        qaid=18_cm_kdyczvphbkaogiar_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
     """
     if qauuid is None:
         print('[chipmatch] Warning qasuuid should be given')

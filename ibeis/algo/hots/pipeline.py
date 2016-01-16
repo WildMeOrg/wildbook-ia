@@ -2,7 +2,7 @@
 """
 Hotspotter pipeline module
 
-Module Concepts::
+Module Notation and Concepts::
     PREFIXES:
     qaid2_XXX - prefix mapping query chip index to
     qfx2_XXX  - prefix mapping query chip feature index to
@@ -34,23 +34,19 @@ CommandLine:
     python main.py --db testdb1 --setdb
 
     # Then run whichever configuration you like
-    python main.py --verbose --noqcache --cfg codename:vsone --query 1
-    python main.py --verbose --noqcache --cfg codename:vsone_norm --query 1
-    python main.py --verbose --noqcache --cfg codename:vsmany --query 1
-    python main.py --verbose --noqcache --cfg codename:vsmany_nsum  --query 1
+    python main.py --query 1 --yes --noqcache -t default:codename=vsone
+    python main.py --query 1 --yes --noqcache -t default:codename=vsone_norm
+    python main.py --query 1 --yes --noqcache -t default:codename=vsmany
+    python main.py --query 1 --yes --noqcache -t default:codename=vsmany_nsum
 
 TODO:
     * Don't preload the nn-indexer in case the nearest neighbors have already
     been computed?
 """
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map, filter  # NOQA
-import six  # NOQA
 import numpy as np
 import vtool as vt
-from vtool import keypoint as ktool
-from vtool import spatial_verification as sver
 from ibeis.algo.hots import hstypes  # NOQA
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import nn_weights
@@ -86,9 +82,6 @@ WEIGHT_LBL  = 'Weight NN:       '
 BUILDCM_LBL = 'Build Chipmatch: '
 SVER_LVL    = 'SVER:            '
 
-#PROGKW = dict(freq=50, time_thresh=4.0)
-#PROGKW = dict(freq=10, time_thresh=4.0)
-#PROGKW = dict(freq=1, time_thresh=4.0)
 PROGKW = dict(freq=1, time_thresh=30.0, adjust=True)
 
 
@@ -99,24 +92,22 @@ ValidMatchTup_ = namedtuple('vmt', (  # valid_match_tup
     'daid', 'qfx', 'dfx', 'scorevec', 'rank', 'norm_aids', 'norm_fxs'))
 
 
-# Query Level 0
-#@ut.indent_func('[Q0]')
 @profile
 def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
-    r"""
-    Driver logic of query pipeline
+    r""" Driver logic of query pipeline
 
     Note:
         Make sure _pipeline_helpres.testrun_pipeline_upto reflects what happens
-        in this function
+        in this function.
 
     Args:
-        ibs   (IBEISController): IBEIS database object to be queried.
+        ibs (ibeis.IBEISController): IBEIS database object to be queried.
             technically this object already lives inside of qreq_.
-        qreq_ (QueryRequest): hyper-parameters. use ``ibs.new_query_request`` to create one
+        qreq_ (ibeis.QueryRequest): hyper-parameters. use
+            ``ibs.new_query_request`` to create one
 
     Returns:
-        (dict[int, QueryResult]): qaid2_qres maps query annotid to QueryResult
+        list: cm_list containing ``ibeis.ChipMatch`` objects
 
     CommandLine:
         python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
@@ -775,7 +766,10 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     # hard_weights = ['ratio']
 
     if not config2_.sqrd_dist_on:
-        nns_list = [(qfx2_idx, np.sqrt(qfx2_dist)) for qfx2_idx, qfx2_dist in nns_list]
+        # Take the square root of the squared distances
+        nns_list_ = [(qfx2_idx, np.sqrt(qfx2_dist.astype(np.float64)))
+                     for qfx2_idx, qfx2_dist in nns_list]
+        nns_list = nns_list_
 
     if config2_.lnbnn_on:
         filtname = 'lnbnn'
@@ -940,7 +934,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone'])
+        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone,sqrd_dist_on=True'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
@@ -1041,7 +1035,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
-        >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2'])
+        >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
         >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk_list, Knorm = args
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
@@ -1229,7 +1223,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 
 @profile
 def sver_single_chipmatch(qreq_, cm):
-    """
+    r"""
     Spatially verifies a shortlist of a single chipmatch
 
     TODO: move to chip match?
@@ -1244,8 +1238,13 @@ def sver_single_chipmatch(qreq_, cm):
         ibeis.ChipMatch: cmSV
 
     CommandLine:
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] -a timectrlhard ---acfginfo --veryverbtd
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show \
+            -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] \
+            -a timectrlhard ---acfginfo --veryverbtd
+
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show \
+            -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] \
+            -a timectrlhard ---acfginfo --veryverbtd
 
         python -m ibeis --tf sver_single_chipmatch --show \
             -t default:full_homog_checks=True -a default --qaid 18
@@ -1306,7 +1305,6 @@ def sver_single_chipmatch(qreq_, cm):
         >>> import plottool as pt
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=qreq_.qparams.refine_method)
         >>> ut.show_if_requested()
-
     """
     qaid = cm.qaid
     use_chip_extent       = qreq_.qparams.use_chip_extent
@@ -1348,7 +1346,7 @@ def sver_single_chipmatch(qreq_, cm):
                 # Compute homography from chip2 to chip1 returned homography
                 # maps image1 space into image2 space image1 is a query chip
                 # and image2 is a database chip
-                sv_tup = sver.spatially_verify_kpts(
+                sv_tup = vt.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                     dlen_sqrd2, min_nInliers, match_weights=match_weights,
                     full_homog_checks=full_homog_checks, refine_method=refine_method,
@@ -1439,7 +1437,7 @@ def sver_single_chipmatch(qreq_, cm):
 
 
 def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
-    """
+    r"""
     helper for spatial verification, computes the squared diagonal length of
     matching chips
 
@@ -1465,7 +1463,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     fx2_list = [fm.T[1] for fm in fm_list]
     kpts2_m_list = vt.ziptake(kpts_list, fx2_list, axis=0)
     #[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]
-    dlen_sqrd_list = [ktool.get_kpts_dlen_sqrd(kpts2_m)
+    dlen_sqrd_list = [vt.get_kpts_dlen_sqrd(kpts2_m)
                       for kpts2_m in kpts2_m_list]
     return dlen_sqrd_list
 
@@ -1475,15 +1473,14 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
 #============================
 
 
-def vsone_reranking(qreq_, cm_list, verbose=VERB_PIPELINE):
-    """
+def vsone_reranking(qreq_, cm_list_SVER, verbose=VERB_PIPELINE):
+    r"""
     CommandLine:
         python -m ibeis.algo.hots.pipeline --test-vsone_reranking
         python -m ibeis.algo.hots.pipeline --test-vsone_reranking --show
 
     Example2:
-        >>> # SLOW_DOCTEST
-        >>> # (IMPORTANT)
+        >>> # SLOW_DOCTEST (IMPORTANT)
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> cfgdict = dict(prescore_method='nsum', score_method='nsum', vsone_reranking=True)
         >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=[2])
@@ -1502,6 +1499,7 @@ def vsone_reranking(qreq_, cm_list, verbose=VERB_PIPELINE):
     from ibeis.algo.hots import vsone_pipeline
     if verbose:
         print('Step 5.5ish) vsone reranking')
+    cm_list = cm_list_SVER
     cm_list_VSONE = vsone_pipeline.vsone_reranking(qreq_, cm_list, verbose)
     return cm_list_VSONE
 
@@ -1521,5 +1519,5 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     ut.doctest_funcs()
     if ut.get_argflag('--show'):
-        from plottool import df2
-        exec(df2.present())
+        import plottool as pt
+        exec(pt.present())

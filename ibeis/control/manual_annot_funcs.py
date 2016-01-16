@@ -426,7 +426,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         nid_list = ibs.add_names(name_list)
     else:
         if nid_list is None:
-            nid_list = [ibs.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
+            nid_list = [const.UNKNOWN_NAME_ROWID for _ in range(len(gid_list))]
         name_list = ibs.get_name_texts(nid_list)
 
     if species_rowid_list is not None:
@@ -436,7 +436,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         if species_list is not None:
             species_rowid_list = ibs.add_species(species_list)
         else:
-            species_rowid_list = [ibs.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
+            species_rowid_list = [const.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
             species_list = ibs.get_species_texts(species_rowid_list)
     if detect_confidence_list is None:
         detect_confidence_list = [0.0 for _ in range(len(gid_list))]
@@ -566,7 +566,7 @@ def delete_annot_nids(ibs, aid_list):
     # FIXME: This should be implicit by setting the anotation name to the
     # unknown name
     #ibs.delete_annot_relations_oftype(aid_list, const.INDIVIDUAL_KEY)
-    ibs.set_annot_name_rowids(aid_list, [ibs.UNKNOWN_NAME_ROWID] * len(aid_list))
+    ibs.set_annot_name_rowids(aid_list, [const.UNKNOWN_NAME_ROWID] * len(aid_list))
 
 
 @register_ibs_method
@@ -583,7 +583,7 @@ def delete_annot_speciesids(ibs, aid_list):
     # FIXME: This should be implicit by setting the anotation name to the
     # unknown species
     #ibs.delete_annot_relations_oftype(aid_list, const.SPECIES_KEY)
-    ibs.set_annot_species_rowids(aid_list, [ibs.UNKNOWN_SPECIES_ROWID] * len(aid_list))
+    ibs.set_annot_species_rowids(aid_list, [const.UNKNOWN_SPECIES_ROWID] * len(aid_list))
 
 
 @register_ibs_method
@@ -1697,6 +1697,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from ibeis import constants as const
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -1704,8 +1705,8 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
         >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
         >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=False))
         >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(None, distinguish_unknowns=True))
-        >>> assert ibs.UNKNOWN_LBLANNOT_ROWID == 0
-        >>> assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
+        >>> assert const.UNKNOWN_LBLANNOT_ROWID == 0
+        >>> assert np.all(nid_arr1[np.where(const.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
     """
     id_iter = aid_list
     colnames = (NAME_ROWID,)
@@ -1714,10 +1715,10 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
         #from ibeis.algo.preproc import preproc_annot
         #nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
         nid_list = [(None if aid is None else -aid)
-                    if nid == ibs.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
+                    if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
                     for nid, aid in zip(nid_list_, aid_list)]
     else:
-        nid_list = [ibs.UNKNOWN_LBLANNOT_ROWID if nid is None else nid for nid in nid_list_]
+        nid_list = [const.UNKNOWN_LBLANNOT_ROWID if nid is None else nid for nid in nid_list_]
     return nid_list
 
 

@@ -383,9 +383,12 @@ class IBEISController(BASE_CLASS):
 
     def _init_rowid_constants(ibs):
         # ADD TO CONSTANTS
-        ibs.UNKNOWN_LBLANNOT_ROWID = 0
-        ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID
-        ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID
+
+        # THIS IS EXPLICIT IN CONST, USE THAT VERSION INSTEAD
+        # ibs.UNKNOWN_LBLANNOT_ROWID = const.UNKNOWN_LBLANNOT_ROWID
+        # ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID
+        # ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID
+
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)

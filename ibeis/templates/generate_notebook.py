@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from ibeis.templates import notebook_cells
+from functools import partial
 
 
 def autogen_ipynb(ibs, launch=None, run=None):
@@ -11,19 +12,19 @@ def autogen_ipynb(ibs, launch=None, run=None):
     CommandLine:
         python -m ibeis --tf autogen_ipynb --run --db lynx
         python -m ibeis --tf autogen_ipynb --ipynb --db lynx
-        python -m ibeis --tf autogen_ipynb --ipynb  --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
-        python -m ibeis --tf autogen_ipynb --ipynb  --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
+        python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
+        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
 
         python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
 
         python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --hacktestscore --ipynb
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --hacktestscore --run
+        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
+        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW -a default:has_any=hasnotch
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:pipeline_root=BC_DTW -a default:has_any=hasnotch,mingt=2
+        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
+        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
 
     Example:
         >>> # SCRIPT
@@ -36,6 +37,10 @@ def autogen_ipynb(ibs, launch=None, run=None):
     dbname = ibs.get_dbname()
     fname = 'Experiments-' + dbname
     nb_fpath = fname + '.ipynb'
+    if ut.get_argflag('--cells'):
+        notebook_cells = make_ibeis_cell_list(ibs)
+        print('\n# ---- \n'.join(notebook_cells))
+        return
     notebook_str = make_ibeis_notebook(ibs)
     ut.writeto(nb_fpath, notebook_str)
     run = ut.get_argflag('--run') if run is None else run
@@ -55,6 +60,8 @@ def autogen_ipynb(ibs, launch=None, run=None):
 def get_default_cell_template_list(ibs):
     cells = notebook_cells
 
+    noexample = ut.get_argflag('--noexample')
+
     cell_template_list = [
         cells.initialize,
 
@@ -63,9 +70,9 @@ def get_default_cell_template_list(ibs):
         cells.pipe_config_info,
         cells.annot_config_info,
 
-        cells.timestamp_distribution,
-        cells.example_annotations,
-        cells.example_names,
+        None if noexample else cells.timestamp_distribution,
+        None if noexample else cells.example_annotations,
+        None if noexample else cells.example_names,
 
         cells.per_annotation_accuracy,
         cells.per_name_accuracy,
@@ -176,6 +183,20 @@ def make_ibeis_notebook(ibs):
         >>> notebook_str = make_ibeis_notebook(ibs)
         >>> print(notebook_str)
     """
+    cell_list = make_ibeis_cell_list(ibs)
+    notebook_str = make_notebook(cell_list)
+
+    try:
+        import json
+        json.loads(notebook_str)
+    except ValueError as ex:
+        ut.printex(ex, 'Invalid notebook JSON')
+        raise
+
+    return notebook_str
+
+
+def make_ibeis_cell_list(ibs):
     cell_template_list = get_default_cell_template_list(ibs)
     autogen_str = make_autogen_str()
     dbname = ibs.get_dbname()
@@ -188,19 +209,20 @@ def make_ibeis_notebook(ibs):
     #else:
     default_acfgstr = ut.get_argval('-a', type_=str, default='default:is_known=True')
     annotconfig_list_body = ut.codeblock(
-        ut.repr2(default_acfgstr) +
-        '''
+        ut.repr2(default_acfgstr) + '\n' +
+        ut.codeblock('''
         # See ibeis/expt/annotation_configs.py for names of annot configuration options
+        #'default:has_any=(query,),dpername=1,exclude_reference=True',
+        #'default:is_known=True',
         #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
         #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
-        #'timectrl:',
-        #'timectrl:qsize=10,dsize=20',
-        #'timectrl:been_adjusted=True,dpername=3',
-        #'unctrl:been_adjusted=True',
         #'default:require_timestamp=True,min_timedelta=3600',
         #'default:species=primary',
-        #'default:has_any=(query,),dpername=1,exclude_reference=True',
-        '''
+        #'timectrl:',
+        #'timectrl:been_adjusted=True,dpername=3',
+        #'timectrl:qsize=10,dsize=20',
+        #'unctrl:been_adjusted=True',
+        ''')
     )
     #if ut.get_argflag('--hacktestscore'):
     #    pipeline_list_body = ut.codeblock(
@@ -215,32 +237,25 @@ def make_ibeis_notebook(ibs):
     #        '''
     #    )
     #elif True:
-    default_pcfgstr = ut.get_argval(('-t', '-p'), type_=str, default='default')
+    default_pcfgstr_list = ut.get_argval(('-t', '-p'), type_=list, default='default')
+    default_pcfgstr = ut.repr3(default_pcfgstr_list, nobr=True)
+
     pipeline_list_body = ut.codeblock(
-        ut.repr2(default_pcfgstr) +
-        '''
+        default_pcfgstr + '\n' +
+        ut.codeblock('''
+        #'default',
         #'default:K=1',
-        #'default:K=1,adapteq=True',
         #'default:K=1,AI=False',
         #'default:K=1,AI=False,QRH=True',
         #'default:K=1,RI=True,AI=False',
+        #'default:K=1,adapteq=True',
         #'default:fg_on=[True,False]',
-        '''
+        ''')
     )
     locals_ = locals()
-    from functools import partial
     _format = partial(format_cells, locals_=locals_)
     cell_list = ut.flatten(map(_format, cell_template_list))
-    notebook_str = make_notebook(cell_list)
-
-    try:
-        import json
-        json.loads(notebook_str)
-    except ValueError as ex:
-        ut.printex(ex, 'Invalid notebook JSON')
-        raise
-
-    return notebook_str
+    return cell_list
 
 
 def format_cells(block, locals_=None):
@@ -251,12 +266,36 @@ def format_cells(block, locals_=None):
             header = None
             code = block
         if locals_ is not None:
-            code = code.format(**locals_)
-            ut.is_valid_python(code, reraise=True, ipy_magic_workaround=True)
-        if header is not None:
-            return [markdown_cell(header), code_cell(code)]
+
+            def modify_code_indent_formatdict(code, locals_):
+                # Parse out search and replace locations in code
+                ncl1 = ut.negative_lookbehind('{')
+                ncl2 = ut.negative_lookahead('{')
+                ncr1 = ut.negative_lookbehind('}')
+                ncr2 = ut.negative_lookahead('}')
+                left = ncl1 + '{' + ncl2
+                right = ncr1 + '}' + ncr2
+                fmtpat = left + ut.named_field('key', '[^}]*') + right
+                spacepat = ut.named_field('indent', '^\s+')
+                pattern = spacepat + fmtpat
+                import re
+                seen_ = set([])
+                for m in re.finditer(pattern, code, flags=re.MULTILINE):
+                    indent = (m.groupdict()['indent'])
+                    key = (m.groupdict()['key'])
+                    if key in locals_ and key not in seen_:
+                        seen_.add(key)
+                        locals_[key] = ut.indent_rest(locals_[key], indent)
+
+            modify_code_indent_formatdict(code, locals_)
+            code_ = code.format(**locals_)
+            ut.is_valid_python(code_, reraise=True, ipy_magic_workaround=True)
         else:
-            return [code_cell(code)]
+            code_ = code
+        if header is not None:
+            return [markdown_cell(header), code_cell(code_)]
+        else:
+            return [code_cell(code_)]
     except Exception as ex:
         ut.printex(ex, 'failed to format cell', keys=['header', 'block'])
         raise
