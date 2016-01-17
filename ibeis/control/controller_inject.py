@@ -283,6 +283,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             msg = '\n'.join(msg_list)
             error_msg = ut.formatex(ex2, msg, tb=True)
             print(error_msg)
+            # error_msg = ut.strip_ansi(error_msg)
             raise Exception(error_msg)
             #raise
     resp_tup = (output, True, 200, None, jQuery_callback)
@@ -475,6 +476,13 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 @wraps(func)
                 #def translated_call(*args, **kwargs):
                 def translated_call(**kwargs):
+                    errored = False
+
+                    def html_newlines(text):
+                        r = '<br />\n'
+                        text = text.replace(' ', '&nbsp;')
+                        text = text.replace('\r\n', r).replace('\n\r', r).replace('\r', r).replace('\n', r)
+                        return text
                     try:
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message, jQuery_callback = resp_tup
@@ -487,6 +495,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         code = webex.code
                         message = webex.message
                         jQuery_callback = None
+                        errored = True
                     except Exception as ex:
                         ut.printex(ex)
                         rawreturn = ''
@@ -494,7 +503,8 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                             rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
-                        message = 'API error, Python Exception thrown: %r' % (str(ex))
+                        errmsg = str(ex)
+                        message = 'API error, Python Exception thrown: %s' % (errmsg)
                         if "'int' object is not iterable" in message:
                             rawreturn = (
                                 'HINT: the input for this call is most likely '
@@ -503,9 +513,25 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                                 'into a list) or encapsualte the input with '
                                 '[].')
                         jQuery_callback = None
-                    webreturn = translate_ibeis_webreturn(rawreturn, success,
-                                                          code, message,
-                                                          jQuery_callback)
+                        errored = True
+
+                    if errored:
+                        # Hack for readable error messages
+                        webreturn = translate_ibeis_webreturn(
+                            rawreturn, success, code, message, jQuery_callback)
+                        webreturn = ut.repr3(ut.from_json(webreturn), strvals=True)
+                        try:
+                            from ansi2html import Ansi2HTMLConverter
+                            conv = Ansi2HTMLConverter()
+                            webreturn = conv.convert(webreturn)
+                        except ImportError as ex:
+                            ut.printex(ex, 'pip install ansi2html', iswarning=True)
+                            webreturn = ut.stripansi(webreturn)
+                            webreturn = '<p><samp>\n' + html_newlines(webreturn) + '\n</samp></p>'
+                            webreturn = '<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">\n' + webreturn
+                    else:
+                        webreturn = translate_ibeis_webreturn(
+                            rawreturn, success, code, message, jQuery_callback)
                     return flask.make_response(webreturn, code)
                 # return the original unmodified function
                 if REMOTE_PROXY_URL is None:

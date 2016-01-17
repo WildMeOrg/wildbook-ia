@@ -31,7 +31,6 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-BROWSER = ut.get_argflag('--browser')
 PAGE_SIZE = 500
 
 
@@ -2029,11 +2028,30 @@ def error404(exception=None):
 
 ################################################################################
 
+def test_html_error():
+    r"""
+    This test will show what our current errors look like
 
-def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
+    CommandLine:
+        python -m ibeis.web.app --exec-test_html_error
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.app import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/image/imagesettext/')
+    """
+    pass
+
+
+def start_tornado(ibs, port=None, browser=None, url_suffix=None):
     """
         Initialize the web server
     """
+    if browser is None:
+        browser = ut.get_argflag('--browser')
+    if url_suffix is None:
+        url_suffix = ''
     def _start_tornado(ibs_, port_):
         # Get Flask app
         app = controller_inject.get_flask_app()
@@ -2070,8 +2088,8 @@ def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None,
-                     url_suffix='', start_job_queue=True):
+def start_from_ibeis(ibs, port=None, browser=None, precache=None,
+                     url_suffix=None, start_job_queue=True):
     """
     Parse command line options and start the server.
 
