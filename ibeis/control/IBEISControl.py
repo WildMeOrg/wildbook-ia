@@ -448,7 +448,7 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.4.9'
+            ibs.db_version_expected = '1.5.0'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController

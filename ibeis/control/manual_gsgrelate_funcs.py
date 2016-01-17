@@ -25,11 +25,11 @@ def delete_empty_imgsetids(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.control.manual_egrelate_funcs --test-delete_empty_imgsetids
+        python -m ibeis.control.manual_gsgrelate_funcs --test-delete_empty_imgsetids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_egrelate_funcs import *  # NOQA
+        >>> from ibeis.control.manual_gsgrelate_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -98,12 +98,12 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
         list: gids_list
 
     CommandLine:
-        python -m ibeis.control.manual_egrelate_funcs --test-unrelate_images_and_imagesets
-        python -c "import utool; print(utool.auto_docstr('ibeis.control.manual_egrelate_funcs', 'delete_gsgr_image_relations'))"
+        python -m ibeis.control.manual_gsgrelate_funcs --test-unrelate_images_and_imagesets
+        python -c "import utool; print(utool.auto_docstr('ibeis.control.manual_gsgrelate_funcs', 'delete_gsgr_image_relations'))"
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_egrelate_funcs import *  # NOQA
+        >>> from ibeis.control.manual_gsgrelate_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -178,9 +178,9 @@ def add_image_relationship(ibs, gid_list, imgsetid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_egrelate_funcs
-        python -m ibeis.control.manual_egrelate_funcs --allexamples
-        python -m ibeis.control.manual_egrelate_funcs --allexamples --noface --nosrc
+        python -m ibeis.control.manual_gsgrelate_funcs
+        python -m ibeis.control.manual_gsgrelate_funcs --allexamples
+        python -m ibeis.control.manual_gsgrelate_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

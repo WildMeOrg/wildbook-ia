@@ -114,7 +114,7 @@ def run_tests():
             'ibeis.control._autogen_featweight_funcs',
             'ibeis.control.manual_imageset_funcs',
             'ibeis.control.manual_feat_funcs',
-            'ibeis.control.manual_egrelate_funcs',
+            'ibeis.control.manual_gsgrelate_funcs',
             'ibeis.control._autogen_annotmatch_funcs',
             'ibeis.control.manual_meta_funcs',
             'ibeis.control.manual_lblannot_funcs',

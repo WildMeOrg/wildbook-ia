@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Module Licence and docstring
+
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
