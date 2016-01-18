@@ -44,7 +44,7 @@
         <a href="{{ url_for('view_images') }}?gsid={{ gsid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})</h3></a>
         {% endif %}
       </div>
-      
+
       <div class="col-sm-6 col-md-6 col-lg-6">
       <i>You are currently viewing</i>
       <br/>
@@ -75,7 +75,7 @@
             <th class="table-cell-wrap">Contributor</th>
             <th class="table-cell-wrap">Notes</th>
             <th>Annotations</th>
-            <th>Encounter</th>
+            <th>Image Set</th>
           </tr>
         </thead>
         <tbody>
@@ -161,11 +161,11 @@
         lazy_load_images();
       });
 
-      setInterval(function() {        
+      setInterval(function() {
         lazy_load_images();
       }, 500) ;
 
       lazy_load_images();
   });
-</script>  
+</script>
 {% endblock %}
