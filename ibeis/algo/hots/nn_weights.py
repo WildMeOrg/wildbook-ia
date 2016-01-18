@@ -449,6 +449,7 @@ def lnbnn_fn(vdist, ndist):
 
     References:
         http://www.cs.ubc.ca/~lowe/papers/12mccannCVPR.pdf
+        http://www.cs.ubc.ca/~sanchom/local-naive-bayes-nearest-neighbor
 
     Sympy:
         >>> import sympy
