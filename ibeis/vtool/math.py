@@ -638,6 +638,32 @@ def logistic_01(x):
     # return L / (1 + np.exp(-k * (x - x0)))
 
 
+def beaton_tukey_loss(u, a=1):
+    """
+    References:
+        Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
+    """
+    result = np.empty(u.shape, dtype=u.dtype)
+    is_case1 = np.abs(u) <= a
+    u1 = u[is_case1]
+    result[is_case1] = ((a ** 2) / 6) * (1 - (1 - (u1 / a) ** 2) ** 3)
+    result[~is_case1] = (a ** 2 / 6)
+    return result
+
+
+def beaton_tukey_weight(u, a=1):
+    """
+    References:
+        Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
+    """
+    result = np.empty(u.shape, dtype=u.dtype)
+    is_case1 = np.abs(u) <= a
+    u1 = u[is_case1]
+    result[is_case1] = u1 * (1 - (u1 / a) ** 2) ** 2
+    result[~is_case1] = 0
+    return result
+
+
 if __name__ == '__main__':
     """
     CommandLine:
