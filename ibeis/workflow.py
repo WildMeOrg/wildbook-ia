@@ -46,7 +46,8 @@ def find_most_disitnctive_keypoints():
         >>> find_most_disitnctive_keypoints()
     """
     import ibeis
-    cm_list, qreq_ = ibeis.testdata_cmlist(a=['default:has_none=mother,size=30'])
+    cm_list, qreq_ = ibeis.testdata_cmlist(
+        a=['default:has_none=mother,size=30'])
     ibs = qreq_.ibs  # NOQA
     cm = cm_list[0]  # NOQA
     # import plottool as pt
@@ -56,23 +57,17 @@ def find_most_disitnctive_keypoints():
     pass
 
 
-def intra_encounter_matching():
-    qreq_, cm_list = testdata_workflow()
-    # qaids = [cm.qaid for cm in cm_list]
-    # top_aids = [cm.get_top_aids(5) for cm in cm_list]
+def segmentation_example():
+    import vigra
+    import opengm
+    import sklearn
+    import sklearn.mixture
     import numpy as np
-    from scipy.sparse import coo_matrix, csgraph
-    aid_pairs = np.array([(cm.qaid, daid) for cm in cm_list for daid in cm.get_top_aids(5)])
-    top_scores = ut.flatten([cm.get_top_scores(5) for cm in cm_list])
-
-    N = aid_pairs.max() + 1
-    mat = coo_matrix((top_scores, aid_pairs.T), shape=(N, N))
-    csgraph.connected_components(mat)
-    tree = csgraph.minimum_spanning_tree(mat)  # NOQA
+    from vigra import graphs
+    import matplotlib as mpl
     import plottool as pt
-    dense = mat.todense()
-    pt.imshow(dense / dense.max() * 255)
-    pt.show_if_requested()
+
+    pt.ensure_pylab_qt4()
 
     # load image and convert to LAB
     img_fpath = str(ut.grab_test_imgpath(str('lena.png')))
@@ -83,55 +78,117 @@ def intra_encounter_matching():
     slicWeight = 15.0        # SLIC color - spatial weight
     labels, nseg = vigra.analysis.slicSuperpixels(imgLab, slicWeight,
                                                   superpixelDiameter)
-    labels = vigra.analysis.labelImage(labels)-1
+    labels = vigra.analysis.labelImage(labels) - 1
 
     # get 2D grid graph and RAG
     gridGraph = graphs.gridGraph(img.shape[0:2])
     rag = graphs.regionAdjacencyGraph(gridGraph, labels)
 
+    # Node Features
     nodeFeatures = rag.accumulateNodeFeatures(imgLab)
     nodeFeaturesImg = rag.projectNodeFeaturesToGridGraph(nodeFeatures)
     nodeFeaturesImg = vigra.taggedView(nodeFeaturesImg, "xyc")
     nodeFeaturesImgRgb = vigra.colors.transform_Lab2RGB(nodeFeaturesImg)
 
-    #from sklearn.cluster import MiniBatchKMeans, KMeans
-    from sklearn import mixture
-    nCluster   = 3
-    g = mixture.GMM(n_components=nCluster)
-    g.fit(nodeFeatures[:,:])
+    nCluster = 5
+    g = sklearn.mixture.GMM(n_components=nCluster)
+    g.fit(nodeFeatures[:, :])
     clusterProb = g.predict_proba(nodeFeatures)
-
-    import numpy
-    #https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Irregular%20Factor%20Graphs.ipynb
-    #https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Hard%20and%20Soft%20Constraints.ipynb
-
-    clusterProbImg = rag.projectNodeFeaturesToGridGraph(clusterProb.astype(numpy.float32))
+    # https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Irregular%20Factor%20Graphs.ipynb
+    # https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Hard%20and%20Soft%20Constraints.ipynb
+    clusterProbImg = rag.projectNodeFeaturesToGridGraph(
+        clusterProb.astype(np.float32))
     clusterProbImg = vigra.taggedView(clusterProbImg, "xyc")
 
-    # strength of potts regularizer
-    beta = 40.0
+    ndim_data = clusterProbImg.reshape((-1, nCluster))
+    pca = sklearn.decomposition.PCA(n_components=3)
+    print(ndim_data.shape)
+    pca.fit(ndim_data)
+    print(ut.repr2(pca.explained_variance_ratio_, precision=2))
+    oldshape = (clusterProbImg.shape[0:2] + (-1,))
+    clusterProgImg3 = pca.transform(ndim_data).reshape(oldshape)
+    print(clusterProgImg3.shape)
+
     # graphical model with as many variables
     # as superpixels, each has 3 states
-    gm = opengm.gm(numpy.ones(rag.nodeNum,dtype=opengm.label_type)*nCluster)
+    gm = opengm.gm(np.ones(rag.nodeNum, dtype=opengm.label_type) * nCluster)
     # convert probabilites to energies
-    probs = numpy.clip(clusterProb, 0.00001, 0.99999)
-    costs = -1.0*numpy.log(probs)
+    probs = np.clip(clusterProb, 0.00001, 0.99999)
+    costs = -1.0 * np.log(probs)
     # add ALL unaries AT ONCE
     fids = gm.addFunctions(costs)
-    gm.addFactors(fids,numpy.arange(rag.nodeNum))
+    gm.addFactors(fids, np.arange(rag.nodeNum))
     # add a potts function
-    regularizer = opengm.pottsFunction([nCluster]*2,0.0,beta)
+    beta = 40.0  # strength of potts regularizer
+    regularizer = opengm.pottsFunction([nCluster] * 2, 0.0, beta)
     fid = gm.addFunction(regularizer)
     # get variable indices of adjacent superpixels
     # - or "u" and "v" node id's for edges
     uvIds = rag.uvIds()
-    uvIds = numpy.sort(uvIds,axis=1)
+    uvIds = np.sort(uvIds, axis=1)
     # add all second order factors at once
-    gm.addFactors(fid,uvIds)
+    gm.addFactors(fid, uvIds)
 
     # get super-pixels with slic on LAB image
+    Inf = opengm.inference.BeliefPropagation
+    parameter = opengm.InfParam(steps=10, damping=0.5, convergenceBound=0.001)
+    inf = Inf(gm, parameter=parameter)
 
+    class PyCallback(object):
+
+        def __init__(self,):
+            self.labels = []
+
+        def begin(self, inference):
+            print("begin of inference")
+
+        def end(self, inference):
+            self.labels.append(inference.arg())
+
+        def visit(self, inference):
+            gm = inference.gm()
+            labelVector = inference.arg()
+            print("energy  %r" % (gm.evaluate(labelVector),))
+            self.labels.append(labelVector)
+
+    callback = PyCallback()
+    visitor = inf.pythonVisitor(callback, visitNth=1)
+
+    inf.infer(visitor)
+
+    pt.imshow(clusterProgImg3.swapaxes(0, 1))
+    # plot superpixels
+    cmap = mpl.colors.ListedColormap(np.random.rand(nseg, 3))
+    pt.imshow(labels.swapaxes(0, 1).squeeze(), cmap=cmap)
+    pt.imshow(nodeFeaturesImgRgb)
+
+    cmap = mpl.colors.ListedColormap(np.random.rand(nCluster, 3))
+    for arg in callback.labels:
+        arg = vigra.taggedView(arg, "n")
+        argImg = rag.projectNodeFeaturesToGridGraph(arg.astype(np.uint32))
+        argImg = vigra.taggedView(argImg, "xy")
+        # plot superpixels
+        pt.imshow(argImg.swapaxes(0, 1).squeeze(), cmap=cmap)
+
+
+def dummy_cut_example():
+    r"""
+    CommandLine:
+        python -m ibeis.workflow --exec-dummy_cut_example --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.workflow import *  # NOQA
+        >>> result = dummy_cut_example()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     import opengm
+    import numpy as np
+    import plottool as pt
+    pt.ensure_pylab_qt4()
     # Matching Graph
     cost_matrix = np.array([
         [0.5, 0.6, 0.2, 0.4, 0.1],
@@ -143,41 +200,94 @@ def intra_encounter_matching():
     cost_matrix += cost_matrix.T
     number_of_labels = 5
     num_annots = 5
-    cost_matrix = (cost_matrix * 2) - 1
+    #cost_matrix = (cost_matrix * 2) - 1
+
     #gm = opengm.gm(number_of_labels)
     gm = opengm.gm(np.ones(num_annots) * number_of_labels)
     aids = np.arange(num_annots)
-    aid_pairs = np.array([(a1, a2) for a1, a2 in ut.iprod(aids, aids) if a1 != a2], dtype=np.uint32)
+    aid_pairs = np.array([(a1, a2) for a1, a2 in ut.iprod(
+        aids, aids) if a1 != a2], dtype=np.uint32)
     aid_pairs.sort(axis=1)
+
+    # add a potts function
+    # penalizes neighbors for having different labels
+    beta = 0   # 0.1  # strength of potts regularizer
+
+    # Places to look for the definition of this stupid class
+    # ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx
+    # /src/interfaces/python/opengm/opengmcore/function_injector.py
+
+    shape = [number_of_labels] * 2
+    #regularizer = opengm.PottsGFunction(shape, 0.0, beta)
+    regularizer = opengm.PottsGFunction(shape)
+
+    regularizer = opengm.pottsFunction([number_of_labels] * 2, 0.0, beta)
+    reg_fid = gm.addFunction(regularizer)
+
+    gm.addFactors(reg_fid, aid_pairs)
+
     # 2nd order function
-    fid = gm.addFunction(cost_matrix)
-    gm.addFactors(fid, aid_pairs)
-    Inf = opengm.inference.BeliefPropagation
-    #Inf = opengm.inference.Multicut
-    parameter = opengm.InfParam(steps=10, damping=0.5, convergenceBound=0.001)
-    parameter = opengm.InfParam()
+    pair_fid = gm.addFunction(cost_matrix)
+    gm.addFactors(pair_fid, aid_pairs)
+
+    if False:
+        Inf = opengm.inference.BeliefPropagation
+        parameter = opengm.InfParam(steps=10, damping=0.5, convergenceBound=0.001)
+    else:
+        Inf = opengm.inference.Multicut
+        parameter = opengm.InfParam()
+
     inf = Inf(gm, parameter=parameter)
+
     class PyCallback(object):
+
         def __init__(self,):
-            self.labels=[]
-            pass
-        def begin(self,inference):
+            self.labels = []
+
+        def begin(self, inference):
             print("begin of inference")
-            pass
-        def end(self,inference):
+
+        def end(self, inference):
             self.labels.append(inference.arg())
-            pass
-        def visit(self,inference):
-            gm=inference.gm()
-            labelVector=inference.arg()
+
+        def visit(self, inference):
+            gm = inference.gm()
+            labelVector = inference.arg()
             print("energy  %r" % (gm.evaluate(labelVector),))
             self.labels.append(labelVector)
-            pass
-    callback=PyCallback()
-    visitor=inf.pythonVisitor(callback,visitNth=1)
+
+    callback = PyCallback()
+    visitor = inf.pythonVisitor(callback, visitNth=1)
     inf.infer(visitor)
     print(callback.labels)
+
+    print(cost_matrix)
+    pt.imshow(cost_matrix, cmap='magma')
+    opengm.visualizeGm(gm=gm)
+    pass
+
+
+def intra_encounter_matching():
+    import numpy as np
+    from scipy.sparse import coo_matrix, csgraph
+    qreq_, cm_list = testdata_workflow()
+    # qaids = [cm.qaid for cm in cm_list]
+    # top_aids = [cm.get_top_aids(5) for cm in cm_list]
+    aid_pairs = np.array([(cm.qaid, daid)
+                          for cm in cm_list for daid in cm.get_top_aids(5)])
+    top_scores = ut.flatten([cm.get_top_scores(5) for cm in cm_list])
+
+    N = aid_pairs.max() + 1
+    mat = coo_matrix((top_scores, aid_pairs.T), shape=(N, N))
+    csgraph.connected_components(mat)
+    tree = csgraph.minimum_spanning_tree(mat)  # NOQA
+    import plottool as pt
+    dense = mat.todense()
+    pt.imshow(dense / dense.max() * 255)
+    pt.show_if_requested()
+
     # baseline jobid
+    import opengm
     # https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/OpenGM%20tutorial.ipynb
     numVar = 10
     unaries = np.ones([numVar, 3], dtype=opengm.value_type)
