@@ -9,6 +9,32 @@ from six.moves import zip, range  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other]')
 
 
+def multiaxis_reduce(ufunc, arr, startaxis=0):
+    """
+    used to get max/min over all axes after <startaxis>
+
+    CommandLine:
+        python -m vtool.other --test-multiaxis_reduce
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> rng = np.random.RandomState(0)
+        >>> arr = (rng.rand(4, 3, 2, 1) * 255).astype(np.uint8)
+        >>> ufunc = np.amax
+        >>> startaxis = 1
+        >>> out_ = multiaxis_reduce(ufunc, arr, startaxis)
+        >>> result = out_
+        >>> print(result)
+        [182 245 236 249]
+    """
+    num_iters = len(arr.shape) - startaxis
+    out_ = ufunc(arr, axis=startaxis)
+    for _ in range(num_iters - 1):
+        out_ = ufunc(out_, axis=1)
+    return out_
+
+
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
     """ stacks a tuple even if it is empty """
     try:
