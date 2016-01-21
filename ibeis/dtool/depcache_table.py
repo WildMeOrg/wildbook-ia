@@ -41,7 +41,7 @@ class DependencyCacheTable(object):
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 chunksize=None, isalgo=False):
+                 chunksize=None, isalgo=False, isinteractive=False):
 
         table.db = None
         table.fpath_to_db = {}
@@ -60,6 +60,7 @@ class DependencyCacheTable(object):
         table.extern_read_funcs = {}
         table._nested_idxs2 = []
         table.isalgo = isalgo
+        table.isinteractive = isinteractive
 
         table.docstr = docstr
         table.fname = fname
@@ -167,13 +168,26 @@ class DependencyCacheTable(object):
         ])
         return add_table_kw
 
+    @profile
     def initialize(table):
         table.db = table.depc.fname_to_db[table.fname]
         print('Checking sql for table=%r' % (table.tablename,))
 
         if not table.db.has_table(table.tablename):
             print('Initializing table=%r' % (table.tablename,))
-            table.db.add_table(**table.get_addtable_kw())
+            new_state = table.get_addtable_kw()
+            table.db.add_table(**new_state)
+        else:
+            # TODO: Check for table modifications
+            new_state = table.get_addtable_kw()
+            current_state = table.db.get_table_autogen_dict(table.tablename)
+            if current_state['coldef_list'] != new_state['coldef_list']:
+                print('WARNING TABLE IS MODIFIED')
+                if ut.are_you_sure('About to reset (DROP) a table=%r' % (table.tablename,)):
+                    table.db.drop_table(table.tablename)
+                    table.db.add_table(**new_state)
+                else:
+                    raise NotImplementedError('Need to be able to modify tables')
 
     def print_schemadef(table):
         print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
@@ -191,6 +205,11 @@ class DependencyCacheTable(object):
     @property
     def parents(table):
         return table.parent_tablenames
+
+    @property
+    def children(table):
+        # TODO
+        pass
 
     @property
     def columns(table):
@@ -387,6 +406,9 @@ class DependencyCacheTable(object):
 
             chunksize = (len(dirty_parent_rowids)
                          if table.chunksize is None else table.chunksize)
+
+            # TODO: Separate this as a function which can be specified as a
+            # callback.
 
             from math import ceil
             num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))

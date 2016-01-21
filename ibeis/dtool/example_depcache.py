@@ -83,7 +83,7 @@ def testdata_depc(fname=None):
     @depc.register_preproc(tablename='chip', parents=[dummy_root],
                            colnames=['size', 'chip'],
                            coltypes=[(int, int), vt.imread],
-                           config_class=DummyChipConfig)
+                           configclass=DummyChipConfig)
     def dummy_preproc_chip(depc, annot_rowid_list, config=None):
         """
         TODO: Infer properties from docstr
@@ -130,7 +130,7 @@ def testdata_depc(fname=None):
 
     @depc.register_preproc(
         'keypoint', ['chip'], ['kpts', 'num'], [np.ndarray, int],
-        config_class=DummyKptsConfig,
+        configclass=DummyKptsConfig,
         docstr='Used to store individual chip features (ellipses)',)
     def dummy_preproc_kpts(depc, parent_rowids, config=None):
         if config is None:
@@ -244,7 +244,7 @@ def testdata_depc(fname=None):
     @depc.register_algo(algoname='dumbalgo',
                         algo_result_class=DummyAnnotMatch,
                         algo_request_class=DummyMatchRequest,
-                        config_class=DummyAlgoConfig)
+                        configclass=DummyAlgoConfig)
     #def dummy_matching_algo(depc, aids, config=None):
     def dummy_matching_algo(depc, request):
         print('RUNNING DUMMY ALGO')

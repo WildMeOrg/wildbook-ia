@@ -44,7 +44,7 @@ def get_obj(depc, tablename, root_rowids, config=None, ensure=True):
 
     @depc.register_preproc(
         tablename='chip', parents=[dummy_root], colnames=['size', 'chip'],
-        coltypes=[(int, int), vt.imread], config_class=DummyChipConfig,
+        coltypes=[(int, int), vt.imread], configclass=DummyChipConfig,
         asobject=True)
     def dummy_preproc_chip(depc, annot_list, config=None):
         """

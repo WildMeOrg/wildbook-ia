@@ -390,8 +390,12 @@ class MatchResult(AlgoResult):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class TableConfig(ut.DictLike):
-    """ Base class for heirarchical config """
+class Config(ut.DictLike):
+    """ Base class for heirarchical config
+
+    need to overwrite get_param_info_list
+
+    """
 
     def __init__(cfg, **kwargs):
         cfg.initialize_params(**kwargs)
@@ -406,14 +410,47 @@ class TableConfig(ut.DictLike):
         return self.get_varnames()
 
     def getitem(self, key):
-        return getattr(self, key)
+        try:
+            return getattr(self, key)
+        except AttributeError as ex:
+            raise KeyError(ex)
 
     def setitem(self, key, value):
         return getattr(self, key, value)
 
+    @classmethod
+    def from_argv_dict(cls):
+        """
+        ut.parse_argv_cfg
+        """
+        self = cls()
+        new_vals = ut.parse_dict_from_argv(self)
+        self.update(**new_vals)
+        return self
+
+    @classmethod
+    def from_argv_cfgs(cls):
+        """
+        """
+        self = cls()
+        name = self.get_config_name()
+        argname = '--' + name
+        new_vals_list = ut.parse_argv_cfg(argname)
+        self_list = [cls(**new_vals) for new_vals in new_vals_list]
+        return self_list
+
+    def __getstate__(self):
+        return self.asdict()
+
+    def __setstate__(self, state):
+        self.update(*state)
+
+
+class TableConfig(Config):
+    pass
+
 
 class AlgoConfig(TableConfig):
-    """ Base class for heirarchical config """
     pass
 
 

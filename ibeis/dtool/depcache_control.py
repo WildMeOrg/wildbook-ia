@@ -28,7 +28,8 @@ Args:
     colnames (list): (default = None)
     coltypes (list): (default = None)
     chunksize (int): (default = None)
-    config_class (dtool.TableConfig): derivative of dtool.TableConfig (default = None)
+    configclass (dtool.TableConfig): derivative of dtool.TableConfig.
+        if None, a default class will be constructed for you. (default = None)
     docstr (str): (default = None)
     fname (str):  file name(default = None)
     asobject (bool): hacky dont use (default = False)
@@ -41,7 +42,7 @@ REG_ALGO_DOC = """
 Args:
     algoname (str):
     algo_result_class (class):
-    config_class (dtool.AlgoConfig): derivative of dtool.AlgoConfig (default = None)
+    configclass (dtool.AlgoConfig): derivative of dtool.AlgoConfig (default = None)
     docstr (None): (default = None)
     fname (str):  file name (default = None)
     chunksize (None): (default = None)
@@ -97,11 +98,22 @@ class _CoreDependencyCache(object):
     @ut.apply_docstr(REG_PREPROC_DOC)
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
-                       fname=None, chunksize=None, config_class=None,
-                       isalgo=False, asobject=False):
+                       fname=None, chunksize=None, configclass=None,
+                       isalgo=False, isinteractive=False, asobject=False):
         """
         Registers a table with this dependency cache.
         """
+
+        def make_new_config(default_cfgdict):
+            import dtool
+            class UnnamedConfig(dtool.TableConfig):
+                def get_param_info_list(self):
+                    #print('default_cfgdict = %r' % (default_cfgdict,))
+                    return [ut.ParamInfo(key, val)
+                            for key, val in default_cfgdict.items()]
+            UnnamedConfig.__name__ = str(tablename + 'Config')
+            return UnnamedConfig
+
         if depc._debug:
             print('[depc] Registering tablename=%r' % (tablename,))
             print('[depc]  * preproc_func=%r' % (preproc_func,))
@@ -119,19 +131,14 @@ class _CoreDependencyCache(object):
             fname = depc.default_fname
         if docstr is None:
             docstr = 'no docstr'
-        if isinstance(config_class, dict):
+        if configclass is None:
+            # Make a default config with no parameters
+            default_cfgdict = configclass
+            configclass = make_new_config({})
+        if isinstance(configclass, dict):
             # Dynamically make config class
-            default_cfgdict = config_class
-            def make_new_config(default_cfgdict):
-                import dtool
-                class UnnamedConfig(dtool.TableConfig):
-                    def get_param_info_list(self):
-                        #print('default_cfgdict = %r' % (default_cfgdict,))
-                        return [ut.ParamInfo(key, val)
-                                for key, val in default_cfgdict.items()]
-                UnnamedConfig.__name__ = str(tablename + 'Config')
-                return UnnamedConfig
-            config_class = make_new_config(default_cfgdict)
+            default_cfgdict = configclass
+            configclass = make_new_config(default_cfgdict)
 
         depc.fname_to_db[fname] = None
         table = depcache_table.DependencyCacheTable(
@@ -146,16 +153,17 @@ class _CoreDependencyCache(object):
             fname=fname,
             chunksize=chunksize,
             isalgo=isalgo,
+            isinteractive=isinteractive,
         )
         depc.cachetable_dict[tablename] = table
-        depc.configclass_dict[tablename] = config_class
+        depc.configclass_dict[tablename] = configclass
         return table
 
     @ut.apply_docstr(REG_ALGO_DOC)
     def _register_algo(depc, algoname,
                        algo_result_class=None,
                        algo_request_class=None,
-                       config_class=None,
+                       configclass=None,
                        algo_func=None,
                        docstr=None, fname=None, chunksize=None):
         """
@@ -182,7 +190,7 @@ class _CoreDependencyCache(object):
 
         depc._register_prop(algoname,
                             coltypes=[algo_result_class.load_from_fpath],
-                            config_class=config_class,
+                            configclass=configclass,
                             preproc_func=algo_func,
                             isalgo=True,
                             chunksize=chunksize)
@@ -400,7 +408,8 @@ class _CoreDependencyCache(object):
         return rowid_dict
 
     def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
-                                  ensure=True, eager=True, nInput=None):
+                                  ensure=True, eager=True, nInput=None,
+                                  recompute=False, recompute_all=False):
         r"""
         Connects `root_rowids` to rowids in `tablename`, and computes all
         values needed along the way.
@@ -453,58 +462,64 @@ class _CoreDependencyCache(object):
             >>>                                              nInput), nl=1)
             >>> print(result)
         """
+        # TODO: Need to have a nice way of ensuring configs dont overlap
+        # via namespaces.
         # if config is None:
-        configclass = depc.configclass_dict[tablename]
-        if configclass is not None:
-            # TODO: configclass should belong here
-            pass
+        #configclass = depc.configclass_dict[tablename]
+        #if configclass is not None:
+        #    # TODO: configclass should belong here
+        #    pass
         # if True:
-        with ut.Indenter('[Descend-%s]' % (tablename,), enabled=depc._debug):
+        indenter = ut.Indenter('[Descend-%s]' % (tablename,),
+                               enabled=depc._debug)
+        if depc._debug:
+            indenter.start()
+            print(' * GET DESCENDANT ROWIDS %s ' % (tablename,))
+            print(' * config = %r' % (config,))
+        dependency_levels = depc.get_dependencies(tablename)
+        configclass_levels = [[depc.configclass_dict.get(key, None)
+                               for key in keys] for keys in dependency_levels]
+        if depc._debug:
+            print('[depc] dependency_levels = %s' %
+                  (ut.repr3(dependency_levels, nl=2),))
+            print('[depc] dependency_levels = %s' %
+                  (ut.repr3(configclass_levels, nl=2),))
+        rowid_dict = {depc.root: root_rowids}
+        for level_keys in dependency_levels[1:]:
             if depc._debug:
-                print(' * GET DESCENDANT ROWIDS %s ' % (tablename,))
-                print(' * config = %r' % (config,))
-            dependency_levels = depc.get_dependencies(tablename)
-            configclass_levels = [[depc.configclass_dict.get(key, None)
-                                   for key in keys] for keys in dependency_levels]
-            if depc._debug:
-                print('[depc] dependency_levels = %s' %
-                      (ut.repr3(dependency_levels, nl=2),))
-                print('[depc] dependency_levels = %s' %
-                      (ut.repr3(configclass_levels, nl=2),))
-            rowid_dict = {depc.root: root_rowids}
-            for level_keys in dependency_levels[1:]:
+                print(' * level_keys %s ' % (level_keys,))
+            #[depc.configclass_dict.get(key, None) for key in level_keys]
+            for key in level_keys:
+                configclass = depc.configclass_dict.get(key, None)
+                requestclass = depc.requestclass_dict.get(key, None)
                 if depc._debug:
-                    print(' * level_keys %s ' % (level_keys,))
-                #[depc.configclass_dict.get(key, None) for key in level_keys]
-                for key in level_keys:
-                    configclass = depc.configclass_dict.get(key, None)
-                    requestclass = depc.requestclass_dict.get(key, None)
-                    if depc._debug:
-                        print('   * key = %r' % (key,))
-                        print('   * configclass = %r' % (configclass,))
-                        print('   * requestclass = %r' % (requestclass,))
-                    if configclass is None:
-                        config_ = config
+                    print('   * key = %r' % (key,))
+                    print('   * configclass = %r' % (configclass,))
+                    print('   * requestclass = %r' % (requestclass,))
+                if configclass is None:
+                    config_ = config
+                else:
+                    if config is None:
+                        config_ = configclass()
                     else:
-                        if config is None:
-                            config_ = configclass()
-                        else:
-                            config_ = configclass(**config)
-                    table = depc[key]
-                    parent_rowids = list(zip(*ut.dict_take(rowid_dict,
-                                                           table.parents)))
-                    if depc._debug:
-                        print('   * parent_rowids = %r' %
-                              (ut.trunc_repr(parent_rowids),))
-                    child_rowids = table.get_rowid(
-                        parent_rowids, config=config_, eager=eager, nInput=nInput,
-                        ensure=ensure)
-                    if depc._debug:
-                        print('   * child_rowids = %r' %
-                              (ut.trunc_repr(child_rowids),))
-                    rowid_dict[key] = child_rowids
-            if depc._debug:
-                print(' GOT DESCENDANT ROWIDS')
+                        config_ = configclass(**config)
+                table = depc[key]
+                parent_rowids = list(zip(*ut.dict_take(rowid_dict,
+                                                       table.parents)))
+                if depc._debug:
+                    print('   * parent_rowids = %r' %
+                          (ut.trunc_repr(parent_rowids),))
+                _recompute = recompute_all or (key == tablename and recompute)
+                child_rowids = table.get_rowid(
+                    parent_rowids, config=config_, eager=eager, nInput=nInput,
+                    ensure=ensure, recompute=_recompute)
+                if depc._debug:
+                    print('   * child_rowids = %r' %
+                          (ut.trunc_repr(child_rowids),))
+                rowid_dict[key] = child_rowids
+        if depc._debug:
+            print(' GOT DESCENDANT ROWIDS')
+            indenter.stop()
         return rowid_dict
 
     def new_algo_request(depc, algoname, qaids, daids, cfgdict=None):
@@ -526,7 +541,8 @@ class _CoreDependencyCache(object):
         return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
-                   eager=True, nInput=None, _debug=None):
+                   eager=True, nInput=None, _debug=None, recompute=False,
+                   recompute_all=False):
         """
         Returns the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
@@ -539,7 +555,8 @@ class _CoreDependencyCache(object):
                 print(' * config = %r' % (config,))
             rowid_dict = depc.get_all_descendant_rowids(
                 tablename, root_rowids, config=config, ensure=ensure,
-                eager=eager, nInput=nInput)
+                eager=eager, nInput=nInput, recompute=recompute,
+                recompute_all=recompute_all)
             rowid_list = rowid_dict[tablename]
             if _debug:
                 print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
@@ -547,7 +564,7 @@ class _CoreDependencyCache(object):
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
-                     ensure=True, _debug=None):
+                     ensure=True, _debug=None, recompute=False, recompute_all=False):
         """
         Gets the data in `colnames` of `tablename` that correspond to
         `root_rowids` using `config`.  if colnames is None, all columns are
@@ -562,7 +579,9 @@ class _CoreDependencyCache(object):
                 print(' * config = %r' % (config,))
             # Vectorized get of properties
             tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
-                                         ensure=ensure, _debug=_debug)
+                                         ensure=ensure, _debug=_debug,
+                                         recompute=recompute,
+                                         recompute_all=recompute_all)
             if _debug:
                 print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
             table = depc[tablename]

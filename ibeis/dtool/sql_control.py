@@ -1026,8 +1026,9 @@ class SQLDatabaseController(object):
                 uniquely identifies a rowid
         """
         bad_kwargs = set(metadata_keyval.keys()) - set(db.table_metadata_keys)
-        assert len(bad_kwargs) == 0, 'keyword args specified that are not metadata keys=%r' % (
-            bad_kwargs,)
+        assert len(bad_kwargs) == 0, (
+            'keyword args specified that are not metadata keys=%r' % (
+                bad_kwargs,))
         assert tablename is not None, 'tablename must be given'
         assert coldef_list is not None, 'tablename must be given'
         if ut.DEBUG2:
@@ -1087,6 +1088,8 @@ class SQLDatabaseController(object):
                     db.set_metadata_val(tablename + '_' + suffix, val)
                 else:
                     db.set_metadata_val(tablename + '_' + suffix, repr(val))
+        if db._tablenames is not None:
+            db._tablenames += [tablename]
 
     def modify_table(db, tablename=None, colmap_list=None, tablename_new=None,
                      #constraint=None, docstr=None, superkeys=None,
@@ -1438,6 +1441,28 @@ class SQLDatabaseController(object):
         line_list.append('')
         return '\n'.join(line_list)
 
+    def get_table_autogen_dict(db, tablename):
+        autogen_dict = ut.odict()
+        column_list = db.get_columns(tablename)
+
+        coldef_list = []
+        for column in column_list:
+            col_name = column.name
+            col_type = str(column[2])
+            if column[5] == 1:  # Check if PRIMARY KEY
+                col_type += ' PRIMARY KEY'
+            elif column[3] == 1:  # Check if NOT NULL
+                col_type += ' NOT NULL'
+            elif column[4] is not None:
+                col_type += ' DEFAULT ' + six.text_type(column[4])  # Specify default value
+            coldef_list.append((col_name, col_type))
+        autogen_dict['tablename'] = tablename
+        autogen_dict['coldef_list'] = coldef_list
+        autogen_dict['docstr'] = db.get_table_docstr(tablename)
+        autogen_dict['superkeys'] = db.get_table_superkey_colnames(tablename)
+        autogen_dict['dependson'] = db.get_metadata_val(tablename + '_dependson', eval_=True, default=None)
+        return autogen_dict
+
     def get_table_autogen_str(db, tablename):
         line_list = []
         tab1 = ' ' * 4
@@ -1492,6 +1517,7 @@ class SQLDatabaseController(object):
                 continue
             key = tablename + '_' + suffix
             val = db.get_metadata_val(key, eval_=True, default=None)
+            print(key)
             if val is not None:
                 #ut.embed()
                 line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
