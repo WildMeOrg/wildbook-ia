@@ -3582,7 +3582,7 @@ def plot_func(funcs, start=0, stop=1, num=100):
         funcs = [funcs]
     ydatas = [func(xdata) for func in funcs]
     labels = [ut.get_callable_name(func) for func in funcs]
-    pt.multi_plot(xdata, ydatas, label_list=labels, marker='')
+    pt.multi_plot(xdata, ydatas, label_list=labels, marker='')  # yscale='log')
 
 
 if __name__ == '__main__':
