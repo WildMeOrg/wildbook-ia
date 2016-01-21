@@ -204,19 +204,18 @@ class NNConfig(ConfigBase):
     """
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
-        if True:
-            nn_cfg.initialize_params()
-        else:
-            nn_cfg.K = 4
-            # TODO: force to false when in vsone
-            nn_cfg.use_k_padding = False
-            # number of annots before a new multi-indexer is built
-            #nn_cfg.min_reindex_thresh = 3
-            #nn_cfg.index_method = 'multi'
-            nn_cfg.index_method = 'single'
-            nn_cfg.Knorm = 1
-            nn_cfg.checks = 800
-            nn_cfg.normalizer_rule = ['last', 'name'][0]
+        #if True:
+        nn_cfg.initialize_params()
+        #else:
+        #    nn_cfg.K = 4
+        #    # TODO: force to false when in vsone
+        #    nn_cfg.use_k_padding = False
+        #    # number of annots before a new multi-indexer is built
+        #    #nn_cfg.min_reindex_thresh = 3
+        #    #nn_cfg.index_method = 'multi'
+        #    nn_cfg.index_method = 'single'
+        #    nn_cfg.Knorm = 1
+        #    nn_cfg.checks = 800
         # number of annots before a new multi-indexer is built
         nn_cfg.min_reindex_thresh = 200
         # number of annots before a new multi-indexer is built
@@ -227,19 +226,6 @@ class NNConfig(ConfigBase):
     def make_feasible(nn_cfg):
         # normalizer rule depends on Knorm
         assert nn_cfg.index_method in nn_cfg.valid_index_methods
-        #if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
-        #    nn_cfg.normalizer_rule = 'last'
-
-    #def get_cfgstr_list(nn_cfg, **kwargs):
-    #    nn_cfgstr  = ['_NN(',
-    #                  nn_cfg.index_method,
-    #                  ',K', str(nn_cfg.K),
-    #                  '+', str(nn_cfg.Knorm),
-    #                  ',padk=%r' % (nn_cfg.use_k_padding),
-    #                  ',', nn_cfg.normalizer_rule,
-    #                  ',cks', str(nn_cfg.checks),
-    #                  ')']
-    #    return nn_cfgstr
 
     def get_param_info_list(rrvsone_cfg):
         # new way to try and specify config options.
@@ -250,7 +236,6 @@ class NNConfig(ConfigBase):
                 ut.ParamInfo('K', 4, type_=int),
                 ut.ParamInfo('Knorm', 1, 'Kn='),
                 ut.ParamInfo('use_k_padding', False, 'padk='),
-                #ut.ParamInfo('normalizer_rule', 'last', ''),
                 ut.ParamInfo('checks', 800, 'cks', type_=int),
                 #ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
             ],
@@ -597,7 +582,7 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfoBool('bar_l2_on', False,  hideif=False),
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
                 ut.ParamInfoBool('fg_on', True, hideif=False),
-                ut.ParamInfo('normalizer_rule', 'last', ''),
+                ut.ParamInfo('normalizer_rule', 'last', '', valid_values=['last', 'name']),
                 ut.ParamInfo('lnbnn_normer', None,  hideif=None,
                              help_='config string for lnbnn score normalizer'),
                 ut.ParamInfo('lnbnn_norm_thresh', .5, type_=float,

@@ -143,6 +143,7 @@ def testdata_expts(defaultdb='testdb1',
                    default_test_cfg_name_list=['default'],
                    a=None,
                    t=None,
+                   p=None,
                    qaid_override=None,
                    daid_override=None,
                    initial_aids=None,
@@ -161,8 +162,10 @@ def testdata_expts(defaultdb='testdb1',
     from ibeis.expt import test_result
     if a is not None:
         default_acfgstr_name_list = a
-    if t is not None:
-        default_test_cfg_name_list = t
+    if t is not None and p is None:
+        p = t
+    if p is not None:
+        default_test_cfg_name_list = p
 
     if isinstance(default_acfgstr_name_list, six.string_types):
         default_acfgstr_name_list = [default_acfgstr_name_list]

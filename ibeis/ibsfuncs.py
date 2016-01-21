@@ -5451,18 +5451,19 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, **kwargs):
         python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> prefix = ''
         >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
-        >>> default = True if ut.get_argflag('--all') else None
+        >>> #default = True if ut.get_argflag('--all') else None
+        >>> default = None if ut.get_argflag('--notall') else True
         >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [default] * len(kwkeys))))
         >>> print('kwargs = %r' % (kwargs,))
         >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, **kwargs)
-        >>> result = ('aid_stats_dict = %s' % (ut.dict_str(aid_stats_dict, strvals=True),))
+        >>> result = ('aid_stats_dict = %s' % (ut.dict_str(aid_stats_dict, strvals=True, nl=True),))
         >>> print(result)
     """
     kwargs = kwargs.copy()

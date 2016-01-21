@@ -76,7 +76,7 @@ def preproc_annotmask(depc, aid_list, config=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> depc = ibs.depc
         >>> depc.print_all_tables()
-        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> chip_config = ChipConfig(dim_size=None)
         >>> edit = ut.get_argflag('--edit')
         >>> mask = depc.get_property('annotmask', aid_list, 'img', recompute=edit)[0]
@@ -108,8 +108,8 @@ def preproc_annotmask(depc, aid_list, config=None):
                    for aid, avuuid in zip(aid_list, avuuid_list)]
 
     from plottool import interact_impaint
-    import plottool as pt
-    pt.ensure_pylab_qt4()
+    #import plottool as pt
+    #pt.ensure_pylab_qt4()
     #for uri, w, h in generate_chip_properties(ibs, aid_list, config2_=config):
     for img, fname in zip(chip_imgs, fname_list):
         mask_fpath = ut.unixjoin(mask_dpath, fname)
@@ -148,7 +148,7 @@ class ChipConfig(dtool.TableConfig):
     coltypes=[('extern', vt.imread), int, int, np.ndarray],
     configclass=ChipConfig,
     docstr='Used to store *processed* annots as chips',
-    fname='chipcache2'
+    fname='chipcache4'
 )
 def preproc_chip(depc, aid_list, config=None):
     r"""

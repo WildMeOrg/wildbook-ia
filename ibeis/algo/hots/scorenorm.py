@@ -39,10 +39,12 @@ print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 def compare_featscores():
     """
     CommandLine:
-        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
-        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
-        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_Master1
-        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GIRM_Master1
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1
+
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_Master1
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GIRM_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -57,8 +59,9 @@ def compare_featscores():
 
     import ibeis
     learnkw = {}
-    qreq_ = ibeis.testdata_qreq_(
+    ibs, testres = ibeis.testdata_expts(
         defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
+    qreq_ = testres.cfgx2_qreq_[0]
 
     encoder_list = []
     for datakw in nfs_cfg_list:
@@ -110,7 +113,8 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
     """
-    cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    #cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    cm_list = qreq_.execute()
     tup = get_training_annotscores(qreq_, cm_list)
     tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs = tup
     part_attrs = {
@@ -262,7 +266,9 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
     """
-    cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    #cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    #ibs.query_chips(qreq_=qreq_)
+    cm_list = qreq_.execute()
     print('learning scorenorm')
     print('datakw = %s' % ut.repr3(datakw))
     tp_scores, tn_scores, scorecfg = get_training_featscores(
@@ -343,7 +349,7 @@ def get_training_annotscores(qreq_, cm_list):
 
 def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
                             fsvx=slice(None, None, None), threshx=None,
-                            thresh=.9, num=None):
+                            thresh=.9, num=None, top_percent=.5):
     """
     Returns the flattened set of feature scores between each query and the
     correct groundtruth annotations as well as the top scoring false
@@ -416,7 +422,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
                           adjust=True, freq=1):
         try:
             tp_fsv, tn_fsv = train_getter(
-                cm, namemode=namemode, top_percent=.5)
+                cm, namemode=namemode, top_percent=top_percent)
             tp_fsvs_list.extend(tp_fsv)
             tn_fsvs_list.extend(tn_fsv)
         except UnbalancedExampleException:

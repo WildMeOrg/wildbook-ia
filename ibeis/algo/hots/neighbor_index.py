@@ -1404,6 +1404,16 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
 
 def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     """
+
+    Ignore:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        >>> nnindexer, qreq_, ibs = test_nnindexer('PZ_Master1')
+        >>> S = np.cov(nnindexer.idx2_vec.T)
+        >>> import plottool as pt
+        >>> pt.ensure_pylab_qt4()
+        >>> pt.plt.imshow(S)
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA

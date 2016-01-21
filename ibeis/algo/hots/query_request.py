@@ -236,63 +236,6 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     return unique_species
 
 
-class IdRequest(object):
-
-    @classmethod
-    def new_request(cls, ibs, qaid_list, daid_list, config):
-        self = cls()
-        self.qaids = qaid_list
-        self.daids = daid_list
-        self.config = config
-        self.ibs = ibs
-
-    def __init__(self):
-        self.qaids = None
-        self.daids = None
-        self.config = None
-        self.ibs = None
-
-    def get_data_hashid(self):
-        daids = self.daids
-        data_hashid = self.ibs.get_annot_hashid_semantic_uuid(
-            daids, prefix='D')
-        return data_hashid
-
-    def get_query_hashid(self):
-        qaids = self.qaids
-        query_hashid = self.ibs.get_annot_hashid_semantic_uuid(
-            qaids, prefix='Q')
-        return query_hashid
-
-    def get_pipe_cfgstr(self):
-        return ut.to_json(self.config)
-
-    def get_pipe_hashid(self):
-        return ut.hashstr27(self.get_pipe_cfgstr())
-
-    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
-        r"""
-        main cfgstring used to identify the 'querytype'
-        """
-        cfgstr_list = []
-        if with_query:
-            cfgstr_list.append(qreq_.get_query_hashid())
-        if with_data:
-            cfgstr_list.append(qreq_.get_data_hashid())
-        if with_pipe:
-            if hash_pipe:
-                cfgstr_list.append(qreq_.get_pipe_hashid())
-            else:
-                cfgstr_list.append(qreq_.get_pipe_cfgstr())
-        cfgstr = ''.join(cfgstr_list)
-        return cfgstr
-
-    def get_full_cfgstr(qreq_):
-        """ main cfgstring used to identify the algo hash id """
-        full_cfgstr = qreq_.get_cfgstr(with_query=True)
-        return full_cfgstr
-
-
 @six.add_metaclass(ut.ReloadingMetaclass)
 class QueryRequest(object):
     """
@@ -398,29 +341,39 @@ class QueryRequest(object):
 
     def _custom_str(qreq_):
         r"""
+        CommandLine:
+            python -m ibeis.algo.hots.query_request --exec-_custom_str --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> qreq_ = ibeis.testdata_qreq_()
-            >>> custom_str = qreq_._custom_str()
-            >>> result = ('custom_str = %s' % (ut.repr2(custom_str),))
-            >>> print(result)
+            >>> print(repr(qreq_))
         """
-        # typestr = ut.type_str(type(ibs)).split('.')[-1]
         typestr = qreq_.__class__.__name__
-        dbname = None if qreq_.ibs is None else qreq_.ibs.get_dbname()
-        # hashkw = dict(_new=True, pathsafe=False)
-        # infostr_ = qreq_.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
-        infostr_ = 'nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashid())
-        custom_str = '%s(%s) %s' % (typestr, dbname, infostr_, )
+        parts = qreq_.get_shortinfo_parts()
+        print('parts = %r' % (parts,))
+        custom_str = '%s(%s) %s %s %s' % ((typestr,) + tuple(parts))
         return custom_str
+
+    def get_shortinfo_parts(qreq_):
+        parts = []
+        parts.append(qreq_.ibs.get_dbname())
+        parts.append('nQ=%d' % len(qreq_.qaids))
+        parts.append('nD=%d' % len(qreq_.daids))
+        parts.append(qreq_.get_pipe_hashid())
+        return parts
+
+    def get_shortinfo_cfgstr(qreq_):
+        shortinfo_cfgstr = '_'.join(qreq_.get_shortinfo_parts())
+        return shortinfo_cfgstr
 
     def __repr__(qreq_):
         return '<' + qreq_._custom_str() + ' at %s>' % (hex(id(qreq_)),)
 
     def __str__(qreq_):
-        return qreq_._custom_str()
+        return '<' + qreq_._custom_str() + '>'
 
     @profile
     def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
@@ -776,7 +729,7 @@ class QueryRequest(object):
     # External id-hashes
 
     #@ut.memoize
-    def get_data_hashid(qreq_, **hashkw):
+    def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
         try:
             assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
@@ -784,16 +737,29 @@ class QueryRequest(object):
             ut.printex(ex, iswarning=True)
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
-            daids, prefix='D', **hashkw)
+            daids, prefix='D')
         return data_hashid
 
     #@ut.memoize
-    def get_query_hashid(qreq_, **hashkw):
+    def get_query_hashid(qreq_):
+        r"""
+        CommandLine:
+            python -m ibeis.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> query_hashid = qreq_.get_query_hashid()
+            >>> result = ('query_hashid = %s' % (ut.repr2(query_hashid),))
+            >>> print(result)
+        """
         qaids = qreq_.get_external_qaids()
         assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
-            qaids, prefix='Q', **hashkw)
+            qaids, prefix='Q')
         return query_hashid
 
     def get_internal_query_hashid(qreq_):
@@ -824,7 +790,7 @@ class QueryRequest(object):
         return pipe_hashstr
 
     @profile
-    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False, hashkw={}):
+    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
         r"""
         main cfgstring used to identify the 'querytype'
         FIXME: name params + data
@@ -857,9 +823,9 @@ class QueryRequest(object):
         """
         cfgstr_list = []
         if with_query:
-            cfgstr_list.append(qreq_.get_query_hashid(**hashkw))
+            cfgstr_list.append(qreq_.get_query_hashid())
         if with_data:
-            cfgstr_list.append(qreq_.get_data_hashid(**hashkw))
+            cfgstr_list.append(qreq_.get_data_hashid())
         if with_pipe:
             if hash_pipe:
                 cfgstr_list.append(qreq_.get_pipe_hashid())
