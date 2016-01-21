@@ -41,7 +41,10 @@ def compare_featscores():
     CommandLine:
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1
 
+        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_Master1
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GIRM_Master1
