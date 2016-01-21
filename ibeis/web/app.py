@@ -1794,6 +1794,21 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
     # return aid_list
 
 
+@register_api('/api/image/json/', methods=['DELETE'])
+def delete_images_json(ibs, image_uuid_list):
+    """
+    REST:
+        Method: POST
+        URL: /api/image/json/
+
+    Args:
+        image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
+    """
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    ibs.delete_images(gid_list)
+    return True
+
+
 @register_api('/api/image/', methods=['POST'])
 def image_upload(cleanup=True, **kwargs):
     r"""
