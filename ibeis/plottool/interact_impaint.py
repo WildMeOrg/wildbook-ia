@@ -11,7 +11,7 @@ import matplotlib.image as mpimg
 import numpy as np
 from plottool import abstract_interaction
 import math
-from six.moves import range, zip  # NOQA
+from six.moves import range, zip, input  # NOQA
 ut.noinject('impaint')
 
 
