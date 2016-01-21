@@ -413,11 +413,11 @@ class QueryRequest(object):
         # hashkw = dict(_new=True, pathsafe=False)
         # infostr_ = qreq_.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
         infostr_ = 'nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashid())
-        custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(qreq_)))
+        custom_str = '%s(%s) %s' % (typestr, dbname, infostr_, )
         return custom_str
 
     def __repr__(qreq_):
-        return qreq_._custom_str()
+        return '<' + qreq_._custom_str() + ' at %s>' % (hex(id(qreq_)),)
 
     def __str__(qreq_):
         return qreq_._custom_str()

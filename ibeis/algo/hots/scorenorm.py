@@ -36,6 +36,56 @@ from functools import partial
 print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 
 
+def compare_featscores():
+    """
+    CommandLine:
+        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
+        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
+        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_Master1
+        python -m ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GIRM_Master1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> result = compare_featscores()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
+
+    import ibeis
+    learnkw = {}
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
+
+    encoder_list = []
+    for datakw in nfs_cfg_list:
+        print('datakw = %r' % (datakw,))
+        encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
+        encoder_list.append(encoder)
+
+    import plottool as pt
+
+    fnum = 1
+    next_pnum = pt.make_pnum_nextgen(nRows=len(encoder_list), nCols=2)
+
+    lbl_list = ut.get_varied_cfg_lbls(nfs_cfg_list)
+
+    icon = qreq_.ibs.get_database_icon(aid=qreq_.qaids[0])
+    for encoder, lbl in zip(encoder_list, lbl_list):
+        #encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
+        encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf=' ' + lbl, score_range=(0, 1))
+        encoder._plot_roc(fnum, pnum=next_pnum())
+        if icon is not None:
+            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+
+    pt.adjust_subplots(hspace=.3, top=.9, bottom=.1, left=.1, right=.9)
+
+    pt.set_figtitle(qreq_._custom_str())
+
+
 def learn_annotscore_normalizer(qreq_, learnkw={}):
     """
     Takes the result of queries and trains a score encoder
@@ -143,14 +193,15 @@ def train_featscore_normalizer():
     # TODO: training / loading / general external models
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST', a=['default'], p=['default'])
-    datakw = dict(
-        disttype_=None,
-        namemode=ut.get_argval('--namemode', default=True),
-        fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
-                             default=slice(None, None, None)),
-        threshx=ut.get_argval('--threshx', type_=int, default=None),
-        thresh=ut.get_argval('--thresh', type_=float, default=.9),
-    )
+    datakw = NormFeatScoreConfig.from_argv_dict()
+    #datakw = dict(
+    #    disttype=None,
+    #    namemode=ut.get_argval('--namemode', default=True),
+    #    fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
+    #                         default=slice(None, None, None)),
+    #    threshx=ut.get_argval('--threshx', type_=int, default=None),
+    #    thresh=ut.get_argval('--thresh', type_=float, default=.9),
+    #)
     encoder = learn_featscore_normalizer(qreq_, datakw=datakw)
     encoder.save()
     return encoder
@@ -159,26 +210,13 @@ def train_featscore_normalizer():
 class NormFeatScoreConfig(dtool.Config):
     def get_param_info_list(self):
         return [
-            ut.ParamInfo('distypes')
+            ut.ParamInfo('disttype', None),
+            ut.ParamInfo('namemode', True),
+            ut.ParamInfo('fsvx', slice(None, None, None)),
+            ut.ParamInfo('threshx',  None),
+            ut.ParamInfo('thresh', .9),
+            ut.ParamInfo('num', 5),
         ]
-
-
-def compare_featscores():
-    import ibeis
-    learnkw = {}
-    datakw = dict(
-        disttype_=ut.get_argval('--disttype', type_=list, default=None),
-        namemode=ut.get_argval('--namemode', default=True),
-        fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
-                             default=slice(None, None, None)),
-        threshx=ut.get_argval('--threshx', type_=int, default=None),
-        thresh=ut.get_argval('--thresh', type_=float, default=.9),
-        num=ut.get_argval('--num', type_=int, default=5),
-    )
-    qreq_ = ibeis.testdata_qreq_(
-        defaultdb='PZ_MTEST', a=['default'], p=['default'])
-
-    encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
 
 
 def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
@@ -216,15 +254,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> learnkw = {}
-        >>> datakw = dict(
-        >>>     disttype_=ut.get_argval('--disttype', type_=list, default=None),
-        >>>     namemode=ut.get_argval('--namemode', default=True),
-        >>>     fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
-        >>>                          default=slice(None, None, None)),
-        >>>     threshx=ut.get_argval('--threshx', type_=int, default=None),
-        >>>     thresh=ut.get_argval('--thresh', type_=float, default=.9),
-        >>>     num=ut.get_argval('--num', type_=int, default=5),
-        >>> )
+        >>> datakw = NormFeatScoreConfig.from_argv_dict()
         >>> qreq_ = ibeis.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
         >>> encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
@@ -311,7 +341,7 @@ def get_training_annotscores(qreq_, cm_list):
     return tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs
 
 
-def get_training_featscores(qreq_, cm_list, disttype_=None, namemode=True,
+def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
                             fsvx=slice(None, None, None), threshx=None,
                             thresh=.9, num=None):
     """
@@ -322,7 +352,7 @@ def get_training_featscores(qreq_, cm_list, disttype_=None, namemode=True,
     Args:
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
         cm_list (list):
-        disttype_ (None): (default = None)
+        disttype (None): (default = None)
         namemode (bool): (default = True)
         fsvx (slice): (default = slice(None, None, None))
         threshx (None): (default = None)
@@ -342,13 +372,13 @@ def get_training_featscores(qreq_, cm_list, disttype_=None, namemode=True,
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
-        >>> disttype_ = None
+        >>> disttype = None
         >>> namemode = True
         >>> fsvx = None
         >>> threshx = 1
         >>> thresh = 0.5
         >>> (tp_scores, tn_scores, scorecfg) = get_training_featscores(
-        >>>     qreq_, cm_list, disttype_, namemode, fsvx, threshx, thresh)
+        >>>     qreq_, cm_list, disttype, namemode, fsvx, threshx, thresh)
         >>> print(scorecfg)
         lnbnn*fg[fg > 0.5]
     """
@@ -368,11 +398,11 @@ def get_training_featscores(qreq_, cm_list, disttype_=None, namemode=True,
     cm_list_ = ut.compress(cm_list, trainable)
     print('training using %d chipmatches' % (len(cm_list)))
 
-    if disttype_ is None:
+    if disttype is None:
         fsv_col_lbls = cm.fsv_col_lbls
         train_getter = get_training_fsv
     else:
-        fsv_col_lbls = disttype_
+        fsv_col_lbls = ut.ensure_iterable(disttype)
         # annots = {}  # Hack for cached vector lookups
         ibs = qreq_.ibs
         data_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.data_config2_)

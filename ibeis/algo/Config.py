@@ -611,6 +611,7 @@ class NNWeightConfig(ConfigBase):
                 # Hacked in
                 #ut.ParamInfoBool('root_sift_on', False,  hideif=False),
                 ut.ParamInfoBool('sqrd_dist_on', False,  hideif=True),
+                #ut.ParamInfoBool('sqrd_dist_on', True,  hideif=True),
             ],
         ])
         return param_info_list

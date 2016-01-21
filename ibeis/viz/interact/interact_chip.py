@@ -185,6 +185,13 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         )
 
     if True:
+        # Edit mask
+        callback_list.append(
+            ('Edit mask',
+             partial(ibs.depc.get_property, 'annotmask', aid, recompute=True))
+        )
+
+    if True:
         from ibeis import viz
         callback_list.append(
             ('View detection chip (probability) [dev]',

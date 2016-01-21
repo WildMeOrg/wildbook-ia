@@ -1511,7 +1511,7 @@ class IBEISController(BASE_CLASS):
     # --- OTHER ---
 
     @accessor_decors.default_decorator
-    def get_database_icon(ibs, max_dsize=(None, 192)):
+    def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""
         Args:
             max_dsize (tuple): (default = (None, 192))
@@ -1538,26 +1538,26 @@ class IBEISController(BASE_CLASS):
         #    pass
         #else:
         import vtool as vt
-        species = ibs.get_primary_database_species()
-        # Use a url to get the icon
-        url = {
-            ibs.const.TEST_SPECIES.GIR_MASAI: 'http://i.imgur.com/tGDVaKC.png',
-            ibs.const.TEST_SPECIES.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
-            ibs.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
-        }.get(species, None)
-        if url is None:
-            # use an aid to get the icon
-            aid = {
-                'Oxford': 73,
-            }.get(ibs.get_dbname(), None)
-            if aid is None:
-                # Just grab a random aid
-                aid = ibs.get_valid_aids()[0]
+        if aid is None:
+            species = ibs.get_primary_database_species()
+            # Use a url to get the icon
+            url = {
+                ibs.const.TEST_SPECIES.GIR_MASAI: 'http://i.imgur.com/tGDVaKC.png',
+                ibs.const.TEST_SPECIES.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
+                ibs.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
+            }.get(species, None)
+            if url is not None:
+                icon = vt.imread(ut.grab_file_url(url))
+            else:
+                # use an specific aid to get the icon
+                aid = {
+                    'Oxford': 73,
+                }.get(ibs.get_dbname(), None)
+                if aid is None:
+                    # otherwise just grab a random aid
+                    aid = ibs.get_valid_aids()[0]
+        if aid is not None:
             icon = ibs.get_annot_chips(aid)
-            #return None
-        else:
-            #icon = vt.imread(ut.grab_test_imgpath('star.png'))
-            icon = vt.imread(ut.grab_file_url(url))
         icon = vt.resize_to_maxdims(icon, max_dsize)
         return icon
 
