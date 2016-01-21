@@ -27,8 +27,79 @@ def testdata_score_normalier():
     return encoder, data, labels
 
 
+class ScoreNormVisualizeClass(object):
+    """
+    # HACK; eventually move all individual plots into a class structure
+    """
+
+    def _hack_vizlearn(encoder, **kwargs):
+        if 'target_tpr' in kwargs:
+            verbose = ut.VERBOSE
+            score_thresh = encoder.learn_threshold(verbose=verbose, **kwargs)
+            prob_thresh = encoder.learned_thresh
+            #prob_thresh = encoder.normalize_scores(score_thresh)
+        else:
+            #prob_thresh = encoder.learned_thresh
+            #score_thresh = encoder.inverse_normalize(prob_thresh)
+            score_thresh = encoder.learn_threshold2()
+            prob_thresh = encoder.normalize_scores(score_thresh)
+        return score_thresh, prob_thresh
+
+    def _plot_score_support_hist(encoder, fnum, pnum=(1, 1, 1), **kwargs):
+        import plottool as pt
+        fnum = pt.ensure_fnum(fnum)
+        tup = encoder.get_partitioned_support()
+        tp_support, tn_support, part_attrs = tup
+        score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
+
+        true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+        false_color = pt.FALSE_RED
+        support_kw = dict(
+            scores_lbls=('trueneg', 'truepos'),
+            score_colors=(false_color, true_color),
+            titlesuf=kwargs.get('titlesuf', '')
+        )
+        score_range = kwargs.get('score_range', None)
+        pt.plot_score_histograms(
+            (tn_support, tp_support),
+            score_thresh=score_thresh,
+            score_label='score',
+            fnum=fnum,
+            pnum=pnum,
+            bin_width=kwargs.get('bin_width', None),
+            num_bins=kwargs.get('num_bins', None),
+            overlay_prob_given_list=(encoder.p_score_given_tn, encoder.p_score_given_tp),
+            overlay_score_domain=encoder.score_domain,
+            xlim=score_range,
+            **support_kw)
+
+    def _plot_roc(encoder, fnum, pnum, **kwargs):
+        import vtool as vt
+        import plottool as pt  # NOQA
+        tup = encoder.get_partitioned_support()
+        tp_support, tn_support, part_attrs = tup
+
+        scores = np.hstack([tn_support, tp_support])
+        labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
+
+        # probs = encoder.normalize_scores(scores)
+        probs = normalize_scores(encoder.score_domain, encoder.p_tp_given_score, scores)
+
+        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+
+        score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
+
+        #target_tpr = None
+        target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+        #print('target_tpr = %r' % (target_tpr,))
+        ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
+                                                 show_operating_point=True)
+        fnum = pt.ensure_fnum(fnum)
+        ROCInteraction.static_plot(fnum, pnum, **kwargs)
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
-class ScoreNormalizer(ut.Cachable):
+class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
     """
     Conforms to scikit-learn Estimator interface
 
@@ -558,16 +629,17 @@ class ScoreNormalizer(ut.Cachable):
         inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
         other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
 
-        if 'target_tpr' in other_kw:
-            verbose = ut.VERBOSE
-            score_thresh = encoder.learn_threshold(verbose=verbose, **other_kw)
-            prob_thresh = encoder.learned_thresh
-            #prob_thresh = encoder.normalize_scores(score_thresh)
-        else:
-            #prob_thresh = encoder.learned_thresh
-            #score_thresh = encoder.inverse_normalize(prob_thresh)
-            score_thresh = encoder.learn_threshold2()
-            prob_thresh = encoder.normalize_scores(score_thresh)
+        score_thresh, prob_thresh = encoder._hack_vizlearn(**other_kw)
+        #if 'target_tpr' in other_kw:
+        #    verbose = ut.VERBOSE
+        #    score_thresh = encoder.learn_threshold(verbose=verbose, **other_kw)
+        #    prob_thresh = encoder.learned_thresh
+        #    #prob_thresh = encoder.normalize_scores(score_thresh)
+        #else:
+        #    #prob_thresh = encoder.learned_thresh
+        #    #score_thresh = encoder.inverse_normalize(prob_thresh)
+        #    score_thresh = encoder.learn_threshold2()
+        #    prob_thresh = encoder.normalize_scores(score_thresh)
 
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
