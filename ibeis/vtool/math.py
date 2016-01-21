@@ -640,6 +640,9 @@ def logistic_01(x):
 
 def beaton_tukey_loss(u, a=1):
     """
+    CommandLine:
+        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
+
     References:
         Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
     """
@@ -653,6 +656,9 @@ def beaton_tukey_loss(u, a=1):
 
 def beaton_tukey_weight(u, a=1):
     """
+    CommandLine:
+        python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight
+
     References:
         Steward_Robust%20parameter%20estimation%20in%20computer%20vision.pdf
     """
@@ -662,6 +668,16 @@ def beaton_tukey_weight(u, a=1):
     result[is_case1] = u1 * (1 - (u1 / a) ** 2) ** 2
     result[~is_case1] = 0
     return result
+
+
+def gauss_parzen_est(dist, L=1, sigma=.38):
+    """
+    python -m plottool.draw_func2 --exec-plot_func --show --range=-.2,.2 --func=vt.gauss_parzen_est
+    python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func=vt.gauss_parzen_est
+    """
+    tau = np.pi * 2
+    const_term = np.log(L * sigma * np.sqrt(tau))
+    return np.exp((-dist / (2 * sigma ** 2)) - const_term)
 
 
 if __name__ == '__main__':

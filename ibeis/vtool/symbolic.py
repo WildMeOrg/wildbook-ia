@@ -134,6 +134,8 @@ def sympy_latex_repr(expr1):
     expr1_repr = expr1_repr.replace(r'\end{matrix}\right]', '\n}')
     expr1_repr = expr1_repr.replace(r'\left (', '(')
     expr1_repr = expr1_repr.replace(r'\right )', ')')
+    expr1_repr = expr1_repr.replace(r'\left(', '(')
+    expr1_repr = expr1_repr.replace(r'\right)', ')')
     # hack of align
     expr1_repr = ut.align(expr1_repr, '&', pos=None)
     return expr1_repr
