@@ -987,7 +987,7 @@ Tadder_relationship = ut.codeblock(
     # REM @adder
     def add_{relation_tbl}_{tbl1}_{tbl2}_relation({self}, {tbl1}_rowid_list, {tbl2}_rowid_list):
         r"""
-        Adds a relationship between an image and encounter
+        Adds a relationship between an image and imageset
 
         Returns:
             {relation_tbl}_rowid_list

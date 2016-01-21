@@ -109,8 +109,8 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
 def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
     r"""
     CommandLine:
-        main.py --eid 2
-        main.py --eid 13 --db PZ_MUGU_19
+        main.py --imgsetid 2
+        main.py --imgsetid 13 --db PZ_MUGU_19
 
     CommandLine:
         python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show

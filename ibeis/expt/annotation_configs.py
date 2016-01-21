@@ -27,7 +27,7 @@ OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size'    : None,
     #'hack_extra' : None,  # hack param to make bigger db sizes
-    #'hack_encounter': None,
+    #'hack_imageset': None,
     # Hack out errors in test data
     'hackerrors'    : True,
 }
@@ -68,8 +68,8 @@ for key in filter_keys:
 
 
 INTRAGROUP_DEFAULTS = {
-    # if True all annots must belong to the same encounter
-    'same_encounter'      : None,
+    # if True all annots must belong to the same imageset
+    'same_imageset'      : None,
     'view_pername'        : None,  # formatted string filtering the viewpoints
     'min_timedelta'       : None,
     # minimum number of aids for each name in sample

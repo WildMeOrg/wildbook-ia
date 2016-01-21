@@ -88,7 +88,7 @@ def get_num_annotations(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/annot/', methods=['GET'])
-def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
+def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
                    yaw='no-filter',
                    is_exemplar=None,
                    species=None,
@@ -105,7 +105,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 
     Args:
         ibs (IBEISController):  ibeis controller object
-        eid (int): encounter id (default = None)
+        imgsetid (int): imageset id (default = None)
         include_only_gid_list (list): if specified filters annots not in these gids (default = None)
         yaw (str): (default = 'no-filter')
         is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)
@@ -134,16 +134,16 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> from ibeis import constants as const
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> eid = 1
-        >>> ibs.delete_all_encounters()
-        >>> ibs.compute_encounters()
+        >>> imgsetid = 1
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences()
         >>> include_only_gid_list = None
         >>> yaw = 'no-filter'
         >>> is_exemplar = None
         >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> is_known = False
         >>> # execute function
-        >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, yaw, is_exemplar, species, is_known)
+        >>> aid_list = get_valid_aids(ibs, imgsetid, include_only_gid_list, yaw, is_exemplar, species, is_known)
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
         >>> ut.assert_eq(ibs.get_annot_species(aid_list), [species] * 2, 'bad species')
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
@@ -189,8 +189,8 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         _ = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
 
     """
-    # getting encounter aid
-    if eid is None:
+    # getting imageset aid
+    if imgsetid is None:
         if is_exemplar is not None:
             # Optimization Hack
             aid_list = ibs.db.get_all_rowids_where(
@@ -199,11 +199,11 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
             aid_list = ibs._get_all_aids()
     else:
         # HACK: Check to see if you want the
-        # exemplar "encounter" (image group)
-        enctext = ibs.get_encounter_text(eid)
-        if enctext == const.EXEMPLAR_ENCTEXT:
+        # exemplar "imageset" (image group)
+        imagesettext = ibs.get_imageset_text(imgsetid)
+        if imagesettext == const.EXEMPLAR_IMAGESETTEXT:
             is_exemplar = True
-        aid_list = ibs.get_encounter_aids(eid)
+        aid_list = ibs.get_imageset_aids(imgsetid)
         if is_exemplar is True:
             # corresponding unoptimized hack for is_exemplar
             flag_list = ibs.get_annot_exemplar_flags(aid_list)
@@ -279,7 +279,7 @@ def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
 @accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS])
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
 @register_api('/api/annot/', methods=['POST'])
 def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
@@ -591,7 +591,7 @@ def delete_annot_speciesids(ibs, aid_list):
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, rowidx=0)
 @accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
 @accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
 @register_api('/api/annot/', methods=['DELETE'])
 def delete_annots(ibs, aid_list):
     r"""
@@ -856,8 +856,8 @@ def get_annot_image_rowids(ibs, aid_list):
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
-@register_api('/api/annot/eids/', methods=['GET'])
-def get_annot_eids(ibs, aid_list):
+@register_api('/api/annot/imgsetids/', methods=['GET'])
+def get_annot_imgsetids(ibs, aid_list):
     r"""
     Get parent image rowids of annotations
 
@@ -865,11 +865,11 @@ def get_annot_eids(ibs, aid_list):
         aid_list (list):
 
     Returns:
-        eid_list (list):  encounter rowids
+        imgsetid_list (list):  imageset rowids
 
     RESTful:
         Method: GET
-        URL:    /api/annot/eids/
+        URL:    /api/annot/imgsetids/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -881,8 +881,8 @@ def get_annot_eids(ibs, aid_list):
         >>> print(result)
     """
     gid_list = ibs.db.get(const.ANNOTATION_TABLE, ('image_rowid',), aid_list)
-    eids_list = ibs.get_image_eids(gid_list)
-    return eids_list
+    imgsetids_list = ibs.get_image_imgsetids(gid_list)
+    return imgsetids_list
 
 
 @register_ibs_method
@@ -2296,7 +2296,7 @@ def set_annot_detect_confidence(ibs, aid_list, confidence_list):
 @register_ibs_method
 @accessor_decors.setter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_EXEMPLAR_FLAG], rowidx=0)
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
 @register_api('/api/annot/exemplar_flags/', methods=['PUT'])
 def set_annot_exemplar_flags(ibs, aid_list, flag_list):
     r"""
@@ -2314,7 +2314,7 @@ def set_annot_exemplar_flags(ibs, aid_list, flag_list):
 @register_ibs_method
 @accessor_decors.setter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [NAME_ROWID], rowidx=0)
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
 @register_api('/api/annot/name_rowids/', methods=['PUT'])
 def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     r"""

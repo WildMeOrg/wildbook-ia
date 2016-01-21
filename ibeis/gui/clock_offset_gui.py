@@ -118,10 +118,10 @@ class ClockOffsetWidget(QtGui.QWidget):
         msg = ut.textblock(
             """
             This step is for synchronizing the time of the images being imported
-            with the actual time of the encounter.
+            with the actual time of the imageset.
 
             Use the Previous and Next buttons until the 'Time Synchronization Picture' is of the clock
-            taken at the beginning of the encounter.
+            taken at the beginning of the imageset.
 
             Once found, change the date and time in the boxes below to match the time of the clock in
             the image, and correct the date if necessary.

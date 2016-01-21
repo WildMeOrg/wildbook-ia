@@ -118,7 +118,7 @@
 #        # id_ = model._get_row_id(qtindex.row())
 #        if model.name == NAMES_TREE:
 #            tblview = ibswgt.view
-#            # eid = model.eid
+#            # imgsetid = model.imgsetid
 #            # gid = id_
 #            guitool.popup_menu(tblview, pos, [
 #                ('right click action', lambda: None),
@@ -130,7 +130,7 @@
 #        model = qtindex.model()
 #        id_ = model._get_row_id(qtindex)
 #        if model.name == NAMES_TREE:
-#            # eid = model.eid
+#            # imgsetid = model.imgsetid
 #            gid = id_
 #            print("SINGLE CLICKED ID: %r" % gid)
 
@@ -140,7 +140,7 @@
 #        model = qtindex.model()
 #        id_ = model._get_row_id(qtindex)
 #        if model.name == NAMES_TREE:
-#            # eid = model.eid
+#            # imgsetid = model.imgsetid
 #            gid = id_
 #            #ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
 #            print("DOUBLECLICKED ID: %r" % gid)

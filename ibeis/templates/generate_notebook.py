@@ -214,8 +214,8 @@ def make_ibeis_cell_list(ibs):
         # See ibeis/expt/annotation_configs.py for names of annot configuration options
         #'default:has_any=(query,),dpername=1,exclude_reference=True',
         #'default:is_known=True',
-        #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
-        #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
+        #'default:qsame_imageset=True,been_adjusted=True,excluderef=True'
+        #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
         #'default:require_timestamp=True,min_timedelta=3600',
         #'default:species=primary',
         #'timectrl:',

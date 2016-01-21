@@ -18,8 +18,8 @@ CommandLine;
     # Login to wildbook (can skip)
     python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
 
-    # Ship Encounters to wildbook
-    python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
+    # Ship ImageSets to wildbook
+    python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list
 
     # Change annotations names to a single name
     python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
@@ -35,7 +35,9 @@ import utool as ut
 import lockfile
 import os
 import requests
-from os.path import join
+import time
+import subprocess
+from os.path import dirname, join, basename, splitext
 from ibeis.control import controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__, '[manual_wildbook]')
@@ -83,8 +85,6 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
         >>> print(result)
     """
-    import utool as ut
-    import os
     fname_list = ['Tomcat', 'tomcat']
     if ALLOW_SYSTEM_TOMCAT:
         # Places for system install of tomcat
@@ -127,7 +127,6 @@ def download_tomcat():
         # Reset
         python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))"
     """
-    from os.path import splitext, dirname
     print('Grabbing tomcat')
     # FIXME: need to make a stable link
     if ut.WIN32:
@@ -265,7 +264,6 @@ def reset_local_wildbook():
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> reset_local_wildbook()
     """
-    import utool as ut
     try:
         shutdown_wildbook_server()
     except ImportError:
@@ -303,10 +301,6 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         >>> print(result)
     """
     # TODO: allow custom specified tomcat directory
-    from os.path import basename, splitext, join
-    import time
-    import re
-    import subprocess
     try:
         output = subprocess.check_output(['java', '-version'],
                                          stderr=subprocess.STDOUT)
@@ -389,6 +383,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     ut.assertpath(permission_fpath)
     permission_text = ut.readfrom(permission_fpath)
     lines_to_remove = [
+        # '/ImageSetSetMarkedIndividual = authc, roles[admin]'
         '/EncounterSetMarkedIndividual = authc, roles[admin]'
     ]
     new_permission_text = permission_text[:]
@@ -435,8 +430,6 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    from os.path import join
-    import time
     import ibeis
     tomcat_dpath = find_installed_tomcat()
 
@@ -471,8 +464,6 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    from os.path import join
-    import time
     tomcat_dpath = find_installed_tomcat(check_unpacked=False)
 
     # Ensure environment variables
@@ -641,7 +632,7 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False,
 def update_wildbook_config(ibs, wildbook_tomcat_path, dryrun=False):
     wildbook_properteis_dpath = join(wildbook_tomcat_path,
                                      'WEB-INF/classes/bundles/')
-    print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (
+    print('[ibs.update_wildbook_config()] Wildbook properties=%r' % (
         wildbook_properteis_dpath, ))
     # The src file is non-standard. It should be remove here as well
     wildbook_config_fpath_dst = join(wildbook_properteis_dpath,
@@ -669,29 +660,6 @@ def update_wildbook_config(ibs, wildbook_tomcat_path, dryrun=False):
                 os.system(command)
         else:
             ut.write_to(wildbook_config_fpath_dst, content)
-
-
-# @default_decorator
-def export_to_wildbook(ibs):
-    """
-        Exports identified chips to wildbook
-
-        Legacy:
-            import ibeis.dbio.export_wb as wb
-            print('[ibs] exporting to wildbook')
-            eid_list = ibs.get_valid_eids()
-            addr = 'http://127.0.0.1:8080/wildbook-4.1.0-RELEASE'
-            #addr = 'http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL'
-            ibs._send_wildbook_request(addr)
-            wb.export_ibeis_to_wildbook(ibs, eid_list)
-
-            # compute encounters
-            # get encounters by id
-            # get ANNOTATIONs by encounter id
-            # submit requests to wildbook
-            return None
-    """
-    raise NotImplementedError()
 
 
 @register_ibs_method
@@ -768,9 +736,10 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> wb_target, tomcat_dpath = testdata_wildbook_server()
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
     """
-    print('[ibs.wildbook_signal_eid_list()] signaling any annotation name changes to wildbook')
+    print('[ibs.wildbook_signal_imgsetid_list()] signaling any annotation name changes to wildbook')
 
     wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
+    # url_command = 'ImageSetSetMarkedIndividual'
     url_command = 'EncounterSetMarkedIndividual'
     BASIC_AUTH = False
     if BASIC_AUTH:
@@ -780,7 +749,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         wildbook_base_url = ('http://' + username + ':' + password + '@' +
                              wildbook_base_url.replace('http://', ''))
     url_args_fmtstr = '&'.join([
-        'encounterID={annot_uuid!s}',
+        'imagesetID={annot_uuid!s}',
         'individualID={name_text!s}',
     ])
     submit_namchange_url_fmtstr = (
@@ -811,7 +780,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         status_list.append(status)
         try:
             response_json = response.json()
-            # encounter in this message is a wb-encounter not our ia-encounter
+            # imageset in this message is a wb-imageset not our ia-imageset
             #if ut.VERBOSE:
             print(response_json['message'])
             message_list.append(str(response_json['message']))
@@ -826,21 +795,22 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
 
 @register_ibs_method
-@register_api('/api/core/wildbook_signal_eid_list/', methods=['PUT'])
-def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
-                             open_url_on_complete=True, tomcat_dpath=None,
-                             wb_target=None, dryrun=False):
+@register_api('/api/core/wildbook_signal_imgsetid_list/', methods=['PUT'])
+def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
+                                  set_shipped_flag=True,
+                                  open_url_on_complete=True, tomcat_dpath=None,
+                                  wb_target=None, dryrun=False):
     """
-    Exports specified encounters to wildbook. This is a synchronous call.
+    Exports specified imagesets to wildbook. This is a synchronous call.
 
     Args:
-        eid_list (list): (default = None)
+        imgsetid_list (list): (default = None)
         set_shipped_flag (bool): (default = True)
         open_url_on_complete (bool): (default = True)
 
     RESTful:
         Method: PUT
-        URL:    /api/core/wildbook_signal_eid_list/
+        URL:    /api/core/wildbook_signal_imgsetid_list/
 
     Ignore:
         cd $CODE_DIR/Wildbook/tmp
@@ -865,9 +835,9 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
         #python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
         python -m ibeis --tf test_wildbook_login
 
-        # Ship Encounters to wildbook
-        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
-        python -m ibeis --tf wildbook_signal_eid_list
+        # Ship ImageSets to wildbook
+        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list
+        python -m ibeis --tf wildbook_signal_imgsetid_list
 
         # Change annotations names to a single name
         #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
@@ -878,9 +848,9 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
         python -m ibeis --tf wildbook_signal_annot_name_changes:2
 
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
-        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list --dryrun
-        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list --break
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list --dryrun
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list --break
 
     SeeAlso:
         ~/local/build_scripts/init_wildbook.sh
@@ -894,27 +864,27 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> #gid_list = ibs.get_valid_gids()[0:10]
         >>> gid_list = ibs.get_valid_gids()[3:5]
-        >>> new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
-        >>> print('new encounter uuid = %r' % (ibs.get_encounter_uuid(new_eid),))
-        >>> print('new encounter text = %r' % (ibs.get_encounter_text(new_eid),))
-        >>> eid_list = [new_eid]
-        >>> ibs.set_encounter_processed_flags([new_eid], [1])
-        >>> gid_list = ibs.get_encounter_gids(new_eid)
+        >>> new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA
+        >>> print('new imageset uuid = %r' % (ibs.get_imageset_uuid(new_imgsetid),))
+        >>> print('new imageset text = %r' % (ibs.get_imageset_text(new_imgsetid),))
+        >>> imgsetid_list = [new_imgsetid]
+        >>> ibs.set_imageset_processed_flags([new_imgsetid], [1])
+        >>> gid_list = ibs.get_imageset_gids(new_imgsetid)
         >>> ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
         >>> set_shipped_flag = True
         >>> open_url_on_complete = True
-        >>> result = ibs.wildbook_signal_eid_list(eid_list, set_shipped_flag, open_url_on_complete, tomcat_dpath, wb_target, dryrun)
+        >>> result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, tomcat_dpath, wb_target, dryrun)
         >>> # cleanup
-        >>> #ibs.delete_encounters(new_eid)
+        >>> #ibs.delete_imagesets(new_imgsetid)
         >>> print(result)
     """
 
-    def _send(eid, use_config_file=False, dryrun=dryrun):
-        encounter_uuid = ibs.get_encounter_uuid(eid)
-        url = submit_eid_url_fmtstr.format(encounter_uuid=encounter_uuid)
+    def _send(imgsetid, use_config_file=False, dryrun=dryrun):
+        imageset_uuid = ibs.get_imageset_uuid(imgsetid)
+        url = submit_imgsetid_url_fmtstr.format(imageset_uuid=imageset_uuid)
         print('[_send] URL=%r' % (url, ))
-        smart_xml_fname = ibs.get_encounter_smart_xml_fnames([eid])[0]
-        smart_waypoint_id = ibs.get_encounter_smart_waypoint_ids([eid])[0]
+        smart_xml_fname = ibs.get_imageset_smart_xml_fnames([imgsetid])[0]
+        smart_waypoint_id = ibs.get_imageset_smart_waypoint_ids([imgsetid])[0]
         if smart_xml_fname is not None and smart_waypoint_id is not None:
             # Send smart data if availabel
             print(smart_xml_fname, smart_waypoint_id)
@@ -939,41 +909,43 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
         status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
         return status
 
-    def _complete(eid):
-        encounter_uuid = ibs.get_encounter_uuid(eid)
+    def _complete(imgsetid):
+        imageset_uuid = ibs.get_imageset_uuid(imgsetid)
         complete_url_ = complete_url_fmtstr.format(
-            encounter_uuid=encounter_uuid)
+            imageset_uuid=imageset_uuid)
         print('[_complete] URL=%r' % (complete_url_, ))
         if open_url_on_complete and not dryrun:
             _browser = ut.get_prefered_browser(PREFERED_BROWSER)
             _browser.open_new_tab(complete_url_)
 
-    if eid_list is None:
-        eid_list = ibs.get_valid_eids()
-    # Check to make sure encounters are ok:
-    for eid in eid_list:
-        # First, check if encounter can be pushed
-        aid_list = ibs.get_encounter_aids(eid)
+    if imgsetid_list is None:
+        imgsetid_list = ibs.get_valid_imgsetids()
+    # Check to make sure imagesets are ok:
+    for imgsetid in imgsetid_list:
+        # First, check if imageset can be pushed
+        aid_list = ibs.get_imageset_aids(imgsetid)
         assert len(aid_list) > 0, (
-            'Encounter eid=%r cannot be shipped with0 annots' % (eid,))
+            'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,))
         unknown_flags = ibs.is_aid_unknown(aid_list)
         unnamed_aid_list = ut.compress(aid_list, unknown_flags)
         assert len(unnamed_aid_list) == 0, (
-            ('Encounter eid=%r cannot be shipped becuase '
-             'annotation(s) %r are not named') % (eid, unnamed_aid_list, ))
+            ('ImageSet imgsetid=%r cannot be shipped becuase '
+             'annotation(s) %r are not named') % (imgsetid, unnamed_aid_list, ))
 
     # Configuration
     use_config_file = True
     wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(
         tomcat_dpath, wb_target)
-    submit_eid_url_fmtstr  = (
+    submit_imgsetid_url_fmtstr  = (
         wildbook_base_url +
-        '/OccurrenceCreateIBEIS?ibeis_encounter_id={encounter_uuid!s}')
+        # TODO: wildbook should rename their function
+        # '/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}')
+        '/OccurrenceCreateIBEIS?ibeis_encounter_id={imageset_uuid!s}')
     complete_url_fmtstr = (
-        wildbook_base_url + '/occurrence.jsp?number={encounter_uuid!s}')
+        wildbook_base_url + '/occurrence.jsp?number={imageset_uuid!s}')
     # Call Wildbook url to signal update
-    print('[ibs.wildbook_signal_eid_list] ship eid_list = %r to wildbook' % (
-        eid_list, ))
+    print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
+        imgsetid_list, ))
 
     # With a lock file, modify the configuration with the new settings
     lock_fpath = join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')
@@ -982,18 +954,18 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
         if use_config_file:
             update_wildbook_config(ibs, wildbook_tomcat_path, dryrun)
 
-        # Check and push 'done' encounters
+        # Check and push 'done' imagesets
         status_list = []
-        for eid in eid_list:
+        for imgsetid in imgsetid_list:
             #Check for nones
-            status = _send(eid, use_config_file=use_config_file, dryrun=dryrun)
+            status = _send(imgsetid, use_config_file=use_config_file, dryrun=dryrun)
             status_list.append(status)
             if set_shipped_flag and not dryrun:
                 if status:
-                    ibs.set_encounter_shipped_flags([eid], [1])
-                    _complete(eid)
+                    ibs.set_imageset_shipped_flags([imgsetid], [1])
+                    _complete(imgsetid)
                 else:
-                    ibs.set_encounter_shipped_flags([eid], [0])
+                    ibs.set_imageset_shipped_flags([imgsetid], [0])
         return status_list
 
 

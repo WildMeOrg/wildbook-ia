@@ -922,7 +922,7 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/name/', methods=['GET'])
-def get_valid_nids(ibs, eid=None, filter_empty=False, min_pername=None):
+def get_valid_nids(ibs, imgsetid=None, filter_empty=False, min_pername=None):
     r"""
     Returns:
         list_ (list): all valid names with at least one animal
@@ -932,10 +932,10 @@ def get_valid_nids(ibs, eid=None, filter_empty=False, min_pername=None):
         Method: GET
         URL:    /api/name/
     """
-    if eid is None:
+    if imgsetid is None:
         _nid_list = ibs._get_all_known_name_rowids()
     else:
-        _nid_list = ibs.get_encounter_nids(eid)
+        _nid_list = ibs.get_imageset_nids(imgsetid)
     # HACK FOR UNKNOWN. Makes things crash
     #_nid_list += [0]
     nid_list = _nid_list
@@ -1126,26 +1126,26 @@ def get_name_age_months_est_max(ibs, name_rowid_list):
 
 
 @register_ibs_method
-@register_api('/api/name/eids/', methods=['GET'])
-def get_name_eids(ibs, nid_list):
+@register_api('/api/name/imgsetids/', methods=['GET'])
+def get_name_imgsetids(ibs, nid_list):
     r"""
-    Auto-docstr for 'get_name_eids'
+    Auto-docstr for 'get_name_imgsetids'
 
     RESTful:
         Method: GET
-        URL:    /api/name/eids/
+        URL:    /api/name/imgsetids/
     """
     import utool as ut
     name_aids_list = ibs.get_name_aids(nid_list)
     name_aid_list  = ut.flatten(name_aids_list)
     name_gid_list  = ibs.get_annot_gids(name_aid_list)
-    name_eids_list = ibs.get_image_eids(name_gid_list)
-    name_eid_list  = ut.flatten(name_eids_list)
-    name_eids      = list(set(name_eid_list))
-    return name_eids
+    name_imgsetids_list = ibs.get_image_imgsetids(name_gid_list)
+    name_imgsetid_list  = ut.flatten(name_imgsetids_list)
+    name_imgsetids      = list(set(name_imgsetid_list))
+    return name_imgsetids
 
 
-#def get_encounter_nids(ibs,
+#def get_imageset_nids(ibs,
 
 
 if __name__ == '__main__':
@@ -1158,7 +1158,7 @@ if __name__ == '__main__':
 
     RESTful:
         Method: GET
-        URL:    /api/name/eids/
+        URL:    /api/name/imgsetids/
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

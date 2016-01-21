@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 import vtool as vt
@@ -9,15 +9,15 @@ import scipy.cluster.hierarchy
 import sklearn.cluster
 #from sklearn.cluster import MeanShift, estimate_bandwidth
 from scipy.spatial.distance import pdist
-(print, rrr, profile) = ut.inject2(__name__, '[preproc_encounter]')
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
 
 
-#@ut.indent_func('[encounter]')
-def ibeis_compute_encounters(ibs, gid_list):
+#@ut.indent_func('[occurrence]')
+def ibeis_compute_occurrences(ibs, gid_list):
     """
-    clusters encounters togethers (by time, not yet space)
-    An encounter is a meeting, localized in time and space between a camera and
-    a group of animals.  Animals are identified within each encounter.
+    clusters occurrences togethers (by time, not yet space) An occurrence is a
+    meeting, localized in time and space between a camera and a group of
+    animals.  Animals are identified within each occurrence.
 
     Does not modify database state, just returns cluster ids
 
@@ -29,25 +29,25 @@ def ibeis_compute_encounters(ibs, gid_list):
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_encounter --exec-ibeis_compute_encounters:0 --show
+        python -m ibeis --tf ibeis_compute_occurrences:0 --show
 
         TODO: FIXME: good example of autogen doctest return failure
 
     Ignore:
         >>> import ibeis
-        >>> from ibeis.algo.preproc.preproc_encounter import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='lynx')
         >>> aid_list = ibs.get_valid_aids()
         >>> filter_kw = {}
         >>> filter_kw['been_adjusted'] = True
         >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
         >>> gid_list = ibs.get_annot_gids(aid_list_)
-        >>> flat_eids, flat_gids = ibeis_compute_encounters(ibs, gid_list)
-        >>> aids_list = list(ut.group_items(aid_list_, flat_eids).values())
+        >>> flat_imgsetids, flat_gids = ibeis_compute_occurrences(ibs, gid_list)
+        >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
         >>> metric = list(map(len, aids_list))
         >>> sortx = ut.list_argsort(metric)[::-1]
         >>> index = sortx[1]
-        >>> #gids = enc_gids[index]
+        >>> #gids = occur_gids[index]
         >>> aids = aids_list[index]
         >>> gids = list(set(ibs.get_annot_gids(aids)))
         >>> print('len(aids) = %r' % (len(aids),))
@@ -61,17 +61,17 @@ def ibeis_compute_encounters(ibs, gid_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_encounter import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
-        >>> (flat_eids, flat_gids) = ibeis_compute_encounters(ibs, gid_list)
-        >>> aids_list = list(ut.group_items(aid_list_, flat_eids).values())
+        >>> (flat_imgsetids, flat_gids) = ibeis_compute_occurrences(ibs, gid_list)
+        >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
         >>> metric = list(map(len, aids_list))
         >>> sortx = ut.list_argsort(metric)[::-1]
         >>> index = sortx[1]
-        >>> #gids = enc_gids[index]
+        >>> #gids = occur_gids[index]
         >>> aids = aids_list[index]
         >>> gids = list(set(ibs.get_annot_gids(aids)))
         >>> print('len(aids) = %r' % (len(aids),))
@@ -84,28 +84,28 @@ def ibeis_compute_encounters(ibs, gid_list):
         >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
         >>> ut.show_if_requested()
     """
-    enc_cfgstr       = ibs.cfg.enc_cfg.get_cfgstr()
-    print('[enc] enc_cfgstr = %r' % enc_cfgstr)
-    cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
+    occur_cfgstr = ibs.cfg.occur_cfg.get_cfgstr()
+    print('[occur] occur_cfgstr = %r' % occur_cfgstr)
+    cluster_algo  = ibs.cfg.occur_cfg.cluster_algo
     cfgdict = dict(
-        min_imgs_per_enc=ibs.cfg.enc_cfg.min_imgs_per_encounter,
-        seconds_thresh=ibs.cfg.enc_cfg.seconds_thresh,
-        quantile=ibs.cfg.enc_cfg.quantile,
+        min_imgs_per_occurence=ibs.cfg.occur_cfg.min_imgs_per_occurrence,
+        seconds_thresh=ibs.cfg.occur_cfg.seconds_thresh,
+        quantile=ibs.cfg.occur_cfg.quantile,
     )
     # TODO: use gps
-    enc_labels, enc_gids = compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict=cfgdict)
+    occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict=cfgdict)
     if True:
-        gid2_label = {gid: label for label, gids in zip(enc_labels, enc_gids) for gid in gids}
-        # Assert that each gid only belongs to one encounter
-        flat_eids = ut.dict_take(gid2_label, gid_list)
+        gid2_label = {gid: label for label, gids in zip(occur_labels, occur_gids) for gid in gids}
+        # Assert that each gid only belongs to one occurrence
+        flat_imgsetids = ut.dict_take(gid2_label, gid_list)
         flat_gids = gid_list
     else:
         # Flatten gids list by enounter
-        flat_eids, flat_gids = ut.flatten_membership_mapping(enc_labels, enc_gids)
-    return flat_eids, flat_gids
+        flat_imgsetids, flat_gids = ut.flatten_membership_mapping(occur_labels, occur_gids)
+    return flat_imgsetids, flat_gids
 
 
-def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=False):
+def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=False):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -115,12 +115,12 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_encounter --exec-compute_encounter_groups
-        python -m ibeis.algo.preproc.preproc_encounter --exec-compute_encounter_groups --show --zoom=.3
+        python -m ibeis --tf compute_occurrence_groups
+        python -m ibeis --tf compute_occurrence_groups --show --zoom=.3
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_encounter import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> import ibeis
         >>> import vtool as vt
         >>> #ibs = ibeis.opendb(defaultdb='testdb1')
@@ -128,9 +128,9 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> gid_list = ibs.get_valid_gids(require_unixtime=True, require_gps=True)
         >>> use_gps = True
         >>> cluster_algo = 'meanshift'
-        >>> cfgdict = dict(quantile=.005, min_imgs_per_enc=2)
-        >>> (enc_labels, enc_gids) = compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict, use_gps=use_gps)
-        >>> aidsgroups_list = ibs.unflat_map(ibs.get_image_aids, enc_gids)
+        >>> cfgdict = dict(quantile=.005, min_imgs_per_occurence=2)
+        >>> (occur_labels, occur_gids) = compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict, use_gps=use_gps)
+        >>> aidsgroups_list = ibs.unflat_map(ibs.get_image_aids, occur_gids)
         >>> aids_list = list(map(ut.flatten, aidsgroups_list))
         >>> nids_list = list(map(np.array, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)))
         >>> metric = [len(np.unique(nids[nids > -1])) for nids in nids_list]
@@ -138,7 +138,7 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> #metric = list(map(len, aids_list))
         >>> sortx = ut.list_argsort(metric)[::-1]
         >>> index = sortx[20]
-        >>> #gids = enc_gids[index]
+        >>> #gids = occur_gids[index]
         >>> aids = aids_list[index]
         >>> aids = ibs.filter_annots_general(aids, min_qual='ok', is_known=True)
         >>> gids = list(set(ibs.get_annot_gids(aids)))
@@ -161,7 +161,7 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         aid_set = np.unique(np.append(aids.flatten(), ut.flatten(gt_aids)))
         aid_set = ibs.filter_annots_general(aid_set, minqual='ok')
 
-        # This is the set of annotations used for testing intraencounter photobombs
+        # This is the set of annotations used for testing intraoccurrence photobombs
         #print(ut.repr3(ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=aid_set), strvals=True, nl=1))
         print(ut.repr3(ibs.get_annot_stats_dict(aid_set, forceall=True), strvals=True, nl=1))
 
@@ -169,15 +169,15 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
     # Config info
     gid_list = np.unique(gid_list)
 
-    print('[enc] Computing %r encounters on %r images.' % (
+    print('[occur] Computing %r occurrences on %r images.' % (
         cluster_algo, len(gid_list)))
     if len(gid_list) == 0:
-        print('[enc] WARNING: len(gid_list) == 0. '
-              'No images to compute encounters with')
-        enc_labels, enc_gids = [], []
+        print('[occur] WARNING: len(gid_list) == 0. '
+              'No images to compute occurrences with')
+        occur_labels, occur_gids = [], []
     else:
         if len(gid_list) == 1:
-            print('[enc] WARNING: custering 1 image into its own encounter')
+            print('[occur] WARNING: custering 1 image into its own occurrence')
             gid_arr = np.array(gid_list)
             label_arr = np.zeros(gid_arr.shape)
         else:
@@ -185,50 +185,49 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
             # Agglomerative clustering of unixtimes
             if cluster_algo == 'agglomerative':
                 seconds_thresh = cfgdict.get('seconds_thresh', 60.0)
-                label_arr = agglomerative_cluster_encounters(X_data,
-                                                             seconds_thresh)
+                label_arr = agglomerative_cluster_occurrences(X_data,
+                                                              seconds_thresh)
             elif cluster_algo == 'meanshift':
                 quantile = cfgdict.get('quantile', 0.01)
-                label_arr = meanshift_cluster_encounters(X_data, quantile)
+                label_arr = meanshift_cluster_occurrences(X_data, quantile)
             else:
                 raise AssertionError(
-                    '[encounter] Uknown clustering algorithm: %r' % cluster_algo)
+                    '[occurrence] Uknown clustering algorithm: %r' % cluster_algo)
         # Group images by unique label
         labels, label_gids = group_images_by_label(label_arr, gid_arr)
-        # Remove encounters less than the threshold
-        enc_labels    = labels
-        enc_gids      = label_gids
-        enc_unixtimes = compute_encounter_unixtime(ibs, enc_gids)
-        min_imgs_per_enc = cfgdict.get('min_imgs_per_enc', 1)
-        enc_labels, enc_gids = filter_and_relabel(labels, label_gids,
-                                                  min_imgs_per_enc,
-                                                  enc_unixtimes)
-        print('[enc] Found %d clusters.' % len(enc_labels))
+        # Remove occurrences less than the threshold
+        occur_labels    = labels
+        occur_gids      = label_gids
+        occur_unixtimes = compute_occurrence_unixtime(ibs, occur_gids)
+        min_imgs_per_occurence = cfgdict.get('min_imgs_per_occurence', 1)
+        occur_labels, occur_gids = filter_and_relabel(
+            labels, label_gids, min_imgs_per_occurence, occur_unixtimes)
+        print('[occur] Found %d clusters.' % len(occur_labels))
         if len(label_gids) > 0:
             print('Cluster size stats:')
             ut.print_dict(
-                ut.get_stats(list(map(len, enc_gids)), use_median=True,
+                ut.get_stats(list(map(len, occur_gids)), use_median=True,
                              use_sum=True),
-                'enc stats')
-    return enc_labels, enc_gids
+                'occur stats')
+    return occur_labels, occur_gids
 
 
-def compute_encounter_unixtime(ibs, enc_gids):
+def compute_occurrence_unixtime(ibs, occur_gids):
     #assert isinstance(ibs, IBEISController)
     # TODO: account for -1
     from ibeis import ibsfuncs
-    unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, enc_gids)
+    unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, occur_gids)
     time_arrs = list(map(np.array, unixtimes))
-    enc_unixtimes = list(map(np.mean, time_arrs))
-    return enc_unixtimes
+    occur_unixtimes = list(map(np.mean, time_arrs))
+    return occur_unixtimes
 
 
-def _compute_encounter_datetime(ibs, enc_gids):
+def _compute_occurrence_datetime(ibs, occur_gids):
     #assert isinstance(ibs, IBEISController)
     #from ibeis import ibsfuncs
-    enc_unixtimes = compute_encounter_unixtime(ibs, enc_gids)
-    enc_datetimes = list(map(ut.unixtime_to_datetimestr, enc_unixtimes))
-    return enc_datetimes
+    occur_unixtimes = compute_occurrence_unixtime(ibs, occur_gids)
+    occur_datetimes = list(map(ut.unixtime_to_datetimestr, occur_unixtimes))
+    return occur_datetimes
 
 
 def prepare_X_data(ibs, gid_list, use_gps=False):
@@ -253,9 +252,9 @@ def prepare_X_data(ibs, gid_list, use_gps=False):
     return X_data, gid_arr
 
 
-def agglomerative_cluster_encounters(X_data, seconds_thresh):
+def agglomerative_cluster_occurrences(X_data, seconds_thresh):
     """
-    Agglomerative encounter clustering algorithm
+    Agglomerative occurrence clustering algorithm
 
     Args:
         X_data (ndarray):  Length N array of data to cluster
@@ -265,7 +264,7 @@ def agglomerative_cluster_encounters(X_data, seconds_thresh):
         ndarray: (label_arr) - Length N array of cluster indexes
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_encounter --exec-agglomerative_cluster_encounters
+        python -m ibeis.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
 
     References:
         https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata
@@ -273,11 +272,11 @@ def agglomerative_cluster_encounters(X_data, seconds_thresh):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_encounter import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data = '?'
         >>> seconds_thresh = '?'
-        >>> (enc_ids, enc_gids) = agglomerative_cluster_encounters(X_data, seconds_thresh)
-        >>> result = ('(enc_ids, enc_gids) = %s' % (str((enc_ids, enc_gids)),))
+        >>> (occur_ids, occur_gids) = agglomerative_cluster_occurrences(X_data, seconds_thresh)
+        >>> result = ('(occur_ids, occur_gids) = %s' % (str((occur_ids, occur_gids)),))
         >>> print(result)
     """
     label_arr = scipy.cluster.hierarchy.fclusterdata(
@@ -285,8 +284,8 @@ def agglomerative_cluster_encounters(X_data, seconds_thresh):
     return label_arr
 
 
-def meanshift_cluster_encounters(X_data, quantile):
-    """ Meanshift encounter clustering algorithm
+def meanshift_cluster_occurrences(X_data, quantile):
+    """ Meanshift occurrence clustering algorithm
 
     Args:
         X_data (ndarray):  Length N array of data to cluster
@@ -297,19 +296,19 @@ def meanshift_cluster_encounters(X_data, quantile):
         ndarray : Length N array of labels
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_encounter --exec-meanshift_cluster_encounters
+        python -m ibeis.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_encounter import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data = '?'
         >>> quantile = '?'
-        >>> result = meanshift_cluster_encounters(X_data, quantile)
+        >>> result = meanshift_cluster_occurrences(X_data, quantile)
         >>> print(result)
     """
     try:
         bandwidth = sklearn.cluster.estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
-        assert bandwidth != 0, ('[enc] bandwidth is 0. Cannot cluster')
+        assert bandwidth != 0, ('[occur] bandwidth is 0. Cannot cluster')
         # bandwidth is with respect to the RBF used in clustering
         #ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
         ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=False)
@@ -324,7 +323,7 @@ def meanshift_cluster_encounters(X_data, quantile):
         ut.printex(ex, 'error computing meanshift',
                       key_list=['X_data', 'quantile'],
                       iswarning=True)
-        # Fallback to all from same encounter
+        # Fallback to all from same occurrence
         label_arr = np.zeros(X_data.size)
     return label_arr
 
@@ -344,25 +343,25 @@ def group_images_by_label(label_arr, gid_arr):
     return labels, label_gids
 
 
-def filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None):
+def filter_and_relabel(labels, label_gids, min_imgs_per_occurence, occur_unixtimes=None):
     """
     Removes clusters with too few members.
     Relabels clusters-labels such that label 0 has the most members
     """
     label_nGids = np.array(list(map(len, label_gids)))
-    label_isvalid = label_nGids >= min_imgs_per_enc
-    enc_gids = ut.compress(label_gids, label_isvalid)
-    if enc_unixtimes is not None:
-        enc_unixtimes = ut.compress(enc_unixtimes, label_isvalid)
-        # Rebase ids so encounter0 has the most images
-        #enc_ids  = list(range(label_isvalid.sum()))
+    label_isvalid = label_nGids >= min_imgs_per_occurence
+    occur_gids = ut.compress(label_gids, label_isvalid)
+    if occur_unixtimes is not None:
+        occur_unixtimes = ut.compress(occur_unixtimes, label_isvalid)
+        # Rebase ids so occurrence0 has the most images
+        #occur_ids  = list(range(label_isvalid.sum()))
         #else:
         # sort by time instead
-        unixtime_arr = np.array(enc_unixtimes)
-        # Reorder encounters so the oldest has the lowest number
-        enc_gids = ut.take(label_gids, unixtime_arr.argsort())
-    enc_ids = list(range(len(enc_gids)))
-    return enc_ids, enc_gids
+        unixtime_arr = np.array(occur_unixtimes)
+        # Reorder occurrences so the oldest has the lowest number
+        occur_gids = ut.take(label_gids, unixtime_arr.argsort())
+    occur_ids = list(range(len(occur_gids)))
+    return occur_ids, occur_gids
 
 
 def timespace_distance(pt1, pt2):
@@ -398,11 +397,11 @@ def cluster_timespace(X_data, thresh):
 def testdata_gps():
     r"""
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_encounter --exec-testdata_gps --show
+        python -m ibeis.algo.preproc.preproc_occurrence --exec-testdata_gps --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_encounter import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
         >>> X_data, linkage_mat = testdata_gps()
         >>> ut.quit_if_noshow()
         >>> # plot
@@ -527,8 +526,8 @@ def plot_annotaiton_gps(X_data):
 
 if __name__ == '__main__':
     """
-    python -m ibeis.algo.preproc.preproc_encounter
-    python -m ibeis.algo.preproc.preproc_encounter --allexamples
+    python -m ibeis.algo.preproc.preproc_occurrence
+    python -m ibeis.algo.preproc.preproc_occurrence --allexamples
     """
     import utool as ut
     import multiprocessing

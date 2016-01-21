@@ -162,10 +162,10 @@ def setup_actions_menu(mainwin, back):
     mainwin.menuActions = guitool.newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
     menu = mainwin.menuActions
     menu.newAction(
-        name='actionCompute_Encounters',
-        text='Group Encounters',
+        name='actionCompute_Occurrences',
+        text='Group Occurrences',
         #shortcut='Ctrl+2',
-        slot_fn=back.compute_encounters)
+        slot_fn=back.compute_occurrences)
     menu.addSeparator()  # ---------
     menu.newAction(
         name='actionDetect',
@@ -179,9 +179,9 @@ def setup_actions_menu(mainwin, back):
         shortcut='Q',
         slot_fn=functools.partial(back.compute_queries, use_visual_selection=True))
     menu.newAction(
-        name='actionBatchIntraEncounterQueries',
-        text='Query: Intra Encounter',
-        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY),
+        name='actionBatchIntraOccurrenceQueries',
+        text='Query: Intra Occurrence',
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY),
     )
     menu.newAction(
         name='actionBatchVsExemplarQueries',
@@ -219,13 +219,13 @@ def setup_actions_menu(mainwin, back):
 
     menu.addSeparator()  # ---------
     menu.newAction(
-        name='actionShipProcessedEncounters',
-        text='Ship Processed Encounters',
-        tooltip='''This action will ship to WildBook any encounters that have
+        name='actionShipProcessedOccurrences',
+        text='Ship Processed Occurrences',
+        tooltip='''This action will ship to WildBook any occurrences that have
                     been marked as processed.  This can also be used to send
-                    processed encounters that failed to ship correctly.''',
+                    processed imagesets that failed to ship correctly.''',
         #shortcut='Ctrl+5',
-        slot_fn=back.send_unshipped_processed_encounters)
+        slot_fn=back.send_unshipped_processed_imagesets)
     menu.addSeparator()  # ---------
     menu.newAction(
         text='Override All Annotation Species',
@@ -238,9 +238,9 @@ def setup_actions_menu(mainwin, back):
         slot_fn=back.delete_selected_species)
     menu.addSeparator()  # ---------
     menu.newAction(
-        name='actionDeleteAllEncounters',
-        text='Delete All Encounters',
-        slot_fn=back.delete_all_encounters)
+        name='actionDeleteAllImageSets',
+        text='Delete All ImageSets',
+        slot_fn=back.delete_all_imagesets)
     menu.newAction(
         name='actionDelete_Image',
         text='Delete Image',
@@ -409,17 +409,17 @@ def setup_developer_menu(mainwin, back):
         text='Export learning data',
         slot_fn=back.dev_export_annotations)
     menu.newAction(
-        name='actionTrainWithEncounters',
-        text='Train RF with Open Encounter',
-        slot_fn=back.train_rf_with_encounter)
+        name='actionTrainWithImageSets',
+        text='Train RF with Open ImageSet',
+        slot_fn=back.train_rf_with_imageset)
     menu.addSeparator()  # ---------
-    adv_ieq_menu = mainwin.menuAdvancedIEQuery = guitool.newMenu(mainwin, menu, 'menuAdvancedIEQuery', 'Advanced Intra Encounter Queries')
+    adv_ieq_menu = mainwin.menuAdvancedIEQuery = guitool.newMenu(mainwin, menu, 'menuAdvancedIEQuery', 'Advanced Intra Occurrence Queries')
     adv_exq_menu = mainwin.menuAdvancedEXQuery = guitool.newMenu(mainwin, menu, 'menuAdvancedEXQuery', 'Advanced Vs Exemplar Queries')
     menu.addSeparator()  # ---------
     adv_ieq_menu.newAction(
-        name='actionBatchUnknownIntraEncounterQueries',
-        text='Query: Unknown Intra Encounter',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_ENC_KEY),
+        name='actionBatchUnknownIntraImageSetQueries',
+        text='Query: Unknown Intra Occurrence',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_OCCUR_KEY),
     )
     adv_exq_menu.newAction(
         name='actionBatchUnknownVsExemplarQueries',
@@ -445,8 +445,8 @@ def setup_developer_menu(mainwin, back):
     )
     adv_ieq_menu.newAction(
         name='actionQueryInEncMode1',
-        text='Query: Names Intra Encounter With OriAugment',
-        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY,
+        text='Query: Names Intra Occurrence With OriAugment',
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY,
                                   use_prioritized_name_subset=True,
                                   cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
     )
@@ -477,9 +477,9 @@ def setup_refresh_menu(mainwin, back):
         slot_fn=back.dev_cls)
     # ---------
     menu.newAction(
-        name='actionUpdateSpecialEncounters',
-        text='Refresh Special Encounters',
-        slot_fn=back.update_special_encounters)
+        name='actionUpdateSpecialImageSets',
+        text='Refresh Special ImageSets',
+        slot_fn=back.update_special_imagesets)
     # ---------
     menu.newAction(
         name='actionReconnectController',
@@ -551,8 +551,8 @@ def setup_depricated_menu(mainwin, back):
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
     menu.newAction(
-        text='Reviewed All Encounter Images',
-        slot_fn=back.encounter_reviewed_all_images)
+        text='Reviewed All Occurrence Images',
+        slot_fn=back.imageset_reviewed_all_images)
 
 if __name__ == '__main__':
     """

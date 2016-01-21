@@ -1177,10 +1177,10 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show
         \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
-        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
-        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
         python -m ibeis --tf draw_rank_cdf -t best -a timectrl --db PZ_Master1 --show
 

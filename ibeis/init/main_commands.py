@@ -90,7 +90,7 @@ def postload_commands(ibs, back):
     if params.args.delete_cache:
         ibs.delete_cache()
     if params.args.delete_cache_complete:
-        ibs.delete_cache(delete_chips=True, delete_encounters=True)
+        ibs.delete_cache(delete_chips=True, delete_imagesets=True)
     if params.args.delete_query_cache:
         ibs.delete_qres_cache()
     if params.args.set_notes is not None:
@@ -106,15 +106,15 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--ipynb'):
         back.launch_ipy_notebook()
 
-    select_eid = ut.get_argval(('--select-eid', '--eid',), None)
-    if select_eid is not None:
-        print('\n+ --- CMD SELECT EID=%r ---' % (select_eid,))
+    select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid',), None)
+    if select_imgsetid is not None:
+        print('\n+ --- CMD SELECT EID=%r ---' % (select_imgsetid,))
         # Whoa: this doesnt work. weird.
-        #back.select_eid(select_eid)
+        #back.select_imgsetid(select_imgsetid)
         # This might be the root of gui problems
-        #back.front._change_enc(select_eid)
-        back.front.select_encounter_tab(select_eid)
-        print('L ___ CMD SELECT EID=%r ___\n' % (select_eid,))
+        #back.front._change_imageset(select_imgsetid)
+        back.front.select_imageset_tab(select_imgsetid)
+        print('L ___ CMD SELECT EID=%r ___\n' % (select_imgsetid,))
     # Send commands to GUIBack
     if params.args.select_aid is not None:
         if back is not None:

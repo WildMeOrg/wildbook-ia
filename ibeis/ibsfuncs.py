@@ -999,7 +999,7 @@ def fix_and_clean_database(ibs):
         fix_zero_features(ibs)
         ibs.update_annot_visual_uuids(ibs.get_valid_aids())
         ibs.delete_empty_nids()
-        ibs.delete_empty_eids()
+        ibs.delete_empty_imgsetids()
         ibs.db.vacuum()
         print('finished fixes and consistency checks\n')
 
@@ -1051,7 +1051,7 @@ def fix_exif_data(ibs, gid_list):
 
         if False and sum(isdirty_list)  > 0:
             assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
-            #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+            #ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
             new_exif_prop_list = ut.compress(exif_prop_list_, isdirty_list)
             dirty_gid_list = ut.compress(gid_list_, isdirty_list)
             ibs_setter(dirty_gid_list, new_exif_prop_list)
@@ -1073,7 +1073,7 @@ def fix_exif_data(ibs, gid_list):
         #if False and sum(isdirty_list)  > 0:
         #    assert sum(isdirty_list) == len(isdirty_list), (
         #        'safety. remove and evaluate if hit')
-        #    #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+        #    #ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
         #    latlon_list__ = ut.compress(latlon_list_, isdirty_list)
         #    gid_list__ = ut.compress(gid_list_, isdirty_list)
         #    ibs.set_image_gps(gid_list__, latlon_list__)
@@ -1099,7 +1099,7 @@ def fix_exif_data(ibs, gid_list):
 
         #if False and sum(isdirty_list)  > 0:
         #    assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
-        #    #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+        #    #ibs.set_image_imagesettext(gid_list_, ['HASGPS'] * len(gid_list_))
         #    new_exif_prop_list = ut.compress(exif_prop_list_, isdirty_list)
         #    dirty_gid_list = ut.compress(gid_list_, isdirty_list)
         #    ibs.set_image_unixtime(dirty_gid_list, new_exif_prop_list)
@@ -1201,17 +1201,17 @@ def fix_invalid_name_texts(ibs):
 
 
 @register_ibs_method
-def copy_encounters(ibs, eid_list):
+def copy_imagesets(ibs, imgsetid_list):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        eid_list (list):
+        imgsetid_list (list):
 
     Returns:
-        list: new_eid_list
+        list: new_imgsetid_list
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-copy_encounters
+        python -m ibeis.ibsfuncs --test-copy_imagesets
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1219,30 +1219,30 @@ def copy_encounters(ibs, eid_list):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ibs.delete_all_encounters()
-        >>> ibs.compute_encounters()
-        >>> eid_list = ibs.get_valid_eids()
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences()
+        >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> # execute function
-        >>> new_eid_list = copy_encounters(ibs, eid_list)
+        >>> new_imgsetid_list = copy_imagesets(ibs, imgsetid_list)
         >>> # verify results
-        >>> result = str(ibs.get_encounter_text(new_eid_list))
-        >>> assert [2] == list(set(map(len, ibs.get_image_eids(ibs.get_valid_gids()))))
+        >>> result = str(ibs.get_imageset_text(new_imgsetid_list))
+        >>> assert [2] == list(set(map(len, ibs.get_image_imgsetids(ibs.get_valid_gids()))))
         >>> print(result)
-        >>> ibs.delete_all_encounters()
-        >>> ibs.compute_encounters()
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences()
     """
-    all_enctext_list = ibs.get_encounter_text(ibs.get_valid_eids())
-    enctext_list = ibs.get_encounter_text(eid_list)
-    new_enctext_list = [
-        ut.get_nonconflicting_string(enctext + '_Copy(%d)', set(all_enctext_list))
-        for enctext in enctext_list
+    all_imagesettext_list = ibs.get_imageset_text(ibs.get_valid_imgsetids())
+    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
+    new_imagesettext_list = [
+        ut.get_nonconflicting_string(imagesettext + '_Copy(%d)', set(all_imagesettext_list))
+        for imagesettext in imagesettext_list
     ]
-    new_eid_list = ibs.add_encounters(new_enctext_list)
-    gids_list = ibs.get_encounter_gids(eid_list)
-    #new_eid_list =
-    for gids, new_eid in zip(gids_list, new_eid_list):
-        ibs.set_image_eids(gids, [new_eid] * len(gids))
-    return new_eid_list
+    new_imgsetid_list = ibs.add_imagesets(new_imagesettext_list)
+    gids_list = ibs.get_imageset_gids(imgsetid_list)
+    #new_imgsetid_list =
+    for gids, new_imgsetid in zip(gids_list, new_imgsetid_list):
+        ibs.set_image_imgsetids(gids, [new_imgsetid] * len(gids))
+    return new_imgsetid_list
 
 
 @register_ibs_method
@@ -1271,17 +1271,17 @@ def fix_unknown_exemplars(ibs):
 @register_ibs_method
 def delete_all_recomputable_data(ibs):
     """
-    Delete all cached data including chips and encounters
+    Delete all cached data including chips and imagesets
     """
     print('[ibs] delete_all_recomputable_data')
     ibs.delete_cachedir()
     ibs.delete_all_chips()
-    ibs.delete_all_encounters()
+    ibs.delete_all_imagesets()
     print('[ibs] finished delete_all_recomputable_data')
 
 
 @register_ibs_method
-def delete_cache(ibs, delete_chips=False, delete_encounters=False):
+def delete_cache(ibs, delete_chips=False, delete_imagesets=False):
     """
     Deletes the cache directory in the database directory.
     Can specify to delete encoutners and chips as well.
@@ -1291,8 +1291,8 @@ def delete_cache(ibs, delete_chips=False, delete_encounters=False):
     ibs.ensure_directories()
     if delete_chips:
         ibs.delete_all_chips()
-    if delete_encounters:
-        ibs.delete_all_encounters()
+    if delete_imagesets:
+        ibs.delete_all_imagesets()
 
 
 @register_ibs_method
@@ -1376,11 +1376,11 @@ def delete_all_chips(ibs):
 
 
 @register_ibs_method
-def delete_all_encounters(ibs):
-    print('[ibs] delete_all_encounters')
-    all_eids = ibs._get_all_eids()
-    ibs.delete_encounters(all_eids)
-    print('[ibs] finished delete_all_encounters')
+def delete_all_imagesets(ibs):
+    print('[ibs] delete_all_imagesets')
+    all_imgsetids = ibs._get_all_imgsetids()
+    ibs.delete_imagesets(all_imgsetids)
+    print('[ibs] finished delete_all_imagesets')
 
 
 @register_ibs_method
@@ -1430,9 +1430,9 @@ def view_dbdir(ibs):
 
 
 @register_ibs_method
-def get_empty_gids(ibs, eid=None):
+def get_empty_gids(ibs, imgsetid=None):
     """ returns gid list without any chips """
-    gid_list = ibs.get_valid_gids(eid=eid)
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     nRois_list = ibs.get_image_num_annotations(gid_list)
     empty_gids = [gid for gid, nRois in zip(gid_list, nRois_list) if nRois == 0]
     return empty_gids
@@ -1820,66 +1820,66 @@ def vsstr(qaid, aid, lite=False):
 @register_ibs_method
 @ut.time_func
 #@profile
-def update_exemplar_special_encounter(ibs):
+def update_exemplar_special_imageset(ibs):
     # FIXME SLOW
-    exemplar_eid = ibs.get_encounter_eids_from_text(const.EXEMPLAR_ENCTEXT)
-    #ibs.delete_encounters(exemplar_eid)
-    ibs.delete_egr_encounter_relations(exemplar_eid)
+    exemplar_imgsetid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
+    #ibs.delete_imagesets(exemplar_imgsetid)
+    ibs.delete_gsgr_imageset_relations(exemplar_imgsetid)
     #aid_list = ibs.get_valid_aids(is_exemplar=True)
     #gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))
     gid_list = list(set(_get_exemplar_gids(ibs)))
-    #ibs.set_image_enctext(gid_list, [const.EXEMPLAR_ENCTEXT] * len(gid_list))
-    ibs.set_image_eids(gid_list, [exemplar_eid] * len(gid_list))
+    #ibs.set_image_imagesettext(gid_list, [const.EXEMPLAR_IMAGESETTEXT] * len(gid_list))
+    ibs.set_image_imgsetids(gid_list, [exemplar_imgsetid] * len(gid_list))
 
 
 @register_ibs_method
 @ut.time_func
 #@profile
-def update_reviewed_unreviewed_image_special_encounter(ibs):
+def update_reviewed_unreviewed_image_special_imageset(ibs):
     """
-    Creates encounter of images that have not been reviewed
+    Creates imageset of images that have not been reviewed
     and that have been reviewed
     """
     # FIXME SLOW
-    unreviewed_eid = ibs.get_encounter_eids_from_text(const.UNREVIEWED_IMAGE_ENCTEXT)
-    reviewed_eid = ibs.get_encounter_eids_from_text(const.REVIEWED_IMAGE_ENCTEXT)
-    #ibs.delete_encounters(eid)
-    ibs.delete_egr_encounter_relations(unreviewed_eid)
-    ibs.delete_egr_encounter_relations(reviewed_eid)
+    unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNREVIEWED_IMAGE_IMAGESETTEXT)
+    reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.REVIEWED_IMAGE_IMAGESETTEXT)
+    #ibs.delete_imagesets(imgsetid)
+    ibs.delete_gsgr_imageset_relations(unreviewed_imgsetid)
+    ibs.delete_gsgr_imageset_relations(reviewed_imgsetid)
     #gid_list = ibs.get_valid_gids(reviewed=False)
-    #ibs.set_image_enctext(gid_list, [const.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+    #ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
     unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
     reviewed_gids   = _get_reviewed_gids(ibs)  # hack
-    ibs.set_image_eids(unreviewed_gids, [unreviewed_eid] * len(unreviewed_gids))
-    ibs.set_image_eids(reviewed_gids, [reviewed_eid] * len(reviewed_gids))
+    ibs.set_image_imgsetids(unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids))
+    ibs.set_image_imgsetids(reviewed_gids, [reviewed_imgsetid] * len(reviewed_gids))
 
 
 @register_ibs_method
 @ut.time_func
 #@profile
-def update_all_image_special_encounter(ibs):
+def update_all_image_special_imageset(ibs):
     # FIXME SLOW
-    allimg_eid = ibs.get_encounter_eids_from_text(const.ALL_IMAGE_ENCTEXT)
-    #ibs.delete_encounters(allimg_eid)
+    allimg_imgsetid = ibs.get_imageset_imgsetids_from_text(const.ALL_IMAGE_IMAGESETTEXT)
+    #ibs.delete_imagesets(allimg_imgsetid)
     gid_list = ibs.get_valid_gids()
-    #ibs.set_image_enctext(gid_list, [const.ALL_IMAGE_ENCTEXT] * len(gid_list))
-    ibs.set_image_eids(gid_list, [allimg_eid] * len(gid_list))
+    #ibs.set_image_imagesettext(gid_list, [const.ALL_IMAGE_IMAGESETTEXT] * len(gid_list))
+    ibs.set_image_imgsetids(gid_list, [allimg_imgsetid] * len(gid_list))
 
 
 @register_ibs_method
-def get_special_eids(ibs):
-    get_enctext_eid = ibs.get_encounter_eids_from_text
-    special_enctext_list = [
-        const.UNGROUPED_IMAGES_ENCTEXT,
-        const.ALL_IMAGE_ENCTEXT,
-        const.UNREVIEWED_IMAGE_ENCTEXT,
-        const.REVIEWED_IMAGE_ENCTEXT,
-        const.EXEMPLAR_ENCTEXT,
+def get_special_imgsetids(ibs):
+    get_imagesettext_imgsetid = ibs.get_imageset_imgsetids_from_text
+    special_imagesettext_list = [
+        const.UNGROUPED_IMAGES_IMAGESETTEXT,
+        const.ALL_IMAGE_IMAGESETTEXT,
+        const.UNREVIEWED_IMAGE_IMAGESETTEXT,
+        const.REVIEWED_IMAGE_IMAGESETTEXT,
+        const.EXEMPLAR_IMAGESETTEXT,
     ]
-    special_eids_ = [get_enctext_eid(enctext, ensure=False)
-                     for enctext in special_enctext_list]
-    special_eids = [i for i in special_eids_ if i is not None]
-    return special_eids
+    special_imgsetids_ = [get_imagesettext_imgsetid(imagesettext, ensure=False)
+                          for imagesettext in special_imagesettext_list]
+    special_imgsetids = [i for i in special_imgsetids_ if i is not None]
+    return special_imgsetids
 
 
 @register_ibs_method
@@ -1894,40 +1894,40 @@ def get_ungrouped_gids(ibs):
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ibs.delete_all_encounters()
-        >>> ibs.compute_encounters()
-        >>> ibs.update_special_encounters()
-        >>> # Now we want to remove some images from a non-special encounter
-        >>> nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]
-        >>> print("Nonspecial EIDs %r" % nonspecial_eids)
-        >>> images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences()
+        >>> ibs.update_special_imagesets()
+        >>> # Now we want to remove some images from a non-special imageset
+        >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
+        >>> print("Nonspecial EIDs %r" % nonspecial_imgsetids)
+        >>> images_to_remove = ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0][0:1]
         >>> print("Removing %r" % images_to_remove)
-        >>> ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))
-        >>> ibs.update_special_encounters()
-        >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+        >>> ibs.unrelate_images_and_imagesets(images_to_remove,nonspecial_imgsetids[0:1] * len(images_to_remove))
+        >>> ibs.update_special_imagesets()
+        >>> ungr_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNGROUPED_IMAGES_IMAGESETTEXT)
         >>> print("Ungrouped gids %r" % ibs.get_ungrouped_gids())
-        >>> print("Ungrouped eid %d contains %r" % (ungr_eid, ibs.get_encounter_gids([ungr_eid])))
-        >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
+        >>> print("Ungrouped imgsetid %d contains %r" % (ungr_imgsetid, ibs.get_imageset_gids([ungr_imgsetid])))
+        >>> ungr_gids = ibs.get_imageset_gids([ungr_imgsetid])[0]
         >>> assert(sorted(images_to_remove) == sorted(ungr_gids))
     """
-    special_eids = set(get_special_eids(ibs))
+    special_imgsetids = set(get_special_imgsetids(ibs))
     gid_list = ibs.get_valid_gids()
-    eids_list = ibs.get_image_eids(gid_list)
-    has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
-    ungrouped_gids = ut.compress(gid_list, has_eids)
+    imgsetids_list = ibs.get_image_imgsetids(gid_list)
+    has_imgsetids = [special_imgsetids.issuperset(set(imgsetids)) for imgsetids in imgsetids_list]
+    ungrouped_gids = ut.compress(gid_list, has_imgsetids)
     return ungrouped_gids
 
 
 @register_ibs_method
 #@ut.time_func
 #@profile
-def update_ungrouped_special_encounter(ibs):
+def update_ungrouped_special_imageset(ibs):
     """
     Args:
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-update_ungrouped_special_encounter
+        python -m ibeis.ibsfuncs --test-update_ungrouped_special_imageset
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1936,39 +1936,39 @@ def update_ungrouped_special_encounter(ibs):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb9')
         >>> # execute function
-        >>> result = update_ungrouped_special_encounter(ibs)
+        >>> result = update_ungrouped_special_imageset(ibs)
         >>> # verify results
         >>> print(result)
     """
     # FIXME SLOW
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_encounter.1')
-    ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+        print('[ibsfuncs] update_ungrouped_special_imageset.1')
+    ungrouped_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNGROUPED_IMAGES_IMAGESETTEXT)
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_encounter.2')
-    ibs.delete_egr_encounter_relations(ungrouped_eid)
+        print('[ibsfuncs] update_ungrouped_special_imageset.2')
+    ibs.delete_gsgr_imageset_relations(ungrouped_imgsetid)
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_encounter.3')
+        print('[ibsfuncs] update_ungrouped_special_imageset.3')
     ungrouped_gids = ibs.get_ungrouped_gids()
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_encounter.4')
-    ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
+        print('[ibsfuncs] update_ungrouped_special_imageset.4')
+    ibs.set_image_imgsetids(ungrouped_gids, [ungrouped_imgsetid] * len(ungrouped_gids))
     if ut.VERBOSE:
-        print('[ibsfuncs] update_ungrouped_special_encounter.5')
+        print('[ibsfuncs] update_ungrouped_special_imageset.5')
 
 
 @register_ibs_method
 @ut.time_func
 #@profile
-def update_special_encounters(ibs):
+def update_special_imagesets(ibs):
     # FIXME SLOW
-    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.ensure_attr(
-        'use_more_special_encounters', False)
-    if USE_MORE_SPECIAL_ENCOUNTERS:
-        #ibs.update_reviewed_unreviewed_image_special_encounter()
-        ibs.update_exemplar_special_encounter()
-        ibs.update_all_image_special_encounter()
-    ibs.update_ungrouped_special_encounter()
+    USE_MORE_SPECIAL_IMAGESETS = ibs.cfg.other_cfg.ensure_attr(
+        'use_more_special_imagesets', False)
+    if USE_MORE_SPECIAL_IMAGESETS:
+        #ibs.update_reviewed_unreviewed_image_special_imageset()
+        ibs.update_exemplar_special_imageset()
+        ibs.update_all_image_special_imageset()
+    ibs.update_ungrouped_special_imageset()
 
 
 def _get_unreviewed_gids(ibs):
@@ -1995,28 +1995,28 @@ def _get_reviewed_gids(ibs):
     return gid_list
 
 
-def _get_gids_in_eid(ibs, eid):
+def _get_gids_in_imgsetid(ibs, imgsetid):
     gid_list = ibs.db.executeone(
         '''
         SELECT image_rowid
-        FROM {EG_RELATION_TABLE}
+        FROM {GSG_RELATION_TABLE}
         WHERE
-            encounter_rowid==?
+            imageset_rowid==?
         '''.format(**const.__dict__),
-        params=(eid,))
+        params=(imgsetid,))
     return gid_list
 
 
-def _get_dirty_reviewed_gids(ibs, eid):
+def _get_dirty_reviewed_gids(ibs, imgsetid):
     gid_list = ibs.db.executeone(
         '''
         SELECT image_rowid
-        FROM {EG_RELATION_TABLE}
+        FROM {GSG_RELATION_TABLE}
         WHERE
-            encounter_rowid==? AND
+            imageset_rowid==? AND
             image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE} WHERE image_toggle_reviewed=1)
         '''.format(**const.__dict__),
-        params=(eid,))
+        params=(imgsetid,))
     return gid_list
 
 
@@ -2173,21 +2173,21 @@ def print_config_table(ibs, **kwargs):
 
 
 @register_ibs_method
-def print_encounter_table(ibs, **kwargs):
-    """ Dumps encounter table to stdout
+def print_imageset_table(ibs, **kwargs):
+    """ Dumps imageset table to stdout
 
     Kwargs:
         exclude_columns (list):
     """
     print('\n')
-    print(ibs.db.get_table_csv(const.ENCOUNTER_TABLE, **kwargs))
+    print(ibs.db.get_table_csv(const.IMAGESET_TABLE, **kwargs))
 
 
 @register_ibs_method
 def print_egpairs_table(ibs, **kwargs):
     """ Dumps egpairs table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(const.EG_RELATION_TABLE, **kwargs))
+    print(ibs.db.get_table_csv(const.GSG_RELATION_TABLE, **kwargs))
 
 
 @register_ibs_method
@@ -2249,16 +2249,16 @@ def is_aid_unknown(ibs, aid_list):
     return ibs.is_nid_unknown(nid_list)
 
 
-def make_enctext_list(eid_list, enc_cfgstr):
+def make_imagesettext_list(imgsetid_list, occur_cfgstr):
     # DEPRICATE
-    enctext_list = [str(eid) + enc_cfgstr for eid in eid_list]
-    return enctext_list
+    imagesettext_list = [str(imgsetid) + occur_cfgstr for imgsetid in imgsetid_list]
+    return imagesettext_list
 
 
 @register_ibs_method
-def batch_rename_consecutive_via_species(ibs, eid=None):
+def batch_rename_consecutive_via_species(ibs, imgsetid=None):
     """ actually sets the new consectuive names"""
-    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(eid=eid)
+    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(imgsetid=imgsetid)
 
     def get_conflict_names(ibs, new_nid_list, new_name_list):
         other_nid_list = list(set(ibs.get_valid_nids()) - set(new_nid_list))
@@ -2277,7 +2277,7 @@ def batch_rename_consecutive_via_species(ibs, eid=None):
 
 
 @register_ibs_method
-def get_consecutive_newname_list_via_species(ibs, eid=None):
+def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
     """
     Just creates the nams, but does not set them
 
@@ -2295,8 +2295,8 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs._clean_species()
         >>> # execute function
-        >>> eid = None
-        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, eid=eid)
+        >>> imgsetid = None
+        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
         >>> result = ut.list_str((new_nid_list, new_name_list))
         >>> # verify results
         >>> print(result)
@@ -2312,22 +2312,22 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs._clean_species()
-        >>> ibs.delete_all_encounters()
-        >>> ibs.compute_encounters()
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences()
         >>> # execute function
-        >>> eid = ibs.get_valid_eids()[1]
-        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, eid=eid)
+        >>> imgsetid = ibs.get_valid_imgsetids()[1]
+        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
         >>> result = ut.list_str((new_nid_list, new_name_list))
         >>> # verify results
         >>> print(result)
         (
             [4, 5, 6, 7],
-            ['IBEIS_UNKNOWN_Encounter_1_0001', 'IBEIS_GZ_Encounter_1_0001', 'IBEIS_PB_Encounter_1_0001', 'IBEIS_UNKNOWN_Encounter_1_0002'],
+            ['IBEIS_UNKNOWN_Occurrence_1_0001', 'IBEIS_GZ_Occurrence_1_0001', 'IBEIS_PB_Occurrence_1_0001', 'IBEIS_UNKNOWN_Occurrence_1_0002'],
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
     ibs.delete_empty_nids()
-    nid_list = ibs.get_valid_nids(eid=eid)
+    nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
     #name_list = ibs.get_name_texts(nid_list)
     aids_list = ibs.get_name_aids(nid_list)
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
@@ -2340,11 +2340,11 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         return _code2_count[code]
 
     location_text = ibs.cfg.other_cfg.location_for_names
-    if eid is not None:
-        enc_text = ibs.get_encounter_text(eid)
-        enc_text = enc_text.replace(' ', '_').replace('\'', '').replace('"', '')
+    if imgsetid is not None:
+        imgset_text = ibs.get_imageset_text(imgsetid)
+        imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
         new_name_list = [
-            '%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code))
+            '%s_%s_%s_%04d' % (location_text, code, imgset_text, get_next_index(code))
             for code in code_list]
     else:
         new_name_list = [
@@ -2482,13 +2482,13 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
 
 def hack(ibs):
-    #ibs.get_encounter_text(eid_list)
-    #eid = ibs.get_encounter_eids_from_text("NNP GZC Car '1PURPLE'")
+    #ibs.get_imageset_text(imgsetid_list)
+    #imgsetid = ibs.get_imageset_imgsetids_from_text("NNP GZC Car '1PURPLE'")
 
-    def get_name_linked_encounters_by_eid(ibs, eid):
+    def get_name_linked_imagesets_by_imgsetid(ibs, imgsetid):
         import utool as ut
-        #gid_list = ibs.get_encounter_gids(eid)
-        aid_list_ = ibs.get_encounter_aids(eid)
+        #gid_list = ibs.get_imageset_gids(imgsetid)
+        aid_list_ = ibs.get_imageset_aids(imgsetid)
         aid_list = ut.filterfalse_items(aid_list_, ibs.is_aid_unknown(aid_list_))
 
         #all(ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid_list))
@@ -2496,20 +2496,20 @@ def hack(ibs):
         #assert ut.flatten(aids_list2) == aids_list1
         nid_list = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)))
         # remove unknown annots
-        name_eids = ibs.get_name_eids(nid_list)
-        name_enctexts = ibs.get_encounter_text(name_eids)
-        return name_enctexts
+        name_imgsetids = ibs.get_name_imgsetids(nid_list)
+        name_imagesettexts = ibs.get_imageset_text(name_imgsetids)
+        return name_imagesettexts
 
-    eid_list = ibs.get_valid_eids()
-    linked_enctexts = [get_name_linked_encounters_by_eid(ibs, eid) for eid in eid_list]
-    enctext_list = ibs.get_encounter_text(eid_list)
-    print(ut.dict_str(dict(zip(eid_list, linked_enctexts))))
-    print(ut.align(ut.dict_str(dict(zip(enctext_list, linked_enctexts))), ':'))
-    print(ut.align(ut.dict_str(dict(zip(enctext_list, eid_list)), sorted_=True), ':'))
+    imgsetid_list = ibs.get_valid_imgsetids()
+    linked_imagesettexts = [get_name_linked_imagesets_by_imgsetid(ibs, imgsetid) for imgsetid in imgsetid_list]
+    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
+    print(ut.dict_str(dict(zip(imgsetid_list, linked_imagesettexts))))
+    print(ut.align(ut.dict_str(dict(zip(imagesettext_list, linked_imagesettexts))), ':'))
+    print(ut.align(ut.dict_str(dict(zip(imagesettext_list, imgsetid_list)), sorted_=True), ':'))
 
     #if False:
-    #    eids_with_bad_names = [6, 7, 16]
-    #    bad_nids = ut.unique_keep_order(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
+    #    imgsetids_with_bad_names = [6, 7, 16]
+    #    bad_nids = ut.unique_keep_order(ut.flatten(ibs.get_imageset_nids(imgsetids_with_bad_names)))
 
 
 def draw_thumb_helper(tup):
@@ -3598,7 +3598,7 @@ def detect_false_positives(ibs):
 
 @register_ibs_method
 def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
-                                             exemplars_per_view=None, eid=None,
+                                             exemplars_per_view=None, imgsetid=None,
                                              dry_run=False, verbose=False):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
@@ -3680,7 +3680,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> ibs = ibeis.opendb('testdb2')
         >>> dry_run = True
         >>> verbose = False
-        >>> eid = None
+        >>> imgsetid = None
         >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
         >>> old_flag_list = ibs.get_annot_exemplar_flags(new_aid_list)
         >>> new_exemplar_aids = ut.compress(new_aid_list, new_flag_list)
@@ -3800,7 +3800,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     if exemplars_per_view is None:
         exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
     if aid_list is None:
-        aid_list = ibs.get_valid_aids(eid=eid)
+        aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
     HACK = ibs.cfg.other_cfg.enable_custom_filter
     #True
     if not HACK:
@@ -4055,23 +4055,6 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
     return new_aid_list, new_flag_list
 
 
-#@register_ibs_method
-#def query_enc_names_vs_exemplars(ibs, exemplars_per_view=2, eid=None):
-#    """
-
-#    """
-#    aid_list = ibs.get_valid_aids(eid=eid)
-#    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
-#        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
-#    qaids = ut.compress(new_aid_list, new_flag_list)
-#    daids = ibs.get_valid_aids(is_exemplar=True, minqual='poor')
-#    cfgdict = dict(can_match_samename=False)
-#    #, use_k_padding=True)
-#    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
-#    qres_list = ibs.query_chips(qreq_=qreq_)
-#    return qres_list
-
-
 def detect_join_cases(ibs):
     r"""
     Args:
@@ -4295,10 +4278,10 @@ def check_chip_existence(ibs, aid_list=None):
 
 
 @register_ibs_method
-def is_special_encounter(ibs, eid_list):
-    enctext_list = ibs.get_encounter_text(eid_list)
-    isspecial_list = [str(enctext) in set(const.SPECIAL_ENCOUNTER_LABELS)
-                      for enctext in enctext_list]
+def is_special_imageset(ibs, imgsetid_list):
+    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
+    isspecial_list = [str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
+                      for imagesettext in imagesettext_list]
     return isspecial_list
 
 
@@ -4731,50 +4714,50 @@ def get_name_max_speed(ibs, nid_list):
 
 
 @register_ibs_method
-def make_next_encounter_text(ibs):
+def make_next_imageset_text(ibs):
     """
-    Creates what the next encounter name would be but does not add it to the database
+    Creates what the next imageset name would be but does not add it to the database
 
     Args:
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-make_next_encounter_text
+        python -m ibeis.ibsfuncs --test-make_next_imageset_text
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> new_enctext = make_next_encounter_text(ibs)
-        >>> result = new_enctext
+        >>> new_imagesettext = make_next_imageset_text(ibs)
+        >>> result = new_imagesettext
         >>> print(result)
-        New Encounter 0
+        New ImageSet 0
     """
-    eid_list = ibs.get_valid_eids()
-    old_enctext_list = ibs.get_encounter_text(eid_list)
-    new_enctext = ut.get_nonconflicting_string('New Encounter %d', old_enctext_list)
-    return new_enctext
+    imgsetid_list = ibs.get_valid_imgsetids()
+    old_imagesettext_list = ibs.get_imageset_text(imgsetid_list)
+    new_imagesettext = ut.get_nonconflicting_string('New ImageSet %d', old_imagesettext_list)
+    return new_imagesettext
 
 
 @register_ibs_method
-def add_next_encounter(ibs):
+def add_next_imageset(ibs):
     """
-    Adds a new encounter to the database
+    Adds a new imageset to the database
     """
-    new_enctext = ibs.make_next_encounter_text()
-    (new_eid,) = ibs.add_encounters([new_enctext])
-    return new_eid
+    new_imagesettext = ibs.make_next_imageset_text()
+    (new_imgsetid,) = ibs.add_imagesets([new_imagesettext])
+    return new_imgsetid
 
 
 @register_ibs_method
-def create_new_encounter_from_images(ibs, gid_list, new_eid=None):
+def create_new_imageset_from_images(ibs, gid_list, new_imgsetid=None):
     r"""
     Args:
         gid_list (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-create_new_encounter_from_images
+        python -m ibeis.ibsfuncs --test-create_new_imageset_from_images
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -4783,36 +4766,36 @@ def create_new_encounter_from_images(ibs, gid_list, new_eid=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[::2]
         >>> # execute function
-        >>> new_eid = create_new_encounter_from_images(ibs, gid_list)
+        >>> new_imgsetid = create_new_imageset_from_images(ibs, gid_list)
         >>> # verify results
-        >>> result = new_eid
+        >>> result = new_imgsetid
         >>> print(result)
     """
-    if new_eid is None:
-        new_eid = ibs.add_next_encounter()
-    eid_list = [new_eid] * len(gid_list)
-    ibs.set_image_eids(gid_list, eid_list)
-    return new_eid
+    if new_imgsetid is None:
+        new_imgsetid = ibs.add_next_imageset()
+    imgsetid_list = [new_imgsetid] * len(gid_list)
+    ibs.set_image_imgsetids(gid_list, imgsetid_list)
+    return new_imgsetid
 
 
 @register_ibs_method
-def new_encounters_from_images(ibs, gids_list):
+def new_imagesets_from_images(ibs, gids_list):
     r"""
     Args:
         gids_list (list):
     """
-    eid_list = [ibs.create_new_encounter_from_images(gids) for gids in gids_list]
-    return eid_list
+    imgsetid_list = [ibs.create_new_imageset_from_images(gids) for gids in gids_list]
+    return imgsetid_list
 
 
 @register_ibs_method
-def create_new_encounter_from_names(ibs, nid_list):
+def create_new_imageset_from_names(ibs, nid_list):
     r"""
     Args:
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-create_new_encounter_from_names
+        python -m ibeis.ibsfuncs --test-create_new_imageset_from_names
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4821,18 +4804,18 @@ def create_new_encounter_from_names(ibs, nid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()[0:2]
         >>> # execute function
-        >>> new_eid = ibs.create_new_encounter_from_names(nid_list)
+        >>> new_imgsetid = ibs.create_new_imageset_from_names(nid_list)
         >>> # clean up
-        >>> ibs.delete_encounters(new_eid)
+        >>> ibs.delete_imagesets(new_imgsetid)
         >>> # verify results
-        >>> result = new_eid
+        >>> result = new_imgsetid
         >>> print(result)
     """
     aids_list = ibs.get_name_aids(nid_list)
     gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
     gid_list = ut.flatten(gids_list)
-    new_eid = ibs.create_new_encounter_from_images(gid_list)
-    return new_eid
+    new_imgsetid = ibs.create_new_imageset_from_images(gid_list)
+    return new_imgsetid
 
 
 @register_ibs_method
@@ -5684,7 +5667,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
     import numpy as np
     import warnings
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) imageseted')
         warnings.filterwarnings('ignore', r'Mean of empty slice')
         warnings.filterwarnings('ignore', r'Degrees of freedom <= 0 for slice.')
 
@@ -6046,19 +6029,19 @@ def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
 
 
 @register_ibs_method
-def get_encounter_expanded_aids(ibs, aid_list=None):
+def get_imageset_expanded_aids(ibs, aid_list=None):
     """
     Example:
         >>> import ibeis
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='lynx')
-        >>> a = ['default:hack_encounter=True', ]
+        >>> a = ['default:hack_imageset=True', ]
         >>> from ibeis.expt import experiment_helpers
         >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, [a[0]], use_cache=False)
         >>> aid_list = ibs.get_valid_aids()
         >>> filter_kw = dict(been_adjusted=True)
         >>> aid_list = ibs.filter_annots_general(aid_list, filter_kw)
-        >>> qaid_list, daid_list = ibs.get_encounter_expanded_aids()
+        >>> qaid_list, daid_list = ibs.get_imageset_expanded_aids()
         >>> #ibs.query_chips(qaid_list, daid_list)
         >>> testres = ibs.execute_pipeline_test(qaid_list, daid_list)
         >>> testres.print_perent_identification_success()
@@ -6066,12 +6049,12 @@ def get_encounter_expanded_aids(ibs, aid_list=None):
     if aid_list is None:
         filter_kw = dict(been_adjusted=True)
         aid_list = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw)
-    eid_list = ibs.get_annot_primary_encounter(aid_list)
+    imgsetid_list = ibs.get_annot_primary_imageset(aid_list)
     nid_list = ibs.get_annot_nids(aid_list)
-    multiprop2_aids = ut.hierarchical_group_items(aid_list, [nid_list, eid_list])
+    multiprop2_aids = ut.hierarchical_group_items(aid_list, [nid_list, imgsetid_list])
     daid_list = []
     qaid_list = []
-    for eid, nid2_aids in multiprop2_aids.iteritems():
+    for imgsetid, nid2_aids in multiprop2_aids.iteritems():
         if len(nid2_aids) == 1:
             daid_list.extend(ut.flatten(list(nid2_aids.values())))
         else:
@@ -6086,15 +6069,15 @@ def get_encounter_expanded_aids(ibs, aid_list=None):
 
 
 @register_ibs_method
-def get_annot_primary_encounter(ibs, aid_list=None):
+def get_annot_primary_imageset(ibs, aid_list=None):
     # TODO: make it better
-    eids_list = ibs.get_annot_eids(aid_list)
-    flags_list = ibs.unflat_map(ibs.is_special_encounter, eids_list)
-    # GET ENCOUNTER QUERY STRUCTURE DATA
+    imgsetids_list = ibs.get_annot_imgsetids(aid_list)
+    flags_list = ibs.unflat_map(ibs.is_special_imageset, imgsetids_list)
+    # GET IMAGESET QUERY STRUCTURE DATA
     flags_list = ibs.unflat_map(ut.not_list, flags_list)
-    eids_list = ut.list_zipcompress(eids_list, flags_list)
-    eid_list = ut.get_list_column(eids_list, 0)
-    return eid_list
+    imgsetids_list = ut.list_zipcompress(imgsetids_list, flags_list)
+    imgsetid_list = ut.get_list_column(imgsetids_list, 0)
+    return imgsetid_list
 
 
 @register_ibs_method

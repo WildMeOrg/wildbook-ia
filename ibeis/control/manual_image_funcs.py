@@ -5,7 +5,7 @@ IBEISController instance.
 
 
 CommandLine:
-    # Autogenerate Encounter Functions
+    # Autogenerate ImageSet Functions
     # key should be the table name
     # the write flag makes a file, but dont use that
     python -m ibeis.templates.template_generator --key image --onlyfn
@@ -86,11 +86,11 @@ def _get_all_image_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
-def get_valid_gids(ibs, eid=None, require_unixtime=False, require_gps=None, reviewed=None):
+def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None, reviewed=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        eid (None):
+        imgsetid (None):
         require_unixtime (bool):
         reviewed (None):
 
@@ -110,21 +110,21 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, require_gps=None, revi
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> eid = None
+        >>> imgsetid = None
         >>> require_unixtime = False
         >>> reviewed = None
         >>> # execute function
-        >>> gid_list = get_valid_gids(ibs, eid, require_unixtime, reviewed)
+        >>> gid_list = get_valid_gids(ibs, imgsetid, require_unixtime, reviewed)
         >>> # verify results
         >>> result = str(gid_list)
         >>> print(result)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     """
-    if eid is None:
+    if imgsetid is None:
         gid_list = ibs._get_all_gids()
     else:
-        assert not ut.isiterable(eid)
-        gid_list = ibs.get_encounter_gids(eid)
+        assert not ut.isiterable(imgsetid)
+        gid_list = ibs.get_imageset_gids(imgsetid)
     if require_unixtime:
         # Remove images without timestamps
         unixtime_list = ibs.get_image_unixtime(gid_list)
@@ -169,7 +169,7 @@ def get_image_gid(ibs, gid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/valid_rowids/', methods=['GET'])
-def get_valid_image_rowids(ibs, eid=None, require_unixtime=False, reviewed=None):
+def get_valid_image_rowids(ibs, imgsetid=None, require_unixtime=False, reviewed=None):
     r"""
     alias
 
@@ -177,7 +177,7 @@ def get_valid_image_rowids(ibs, eid=None, require_unixtime=False, reviewed=None)
         Method: GET
         URL:    /api/image/valid_rowids/
     """
-    return get_valid_gids(ibs, eid, require_unixtime, reviewed)
+    return get_valid_gids(ibs, imgsetid, require_unixtime, reviewed)
 
 
 @register_ibs_method
@@ -196,7 +196,7 @@ def get_num_images(ibs, **kwargs):
 
 @register_ibs_method
 @accessor_decors.adder
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_imgs_reviewed_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/path', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None,
                sanitize=True, **kwargs):
@@ -489,7 +489,7 @@ def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs)
 
 @register_ibs_method
 @accessor_decors.setter
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_imgs_reviewed_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/reviewed/', methods=['PUT'])
 def set_image_reviewed(ibs, gid_list, reviewed_list):
     r"""
@@ -584,37 +584,37 @@ def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/enctext/', methods=['PUT'])
-def set_image_enctext(ibs, gid_list, enctext_list):
+@register_api('/api/image/imagesettext/', methods=['PUT'])
+def set_image_imagesettext(ibs, gid_list, imagesettext_list):
     r"""
     Sets the encoutertext of each image
 
     RESTful:
         Method: PUT
-        URL:    /api/image/enctext/
+        URL:    /api/image/imagesettext/
     """
     # FIXME: Slow and weird
     if ut.VERBOSE:
-        print('[ibs] setting %r image encounter ids (from text)' % len(gid_list))
-    eid_list = ibs.add_encounters(enctext_list)
-    ibs.set_image_eids(gid_list, eid_list)
+        print('[ibs] setting %r image imageset ids (from text)' % len(gid_list))
+    imgsetid_list = ibs.add_imagesets(imagesettext_list)
+    ibs.set_image_imgsetids(gid_list, imgsetid_list)
 
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/image/eids/', methods=['PUT'])
-def set_image_eids(ibs, gid_list, eid_list):
+@register_api('/api/image/imgsetids/', methods=['PUT'])
+def set_image_imgsetids(ibs, gid_list, imgsetid_list):
     r"""
     Sets the encoutertext of each image
 
     RESTful:
         Method: PUT
-        URL:    /api/image/eids/
+        URL:    /api/image/imgsetids/
     """
     if ut.VERBOSE:
-        print('[ibs] setting %r image encounter ids' % len(gid_list))
-    egrid_list = ibs.add_image_relationship(gid_list, eid_list)
-    del egrid_list
+        print('[ibs] setting %r image imageset ids' % len(gid_list))
+    gsgrid_list = ibs.add_image_relationship(gid_list, imgsetid_list)
+    del gsgrid_list
 
 
 @register_ibs_method
@@ -1289,38 +1289,38 @@ def get_image_species_rowids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/image/eids/', methods=['GET'])
-def get_image_eids(ibs, gid_list):
+@register_api('/api/image/imgsetids/', methods=['GET'])
+def get_image_imgsetids(ibs, gid_list):
     r"""
     Returns:
-        list_ (list): a list of encounter ids for each image by gid
+        list_ (list): a list of imageset ids for each image by gid
 
     RESTful:
         Method: GET
-        URL:    /api/image/eids/
+        URL:    /api/image/imgsetids/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    colnames = ('encounter_rowid',)
-    eids_list = ibs.db.get(const.EG_RELATION_TABLE, colnames, gid_list,
+    colnames = ('imageset_rowid',)
+    imgsetids_list = ibs.db.get(const.GSG_RELATION_TABLE, colnames, gid_list,
                            id_colname='image_rowid', unpack_scalars=False)
-    return eids_list
+    return imgsetids_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/image/enctext/', methods=['GET'])
-def get_image_enctext(ibs, gid_list):
+@register_api('/api/image/imagesettext/', methods=['GET'])
+def get_image_imagesettext(ibs, gid_list):
     r"""
     Returns:
-        list_ (list): a list of enctexts for each image by gid
+        list_ (list): a list of imagesettexts for each image by gid
 
     RESTful:
         Method: GET
-        URL:    /api/image/enctext/
+        URL:    /api/image/imagesettext/
     """
-    eids_list = ibs.get_image_eids(gid_list)
-    enctext_list = ibs.unflat_map(ibs.get_encounter_text, eids_list)
-    return enctext_list
+    imgsetids_list = ibs.get_image_imgsetids(gid_list)
+    imagesettext_list = ibs.unflat_map(ibs.get_imageset_text, imgsetids_list)
+    return imagesettext_list
 
 
 ANNOT_ROWID = 'annot_rowid'
@@ -1469,7 +1469,7 @@ def get_image_num_annotations(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.deleter
-@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_imgs_reviewed_str'])
+@accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/', methods=['DELETE'])
 def delete_images(ibs, gid_list, trash_images=True):
     r"""
@@ -1541,9 +1541,9 @@ def delete_images(ibs, gid_list, trash_images=True):
     # TODO: pass flag to not delete them in delete_annots
     ibs.delete_image_thumbs(gid_list)
     ibs.db.delete_rowids(const.IMAGE_TABLE, gid_list)
-    #egrid_list = ut.flatten(ibs.get_image_egrids(gid_list))
-    #ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)
-    ibs.db.delete(const.EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
+    #gsgrid_list = ut.flatten(ibs.get_image_gsgrids(gid_list))
+    #ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
+    ibs.db.delete(const.GSG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
 
 @register_ibs_method

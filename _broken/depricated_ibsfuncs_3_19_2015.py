@@ -245,12 +245,12 @@ def GreatZebraCount_mergedbs():
 
 
 @__injectable
-def export_encounters(ibs, eid_list, new_dbdir=None):
-    gid_list = list(set(ut.flatten(ibs.get_encounter_gids(eid_list))))
+def export_imagesets(ibs, imgsetid_list, new_dbdir=None):
+    gid_list = list(set(ut.flatten(ibs.get_imageset_gids(imgsetid_list))))
     if new_dbdir is None:
         from ibeis.dev import sysres
         dbname = ibs.get_dbname()
-        enc_texts = ', '.join(ibs.get_encounter_enctext(eid_list)).replace(' ', '-')
+        enc_texts = ', '.join(ibs.get_imageset_imagesettext(imgsetid_list)).replace(' ', '-')
         nimg_text = 'nImg=%r' % len(gid_list)
         new_dbname = dbname + '_' + enc_texts + '_' + nimg_text
         workdir = sysres.get_workdir()
@@ -355,21 +355,21 @@ def DEPRICATE_rebase_images(ibs, new_path, gid_list=None):
 #    delete_gid_flag_list = [not any(flags) for flags in flags_list]
 #    delete_gid_list = ut.filter_items(gid_list, delete_gid_flag_list)
 #    ibs.delete_images(delete_gid_list)
-#    delete_empty_eids(ibs)
+#    delete_empty_imgsetids(ibs)
 #    delete_empty_nids(ibs)
 
 
 #@__injectable
 #@ut.time_func
 #@profile
-#def update_reviewed_image_encounter(ibs):
+#def update_reviewed_image_imageset(ibs):
 #    # FIXME SLOW
-#    #ibs.delete_encounters(eid)
-#    ibs.delete_egr_encounter_relations(eid)
+#    #ibs.delete_imagesets(imgsetid)
+#    ibs.delete_gsgr_imageset_relations(imgsetid)
 #    #gid_list = ibs.get_valid_gids(reviewed=True)
 #    gid_list = _get_reviewed_gids(ibs)  # hack
-#    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
-#    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
+#    #ibs.set_image_imagesettext(gid_list, [const.REVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
+#    ibs.set_image_imgsetids(gid_list, [imgsetid] * len(gid_list))
 
 
 

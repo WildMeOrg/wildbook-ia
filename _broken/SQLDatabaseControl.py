@@ -883,8 +883,8 @@ class SQLDatabaseController(object):
             if has_superkeys:
                 # Add in superkeys to constraints
                 #SELECT image_rowid
-                #FROM encounter_image_relationship
-                #WHERE image_rowid=? AND encounter_rowid=?
+                #FROM imageset_image_relationship
+                #WHERE image_rowid=? AND imageset_rowid=?
                 constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
                 assert isinstance(superkeys, list), (
                     'must be list got %r, superkeys=%r' % (type(superkeys), superkeys))
@@ -1931,7 +1931,7 @@ class SQLDatabaseController(object):
             >>> ibs_src.fix_invalid_annotmatches()
             >>> ibs_dst = ibeis.opendb(dbdir='test_sql_subexport_dst2', allow_newdir=True, delete_ibsdir=True)
             >>> ibs_src.ensure_contributor_rowids()
-            >>> #ibs_src.delete_all_encounters()
+            >>> #ibs_src.delete_all_imagesets()
             >>> # build test data
             >>> db = ibs_dst.db
             >>> db_src = ibs_src.db
@@ -1942,7 +1942,7 @@ class SQLDatabaseController(object):
             ...                  const.NAME_TABLE: ibs_src.get_annot_nids(aid_subset),
             ...                  const.IMAGE_TABLE: ibs_src.get_annot_gids(aid_subset),
             ...                  const.ANNOTMATCH_TABLE: [],
-            ...                  const.EG_RELATION_TABLE: [],
+            ...                  const.GSG_RELATION_TABLE: [],
             ...                  }
             >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets)
         """

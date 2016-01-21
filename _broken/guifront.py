@@ -19,7 +19,7 @@ VERBOSE = utool.get_flag(('--verbose', '--verbose-front', '--vf'))
 
 
 UID_TYPE = rowidtables.UID_TYPE
-ENC_TYPE = str  # encounters are ided with enctext right now
+ENC_TYPE = str  # imagesets are ided with imagesettext right now
 QUTF8      = QtGui.QApplication.UnicodeUTF8
 QTRANSLATE = QtGui.QApplication.translate
 
@@ -104,9 +104,9 @@ def _tee_logging(front):
 #=================
 
 
-def update_tabwidget_text(front, tblname, text, enctext=''):
-    tabTable  = front.get_tabWidget(enctext)
-    tabWidget = front.get_tabView(tblname, enctext)
+def update_tabwidget_text(front, tblname, text, imagesettext=''):
+    tabTable  = front.get_tabWidget(imagesettext)
+    tabWidget = front.get_tabView(tblname, imagesettext)
     index     = tabTable.indexOf(tabWidget)
     tab_text  = QTRANSLATE(front.objectName(), text, None, QUTF8)
     tabTable.setTabText(index, tab_text)
@@ -198,12 +198,12 @@ class MainWindowFrontend(QtGui.QMainWindow):
                      col_types,
                      row_list,
                      datatup_list,
-                     enctext=''):
+                     imagesettext=''):
         tblname = str(tblname)
-        enctext = str(enctext)
-        #print('populate_tbl(%r, %r)' % (tblname, enctext,))
+        imagesettext = str(imagesettext)
+        #print('populate_tbl(%r, %r)' % (tblname, imagesettext,))
         try:
-            tbl = front.get_tabTable(tblname, enctext)
+            tbl = front.get_tabTable(tblname, imagesettext)
         except KeyError:
             print('tbl not found')
             return
@@ -221,29 +221,29 @@ class MainWindowFrontend(QtGui.QMainWindow):
         # Set the tab text to show the number of items listed
         fancy_tablename = rowidtables.fancy_tablenames[tblname]
         text = fancy_tablename + ' : %d' % len(row_list)
-        update_tabwidget_text(front, tblname, text, enctext)
+        update_tabwidget_text(front, tblname, text, imagesettext)
 
     def isItemEditable(self, item):
         return int(Qt.ItemIsEditable & item.flags()) == int(Qt.ItemIsEditable)
 
     #====================
-    # Encounter Widget / View / Table getters
+    # ImageSet Widget / View / Table getters
     #====================
 
-    def get_tabWidget(front, enctext):
-        """ Returns the widget of the <enctext> encounter tab """
-        tabWidget  = front.ui.__dict__[str('tablesTabWidget' + enctext)]
+    def get_tabWidget(front, imagesettext):
+        """ Returns the widget of the <imagesettext> imageset tab """
+        tabWidget  = front.ui.__dict__[str('tablesTabWidget' + imagesettext)]
         return tabWidget
 
-    def get_tabView(front, tblname, enctext):
+    def get_tabView(front, tblname, imagesettext):
         """ Returns the view containting the rowid table """
-        view = front.ui.__dict__[str(tblname + '_view' + enctext)]
+        view = front.ui.__dict__[str(tblname + '_view' + imagesettext)]
         return view
 
-    def get_tabTable(front, tblname, enctext):
+    def get_tabTable(front, tblname, imagesettext):
         """ tblname in ['gids', 'rids', 'nids', 'qres'] """
         try:
-            tableWidget = front.ui.__dict__[str(tblname + '_TBL' + enctext)]
+            tableWidget = front.ui.__dict__[str(tblname + '_TBL' + imagesettext)]
         except KeyError:
             raise
         return tableWidget
@@ -265,12 +265,12 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_str(front, tbl, row, col):
         return str(tbl.item(row, col).text())
 
-    def get_tbl_enctext(front, tbl):
+    def get_tbl_imagesettext(front, tbl):
         objectName = str(tbl.objectName())
         tblpos  = objectName.find('_TBL')
         #tblname = objectName[0:tblpos]
-        enctext = objectName[tblpos + 4:]
-        return enctext
+        imagesettext = objectName[tblpos + 4:]
+        return imagesettext
 
     def get_header_val(front, tbl, header, row):
         # RCOS TODO: This is hacky. These just need to be
@@ -278,9 +278,9 @@ class MainWindowFrontend(QtGui.QMainWindow):
         objectName = str(tbl.objectName())
         tblpos  = objectName.find('_TBL')
         tblname = objectName[0:tblpos]
-        #enctext = tblname[tblpos + 4, :]
-        #print(enctext)
-        #tblname, enctext = str(tbl.objectName()).split('_TBL')
+        #imagesettext = tblname[tblpos + 4, :]
+        #print(imagesettext)
+        #tblname, imagesettext = str(tbl.objectName()).split('_TBL')
         col = rowidtables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
@@ -341,26 +341,26 @@ class MainWindowFrontend(QtGui.QMainWindow):
     @rowid_tbl_clicked
     def gids_tbl_clicked(front, row, col, tbl):
         sel_gid = UID_TYPE(front.get_header_val(tbl, 'gid', row))
-        enctext = front.get_tbl_enctext(tbl)
-        front.selectGidSignal.emit(sel_gid, enctext)
+        imagesettext = front.get_tbl_imagesettext(tbl)
+        front.selectGidSignal.emit(sel_gid, imagesettext)
 
     @rowid_tbl_clicked
     def rids_tbl_clicked(front, row, col, tbl):
         sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
-        enctext = front.get_tbl_enctext(tbl)
-        front.selectRidSignal.emit(sel_rid, enctext)
+        imagesettext = front.get_tbl_imagesettext(tbl)
+        front.selectRidSignal.emit(sel_rid, imagesettext)
 
     @rowid_tbl_clicked
     def qres_tbl_clicked(front, row, col, tbl):
         sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
-        enctext = front.get_tbl_enctext(tbl)
-        front.selectQResSignal.emit(sel_rid, enctext)
+        imagesettext = front.get_tbl_imagesettext(tbl)
+        front.selectQResSignal.emit(sel_rid, imagesettext)
 
     @rowid_tbl_clicked
     def nids_tbl_clicked(front, row, col, tbl):
         sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))
-        enctext = front.get_tbl_enctext(tbl)
-        front.selectNidSignal.emit(sel_nid, enctext)
+        imagesettext = front.get_tbl_imagesettext(tbl)
+        front.selectNidSignal.emit(sel_nid, imagesettext)
 
     #=======================
     # Other

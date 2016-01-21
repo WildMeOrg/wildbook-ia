@@ -44,7 +44,7 @@ def fix_compname_configs(ibs):
 
 def remove_database_slag(ibs,
                          delete_empty_names=False,
-                         delete_empty_encounters=False,
+                         delete_empty_imagesets=False,
                          delete_annotations_for_missing_images=False,
                          delete_image_labels_for_missing_types=False,
                          delete_annot_labels_for_missing_types=False,
@@ -57,8 +57,8 @@ def remove_database_slag(ibs,
     if delete_empty_names:
         ibs.delete_empty_nids()
 
-    if delete_empty_encounters:
-        ibs.delete_empty_eids()
+    if delete_empty_imagesets:
+        ibs.delete_empty_imgsetids()
 
     # FIRST ORDER
     if delete_annotations_for_missing_images:
@@ -113,10 +113,10 @@ def remove_database_slag(ibs,
         ibs.db.executeone(
             '''
             DELETE
-            FROM {EG_RELATION_TABLE}
+            FROM {GSG_RELATION_TABLE}
             WHERE
                 image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR
-                encounter_rowid NOT IN (SELECT rowid FROM {ENCOUNTER_TABLE})
+                imageset_rowid NOT IN (SELECT rowid FROM {IMAGESET_TABLE})
             '''.format(**const.__dict__))
 
     # THIRD ORDER

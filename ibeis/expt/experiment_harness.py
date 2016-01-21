@@ -377,8 +377,8 @@ def get_query_result_info(qreq_):
         python -m ibeis.expt.experiment_harness --test-get_query_result_info
         python -m ibeis.expt.experiment_harness --test-get_query_result_info:0
         python -m ibeis.expt.experiment_harness --test-get_query_result_info:1
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd
 
     Example:
         >>> # ENABLE_DOCTEST

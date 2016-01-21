@@ -15,7 +15,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_lblimg]')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-# ADDERS::IMAGE->ENCOUNTER
+# ADDERS::IMAGE->IMAGESET
 
 #
 # GETTERS::GLR

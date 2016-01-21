@@ -504,7 +504,7 @@ def ensure_pz_mtest_batchworkflow_test():
     assert len(ibs.get_valid_aids()) == 119
     assert len(ibs.get_valid_nids()) == 41
 
-    ibs.delete_all_encounters()
+    ibs.delete_all_imagesets()
 
     aid_list = ibs.get_valid_aids()
 
@@ -517,19 +517,19 @@ def ensure_pz_mtest_batchworkflow_test():
 
     hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
 
-    encounter_aids_list = [[] for _ in range(4)]
+    imageset_aids_list = [[] for _ in range(4)]
 
-    encounter_idx = 0
+    imageset_idx = 0
 
     for hourdiffs, aids in zip(hourdiffs_list, aids_list):
         #import scipy.spatial.distance as spdist
         if len(aids) == 1:
-            encounter_aids_list[encounter_idx].extend(aids)
-            encounter_idx = (encounter_idx + 1) % len(encounter_aids_list)
+            imageset_aids_list[imageset_idx].extend(aids)
+            imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
         else:
             for chunk in list(ut.ichunks(aids, 2)):
-                encounter_aids_list[encounter_idx].extend(chunk)
-                encounter_idx = (encounter_idx + 1) % len(encounter_aids_list)
+                imageset_aids_list[imageset_idx].extend(chunk)
+                imageset_idx = (imageset_idx + 1) % len(imageset_aids_list)
 
             #import vtool as vt
             #import networkx as netx
@@ -542,7 +542,7 @@ def ensure_pz_mtest_batchworkflow_test():
             #components = list(netx.connected_components(netx_graph))
             #components = ut.sortedby(components, list(map(len, components)), reverse=True)
             #print(components)
-            #encounter_aids_list[0].extend(components[0])
+            #imageset_aids_list[0].extend(components[0])
             #for compoment in components:
 
             # TODO do max-nway cut
@@ -570,9 +570,9 @@ def ensure_pz_mtest_batchworkflow_test():
     #    netx_graph.add_edges_from(netx_edges)
     #    return netx_graph
 
-    # Group into encounters based on old names
-    gids_list = ibs.unflat_map(ibs.get_annot_image_rowids, encounter_aids_list)
-    eid_list = ibs.new_encounters_from_images(gids_list)  # NOQA
+    # Group into imagesets based on old names
+    gids_list = ibs.unflat_map(ibs.get_annot_image_rowids, imageset_aids_list)
+    imgsetid_list = ibs.new_imagesets_from_images(gids_list)  # NOQA
 
     # Remove all names
     ibs.delete_annot_nids(aid_list)

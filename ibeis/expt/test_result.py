@@ -312,7 +312,7 @@ class TestResult(object):
 
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist \
                 --db lynx \
-                -a default:qsame_encounter=True,been_adjusted=True,excluderef=True \
+                -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
                 -t default:K=1 --show --cmd
 
         Example:

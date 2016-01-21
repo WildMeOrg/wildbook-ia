@@ -49,7 +49,7 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
         return default
 
     if ut.VERBOSE:
-        print('[ibs] adding %d encounters' % len(tag_list))
+        print('[ibs] adding %d imagesets' % len(tag_list))
     # Add contributors to database
     if name_first_list is None:
         name_first_list = [''] * len(tag_list)
@@ -331,7 +331,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
         new_contrib_rowid = ibs.add_new_temp_contributor(offset=len(contrib_rowid_list), user_prompt=user_prompt, autolocate=autolocate)
         # SET UNASSIGNED IMAGE CONTRIBUTORS
         ibs.set_image_contributor_rowid(unassigned_gid_list, [new_contrib_rowid] * len(unassigned_gid_list))
-        ibs.ensure_encounter_configs_populated()
+        ibs.ensure_imageset_configs_populated()
     # make sure that all images have assigned contributors
     # Get new non-conflicting contributor for unassigned images
     #contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)
@@ -402,23 +402,23 @@ def set_config_contributor_unassigned(ibs, contrib_rowid):
 
 
 @register_ibs_method
-def ensure_encounter_configs_populated(ibs):
+def ensure_imageset_configs_populated(ibs):
     r"""
-    Auto-docstr for 'ensure_encounter_configs_populated'
+    Auto-docstr for 'ensure_imageset_configs_populated'
     """
-    eid_list = ibs.get_valid_eids()
-    config_rowid_list = ibs.get_encounter_configid(eid_list)
+    imgsetid_list = ibs.get_valid_imgsetids()
+    config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
     isunassigned_list = [config_rowid is None for config_rowid in config_rowid_list]
-    unassigned_eid_list = ut.compress(eid_list, isunassigned_list)
-    #unassigned_eid_list = [
-    #    eid
-    #    for eid, config_rowid in zip(eid_list, config_rowid_list)
+    unassigned_imgsetid_list = ut.compress(imgsetid_list, isunassigned_list)
+    #unassigned_imgsetid_list = [
+    #    imgsetid
+    #    for imgsetid, config_rowid in zip(imgsetid_list, config_rowid_list)
     #    if config_rowid is None
     #]
-    id_iter = ((eid,) for eid in unassigned_eid_list)
-    config_rowid_list = list([ibs.MANUAL_CONFIGID]) * len(unassigned_eid_list)
+    id_iter = ((imgsetid,) for imgsetid in unassigned_imgsetid_list)
+    config_rowid_list = list([ibs.MANUAL_CONFIGID]) * len(unassigned_imgsetid_list)
     val_list = ((config_rowid,) for config_rowid in config_rowid_list)
-    ibs.db.set(const.ENCOUNTER_TABLE, ('config_rowid',), val_list, id_iter)
+    ibs.db.set(const.IMAGESET_TABLE, ('config_rowid',), val_list, id_iter)
 
 
 #
@@ -756,18 +756,18 @@ def get_contributor_config_rowids(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/eids/', methods=['GET'])
-def get_contributor_eids(ibs, config_rowid_list):
+@register_api('/api/contributor/imgsetids/', methods=['GET'])
+def get_contributor_imgsetids(ibs, config_rowid_list):
     r"""
     Returns:
-        eid_list (list):  eids for a contributor
+        imgsetid_list (list):  imgsetids for a contributor
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/eids/
+        URL:    /api/contributor/imgsetids/
     """
-    eid_list = ibs.db.get(const.ENCOUNTER_TABLE, ('encounter_rowid',), config_rowid_list, id_colname='config_rowid', unpack_scalars=False)
-    return eid_list
+    imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), config_rowid_list, id_colname='config_rowid', unpack_scalars=False)
+    return imgsetid_list
 
 
 @register_ibs_method
@@ -889,12 +889,12 @@ def delete_contributors(ibs, contrib_rowid_list):
     # Delete configs (UNSURE IF THIS IS CORRECT)
     ibs.delete_configs(config_rowid_list)
     # CONTRIBUTORS SHOULD NOT DELETE IMAGES
-    # Delete encounters
-    #eid_list = ibs.get_valid_eids()
-    #eid_config_list = ibs.get_encounter_configid(eid_list)
-    #valid_list = [config in config_rowid_list for config in eid_config_list ]
-    #eid_list = ut.compress(eid_list, valid_list)
-    #ibs.delete_encounters(eid_list)
+    # Delete imagesets
+    #imgsetid_list = ibs.get_valid_imgsetids()
+    #imgsetid_config_list = ibs.get_imageset_configid(imgsetid_list)
+    #valid_list = [config in config_rowid_list for config in imgsetid_config_list ]
+    #imgsetid_list = ut.compress(imgsetid_list, valid_list)
+    #ibs.delete_imagesets(imgsetid_list)
     # Remote image contributors ~~~Delete images~~~~
     gid_list = ut.flatten(ibs.get_contributor_gids(contrib_rowid_list))
     ibs.set_image_contributor_rowid(gid_list, [None] * len(gid_list))
@@ -1012,7 +1012,7 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
     """
     if ut.VERBOSE:
         print('[ibs] adding %d metadata' % len(metadata_key_list))
-    # Add encounter text names to database
+    # Add imageset text names to database
     colnames = ['metadata_key', 'metadata_value']
     params_iter = zip(metadata_key_list, metadata_value_list)
     get_rowid_from_superkey = functools.partial(ibs.get_metadata_rowid_from_metadata_key, db=(db,))

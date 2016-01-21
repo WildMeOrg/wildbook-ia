@@ -33,6 +33,7 @@ import random
 # TODO: allow optional flask import
 try:
     import flask
+    from flask import request
     HAS_FLASK = True
 except Exception as ex:
     HAS_FLASK = False
@@ -249,16 +250,6 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             args = tuple()
             kwargs = dict()
     """
-    #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
-    # Pipe web input into Python web call
-    kwargs2 = _process_input(flask.request.args)
-    kwargs3 = _process_input(flask.request.form)
-    kwargs.update(kwargs2)
-    kwargs.update(kwargs3)
-    jQuery_callback = None
-    if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
-        jQuery_callback = str(kwargs.pop('callback', None))
-        kwargs.pop('_', None)
     #print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs)
@@ -283,9 +274,10 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             msg = '\n'.join(msg_list)
             error_msg = ut.formatex(ex2, msg, tb=True)
             print(error_msg)
+            # error_msg = ut.strip_ansi(error_msg)
             raise Exception(error_msg)
             #raise
-    resp_tup = (output, True, 200, None, jQuery_callback)
+    resp_tup = (output, True, 200, None)
     return resp_tup
 
 
@@ -475,9 +467,37 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 @wraps(func)
                 #def translated_call(*args, **kwargs):
                 def translated_call(**kwargs):
+
+                    def html_newlines(text):
+                        r = '<br />\n'
+                        text = text.replace(' ', '&nbsp;')
+                        text = text.replace('\r\n', r).replace('\n\r', r).replace('\r', r).replace('\n', r)
+                        return text
+
                     try:
+                        #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+                        # Pipe web input into Python web call
+                        kwargs2 = _process_input(flask.request.args)
+                        kwargs3 = _process_input(flask.request.form)
+                        kwargs.update(kwargs2)
+                        kwargs.update(kwargs3)
+                        jQuery_callback = None
+                        if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
+                            jQuery_callback = str(kwargs.pop('callback', None))
+                            kwargs.pop('_', None)
+
+                        print('KWARGS:  %s' % (kwargs, ))
+                        print('COOKIES: %s' % (request.cookies, ))
+                        __format__ = request.cookies.get('__format__', None)
+                        __format__ = kwargs.pop('__format__', __format__)
+                        ignore_cookie_set = False
+                        if __format__ is not None:
+                            __format__ = str(__format__).lower()
+                            ignore_cookie_set = __format__ in ['onetime', 'true']
+                            __format__ = __format__ in ['true', 'enabled', 'enable']
+
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
-                        rawreturn, success, code, message, jQuery_callback = resp_tup
+                        rawreturn, success, code, message = resp_tup
                     except WebException as webex:
                         ut.printex(webex)
                         rawreturn = ''
@@ -494,7 +514,8 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                             rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
-                        message = 'API error, Python Exception thrown: %r' % (str(ex))
+                        errmsg = str(ex)
+                        message = 'API error, Python Exception thrown: %s' % (errmsg)
                         if "'int' object is not iterable" in message:
                             rawreturn = (
                                 'HINT: the input for this call is most likely '
@@ -503,10 +524,35 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                                 'into a list) or encapsualte the input with '
                                 '[].')
                         jQuery_callback = None
-                    webreturn = translate_ibeis_webreturn(rawreturn, success,
-                                                          code, message,
-                                                          jQuery_callback)
-                    return flask.make_response(webreturn, code)
+
+                    print('RECEIVED FORMAT: %r' % (__format__, ))
+
+                    if __format__:
+                        # Hack for readable error messages
+                        webreturn = translate_ibeis_webreturn(
+                            rawreturn, success, code, message, jQuery_callback)
+                        webreturn = ut.repr3(ut.from_json(webreturn), strvals=True)
+                        try:
+                            from ansi2html import Ansi2HTMLConverter
+                            conv = Ansi2HTMLConverter()
+                            webreturn = conv.convert(webreturn)
+                        except ImportError as ex:
+                            ut.printex(ex, 'pip install ansi2html', iswarning=True)
+                            webreturn = ut.stripansi(webreturn)
+                            webreturn = '<p><samp>\n' + html_newlines(webreturn) + '\n</samp></p>'
+                            webreturn = '<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">\n' + webreturn
+                    else:
+                        webreturn = translate_ibeis_webreturn(
+                            rawreturn, success, code, message, jQuery_callback)
+
+                    resp = flask.make_response(webreturn, code)
+                    if not ignore_cookie_set:
+                        if __format__:
+                            resp.set_cookie('__format__', 'enabled')
+                        else:
+                            resp.set_cookie('__format__', '', expires=0)
+
+                    return resp
                 # return the original unmodified function
                 if REMOTE_PROXY_URL is None:
                     return func

@@ -18,7 +18,7 @@ import inspect
 from ibeis import ibsfuncs  # NOQA
 from ibeis import constants as const
 # from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,
-#                              CONTRIBUTOR_TABLE, EG_RELATION_TABLE, ENCOUNTER_TABLE,
+#                              CONTRIBUTOR_TABLE, GSG_RELATION_TABLE, IMAGESET_TABLE,
 #                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,
 #                              LBLIMAGE_TABLE, __STR__)
 # from vtool import geometry
@@ -53,7 +53,7 @@ CONTRIBUTOR_TransferData = namedtuple(
         'contributor_location_zip',
         'contributor_note',
         'config_td',
-        'encounter_td',
+        'imageset_td',
         'image_td',
     ))
 
@@ -78,17 +78,17 @@ CONFIG_TransferData = namedtuple(
         'config_suffixes_list',
     ))
 
-ENCOUNTER_TransferData = namedtuple(
-    'ENCOUNTER_TransferData', (
+IMAGESET_TransferData = namedtuple(
+    'IMAGESET_TransferData', (
         'config_INDEX_list',
-        'encounter_uuid_list',
-        'encounter_text_list',
+        'imageset_uuid_list',
+        'imageset_text_list',
         'encoutner_note_list',
     ))
 
 IMAGE_TransferData = namedtuple(
     'IMAGE_TransferData', (
-        'encounter_INDEXs_list',
+        'imageset_INDEXs_list',
         'image_path_list',
         'image_uuid_list',
         'image_ext_list',
@@ -291,28 +291,28 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
         config_suffix_list = ibs.get_config_suffixes(configid_list)
         print(ut.list_str(list(zip(configid_list, config_suffix_list))))
 
-        eid_list = ibs.get_valid_eids()
-        enc_config_rowid_list = ibs.get_encounter_configid(eid_list)
-        enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)
-        print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))
+        imgsetid_list = ibs.get_valid_imgsetids()
+        imageset_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
+        imageset_suffix_list = ibs.get_config_suffixes(config_rowid_list)
+        print(ut.list_str(list(zip(imageset_config_rowid_list, imageset_suffix_list))))
 
     """
     # Get configs
     #config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)
-    # Hack around config-less encounters
+    # Hack around config-less imagesets
     config_rowid_list = ibs_src.get_valid_configids()
     config_td = export_config_transfer_data(ibs_src, config_rowid_list)
-    # Get encounters
-    #eid_list = ibs_src.get_valid_eids()
-    eid_list = ut.flatten(ibs_src.get_contributor_eids(config_rowid_list))
-    encounter_td = export_encounter_transfer_data(
-        ibs_src, eid_list, config_rowid_list)
+    # Get imagesets
+    #imgsetid_list = ibs_src.get_valid_imgsetids()
+    imgsetid_list = ut.flatten(ibs_src.get_contributor_imgsetids(config_rowid_list))
+    imageset_td = export_imageset_transfer_data(
+        ibs_src, imgsetid_list, config_rowid_list)
     # Get images
     gid_list = ibs_src.get_contributor_gids(contributor_rowid)
     if valid_gid_list is not None:
         isvalid_list = [gid in valid_gid_list for gid in gid_list]
         gid_list = ut.compress(gid_list, isvalid_list)
-    image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list,
+    image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, imgsetid_list,
                                           nid_list, species_rowid_list)
     # Create Contributor TransferData
     contributor_td = CONTRIBUTOR_TransferData(
@@ -326,7 +326,7 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
         ibs_src.get_contributor_zip(contributor_rowid),
         ibs_src.get_contributor_note(contributor_rowid),
         config_td,
-        encounter_td,
+        imageset_td,
         image_td
     )
     return contributor_td
@@ -377,39 +377,39 @@ def export_config_transfer_data(ibs_src, config_rowid_list):
     return config_td
 
 
-def export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list):
-    if eid_list is None or len(eid_list) == 0:
+def export_imageset_transfer_data(ibs_src, imgsetid_list, config_rowid_list):
+    if imgsetid_list is None or len(imgsetid_list) == 0:
         return None
-    # Get encounter data
+    # Get imageset data
     config_INDEX_list = [
-        tryindex(ibs_src.get_encounter_configid(eid), config_rowid_list)
-        for eid in eid_list]
-    # Create Encounter TransferData
-    encounter_td = ENCOUNTER_TransferData(
+        tryindex(ibs_src.get_imageset_configid(imgsetid), config_rowid_list)
+        for imgsetid in imgsetid_list]
+    # Create ImageSet TransferData
+    imageset_td = IMAGESET_TransferData(
         config_INDEX_list,
-        ibs_src.get_encounter_uuid(eid_list),
-        ibs_src.get_encounter_text(eid_list),
-        ibs_src.get_encounter_note(eid_list)
+        ibs_src.get_imageset_uuid(imgsetid_list),
+        ibs_src.get_imageset_text(imgsetid_list),
+        ibs_src.get_imageset_note(imgsetid_list)
     )
-    return encounter_td
+    return imageset_td
 
 
-def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list, nid_list,
+def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, imgsetid_list, nid_list,
                                species_rowid_list):
     """
     builds transfer data for seleted image ids in ibs_src.
-    NOTE: gid_list, config_rowid_list and eid_list do not correspond
+    NOTE: gid_list, config_rowid_list and imgsetid_list do not correspond
     """
     if gid_list is None or len(gid_list) == 0:
         return None
     # Get image data
     #image_size_list = ibs_src.get_image_sizes(gid_list)
     #image_gps_list = ibs_src.get_image_gps(gid_list)
-    # Get encounter INDEXs
-    eids_list = ibs_src.get_image_eids(gid_list)
-    encounter_INDEXs_list = [
-        [tryindex(eid, eid_list) for eid in eid_list_]
-        for eid_list_ in eids_list
+    # Get imageset INDEXs
+    imgsetids_list = ibs_src.get_image_imgsetids(gid_list)
+    imageset_INDEXs_list = [
+        [tryindex(imgsetid, imgsetid_list) for imgsetid in imgsetid_list_]
+        for imgsetid_list_ in imgsetids_list
     ]
     # Get image-label relationships
     glrids_list = ibs_src.get_image_glrids(gid_list)
@@ -426,7 +426,7 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list, n
     ]
     # Create Image TransferData
     image_td = IMAGE_TransferData(
-        encounter_INDEXs_list,
+        imageset_INDEXs_list,
         ibs_src.get_image_paths(gid_list),
         ibs_src.get_image_uuids(gid_list),
         ibs_src.get_image_exts(gid_list),
@@ -628,24 +628,24 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
     else:
         config_rowid_list = []
         print('[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)')
-    # Import encounters
-    if contributor_td.encounter_td is not None:
+    # Import imagesets
+    if contributor_td.imageset_td is not None:
         if ut.VERBOSE:
-            print('[import_transfer_data]   Importing encounters: %r' %
-                  (contributor_td.encounter_td.encounter_uuid_list,))
+            print('[import_transfer_data]   Importing imagesets: %r' %
+                  (contributor_td.imageset_td.imageset_uuid_list,))
         else:
-            print('[import_transfer_data]   Importing encounters:')
-            eid_list = import_encounter_transfer_data(
+            print('[import_transfer_data]   Importing imagesets:')
+            imgsetid_list = import_imageset_transfer_data(
                 ibs_dst,
-                contributor_td.encounter_td,
+                contributor_td.imageset_td,
                 config_rowid_list,
                 bulk_conflict_resolution=bulk_conflict_resolution
             )
-        print('[import_transfer_data]   ...imported %i encounters' %
-              (len(eid_list),))
+        print('[import_transfer_data]   ...imported %i imagesets' %
+              (len(imgsetid_list),))
     else:
-        eid_list = []
-        print('[import_transfer_data]   NO ENCOUNTERS TO IMPORT')
+        imgsetid_list = []
+        print('[import_transfer_data]   NO IMAGESETS TO IMPORT')
     # Import images
     if contributor_td.image_td is not None:
         if ut.VERBOSE:
@@ -657,7 +657,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
             ibs_dst,
             contributor_td.image_td,
             contributor_rowid,
-            eid_list,
+            imgsetid_list,
             nid_list,
             species_rowid_list,
             config_rowid_list,
@@ -746,72 +746,72 @@ def import_config_transfer_data(ibs_dst, config_td, contributor_rowid,
     return config_rowid_list
 
 
-def import_encounter_transfer_data(ibs_dst, encounter_td, config_rowid_list,
+def import_imageset_transfer_data(ibs_dst, imageset_td, config_rowid_list,
                                    bulk_conflict_resolution='merge'):
     # Map input (because transfer objects are read-only)
-    config_INDEX_list = encounter_td.config_INDEX_list
-    encounter_uuid_list = encounter_td.encounter_uuid_list
-    encounter_text_list = encounter_td.encounter_text_list
-    encoutner_note_list = encounter_td.encoutner_note_list
+    config_INDEX_list = imageset_td.config_INDEX_list
+    imageset_uuid_list = imageset_td.imageset_uuid_list
+    imageset_text_list = imageset_td.imageset_text_list
+    encoutner_note_list = imageset_td.encoutner_note_list
     # Find conflicts
-    known_eid_list = ibs_dst.get_encounter_eids_from_text(encounter_text_list)
-    valid_list = [known_eid is None for known_eid in known_eid_list]
+    known_imgsetid_list = ibs_dst.get_imageset_imgsetids_from_text(imageset_text_list)
+    valid_list = [known_imgsetid is None for known_imgsetid in known_imgsetid_list]
     if not all(valid_list):
         # Resolve conflicts
-        invalid_eid_list = ut.filterfalse_items(known_eid_list, valid_list)
-        # invalid_indices = ut.filterfalse_items(range(len(known_eid_list)),
+        invalid_imgsetid_list = ut.filterfalse_items(known_imgsetid_list, valid_list)
+        # invalid_indices = ut.filterfalse_items(range(len(known_imgsetid_list)),
         # valid_list)  # TODO
         if bulk_conflict_resolution == 'replace':
             if ut.VERBOSE:
                 print(
-                    '[import_transfer_data]     Conflict Resolution - Replacing encounters: %r' %
-                    (invalid_eid_list, ))
+                    '[import_transfer_data]     Conflict Resolution - Replacing imagesets: %r' %
+                    (invalid_imgsetid_list, ))
             else:
-                print('[import_transfer_data]   Conflict Resolution - Replacing %i encounters...' %
-                      (len(invalid_eid_list), ))
+                print('[import_transfer_data]   Conflict Resolution - Replacing %i imagesets...' %
+                      (len(invalid_imgsetid_list), ))
             # Delete invalid gids
-            ibs_dst.delete_encounters(invalid_eid_list)
+            ibs_dst.delete_imagesets(invalid_imgsetid_list)
         elif bulk_conflict_resolution == 'ignore':
             if ut.VERBOSE:
                 print(
-                    '[import_transfer_data]     Conflict Resolution - Ignoring encounters: %r' %
-                    (invalid_eid_list, ))
+                    '[import_transfer_data]     Conflict Resolution - Ignoring imagesets: %r' %
+                    (invalid_imgsetid_list, ))
             else:
-                print('[import_transfer_data]     Conflict Resolution - Ignoring %i encounters...' %
-                      (len(invalid_eid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring %i imagesets...' %
+                      (len(invalid_imgsetid_list), ))
             config_INDEX_list = ut.filter_items(
                 config_INDEX_list,   valid_list)
-            encounter_uuid_list = ut.filter_items(
-                encounter_uuid_list, valid_list)
-            encounter_text_list = ut.filter_items(
-                encounter_text_list, valid_list)
+            imageset_uuid_list = ut.filter_items(
+                imageset_uuid_list, valid_list)
+            imageset_text_list = ut.filter_items(
+                imageset_text_list, valid_list)
             encoutner_note_list = ut.filter_items(
                 encoutner_note_list, valid_list)
         else:
             if ut.VERBOSE:
                 print(
-                    '[import_transfer_data]     Conflict Resolution - Merging encounters: %r' %
-                    (invalid_eid_list, ))
+                    '[import_transfer_data]     Conflict Resolution - Merging imagesets: %r' %
+                    (invalid_imgsetid_list, ))
             else:
-                print('[import_transfer_data]     Conflict Resolution - Merging %i encounters...' %
-                      (len(invalid_eid_list), ))
-            # TODO: do a more sophisticated encounter merge
-    # Add encounters
+                print('[import_transfer_data]     Conflict Resolution - Merging %i imagesets...' %
+                      (len(invalid_imgsetid_list), ))
+            # TODO: do a more sophisticated imageset merge
+    # Add imagesets
     config_rowid_list_ = [config_rowid_list[i] for i in config_INDEX_list]
-    eid_list = ibs_dst.add_encounters(
-        encounter_text_list,
-        encounter_uuid_list=encounter_uuid_list,
+    imgsetid_list = ibs_dst.add_imagesets(
+        imageset_text_list,
+        imageset_uuid_list=imageset_uuid_list,
         config_rowid_list=config_rowid_list_,
         notes_list=encoutner_note_list,
     )
-    return eid_list
+    return imgsetid_list
 
 
 def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
-                               eid_list, nid_list, species_rowid_list,
+                               imgsetid_list, nid_list, species_rowid_list,
                                config_rowid_list, bulk_conflict_resolution='merge'):
     # Map input (because transfer objects are read-only)
-    encounter_INDEXs_list = image_td.encounter_INDEXs_list
+    imageset_INDEXs_list = image_td.imageset_INDEXs_list
     image_path_list = image_td.image_path_list
     image_uuid_list = image_td.image_uuid_list
     image_ext_list = image_td.image_ext_list
@@ -852,8 +852,8 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
             else:
                 print('[import_transfer_data]     Conflict Resolution - Ignoring %i images...' %
                       (len(invalid_gid_list), ))
-            encounter_INDEXs_list = ut.filter_items(
-                encounter_INDEXs_list,      valid_list)
+            imageset_INDEXs_list = ut.filter_items(
+                imageset_INDEXs_list,      valid_list)
             image_path_list = ut.filter_items(
                 image_path_list,            valid_list)
             image_uuid_list = ut.filter_items(
@@ -914,13 +914,13 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     ibs_dst.set_image_contributor_rowid(gid_list, contrib_rowid_list)
     ibs_dst.set_image_reviewed(gid_list, image_toggle_reviewed_list)
     ibs_dst.set_image_enabled(gid_list, image_toggle_enabled_list)
-    # Add images to appropriate encounters
+    # Add images to appropriate imagesets
     print(
-        '[import_transfer_data]     Associating images with new encounters...')
-    for gid, encounter_INDEXs in zip(gid_list, encounter_INDEXs_list):
-        for encounter_INDEX in encounter_INDEXs:
-            if 0 <= encounter_INDEX and encounter_INDEX < len(eid_list):
-                ibs_dst.set_image_eids([gid], [eid_list[encounter_INDEX]])
+        '[import_transfer_data]     Associating images with new imagesets...')
+    for gid, imageset_INDEXs in zip(gid_list, imageset_INDEXs_list):
+        for imageset_INDEX in imageset_INDEXs:
+            if 0 <= imageset_INDEX and imageset_INDEX < len(imgsetid_list):
+                ibs_dst.set_image_imgsetids([gid], [imgsetid_list[imageset_INDEX]])
     # Add lblimages
     print('[import_transfer_data]     Importing lblimages...')
     glrid_total = 0
@@ -1097,8 +1097,8 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None,
     """
     STEP 0) MAIN DRIVER FUNCTION
 
-    Conflict resolutions are only between contributors, configs, encounters and images.
-    Annotations, lblannots, lblimages, their respective relationships, and image-encounter
+    Conflict resolutions are only between contributors, configs, imagesets and images.
+    Annotations, lblannots, lblimages, their respective relationships, and image-imageset
     relationships all inherit the resolution from their associated image.
 
     Args:
@@ -1515,8 +1515,8 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
         gid_list (list):  list of image rowids
         aid_list (list):  list of annotation rowids
         nid_list (list):  list of name rowids
-        eid_list (list):  list of encounter rowids
-        egrid_list (list):  list of encounter-image pairs rowids
+        imgsetid_list (list):  list of imageset rowids
+        gsgrid_list (list):  list of imageset-image pairs rowids
         new_dbpath (None): (default = None)
 
     Returns:
@@ -1524,9 +1524,9 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     """
     import ibeis
 
-    eid_list = ut.unique_unordered(ut.flatten(ibs.get_image_eids(gid_list)))
-    egrid_list = ut.unique_unordered(
-        ut.flatten(ibs.get_image_egrids(gid_list)))
+    imgsetid_list = ut.unique_unordered(ut.flatten(ibs.get_image_imgsetids(gid_list)))
+    gsgrid_list = ut.unique_unordered(
+        ut.flatten(ibs.get_image_gsgrids(gid_list)))
 
     annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
     flags1_list = [
@@ -1542,8 +1542,8 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
         const.NAME_TABLE: nid_list,
         const.IMAGE_TABLE: gid_list,
         const.ANNOTMATCH_TABLE: annotmatch_rowid_list,
-        const.EG_RELATION_TABLE: egrid_list,
-        const.ENCOUNTER_TABLE: eid_list,
+        const.GSG_RELATION_TABLE: gsgrid_list,
+        const.IMAGESET_TABLE: imgsetid_list,
     }
     ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
     # Main merge driver
