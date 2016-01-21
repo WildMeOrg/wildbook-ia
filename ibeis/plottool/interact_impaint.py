@@ -30,7 +30,12 @@ class PaintInteraction(PAINTER_BASE):
         super(PaintInteraction, self).__init__(**kwargs)
         import plottool as pt
 
-        imgOver = np.zeros(img.shape, np.uint8)
+        init_mask = kwargs.get('init_mask', None)
+
+        if init_mask is None:
+            imgOver = np.zeros(img.shape, np.uint8)
+        else:
+            imgOver = init_mask
 
         ax = pt.gca()
         ax.imshow(img, interpolation='nearest', alpha=1)
@@ -180,21 +185,26 @@ class Painter(object):
         self.do_blit()
 
 
-def impaint_mask2(img):
+def impaint_mask2(img, init_mask=None):
     if True:
+        plt.ion()
         fig = plt.figure(1)
         ax = plt.subplot(111)
-        imgOver = np.zeros(img.shape, np.uint8) + 255
+        if init_mask is None:
+            imgOver = np.zeros(img.shape, np.uint8) + 255
+        else:
+            imgOver = init_mask
         ax.imshow(img, interpolation='nearest', alpha=1)
         ax.imshow(imgOver, interpolation='nearest', alpha=0.6)
         ax.grid(False)
 
         pntr = Painter(fig, ax, imgOver)
         plt.title('Click on the image to draw. exit to finish')
-        plt.show()
+        plt.show(block=True)
+        #input('hack to block... press enter when done')
         return pntr.img
     else:
-        pntr = PaintInteraction(img)
+        pntr = PaintInteraction(img, init_mask=init_mask)
         #pntr.show_page()
         plt.title('Click on the image to draw. exit to finish')
         plt.show()
@@ -288,7 +298,10 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
 
     title = 'masking image'
     if init_mask is not None:
-        mask = init_mask.copy()
+        try:
+            mask = init_mask[:, :, 0].copy()
+        except Exception:
+            mask = init_mask.copy()
     else:
         mask = np.zeros(img.shape[0:2], np.uint8) + init_color
     transparent_mask = np.zeros(img.shape[0:2], np.float32)

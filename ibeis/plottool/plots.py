@@ -8,9 +8,18 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
+from plottool import custom_figure
 
 #ut.noinject(__name__, '[plots]')
 print, rrr, profile = ut.inject2(__name__, '[plots]')
+
+#NONMULTI_TITLESIZE = 8
+
+
+# Titlesize for old non-multiplot plots
+#NONMULTI_TITLESIZE = 12
+NONMULTI_LABELSIZE = custom_figure.LABEL_SIZE
+NONMULTI_TITLESIZE = custom_figure.TITLE_SIZE
 
 
 def is_default_dark_bg():
@@ -751,7 +760,7 @@ def plot_score_histograms(scores_list,
                           markersizes=None,
                           fnum=None,
                           pnum=(1, 1, 1),
-                          figtitle=None,
+                          title=None,
                           score_label='score',
                           score_thresh=None,
                           overlay_prob_given_list=None,
@@ -779,16 +788,17 @@ def plot_score_histograms(scores_list,
         >>> fnum = None
         >>> pnum = (1, 1, 1)
         >>> logscale = True
-        >>> figtitle = 'plot_scores_histogram'
-        >>> result = plot_score_histograms(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, figtitle)
+        >>> title = 'plot_scores_histogram'
+        >>> result = plot_score_histograms(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, title)
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    if figtitle is None:
+    if title is None:
         if len(scores_list) == 1:
-            figtitle = 'histogram of %d ' % (len(scores_list[0])) + score_label + 's'
+            title = 'histogram of %d ' % (len(scores_list[0])) + score_label + 's'
         else:
-            figtitle = 'histogram of ' + score_label + 's'
+            title = 'histogram of ' + score_label + 's'
+    title += kwargs.get('titlesuf', '')
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
@@ -891,17 +901,17 @@ def plot_score_histograms(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', 8))
+            weight='light', size=kwargs.get('labelsize', NONMULTI_LABELSIZE))
     }
     #df2.set_xlabel('sorted ' +  score_label + ' indices')
     ax.set_xlabel(score_label, **labelkw)
     ax.set_ylabel('frequency', **labelkw)
     #df2.dark_background()
-    titlesize = kwargs.get('titlesize', 8)
+    titlesize = kwargs.get('titlesize', NONMULTI_TITLESIZE)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
     }
-    ax.set_title(figtitle, **titlekw)
+    ax.set_title(title, **titlekw)
     #df2.legend(loc='upper left')
     df2.legend(loc='best', size=kwargs.get('legendsize', 8))
     #print('[df2] show_histogram()')
@@ -1009,7 +1019,7 @@ def plot_probabilities(prob_list,
     import matplotlib as mpl
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', 8))
+            weight='light', size=kwargs.get('labelsize', NONMULTI_LABELSIZE))
     }
 
     ax = df2.gca()
@@ -1023,7 +1033,7 @@ def plot_probabilities(prob_list,
     if use_darkbackground:
         df2.dark_background()
 
-    titlesize = kwargs.get('titlesize', 8)
+    titlesize = kwargs.get('titlesize', NONMULTI_TITLESIZE)
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
     titlekw = {
@@ -1161,7 +1171,7 @@ def plot_sorted_scores(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', 8))
+            weight='light', size=kwargs.get('labelsize', NONMULTI_LABELSIZE))
     }
 
     ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
@@ -1172,7 +1182,7 @@ def plot_sorted_scores(scores_list,
         use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
-    titlesize = kwargs.get('titlesize', 8)
+    titlesize = kwargs.get('titlesize', NONMULTI_TITLESIZE)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
     }

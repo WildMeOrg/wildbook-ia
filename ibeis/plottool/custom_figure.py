@@ -429,8 +429,10 @@ def customize_fontprop(font_prop, **fontkw):
 
 #LABEL_SIZE = 8
 #TITLE_SIZE = 8
-LABEL_SIZE = ut.get_argval('--labelsize', default=8)
-TITLE_SIZE = ut.get_argval('--titlesize', default=8)
+#LABEL_SIZE = ut.get_argval('--labelsize', default=8)
+#TITLE_SIZE = ut.get_argval('--titlesize', default=8)
+LABEL_SIZE = ut.get_argval('--labelsize', default=10)
+TITLE_SIZE = ut.get_argval('--titlesize', default=12)
 
 
 def set_title(title='', ax=None, **fontkw):
