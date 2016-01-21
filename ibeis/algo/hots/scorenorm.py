@@ -27,6 +27,7 @@ GOALS:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
+import dtool
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -143,7 +144,7 @@ def train_featscore_normalizer():
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST', a=['default'], p=['default'])
     datakw = dict(
-        disttypes_=None,
+        disttype_=None,
         namemode=ut.get_argval('--namemode', default=True),
         fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
                              default=slice(None, None, None)),
@@ -153,6 +154,31 @@ def train_featscore_normalizer():
     encoder = learn_featscore_normalizer(qreq_, datakw=datakw)
     encoder.save()
     return encoder
+
+
+class NormFeatScoreConfig(dtool.Config):
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('distypes')
+        ]
+
+
+def compare_featscores():
+    import ibeis
+    learnkw = {}
+    datakw = dict(
+        disttype_=ut.get_argval('--disttype', type_=list, default=None),
+        namemode=ut.get_argval('--namemode', default=True),
+        fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
+                             default=slice(None, None, None)),
+        threshx=ut.get_argval('--threshx', type_=int, default=None),
+        thresh=ut.get_argval('--thresh', type_=float, default=.9),
+        num=ut.get_argval('--num', type_=int, default=5),
+    )
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_MTEST', a=['default'], p=['default'])
+
+    encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
 
 
 def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
@@ -170,10 +196,20 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         python -m ibeis --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
         python -m ibeis --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
-        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=lnbnn
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=ratio
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=lnbnn
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -t default:K=1
 
-        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=lnbnn --db PZ_Master1 -a timectrl -t best
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_Master1
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=ratio -a timectrl -t default:K=1 --db PZ_Master1
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=lnbnn -a timectrl -t default:K=1 --db PZ_Master1
+
+        # LOOK AT THIS
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_Master1
+        #python -m ibeis --tf learn_featscore_normalizer --show --disttype=parzen -a timectrl -t default:K=1 --db PZ_Master1
+        #python -m ibeis --tf learn_featscore_normalizer --show --disttype=norm_parzen -a timectrl -t default:K=1 --db PZ_Master1
+
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=lnbnn --db PZ_Master1 -a timectrl -t best
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -181,7 +217,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> import ibeis
         >>> learnkw = {}
         >>> datakw = dict(
-        >>>     disttypes_=ut.get_argval('--disttypes', type_=list, default=None),
+        >>>     disttype_=ut.get_argval('--disttype', type_=list, default=None),
         >>>     namemode=ut.get_argval('--namemode', default=True),
         >>>     fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
         >>>                          default=slice(None, None, None)),
@@ -275,7 +311,7 @@ def get_training_annotscores(qreq_, cm_list):
     return tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs
 
 
-def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
+def get_training_featscores(qreq_, cm_list, disttype_=None, namemode=True,
                             fsvx=slice(None, None, None), threshx=None,
                             thresh=.9, num=None):
     """
@@ -286,7 +322,7 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
     Args:
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
         cm_list (list):
-        disttypes_ (None): (default = None)
+        disttype_ (None): (default = None)
         namemode (bool): (default = True)
         fsvx (slice): (default = slice(None, None, None))
         threshx (None): (default = None)
@@ -306,13 +342,13 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
-        >>> disttypes_ = None
+        >>> disttype_ = None
         >>> namemode = True
         >>> fsvx = None
         >>> threshx = 1
         >>> thresh = 0.5
         >>> (tp_scores, tn_scores, scorecfg) = get_training_featscores(
-        >>>     qreq_, cm_list, disttypes_, namemode, fsvx, threshx, thresh)
+        >>>     qreq_, cm_list, disttype_, namemode, fsvx, threshx, thresh)
         >>> print(scorecfg)
         lnbnn*fg[fg > 0.5]
     """
@@ -332,11 +368,11 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
     cm_list_ = ut.compress(cm_list, trainable)
     print('training using %d chipmatches' % (len(cm_list)))
 
-    if disttypes_ is None:
+    if disttype_ is None:
         fsv_col_lbls = cm.fsv_col_lbls
         train_getter = get_training_fsv
     else:
-        fsv_col_lbls = disttypes_
+        fsv_col_lbls = disttype_
         # annots = {}  # Hack for cached vector lookups
         ibs = qreq_.ibs
         data_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.data_config2_)
@@ -536,7 +572,16 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     computes custom distances on prematched descriptors
 
     SeeAlso:
-        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=ratio
+
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_Master1 --save pzmaster_normdist.png
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db PZ_MTEST --save pzmtest_normdist.png
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=normdist -a timectrl -t default:K=1 --db GZ_ALL
+
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_MTEST
+        python -m ibeis --tf learn_featscore_normalizer --show --disttype=L2_sift -a timectrl -t default:K=1 --db PZ_Master1
+
+        python -m ibeis --tf compare_featscores --show --disttype=L2_sift,normdist -a timectrl -t default:K=1 --db GZ_ALL
 
     CommandLine:
         python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist
@@ -597,7 +642,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     ibs = qreq_.ibs
     query_config2_ = qreq_.extern_query_config2
     data_config2_ = qreq_.extern_data_config2
-    special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg', 'ratio', 'lnbnn'])
+    special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg', 'ratio', 'lnbnn', 'normdist'])
     dist_lbls = ut.take(fsv_col_lbls, dist_xs)
     special_lbls = ut.take(fsv_col_lbls, special_xs)
 
@@ -612,7 +657,9 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         qfxs_list = ut.take(cm.qfxs_list, idxs)
         dfxs_list = ut.take(cm.dfxs_list, idxs)
 
-        need_norm = len(ut.setintersect_ordered(['ratio', 'lnbnn'], special_lbls)) > 0
+        need_norm = len(ut.setintersect_ordered(['ratio', 'lnbnn', 'normdist'], special_lbls)) > 0
+        #need_norm |= 'parzen' in special_lbls
+        #need_norm |= 'norm_parzen' in special_lbls
         need_dists = len(dist_xs) > 0
 
         if need_dists or need_norm:
@@ -634,6 +681,10 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
 
             vdist = vt.L2_sift(qvecs_flat_m, dvecs_flat_m)
             ndist = vt.L2_sift(qvecs_flat_m, nvecs_flat_m)
+
+            #assert np.all(vdist <= ndist)
+            #import utool
+            #utool.embed()
 
             #vdist = vt.L2_sift_sqrd(qvecs_flat_m, dvecs_flat_m)
             #ndist = vt.L2_sift_sqrd(qvecs_flat_m, nvecs_flat_m)
@@ -662,6 +713,17 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
             if 'lnbnn' in special_lbls:
                 lnbnn_dist = ndist - vdist
                 special_dist_list.append(lnbnn_dist)
+
+            #if 'parzen' in special_lbls:
+            #    parzen = vt.gauss_parzen_est(vdist, sigma=.38)
+            #    special_dist_list.append(parzen)
+
+            #if 'norm_parzen' in special_lbls:
+            #    parzen = vt.gauss_parzen_est(ndist, sigma=.38)
+            #    special_dist_list.append(parzen)
+
+            if 'normdist' in special_lbls:
+                special_dist_list.append(ndist)
 
             special_dists = np.vstack(special_dist_list).T
         else:

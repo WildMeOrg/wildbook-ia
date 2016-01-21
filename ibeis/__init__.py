@@ -158,8 +158,8 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
             command_parts.extend(['--qaid=' + ','.join(map(str, qaid_override))])
         if daid_override is not None:
             command_parts.extend(['--daid-override=' + ','.join(map(str, daid_override))])
-        if 'disttypes' in kwargs:
-            command_parts.extend(['--disttypes=', ','.join(map(str, kwargs['disttypes']))])
+        if 'disttype' in kwargs:
+            command_parts.extend(['--disttype=', ','.join(map(str, kwargs['disttype']))])
 
         # hack parse out important args that were on command line
         if 'f' in kwargs:

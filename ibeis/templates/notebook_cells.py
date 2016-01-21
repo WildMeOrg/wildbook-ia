@@ -258,10 +258,10 @@ feat_score_sep = ('# Feature Correspondence Score Separation', ut.codeblock(
         db=db,
         a=a,
         t=t,
-        #disttypes=['L2_sift']
+        #disttype=['L2_sift']
     )
-    #test_result.draw_feat_scoresep(f='', disttypes=['L2_sift'])
-    test_result.draw_feat_scoresep(f='', disttypes=None)
+    #test_result.draw_feat_scoresep(f='', disttype=['L2_sift'])
+    test_result.draw_feat_scoresep(f='', disttype=None)
     fix_figsize()
     # ENDBLOCK
     '''))

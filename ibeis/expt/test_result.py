@@ -2079,19 +2079,19 @@ class TestResult(object):
 
         testres.draw_annot_scoresep(f='fail=False')
         pt.adjust_subplots(bottom=.25, top=.8)
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=None)
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttype=None)
         pt.adjust_subplots(bottom=.25, top=.8)
-        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
-        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
-        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
-        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn', 'fg'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn', 'fg'])
         pt.adjust_subplots(bottom=.25, top=.8)
 
         #ibs, testres = main_helpers.testdata_expts(
         #    defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])
-        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
-        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['lnbnn'])
-        #encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['L2_sift'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
+        #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
         # TODO:
         return encoder
 
@@ -2099,7 +2099,7 @@ class TestResult(object):
         from ibeis.expt import experiment_drawing
         experiment_drawing.draw_score_sep(testres.ibs, testres, f=f)
 
-    def draw_feat_scoresep(testres, f=None, disttypes=None):
+    def draw_feat_scoresep(testres, f=None, disttype=None):
         r"""
         SeeAlso:
             ibeis.algo.hots.scorenorm.train_featscore_normalizer
@@ -2107,13 +2107,13 @@ class TestResult(object):
         CommandLine:
             python -m ibeis --tf TestResult.draw_feat_scoresep --show
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift,fg
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift,fg
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=True
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=False
 
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttypes=L2_sift
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttypes=L2_sift -t best:SV=False
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=L2_sift
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=L2_sift -t best:SV=False
 
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
@@ -2130,13 +2130,13 @@ class TestResult(object):
 
             python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
 
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttypes=ratio
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttype=ratio
 
         Example:
             >>> # SCRIPT
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> disttypes = ut.get_argval('--disttypes', type_=list, default=None)
+            >>> disttype = ut.get_argval('--disttype', type_=list, default=None)
             >>> ibs, testres = main_helpers.testdata_expts(
             >>>     defaultdb='PZ_MTEST', a=['timectrl'], t=['best'])
             >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
@@ -2168,7 +2168,7 @@ class TestResult(object):
         threshx = ut.get_argval('--threshx', type_=int, default=None)
         thresh = ut.get_argval('--thresh', type_=float, default=.9)
         num = ut.get_argval('--num', type_=int, default=1)
-        cfg_components = [cfgstr, disttypes, namemode, fsvx, threshx, thresh, f, num]
+        cfg_components = [cfgstr, disttype, namemode, fsvx, threshx, thresh, f, num]
         cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
         cache_hashid = ut.hashstr27(cache_cfgstr)
         cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
@@ -2179,7 +2179,7 @@ class TestResult(object):
             cm_list = qreq_.load_cached_chipmatch()
             cm_list = ut.compress(cm_list, valid_mask)
             print('Done loading cached chipmatches')
-            tup = scorenorm.get_training_featscores(qreq_, cm_list, disttypes,
+            tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
                                                     namemode, fsvx, threshx,
                                                     thresh, num=num)
             # print(ut.depth_profile(tup))
