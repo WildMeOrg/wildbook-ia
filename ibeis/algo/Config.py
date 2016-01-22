@@ -1114,7 +1114,7 @@ class DetectionConfig(ConfigBase):
         >>> detect_cfg = DetectionConfig()
         >>> result = (detect_cfg.get_cfgstr())
         >>> print(result)
-        _DETECT(rf,____,sz=800)
+        _DETECT(cnn,____,sz=800)
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
