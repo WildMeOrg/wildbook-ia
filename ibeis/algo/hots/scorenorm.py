@@ -52,7 +52,8 @@ def compare_featscores():
                 -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1 --save featscore{db}.png  --figsize=13,13
 
         ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
-            -a timectrl -p default:K=[1,3],normalizer_rule=name --db PZ_Master1 --save featscore{db}.png  --figsize=13,13 --diskshow
+            -a timectrl -p default:K=[1,3],normalizer_rule=name --db PZ_Master1 --save featscore{db}.png  \
+                --dpi=128 --figsize=15,15 --diskshow
 
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
@@ -78,12 +79,19 @@ def compare_featscores():
     encoder_list = []
     lbl_list = []
 
-    for qreq_ in testres.cfgx2_qreq_:
-        for datakw in nfs_cfg_list:
+    varied_nfs_lbls = ut.get_varied_cfg_lbls(nfs_cfg_list)
+    varied_qreq_lbls = ut.get_varied_cfg_lbls(testres.cfgdict_list)
+    #varies_qreq_lbls
+    import utool
+    utool.embed()
+
+    func = ut.cached_func(learn_featscore_normalizer, cache_dir='.')
+    for datakw, nlbl in zip(nfs_cfg_list, varied_qreq_lbls):
+        for qreq_, qlbl in zip(testres.cfgx2_qreq_, varied_qreq_lbls):
             print('datakw = %r' % (datakw,))
-            encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
-            encoder_list.append(encoder)
-        lbl_list.extend(ut.get_varied_cfg_lbls(nfs_cfg_list))
+            encoder = func(qreq_, datakw, learnkw)
+            encoder_list.append(qlbl + ' ' + nlbl)
+        lbl_list.extend()
 
     import plottool as pt
     fnum = 1
