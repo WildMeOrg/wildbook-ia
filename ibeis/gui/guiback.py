@@ -121,6 +121,7 @@ class MainWindowBackend(GUIBACK_BASE):
     """
     # Backend Signals
     updateWindowTitleSignal = signal_(str)
+    #changeSpeciesSignal = signal_(str)
     #incQuerySignal = signal_(int)
 
     #------------------------
@@ -157,6 +158,8 @@ class MainWindowBackend(GUIBACK_BASE):
         # register self with the ibeis controller
         back.register_self()
         back.set_daids_mode(back.daids_mode)
+        #back.changeSpeciesSignal.connect(back.ibswgt.species_combo.setItemText)
+
         #back.incQuerySignal.connect(back.incremental_query_slot)
 
     #def __del__(back):
@@ -947,6 +950,19 @@ class MainWindowBackend(GUIBACK_BASE):
         species_text = back.ibs.cfg.detect_cfg.species_text
         if species_text == 'none':
             species_text = None
+        print('species_text = %r' % (species_text,))
+
+        if species_text is None or species_text == const.UNKNOWN:
+            # hack to set species for user
+            pass
+            #species_text = back.ibs.get_primary_database_species()
+            #print('\'species_text = %r' % (species_text,))
+            #sig = signal_(str)
+            #sig.connect(back.ibswgt.species_combo.setItemText)
+            #back.ibswgt.species_combo.setItemText(species_text)
+            #back.changeSpeciesSignal.emit(str(species_text))
+            #sig.emit(species_text)
+            #back.ibs.cfg.detect_cfg.species_text = species_text
         return species_text
 
     @blocking_slot()
@@ -1007,6 +1023,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None):
         species = back.get_selected_species()
+
         valid_kw = dict(
             imgsetid=imgsetid,
             minqual=minqual,
@@ -1306,8 +1323,6 @@ class MainWindowBackend(GUIBACK_BASE):
         if len(daid_list) == 0:
             raise guiexcept.InvalidRequest('No database annotations. Is the species correctly set?')
 
-        # HACK
-        #if daids_mode == const.INTRA_OCCUR_KEY:
         FILTER_HACK = True
         if FILTER_HACK:
             if not use_visual_selection:

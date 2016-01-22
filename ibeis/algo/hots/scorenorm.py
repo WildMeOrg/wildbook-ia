@@ -39,10 +39,20 @@ print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 def compare_featscores():
     """
     CommandLine:
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST --save featscore{db}.png
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 --save featscore{db}.png
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL --save featscore{db}.png
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1 --save featscore{db}.png
+        ibeis --tf compare_featscores --diskshow --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
+                -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST --save featscore{db}.png --figsize=13,13
+
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
+            -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 --save featscore{db}.png  --figsize=13,13 --diskshow
+
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
+                -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL --save featscore{db}.png  --figsize=13,13 --diskshow
+
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
+                -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1 --save featscore{db}.png  --figsize=13,13
+
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
+            -a timectrl -p default:K=[1,3],normalizer_rule=name --db PZ_Master1 --save featscore{db}.png  --figsize=13,13 --diskshow
 
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
@@ -64,31 +74,30 @@ def compare_featscores():
     learnkw = {}
     ibs, testres = ibeis.testdata_expts(
         defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
-    qreq_ = testres.cfgx2_qreq_[0]
 
     encoder_list = []
-    for datakw in nfs_cfg_list:
-        print('datakw = %r' % (datakw,))
-        encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
-        encoder_list.append(encoder)
+    lbl_list = []
+
+    for qreq_ in testres.cfgx2_qreq_:
+        for datakw in nfs_cfg_list:
+            print('datakw = %r' % (datakw,))
+            encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
+            encoder_list.append(encoder)
+        lbl_list.extend(ut.get_varied_cfg_lbls(nfs_cfg_list))
 
     import plottool as pt
-
     fnum = 1
     next_pnum = pt.make_pnum_nextgen(nRows=len(encoder_list), nCols=2)
-
-    lbl_list = ut.get_varied_cfg_lbls(nfs_cfg_list)
 
     icon = qreq_.ibs.get_database_icon(max_dsize=(None, 94), aid=qreq_.qaids[0])
     for encoder, lbl in zip(encoder_list, lbl_list):
         #encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
         encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf=' ' + lbl, score_range=(0, 1))
         encoder._plot_roc(fnum, pnum=next_pnum())
-        if icon is not None:
-            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+        #if icon is not None:
+        #    pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
     pt.adjust_subplots(hspace=.3, top=.9, bottom=.1, left=.1, right=.9)
-
     pt.set_figtitle(qreq_._custom_str())
 
 

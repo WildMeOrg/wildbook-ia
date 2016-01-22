@@ -219,6 +219,10 @@ PARTY_TABLE                  = 'party'
 #################################################################
 
 
+# DEPCACHE TABLENAMES
+#CHIPTHUMB_TABLE = 'chipthumb'
+
+
 UNKNOWN_PURPLE_RGBA255 = np.array((102,   0, 153, 255))
 NAME_BLUE_RGBA255      = np.array((20, 20, 235, 255))
 NAME_RED_RGBA255       = np.array((235, 20, 20, 255))

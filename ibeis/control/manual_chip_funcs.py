@@ -420,6 +420,9 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
 def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     r"""
     get chip thumb info
+    The return type of this is interpreted and computed in ~/code/guitool/guitool/api_thumb_delegate.py
+
+
 
     Args:
         aid_list  (list):
@@ -444,6 +447,10 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
         >>> thumbsize = 128
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
         >>> print(result)
+        >>> #ut.quit_if_noshow()
+        >>> #import plottool as pt
+        >>> #pt.imshow()
+        >>> #ut.show_if_requested()
     """
     #isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
     #if not isiterable:

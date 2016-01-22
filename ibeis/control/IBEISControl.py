@@ -409,6 +409,7 @@ class IBEISController(BASE_CLASS):
         # ibs.db.dump()
         ibs._init_rowid_constants()
 
+    @profile
     def _init_sqldbcore(ibs, request_dbversion=None):
         """
         Example:
@@ -472,6 +473,7 @@ class IBEISController(BASE_CLASS):
         #import sys
         #sys.exit(1)
 
+    @profile
     def _init_sqldbcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
         from ibeis.control import _sql_helpers
