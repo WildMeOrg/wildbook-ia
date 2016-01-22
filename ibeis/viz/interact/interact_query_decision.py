@@ -144,7 +144,6 @@ class QueryVerificationInteraction(AbstractInteraction):
         self.show()
         if bring_to_front:
             self.bring_to_front()
-        #self.update()
 
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """

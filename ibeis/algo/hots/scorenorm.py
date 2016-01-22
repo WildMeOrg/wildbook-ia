@@ -39,10 +39,10 @@ print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 def compare_featscores():
     """
     CommandLine:
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST --save featscore{db}.png
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 --save featscore{db}.png
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL --save featscore{db}.png
+        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1 --save featscore{db}.png
 
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
@@ -79,7 +79,7 @@ def compare_featscores():
 
     lbl_list = ut.get_varied_cfg_lbls(nfs_cfg_list)
 
-    icon = qreq_.ibs.get_database_icon(aid=qreq_.qaids[0])
+    icon = qreq_.ibs.get_database_icon(max_dsize=(None, 94), aid=qreq_.qaids[0])
     for encoder, lbl in zip(encoder_list, lbl_list):
         #encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
         encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf=' ' + lbl, score_range=(0, 1))
