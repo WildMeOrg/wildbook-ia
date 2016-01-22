@@ -313,8 +313,14 @@ class MainWindowBackend(GUIBACK_BASE):
         back.run_detection_on_images(gid_list, refresh=refresh, **kwargs)
 
     def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
-        species = back.ibs.cfg.detect_cfg.species_text
-        back.ibs.detect_random_forest(gid_list, species)
+        detector = back.ibs.cfg.detect_cfg.detector
+        if detector in ['cnn_yolo', 'yolo', 'cnn']:
+            back.ibs.detect_cnn_yolo(gid_list)
+        elif detector in ['random_forest', 'rf']:
+            species = back.ibs.cfg.detect_cfg.species_text
+            back.ibs.detect_random_forest(gid_list, species)
+        else:
+            raise ValueError('Detector not recognized')
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE])
 
@@ -963,29 +969,55 @@ class MainWindowBackend(GUIBACK_BASE):
         imgsetid = back._eidfromkw(kwargs)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, imgsetid=imgsetid)
-        species = ibs.cfg.detect_cfg.species_text
-        # Construct message
-        msg_fmtstr_list = ['You are about to run detection...']
-        fmtdict = dict()
-        # Append detection configuration information
-        msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
-        msg_fmtstr_list += ['    Species: {species_phrase}']
-        # msg_fmtstr_list += ['* # database annotations={num_daids}.']
-        # msg_fmtstr_list += ['* database species={d_species_phrase}.']
-        fmtdict['num_gids'] = len(gid_list)
-        fmtdict['species_phrase'] = species
-        # Finish building confirmation message
-        msg_fmtstr_list += ['']
-        msg_fmtstr_list += ['Press \'Yes\' to continue']
-        msg_fmtstr = '\n'.join(msg_fmtstr_list)
-        msg_str = msg_fmtstr.format(**fmtdict)
-        if back.are_you_sure(use_msg=msg_str):
-            print('[back] run_detection(species=%r, imgsetid=%r)' % (species, imgsetid))
-            ibs.detect_random_forest(gid_list, species)
-            print('[back] about to finish detection')
-            if refresh:
-                back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
-            print('[back] finished detection')
+
+        detector = back.ibs.cfg.detect_cfg.detector
+        if detector in ['cnn_yolo', 'yolo', 'cnn']:
+            # Construct message
+            msg_fmtstr_list = ['You are about to run detection using CNN YOLO...']
+            fmtdict = dict()
+            # Append detection configuration information
+            msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
+            # msg_fmtstr_list += ['* # database annotations={num_daids}.']
+            # msg_fmtstr_list += ['* database species={d_species_phrase}.']
+            fmtdict['num_gids'] = len(gid_list)
+            # Finish building confirmation message
+            msg_fmtstr_list += ['']
+            msg_fmtstr_list += ['Press \'Yes\' to continue']
+            msg_fmtstr = '\n'.join(msg_fmtstr_list)
+            msg_str = msg_fmtstr.format(**fmtdict)
+            if back.are_you_sure(use_msg=msg_str):
+                print('[back] run_detection(imgsetid=%r)' % (imgsetid))
+                ibs.detect_cnn_yolo(gid_list)
+                print('[back] about to finish detection')
+                if refresh:
+                    back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+                print('[back] finished detection')
+        elif detector in ['random_forest', 'rf']:
+            species = ibs.cfg.detect_cfg.species_text
+            # Construct message
+            msg_fmtstr_list = ['You are about to run detection using Random Forests...']
+            fmtdict = dict()
+            # Append detection configuration information
+            msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
+            msg_fmtstr_list += ['    Species: {species_phrase}']
+            # msg_fmtstr_list += ['* # database annotations={num_daids}.']
+            # msg_fmtstr_list += ['* database species={d_species_phrase}.']
+            fmtdict['num_gids'] = len(gid_list)
+            fmtdict['species_phrase'] = species
+            # Finish building confirmation message
+            msg_fmtstr_list += ['']
+            msg_fmtstr_list += ['Press \'Yes\' to continue']
+            msg_fmtstr = '\n'.join(msg_fmtstr_list)
+            msg_str = msg_fmtstr.format(**fmtdict)
+            if back.are_you_sure(use_msg=msg_str):
+                print('[back] run_detection(species=%r, imgsetid=%r)' % (species, imgsetid))
+                ibs.detect_random_forest(gid_list, species)
+                print('[back] about to finish detection')
+                if refresh:
+                    back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+                print('[back] finished detection')
+        else:
+            raise ValueError('Detector not recognized')
 
     @blocking_slot()
     def compute_feats(back, refresh=True, **kwargs):
