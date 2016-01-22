@@ -44,7 +44,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> print(qreq_.get_external_qaids())
         >>> result = str(qreq_.get_query_hashid())
         >>> print(result)
-        _QSUUIDS((1)a5boe72@61xjfpo%)
+        _QSUUIDS((1)nozvwbdokngephfk)
 
         _QSUUIDS((1)nztoqb6&7apjltd1)
     """
