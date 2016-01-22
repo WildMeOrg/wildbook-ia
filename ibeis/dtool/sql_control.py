@@ -10,7 +10,7 @@ import parse
 import utool as ut
 import collections
 from six.moves import map, zip, cStringIO
-from os.path import join, exists
+from os.path import join, exists, dirname, basename
 from dtool import __SQLITE__ as lite
 print, rrr, profile = ut.inject2(__name__, '[sql]')
 
@@ -303,36 +303,35 @@ class SQLDatabaseController(object):
             'primary_superkey',
         ]
         # Get SQL file path
-        if simple:
-            db.fpath = fpath
-            db.text_factory = text_factory
-            db.connection = lite.connect2(db.fpath)
-            db.cur = db.connection.cursor()
-            db._ensure_metadata_table()
-        else:
+        if fpath is None:
             db.dir_  = sqldb_dpath
             db.fname = sqldb_fname
-            assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
             db.fpath = join(db.dir_, db.fname)
-            db.text_factory = text_factory
-            if not exists(db.fpath):
-                print('[sql] Initializing new database')
-            # Open the SQL database connection with support for custom types
-            #lite.enable_callback_tracebacks(True)
-            #db.fpath = ':memory:'
-            db.connection = lite.connect2(db.fpath)
-            db.connection.text_factory = db.text_factory
-            # Get a cursor which will preform sql commands / queries / executions
-            db.cur = db.connection.cursor()
-            #db.connection.isolation_level = None  # turns sqlite3 autocommit off
-            #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
-            if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
-                db.squeeze()
-                db._copy_to_memory()
-                db.connection.text_factory = text_factory
-            # Optimize the database (if anything is set)
-            db.optimize()
-            db._ensure_metadata_table()
+        else:
+            db.fpath = fpath
+            db.dir_ = dirname(db.fpath)
+            db.fname = basename(db.fpath)
+
+        assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
+        db.text_factory = text_factory
+        if not exists(db.fpath):
+            print('[sql] Initializing new database')
+        # Open the SQL database connection with support for custom types
+        #lite.enable_callback_tracebacks(True)
+        #db.fpath = ':memory:'
+        db.connection = lite.connect2(db.fpath)
+        db.connection.text_factory = db.text_factory
+        # Get a cursor which will preform sql commands / queries / executions
+        db.cur = db.connection.cursor()
+        #db.connection.isolation_level = None  # turns sqlite3 autocommit off
+        #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
+        if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
+            db.squeeze()
+            db._copy_to_memory()
+            db.connection.text_factory = text_factory
+        # Optimize the database (if anything is set)
+        db.optimize()
+        db._ensure_metadata_table()
 
     def get_fpath(db):
         return db.fpath
