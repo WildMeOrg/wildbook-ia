@@ -2536,7 +2536,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
            data_colorbar=False, darken=DARKEN, update=False,
-           redraw_image=True, **kwargs):
+           redraw_image=True, ax=None, alpha=None, **kwargs):
     """
     Args:
         img (ndarray): image data
@@ -2576,8 +2576,13 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
-    ax = gca()
+    if ax is not None:
+        fig = ax.figure
+        nospecial = True
+    else:
+        fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
+        ax = gca()
+        nospecial = False
 
     if not redraw_image:
         return fig, ax
@@ -2601,7 +2606,10 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         'interpolation': interpolation,
         #'cmap': plt.get_cmap('gray'),
     }
-    if cmap is None and not heatmap:
+    if alpha is not None:
+        plt_imshow_kwargs['alpha'] = alpha
+
+    if cmap is None and not heatmap and not nospecial:
         plt_imshow_kwargs['vmin'] = 0
         plt_imshow_kwargs['vmax'] = 255
     if heatmap:
@@ -2610,12 +2618,24 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         if len(img.shape) == 3 and (img.shape[2] == 3 or img.shape[2] == 4):
             # img is in a color format
             imgBGR = img
+            #import utool
+            #utool.embed()
+
             if imgBGR.dtype == np.float64:
                 if imgBGR.max() <= 1:
                     imgBGR = np.array(imgBGR, dtype=np.float32)
                 else:
                     imgBGR = np.array(imgBGR, dtype=np.uint8)
+            if imgBGR.dtype == np.float32:
+                print('imgBGR.dtype = %r' % (imgBGR.dtype,))
+                print(imgBGR.max())
+                #imgBGR *= 255
+                #if imgBGR.max() <= 1.0001:
+                #    plt_imshow_kwargs['vmax'] = 1
+                #    #del plt_imshow_kwargs['vmin']
+                #    #del plt_imshow_kwargs['vmax']
             imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
+            print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
             ax.imshow(imgRGB, **plt_imshow_kwargs)
         elif len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
             # img is in grayscale

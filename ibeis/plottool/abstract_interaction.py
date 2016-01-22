@@ -19,6 +19,8 @@ ut.noinject(__name__, '[abstract_iteract]')
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #'[abstract_iteract]')
 
+DEBUG = ut.get_argflag('--debug-interact')
+
 
 # for scoping
 __REGISTERED_INTERACTIONS__ = []
@@ -44,7 +46,21 @@ class AbstractInteraction(object):
 
     overwrite either self.plot(fnum, pnum) or self.staic_plot(fnum, pnum) or show_page
     """
+
+    LEFT_BUTTON = 1
+    MIDDLE_BUTTON = 2
+    RIGHT_BUTTON = 3
+
+    MOUSE_BUTTONS = {
+        LEFT_BUTTON: 'left',
+        MIDDLE_BUTTON: 'middle',
+        RIGHT_BUTTON: 'right',
+    }
+
     def __init__(self, **kwargs):
+        self.debug = DEBUG
+        if self.debug:
+            print('[pt.a] create interaction')
         self.fnum = kwargs.get('fnum', None)
         if self.fnum  is None:
             self.fnum  = df2.next_fnum()
@@ -55,7 +71,16 @@ class AbstractInteraction(object):
         self.scope = []  # for keeping those widgets alive!
         register_interaction(self)
 
-        self.leftbutton_is_down = None
+        self.is_down = {}
+        self.is_drag = {}
+
+        for button in self.MOUSE_BUTTONS.values():
+            self.is_down[button] = None
+            self.is_drag[button] = None
+
+    def print_status(self):
+        print('is_down = ' + ut.repr2(self.is_down))
+        print('is_drag = ' + ut.repr2(self.is_drag))
 
     def clear_parent_axes(self, ax):
         """ for clearing axes that we appended anything to """
@@ -137,6 +162,8 @@ class AbstractInteraction(object):
         Override this or create static plot function
         (preferably override)
         """
+        if self.debug:
+            print('[pt.a] show page')
         self.fig = ih.begin_interaction(self.interaction_name, self.fnum)
         if hasattr(self, 'plot'):
             self.plot(self.fnum, (1, 1, 1))
@@ -145,22 +172,45 @@ class AbstractInteraction(object):
         self.connect_callbacks()
 
     def connect_callbacks(self):
+        if self.debug:
+            print('[pt.a] connect_callbacks')
         ih.connect_callback(self.fig, 'button_press_event', self.on_click)
         ih.connect_callback(self.fig, 'button_release_event', self.on_click_release)
         ih.connect_callback(self.fig, 'key_press_event', self.on_key_press)
         ih.connect_callback(self.fig, 'motion_notify_event', self.on_motion)
+        ih.connect_callback(self.fig, 'draw_event', self.on_draw)
+        ih.connect_callback(self.fig, 'scroll_event', self.on_scroll)
 
     def bring_to_front(self):
         fig_presenter.bring_to_front(self.fig)
 
     def draw(self):
+        if self.debug > 5:
+            print('[pt.a] draw')
         self.fig.canvas.draw()
 
+    def on_draw(self):
+        if self.debug > 5:
+            print('[pt.a] on draw')
+        pass
+
     def show(self):
+        if self.debug:
+            print('[pt.a] show')
         self.fig.show()
 
     def update(self):
-        fig_presenter.update()
+        if self.debug:
+            print('[pt.a] update')
+        #fig_presenter.update()
+        self.fig.canvas.update()
+        self.fig.canvas.flush_events()
+
+    def on_scroll(self, event):
+        if self.debug:
+            print('[pt.a] on_scroll')
+            print(ut.repr3(event.__dict__))
+        pass
 
     def close(self):
         assert isinstance(self.fig, mpl.figure.Figure)
@@ -171,23 +221,61 @@ class AbstractInteraction(object):
         unregister_interaction(self)
 
     def on_motion(self, event):
-        if self.leftbutton_is_down:
+        if self.debug > 5:
+            print('[pt.a] on_motion')
+        for button in self.MOUSE_BUTTONS.values():
+            if self.is_down[button]:
+                if not self.is_drag[button]:
+                    self.is_drag[button] = True
+                    self.on_drag_start(event)
+        if any(self.is_drag.values()):
             self.on_drag(event)
         #print('event = %r' % (event.__dict__,))
         pass
 
     def on_drag(self, event=None):
+        if self.debug:
+            print('[pt.a] on_drag')
+        if ih.clicked_inside_axis(event):
+            self.on_drag_inside(event)
         # Make sure BLIT (bit block transfer) is used for updates
         #self.fig.canvas.blit(self.fig.ax.bbox)
         pass
 
+    def on_drag_inside(self, event=None):
+        if self.debug:
+            print('[pt.a] on_drag_inside')
+
+    def on_drag_stop(self, event=None):
+        if self.debug > 0:
+            print('[pt.a] on_drag_stop')
+        pass
+
+    def on_drag_start(self, event=None):
+        if self.debug > 0:
+            print('[pt.a] on_drag_start')
+        pass
+
     def on_key_press(self, event):
+        if self.debug > 0:
+            print('[pt.a] on_key_press')
+        self.print_status()
         pass
 
     def on_click(self, event):
+        if self.debug > 0:
+            print('[pt.a] on_click')
+            #print('[pt.a] on_click. event=%r' % (ut.repr2(event.__dict__)))
         #raise NotImplementedError('implement yourself')
-        if event.button == 1:  # left
-            self.leftbutton_is_down = True
+        for button in self.MOUSE_BUTTONS.values():
+            if self.MOUSE_BUTTONS[event.button] == button:
+                self.is_down[button] = True
+        #if event.button == self.LEFT_BUTTON:
+        #    self.is_down['left'] = True
+        #if event.button == self.RIGHT_BUTTON:
+        #    self.is_down['right'] = True
+        #if event.button == self.MIDDLE_BUTTON:
+        #    self.is_down['middle'] = True
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
             self.on_click_inside(event, ax)
@@ -195,8 +283,21 @@ class AbstractInteraction(object):
             self.on_click_outside(event)
 
     def on_click_release(self, event):
-        if event.button == 1:  # left
-            self.leftbutton_is_down = False
+        if self.debug > 0:
+            print('[pt.a] on_release')
+        for button in self.MOUSE_BUTTONS.values():
+            if self.MOUSE_BUTTONS[event.button] == button:
+                self.is_down[button] = False
+                if self.is_drag[button]:
+                    self.is_drag[button] = False
+                    self.on_drag_stop(event)
+        #if event.button == self.LEFT_BUTTON:
+        #    self.is_down['left'] = False
+        #    self.is_drag['left'] = False
+        #if event.button == self.RIGHT_BUTTON:
+        #    self.is_down['right'] = False
+        #if event.button == self.MIDDLE_BUTTON:
+        #    self.is_down['middle'] = False
 
     def on_click_inside(self, event, ax):
         pass

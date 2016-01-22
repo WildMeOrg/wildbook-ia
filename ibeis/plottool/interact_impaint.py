@@ -1,14 +1,20 @@
+# -*- coding: utf-8 -*-
 """
 helpers for painting on top of images for groundtruthing
 
 References:
     http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
+    http://stackoverflow.com/questions/34933254/force-matplotlib-to-block-in-a-pyqt-thread-process
+    http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
+    http://stackoverflow.com/questions/22410663/block-qmainwindow-while-child-widget-is-alive-pyqt
+    http://stackoverflow.com/questions/20289939/pause-execution-until-button-press
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+#import matplotlib.image as mpimg
 import numpy as np
+import vtool as vt
 from plottool import abstract_interaction
 import math
 from six.moves import range, zip, input  # NOQA
@@ -21,7 +27,7 @@ PAINTER_BASE = abstract_interaction.AbstractInteraction
 class PaintInteraction(PAINTER_BASE):
     """
     References:
-        http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib
+        http://stackoverflow.com/questions/22232812/drawing-on-image-with-mpl
 
     CommandLine:
         python -m plottool.interact_impaint --exec-draw_demo --show
@@ -33,44 +39,54 @@ class PaintInteraction(PAINTER_BASE):
         init_mask = kwargs.get('init_mask', None)
 
         if init_mask is None:
-            imgOver = np.zeros(img.shape, np.uint8)
+            mask = np.full(img.shape, 255, dtype=np.uint8)
         else:
-            imgOver = init_mask
+            mask = init_mask
 
-        ax = pt.gca()
-        ax.imshow(img, interpolation='nearest', alpha=1)
-        ax.imshow(imgOver, interpolation='nearest', alpha=0.6)
-        ax.grid(False)
+        self.ax = pt.gca()
+        #self.ax.imshow(img, interpolation='nearest', alpha=1)
+        #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
+        pt.imshow(img, ax=self.ax, interpolation='nearest', alpha=1)
+        pt.imshow(mask, ax=self.ax, interpolation='nearest', alpha=0.6)
+        self.ax.grid(False)
 
-        self.showverts = True
-        self.button_pressed = False
+        self.mask = mask
         self.img = img
-        self.brush_size = 50
-        self.ax = ax
-        self.fg_color = (255, 255, 255)
-        self.bg_color = (0, 0, 0)
+        self.brush_size = 100
+        self.bg_color = (255, 255, 255)
+        self.fg_color = (0, 0, 0)
         self.background = None
+        self._running = True
+
+        self.last_stroke = None
 
         self.connect_callbacks()
-
-        #canvas = self.fig.canvas
-        #canvas.mpl_connect('button_press_event', self.button_press_callback)
-        #canvas.mpl_connect('button_release_event', self.button_release_callback)
-        #canvas.mpl_connect('motion_notify_event', self.on_move)
-        #canvas.mpl_connect('draw_event', self.draw_callback)
+        self.update_image()
+        self.finished_callback = None
 
     def update_image(self):
+        import plottool as pt
+        #print('update_image')
         self.ax.images.pop()
-        self.ax.imshow(self.img, interpolation='nearest', alpha=0.6)
+        #self.ax.imshow(self.mask, interpolation='nearest', alpha=0.6)
+        pt.imshow(self.mask, ax=self.ax, interpolation='nearest', alpha=0.6)
         self.draw()
-        self.do_blit()
+        #self.do_blit()
+        #self.update()
+        #self.ax.imshow(vt.blend_images_multiply(self.img, self.mask))
+        #self.ax.grid(False)
+        #self.ax.set_xticks([])
+        #self.ax.set_yticks([])
 
-    #def draw(self):
-    #    self.fig.canvas.draw()
-    #    #print('draw')
-    #    #plt.draw()
+    def on_close(self, event=None):
+        if self.finished_callback is not None:
+            self.finished_callback(self.mask)
+        super(PaintInteraction, self).on_close(event)
+        self._running = False
 
     def do_blit(self):
+        if self.debug > 3:
+            print('[pt.impaint] do_blit')
         if self.background is  None:
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
         else:
@@ -78,348 +94,108 @@ class PaintInteraction(PAINTER_BASE):
             pass
         self.fig.canvas.blit(self.ax.bbox)
 
-    def draw_callback(self, event):
+    def on_draw(self, event):
+        #print('on draw')
         self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
 
     def apply_stroke(self, x, y, color):
+        if self.debug > 3:
+            print('[pt.impaint] apply stroke')
         import cv2
         center = (x, y)
         radius = int(self.brush_size / 2)
         thickness = -1
-        cv2.circle(self.img, center, radius, color, thickness)
+        cv2.circle(self.mask, center, radius, color, thickness)
+        if self.last_stroke is not None:
+            if self.last_stroke[0] == color:
+                old_center = self.last_stroke[1]
+                line_thickness = int(self.brush_size)
+                cv2.line(self.mask, center, old_center, color, line_thickness)
+        self.last_stroke = (color, (x, y))
 
     def on_click_inside(self, event, ax):
         x = int(math.floor(event.xdata))
         y = int(math.floor(event.ydata))
-        if(event.button == 1):
-            self.button_pressed = True
+        if(event.button == self.LEFT_BUTTON):
             self.apply_stroke(x, y, self.fg_color)
-        if(event.button == 3):
-            self.button_pressed = True
+        if(event.button == self.RIGHT_BUTTON):
             self.apply_stroke(x, y, self.bg_color)
         self.update_image()
+        #self.draw()
+        #self.print_status()
         #update the image
 
-    #def button_release_callback(self, event):
-    #    self.button_pressed = False
-    #    self.update_image()
+    def on_scroll(self, event):
+        self.brush_size = max(self.brush_size + event.step, 1)
+        print('self.brush_size = %r' % (self.brush_size,))
 
-    def on_drag(self, event):
-        if(self.button_pressed):
-            x = int(math.floor(event.xdata))
-            y = int(math.floor(event.ydata))
-            if(event.button == 1):
-                self.apply_stroke(x, y, self.fg_color)
-            if(event.button == 1):
-                self.apply_stroke(x, y, self.bg_color)
-            self.update_image()
+    def on_drag_stop(self, event):
+        self.last_stroke = None
 
-
-class Painter(object):
-    """
-    References:
-        http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
-    """
-    def __init__(self, fig, ax, img):
-        self.showverts = True
-        self.button_pressed = False
-        self.img = img
-        self.brush_size = 50
-        self.ax = ax
-        self.fig = fig
-        self.color = 0
-        self.background = None
-
-        canvas = self.fig.canvas
-        canvas.mpl_connect('button_press_event', self.button_press_callback)
-        canvas.mpl_connect('button_release_event', self.button_release_callback)
-        canvas.mpl_connect('motion_notify_event', self.on_move)
-        canvas.mpl_connect('draw_event', self.draw_callback)
-
-    def draw(self):
-        self.fig.canvas.draw()
-        #print('draw')
-        #plt.draw()
-
-    def do_blit(self):
-        if self.background is  None:
-            self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-        else:
-            self.fig.canvas.restore_region(self.background)
-            pass
-        self.fig.canvas.blit(self.ax.bbox)
-
-    def draw_callback(self, event):
-        self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-
-    def button_press_callback(self, event):
-        import cv2
-        if(event.button == 1):
-            self.button_pressed = True
-            x = int(math.floor(event.xdata))
-            y = int(math.floor(event.ydata))
-            cv2.circle(self.img, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
+    def on_drag_inside(self, event):
+        #self.print_status()
+        x = int(math.floor(event.xdata))
+        y = int(math.floor(event.ydata))
+        if(event.button == self.LEFT_BUTTON):
+            self.apply_stroke(x, y, self.fg_color)
+        elif(event.button == self.RIGHT_BUTTON):
+            self.apply_stroke(x, y, self.bg_color)
         self.update_image()
-        #update the image
-        self.do_blit()
-
-    def update_image(self):
-        self.ax.images.pop()
-        self.ax.imshow(self.img, interpolation='nearest', alpha=0.6)
-
-    def button_release_callback(self, event):
-        self.button_pressed = False
-        self.update_image()
-        self.draw()
-        #cv2.imwrite('test.png', self.img)
-        self.do_blit()
-
-    def on_move(self, event):
-        import cv2
-        if(self.button_pressed):
-            x = int(math.floor(event.xdata))
-            y = int(math.floor(event.ydata))
-            cv2.circle(self.img, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
-            self.update_image()
-        self.draw()
-        self.do_blit()
+        #self.do_blit()
+        #self.draw()
 
 
 def impaint_mask2(img, init_mask=None):
-    if True:
-        plt.ion()
-        fig = plt.figure(1)
-        ax = plt.subplot(111)
-        if init_mask is None:
-            imgOver = np.zeros(img.shape, np.uint8) + 255
-        else:
-            imgOver = init_mask
-        ax.imshow(img, interpolation='nearest', alpha=1)
-        ax.imshow(imgOver, interpolation='nearest', alpha=0.6)
-        ax.grid(False)
+    """
+        python -m plottool.interact_impaint --exec-draw_demo --show
+    """
+    if False:
+        QT = False  # NOQA
+        #if QT:
+        #    from guitool import mpl_embed
+        #    import guitool
+        #    guitool.ensure_qapp()  # must be ensured before any embeding
+        #    wgt = mpl_embed.QtAbstractMplInteraction()
+        #    fig = wgt.fig
+        #    ax = wgt.axes
+        #else:
+        #    fig = plt.figure(1)
+        #    ax = plt.subplot(111)
+        #if init_mask is None:
+        #    mask = np.zeros(img.shape, np.uint8) + 255
+        #else:
+        #    mask = init_mask
+        #ax.imshow(img, interpolation='nearest', alpha=1)
+        #ax.imshow(mask, interpolation='nearest', alpha=0.6)
+        #ax.grid(False)
+        #ax.set_xticks([])
+        #ax.set_yticks([])
 
-        pntr = Painter(fig, ax, imgOver)
-        plt.title('Click on the image to draw. exit to finish')
-        plt.show(block=True)
-        #input('hack to block... press enter when done')
-        return pntr.img
+        #pntr = _OldPainter(fig, ax, mask)
+        #ax.set_title('Click on the image to draw. exit to finish')
+        #print('Starting interaction')
+        #if not QT:
+        #    plt.show(block=True)
+        #else:
+        #    guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
+        #    wgt.show()
+        ##input('hack to block... press enter when done')
     else:
         pntr = PaintInteraction(img, init_mask=init_mask)
         #pntr.show_page()
         plt.title('Click on the image to draw. exit to finish')
-        plt.show()
-        return pntr.img
+        print('Starting interaction')
 
-
-def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
-    r"""
-    CommandLine:
-        python -m plottool.interact_impaint --test-impaint_mask
-
-    References:
-        http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_mouse_handling/py_mouse_handling.html
-
-    TODO: Slider for transparency
-    TODO: Label selector
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_impaint import *  # NOQA
-        >>> import utool as ut
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> img = vt.imread(img_fpath)
-        >>> label_colors = [255, 200, 100, 0]
-        >>> result = impaint_mask(img, label_colors)
-        >>> # verify results
-        >>> print(result)
-    """
-    import cv2
-    import numpy as np
-    print('begining impaint mask. c=circle, r=rect')
-
-    globals_ = dict(
-        drawing=False,  # true if mouse is pressed
-        mode='rect',  # if True, draw rectangle. Press 'm' to toggle to curve
-        color=255,
-        fgcolor=255,
-        bgcolor=0,
-        label_index=0,
-        radius=25,
-        transparency=.25,
-        ix=-1, iy=-1,
-    )
-
-    # mouse callback function
-    def draw_shape(x, y):
-        keys =  ['mode', 'ix', 'iy', 'color', 'radius']
-        mode, ix, iy, color, radius = ut.dict_take(globals_, keys)
-        if mode == 'rect':
-            cv2.rectangle(mask, (ix, iy), (x, y), color, -1)
-        elif mode == 'circ':
-            cv2.circle(mask, (x, y), radius, color, -1)
-
-    def mouse_callback(event, x, y, flags, param):
-        #keys =  ['drawing', 'mode', 'ix', 'iy', 'color']
-        #drawing, mode, ix, iy, color = ut.dict_take(globals_, keys)
-
-        if event in [cv2.EVENT_RBUTTONDOWN, cv2.EVENT_LBUTTONDOWN]:
-            globals_['drawing'] = True
-            globals_['ix'], globals_['iy'] = x, y
-            if event == cv2.EVENT_RBUTTONDOWN:
-                globals_['color'] = globals_['bgcolor']
-            elif event == cv2.EVENT_LBUTTONDOWN:
-                globals_['color'] = globals_['fgcolor']
-        elif event == cv2.EVENT_MOUSEMOVE:
-            if globals_['drawing'] is True:
-                draw_shape(x, y)
-        elif event in [cv2.EVENT_LBUTTONUP, cv2.EVENT_RBUTTONUP]:
-            globals_['drawing'] = False
-            draw_shape(x, y)
-            if event == cv2.EVENT_RBUTTONUP:
-                globals_['color'] = globals_['fgcolor']
-            elif event == cv2.EVENT_LBUTTONUP:
-                pass
-                #globals_['color'] = 255
-
-    if label_colors is None:
-        color_list = [255, 0]
-    else:
-        color_list = label_colors[:]
-
-    # Choose colors/labels to start with
-    if init_label is None:
-        init_color = 0
-    else:
-        init_color = color_list[init_label]
-
-    print('color_list = %r' % (color_list,))
-    print('init_color=%r' % (init_color,))
-
-    title = 'masking image'
-    if init_mask is not None:
-        try:
-            mask = init_mask[:, :, 0].copy()
-        except Exception:
-            mask = init_mask.copy()
-    else:
-        mask = np.zeros(img.shape[0:2], np.uint8) + init_color
-    transparent_mask = np.zeros(img.shape[0:2], np.float32)
-    cv2.namedWindow(title)
-    cv2.setMouseCallback(title, mouse_callback)
-
-    print('Valid Keys: r,c,t,l,q')
-    while(1):
-        # Blend images
-        transparency = globals_['transparency']
-        # Move from 0 to 1
-        np.divide(mask, 255.0, out=transparent_mask)
-        # Unmask room for a bit of transparency
-        np.multiply(transparent_mask, (1.0 - transparency), out=transparent_mask)
-        # Add a bit of transparency
-        np.add(transparent_mask, transparency, out=transparent_mask)
-        # Multiply the image by the transparency mask
-        masked_image = (img * transparent_mask[:, :, None]).astype(np.uint8)
-        cv2.imshow(title, masked_image)
-        keycode = cv2.waitKey(1) & 0xFF
-        if keycode == ord('r'):
-            globals_['mode'] = 'rect'
-        if keycode == ord('c'):
-            globals_['mode'] = 'circ'
-        if keycode == ord('t'):
-            globals_['transparency'] = (globals_['transparency'] + .25) % 1.0
-        if keycode == ord('l'):
-            globals_['label_index'] = (globals_['label_index'] + 1) % len(color_list)
-            globals_['fgcolor'] = color_list[globals_['label_index']]
-            print('fgcolor = %r' % (globals_['fgcolor'],))
-        if keycode == ord('q') or keycode == 27:
-            break
-
-    cv2.destroyAllWindows()
-    return mask
-
-
-def cached_impaint(bgr_img, cached_mask_fpath=None, label_colors=None,
-                   init_mask=None, aug=False, refine=False):
-    import vtool as vt
-    if cached_mask_fpath is None:
-        cached_mask_fpath = 'image_' + ut.hashstr_arr(bgr_img) + '.png'
-    if aug:
-        cached_mask_fpath += '.' + ut.hashstr_arr(bgr_img)
-        if label_colors is not None:
-            cached_mask_fpath += ut.hashstr_arr(label_colors)
-        cached_mask_fpath += '.png'
-    #cached_mask_fpath = 'tmp_mask.png'
-    if refine or not ut.checkpath(cached_mask_fpath):
-        if refine and ut.checkpath(cached_mask_fpath):
-            if init_mask is None:
-                init_mask = vt.imread(cached_mask_fpath, grayscale=True)
-        custom_mask = impaint_mask(bgr_img, label_colors=label_colors, init_mask=init_mask)
-        vt.imwrite(cached_mask_fpath, custom_mask)
-    else:
-        custom_mask = vt.imread(cached_mask_fpath, grayscale=True)
-    return custom_mask
-
-
-def demo():
-    r"""
-    CommandLine:
-        python -m plottool.interact_impaint --test-demo
-
-    References:
-        http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_mouse_handling/py_mouse_handling.html
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_impaint import *  # NOQA
-        >>> # build test data
-        >>> # execute function
-        >>> result = demo()
-        >>> # verify results
-        >>> print(result)
-    """
-    import cv2
-    import numpy as np
-
-    globals_ = dict(
-        drawing=False,  # true if mouse is pressed
-        mode=False,  # if True, draw rectangle. Press 'm' to toggle to curve
-        ix=-1, iy=-1,
-    )
-
-    # mouse callback function
-    def draw_circle(event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            globals_['drawing'] = True
-            globals_['ix'], globals_['iy'] = x, y
-
-        elif event == cv2.EVENT_MOUSEMOVE:
-            if globals_['drawing'] is True:
-                if globals_['mode'] is True:
-                    cv2.rectangle(img, (globals_['ix'], globals_['iy']), (x, y), (0, 255, 0), -1)
-                else:
-                    cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
-
-        elif event == cv2.EVENT_LBUTTONUP:
-            globals_['drawing'] = False
-            if globals_['mode'] is True:
-                cv2.rectangle(img, (globals_['ix'], globals_['iy']), (x, y), (0, 255, 0), -1)
-            else:
-                cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
-
-    img = np.zeros((512, 512, 3), np.uint8)
-    cv2.namedWindow('image')
-    cv2.setMouseCallback('image', draw_circle)
-
-    while(1):
-        cv2.imshow('image', img)
-        keycode = cv2.waitKey(1) & 0xFF
-        if keycode == ord('m'):
-            globals_['mode'] = not globals_['mode']
-        elif keycode == 27:
-            break
-
-    cv2.destroyAllWindows()
+        # Hacky code to block until the interaction is actually done
+        pntr.show()
+        import time
+        from guitool.__PYQT__ import QtGui
+        while pntr._running:
+            QtGui.qApp.processEvents()
+            time.sleep(0.05)
+        #plt.show()
+    print('Finished interaction')
+    return pntr.mask
 
 
 def draw_demo():
@@ -437,10 +213,16 @@ def draw_demo():
         >>> ut.show_if_requested()
     """
     fpath = ut.grab_test_imgpath('zebra.png')
-    img = mpimg.imread(fpath)
+    img = vt.imread(fpath)
     mask = impaint_mask2(img)
     print('mask = %r' % (mask,))
     print('mask.sum() = %r' % (mask.sum(),))
+    if False:
+        plt.imshow(vt.blend_images_multiply(img, mask))
+        ax = plt.gca()
+        ax.grid(False)
+        ax.set_xticks([])
+        ax.set_yticks([])
 
 
 if __name__ == '__main__':
