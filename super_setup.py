@@ -177,7 +177,7 @@ if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
 # TODO: Make this prompt for the userid
 def userid_prompt():
     if False:
-        return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
+        return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools', 'pydarknet']}
     return {}
 
 
@@ -340,6 +340,7 @@ _repo_list = [
     'https://github.com/Erotemic/plottool.git',
     'https://github.com/bluemellophone/detecttools.git',
     'https://github.com/bluemellophone/pyrf.git',
+    'https://github.com/bluemellophone/pydarknet.git',
     'https://github.com/Erotemic/hesaff.git',
 ]
 

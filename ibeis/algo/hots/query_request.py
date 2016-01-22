@@ -80,7 +80,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)@5wlqu@jl+j8l9io)
+        PZ_MTEST_DSUUIDS((5)kmptegpfuwaibfvt)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -98,7 +98,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        NAUT_test_DSUUIDS((5)2s8!cj@nrf6iuqgd)
+        NAUT_test_DSUUIDS((5)tklzzeuqjqxfbayo)
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -116,7 +116,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)@5wlqu@jl+j8l9io)
+        PZ_MTEST_DSUUIDS((5)kmptegpfuwaibfvt)
 
     Ignore:
         # This is supposed to be the begginings of the code to transition the

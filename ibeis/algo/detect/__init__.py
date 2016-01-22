@@ -6,6 +6,7 @@ import utool as ut
 ut.noinject(__name__, '[ibeis.algo.detect.__init__]')
 from ibeis.algo.detect import grabmodels
 from ibeis.algo.detect import randomforest
+from ibeis.algo.detect import yolo
 import utool as ut
 print, rrr, profile = ut.inject2(
     __name__, '[ibeis.algo.detect]')
@@ -19,12 +20,14 @@ def reload_subs(verbose=True):
         pass
     getattr(grabmodels, 'rrr', fbrrr)(verbose=verbose)
     getattr(randomforest, 'rrr', fbrrr)(verbose=verbose)
+    getattr(yolo, 'rrr', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
     ('grabmodels', None),
     ('randomforest', None),
+    ('yolo', None),
 ]
 
 """

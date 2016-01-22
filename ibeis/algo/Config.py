@@ -1114,13 +1114,14 @@ class DetectionConfig(ConfigBase):
         >>> detect_cfg = DetectionConfig()
         >>> result = (detect_cfg.get_cfgstr())
         >>> print(result)
-        _DETECT(rf,____,sz=800)
+        _DETECT(cnn,____,sz=800)
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
         #detect_cfg.species_text = 'zebra_grevys'
         detect_cfg.species_text = const.UNKNOWN
-        detect_cfg.detector = 'rf'
+        # detect_cfg.detector = 'rf'
+        detect_cfg.detector = 'cnn'
         detect_cfg.scale_list  = '1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
         detect_cfg.trees_path  = ''
         detect_cfg.detectimg_sqrt_area = 800
