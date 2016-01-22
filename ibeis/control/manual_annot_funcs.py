@@ -287,7 +287,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 vert_list=None, annot_uuid_list=None, yaw_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
                 species_rowid_list=None, quiet_delete_thumbs=False,
-                prevent_visual_duplicates=True, **kwargs):
+                prevent_visual_duplicates=True, skip_cleaning=False, **kwargs):
     r"""
     Adds an annotation to images
 
@@ -434,7 +434,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         species_list = ibs.get_species_texts(species_rowid_list)
     else:
         if species_list is not None:
-            species_rowid_list = ibs.add_species(species_list)
+            species_rowid_list = ibs.add_species(species_list, skip_cleaning=skip_cleaning)
         else:
             species_rowid_list = [const.UNKNOWN_SPECIES_ROWID for _ in range(len(gid_list))]
             species_list = ibs.get_species_texts(species_rowid_list)

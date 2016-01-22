@@ -6140,7 +6140,8 @@ def get_annot_fgweights_subset(ibs, aid_list, fxs_list, config2_=None):
 
 @register_ibs_method
 def _clean_species(ibs):
-    print('[_clean_species] Cleaning...')
+    if ut.VERBOSE:
+        print('[_clean_species] Cleaning...')
     from ibeis.species import species_mapping
     if ibs is not None:
         flag = '--allow-keyboard-database-update'
