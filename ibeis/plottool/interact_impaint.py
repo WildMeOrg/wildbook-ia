@@ -52,7 +52,7 @@ class PaintInteraction(PAINTER_BASE):
 
         self.mask = mask
         self.img = img
-        self.brush_size = 100
+        self.brush_size = 75
         self.bg_color = (255, 255, 255)
         self.fg_color = (0, 0, 0)
         self.background = None
