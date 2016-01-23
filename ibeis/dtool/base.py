@@ -47,7 +47,7 @@ def make_config_metaclass():
         return [pi.varname for pi in self.get_param_info_list()] + self._subconfig_names
 
     @_register
-    def get_cfgstr_list(cfg, ignore_keys=None, **kwargs):
+    def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
         """ default get_cfgstr_list, can be overrided by a config object """
         if ignore_keys is not None:
             itemstr_list = [pi.get_itemstr(cfg)
@@ -57,7 +57,10 @@ def make_config_metaclass():
             itemstr_list = [pi.get_itemstr(cfg)
                             for pi in cfg.get_param_info_list()]
         filtered_itemstr_list = list(filter(len, itemstr_list))
-        config_name = cfg.get_config_name()
+        if with_name:
+            config_name = cfg.get_config_name()
+        else:
+            config_name = ''
         body = ','.join(filtered_itemstr_list)
         cfgstr = ''.join([config_name, '(', body, ')'])
         return cfgstr
@@ -390,21 +393,18 @@ class MatchResult(AlgoResult):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class Config(ut.DictLike):
+class Config(ut.NiceRepr, ut.DictLike):
     """ Base class for heirarchical config
 
     need to overwrite get_param_info_list
 
     """
 
-    def __init__(cfg, **kwargs):
-        cfg.initialize_params(**kwargs)
+    def __init__(self, **kwargs):
+        self.initialize_params(**kwargs)
 
-    def __repr__(cfg):
-        return '<%s %s at %s>' % (cfg.__class__.__name__, cfg.get_cfgstr(), hex(id(cfg)))
-
-    def __str__(cfg):
-        return '<' + cfg.get_cfgstr() + '>'
+    def __nice__(self):
+        return self.get_cfgstr(with_name=False)
 
     def keys(self):
         return self.get_varnames()
@@ -417,6 +417,13 @@ class Config(ut.DictLike):
 
     def setitem(self, key, value):
         return getattr(self, key, value)
+
+    def get_param_info_list(self):
+        try:
+            return self._param_info_list
+        except AttributeError:
+            raise NotImplementedError(
+                'Need to define _param_info_list or get_param_info_list')
 
     @classmethod
     def from_argv_dict(cls):
@@ -435,6 +442,8 @@ class Config(ut.DictLike):
         self = cls()
         name = self.get_config_name()
         argname = '--' + name
+        if hasattr(self, '_alias'):
+            argname = (argname, '--' + self._alias)
         new_vals_list = ut.parse_argv_cfg(argname)
         self_list = [cls(**new_vals) for new_vals in new_vals_list]
         return self_list
