@@ -443,7 +443,13 @@ class Config(ut.DictLike):
         return self.asdict()
 
     def __setstate__(self, state):
-        self.update(*state)
+        self.update(**state)
+
+    def update(cfg, **kwargs):
+        self_keys = set(cfg.__dict__.keys())
+        for key, val in six.iteritems(kwargs):
+            if key in self_keys:
+                setattr(cfg, key, val)
 
 
 class TableConfig(Config):
