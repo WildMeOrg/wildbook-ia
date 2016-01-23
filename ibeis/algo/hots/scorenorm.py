@@ -36,29 +36,55 @@ from functools import partial
 print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 
 
+class NormFeatScoreConfig(dtool.Config):
+    _alias = 'nfscfg'
+    _param_info_list = [
+        ut.ParamInfo('disttype', None),
+        ut.ParamInfo('namemode', True),
+        ut.ParamInfo('fsvx', None, type_='fuzzy_subset', hideif=None),
+        ut.ParamInfo('threshx',  None, hideif=None),
+        ut.ParamInfo('thresh', .9, hideif=lambda cfg: cfg['threshx'] is None),
+        ut.ParamInfo('num', 5),
+        # ut.ParamInfo('top_percent', None, hideif=None),
+        ut.ParamInfo('top_percent', .5, hideif=None),
+    ]
+
+
 def compare_featscores():
     """
     CommandLine:
-        ibeis --tf compare_featscores --diskshow --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
-                -a timectrl -p default:K=1,normalizer_rule=name --db PZ_MTEST --save featscore{db}.png --figsize=13,13
+        ibeis --tf compare_featscores  --db PZ_MTEST \
+            --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5] -a timectrl \
+            -p default:K=[1,2],normalizer_rule=name \
+            --save featscore{db}.png --figsize=13,20 --diskshow
 
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
-            -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 --save featscore{db}.png  --figsize=13,13 --diskshow
+        ibeis --tf compare_featscores  --db PZ_MTEST \
+            --nfscfg :disttype=[L2_sift,lnbnn],top_percent=[None,.5,.1] -a timectrl \
+            -p default:K=[1,2],normalizer_rule=name \
+            --save featscore{db}.png --figsize=13,20 --diskshow
 
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
-                -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL --save featscore{db}.png  --figsize=13,13 --diskshow
+        ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
+            -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 \
+            --save featscore{db}.png  --figsize=13,13 --diskshow
 
-        ibeis --tf compare_featscores --NormFeatScore ':disttype=fg,L2_sift,normdist,lnbnn' \
-                -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1 --save featscore{db}.png  --figsize=13,13
+        ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
+            -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL \
+            --save featscore{db}.png  --figsize=13,13 --diskshow
 
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
-            -a timectrl -p default:K=[1,2,3],normalizer_rule=name,sv_on=False --db PZ_Master1 --save featscore{db}.png  \
+        ibeis --tf compare_featscores  --db GIRM_Master1 \
+            --nfscfg ':disttype=fg,L2_sift,normdist,lnbnn' \
+            -a timectrl -p default:K=1,normalizer_rule=name \
+            --save featscore{db}.png  --figsize=13,13
+
+        ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
+            -a timectrl -p default:K=[1,2,3],normalizer_rule=name,sv_on=False \
+            --db PZ_Master1 --save featscore{db}.png  \
                 --dpi=128 --figsize=15,20 --diskshow
 
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_Master1
-        ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GIRM_Master1
+        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_MTEST
+        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GZ_ALL
+        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_Master1
+        ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GIRM_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -69,12 +95,13 @@ def compare_featscores():
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
-    nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
-
+    import plottool as pt
     import ibeis
+    nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
     learnkw = {}
     ibs, testres = ibeis.testdata_expts(
         defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
+    print('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
 
     encoder_list = []
     lbl_list = []
@@ -86,32 +113,42 @@ def compare_featscores():
     #func = ut.cached_func(cache_dir='.')(learn_featscore_normalizer)
     for datakw, nlbl in zip(nfs_cfg_list, varied_nfs_lbls):
         for qreq_, qlbl in zip(testres.cfgx2_qreq_, varied_qreq_lbls):
-            print('datakw = %r' % (datakw,))
             lbl = qlbl + ' ' + nlbl
-            cfgstr = lbl + qreq_.get_full_cfgstr()
+            cfgstr = '_'.join([datakw.get_cfgstr(), qreq_.get_full_cfgstr()])
             try:
                 encoder = vt.ScoreNormalizer()
                 encoder.load(cfgstr=cfgstr)
             except IOError:
+                print('datakw = %r' % (datakw,))
                 encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
                 encoder.save(cfgstr=cfgstr)
             encoder_list.append(encoder)
             lbl_list.append(lbl)
 
-    import plottool as pt
     fnum = 1
     next_pnum = pt.make_pnum_nextgen(nRows=len(encoder_list), nCols=2)
 
-    icon = qreq_.ibs.get_database_icon(max_dsize=(None, 94), aid=qreq_.qaids[0])
+    iconsize = 94
+    if len(encoder_list) > 3:
+        iconsize = 64
+
+    icon = qreq_.ibs.get_database_icon(max_dsize=(None, iconsize), aid=qreq_.qaids[0])
+    score_range = (0, .6)
     for encoder, lbl in zip(encoder_list, lbl_list):
         #encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
-        encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf=' ' + lbl, score_range=(0, 1))
+        encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf='\n' + lbl, score_range=score_range)
         encoder._plot_roc(fnum, pnum=next_pnum())
-        #if icon is not None:
-        #    pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+        if icon is not None:
+            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
-    pt.adjust_subplots(hspace=.4, top=.9, bottom=.1, left=.1, right=.9)
-    pt.set_figtitle(qreq_._custom_str())
+    nonvaried_lbl = ut.get_nonvaried_cfg_lbls(nfs_cfg_list)[0]
+    figtitle = qreq_._custom_str() + '\n' + nonvaried_lbl
+
+    pt.set_figtitle(figtitle)
+    pt.adjust_subplots(hspace=.5, top=.92, bottom=.08, left=.1, right=.9)
+    pt.update_figsize()
+    # pt.plt.tight_layout()
+    # pt.adjust_subplots(top=.95)
 
 
 def learn_annotscore_normalizer(qreq_, learnkw={}):
@@ -234,18 +271,6 @@ def train_featscore_normalizer():
     encoder = learn_featscore_normalizer(qreq_, datakw=datakw)
     encoder.save()
     return encoder
-
-
-class NormFeatScoreConfig(dtool.Config):
-    def get_param_info_list(self):
-        return [
-            ut.ParamInfo('disttype', None),
-            ut.ParamInfo('namemode', True),
-            ut.ParamInfo('fsvx', slice(None, None, None)),
-            ut.ParamInfo('threshx',  None),
-            ut.ParamInfo('thresh', .9),
-            ut.ParamInfo('num', 5),
-        ]
 
 
 def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
@@ -374,7 +399,7 @@ def get_training_annotscores(qreq_, cm_list):
 
 def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
                             fsvx=slice(None, None, None), threshx=None,
-                            thresh=.9, num=None, top_percent=.5):
+                            thresh=.9, num=None, top_percent=None):
     """
     Returns the flattened set of feature scores between each query and the
     correct groundtruth annotations as well as the top scoring false
@@ -584,7 +609,7 @@ def get_topname_training_idxs(cm, num=5):
     return tp_idxs, tn_idxs
 
 
-def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
+def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
     """
     CommandLine:
         python -m ibeis.algo.hots.scorenorm --exec-get_training_fsv --show
@@ -605,7 +630,7 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
         tp_idxs, tn_idxs = get_topannot_training_idxs(cm, num=num)
 
     # Keep only the top scoring half of the feature matches
-    top_percent = None
+    # top_percent = None
     if top_percent is not None:
         cm_orig = cm
         #cm_orig.assert_self(qreq_)
@@ -627,7 +652,7 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
 
 @profile
 def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
-                           top_percent=.5, data_annots=None,
+                           top_percent=None, data_annots=None,
                            query_annots=None, num=None):
     r"""
     computes custom distances on prematched descriptors
@@ -683,7 +708,6 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     else:
         tp_idxs, tn_idxs = get_topannot_training_idxs(cm, num=num)
 
-    top_percent = None
     if top_percent is not None:
         cm_orig = cm
         cm_orig.assert_self(qreq_)
@@ -695,8 +719,8 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         ]
         cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
 
-        assert cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs)
-        assert cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs)
+        assert np.all(cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs))
+        assert np.all(cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs))
 
         cm.assert_self(qreq_)
 
