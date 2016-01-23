@@ -922,9 +922,11 @@ class IBEISController(BASE_CLASS):
                 (aid,) = ibs.add_annots(
                     [gid], [bbox], notes_list=['rfdetect'],
                     species_list=[species], quiet_delete_thumbs=True,
-                    detect_confidence_list=[result['confidence']])
+                    detect_confidence_list=[result['confidence']],
+                    skip_cleaning=True)
                 aids.append(aid)
             aids_list.append(aids)
+        ibs._clean_species()
         return aids_list
 
     @accessor_decors.default_decorator
@@ -988,9 +990,11 @@ class IBEISController(BASE_CLASS):
                 (aid,) = ibs.add_annots(
                     [gid], [bbox], notes_list=['cnnyolodetect'],
                     species_list=[result['class']], quiet_delete_thumbs=True,
-                    detect_confidence_list=[result['confidence']])
+                    detect_confidence_list=[result['confidence']],
+                    skip_cleaning=True)
                 aids.append(aid)
             aids_list.append(aids)
+        ibs._clean_species()
         return aids_list
 
     @accessor_decors.default_decorator

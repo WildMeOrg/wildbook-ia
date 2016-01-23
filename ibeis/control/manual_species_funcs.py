@@ -161,7 +161,8 @@ def _convert_species_nice_to_code(species_nice_list):
 @accessor_decors.adder
 @register_api('/api/species/', methods=['POST'])
 def add_species(ibs, species_nice_list, species_text_list=None,
-                species_code_list=None, species_uuid_list=None, species_note_list=None):
+                species_code_list=None, species_uuid_list=None,
+                species_note_list=None, skip_cleaning=False):
     r"""
     Adds a list of species.
 
@@ -242,7 +243,8 @@ def add_species(ibs, species_nice_list, species_text_list=None,
     assert -1 not in species_rowid_list
 
     # Clean species
-    ibs._clean_species()
+    if not skip_cleaning:
+        ibs._clean_species()
 
     return species_rowid_list
     #value_list = ibs.sanitize_species_texts(species_text_list)
