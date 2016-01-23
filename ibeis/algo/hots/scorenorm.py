@@ -48,12 +48,12 @@ def compare_featscores():
         ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
                 -a timectrl -p default:K=1,normalizer_rule=name --db GZ_ALL --save featscore{db}.png  --figsize=13,13 --diskshow
 
-        ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
+        ibeis --tf compare_featscores --NormFeatScore ':disttype=fg,L2_sift,normdist,lnbnn' \
                 -a timectrl -p default:K=1,normalizer_rule=name --db GIRM_Master1 --save featscore{db}.png  --figsize=13,13
 
         ibeis --tf compare_featscores --NormFeatScore :disttype=[L2_sift,normdist,lnbnn] \
-            -a timectrl -p default:K=[1,3],normalizer_rule=name --db PZ_Master1 --save featscore{db}.png  \
-                --dpi=128 --figsize=15,15 --diskshow
+            -a timectrl -p default:K=[1,2,3],normalizer_rule=name,sv_on=False --db PZ_Master1 --save featscore{db}.png  \
+                --dpi=128 --figsize=15,20 --diskshow
 
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db PZ_MTEST
         ibeis --tf compare_featscores --show --NormFeatScore :disttype=[L2_sift,normdist] -a timectrl -p default:K=1 --db GZ_ALL
@@ -82,16 +82,21 @@ def compare_featscores():
     varied_nfs_lbls = ut.get_varied_cfg_lbls(nfs_cfg_list)
     varied_qreq_lbls = ut.get_varied_cfg_lbls(testres.cfgdict_list)
     #varies_qreq_lbls
-    import utool
-    utool.embed()
 
-    func = ut.cached_func(learn_featscore_normalizer, cache_dir='.')
-    for datakw, nlbl in zip(nfs_cfg_list, varied_qreq_lbls):
+    #func = ut.cached_func(cache_dir='.')(learn_featscore_normalizer)
+    for datakw, nlbl in zip(nfs_cfg_list, varied_nfs_lbls):
         for qreq_, qlbl in zip(testres.cfgx2_qreq_, varied_qreq_lbls):
             print('datakw = %r' % (datakw,))
-            encoder = func(qreq_, datakw, learnkw)
-            encoder_list.append(qlbl + ' ' + nlbl)
-        lbl_list.extend()
+            lbl = qlbl + ' ' + nlbl
+            cfgstr = lbl + qreq_.get_full_cfgstr()
+            try:
+                encoder = vt.ScoreNormalizer()
+                encoder.load(cfgstr=cfgstr)
+            except IOError:
+                encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
+                encoder.save(cfgstr=cfgstr)
+            encoder_list.append(encoder)
+            lbl_list.append(lbl)
 
     import plottool as pt
     fnum = 1
@@ -105,7 +110,7 @@ def compare_featscores():
         #if icon is not None:
         #    pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
-    pt.adjust_subplots(hspace=.3, top=.9, bottom=.1, left=.1, right=.9)
+    pt.adjust_subplots(hspace=.4, top=.9, bottom=.1, left=.1, right=.9)
     pt.set_figtitle(qreq_._custom_str())
 
 
