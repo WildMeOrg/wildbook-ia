@@ -13,6 +13,15 @@ import matplotlib.gridspec as gridspec  # NOQA
 ut.noinject(__name__, '[customfig]')
 
 
+#LABEL_SIZE = 8
+#TITLE_SIZE = 8
+#LABEL_SIZE = ut.get_argval('--labelsize', default=8)
+#TITLE_SIZE = ut.get_argval('--titlesize', default=8)
+LABEL_SIZE = ut.get_argval('--labelsize', default=10)
+TITLE_SIZE = ut.get_argval('--titlesize', default=12)
+FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=14)
+
+
 def customize_figure(fig, docla):
     #if 'user_stat_list' not in fig.__dict__.keys() or docla:
     #    fig.user_stat_list = []
@@ -247,7 +256,8 @@ def sanitize_img_ext(ext, defaultext=None):
     return ext
 
 
-def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath=None):
+def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose,
+                         dpath=None):
     if fpath is None or usetitle:
         if fig._suptitle is not None:
             # safer than using the canvas window title
@@ -295,7 +305,7 @@ def get_image_from_figure(fig):
     saves figure data to an ndarray
 
     References:
-        http://stackoverflow.com/questions/7821518/matplotlib-save-plot-to-numpy-array
+        http://stackoverflow.com/questions/7821518/save-plot-to-numpy-array
     """
     import numpy as np
     import cv2
@@ -307,9 +317,9 @@ def get_image_from_figure(fig):
     return imgBGR
 
 
-def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwrite=True,
-                defaultext=None, verbose=1, dpi=None, figsize=None, saveax=None,
-                fig=None, dpath=None):
+def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
+                overwrite=True, defaultext=None, verbose=1, dpi=None,
+                figsize=None, saveax=None, fig=None, dpath=None):
     """
     Helper to save the figure image to disk. Tries to be smart about filename
     lengths, extensions, overwrites, etc...
@@ -326,12 +336,14 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
         verbose (int):  verbosity flag
         dpi (int): dots per inch
         figsize (tuple(int, int)): figure size
-        saveax (bool or Axes): specifies if the axes should be saved instead of the figure
+        saveax (bool or Axes): specifies if the axes should be saved instead of
+            the figure
 
     References:
         for saving only a specific Axes
         http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
         http://robotics.usc.edu/~ampereir/wordpress/?p=626
+        http://stackoverflow.com/questions/1271023/resize-a-figure-automatically-in-matplotlib
     """
     if dpi is None:
         dpi = custom_constants.DPI
@@ -391,6 +403,8 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
             if verbose > 1 or ut.VERBOSE:
                 print(']pt.save_figure] fpath_clean = %s' % (fpath_clean, ))
                 print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
+            # savekw['bbox_inches'] = 'tight'
+            print('savekw = %r' % (savekw,))
             fig.savefig(fpath_clean, **savekw)
         else:
             if verbose > 0:
@@ -427,20 +441,13 @@ def customize_fontprop(font_prop, **fontkw):
     return font_prop2
 
 
-#LABEL_SIZE = 8
-#TITLE_SIZE = 8
-#LABEL_SIZE = ut.get_argval('--labelsize', default=8)
-#TITLE_SIZE = ut.get_argval('--titlesize', default=8)
-LABEL_SIZE = ut.get_argval('--labelsize', default=10)
-TITLE_SIZE = ut.get_argval('--titlesize', default=12)
-
-
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
     titlesize = fontkw.get('titlesize', TITLE_SIZE)
     titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+        'fontproperties': mpl.font_manager.FontProperties(weight='light',
+                                                          size=titlesize)
     }
     #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, **titlekw)
@@ -449,8 +456,10 @@ def set_title(title='', ax=None, **fontkw):
 def set_xlabel(lbl, ax=None, **kwargs):
     if ax is None:
         ax = gca()
+    labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', LABEL_SIZE))
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=labelsize)
     }
     #ax.set_xlabel(lbl, **labelkw)
     # Have to strip for tex output to work with mpl. uggg
@@ -460,14 +469,19 @@ def set_xlabel(lbl, ax=None, **kwargs):
 
 def set_ylabel(lbl, **kwargs):
     ax = gca()
+    labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', LABEL_SIZE))
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=labelsize)
     }
     ax.set_ylabel(lbl, **labelkw)
     #ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
-def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True, size=12, font=None):
+def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
+                 size=None, font=None):
+    if size is None:
+        size = FIGTITLE_SIZE
     if font is not None:
         print('WARNING set_figtitle font kwarg is DEPRICATED')
     if figtitle is None:
@@ -479,9 +493,11 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True, size=12
         #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
         #fontprop = getattr(custom_constants.FONTS, font)
         #fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
-        fontproperties = mpl.font_manager.FontProperties(weight='light', size=size)
+        fontproperties = mpl.font_manager.FontProperties(weight='light',
+                                                         size=size)
         fig.suptitle(figtitle + subtitle, fontproperties=fontproperties)
-        #fig_relative_text(.5, .96, subtitle, fontproperties=custom_constants.FONTS.subtitle)
+        #fig_relative_text(.5, .96, subtitle,
+        # fontproperties=custom_constants.FONTS.subtitle)
     else:
         fig.suptitle('')
     # Set title in the window

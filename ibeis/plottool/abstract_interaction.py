@@ -189,7 +189,7 @@ class AbstractInteraction(object):
             print('[pt.a] draw')
         self.fig.canvas.draw()
 
-    def on_draw(self):
+    def on_draw(self, event=None):
         if self.debug > 5:
             print('[pt.a] on draw')
         pass

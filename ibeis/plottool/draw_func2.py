@@ -326,7 +326,7 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         if max_dsize is not None:
             icon = vt.resize_to_maxdims(icon, max_dsize)
             icon.shape
-    print('icon.shape = %r' % (icon.shape,))
+    # print('icon.shape = %r' % (icon.shape,))
 
     icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
     # Hack while I am trying to get constant size images working
@@ -367,20 +367,23 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
     ax.add_artist(ab)
 
 
-def show_if_requested(N=1):
-    """
-    Used at the end of tests. Handles command line arguments for saving figures
+def update_figsize():
+    """ updates figsize based on command line """
+    figsize = ut.get_argval('--figsize', type_=list, default=None)
+    if figsize is not None:
+        # Enforce inches and DPI
+        fig = gcf()
+        figsize = [eval(term) if isinstance(term, str) else term
+                   for term in figsize]
+        figw, figh = figsize[0], figsize[1]
+        print('get_size_inches = %r' % (fig.get_size_inches(),))
+        print('fig w,h (inches) = %r, %r' % (figw, figh))
+        fig.set_size_inches(figw, figh)
+        #print('get_size_inches = %r' % (fig.get_size_inches(),))
 
-    Referencse:
-        http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
 
-    """
-
-    if ut.NOT_QUIET:
-        print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
-
-    # Process figures adjustments from command line before a show or a save
-
+def udpate_adjust_subplots():
+    """ updates adjust_subplots based on command line """
     adjust_list = ut.get_argval('--adjust', type_=list, default=None)
     if adjust_list is not None:
         # --adjust=[.02,.02,.05]
@@ -406,17 +409,24 @@ def show_if_requested(N=1):
         print('**adjust_kw = %s' % (ut.dict_str(adjust_kw),))
         adjust_subplots(**adjust_kw)
 
-    figsize = ut.get_argval('--figsize', type_=list, default=None)
-    if figsize is not None:
-        # Enforce inches and DPI
-        fig = gcf()
-        figsize = [eval(term) if isinstance(term, str) else term
-                   for term in figsize]
-        figw, figh = figsize[0], figsize[1]
-        print('get_size_inches = %r' % (fig.get_size_inches(),))
-        print('fig w,h (inches) = %r, %r' % (figw, figh))
-        fig.set_size_inches(figw, figh)
-        #print('get_size_inches = %r' % (fig.get_size_inches(),))
+
+def show_if_requested(N=1):
+    """
+    Used at the end of tests. Handles command line arguments for saving figures
+
+    Referencse:
+        http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
+
+    """
+
+    if ut.NOT_QUIET:
+        print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
+
+    # Process figures adjustments from command line before a show or a save
+
+    udpate_adjust_subplots()
+
+    update_figsize()
 
     dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
@@ -505,6 +515,7 @@ def show_if_requested(N=1):
                     pass
                     vt.clipwhite_ondisk(subpath, subpath)
         else:
+            # plt.tight_layout()
             absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
                                        figsize=False, dpi=dpi)
 

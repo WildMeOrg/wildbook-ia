@@ -795,9 +795,9 @@ def plot_score_histograms(scores_list,
     """
     if title is None:
         if len(scores_list) == 1:
-            title = 'histogram of %d ' % (len(scores_list[0])) + score_label + 's'
+            title = 'Histogram of %d ' % (len(scores_list[0])) + score_label + 's'
         else:
-            title = 'histogram of ' + score_label + 's'
+            title = 'Histogram of ' + score_label + 's'
     title += kwargs.get('titlesuf', '')
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
