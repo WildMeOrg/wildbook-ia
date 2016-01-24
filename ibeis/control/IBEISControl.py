@@ -7,6 +7,16 @@ done using ibeis.opendb().
 TODO:
     Module Licence and docstring
 
+    load plugin logic:
+        - known plugin list - plugin_register.txt / dirs/symlinks in plugin folder
+        - disabled flags
+        - try import && register
+        - except flag errored
+        - init db
+        - check versioning / update
+        - (determine plugin import ordering?)
+        - inject and initialize plugins
+
 Note:
     There are functions that are injected into the controller that are not
       defined in this module.
