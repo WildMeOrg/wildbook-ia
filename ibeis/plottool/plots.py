@@ -82,6 +82,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
             val_list = [kwargs[key]] * num_lines
         elif key + '_list' in kwargs:
             val_list = kwargs[key + '_list']
+        elif key + 's' in kwargs:
+            # hack, multiple ways to do something
+            val_list = kwargs[key + 's']
         else:
             val_list = None
             #val_list = [None] * num_lines
@@ -134,7 +137,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
     extra_kw_list = [dict(zip(extra_kw_keys, vals)) for vals in zip(*extra_kw_vals)]
 
     # Setup figure
+    # newfig = kwargs.get('newfig', True)
+    # if newfig:
     fig = pt.figure(fnum=fnum, pnum=pnum)
+    # else:
+    #     fig = pt.gcf()
 
     # +---------------
     # Draw plot lines
