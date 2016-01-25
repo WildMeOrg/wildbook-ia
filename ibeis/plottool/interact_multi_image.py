@@ -46,8 +46,8 @@ class MultiImageInteraction(BASE_CLASS):
 
     def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
                  thetas_list=None, verts_list=None, gid_list=None, nImgs=None,
-                 fnum=None,
-                 context_option_funcs=None):
+                 fnum=None, context_option_funcs=None):
+        # TODO: overlay function or draw function using a metadata object
         print('Creating multi-image interaction')
 
     #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None,
