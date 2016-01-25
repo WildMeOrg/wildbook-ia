@@ -171,7 +171,7 @@ class DependencyCacheTable(object):
     @profile
     def initialize(table):
         table.db = table.depc.fname_to_db[table.fname]
-        print('Checking sql for table=%r' % (table.tablename,))
+        #print('Checking sql for table=%r' % (table.tablename,))
 
         if not table.db.has_table(table.tablename):
             print('Initializing table=%r' % (table.tablename,))
