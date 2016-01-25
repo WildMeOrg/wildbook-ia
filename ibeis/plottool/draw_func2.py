@@ -2646,7 +2646,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 #    #del plt_imshow_kwargs['vmin']
                 #    #del plt_imshow_kwargs['vmax']
             imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
-            print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
+            #print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
             ax.imshow(imgRGB, **plt_imshow_kwargs)
         elif len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
             # img is in grayscale
