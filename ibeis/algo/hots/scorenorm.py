@@ -53,10 +53,6 @@ class NormFeatScoreConfig(dtool.Config):
 def compare_featscores():
     """
     CommandLine:
-        ibeis --tf compare_featscores  --db PZ_MTEST \
-            --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5] -a timectrl \
-            -p default:K=[1,2],normalizer_rule=name \
-            --save featscore{db}.png --figsize=13,20 --diskshow
 
         ibeis --tf compare_featscores  --db PZ_MTEST \
             --nfscfg :disttype=[L2_sift,lnbnn],top_percent=[None,.5,.1] -a timectrl \
@@ -85,6 +81,16 @@ def compare_featscores():
         ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GZ_ALL
         ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db PZ_Master1
         ibeis --tf compare_featscores --show --nfscfg :disttype=[L2_sift,normdist] -a timectrl -p :K=1 --db GIRM_Master1
+
+        ibeis --tf compare_featscores  --db PZ_MTEST \
+            --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5,.2] -a timectrl \
+            -p default:K=[1],normalizer_rule=name \
+            --save featscore{db}.png --figsize=13,20 --diskshow
+
+        ibeis --tf compare_featscores  --db PZ_MTEST \
+            --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5,.2] -a timectrl \
+            -p default:K=[1],normalizer_rule=name \
+            --save featscore{db}.png --figsize=13,20 --diskshow
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -126,7 +132,8 @@ def compare_featscores():
             lbl_list.append(lbl)
 
     fnum = 1
-    next_pnum = pt.make_pnum_nextgen(nRows=len(encoder_list), nCols=2)
+    # next_pnum = pt.make_pnum_nextgen(nRows=len(encoder_list), nCols=3)
+    next_pnum = pt.make_pnum_nextgen(nRows=len(encoder_list) + 1, nCols=3, start=3)
 
     iconsize = 94
     if len(encoder_list) > 3:
@@ -137,6 +144,7 @@ def compare_featscores():
     for encoder, lbl in zip(encoder_list, lbl_list):
         #encoder.visualize(figtitle=encoder.get_cfgstr(), with_prebayes=False, with_postbayes=False)
         encoder._plot_score_support_hist(fnum, pnum=next_pnum(), titlesuf='\n' + lbl, score_range=score_range)
+        encoder._plot_prebayes(fnum, pnum=next_pnum())
         encoder._plot_roc(fnum, pnum=next_pnum())
         if icon is not None:
             pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
@@ -147,7 +155,7 @@ def compare_featscores():
     pt.set_figtitle(figtitle)
     pt.adjust_subplots(hspace=.5, top=.92, bottom=.08, left=.1, right=.9)
     pt.update_figsize()
-    # pt.plt.tight_layout()
+    pt.plt.tight_layout()
     # pt.adjust_subplots(top=.95)
 
 
@@ -710,7 +718,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
 
     if top_percent is not None:
         cm_orig = cm
-        cm_orig.assert_self(qreq_)
+        cm_orig.assert_self(qreq_, verbose=False)
 
         # Keep only the top scoring half of the feature matches
         tophalf_indicies = [
@@ -722,7 +730,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         assert np.all(cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs))
         assert np.all(cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs))
 
-        cm.assert_self(qreq_)
+        cm.assert_self(qreq_, verbose=False)
 
     ibs = qreq_.ibs
     query_config2_ = qreq_.extern_query_config2
