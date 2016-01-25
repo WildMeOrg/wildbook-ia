@@ -198,14 +198,11 @@ if __name__ == '__main__':
         ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
         rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
 
-
         # --- GET DATA ---
         # Get the data via rsync, pydio. (I always have issues doing this with
         # rsync on pachy, so I usually just do it manually)
 
         rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
-
-
 
         # --- RUN INGEST SCRIPT ---
         # May have to massage folder names things to make everything work. Can
@@ -213,22 +210,30 @@ if __name__ == '__main__':
         # within the folder names.
         python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
 
-        Then Open the database
+        # --- OPEN DATABASE / FIX PROBLEMS ---
         ibeis --db <new-ibeis-db-name>
 
         # You will probably need to fix some bounding boxes.
+
+        # --- LAUNCH IPYTHON NOTEBOOK ---
         # Then click Dev -> Launch IPython Notebook and run it
         # OR RUN
         ibeis --tf autogen_ipynb --db <new-ibeis-db-name> --ipynb
 
 
         Here is what I did for wild dogs
-        # This assumes that I downloaded the raw data into /raid/raw_rsync/african-dogs
+        # --- GET DATA ---
+        # Download raw data to /raid/raw_rsync/african-dogs
+        rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+        # --- RUN INGEST SCRIPT ---
         python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}'
 
+        # --- OPEN DATABASE / FIX PROBLEMS ---
         ibeis --db wd_peter2
         # Fixed some bounding boxes
 
+        # --- LAUNCH IPYTHON NOTEBOOK ---
         # I actually made two notebooks for this species to account for timedeltas
 
         # The first is the default notebook
