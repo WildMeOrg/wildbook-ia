@@ -95,12 +95,12 @@ def check_register(args, kwargs):
 class _CoreDependencyCache(object):
     """ Core worker functions for the depcache """
 
-    @ut.apply_docstr(REG_PREPROC_DOC)
+    #@ut.apply_docstr(REG_PREPROC_DOC)
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
                        fname=None, chunksize=None, configclass=None,
-                       version=None,
-                       isalgo=False, isinteractive=False, asobject=False):
+                       version=None, isalgo=False, isinteractive=False,
+                       asobject=False):
         """
         Registers a table with this dependency cache.
         """
@@ -161,14 +161,13 @@ class _CoreDependencyCache(object):
         depc.configclass_dict[tablename] = configclass
         return table
 
-    @ut.apply_docstr(REG_ALGO_DOC)
+    #@ut.apply_docstr(REG_ALGO_DOC)
     def _register_algo(depc, algoname,
                        algo_result_class=None,
                        algo_request_class=None,
                        configclass=None,
                        algo_func=None,
-                       version=None,
-                       docstr=None, fname=None, chunksize=None):
+                       version=None, docstr=None, fname=None, chunksize=None):
         """
         Registers an algorithm for the root of this dependency cache
         """
