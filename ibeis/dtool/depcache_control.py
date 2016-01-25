@@ -99,6 +99,7 @@ class _CoreDependencyCache(object):
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
                        fname=None, chunksize=None, configclass=None,
+                       version=None,
                        isalgo=False, isinteractive=False, asobject=False):
         """
         Registers a table with this dependency cache.
@@ -153,6 +154,7 @@ class _CoreDependencyCache(object):
             fname=fname,
             chunksize=chunksize,
             isalgo=isalgo,
+            version=version,
             isinteractive=isinteractive,
         )
         depc.cachetable_dict[tablename] = table
@@ -165,6 +167,7 @@ class _CoreDependencyCache(object):
                        algo_request_class=None,
                        configclass=None,
                        algo_func=None,
+                       version=None,
                        docstr=None, fname=None, chunksize=None):
         """
         Registers an algorithm for the root of this dependency cache
@@ -193,6 +196,7 @@ class _CoreDependencyCache(object):
                             configclass=configclass,
                             preproc_func=algo_func,
                             isalgo=True,
+                            version=version,
                             chunksize=chunksize)
 
     @profile

@@ -41,6 +41,7 @@ class DependencyCacheTable(object):
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
+                 version=None,
                  chunksize=None, isalgo=False, isinteractive=False):
 
         table.db = None
@@ -61,6 +62,7 @@ class DependencyCacheTable(object):
         table._nested_idxs2 = []
         table.isalgo = isalgo
         table.isinteractive = isinteractive
+        table.version = version
 
         table.docstr = docstr
         table.fname = fname
@@ -277,6 +279,8 @@ class DependencyCacheTable(object):
             config_strid = config.get_cfgstr()
         else:
             config_strid = ut.to_json(config)
+        if table.version is not None:
+            config_strid += '_version(%s)' % (table.version,)
         config_hashid = ut.hashstr27(config_strid)
         if table.depc._debug or _debug:
             print('config_strid = %r' % (config_strid,))
