@@ -165,8 +165,10 @@ if __name__ == '__main__':
         rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/ibeis-repos/snow-leopards /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:snow-leopards /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:iberian-lynx /raid/raw_rsync
+        rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
 
         # make sure group read bits are set
+        ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:ibeis /home/ibeis-repos/"
         ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" joncrall@hyrule.cs.rpi.edu/raid/raw_rsync/iberian-lynx .
@@ -174,5 +176,68 @@ if __name__ == '__main__':
 
         python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
         python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
+
+    Fix Patchy
+        pachy
+        cd /home/ibeis-repos
+        sudo chmod -R g+r *
+
+
+    Feasibility Testing Example:
+
+        # --- GET DATA ---
+        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
+        rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+
+    WildDog Example:
+
+        # --- GET DATA ---
+        # make sure group read bits are set
+        ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:ibeis /home/ibeis-repos/"
+        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
+        rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+
+        # --- GET DATA ---
+        # Get the data via rsync, pydio. (I always have issues doing this with
+        # rsync on pachy, so I usually just do it manually)
+
+        rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
+
+
+
+        # --- RUN INGEST SCRIPT ---
+        # May have to massage folder names things to make everything work. Can
+        # also specify fmtkey to use the python parse module to find the name
+        # within the folder names.
+        python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
+
+        Then Open the database
+        ibeis --db <new-ibeis-db-name>
+
+        # You will probably need to fix some bounding boxes.
+        # Then click Dev -> Launch IPython Notebook and run it
+        # OR RUN
+        ibeis --tf autogen_ipynb --db <new-ibeis-db-name> --ipynb
+
+
+        Here is what I did for wild dogs
+        # This assumes that I downloaded the raw data into /raid/raw_rsync/african-dogs
+        python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}'
+
+        ibeis --db wd_peter2
+        # Fixed some bounding boxes
+
+        # I actually made two notebooks for this species to account for timedeltas
+
+        # The first is the default notebook
+        ibeis --tf autogen_ipynb --db wd_peter --ipynb
+
+        # The second removes images without timestamps and annotations that are too close together in time
+        ibeis --tf autogen_ipynb --db wd_peter --ipynb -t default:is_known=True,min_timedelta=3600,require_timestamp=True,min_pername=2
+
+        # I then click download as html in the notebook. Although I'm sure there is a way to automate this
+
     """
     rsync_ibsdb_main()

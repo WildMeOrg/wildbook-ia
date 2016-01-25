@@ -153,6 +153,20 @@ def postload_commands(ibs, back):
         back.display_dbinfo()
         pass
 
+    aidcmd = ut.get_argval('--aidcmd', default=None)
+    aid = ut.get_argval('--aid', type_=int, default=1)
+    if aidcmd:
+        #aidcmd = 'Interact image'
+        metadata = ibs.get_annot_lazy_dict(aid)
+        annot_context_options = metadata['annot_context_options']
+        aidcmd_dict = dict(annot_context_options)
+        print('aidcmd_dict = %s' % (ut.repr3(aidcmd_dict),))
+        command = aidcmd_dict[aidcmd]
+        command()
+        #import utool
+        #utool.embed()
+        #back.start_web_server_parallel()
+
     if ut.get_argflag('--start-web'):
         back.start_web_server_parallel()
 

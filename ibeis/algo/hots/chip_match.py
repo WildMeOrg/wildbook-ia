@@ -1047,8 +1047,8 @@ class AnnotMatch(MatchBaseIO):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class ChipMatch(AnnotMatch,
-                _ChipMatchVisualization,
+class ChipMatch(_ChipMatchVisualization,
+                AnnotMatch,
                 _ChipMatchScorers,
                 old_chip_match._OldStyleChipMatchSimulator):
     """

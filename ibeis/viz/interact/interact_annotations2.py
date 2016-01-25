@@ -61,6 +61,9 @@ class ANNOTATION_Interaction2(object):
         valid_species = [tup[1] for tup in
                          ibs.get_working_species()]
         metadata_list = [ibs.get_annot_lazy_dict(aid) for aid in self.aid_list]
+        for metadata in metadata_list:
+            # eager eval on name
+            metadata['name']
         if True:
             interact_annotations.rrr()
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
