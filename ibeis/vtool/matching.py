@@ -3,8 +3,11 @@ from __future__ import absolute_import, division, print_function
 #from six.moves import range
 import utool as ut
 import numpy as np
+from collections import namedtuple
 from vtool import keypoint as ktool
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[matching]', DEBUG=False)
+
+MatchTup = namedtuple('MatchTup', ('fm', 'fs', 'fm_norm'))
 
 
 # maximum SIFT matching distance based using uint8 trick from hesaff
@@ -13,11 +16,25 @@ PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
 
-def show_matching_dict(matches, metadata, **kwargs):
+class SingleMatch(ut.NiceRepr):
+
+    def __init__(self, matches, metadata):
+        self.matches = matches
+        self.metadata = metadata
+
+    def show(self, *args, **kwargs):
+        show_matching_dict(self.matches, self.metadata, *args, **kwargs)
+
+    def __nice__(self):
+        tup = (len(self.matches['ORIG'][0]), len(self.matches['RAT'][0]), len(self.matches['RAT+SV'][0]), )
+        return ' %d, %d, %d' % tup
+
+
+def show_matching_dict(matches, metadata, type_='RAT+SV', **kwargs):
     import plottool.interact_matches
     #import plottool as pt
-    fm, fs = matches['RAT+SV'][0:2]
-    H1 = metadata['H_RAT']
+    fm, fs = matches[type_][0:2]
+    H1 = metadata['H_' + type_.split('+')[0]]
     #fm, fs = matches['RAT'][0:2]
     rchip1 = metadata['rchip1']
     rchip2 = metadata['rchip2']
@@ -154,6 +171,9 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
         metadata (utool.LazyDict):
         cfgdict (dict): (default = {})
         verbose (bool):  verbosity flag(default = None)
+
+    Returns:
+        tuple: (matches, metadata)
     """
     # import vtool as vt
     assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
@@ -224,16 +244,18 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
     kpts2 = metadata['kpts2']
     vecs2 = metadata['vecs2']
     dlen_sqrd2 = metadata['dlen_sqrd2']
+    flann1 = metadata.get('flann1', None)
 
     matches, output_metdata = vsone_feature_matching(
         kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
+        flann1=flann1,
         verbose=verbose)
     metadata.update(output_metdata)
     return matches, metadata
 
 
 def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
-                           verbose=None):
+                           flann1=None, verbose=None):
     r"""
     Actual logic for matching
     Args:
@@ -243,6 +265,7 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
 
     Ignore:
+        >>> from vtool.matching import *  # NOQA
         %pylab qt4
         import plottool as pt
         pt.imshow(rchip1)
@@ -263,15 +286,18 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     #ratio_thresh =  .99
     # GET NEAREST NEIGHBORS
     checks = 800
-    flann_params = {
-        'algorithm': 'kdtree',
-        'trees': 8
-    }
     #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
     #pseudo_max_dist_sqrd = 2 * (512 ** 2)
     if verbose is None:
         verbose = True
-    flann = vt.flann_cache(vecs1, flann_params=flann_params, verbose=verbose)
+    if flann1 is None:
+        flann_params = {
+            'algorithm': 'kdtree',
+            'trees': 8
+        }
+        flann = vt.flann_cache(vecs1, flann_params=flann_params, verbose=verbose)
+    else:
+        flann = flann1
     try:
         num_neighbors = K + Knorm
         fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, num_neighbors, checks)
@@ -301,17 +327,40 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     else:
         H_RAT = np.eye(3)
         homog_inliers = []
-    fm_SV = fm_RAT.take(homog_inliers, axis=0)
-    fs_SV = fs_RAT.take(homog_inliers, axis=0)
-    fm_norm_SV = fm_norm_RAT[homog_inliers]
+    fm_RAT_SV = fm_RAT.take(homog_inliers, axis=0)
+    fs_RAT_SV = fs_RAT.take(homog_inliers, axis=0)
+    fm_norm_RAT_SV = fm_norm_RAT[homog_inliers]
+
+    top_percent = .5
+    top_idx = ut.take_percentile(fx2_to_dist.T[0].argsort(), top_percent)
+    fm_TOP = fm_ORIG.take(top_idx, axis=0)
+    fs_TOP = fx2_to_dist.T[0].take(top_idx)
+    #match_weights = np.ones(len(fm_TOP))
+    #match_weights = (np.exp(fs_TOP) / np.sqrt(np.pi * 2))
+    match_weights = 1 - fs_TOP
+    #match_weights = np.ones(len(fm_TOP))
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_TOP, sver_xy_thresh,
+                                       dlen_sqrd2, match_weights=match_weights,
+                                       refine_method=refine_method)
+    if svtup is not None:
+        (homog_inliers, homog_errors, H_TOP) = svtup[0:3]
+        np.sqrt(homog_errors[0] / dlen_sqrd2)
+    else:
+        H_TOP = np.eye(3)
+        homog_inliers = []
+    fm_TOP_SV = fm_TOP.take(homog_inliers, axis=0)
+    fs_TOP_SV = fs_TOP.take(homog_inliers, axis=0)
 
     matches = {
         'ORIG': (fm_ORIG, fs_ORIG),
-        'RAT': (fm_RAT, fs_RAT, fm_norm_RAT),
-        'RAT+SV': (fm_SV, fs_SV, fm_norm_SV),
+        'RAT': MatchTup(fm_RAT, fs_RAT, fm_norm_RAT),
+        'RAT+SV': MatchTup(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV),
+        'TOP': (fm_TOP, fs_TOP),
+        'TOP+SV': (fm_TOP_SV, fs_TOP_SV),
     }
     output_metdata = {
         'H_RAT': H_RAT,
+        'H_TOP': H_TOP,
     }
     return matches, output_metdata
 
@@ -321,9 +370,9 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
     uses flann index to return nearest neighbors with distances normalized
     between 0 and 1 using sifts uint8 trick
     """
-    fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
-    fx2_to_dist = np.divide(np.sqrt(_fx2_to_dist.astype(np.float64)),
-                            PSEUDO_MAX_DIST)  # normalized dist
+    fx2_to_fx1, _fx2_to_dist_sqrd = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    _fx2_to_dist = np.sqrt(_fx2_to_dist_sqrd.astype(np.float64))
+    fx2_to_dist = np.divide(_fx2_to_dist, PSEUDO_MAX_DIST)  # normalized dist
     #fx2_to_dist = np.divide(_fx2_to_dist.astype(np.float64),
     #PSEUDO_MAX_DIST_SQRD)  # squared normalized dist
     return fx2_to_fx1, fx2_to_dist
@@ -558,8 +607,6 @@ def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist,
         >>> ratio_thresh = .625
         >>> # execute function
         >>> ratio_tup = ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh)
-        >>> (fm_RAT, fs_RAT, fm_norm_RAT) = ratio_tup
-        >>> # verify results
         >>> result = ut.list_str(ratio_tup, precision=3)
         >>> print(result)
         (
@@ -582,7 +629,7 @@ def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist,
     fm_RAT = np.vstack((fx1_match_RAT, fx2_match_RAT)).T
     # return normalizer info as well
     fm_norm_RAT = np.vstack((fx1_norm_RAT, fx2_match_RAT)).T
-    ratio_tup = fm_RAT, fs_RAT, fm_norm_RAT
+    ratio_tup = MatchTup(fm_RAT, fs_RAT, fm_norm_RAT)
     return ratio_tup
 
 
