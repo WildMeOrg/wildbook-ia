@@ -353,7 +353,7 @@ class QueryRequest(object):
         """
         typestr = qreq_.__class__.__name__
         parts = qreq_.get_shortinfo_parts()
-        print('parts = %r' % (parts,))
+        #print('parts = %r' % (parts,))
         custom_str = '%s(%s) %s %s %s' % ((typestr,) + tuple(parts))
         return custom_str
 
@@ -368,6 +368,10 @@ class QueryRequest(object):
     def get_shortinfo_cfgstr(qreq_):
         shortinfo_cfgstr = '_'.join(qreq_.get_shortinfo_parts())
         return shortinfo_cfgstr
+
+    #def __nice__(qreq_):
+    #    parts = qreq_.get_shortinfo_parts()
+    #    return '(%s) %s %s %s' % (tuple(parts))
 
     def __repr__(qreq_):
         return '<' + qreq_._custom_str() + ' at %s>' % (hex(id(qreq_)),)

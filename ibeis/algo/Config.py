@@ -10,6 +10,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import copy
+import dtool
 from os.path import join
 from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
@@ -952,6 +953,32 @@ class FeatureWeightConfig(ConfigBase):
         _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
         featweight_cfgstrs.extend(_cfgstrlist)
         return featweight_cfgstrs
+
+
+#@six.add_metaclass(ConfigMetaclass)
+class FeatureConfig2(dtool.Config):
+    """
+        >>> from ibeis.algo.Config import *  # NOQA
+        >>> feat_cfg = FeatureConfig2()
+        >>> result = str(feat_cfg)
+        >>> print(result)
+        <FeatureConfig2(hesaff+sift,scale_max=40)>
+    """
+
+    def get_param_info_list(self):
+        import pyhesaff
+        default_keys = list(pyhesaff.get_hesaff_default_params().keys())
+        default_items = list(pyhesaff.get_hesaff_default_params().items())
+        param_info_list = [
+            ut.ParamInfo('feat_type', 'hesaff+sift', ''),
+        ]
+        param_info_dict = {
+            name: ut.ParamInfo(name, default, hideif=default)
+            for name, default in default_items
+        }
+        param_info_dict['scale_max'].default = 40
+        param_info_list += ut.dict_take(param_info_dict, default_keys)
+        return param_info_list
 
 
 @six.add_metaclass(ConfigMetaclass)

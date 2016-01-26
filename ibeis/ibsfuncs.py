@@ -5964,7 +5964,7 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> qaid, daid = ibs.get_valid_aids()[0:2]
@@ -5980,6 +5980,8 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
     metadata2_ = ut.map_dict_keys(lambda x: x + '2',
                                   metadata2.asdict(is_eager=False))
     metadata = ut.LazyDict(ut.merge_dicts(metadata1_, metadata2_))
+    metadata['metadata1'] = lambda: metadata1
+    metadata['metadata2'] = lambda: metadata2
     return metadata
 
 

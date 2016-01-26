@@ -22,6 +22,9 @@ initialize = ('# Initialization', ut.codeblock(
 
     import plottool as pt
     fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)
+    pt.custom_figure.TITLE_SIZE = 20
+    pt.custom_figure.LABEL_SIZE = 20
+    pt.custom_figure.FIGTITLE_SIZE = 20
 
     draw_case_kw = dict(show_in_notebook=True, annot_modes=[0, 1])
 
@@ -33,6 +36,8 @@ initialize = ('# Initialization', ut.codeblock(
     a = [
         {annotconfig_list_body}
     ]
+    #'ctrl:pername=None,view=left,view_ext=1,exclude_reference=False'
+
 
     # Set to override any special configs
     qaid_override = None
@@ -80,7 +85,7 @@ annot_config_info =  ('# Annotation Config Info', ut.codeblock(
     r'''
     # STARTBLOCK
     acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
-        ibs, acfg_name_list=a, qaid_override=qaid_override, daid_override=daid_override)
+        ibs, acfg_name_list=a, qaid_override=qaid_override, daid_override=daid_override, verbose=0)
     ibeis.expt.annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, per_qual=True)
     # ENDBLOCK
     ''')

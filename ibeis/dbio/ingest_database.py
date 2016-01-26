@@ -39,6 +39,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
 
         python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}' --force-delete
+        python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=named_folders --species=humpback
 
     Example:
         >>> # SCRIPT
