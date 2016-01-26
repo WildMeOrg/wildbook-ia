@@ -1152,7 +1152,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     # hack
     if 1 or verbose:
         testres.print_unique_annot_config_stats()
-    pt.set_figtitle(figtitle, size=14)
+    #pt.set_figtitle(figtitle, size=14)
+    pt.set_figtitle(figtitle)
     # HACK FOR FIGSIZE
     fig = pt.gcf()
     fig.set_size_inches(14, 4)
@@ -1286,7 +1287,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
             num_xticks=maxrank, use_legend=False, pnum=pnum_(), **cumhistkw)
         ax2 = pt.gca()
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
-    pt.set_figtitle(figtitle, size=14)
+    #pt.set_figtitle(figtitle, size=14)
+    pt.set_figtitle(figtitle)
 
     icon = ibs.get_database_icon()
     if icon is not None:

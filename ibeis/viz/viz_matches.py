@@ -77,6 +77,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     CommandLine:
         python -m ibeis.viz.viz_matches --exec-show_name_matches
+        python -m ibeis.viz.viz_matches --test-show_name_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -93,9 +94,6 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> ax = show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_)
         >>> result = ('ax = %s' % (str(ax),))
         >>> print(result)
-
-    CommandLine:
-        python -m ibeis.viz.viz_matches --test-show_name_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -574,6 +572,10 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     target_wh1 = None
     H1 = None
     rchip1_ = preprocess_chips(rchip1, H1, target_wh1)
+    # Hack to visually identify the query
+    rchip1_ = vt.draw_border(
+        rchip1_, out=rchip1_, thickness=15,
+        color=(pt.UNKNOWN_PURP[0:3] * 255).astype(np.uint8).tolist())
     wh1 = gtool.get_size(rchip1_)
     rchip2_list_ = [preprocess_chips(rchip2, None, wh1)
                     for rchip2 in rchip2_list]

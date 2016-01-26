@@ -292,8 +292,9 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     #clf1 = svm.LinearSVC()
     print('Learning classifiers')
 
-    clf3 = svm.SVC()
+    clf3 = svm.SVC(probability=True)
     clf3.fit(feat_list, lbl_list)
+    #prob_true, prob_false = clf3.predict_proba(feat_list).T
 
     clf1 = svm.LinearSVC()
     clf1.fit(score_list, lbl_list)
