@@ -91,7 +91,7 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500):
+def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
     import random
     from datetime import date
     current_year = date.today().year
@@ -104,6 +104,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500):
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
     mainsetsdir = setsdir + 'Main/'
+    if purge:
+        ut.delete(datadir)
     ut.ensuredir(datadir)
     ut.ensuredir(imagedir)
     ut.ensuredir(annotdir)
@@ -182,8 +184,20 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500):
                 annotation.add_object(
                     species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
+
+            # Update sets
+            state = random.uniform(0.0, 1.0)
+            if state <= 0.50:
+                sets_dict['test'].append(out_name)
+            elif state <= 0.75:
+                sets_dict['train'].append(out_name)
+                sets_dict['trainval'].append(out_name)
+            else:
+                sets_dict['val'].append(out_name)
+                sets_dict['trainval'].append(out_name)
+
             # Write XML
-            if not enforce_yaw or yawed:
+            if True or not enforce_yaw or yawed:
                 print("Copying:\n%r\n%r\n%r\n\n" % (
                     image_path, dst_img, (width, height), ))
                 xml_data = open(dst_annot, 'w')
@@ -195,16 +209,6 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500):
                         break
                     out_name = "%d_%06d" % (current_year, index, )
                     dst_annot = annotdir + out_name  + '.xml'
-
-            state = random.uniform(0.0, 1.0)
-            if state <= 0.50:
-                sets_dict['test'].append(out_name)
-            elif state <= 0.75:
-                sets_dict['train'].append(out_name)
-                sets_dict['trainval'].append(out_name)
-            else:
-                sets_dict['val'].append(out_name)
-                sets_dict['trainval'].append(out_name)
         else:
             print("Skipping:\n%r\n\n" % (image_path, ))
 
@@ -216,6 +220,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500):
             file_.write(content)
 
     print('...completed')
+    return datadir
 
 
 @register_ibs_method
