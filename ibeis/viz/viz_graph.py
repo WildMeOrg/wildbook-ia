@@ -468,6 +468,8 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
         python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 2068 1003 --show
         python -m ibeis --tf make_name_graph_interaction --aids 3 --show
 
+        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids 193 194 195 196 --show --db WD_Siva
+
 
     Example:
         >>> # DISABLE_DOCTEST

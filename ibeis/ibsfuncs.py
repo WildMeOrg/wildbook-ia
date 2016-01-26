@@ -5993,22 +5993,20 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         python -m ibeis.ibsfuncs --exec-get_annot_lazy_dict --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aid = '?'
+        >>> aid = 1
         >>> config2_ = None
         >>> metadata = get_annot_lazy_dict(ibs, aid, config2_)
-        >>> result = ('metadata = %s' % (ut.repr2(metadata),))
+        >>> result = ('metadata = %s' % (ut.repr3(metadata),))
         >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
     """
     from ibeis.viz.interact import interact_chip
     metadata = ut.LazyDict({
         'aid': aid,
+        'name': lambda: ibs.get_annot_names([aid])[0],
         'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],
         'rchip': lambda: ibs.get_annot_chips([aid], config2_=config2_)[0],
         'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],

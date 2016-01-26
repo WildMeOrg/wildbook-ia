@@ -407,6 +407,9 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
     return filtered_annotmatch_rowids
 
 
+# TODO: ut.filterflags_general_tags
+
+
 def filterflags_general_tags(tags_list,
                              has_any=None,
                              has_all=None,

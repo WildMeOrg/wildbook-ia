@@ -285,6 +285,21 @@ class IBEISController(BASE_CLASS):
             except KeyError:
                 pass
 
+    def show_depc_digraph(ibs):
+        """
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-show_depc_digraph --show
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis  # NOQA
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs.show_depc_digraph()
+            >>> ut.show_if_requested()
+        """
+        ibs.depc.show_digraph()
+
     def get_cachestats_str(ibs):
         """
         Returns info about the underlying SQL cache memory

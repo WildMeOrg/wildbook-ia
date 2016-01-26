@@ -15,6 +15,174 @@ import utool as ut
 import parse
 
 
+def ingest_rawdata(ibs, ingestable, localize=False):
+    """
+    Ingests rawdata into an ibeis database.
+
+    Args:
+        ibs (ibeis.IBEISController):  ibeis controller object
+        ingestable (Ingestable):
+        localize (bool): (default = False)
+
+    Returns:
+        list: aid_list -  list of annotation rowids
+
+    Notes:
+        if ingest_type == 'named_folders':
+            Converts folder structure where folders = name, to ibsdb
+        if ingest_type == 'named_images':
+            Converts imgname structure where imgnames = name_id.ext, to ibsdb
+
+    CommandLine:
+        python ibeis/dbio/ingest_database.py --db seals_drop2
+        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
+        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
+
+        python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}' --force-delete
+
+    Example:
+        >>> # SCRIPT
+        >>> # General ingest script
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> import ibeis
+        >>> dbname = ut.get_argval('--db', str, None)  # 'snow-leopards')
+        >>> force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
+        >>> img_dir = ut.get_argval('--imgdir', type_=str, default=None)
+        >>> ingest_type = ut.get_argval('--ingest-type', type_=str, default='unknown')
+        >>> fmtkey = ut.get_argval('--fmtkey', type_=str, default=None)
+        >>> species = ut.get_argval('--species', type_=str, default=None)
+        >>> assert img_dir is not None, 'specify img dir'
+        >>> assert dbname is not None, 'specify dbname'
+        >>> ingestable = Ingestable(
+        >>>     dbname, img_dir=img_dir, ingest_type=ingest_type,
+        >>>     fmtkey=fmtkey, species=species, images_as_annots=ingest_type != 'unknown',
+        >>>     adjust_percent=0.00)
+        >>> from ibeis.control import IBEISControl
+        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
+        >>> ut.ensuredir(dbdir, verbose=True)
+        >>> ibs = IBEISControl.request_IBEISController(dbdir)
+        >>> localize = False
+        >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
+        >>> result = ('aid_list = %s' % (str(aid_list),))
+        >>> print(result)
+    """
+    print('[ingest_rawdata] Ingestable' + str(ingestable))
+
+    if ingestable.zipfile is not None:
+        zipfile_fpath = ut.truepath(join(ibeis.sysres.get_workdir(), ingestable.zipfile))
+        ingestable.img_dir = ut.unarchive_file(zipfile_fpath)
+
+    img_dir         = realpath(ingestable.img_dir)
+    ingest_type     = ingestable.ingest_type
+    fmtkey          = ingestable.fmtkey
+    adjust_percent  = ingestable.adjust_percent
+    species_text    = ingestable.species
+    postingest_func = ingestable.postingest_func
+    print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
+    # Get images in the image directory
+
+    unzipped_file_base_dir = join(ibs.get_dbdir(), 'unzipped_files')
+
+    def extract_zipfile_images(ibs, ingestable):
+        import utool as ut  # NOQA
+        zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
+        if len(zipfile_list) > 0:
+            print('Found zipfile_list = %r' % (zipfile_list,))
+            ut.ensuredir(unzipped_file_base_dir)
+            for zipfile in zipfile_list:
+                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile), realpath(ingestable.img_dir))))
+                unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
+                ut.ensuredir(unzipped_file_dir)
+                ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
+            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+        else:
+            gpath_list = []
+        return gpath_list
+
+    def list_images(img_dir):
+        """ lists images that are not in an internal cache """
+        import utool as ut  # NOQA
+        ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+        gpath_list = ut.list_images(img_dir,
+                                    fullpath=True,
+                                    recursive=True,
+                                    ignore_list=ignore_list)
+        return gpath_list
+
+    # FIXME ensure python3 works with this
+    gpath_list1 = ut.ensure_unicode_strlist(list_images(img_dir))
+    gpath_list2 = ut.ensure_unicode_strlist(extract_zipfile_images(ibs, ingestable))
+    gpath_list = gpath_list1 + gpath_list2
+
+    # Parse structure for image names
+    if ingest_type == 'named_folders':
+        name_list1 = get_name_texts_from_parent_folder(gpath_list1, img_dir, fmtkey)
+        name_list2 = get_name_texts_from_parent_folder(gpath_list2, unzipped_file_base_dir, fmtkey)
+        name_list = name_list1 + name_list2
+        pass
+    elif ingest_type == 'named_images':
+        name_list = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
+    elif ingest_type == 'unknown':
+        name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
+    else:
+        raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
+
+    # Find names likely to be the same?
+    RECTIFY_NAMES_HUERISTIC = True
+    if RECTIFY_NAMES_HUERISTIC:
+        names = sorted(list(set(name_list)))
+        splitchars = [' ', '/']
+
+        def multisplit(str_, splitchars):
+            import utool as ut
+            n = [str_]
+            for char in splitchars:
+                n = ut.flatten([_.split(char) for _ in n])
+            return n
+
+        groupids = [multisplit(n1, splitchars)[0] for n1 in names]
+        grouped_names = ut.group_items(names, groupids)
+        fixed_names = {newkey: key for key, val in grouped_names.items() if len(val) > 1 for newkey in val}
+        name_list = [fixed_names.get(name, name) for name in name_list]
+
+    # Add Images
+    gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+    gid_list_ = ibs.add_images(gpath_list)
+    # <DEBUG>
+    #print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
+    unique_gids = list(set(gid_list_))
+    print("[ingest] Length gid list: %d" % len(gid_list_))
+    print("[ingest] Length unique gid list: %d" % len(unique_gids))
+    assert len(gid_list_) == len(gpath_list)
+    for gid in gid_list_:
+        if gid is None:
+            print('[ingest] big fat warning')
+    # </DEBUG>
+    gid_list = ut.filter_Nones(gid_list_)
+    unique_gids, unique_names, unique_notes = resolve_name_conflicts(
+        gid_list, name_list)
+    # Add ANNOTATIONs with names and notes
+    if ingestable.images_as_annots:
+        aid_list = ibs.use_images_as_annotations(unique_gids,
+                                                 adjust_percent=adjust_percent)
+        ibs.set_annot_names(aid_list, unique_names)
+        ibs.set_annot_notes(aid_list, unique_notes)
+        if species_text is not None:
+            ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
+    if localize:
+        ibs.localize_images()
+    if postingest_func is not None:
+        postingest_func(ibs)
+    # Print to show success
+    #ibs.print_image_table()
+    #ibs.print_tables()
+    #ibs.print_annotation_table()
+    #ibs.print_alr_table()
+    #ibs.print_lblannot_table()
+    #ibs.print_image_table()
+    #return aid_list
+
+
 def normalize_name(name):
     """ Maps unknonwn names to the standard ____ """
     if name in const.ACCEPTED_UNKNOWN_NAMES:
@@ -22,17 +190,24 @@ def normalize_name(name):
     return name
 
 
-def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
+def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey=None):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
     """
-
     #from os.path import commonprefix
     relgpath_list = [relpath(gpath, img_dir) for gpath in gpath_list]
     #_prefix = commonprefix(gpath_list)
     #relgpath_list = [relpath(gpath, _prefix) for gpath in gpath_list]
     _name_list  = [dirname(relgpath) for relgpath in relgpath_list]
+
+    if fmtkey is not None:
+        #fmtkey = 'African Wild Dog: {name}'
+        import parse
+        parse_results = [parse.parse(fmtkey, name) for name in _name_list]
+        _name_list = [res['name'] if res is not None else name
+                      for name, res in zip(_name_list, parse_results)]
+
     name_list = list(map(normalize_name, _name_list))
     return name_list
 
@@ -146,6 +321,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
 
 
 def resolve_name_conflicts(gid_list, name_list):
+    """ """
     # Build conflict map (values are lists of members)
     conflict_gid_to_names = ut.build_conflict_dict(gid_list, name_list)
 
@@ -481,178 +657,8 @@ class Ingestable(object):
         #if not isabs(self.img_dir):
         #    self.img_dir = join(dbdir, self.img_dir)
         assert exists(self.img_dir), msg
-        if self.ingest_type == 'named_folders':
-            assert self.fmtkey == 'name'
-
-
-def ingest_rawdata(ibs, ingestable, localize=False):
-    """
-    Ingests rawdata into an ibeis database.
-
-    if ingest_type == 'named_folders':
-        Converts folder structure where folders = name, to ibsdb
-    if ingest_type == 'named_images':
-        Converts imgname structure where imgnames = name_id.ext, to ibsdb
-
-    CommandLine:
-        python ibeis/dbio/ingest_database.py --db seals_drop2
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        ingestable (?):
-        localize (bool): (default = False)
-
-    Returns:
-        list: aid_list -  list of annotation rowids
-
-    CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
-
-    Example:
-        >>> # SCRIPT
-        >>> # General ingest script
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
-        >>> import ibeis
-        >>> dbname = ut.get_argval('--db', str, None)  # 'snow-leopards')
-        >>> force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
-        >>> img_dir = ut.get_argval('--imgdir', type_=str, default=None)
-        >>> assert img_dir is not None, 'specify img dir'
-        >>> assert dbname is not None, 'specify dbname'
-        >>> ingestable = Ingestable(dbname,
-        >>>                   img_dir=img_dir,
-        >>>                   ingest_type='unknown',
-        >>>                   fmtkey=None,
-        >>>                   species=None,
-        >>>                   images_as_annots=False,
-        >>>                   adjust_percent=0.00)
-        >>> from ibeis.control import IBEISControl
-        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
-        >>> ut.ensuredir(dbdir, verbose=True)
-        >>> ibs = IBEISControl.request_IBEISController(dbdir)
-        >>> localize = False
-        >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
-        >>> result = ('aid_list = %s' % (str(aid_list),))
-        >>> print(result)
-    """
-    print('[ingest_rawdata] Ingestable' + str(ingestable))
-
-    if ingestable.zipfile is not None:
-        zipfile_fpath = ut.truepath(join(ibeis.sysres.get_workdir(), ingestable.zipfile))
-        ingestable.img_dir = ut.unarchive_file(zipfile_fpath)
-
-    img_dir         = realpath(ingestable.img_dir)
-    ingest_type     = ingestable.ingest_type
-    fmtkey          = ingestable.fmtkey
-    adjust_percent  = ingestable.adjust_percent
-    species_text    = ingestable.species
-    postingest_func = ingestable.postingest_func
-    print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
-    # Get images in the image directory
-
-    unzipped_file_base_dir = join(ibs.get_dbdir(), 'unzipped_files')
-
-    def extract_zipfile_images(ibs, ingestable):
-        import utool as ut  # NOQA
-        zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
-        if len(zipfile_list) > 0:
-            print('Found zipfile_list = %r' % (zipfile_list,))
-            ut.ensuredir(unzipped_file_base_dir)
-            for zipfile in zipfile_list:
-                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile), realpath(ingestable.img_dir))))
-                unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
-                ut.ensuredir(unzipped_file_dir)
-                ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
-        else:
-            gpath_list = []
-        return gpath_list
-
-    def list_images(img_dir):
-        """ lists images that are not in an internal cache """
-        import utool as ut  # NOQA
-        ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
-        gpath_list = ut.list_images(img_dir,
-                                    fullpath=True,
-                                    recursive=True,
-                                    ignore_list=ignore_list)
-        return gpath_list
-
-    # FIXME ensure python3 works with this
-    gpath_list1 = ut.ensure_unicode_strlist(list_images(img_dir))
-    gpath_list2 = ut.ensure_unicode_strlist(extract_zipfile_images(ibs, ingestable))
-    gpath_list = gpath_list1 + gpath_list2
-
-    #__STR__ = const.__STR__
-    #map(__STR__, gpath_list)
-    #ut.embed()
-    # Parse structure for image names
-    if ingest_type == 'named_folders':
-        name_list1 = get_name_texts_from_parent_folder(gpath_list1, img_dir, fmtkey)
-        name_list2 = get_name_texts_from_parent_folder(gpath_list2, unzipped_file_base_dir, fmtkey)
-        name_list = name_list1 + name_list2
-        pass
-    elif ingest_type == 'named_images':
-        name_list = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
-    elif ingest_type == 'unknown':
-        name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
-    else:
-        raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
-
-    # Find names likely to be the same?
-    RECTIFY_NAMES_HUERISTIC = True
-    if RECTIFY_NAMES_HUERISTIC:
-        names = sorted(list(set(name_list)))
-        splitchars = [' ', '/']
-
-        def multisplit(str_, splitchars):
-            import utool as ut
-            n = [str_]
-            for char in splitchars:
-                n = ut.flatten([_.split(char) for _ in n])
-            return n
-
-        groupids = [multisplit(n1, splitchars)[0] for n1 in names]
-        grouped_names = ut.group_items(names, groupids)
-        fixed_names = {newkey: key for key, val in grouped_names.items() if len(val) > 1 for newkey in val}
-        name_list = [fixed_names.get(name, name) for name in name_list]
-
-    # Add Images
-    gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
-    gid_list_ = ibs.add_images(gpath_list)
-    # <DEBUG>
-    #print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
-    unique_gids = list(set(gid_list_))
-    print("[ingest] Length gid list: %d" % len(gid_list_))
-    print("[ingest] Length unique gid list: %d" % len(unique_gids))
-    assert len(gid_list_) == len(gpath_list)
-    for gid in gid_list_:
-        if gid is None:
-            print('[ingest] big fat warning')
-    # </DEBUG>
-    gid_list = ut.filter_Nones(gid_list_)
-    unique_gids, unique_names, unique_notes = resolve_name_conflicts(
-        gid_list, name_list)
-    # Add ANNOTATIONs with names and notes
-    if ingestable.images_as_annots:
-        aid_list = ibs.use_images_as_annotations(unique_gids,
-                                                 adjust_percent=adjust_percent)
-        ibs.set_annot_names(aid_list, unique_names)
-        ibs.set_annot_notes(aid_list, unique_notes)
-        if species_text is not None:
-            ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
-    if localize:
-        ibs.localize_images()
-    if postingest_func is not None:
-        postingest_func(ibs)
-    # Print to show success
-    #ibs.print_image_table()
-    #ibs.print_tables()
-    #ibs.print_annotation_table()
-    #ibs.print_alr_table()
-    #ibs.print_lblannot_table()
-    #ibs.print_image_table()
-    #return aid_list
+        #if self.ingest_type == 'named_folders':
+        #    assert self.fmtkey == 'name'
 
 
 def ingest_oxford_style_db(dbdir, dryrun=False):

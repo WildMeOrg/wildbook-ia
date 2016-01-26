@@ -261,6 +261,10 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ]
 
     callback_list += [
+        ('Remove name', lambda: ibs.set_annot_name_rowids([aid], [-aid]))
+    ]
+
+    callback_list += [
         ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar',
          toggle_exemplar_func),
     ]

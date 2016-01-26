@@ -1185,9 +1185,9 @@ class QueryRequest(object):
         else:
             return cm_list
 
-    def execute(qreq_, qaid=None):
-        if qaid is not None:
-            shallow_qreq_ = qreq_.shallowcopy(qaids=qaid)
+    def execute(qreq_, qaids=None):
+        if qaids is not None:
+            shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
             cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,
                                             use_bigcache=False)
         else:

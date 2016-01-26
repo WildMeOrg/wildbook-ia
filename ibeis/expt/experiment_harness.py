@@ -407,7 +407,9 @@ def get_query_result_info(qreq_):
 
     Ignore:
 
-        ibeis -e rank_cdf --db humpbacks -a default:is_known=True -t default:pipeline_root=BC_DTW --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22
+        ibeis -e rank_cdf --db humpbacks -a default:has_any=hasnotch,mingt=2 -t default:proot=BC_DTW --show --nocache-big
+
+        ibeis -e rank_cdf --db humpbacks -a default:is_known=True,mingt=2 -t default:pipeline_root=BC_DTW
         --show --debug-depc
         ibeis -e rank_cdf --db humpbacks -a default:is_known=True -t default:pipeline_root=BC_DTW --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 --show --debug-depc
         --clear-all-depcache
@@ -437,6 +439,10 @@ def get_query_result_info(qreq_):
 
     qnx2_nameres_info = []
 
+    #import utool
+    #utool.embed()
+
+    # Ranked list aggregation-ish
     nameres_info_list = []
     for qnid, cm_group in zip(unique_qnids, cm_group_list):
         nid2_name_score_group = [
