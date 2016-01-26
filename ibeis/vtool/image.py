@@ -471,6 +471,11 @@ def resize(img, dsize, interpolation=None):
     return cv2.resize(img, dsize, interpolation=interpolation)
 
 
+def resize_mask(mask, chip, interpolation=None):
+    dsize = get_size(chip)
+    return resize(mask, dsize, interpolation)
+
+
 def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0,
                       borderType=cv2.BORDER_CONSTANT, **kwargs):
     imgBGR = imread(img_fpath)
