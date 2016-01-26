@@ -91,8 +91,10 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
+def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500):
     import random
+    from datetime import date
+    current_year = date.today().year
     # target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -114,6 +116,7 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
         'trainval' : [],
         'val'      : [],
     }
+    index = 1 if offset == 'auto' else offset
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         yawed = True
@@ -124,7 +127,7 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
-            out_name = "2015_%06d" % offset
+            out_name = "%d_%06d" % (current_year, index, )
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 
@@ -186,7 +189,12 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
                 xml_data = open(dst_annot, 'w')
                 xml_data.write(annotation.xml())
                 xml_data.close()
-                offset += 1
+                while exists(dst_annot):
+                    index += 1
+                    if offset != 'auto':
+                        break
+                    out_name = "%d_%06d" % (current_year, index, )
+                    dst_annot = annotdir + out_name  + '.xml'
 
             state = random.uniform(0.0, 1.0)
             if state <= 0.50:

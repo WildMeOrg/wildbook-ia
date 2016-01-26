@@ -21,6 +21,9 @@ if not ut.get_argflag('--no-pydarknet'):
 VERBOSE_DARK = ut.get_argflag('--verbdark') or ut.VERBOSE
 
 
+# def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
+
+
 def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
     """
     Args:
