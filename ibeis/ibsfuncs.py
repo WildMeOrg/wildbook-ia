@@ -91,8 +91,10 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
+def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
     import random
+    from datetime import date
+    current_year = date.today().year
     # target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -102,6 +104,8 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
     mainsetsdir = setsdir + 'Main/'
+    if purge:
+        ut.delete(datadir)
     ut.ensuredir(datadir)
     ut.ensuredir(imagedir)
     ut.ensuredir(annotdir)
@@ -114,6 +118,7 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
         'trainval' : [],
         'val'      : [],
     }
+    index = 1 if offset == 'auto' else offset
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         yawed = True
@@ -124,7 +129,7 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
-            out_name = "2015_%06d" % offset
+            out_name = "%d_%06d" % (current_year, index, )
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 
@@ -179,15 +184,8 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
                 annotation.add_object(
                     species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
-            # Write XML
-            if not enforce_yaw or yawed:
-                print("Copying:\n%r\n%r\n%r\n\n" % (
-                    image_path, dst_img, (width, height), ))
-                xml_data = open(dst_annot, 'w')
-                xml_data.write(annotation.xml())
-                xml_data.close()
-                offset += 1
 
+            # Update sets
             state = random.uniform(0.0, 1.0)
             if state <= 0.50:
                 sets_dict['test'].append(out_name)
@@ -197,6 +195,20 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
             else:
                 sets_dict['val'].append(out_name)
                 sets_dict['trainval'].append(out_name)
+
+            # Write XML
+            if True or not enforce_yaw or yawed:
+                print("Copying:\n%r\n%r\n%r\n\n" % (
+                    image_path, dst_img, (width, height), ))
+                xml_data = open(dst_annot, 'w')
+                xml_data.write(annotation.xml())
+                xml_data.close()
+                while exists(dst_annot):
+                    index += 1
+                    if offset != 'auto':
+                        break
+                    out_name = "%d_%06d" % (current_year, index, )
+                    dst_annot = annotdir + out_name  + '.xml'
         else:
             print("Skipping:\n%r\n\n" % (image_path, ))
 
@@ -208,6 +220,7 @@ def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
             file_.write(content)
 
     print('...completed')
+    return datadir
 
 
 @register_ibs_method
