@@ -256,7 +256,11 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         daid_list = ibs.get_valid_aids()
         #None
     else:
-        daid_list = ibs.get_annot_aids_from_uuid(adata_annot_uuid_list)
+        if len(adata_annot_uuid_list) == 1 and adata_annot_uuid_list[0] is None:
+            # VERY HACK
+            daid_list = ibs.get_valid_aids()
+        else:
+            daid_list = ibs.get_annot_aids_from_uuid(adata_annot_uuid_list)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, qaid_list, daid_list, pipecfg)
 
     #if callback_url is not None:
