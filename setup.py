@@ -112,6 +112,8 @@ INSTALL_OPTIONAL = [
 ]
 
 INSTALL_OPTIONAL_DEV = [
+    'ansi2html',
+    'pygments',
     'autopep8',
     'pyfiglet',
 ]
