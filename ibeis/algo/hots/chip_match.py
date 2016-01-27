@@ -1041,7 +1041,10 @@ class AnnotMatch(MatchBaseIO):
         name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
         kwargs = kwargs.copy()
-        kwargs['draw_fmatches'] = False
+        #print('kwargs.copy = %r' % (kwargs,))
+        #draw_fmatches = kwargs.get('draw_fmatches', True)
+        # MEGAHACK TO DEAL WITH OLD EXPLICIT ELLIPSE FEATURES
+        kwargs['draw_fmatches'] = kwargs.get('draw_ell', True)
         kwargs['show_matches'] = False
 
         _ = viz_matches.show_name_matches(

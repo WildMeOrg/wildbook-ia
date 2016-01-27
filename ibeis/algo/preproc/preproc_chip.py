@@ -173,11 +173,11 @@ def preproc_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis_flukematch.plugin --exec-preproc_chip --show --db humpbacks
+        python -m ibeis.algo.preproc.preproc_chip --exec-preproc_chip --show --db humpbacks
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis_flukematch.plugin import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> depc = ibs.depc
@@ -198,8 +198,8 @@ def preproc_chip(depc, aid_list, config=None):
 
     ibs = depc.controller
     chip_dpath = ibs.get_chipdir() + '2'
-    if config is None:
-        config = ChipConfig()
+    #if config is None:
+    #    config = ChipConfig()
 
     ut.ensuredir(chip_dpath)
 
