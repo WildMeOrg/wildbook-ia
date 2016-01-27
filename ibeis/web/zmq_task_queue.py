@@ -151,7 +151,7 @@ def close_job_manager(ibs):
 @accessor_decors.default_decorator
 @register_api('/api/core/start_identify_annots/', methods=['GET', 'POST'])
 @register_ibs_method
-def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
+def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
                           pipecfg={}, callback_url=None):
     r"""
     REST:
@@ -161,7 +161,7 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
     Args:
         qannot_uuid_list (list) : specifies the query annotations to
             identify.
-        adata_annot_uuid_list (list) : specifies the annotations that the
+        dannot_uuid_list (list) : specifies the annotations that the
             algorithm is allowed to use for identification.  If not
             specified all annotations are used.   (default=None)
         pipecfg (dict) : dictionary of pipeline configuration arguments
@@ -191,10 +191,10 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(
         >>>     defaultdb='PZ_MTEST', a=['default:qsize=2,dsize=10'])
         >>> qannot_uuid_list = ibs.get_annot_uuids(qaids)
-        >>> adata_annot_uuid_list = ibs.get_annot_uuids(daids)
+        >>> dannot_uuid_list = ibs.get_annot_uuids(daids)
         >>> pipecfg = {}
         >>> ibs.initialize_job_manager()
-        >>> jobid = ibs.start_identify_annots(qannot_uuid_list, adata_annot_uuid_list, pipecfg)
+        >>> jobid = ibs.start_identify_annots(qannot_uuid_list, dannot_uuid_list, pipecfg)
         >>> result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)
         >>> print(result)
         >>> import utool as ut
@@ -211,7 +211,7 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> data = dict(
-        >>>     qannot_uuid_list=quuid_list, adata_annot_uuid_list=duuid_list,
+        >>>     qannot_uuid_list=quuid_list, dannot_uuid_list=duuid_list,
         >>>     pipecfg={},
         >>>     callback_url='http://127.0.1.1:5832'
         >>> )
@@ -249,18 +249,21 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         return list_
 
     qannot_uuid_list = ensure_uuid_list(qannot_uuid_list)
-    adata_annot_uuid_list = ensure_uuid_list(adata_annot_uuid_list)
+    dannot_uuid_list = ensure_uuid_list(dannot_uuid_list)
 
     qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
-    if adata_annot_uuid_list is None:
+    if dannot_uuid_list is None:
         daid_list = ibs.get_valid_aids()
         #None
     else:
-        if len(adata_annot_uuid_list) == 1 and adata_annot_uuid_list[0] is None:
+        if len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None:
             # VERY HACK
             daid_list = ibs.get_valid_aids()
         else:
-            daid_list = ibs.get_annot_aids_from_uuid(adata_annot_uuid_list)
+            daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
+
+    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
+    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, qaid_list, daid_list, pipecfg)
 
     #if callback_url is not None:

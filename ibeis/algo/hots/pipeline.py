@@ -113,6 +113,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
         python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --show
 
+        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb1 --qaid 325
         python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb3 --qaid 325
         # background match
         python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db NNP_Master3 --qaid 12838
@@ -160,8 +161,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
         print(ut.indent(qreq_.get_infostr(), '[hs] '))
 
-    ibs.assert_valid_aids(qreq_.get_internal_qaids())
-    ibs.assert_valid_aids(qreq_.get_internal_daids())
+    ibs.assert_valid_aids(qreq_.get_internal_qaids(), msg='pipeline qaids')
+    ibs.assert_valid_aids(qreq_.get_internal_daids(), msg='pipeline daids')
 
     if qreq_.qparams.pipeline_root == 'smk':
         from ibeis.algo.hots.smk import smk_match

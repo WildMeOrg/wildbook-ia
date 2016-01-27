@@ -473,7 +473,7 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
 
 
 @register_ibs_method
-def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
+def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False, msg='', auuid_list=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -497,8 +497,9 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
         >>> print('Asserting single')
         >>> result = assert_valid_aids(ibs, aid_list[0:1], verbose, veryverbose)
         >>> print('Asserting multiple incorrect')
+        >>> auuid_list = ibs.get_annot_uuids(aid_list) + [None]
         >>> try:
-        >>>    result = assert_valid_aids(ibs, aid_list + [0], verbose, veryverbose)
+        >>>    result = assert_valid_aids(ibs, aid_list + [0], verbose, veryverbose, auuid_list=auuid_list)
         >>> except AssertionError:
         >>>    print('Correctly got assertion')
         >>> else:
@@ -520,18 +521,27 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     #isinvalid_list = [aid not in valid_aids for aid in aid_list]
     isinvalid_list = [aid is None for aid in ibs.get_annot_aid(aid_list)]
     #isinvalid_list = [aid not in valid_aids for aid in aid_list]
+    invalid_aids = ut.compress(aid_list, isinvalid_list)
     try:
         assert not any(isinvalid_list), '%d/%d invalid aids: %r' % (
-            sum(isinvalid_list), len(aid_list),
-            ut.compress(aid_list, isinvalid_list),)
+            sum(isinvalid_list), len(aid_list), invalid_aids,)
         isinvalid_list = [
             not ut.is_int(aid) for aid in aid_list]
+        invalid_aids = ut.compress(aid_list, isinvalid_list)
         assert not any(isinvalid_list), '%d/%d invalidly typed aids: %r' % (
-            sum(isinvalid_list), len(aid_list),
-            ut.compress(aid_list, isinvalid_list),)
+            sum(isinvalid_list), len(aid_list), invalid_aids,)
     except AssertionError as ex:
-        print('dbname = %r' % (ibs.get_dbname()))
-        ut.printex(ex)
+        if auuid_list is not None and len(auuid_list) == len(aid_list):
+            invalid_auuids = ut.compress(auuid_list, isinvalid_list)  # NOQA
+        else:
+            invalid_auuids = 'not-available'
+        dbname = ibs.get_dbname()  # NOQA
+        locals_ = dict(dbname=dbname, invalid_auuids=invalid_auuids, invalid_aids=invalid_aids)
+        ut.printex(
+            ex, 'assert_valid_aids: ' + msg,
+            locals_=locals_,
+            keys=['invalid_aids', 'invalid_auuids', 'dbname']
+        )
         raise
     if veryverbose:
         print('passed assert_valid_aids')
