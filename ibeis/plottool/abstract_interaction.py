@@ -65,18 +65,33 @@ class AbstractInteraction(object):
         if self.fnum  is None:
             self.fnum  = df2.next_fnum()
         self.interaction_name = kwargs.get('interaction_name', 'AbstractInteraction')
-        self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
-        ih.connect_callback(self.fig, 'close_event', self.on_close)
         # Careful this might cause memory leaks
         self.scope = []  # for keeping those widgets alive!
-        register_interaction(self)
-
         self.is_down = {}
         self.is_drag = {}
+        self.is_running = False
 
         for button in self.MOUSE_BUTTONS.values():
             self.is_down[button] = None
             self.is_drag[button] = None
+
+        autostart = kwargs.get('autostart', False)
+        if autostart:
+            self._ensure_running()
+
+    def _start_interaction(self):
+        self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+        ih.connect_callback(self.fig, 'close_event', self.on_close)
+        register_interaction(self)
+        self.is_running = True
+
+    def _ensure_running(self):
+        if not self.is_running:
+            self._start_interaction()
+
+    def start(self):
+        self._ensure_running()
+        self.show_page()
 
     def print_status(self):
         print('is_down = ' + ut.repr2(self.is_down))
@@ -162,6 +177,7 @@ class AbstractInteraction(object):
         Override this or create static plot function
         (preferably override)
         """
+        self._ensure_running()
         if self.debug:
             print('[pt.a] show page')
         self.fig = ih.begin_interaction(self.interaction_name, self.fnum)

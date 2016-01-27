@@ -55,8 +55,7 @@ class MatchInteraction2(BASE_CLASS):
 
     """
     def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2,
-                 H1=None, H2=None,
-                 **kwargs):
+                 H1=None, H2=None, fnum=None, **kwargs):
         # Drawing Data
         self.rchip1 = rchip1
         self.rchip2 = rchip2
@@ -69,6 +68,7 @@ class MatchInteraction2(BASE_CLASS):
         self.vecs2 = vecs2
         self.H1 = H1
         self.H2 = H2
+        self.truth = None
 
         # Drawing settings
         kwargs = kwargs.copy()
@@ -81,11 +81,14 @@ class MatchInteraction2(BASE_CLASS):
         self.figtitle = kwargs.get('figtitle', 'Inspect Matches')
         self.xywh2 = None
         import plottool as pt
-        self.fnum2 = pt.next_fnum()
+        self.fnum2 = pt.ensure_fnum(fnum)
 
-        if BASE_CLASS is not object:
-            kwargs['interaction_name'] = 'matches'
-            super(MatchInteraction2, self).__init__(**kwargs)
+        self.title = None
+        #self.fnum2 = pt.next_fnum()
+
+        #if BASE_CLASS is not object:
+        kwargs['interaction_name'] = 'matches'
+        super(MatchInteraction2, self).__init__(**kwargs)
 
         #self.begin(**kwargs)
 
@@ -102,11 +105,14 @@ class MatchInteraction2(BASE_CLASS):
             fnum     = self.fnum
         print('-- CHIPMATCH VIEW --')
         print('[ichipmatch_view] self.mode = %r' % (self.mode,))
-        draw_ell = self.mode >= 1
-        draw_lines = self.mode == 2
+        mode = kwargs_.get('mode', self.mode)
+        draw_ell = mode >= 1
+        draw_lines = mode == 2
         print('[ichipmatch_view] draw_lines = %r' % (draw_lines,))
         print('[ichipmatch_view] draw_ell = %r' % (draw_ell,))
-        pt.figure(fnum=fnum, docla=True, doclf=True)
+        #pt.figure(fnum=fnum, docla=True, doclf=True)
+        # NOTE: i remove the clf here. might cause issues
+        pt.figure(fnum=fnum, docla=True, doclf=False)
         #show_matches_kw = self.__dict__.copy()
         show_matches_kw = dict(
             #fnum=fnum, pnum=pnum,
@@ -130,6 +136,14 @@ class MatchInteraction2(BASE_CLASS):
             pnum=pnum, **show_matches_kw)
         self.xywh2 = xywh2
         ph.set_plotdat(ax, 'viztype', 'matches')
+
+        if self.truth is not None and self.truth:
+            # HACK, rectify with ibeis/viz_matches
+            truth_color = pt.TRUE_BLUE  # if  else pt.FALSE_RED
+            pt.draw_border(ax, color=truth_color, lw=4)
+
+        if self.title is not None:
+            pt.set_title(self.title, ax=ax)
         #pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
     # Draw clicked selection
@@ -291,127 +305,6 @@ class MatchInteraction2(BASE_CLASS):
             toggle_attr_item('mode', 3),
         ]
         return options
-
-    #def on_click(self, event):
-    #    from plottool import plot_helpers as ph
-    #    kpts1     = self.kpts1
-    #    kpts2     = self.kpts2
-    #    fm        = self.fm
-    #    #print_('[inter] clicked matches')
-    #    if event is None:
-    #        return
-    #    button = event.button
-    #    is_right_click = button == 3
-    #    if is_right_click:
-    #        return
-    #    (x, y, ax) = (event.xdata, event.ydata, event.inaxes)
-    #    # Out of axes click
-    #    if None in [x, y, ax]:
-    #        return
-    #    else:
-
-    #def set_callbacks(self):
-    #    """
-    #    CommandLine:
-    #        python -m ibeis.viz.interact.interact_matches --test-begin --show
-    #        python -m ibeis.viz.interact.interact_matches --test-begin
-
-    #    Example:
-    #        >>> # DISABLE_DOCTEST
-    #        >>> from ibeis.viz.interact.interact_matches import *  # NOQA
-    #        >>> code = ut.parse_doctest_from_docstr(MatchInteraction.begin.__doc__)[1][0]
-    #        >>> ut.set_clipboard(code)
-    #        >>> ut.send_keyboard_input(text='%paste')
-    #        >>> ut.send_keyboard_input(key_list=['KP_Enter'])
-    #    """
-    #    from plottool import interact_helpers as ih
-    #    #import guitool
-    #    # TODO: view probchip
-    #    #toggle_samefig_key = 'Toggle same_fig'
-    #    #opt2_callback = [
-    #    #    (toggle_samefig_key, self.toggle_samefig),
-    #    #    ('Toggle vert', self.toggle_vert),
-    #    #    ('query last feature', self.query_last_feature),
-    #    #    ('show each chip', self.show_each_chip),
-    #    #    ('show each probchip', self.show_each_probchip),
-    #    #    #('show each probchip', self.query_last_feature),
-    #    #    ('cancel', lambda: print('cancel')), ]
-    #    #guitool.connect_context_menu(self.fig.canvas, opt2_callback)
-    #    ih.connect_callback(self.fig, 'button_press_event', self.on_click)
-
-    #def toggle_vert(self):
-    #    self.vert = not self.vert
-    #    if self.mx is not None:
-    #        self.select_ith_match(self.mx)
-
-    #def toggle_samefig(self):
-    #    self.same_fig = not self.same_fig
-    #    if self.mx is not None:
-    #        self.select_ith_match(self.mx)
-
-    #def query_last_feature(self):
-    #    ibs      = self.ibs
-    #    qaid     = self.qaid
-    #    viz.show_nearest_descriptors(ibs, qaid, self.last_fx, pt.next_fnum())
-    #    fig3 = pt.gcf()
-    #    ih.connect_callback(fig3, 'button_press_event', self.on_click)
-    #    pt.update()
-
-    #def show_each_chip(self):
-    #    viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
-    #    viz_chip.show_chip(self.ibs, self.aid, fnum=pt.next_fnum())
-    #    ph.draw()
-
-    #def show_each_probchip(self):
-    #    viz_hough.show_probability_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
-    #    viz_hough.show_probability_chip(self.ibs, self.aid, fnum=pt.next_fnum())
-    #    ph.draw()
-
-    # Draw ctrl clicked selection
-    #def sv_view(self):
-    #    """ spatial verification view """
-    #    #fnum = viz.FNUMS['special']
-    #    aid = self.aid
-    #    fnum = pt.next_fnum()
-    #    fig = pt.figure(fnum=fnum, docla=True, doclf=True)
-    #    ih.disconnect_callback(fig, 'button_press_event')
-    #    viz.show_sv(self.ibs, self.qres.qaid, aid2=aid, fnum=fnum)
-    #    ph.draw()
-
-    #def show_page(self, *args):
-    #    from plottool import interact_helpers as ih
-    #    fig = ih.begin_interaction('matches', self.fnum)
-    #    #self.set_callbacks()
-
-    #def begin(self, fnum=None, figtitle='Inspect Matches', same_fig=True,
-    #          **kwargs):
-    #    import plottool as pt
-    #    from plottool import interact_helpers as ih
-    #    from plottool import plot_helpers as ph
-    #    if fnum is None:
-    #        fnum = pt.next_fnum()
-    #    # call doclf docla and make figure
-    #    fig = ih.begin_interaction('matches', fnum)
-
-    #    # New state vars
-    #    self.mx = None
-
-    #    # SET CLOSURE VARS
-    #    #self.fnum     = fnum
-    #    self.kwargs   = kwargs
-    #    self.fig = fig
-    #    self.xywh2 = None
-    #    #self.rchip1     = rchip1
-    #    #self.rchip2     = rchip2
-
-    #    if mx is None:
-    #        self.chipmatch_view()
-    #    else:
-    #        self.select_ith_match(mx)
-
-    #    self.set_callbacks()
-    #    # FIXME: this should probably not be called here
-    #    ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
 
 
 if __name__ == '__main__':

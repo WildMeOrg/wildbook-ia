@@ -814,8 +814,22 @@ def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
         yield pnum_func(px)
 
 
-def make_pnum_nextgen(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
+def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
     import functools
+    if nSubplots is None:
+        if nRows is None:
+            nRows = 1
+        if nCols is None:
+            nCols = 1
+    else:
+        if nRows is None and nCols is None:
+            from plottool import plot_helpers
+            nRows, nCols = plot_helpers.get_square_row_cols(nSubplots)
+        elif nRows is None:
+            nCols = np.ceil(nSubplots / nRows)
+        elif nCols is None:
+            nRows = np.ceil(nSubplots / nCols)
+
     pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base,
                               nSubplots=nSubplots, start=start)
     pnum_next = functools.partial(six.next, pnum_gen)

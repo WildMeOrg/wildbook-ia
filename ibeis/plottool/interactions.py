@@ -29,7 +29,9 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     Append a list of functions that draw plots and this interaction will plot
     them in appropriate subplots and let you click on them to zoom in.
     """
-    def __init__(self, fnum=None, _pnumiter=None, interactive=None):
+    def __init__(self, fnum=None, _pnumiter=None, interactive=None, **kwargs):
+        self.nRows = kwargs.get('nRows', None)
+        self.nCols = kwargs.get('nCols', None)
         self._pnumiter = _pnumiter
         self.pnum_list = []
         self.interactive = interactive
@@ -39,9 +41,18 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
             fnum = pt.next_fnum()
         self.fnum = fnum
 
-    def append_plot(self, func, extra=None, pnum=None, ishow_func=None):
+        autostart = False
+        super(ExpandableInteraction, self).__init__(autostart=autostart, **kwargs)
+
+    def append_plot(self, func, extra=None, pnum=None, ishow_func=None, px=None):
         if pnum is None:
-            pnum = self._pnumiter()
+            if px is not None:
+                if isinstance(px, tuple):
+                    rx, cx = px
+                    px = (rx * self.nCols) + cx + 1
+                pnum = (self.nRows, self.nCols, px)
+            else:
+                pnum = self._pnumiter()
         self.pnum_list.append(pnum)
         self.func_list.append(func)
         self.ishow_func_list.append(ishow_func)
@@ -51,18 +62,23 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         for index, (pnum, func) in enumerate(zip(self.pnum_list, self.func_list)):
             if check_if_subinteract(func):
                 # Hack
-                func.static_plot(self.fnum, pnum)
+                interclass = func
+                interclass.static_plot(fnum=self.fnum, pnum=pnum)
+            elif hasattr(func, 'plot'):
+                inter = func
+                inter.plot(fnum=self.fnum, pnum=pnum)
             else:
-                func(self.fnum, pnum)
+                func(fnum=self.fnum, pnum=pnum)
             ax = pt.gca()
             pt.set_plotdat(ax, 'plot_func', func)
             pt.set_plotdat(ax, 'expandable_index', index)
-        if self.interactive is None or self.interactive:
-            ih.connect_callback(fig, 'button_press_event', self.onclick)
+        #if self.interactive is None or self.interactive:
+        #    ih.connect_callback(fig, 'button_press_event', self.onclick)
+        self.connect_callbacks()
         self.fig = fig
         return fig
 
-    def onclick(self, event):
+    def on_click(self, event):
         print('[inter] clicked in expandable interact')
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
@@ -80,14 +96,18 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                     ishow_func = self.ishow_func_list[index]
                 else:
                     ishow_func = None
-                if ishow_func is None:
-                    if not check_if_subinteract(func):
-                        func(fnum, pnum)
-                    else:
+                if ishow_func is not None:
+                    inter = ishow_func(fnum=fnum)
+                else:
+                    if check_if_subinteract(func):
                         inter = func(fnum=fnum)
                         inter.show_page()
-                else:
-                    inter = ishow_func(fnum=fnum)
+                    elif hasattr(func, 'plot'):
+                        inter = func
+                        inter.start()
+                        #func.plot(fnum=self.fnum, pnum=pnum)
+                    else:
+                        func(fnum=fnum, pnum=pnum)
                     #inter.show_page()
                 fig = pt.gcf()
                 pt.show_figure(fig)
