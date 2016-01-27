@@ -180,7 +180,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88
 
         python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --duuids=[]
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=[]
+        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
 
 
     Example:
@@ -839,8 +839,9 @@ def collector_loop():
                         # requests.get(callback_url)
                         requests.post(callback_url, data={'jobid': jobid})
                     except Exception as ex:
-                        print('ERROR in collector. callback_url=%r' % (callback_url,))
-                        ut.printex(ex)
+                        msg = 'ERROR in collector. Tried to call callback_url=%r' % (callback_url,)
+                        print(msg)
+                        ut.printex(ex, msg)
                     #requests.post(callback_url)
                 if VERBOSE_JOBS:
                     print('stored result')
