@@ -800,6 +800,10 @@ def plot_score_histograms(scores_list,
         >>> ut.show_if_requested()
         >>> print(result)
     """
+    if isinstance(scores_list, np.ndarray):
+        if len(scores_list.shape) == 1:
+            scores_list = [scores_list]
+
     if title is None:
         if len(scores_list) == 1:
             title = 'Histogram of %d ' % (len(scores_list[0])) + score_label + 's'
