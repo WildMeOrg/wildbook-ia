@@ -55,6 +55,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
 
 @getter_vector_output
 def get_chips(ibs, aid_list, in_image=False, config2_=None):
+    print('config2_ = %r' % (config2_,))
     if in_image:
         return ibs.get_annot_images(aid_list)
     else:

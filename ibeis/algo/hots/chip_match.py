@@ -970,17 +970,19 @@ class AnnotMatch(MatchBaseIO):
             cm.name_score_list)
 
     def show_analysis(cm, qreq_, **kwargs):
-        # HACK FOR ANNOT MATCH
+        # HACK FOR ANNOT MATCH (HUMPBACKS)
         from ibeis.viz import viz_qres
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
         }
         kwshow.update(kwargs)
+        #print('\n')
+        #print("???? HACK SHOW QRES ANALYSIS")
         return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
     def ishow_analysis(cm, qreq_, **kwargs):
-        # HACK FOR ANNOT MATCH
+        # HACK FOR ANNOT MATCH (HUMPBACKS)
         from ibeis.viz.interact import interact_qres
         kwshow = {
             'show_query': False,
@@ -994,6 +996,9 @@ class AnnotMatch(MatchBaseIO):
         """
         HACK FOR ANNOT MATCH
         """
+        # HACK FOR ANNOT MATCH (HUMPBACKS)
+        #print('\n')
+        #print("???? HACK SHOW SINGLE NAME MATCH")
         from ibeis.viz import viz_matches
         qaid = cm.qaid
         if cm.nid2_nidx is None:
