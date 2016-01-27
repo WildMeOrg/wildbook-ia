@@ -1389,7 +1389,7 @@ def inspect_pdfs(tn_support, tp_support,
     if with_precision_recall:
         inter.append_plot(_precision_recall)
 
-    inter.show_page()
+    inter.start()
 
     if figtitle is not None:
         pt.set_figtitle(figtitle)

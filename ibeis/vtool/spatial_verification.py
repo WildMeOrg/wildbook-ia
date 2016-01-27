@@ -1064,16 +1064,6 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         python -m vtool.spatial_verification --test-spatially_verify_kpts --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
         python -m vtool.spatial_verification --test-spatially_verify_kpts
 
-    Ignore:
-        cd /media/raid/work/PZ_FlankHack/_ibsdb/_ibeis_cache/chips/
-        python -m vtool.spatial_verification --test-spatially_verify_kpts --show --refine-method='affine' --affine-invariance=False\
-                --fname1 "chip_avuuid=3f4efb94-54cb-244e-0ed3-8993c09528b9_CHIP(sz450).png" \
-                --fname2 "chip_avuuid=3a65c7bc-273b-f0f3-7ae1-c3228c797299_CHIP(sz450).png"
-
-        python -m vtool.spatial_verification --test-spatially_verify_kpts --show --refine-method='homog' --affine-invariance=False\
-                --fname1 "chip_avuuid=3f4efb94-54cb-244e-0ed3-8993c09528b9_CHIP(sz450).png" \
-                --fname2 "chip_avuuid=3a65c7bc-273b-f0f3-7ae1-c3228c797299_CHIP(sz450).png"
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *

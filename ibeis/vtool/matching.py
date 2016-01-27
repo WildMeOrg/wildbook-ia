@@ -7,7 +7,8 @@ from collections import namedtuple
 from vtool import keypoint as ktool
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[matching]', DEBUG=False)
 
-MatchTup = namedtuple('MatchTup', ('fm', 'fs', 'fm_norm'))
+MatchTup3 = namedtuple('MatchTup3', ('fm', 'fs', 'fm_norm'))
+MatchTup2 = namedtuple('MatchTup2', ('fm', 'fs'))
 
 
 # maximum SIFT matching distance based using uint8 trick from hesaff
@@ -25,12 +26,17 @@ class SingleMatch(ut.NiceRepr):
     def show(self, *args, **kwargs):
         show_matching_dict(self.matches, self.metadata, *args, **kwargs)
 
+    def make_interaction(self, *args, **kwargs):
+        return make_match_interaction(self.matches, self.metadata, *args, **kwargs)
+
     def __nice__(self):
-        tup = (len(self.matches['ORIG'][0]), len(self.matches['RAT'][0]), len(self.matches['RAT+SV'][0]), )
-        return ' %d, %d, %d' % tup
+        return ' ' + ', '.join([key + '=%d' % (len(m.fm)) for key, m in self.matches.items()])
+        #tup = (len(self.matches['ORIG'][0]), len(self.matches['RAT'][0]),
+        #       len(self.matches['RAT+SV'][0]), )
+        #return ' %d, %d, %d' % tup
 
 
-def show_matching_dict(matches, metadata, type_='RAT+SV', **kwargs):
+def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     import plottool.interact_matches
     #import plottool as pt
     fm, fs = matches[type_][0:2]
@@ -49,7 +55,13 @@ def show_matching_dict(matches, metadata, type_='RAT+SV', **kwargs):
     vecs1, vecs2 = ut.dict_take(metadata, ['vecs1', 'vecs2'])
     fsv = fs[:, None]
     interact = plottool.interact_matches.MatchInteraction2(
-        rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1, **kwargs)
+        rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1,
+        **kwargs)
+    return interact
+
+
+def show_matching_dict(matches, metadata, *args, **kwargs):
+    interact = make_match_interaction(matches, metadata, *args, **kwargs)
     interact.show_page()
     return interact
     #MatchInteraction2
@@ -162,6 +174,12 @@ def ensure_metadata_feats(metadata, suffix='', cfgdict={}):
     return metadata
 
 
+def vsone_matching2(metadata, cfgdict={}, verbose=None):
+    matches, metadata = vsone_matching(metadata, cfgdict=cfgdict, verbose=verbose)
+    match = SingleMatch(matches, metadata)
+    return match
+
+
 def vsone_matching(metadata, cfgdict={}, verbose=None):
     """
     Metadata is a dictionary that contains either computed information
@@ -181,62 +199,12 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
     ensure_metadata_feats(metadata, suffix='1', cfgdict=cfgdict)
     ensure_metadata_feats(metadata, suffix='2', cfgdict=cfgdict)
 
-    # if 'rchip1' not in metadata:
-    #     def eval_rchip1():
-    #         rchip_fpath1 = metadata['rchip_fpath1']
-    #         return vt.imread(rchip_fpath1)
-    #     metadata.set_lazy_func('rchip1', eval_rchip1)
-
-    # if 'rchip2' not in metadata:
-    #     def eval_rchip2():
-    #         rchip_fpath2 = metadata['rchip_fpath2']
-    #         return vt.imread(rchip_fpath2)
-    #     metadata.set_lazy_func('rchip2', eval_rchip2)
-
     if 'dlen_sqrd2' not in metadata:
         def eval_dlen_sqrd2():
             rchip2 = metadata['rchip2']
             dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
             return dlen_sqrd2
         metadata.set_lazy_func('dlen_sqrd2', eval_dlen_sqrd2)
-
-    # if 'kpts1' not in metadata or 'vecs1' not in metadata:
-    #     def eval_feats1():
-    #         rchip1 = metadata['rchip1']
-    #         _feats1 = vt.extract_features(rchip1, **cfgdict)
-    #         return _feats1
-
-    #     def eval_kpts1():
-    #         _feats1 = metadata['_feats1']
-    #         kpts1 = _feats1[0]
-    #         return kpts1
-
-    #     def eval_vecs1():
-    #         _feats1 = metadata['_feats1']
-    #         vecs1 = _feats1[1]
-    #         return vecs1
-    #     metadata.set_lazy_func('_feats1', eval_feats1)
-    #     metadata.set_lazy_func('kpts1', eval_kpts1)
-    #     metadata.set_lazy_func('vecs1', eval_vecs1)
-
-    # if 'kpts2' not in metadata or 'vecs2' not in metadata:
-    #     def eval_feats2():
-    #         rchip2 = metadata['rchip2']
-    #         _feats2 = vt.extract_features(rchip2, **cfgdict)
-    #         return _feats2
-
-    #     def eval_kpts2():
-    #         _feats2 = metadata['_feats2']
-    #         kpts2 = _feats2[0]
-    #         return kpts2
-
-    #     def eval_vecs2():
-    #         _feats2 = metadata['_feats2']
-    #         vecs2 = _feats2[1]
-    #         return vecs2
-    #     metadata.set_lazy_func('_feats2', eval_feats2)
-    #     metadata.set_lazy_func('kpts2', eval_kpts2)
-    #     metadata.set_lazy_func('vecs2', eval_vecs2)
 
     # Exceute relevant dependencies
     kpts1 = metadata['kpts1']
@@ -248,8 +216,7 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
 
     matches, output_metdata = vsone_feature_matching(
         kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
-        flann1=flann1,
-        verbose=verbose)
+        flann1=flann1, verbose=verbose)
     metadata.update(output_metdata)
     return matches, metadata
 
@@ -352,11 +319,11 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     fs_TOP_SV = fs_TOP.take(homog_inliers, axis=0)
 
     matches = {
-        'ORIG': (fm_ORIG, fs_ORIG),
-        'RAT': MatchTup(fm_RAT, fs_RAT, fm_norm_RAT),
-        'RAT+SV': MatchTup(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV),
-        'TOP': (fm_TOP, fs_TOP),
-        'TOP+SV': (fm_TOP_SV, fs_TOP_SV),
+        'ORIG'   : MatchTup2(fm_ORIG, fs_ORIG),
+        'RAT'    : MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT),
+        'RAT+SV' : MatchTup3(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV),
+        'TOP'    : MatchTup2(fm_TOP, fs_TOP),
+        'TOP+SV' : MatchTup2(fm_TOP_SV, fs_TOP_SV),
     }
     output_metdata = {
         'H_RAT': H_RAT,
@@ -629,7 +596,7 @@ def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist,
     fm_RAT = np.vstack((fx1_match_RAT, fx2_match_RAT)).T
     # return normalizer info as well
     fm_norm_RAT = np.vstack((fx1_norm_RAT, fx2_match_RAT)).T
-    ratio_tup = MatchTup(fm_RAT, fs_RAT, fm_norm_RAT)
+    ratio_tup = MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT)
     return ratio_tup
 
 
