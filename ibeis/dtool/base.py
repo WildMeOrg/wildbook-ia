@@ -164,6 +164,8 @@ class AlgoRequest(object):
         cls = dtool.AlgoRequest
 
     """
+    _isnewreq = True
+
     @classmethod
     def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
         self = cls()
@@ -192,13 +194,15 @@ class AlgoRequest(object):
 
     def get_external_data_config2(self):
         # HACK
-        return None
-    #self.params
+        #return None
+        #print('[d] self.params = %r' % (self.params,))
+        return self.params
 
     def get_external_query_config2(self):
         # HACK
-        return None
-    #self.params
+        #return None
+        #print('[q] self.params = %r' % (self.params,))
+        return self.params
 
     @property
     def qaids(self):

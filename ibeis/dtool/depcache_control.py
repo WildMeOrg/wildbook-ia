@@ -654,6 +654,9 @@ class DependencyCache(_CoreDependencyCache):
         depc.get_root_uuid = get_root_uuid
         # depc._debug = True
 
+    def get_tablenames(depc):
+        return list(depc.cachetable_dict.keys())
+
     @ut.apply_docstr(REG_PREPROC_DOC)
     def register_preproc(depc, *args, **kwargs):
         """
