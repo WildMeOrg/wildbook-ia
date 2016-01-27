@@ -179,6 +179,9 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
 
         python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88
 
+        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --duuids=[]
+        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=[]
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -205,8 +208,10 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
+        >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
+        >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> data = dict(
-        >>>     qannot_uuid_list=uuid_list, adata_annot_uuid_list=uuid_list,
+        >>>     qannot_uuid_list=quuid_list, adata_annot_uuid_list=duuid_list,
         >>>     pipecfg={},
         >>>     callback_url='http://127.0.1.1:5832'
         >>> )
@@ -248,7 +253,8 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
 
     qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
     if adata_annot_uuid_list is None:
-        daid_list = None
+        daid_list = ibs.get_valid_aids()
+        #None
     else:
         daid_list = ibs.get_annot_aids_from_uuid(adata_annot_uuid_list)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, qaid_list, daid_list, pipecfg)
@@ -759,6 +765,7 @@ def engine_loop(id_, dbdir=None):
                 exec_status = 'ok'
             except Exception as ex:
                 result = ut.formatex(ex, keys=['jobid'], tb=True)
+                result = ut.strip_ansi(result)
                 exec_status = 'exception'
 
             json_result = ut.to_json(result)

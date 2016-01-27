@@ -1317,6 +1317,14 @@ class IBEISController(BASE_CLASS):
         return text
 
     @accessor_decors.default_decorator
+    @register_api('/api/core/get_dbino/', methods=['GET'])
+    def get_dbinfo(ibs):
+        from ibeis.other import dbinfo
+        locals_ = dbinfo.get_dbinfo(ibs)
+        return locals_['info_str']
+        #return ut.repr2(dbinfo.get_dbinfo(ibs), nl=1)['infostr']
+
+    @accessor_decors.default_decorator
     @register_api('/api/core/recognition_query_aids/', methods=['GET'])
     def get_recognition_query_aids(ibs, is_known, species=None):
         """

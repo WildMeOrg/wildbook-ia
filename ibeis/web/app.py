@@ -1859,12 +1859,24 @@ def image_upload(cleanup=True, **kwargs):
 
 @register_api('/api/core/helloworld/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def hello_world(*args, **kwargs):
-    print('------------------ HELLO WORLD ------------------')
-    print('Args:', args)
-    print('Kwargs:', kwargs)
-    print('request.args:', request.args)
-    print('request.form', request.form)
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-hello_world
 
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.web.app import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/core/helloworld/')
+    """
+    print('------------------ HELLO WORLD ------------------')
+    print('Args: %r' % (args,))
+    print('Kwargs: %r' % (kwargs,))
+    print('request.args: %r' % (request.args,))
+    print('request.form: %r' % (request.form,))
+    print('request.url; %r' % (request.url,))
+    print('request.environ: %s' % (ut.repr3(request.environ),))
+    print('request: %s' % (ut.repr3(request.__dict__),))
 
 VALID_TURK_MODES = [
     ('turk_viewpoint', 'Viewpoint'),
@@ -2054,7 +2066,7 @@ def test_html_error():
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/image/imagesettext/')
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/image/imagesettext/?__format__=True')
     """
     pass
 

@@ -486,8 +486,8 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                             jQuery_callback = str(kwargs.pop('callback', None))
                             kwargs.pop('_', None)
 
-                        print('KWARGS:  %s' % (kwargs, ))
-                        print('COOKIES: %s' % (request.cookies, ))
+                        #print('KWARGS:  %s' % (kwargs, ))
+                        #print('COOKIES: %s' % (request.cookies, ))
                         __format__ = request.cookies.get('__format__', None)
                         __format__ = kwargs.pop('__format__', __format__)
                         ignore_cookie_set = False
@@ -525,25 +525,35 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                                 '[].')
                         jQuery_callback = None
 
-                    print('RECEIVED FORMAT: %r' % (__format__, ))
+                    #print('RECEIVED FORMAT: %r' % (__format__, ))
 
                     if __format__:
                         # Hack for readable error messages
                         webreturn = translate_ibeis_webreturn(
                             rawreturn, success, code, message, jQuery_callback)
                         webreturn = ut.repr3(ut.from_json(webreturn), strvals=True)
+
                         try:
                             from ansi2html import Ansi2HTMLConverter
                             conv = Ansi2HTMLConverter()
                             webreturn = conv.convert(webreturn)
                         except ImportError as ex:
                             ut.printex(ex, 'pip install ansi2html', iswarning=True)
-                            webreturn = ut.stripansi(webreturn)
+                            webreturn = ut.strip_ansi(webreturn)
                             webreturn = '<p><samp>\n' + html_newlines(webreturn) + '\n</samp></p>'
                             webreturn = '<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">\n' + webreturn
+
+                        def get_func_href(funcname):
+                            url = 'http://' + request.environ['HTTP_HOST'] + flask.url_for(funcname) + '?__format__=True'
+                            return '<a href="{url}">{url}</a>'.format(url=url)
+
+                        if not success:
+                            webreturn += '<pre>See logs for details: %s</pre>' % get_func_href('get_current_log_text')
+                            webreturn += '<pre>Might also look into db_info: %s</pre>' % get_func_href('get_dbinfo')
                     else:
                         webreturn = translate_ibeis_webreturn(
                             rawreturn, success, code, message, jQuery_callback)
+                        webreturn = ut.strip_ansi(webreturn)
 
                     resp = flask.make_response(webreturn, code)
                     if not ignore_cookie_set:
