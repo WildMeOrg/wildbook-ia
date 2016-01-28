@@ -329,10 +329,11 @@ def get_job_result(ibs, jobid):
     Web call that returns the result of a job
     """
     result_str = ibs.job_manager.jobiface.get_job_result(jobid)
-    print('%r' % (result_str, ))
+    print('result_str = %r' % (result_str, ))
+    ut.embed()
     result_str = '{result: %s}' % (result_str, )
     result = ut.from_json(result_str)
-    print('%r' % (result, ))
+    print('result = %r' % (result, ))
     result = result['result']
     return result
 
