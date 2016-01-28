@@ -262,6 +262,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         else:
             daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
+    print('Starting identify with daid_list = %r' % (daid_list, ))
     ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
     ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, qaid_list, daid_list, pipecfg)
