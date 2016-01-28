@@ -775,7 +775,8 @@ def engine_loop(id_, dbdir=None):
                 result = ut.strip_ansi(result)
                 exec_status = 'exception'
 
-            json_result = ut.to_json(result)
+            # json_result = ut.to_json(result)
+            json_result = result
 
             engine_result = dict(
                 exec_status=exec_status,
