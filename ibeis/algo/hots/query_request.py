@@ -242,6 +242,8 @@ class QueryRequest(object):
     Request object for pipline paramter run
     """
 
+    _isnewreq = False
+
     @classmethod
     def new_query_request(cls, qaid_list, daid_list, qparams, qresdir, ibs,
                           _indexer_request_params):

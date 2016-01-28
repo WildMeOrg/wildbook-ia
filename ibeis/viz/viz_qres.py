@@ -432,8 +432,11 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             return
         # Do lazy load before show
         data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
-        ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)
-        ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)
+
+        if qreq_ is not None and not qreq_._isnewreq:
+            # HACK FOR HUMPBACKS
+            ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)
+            ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)
         for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)

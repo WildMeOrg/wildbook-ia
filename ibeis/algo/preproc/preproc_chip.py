@@ -157,7 +157,8 @@ class ChipConfig(dtool.TableConfig):
     coltypes=[('extern', vt.imread), int, int, np.ndarray],
     configclass=ChipConfig,
     docstr='Used to store *processed* annots as chips',
-    fname='chipcache4'
+    fname='chipcache4',
+    version=0
 )
 def preproc_chip(depc, aid_list, config=None):
     r"""
@@ -172,17 +173,18 @@ def preproc_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis_flukematch.plugin --exec-preproc_chip --show --db humpbacks
+        python -m ibeis.algo.preproc.preproc_chip --exec-preproc_chip --show --db humpbacks
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis_flukematch.plugin import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> depc = ibs.depc
-        >>> config = ChipConfig(dim_size=None)
+        >>> #config = ChipConfig(dim_size=None)
+        >>> config = None  # ChipConfig(dim_size=None)
         >>> aid_list = ibs.get_valid_aids()[0:20]
-        >>> chips = depc.get_property(ibs.const.CHIP_TABLE, aid_list, 'img', config)
+        >>> chips = depc.get_property(ibs.const.CHIP_TABLE, aid_list, 'img', {})
         >>> #procgen = preproc_chip(depc, aid_list, config)
         >>> #chip_props = list(procgen)
         >>> #chips = ut.take_column(chip_props, 0)
@@ -196,8 +198,8 @@ def preproc_chip(depc, aid_list, config=None):
 
     ibs = depc.controller
     chip_dpath = ibs.get_chipdir() + '2'
-    if config is None:
-        config = ChipConfig()
+    #if config is None:
+    #    config = ChipConfig()
 
     ut.ensuredir(chip_dpath)
 
@@ -257,7 +259,7 @@ def preproc_chip(depc, aid_list, config=None):
         imgBGR = vt.imread(gfpath)
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
-        height, width = vt.get_size(chipBGR)
+        width, height = vt.get_size(chipBGR)
         # Write chip to disk
         vt.imwrite(cfpath, chipBGR)
         yield (cfpath, width, height, M)

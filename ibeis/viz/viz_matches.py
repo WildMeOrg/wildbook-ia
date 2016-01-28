@@ -21,9 +21,19 @@ def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
 
 
 def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
+    #print('!!! qqreq_ = %r' % (qreq_,))
     query_config2_ = (None if qreq_ is None
                       else qreq_.get_external_query_config2())
-    rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
+    #print('!!! query_config2_ = %r' % (query_config2_,))
+    if qreq_._isnewreq:
+        if hasattr(qreq_, 'get_fmatch_overlayed_chip')  and draw_fmatches and draw_fmatches != 'hackoff':
+            rchip1 = qreq_.get_fmatch_overlayed_chip(qaid, config=query_config2_)
+            draw_fmatches = False
+        else:
+            rchip1 = ibs.depc.get_property('chips', qaid, 'img', config=query_config2_)
+            draw_fmatches = False
+    else:
+        rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
     if draw_fmatches:
         if kpts1 is None:
             kpts1 = vh.get_kpts(ibs, [qaid], config2_=query_config2_)[0]
@@ -36,7 +46,19 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
                              scale_down=False, kpts2_list=None):
     data_config2_ = (None if qreq_ is None else
                      qreq_.get_external_data_config2())
-    rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
+    #print('!!! data_config2_ = %r' % (data_config2_,))
+    #print('!!! dqreq_ = %r' % (qreq_,))
+    if qreq_._isnewreq:
+        if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
+            rchip2_list = qreq_.get_fmatch_overlayed_chip(aid_list, config=data_config2_)
+            #rchip2_list = ibs.depc.get_property('chips', aid_list, 'img', config=data_config2_)
+            draw_fmatches = False
+        else:
+            rchip2_list = ibs.depc.get_property('chips', aid_list, 'img', config=data_config2_)
+            draw_fmatches = False
+        #vh.get_chips(ibs, aid_list, config2_=data_config2_)
+    else:
+        rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
     if draw_fmatches:
         if kpts2_list is None:
             kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)
@@ -72,9 +94,6 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         show_nid, show_aid, show_annot_score, show_truth, name_score,
         show_name_score, show_name_rank, show_timedelta
 
-    Returns:
-        ?: ax
-
     CommandLine:
         python -m ibeis.viz.viz_matches --exec-show_name_matches
         python -m ibeis.viz.viz_matches --test-show_name_matches --show
@@ -82,28 +101,13 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_matches import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> qaid = '?'
-        >>> name_daid_list = '?'
-        >>> name_fm_list = '?'
-        >>> name_fs_list = '?'
-        >>> name_H1_list = '?'
-        >>> name_featflag_list = '?'
-        >>> qreq_ = None
-        >>> ax = show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_)
-        >>> result = ('ax = %s' % (str(ax),))
-        >>> print(result)
-
-    Example:
-        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots import chip_match
         >>> from ibeis.algo.hots import name_scoring
-        >>> from ibeis.viz.viz_matches import *  # NOQA
+        >>> import vtool as vt
         >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
         >>> func = chip_match.ChipMatch.show_single_namematch
-        >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+        >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True, strip_docstr=True)
         >>> setup = ut.regex_replace('viz_matches.show_name_matches', '#', sourcecode)
         >>> homog = False
         >>> print(ut.indent(setup, '>>> '))
@@ -112,41 +116,16 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> cm.score_nsum(qreq_)
         >>> dnid = ibs.get_annot_nids(cm.qaid)
         >>> # +--- COPIED SECTION
-        >>> from ibeis.viz import viz_matches
-        >>> qaid = cm.qaid
-        >>> # <GET NAME GROUPXS>
-        >>> nidx = cm.nid2_nidx[dnid]
-        >>> groupxs = cm.name_groupxs[nidx]
-        >>> daids = np.take(cm.daid_list, groupxs)
-        >>> groupxs = groupxs.compress(daids != cm.qaid)
-        >>> # </GET NAME GROUPXS>
-        >>> # sort annots in this name by the chip score
-        >>> group_sortx = cm.algo_annot_scores['csum'].take(groupxs).argsort()[::-1]
-        >>> sorted_groupxs = groupxs.take(group_sortx)
-        >>> # get the info for this name
-        >>> name_fm_list  = ut.take(cm.fm_list, sorted_groupxs)
-        >>> REMOVE_EMPTY_MATCHES = len(sorted_groupxs) > 3
-        >>> if REMOVE_EMPTY_MATCHES:
-        >>>     isvalid_list = [len(fm) > 0 for fm in name_fm_list]
-        >>>     name_fm_list = ut.compress(name_fm_list, isvalid_list)
-        >>>     sorted_groupxs = sorted_groupxs.compress(isvalid_list)
-        >>> name_H1_list   = None if not homog or cm.H_list is None else ut.take(cm.H_list, sorted_groupxs)
-        >>> name_fsv_list  = None if cm.fsv_list is None else ut.take(cm.fsv_list, sorted_groupxs)
-        >>> name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
-        >>> name_daid_list = ut.take(cm.daid_list, sorted_groupxs)
-        >>> # find features marked as invalid by name scoring
-        >>> featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
-        >>> name_featflag_list = ut.take(featflag_list, sorted_groupxs)
-        >>> # Get the scores for names and chips
-        >>> name_score = cm.name_score_list[nidx]
-        >>> name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
-        >>> name_annot_scores = cm.algo_annot_scores['csum'].take(sorted_groupxs)
+        >>> locals_ = locals()
+        >>> var_list = ut.exec_func_src(func, locals_=locals_, sentinal='name_annot_scores = cm.annot_score_list.take(sorted_groupxs')
+        >>> exec(ut.execstr_dict(var_list))
         >>> # L___ COPIED SECTION
         >>> kwargs = {}
         >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
+    #print("SHOW NAME MATCHES")
     #print(ut.repr2(kwargs, nl=True))
     #from ibeis import constants as const
     draw_fmatches = kwargs.pop('draw_fmatches', True)
@@ -449,8 +428,31 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
 def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
                   H1=None, H2=None, qreq_=None, **kwargs):
     """
-    TODO: use this as the main function.
+    TODO: DEPRICATE and use special case of show_name_matches
     Integrate ChipMatch
+
+    Used in:
+        Found 1 line(s) in '/home/joncrall/code/ibeis_cnn/ibeis_cnn/ingest_ibeis.py':
+        ingest_ibeis.py : 827 |        >>>     ibeis.viz.viz_matches.show_matches2(ibs, aid1, aid2, fm=None, kpts1=kpts1, kpts2=kpts2)
+        ----------------------
+        Found 4 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/viz_matches.py':
+        viz_matches.py : 423 |def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
+        viz_matches.py : 430 |        python -m ibeis.viz.viz_matches --exec-show_matches2 --show
+        viz_matches.py : 431 |        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
+        viz_matches.py : 515 |    return show_matches2(ibs, aid1, aid2, fm, fs, qreq_=qreq_, **kwargs)
+        ----------------------
+        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/interact/interact_matches.py':
+        interact_matches.py : 372 |            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
+        ----------------------
+        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/vsone_pipeline.py':
+        vsone_pipeline.py : 1339 |    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm, ori=True,
+        ----------------------
+        Found 2 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/chip_match.py':
+        chip_match.py : 204 |        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,
+        chip_match.py : 219 |            ibeis.viz.viz_matches.show_matches2
+        ----------------------
+        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/scoring.py':
+        scoring.py : 562 |        viz.viz_matches.show_matches2(qreq_.ibs, qaid, daid, fm, fs,
 
     CommandLine:
         python -m ibeis.viz.viz_matches --exec-show_matches2 --show
