@@ -9,47 +9,6 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 
 
-def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
-    """
-    General function to push or pull a directory from a remote server to a local path
-
-    References:
-        http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/
-        http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible
-
-    Notes (rsync commandline options):
-        rsync [OPTION]... SRC [SRC]... DEST
-        -v : verbose
-        -r : copies data recursively (but dont preserve timestamps and
-                permission while transferring data
-        -a : archive mode, allows recursive copying and preserves symlinks,
-                permissions, user and group ownerships, and timestamps
-        -z : compress file data
-        -i, --itemize-changes       output a change-summary for all updates
-        -s, --protect-args :        no space-splitting; only wildcard special-chars
-        -h : human-readable, output numbers in a human-readable format
-        -P                          same as --partial --progress
-    """
-    rsync_exe = 'rsync'
-    rsync_options = '-avhzP'
-    #rsync_options += ' --port=%d' % (port,)
-    rsync_options += ' -e "ssh -p %d"' % (port,)
-    if len(exclude_dirs) > 0:
-        exclude_tup = ['--exclude ' + dir_ for dir_ in exclude_dirs]
-        exclude_opts = ' '.join(exclude_tup)
-        rsync_options += ' ' + exclude_opts
-
-    cmdtuple = (rsync_exe, rsync_options, src_uri, dst_uri)
-    cmdstr = ' '.join(cmdtuple)
-    print('[rsync] src_uri = %r ' % (src_uri,))
-    print('[rsync] dst_uri = %r ' % (dst_uri,))
-    print('[rsync] cmdstr = %r' % cmdstr)
-    print(cmdstr)
-
-    #if not dryrun:
-    ut.cmd(cmdstr, dryrun=dryrun)
-
-
 def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=False):
     """
     syncs an ibeisdb without syncing the cache or the chip directory
@@ -74,13 +33,13 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=
         # pull remote to local
         remote_src = ut.unixjoin(remote_uri, dbname)
         ut.assert_exists(local_uri)
-        rsync(remote_src, local_uri, exclude_dirs, port, dryrun=dryrun)
+        ut.rsync(remote_src, local_uri, exclude_dirs, port, dryrun=dryrun)
     elif mode == 'push':
         # push local to remote
         local_src = ut.unixjoin(local_uri, dbname)
         if not dryrun:
             ut.assert_exists(local_src)
-        rsync(local_src, remote_uri, exclude_dirs, port, dryrun=dryrun)
+        ut.rsync(local_src, remote_uri, exclude_dirs, port, dryrun=dryrun)
         if dryrun:
             ut.assert_exists(local_src)
     else:

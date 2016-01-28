@@ -411,6 +411,35 @@ def get_ibsdb_list(workdir=None):
     return ibsdb_list
 
 
+def ensure_wd_peter2():
+    """
+    publish to lev:Leviathan:/media/hdd/PUBLIC/databases
+
+    Ignore:
+        >>> # publish wd_peter2 to lev
+        >>> from os.path import join, basename
+        >>> dbdir = ut.truepath('~/work/wd_peter2')
+        >>> dbname = basename(dbdir)
+        >>> ibsdb_dpath = join(dbdir, '_ibsdb')
+        >>> fpath_list = []
+        >>> fpath_list += ut.glob(ibsdb_dpath, '*sqlite*')
+        >>> fpath_list += ut.ls(join(ibsdb_dpath, 'images'))
+        >>> archive_name = dbname + '.zip'
+        >>> ut.archive_files(archive_name, fpath_list, common_prefix=dbdir)
+        >>> ut.rsync(archive_name, 'joncrall@lev.cs.rpi.edu:/media/hdd/PUBLIC/databases')
+
+    CommandLine:
+        python -m ibeis.init.sysres --exec-ensure_wd_peter2 --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> ensure_wd_peter2()
+    """
+    zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
+    ensure_db_from_url(zipped_db_url)
+
+
 def ensure_pz_mtest():
     """
     Ensures that you have the PZ_MTEST dataset
@@ -674,11 +703,10 @@ def ensure_testdb2():
 def ensure_db_from_url(zipped_db_url):
     """ SeeAlso ibeis.init.sysres """
     from ibeis import sysres
-    dbname = 'testdb2'
     workdir = sysres.get_workdir()
-    zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
-    dbdir = ut.grab_zipped_url(zipped_db_url, ensure=True, download_dir=workdir)
-    print('have %s=%r' % (dbname, dbdir,))
+    #zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
+    dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
+    print('have %s=%r' % (zipped_db_url, dbdir,))
 
 
 def get_global_distinctiveness_modeldir(ensure=True):
