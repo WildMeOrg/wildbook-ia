@@ -47,6 +47,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize, spread_list
         can append _list to any of these
         plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
+        kind = ['bar', 'plot', ...]
 
     References:
         matplotlib.org/examples/api/barchart_demo.html
