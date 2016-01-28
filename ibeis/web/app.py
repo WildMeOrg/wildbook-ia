@@ -1720,7 +1720,9 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
     params_gen = list(params_gen)
     gpath_list = [ _[0] for _ in params_gen ]
     gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)  # NOQA
-    return gid_list
+    # return gid_list
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    return image_uuid_list
 
 
 @register_api('/api/annot/json/', methods=['POST'])
@@ -1792,6 +1794,8 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
                               species_list=annot_species_list, name_list=annot_name_list,
                               notes_list=annot_notes_list, **kwargs)
     # return aid_list
+    annot_uuid_list = ibs.get_annot_uuids(aid_list)
+    return annot_uuid_list
 
 
 @register_api('/api/image/json/', methods=['DELETE'])

@@ -866,7 +866,13 @@ def collector_loop():
                     json_result = engine_result['json_result']
                     reply['jobid'] = jobid
                     reply['status'] = 'ok'
-                    reply['json_result'] = json_result
+                    # reply['json_result'] = json_result
+                    # We want to parse the JSON result here, since we need to live in
+                    # Python land for the rest of the call until the API wrapper
+                    # converts the Python objcets to JSON before the response is
+                    # generated.  This prevents the API from converting a Python
+                    # string of JSON to a JSON string of JSON, which is bad.
+                    reply['json_result'] = ut.from_json(json_result)
                 except KeyError:
                     reply['jobid'] = jobid
                     reply['status'] = 'invalid'
