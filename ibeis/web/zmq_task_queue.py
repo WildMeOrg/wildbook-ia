@@ -777,10 +777,10 @@ def engine_loop(id_, dbdir=None):
                 exec_status = 'exception'
 
             print('\n\n\n\n')
-            print(result)
+            print('%r' % (result, ))
             json_result = ut.to_json(result)
             print('-' * 40)
-            print(json_result)
+            print('%r' % (json_result, ))
             print('\n\n\n\n')
 
             engine_result = dict(
