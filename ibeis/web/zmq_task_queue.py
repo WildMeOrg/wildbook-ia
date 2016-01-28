@@ -262,7 +262,6 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         else:
             daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
-    print('Starting identify with daid_list = %r' % (daid_list, ))
     ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
     ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
     jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, qaid_list, daid_list, pipecfg)
@@ -328,13 +327,7 @@ def get_job_result(ibs, jobid):
     """
     Web call that returns the result of a job
     """
-    result_str = ibs.job_manager.jobiface.get_job_result(jobid)
-    print('result_str = %r' % (result_str, ))
-    ut.embed()
-    result_str = '{result: %s}' % (result_str, )
-    result = ut.from_json(result_str)
-    print('result = %r' % (result, ))
-    result = result['result']
+    result = ibs.job_manager.jobiface.get_job_result(jobid)
     return result
 
 
