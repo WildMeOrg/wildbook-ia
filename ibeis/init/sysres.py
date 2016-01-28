@@ -696,7 +696,8 @@ def ensure_nauts():
 
 def ensure_testdb2():
     """ SeeAlso ibeis.init.sysres """
-    zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
+    #zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
+    zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
     ensure_db_from_url(zipped_db_url)
 
 

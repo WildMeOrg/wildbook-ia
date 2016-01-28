@@ -61,6 +61,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>> from ibeis.control import IBEISControl
         >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
         >>> ut.ensuredir(dbdir, verbose=True)
+        >>> if force_delete:
+        >>>     ibsfuncs.delete_ibeis_database(dbdir)
         >>> ibs = IBEISControl.request_IBEISController(dbdir)
         >>> localize = False
         >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
