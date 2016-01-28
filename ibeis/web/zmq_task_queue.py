@@ -328,7 +328,12 @@ def get_job_result(ibs, jobid):
     """
     Web call that returns the result of a job
     """
-    result = ibs.job_manager.jobiface.get_job_result(jobid)
+    result_str = ibs.job_manager.jobiface.get_job_result(jobid)
+    print('%r' % (result_str, ))
+    result_str = '{result: %s}' % (result_str, )
+    result = ut.from_json(result_str)
+    print('%r' % (result, ))
+    result = result['result']
     return result
 
 
@@ -776,12 +781,7 @@ def engine_loop(id_, dbdir=None):
                 result = ut.strip_ansi(result)
                 exec_status = 'exception'
 
-            print('\n\n\n\n')
-            print('%r' % (result, ))
             json_result = ut.to_json(result)
-            print('-' * 40)
-            print('%r' % (json_result, ))
-            print('\n\n\n\n')
 
             engine_result = dict(
                 exec_status=exec_status,
