@@ -15,16 +15,30 @@ def check_unused_kwargs(kwargs, expected_keys):
         print('unused kwargs keys = %r' % (unused_keys))
 
 
-def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)], **kwargs):
+def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)], tp_scale=1.0, tn_scale=1.0, **kwargs):
     rng = np.random.RandomState(seed=0)
     # Get a training sample
-    tp_support = np.hstack([rng.normal(loc=loc, size=(size,)) for loc, size in tp_bumps])
-    tn_support = np.hstack([rng.normal(loc=loc, size=(size,)) for loc, size in tn_bumps])
+    tp_support = np.hstack([rng.normal(loc=loc, scale=tp_scale, size=(size,)) for loc, size in tp_bumps])
+    tn_support = np.hstack([rng.normal(loc=loc, scale=tn_scale, size=(size,)) for loc, size in tn_bumps])
     data   = np.hstack((tp_support, tn_support))
     labels = np.array([True] * len(tp_support) + [False] * len(tn_support))
     encoder = ScoreNormalizer(**kwargs)
     encoder.fit(data, labels)
     return encoder, data, labels
+
+
+def get_left_area(ydata, xdata, index_list):
+    """ area to the left of each index point """
+    left_area = np.array([np.trapz(ydata[:ix + 1], xdata[:ix + 1])
+                          for ix in index_list])
+    return left_area
+
+
+def get_right_area(ydata, xdata, index_list):
+    """ area to the right of each index point """
+    right_area = np.array([np.trapz(ydata[ix:], xdata[ix:])
+                           for ix in index_list])
+    return right_area
 
 
 class ScoreNormVisualizeClass(object):
@@ -152,6 +166,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
                 #clip_factor=(ut.PHI + 1),
                 clip_factor=None,
                 reverse=None,
+                p_tp_method='eq',
             ), kwargs)
         #check_unused_kwargs(kwargs, encoder.learn_kw.keys())
         encoder.thresh_kw = ut.update_existing(
@@ -306,7 +321,20 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         Example:
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
-            >>> encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 512)], adjust=1)
+            >>> encoder, X, y = testdata_score_normalier(
+            >>>     [(3.5, 64), (9.5, 1024), (15.5, 2048)],
+            >>>     [(6.5, 256), (12.5, 5064)],
+            >>>     adjust=1, p_tp_method='ratio')
+            >>> encoder, X, y = testdata_score_normalier(
+            >>>     adjust=1, p_tp_method='ratio')
+            >>> encoder, X, y = testdata_score_normalier(
+            >>>     [(3.5, 2048)],
+            >>>     [(30.5, 128)],
+            >>>     tn_scale=.1, adjust=1, p_tp_method='ratio')
+            >>> encoder, X, y = testdata_score_normalier(
+            >>>     [(3.5, 64), (9.5, 1024), (15.5, 5064)],
+            >>>     [(6.5, 256), (12.5, 2048), (18.5, 128)],
+            >>>     adjust=1, p_tp_method='ratio')
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
@@ -315,15 +343,16 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
             >>> fnum = 100
             >>> pt.multi_plot(xdata, [tp_curve, tn_curve, distance],
-            >>>               label_list=['tp', 'tn', 'dist'], marker='',
-            >>>               pnum=(3, 1, 1), fnum=fnum)
+            >>>               label_list=['p(tp | s)', 'p(tn | s)', 'isect-dist'], markers=['', '', ''],
+            >>>               linewidth_list=[4, 4, 1], title='intersection points',
+            >>>               pnum=(4, 1, 1), fnum=fnum, xmax=xdata.max(), xmin=0)
             >>> pt.plot(x_submax, y_submax, 'o')
-            >>> #pt.plot(xdata[maxima_x], maxima_y, 'rx')
+            >>> pt.plot(xdata[maxima_x], maxima_y, 'rx')
             >>> pt.plot(x_submax, y_submax, 'o')
-            >>> #pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
+            >>> pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
+            >>> pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
+            >>> pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
+            >>> pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
             >>> #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
             >>> #
             >>> _interp_sgtp = scipy.interpolate.interp1d(
@@ -334,11 +363,20 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>>     xdata, tp_curve, kind='linear', copy=False, assume_sorted=False)
             >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
             >>> #
-            >>> pnum_ = pt.make_pnum_nextgen(3, 3, start=6)
+            >>> pt.multi_plot(xdata[argmaxima], [tp_area, fp_area, tn_area, fn_area], title='intersection areas',
+            >>>               label_list=['tp_area', 'fp_area', 'tn_area', 'fn_area'], marker='o',
+            >>>               pnum=(4, 1, 2), fnum=fnum, xmax=xdata.max(), xmin=0)
+            >>> #
+            >>> pt.multi_plot(xdata[argmaxima], [lr_pos, lr_neg], title='intersection quality',
+            >>>               label_list=['lr_pos', 'lr_neg'], marker='o',
+            >>>               pnum=(4, 1, 3), fnum=fnum, xmax=xdata.max(), xmin=0)
+            >>> #
+            >>> pnum_ = pt.make_pnum_nextgen(4, 3, start=9)
             >>> encoder._plot_score_support_hist(fnum=fnum, pnum=pnum_())
             >>> #encoder._plot_prebayes(fnum=fnum, pnum=pnum_())
             >>> encoder._plot_postbayes(fnum=fnum, pnum=pnum_())
             >>> encoder._plot_roc(fnum=fnum, pnum=pnum_())
+            >>> pt.adjust_subplots2(hspace=.5, top=.95, bottom=.08)
             >>> pt.show_if_requested()
         """
         import vtool as vt
@@ -361,10 +399,30 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
 
         distance = -np.abs(tp_curve - tn_curve)
         distance = distance - distance.min()
-        maxpos = np.array([distance.argmax()])
 
+        # Find locations of intersection
+        maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
+        # Choose the location of intersection that performs best on some test
+        # statistic. (pos likelihood ratio)
         if 1:
-            pass
+            # Use area under curves to determine the probability density of tp,
+            # fp, tn, fn at each candidate threshold.
+
+            tp_area = get_right_area(tp_curve, xdata, argmaxima)
+            fp_area = get_right_area(tn_curve, xdata, argmaxima)
+            tn_area = get_left_area(tn_curve, xdata, argmaxima)
+            fn_area = get_left_area(tp_curve, xdata, argmaxima)
+            # Positive liklihood ratio
+            lr_pos = tp_area / fp_area
+            lr_neg = fp_area / tn_area
+            lr_pos = lr_pos / lr_pos.max()
+            lr_neg = lr_neg / lr_neg.max()
+            #np.trapz(encoder.p_score_given_tp, encoder.score_domain)
+            #assert np.isclose(np.trapz(p_score, score_domain), 1.0)
+            #assert np.isclose(np.trapz(p_score, p_tp_given_score), 1.0)
+            maxpos = argmaxima[lr_pos.argmax()]
+        else:
+            maxpos = np.array([distance.argmax()])
 
         if maxpos == len(distance) - 1:
             y_submax = distance[-2:-1]
@@ -811,7 +869,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
 def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
                               return_all=False, monotonize=True,
                               clip_factor=(ut.PHI + 1), verbose=False,
-                              reverse=False):
+                              reverse=False, p_tp_method='eq'):
     r"""
     Takes collected data and applys parzen window density estimation and bayes rule.
 
@@ -890,9 +948,17 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
             assert np.isclose(np.trapz(p_score_given_tn, score_domain), 1.0)
     if verbose:
         print('[scorenorm] %d/%d evaluating posterior probabilities' % (next_(), total))
-    # FIXME: not always going to be equal probability of true and positive cases
-    # p_tp = len(tp_support) / (len(tp_support) + len(tn_support))
-    p_tp = .5
+
+    # For inbalanced data there are several methods we might want to use to
+    # calculate p_tp.  not always going to be equal probability of true and
+    # positive cases
+    print('p_tp_method = %r' % (p_tp_method,))
+    if p_tp_method == 'eq':
+        p_tp = .5
+    elif p_tp_method == 'ratio':
+        p_tp = len(tp_support) / (len(tp_support) + len(tn_support))
+    else:
+        raise NotImplementedError('p_tp_method = %r' % (p_tp_method,))
     # Average to get probablity of any score
     p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
     # Apply bayes
