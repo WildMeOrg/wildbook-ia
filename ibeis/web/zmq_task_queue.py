@@ -545,6 +545,7 @@ class JobInterface(object):
                 print('----')
                 print('Request result of jobid=%r' % (jobid,))
             pair_msg = dict(action='job_result', jobid=jobid)
+            # CALLER: collector_request_result
             jobiface.collect_deal_sock.send_json(pair_msg)
             if jobiface.verbose >= 3:
                 print('... waiting for collector reply')
@@ -836,6 +837,7 @@ def collector_loop():
             # CALLER: collector_notify
             # CALLER: collector_store
             # CALLER: collector_request_status
+            # CALLER: collector_request_result
             idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
             reply = {}
             action = collect_request['action']
