@@ -283,8 +283,6 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         # heuristic
         encoder.learn_kw['reverse'] = tp_support.mean() < tn_support.mean()
         if verbose:
-            print('stats(tp_support) = ' + ut.get_stats_str(tp_support, use_nan=True))
-            print('stats(tn_support) = ' + ut.get_stats_str(tn_support, use_nan=True))
             print('[scorenorm] setting reverse = %r' %
                   (encoder.learn_kw['reverse']))
 
@@ -907,6 +905,8 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[scorenorm] * tn_support.shape=%r' % (tn_support.shape,))
         print('[scorenorm] * estimating true positive pdf, ')
         print('[scorenorm] * monotonize = %r' % (monotonize,))
+        print('stats.tp_support = ' + ut.get_stats_str(tp_support, use_nan=True))
+        print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
         next_ = ut.next_counter(1)
         total = 8
     # import utool
@@ -958,14 +958,14 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     if ut.DEBUG2:
         assert np.isclose(np.trapz(p_score, score_domain), 1.0)
         assert np.isclose(np.trapz(p_score, p_tp_given_score), 1.0)
+    if np.any(np.isnan(p_tp_given_score)):
+        p_tp_given_score = vt.interpolate_nans(p_tp_given_score)
     if verbose:
         # np.trapz(p_tp_given_score / np.trapz(p_tp_given_score, score_domain), score_domain)
         print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
         print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
         print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=True, use_nan=True))
         print('stats:p_tp_given_score = ' + ut.get_stats_str(p_tp_given_score, newlines=True, use_nan=True))
-    if np.any(np.isnan(p_tp_given_score)):
-        p_tp_given_score = vt.interpolate_nans(p_tp_given_score)
     if monotonize:
         if reverse:
             if verbose:
