@@ -258,6 +258,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
             label.set_fontsize(ticksize)
 
     # Setup axes limits
+    if 'xlim' in kwargs:
+        raise AssertionError('use xmax xmin instead')
+    if 'ylim' in kwargs:
+        raise AssertionError('use ymax ymin instead')
+
     xmin = kwargs.get('xmin', ax.get_xlim()[0])
     xmax = kwargs.get('xmax', ax.get_xlim()[1])
     ymin = kwargs.get('ymin', ax.get_ylim()[0])
@@ -361,6 +366,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         #use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         pt.dark_background(force=use_darkbackground is True)
+    # TODO: return better info
     return fig
 
 
