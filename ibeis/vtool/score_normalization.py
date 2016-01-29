@@ -937,14 +937,19 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
 
     if True:
         # Make sure we still have probability functions
-        p_score_given_tp = p_score_given_tp / np.trapz(p_score_given_tp, score_domain)
-        p_score_given_tn = p_score_given_tn / np.trapz(p_score_given_tn, score_domain)
-        #if ut.DEBUG2:
         area_tp = np.trapz(p_score_given_tp, score_domain)
         area_tn = np.trapz(p_score_given_tn, score_domain)
         if verbose:
-            print('area_tp = %r' % (area_tp,))
-            print('area_tn = %r' % (area_tn,))
+            print('pre.area_tp = %r' % (area_tp,))
+            print('pre.area_tn = %r' % (area_tn,))
+
+        # normalize to ensure
+        p_score_given_tp = p_score_given_tp / area_tp
+        p_score_given_tn = p_score_given_tn / area_tn
+        #if ut.DEBUG2:
+        if verbose:
+            print('norm.area_tp = %r' % (area_tp,))
+            print('norm.area_tn = %r' % (area_tn,))
 
         assert np.isclose(area_tp, 1.0)
         assert np.isclose(area_tn, 1.0)
