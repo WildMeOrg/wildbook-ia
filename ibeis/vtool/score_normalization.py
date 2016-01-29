@@ -958,13 +958,13 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     if ut.DEBUG2:
         assert np.isclose(np.trapz(p_score, score_domain), 1.0)
         assert np.isclose(np.trapz(p_score, p_tp_given_score), 1.0)
+    if verbose:
+        # np.trapz(p_tp_given_score / np.trapz(p_tp_given_score, score_domain), score_domain)
+        print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
+        print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
+        print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=True, use_nan=True))
+        print('stats:p_tp_given_score = ' + ut.get_stats_str(p_tp_given_score, newlines=True, use_nan=True))
     if np.any(np.isnan(p_tp_given_score)):
-        if verbose:
-            # np.trapz(p_tp_given_score / np.trapz(p_tp_given_score, score_domain), score_domain)
-            print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
-            print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
-            print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=True, use_nan=True))
-            print('stats:p_tp_given_score = ' + ut.get_stats_str(p_tp_given_score, newlines=True, use_nan=True))
         p_tp_given_score = vt.interpolate_nans(p_tp_given_score)
     if monotonize:
         if reverse:
