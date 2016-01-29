@@ -472,7 +472,9 @@ class JobInterface(object):
         jobiface.verbose = 2 if VERBOSE_JOBS else 1
 
     def init(jobiface):
+        # Starts several new processes
         jobiface.initialize_background_processes()
+        # Does not create a new process, but connects sockets on this process
         jobiface.initialize_client_thread()
 
     def initialize_client_thread(jobiface):
@@ -500,6 +502,7 @@ class JobInterface(object):
         The client - sends messages, and receives replies after they
         have been processed by the
         """
+        # NAME: job_client
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
             print = partial(ut.colorprint, color='blue')
             if jobiface.verbose >= 1:
@@ -507,9 +510,12 @@ class JobInterface(object):
             engine_request = {'action': action, 'args': args, 'kwargs': kwargs, 'callback_url': callback_url}
             if jobiface.verbose >= 2:
                 print('Queue job: %s' % (engine_request))
+            # Flow of information tags:
+            # CALLS: engine_queue
             jobiface.engine_deal_sock.send_json(engine_request)
             if jobiface.verbose >= 3:
                 print('..sent, waiting for response')
+            # RETURNED FROM: job_client_return
             reply_notify = jobiface.engine_deal_sock.recv_json()
             if jobiface.verbose >= 2:
                 print('Got reply: %s' % ( reply_notify))
@@ -523,6 +529,7 @@ class JobInterface(object):
                 print('----')
                 print('Request status of jobid=%r' % (jobid,))
             pair_msg = dict(action='job_status', jobid=jobid)
+            # CALLS: collector_request_status
             jobiface.collect_deal_sock.send_json(pair_msg)
             if jobiface.verbose >= 3:
                 print('... waiting for collector reply')
@@ -642,6 +649,8 @@ def engine_queue_loop():
     """
     Specialized queue loop
     """
+    # Flow of information tags:
+    # NAME: engine_queue
     iface1, iface2 = engine_url1, engine_url2
     name = 'engine'
     queue_name = name + '_queue'
@@ -678,6 +687,7 @@ def engine_queue_loop():
             if rout_sock in evts:
                 # HACK GET REQUEST FROM CLIENT
                 job_counter += 1
+                # CALLER: job_client
                 idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
 
                 #jobid = 'result_%s' % (id_,)
@@ -697,12 +707,15 @@ def engine_queue_loop():
                 engine_request['jobid'] = jobid
                 if VERBOSE_JOBS:
                     print('...notifying collector about new job')
+                # CALLS: collector_notify
                 collect_deal_sock.send_json(reply_notify)
                 if VERBOSE_JOBS:
                     print('... notifying client that job was accepted')
+                # RETURNS: job_client_return
                 send_multipart_json(rout_sock, idents, reply_notify)
                 if VERBOSE_JOBS:
                     print('... notifying backend engine to start')
+                # CALL: engine_
                 send_multipart_json(deal_sock, idents, engine_request)
             if deal_sock in evts:
                 pass
@@ -722,6 +735,8 @@ def engine_loop(id_, dbdir=None):
     The engine_loop - receives messages, performs some action, and sends a reply,
     preserving the leading two message parts as routing identities
     """
+    # NAME: engine_
+    # CALLED_FROM: engine_queue
     import ibeis
     #base_print = print  # NOQA
     print = partial(ut.colorprint, color='darkred')
@@ -793,6 +808,7 @@ def engine_loop(id_, dbdir=None):
             )
             if VERBOSE_JOBS:
                 print('...done working. pushing result to collector')
+            # CALLS: collector_store
             collect_deal_sock.send_json(collect_request)
         # ----
         if VERBOSE_JOBS:
@@ -816,6 +832,10 @@ def collector_loop():
         awaiting_data = {}
 
         while True:
+            # several callers here
+            # CALLER: collector_notify
+            # CALLER: collector_store
+            # CALLER: collector_request_status
             idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
             reply = {}
             action = collect_request['action']
