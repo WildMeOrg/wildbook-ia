@@ -338,7 +338,7 @@ hard_success_cases = ('# Cases: Challenging Success Cases', ut.codeblock(
     testres = ibeis.run_experiment(
         e='draw_cases',
         db=db, a=a[0:1], t=t[0:1],
-        f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1'],
+        f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1,min_gtscore=.00001'],  # hack min_gtscore for 0 scores marked as success
         # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
         # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
         figsize=(30, 8),

@@ -427,7 +427,15 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Sel rows index into qx_list
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
-    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f)
+    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f, verbose=True)
+
+    filt_cfg = f
+    if isinstance(filt_cfg, dict):
+        from ibeis.expt import cfghelpers
+        verbose = True
+        filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False))[0]
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)
+
     print('f = %r' % (f,))
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
@@ -943,7 +951,8 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
 
     if filt_cfg is not None:
         # NEW WAY OF SAMPLING
-        case_pos_list = testres.case_sample2(filt_cfg)
+        verbose = kwargs.get('verbose', None)
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, None)
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)
