@@ -931,6 +931,10 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[scorenorm] %d/%d evaluating tn density' % (next_(), total))
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
 
+    import utool
+    utool.embed()
+
+
     if verbose:
         print('[sn.pre]stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True))
         print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, use_nan=True))
