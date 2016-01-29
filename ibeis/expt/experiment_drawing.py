@@ -93,19 +93,19 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
     #isvalid[gt_rawscore == 0] = False
     #isvalid[gf_rawscore == 0] = False
 
+    # hack
+    #tp_nscores = np.nan_to_num(tp_nscores)
+    #tn_nscores = np.nan_to_num(tn_nscores)
+    isvalid[np.isnan(gf_rawscore)] = False
+    isvalid[np.isnan(gt_rawscore)] = False
+
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
-    # hack
-    tp_nscores = np.nan_to_num(tp_nscores)
-    tn_nscores = np.nan_to_num(tn_nscores)
+
     # ---
     tn_qaids = tp_qaids = common_qaids[isvalid]
     tn_daids = gf_daid[isvalid]
     tp_daids = gt_daid[isvalid]
-
-    import utool
-    utool.embed()
-
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     #print(qreq_.get_cfgstr())
