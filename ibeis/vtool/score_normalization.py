@@ -15,14 +15,14 @@ def check_unused_kwargs(kwargs, expected_keys):
         print('unused kwargs keys = %r' % (unused_keys))
 
 
-def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)]):
+def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)], **kwargs):
     rng = np.random.RandomState(seed=0)
     # Get a training sample
     tp_support = np.hstack([rng.normal(loc=loc, size=(size,)) for loc, size in tp_bumps])
     tn_support = np.hstack([rng.normal(loc=loc, size=(size,)) for loc, size in tn_bumps])
     data   = np.hstack((tp_support, tn_support))
     labels = np.array([True] * len(tp_support) + [False] * len(tn_support))
-    encoder = ScoreNormalizer()
+    encoder = ScoreNormalizer(**kwargs)
     encoder.fit(data, labels)
     return encoder, data, labels
 
@@ -305,64 +305,76 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
 
         Example:
             >>> from vtool.score_normalization import *  # NOQA
-            >>> encoder, X, y = testdata_score_normalier([(6.5, 256), (12.5, 256)], [(3.5, 256), (9.5, 512)])
+            >>> import vtool as vt
+            >>> encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 512)], adjust=1)
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
-            >>> pt.figure(doclf=True, fnum=100)
-            >>> pt.plot(xdata, tp1)
-            >>> pt.plot(xdata, tn1)
-            >>> pt.plot(xdata, curve)
-            >>> #pt.plot(xdata[0:-2], np.diff(np.diff(curve)))
-            >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(curve)
+            >>> #pt.plot(xdata[0:-2], np.diff(np.diff(distance)))
+            >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
+            >>> fnum = 100
+            >>> pt.multi_plot(xdata, [tp_curve, tn_curve, distance],
+            >>>               label_list=['tp', 'tn', 'dist'], marker='',
+            >>>               pnum=(3, 1, 1), fnum=fnum)
             >>> pt.plot(x_submax, y_submax, 'o')
             >>> #pt.plot(xdata[maxima_x], maxima_y, 'rx')
-            >>> #
             >>> pt.plot(x_submax, y_submax, 'o')
-            >>> #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
             >>> #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
             >>> #
             >>> _interp_sgtp = scipy.interpolate.interp1d(
-            >>>     xdata, tn1, kind='linear', copy=False, assume_sorted=False)
+            >>>     xdata, tn_curve, kind='linear', copy=False, assume_sorted=False)
             >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
             >>> #
             >>> _interp_sgtp = scipy.interpolate.interp1d(
-            >>>     xdata, tp1, kind='linear', copy=False, assume_sorted=False)
+            >>>     xdata, tp_curve, kind='linear', copy=False, assume_sorted=False)
             >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
+            >>> #
+            >>> pnum_ = pt.make_pnum_nextgen(3, 3, start=6)
+            >>> encoder._plot_score_support_hist(fnum=fnum, pnum=pnum_())
+            >>> #encoder._plot_prebayes(fnum=fnum, pnum=pnum_())
+            >>> encoder._plot_postbayes(fnum=fnum, pnum=pnum_())
+            >>> encoder._plot_roc(fnum=fnum, pnum=pnum_())
             >>> pt.show_if_requested()
         """
-
+        import vtool as vt
         #weights = encoder.p_score_given_tp
         weights = encoder.p_score_given_tn
-        values = encoder.score_domain
-        mean = np.average(values, weights=weights)
-        std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
-        score_cutoff = mean + (2.5 * std)
-        cutx = np.sum(encoder.score_domain < score_cutoff)
+
+        if 1:
+            values = encoder.score_domain
+            mean = np.average(values, weights=weights)
+            std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
+            score_cutoff = mean + (2.5 * std)
+            cutx = np.sum(encoder.score_domain < score_cutoff)
+        else:
+            cutx = None
 
         xdata = encoder.score_domain[:cutx]
 
-        tp1 = encoder.p_score_given_tp[:cutx]
-        tn1 = encoder.p_score_given_tn[:cutx]
+        tp_curve = encoder.p_score_given_tp[:cutx]
+        tn_curve = encoder.p_score_given_tn[:cutx]
 
-        curve = -np.abs(tp1 - tn1)
-        curve = curve - curve.min()
-        import vtool as vt
-        maxpos = np.array([curve.argmax()])
+        distance = -np.abs(tp_curve - tn_curve)
+        distance = distance - distance.min()
+        maxpos = np.array([distance.argmax()])
 
-        if maxpos == len(curve) - 1:
-            y_submax = curve[-2:-1]
+        if 1:
+            pass
+
+        if maxpos == len(distance) - 1:
+            y_submax = distance[-2:-1]
             x_submax = xdata[-2:-1]
         elif maxpos == 0:
-            y_submax = curve[0:1]
+            y_submax = distance[0:1]
             x_submax = xdata[0:1]
         else:
-            x_submax, y_submax = vt.interpolate_submaxima(maxpos, curve, xdata)
-        #x_submax = curve[maxpos[0]]
+            x_submax, y_submax = vt.interpolate_submaxima(maxpos, distance, xdata)
+        #x_submax = distance[maxpos[0]]
         score_thresh = x_submax[0]
         # Find intersection point
         # TODO: Improve robustness
