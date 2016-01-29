@@ -933,8 +933,8 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
 
     if verbose:
         print('[sn.pre]stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True))
-        print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
-        print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
+        print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, use_nan=True))
+        print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, use_nan=True))
         #print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
 
     if True:
