@@ -392,6 +392,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         # Find locations of intersection
         distance = -np.abs(tp_curve - tn_curve)
         distance = distance - distance.min()
+        print('distance = %r' % (distance,))
         argmaxima = vt.hist_argmaxima2(distance)
         print('argmaxima = %r' % (argmaxima,))
 
