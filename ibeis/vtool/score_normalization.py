@@ -912,15 +912,21 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     # import utool
     # utool.embed()
     # Find good score domain range
-    min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
+    if False:
+        min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
+    else:
+        min_score = min(tp_support.min(), tn_support.min())
+        max_score = min(tp_support.max(), tn_support.max())
     score_domain = np.linspace(min_score, max_score, gridsize)
     # Estimate true positive/negative density
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tp_pdf = vt.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
+    assert score_tp_pdf.bw != 0, 'error bandwidth estimated to be 0'
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tn_pdf = vt.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
+    assert score_tn_pdf.bw != 0, 'error bandwidth estimated to be 0'
     if verbose:
         print('[scorenorm] %d/%d estimating score domain' % (next_(), total))
     # Evaluate true negative density
@@ -933,7 +939,6 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
 
     import utool
     utool.embed()
-
 
     if verbose:
         print('[sn.pre]stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True))
