@@ -117,7 +117,7 @@ def draw_score_sep(ibs, testres, f=None):
     encoder = vt.ScoreNormalizer(
         #adjust=8,
         adjust=1.5,
-        fpr=fpr, tpr=tpr, monotonize=True)
+        fpr=fpr, tpr=tpr, monotonize=True, verbose=True)
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
@@ -200,6 +200,7 @@ def draw_score_sep(ibs, testres, f=None):
         attr_callback=attr_callback,
         #bin_width=.125,
         #bin_width=.05,
+        verbose=True
     )
 
     icon = ibs.get_database_icon()
