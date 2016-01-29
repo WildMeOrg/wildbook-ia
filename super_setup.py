@@ -1,6 +1,10 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 """
+TODO:
+    * needs to check if required modules are installed (or prefereably developed)
+    * needs to be able to ignore plugins that the user doesnt care about
+
 Super Setup
 PREREQ:
 git config --global push.default current
