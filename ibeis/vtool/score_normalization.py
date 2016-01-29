@@ -15,11 +15,11 @@ def check_unused_kwargs(kwargs, expected_keys):
         print('unused kwargs keys = %r' % (unused_keys))
 
 
-def testdata_score_normalier():
-    randstate = np.random.RandomState(seed=0)
+def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)]):
+    rng = np.random.RandomState(seed=0)
     # Get a training sample
-    tp_support = randstate.normal(loc=6.5, size=(256,))
-    tn_support = randstate.normal(loc=3.5, size=(256,))
+    tp_support = np.hstack([rng.normal(loc=loc, size=(size,)) for loc, size in tp_bumps])
+    tn_support = np.hstack([rng.normal(loc=loc, size=(size,)) for loc, size in tn_bumps])
     data   = np.hstack((tp_support, tn_support))
     labels = np.array([True] * len(tp_support) + [False] * len(tn_support))
     encoder = ScoreNormalizer()
@@ -96,6 +96,20 @@ class ScoreNormVisualizeClass(object):
                                                  show_operating_point=True)
         fnum = pt.ensure_fnum(fnum)
         ROCInteraction.static_plot(fnum, pnum, **kwargs)
+
+    def _plot_prebayes(encoder, fnum, pnum, **kwargs):
+        score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
+        plot_prebayes_pdf(
+            encoder.score_domain, encoder.p_score_given_tn, encoder.p_score_given_tp, encoder.p_score,
+            score_thresh=score_thresh,
+            cfgstr='', fnum=fnum, pnum=pnum)
+
+    def _plot_postbayes(encoder, fnum, pnum, **kwargs):
+        score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
+        plot_postbayes_pdf(encoder.score_domain, encoder.p_tn_given_score, encoder.p_tp_given_score,
+                           prob_thresh=prob_thresh,
+                           score_thresh=score_thresh,
+                           cfgstr='', fnum=fnum, pnum=pnum)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -285,6 +299,41 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         """
         Finds a cutoff where the probability of a truepos stats becoming
         greater than probability of trueneg
+
+        CommandLine:
+            python -m vtool.score_normalization --exec-learn_threshold2 --show
+
+        Example:
+            >>> from vtool.score_normalization import *  # NOQA
+            >>> encoder, X, y = testdata_score_normalier([(6.5, 256), (12.5, 256)], [(3.5, 256), (9.5, 512)])
+            >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
+            >>> exec(ut.execstr_dict(locals_))
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.figure(doclf=True, fnum=100)
+            >>> pt.plot(xdata, tp1)
+            >>> pt.plot(xdata, tn1)
+            >>> pt.plot(xdata, curve)
+            >>> #pt.plot(xdata[0:-2], np.diff(np.diff(curve)))
+            >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(curve)
+            >>> pt.plot(x_submax, y_submax, 'o')
+            >>> #pt.plot(xdata[maxima_x], maxima_y, 'rx')
+            >>> #
+            >>> pt.plot(x_submax, y_submax, 'o')
+            >>> #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
+            >>> #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
+            >>> #
+            >>> _interp_sgtp = scipy.interpolate.interp1d(
+            >>>     xdata, tn1, kind='linear', copy=False, assume_sorted=False)
+            >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
+            >>> #
+            >>> _interp_sgtp = scipy.interpolate.interp1d(
+            >>>     xdata, tp1, kind='linear', copy=False, assume_sorted=False)
+            >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
+            >>> pt.show_if_requested()
         """
 
         #weights = encoder.p_score_given_tp
@@ -317,33 +366,6 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         score_thresh = x_submax[0]
         # Find intersection point
         # TODO: Improve robustness
-        if False:
-            import plottool as pt
-            pt.figure(doclf=True, fnum=100)
-            pt.plot(xdata, tp1)
-            pt.plot(xdata, tn1)
-            pt.plot(xdata, curve)
-            #pt.plot(xdata[0:-2], np.diff(np.diff(curve)))
-            #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(curve)
-            pt.plot(x_submax, y_submax, 'o')
-            #pt.plot(xdata[maxima_x], maxima_y, 'rx')
-
-            pt.plot(x_submax, y_submax, 'o')
-            #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
-            #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
-            #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
-            #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
-            #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
-
-            _interp_sgtp = scipy.interpolate.interp1d(
-                xdata, tn1, kind='linear', copy=False, assume_sorted=False)
-            pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
-
-            _interp_sgtp = scipy.interpolate.interp1d(
-                xdata, tp1, kind='linear', copy=False, assume_sorted=False)
-            pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
-            pt.iup()
-
         #from scipy.optimize import fsolve
         #def f(input_vector):
         #   x, y = input_vector
