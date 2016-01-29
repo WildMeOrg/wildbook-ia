@@ -13,13 +13,9 @@ from plottool import custom_figure
 #ut.noinject(__name__, '[plots]')
 print, rrr, profile = ut.inject2(__name__, '[plots]')
 
-#NONMULTI_TITLESIZE = 8
-
-
+#custom_figure.TITLE_SIZE = 8
 # Titlesize for old non-multiplot plots
-#NONMULTI_TITLESIZE = 12
-NONMULTI_LABELSIZE = custom_figure.LABEL_SIZE
-NONMULTI_TITLESIZE = custom_figure.TITLE_SIZE
+#custom_figure.TITLE_SIZE = 12
 
 
 def is_default_dark_bg():
@@ -239,9 +235,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ylabel     = kwargs.get('ylabel', '')
 
     # Font sizes
-    titlesize  = kwargs.get('titlesize',  12)
-    labelsize  = kwargs.get('labelsize',  10)
-    legendsize = kwargs.get('legendsize', 10)
+    #titlesize  = kwargs.get('titlesize',  12)
+    #labelsize  = kwargs.get('labelsize',  10)
+    #legendsize = kwargs.get('legendsize', 10)
+
+    titlesize  = kwargs.get('titlesize',  custom_figure.TITLE_SIZE)
+    labelsize  = kwargs.get('labelsize',  custom_figure.LABEL_SIZE)
+    legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
@@ -919,19 +919,19 @@ def plot_score_histograms(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', NONMULTI_LABELSIZE))
+            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
     }
     #df2.set_xlabel('sorted ' +  score_label + ' indices')
     ax.set_xlabel(score_label, **labelkw)
     ax.set_ylabel('frequency', **labelkw)
     #df2.dark_background()
-    titlesize = kwargs.get('titlesize', NONMULTI_TITLESIZE)
+    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
     }
     ax.set_title(title, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best', size=kwargs.get('legendsize', 8))
+    df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
     #print('[df2] show_histogram()')
     #df2.dark_background()
 
@@ -1037,7 +1037,7 @@ def plot_probabilities(prob_list,
     import matplotlib as mpl
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', NONMULTI_LABELSIZE))
+            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
     }
 
     ax = df2.gca()
@@ -1051,7 +1051,7 @@ def plot_probabilities(prob_list,
     if use_darkbackground:
         df2.dark_background()
 
-    titlesize = kwargs.get('titlesize', NONMULTI_TITLESIZE)
+    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
     titlekw = {
@@ -1060,7 +1060,7 @@ def plot_probabilities(prob_list,
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
     if kwargs.get('use_legend', True):
-        df2.legend(loc='best', size=kwargs.get('legendsize', 8))
+        df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
     #df2.iup()
 
 
@@ -1189,7 +1189,7 @@ def plot_sorted_scores(scores_list,
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', NONMULTI_LABELSIZE))
+            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
     }
 
     ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
@@ -1200,13 +1200,13 @@ def plot_sorted_scores(scores_list,
         use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
-    titlesize = kwargs.get('titlesize', NONMULTI_TITLESIZE)
+    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
     }
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best', size=kwargs.get('legendsize', 8))
+    df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
     #df2.legend(loc='best')
     #df2.iup()
 

@@ -17,9 +17,18 @@ ut.noinject(__name__, '[customfig]')
 #TITLE_SIZE = 8
 #LABEL_SIZE = ut.get_argval('--labelsize', default=8)
 #TITLE_SIZE = ut.get_argval('--titlesize', default=8)
+
+
 LABEL_SIZE = ut.get_argval('--labelsize', default=10)
 TITLE_SIZE = ut.get_argval('--titlesize', default=12)
-FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=14)
+FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=10)
+LEGEND_SIZE = ut.get_argval('--legendsize', default=8)
+
+# UNCOMMENT FOR PRESENTATIONS
+#LABEL_SIZE = ut.get_argval('--labelsize', default=14)
+#TITLE_SIZE = ut.get_argval('--titlesize', default=18)
+#FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
+#LEGEND_SIZE = ut.get_argval('--legendsize', default=14)
 
 
 def customize_figure(fig, docla):
@@ -493,9 +502,10 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
         #fontprop = getattr(custom_constants.FONTS, font)
         #fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
-        fontproperties = mpl.font_manager.FontProperties(weight='light',
-                                                         size=size)
-        fig.suptitle(figtitle + subtitle, fontproperties=fontproperties)
+        #fontproperties = mpl.font_manager.FontProperties(weight='light',
+        #                                                 size=size)
+        fontproperties = mpl.font_manager.FontProperties(size=size)
+        fig.suptitle(figtitle + subtitle, fontproperties=fontproperties, fontsize=size)
         #fig_relative_text(.5, .96, subtitle,
         # fontproperties=custom_constants.FONTS.subtitle)
     else:

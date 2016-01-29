@@ -165,6 +165,7 @@ def _init_mpl_rcparams():
             'ytick.color': 'white'
         }
         mpl.rcParams.update(dark_style)
+    mpl.rcParams['figure.subplot.top'] = .8
     #mpl.rcParams['text'].usetex = False
     #for key in mpl_keypress_shortcuts:
     #    print('%s = %s' % (key, mpl.rcParams[key]))

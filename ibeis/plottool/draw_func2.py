@@ -1155,14 +1155,6 @@ def postsetup_axes(use_legend=True, bg=None):
         legend()
 
 
-def adjust_subplots_xlabels():
-    adjust_subplots(left=.03, right=.97, bottom=.2, top=.9, hspace=.15)
-
-
-def adjust_subplots_xylabels():
-    adjust_subplots(left=.03, right=1, bottom=.1, top=.9, hspace=.15)
-
-
 SAFE_POS = {
     'left': .1,
     'right': .9,

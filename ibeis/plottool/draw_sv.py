@@ -145,7 +145,6 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         px = _draw_chip(px, 'Refined Blend', chip2_blendH, hom_inliers, kpts1_m, kpts2_m, H1=H)
     #
     # Adjust subplots
-    #df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)
 
 
 def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, vert=None, **kwargs):
