@@ -87,6 +87,12 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
     # FIXME: may need to specify which cfg is used in the future
     isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
+    # HACK:
+    # REMOVE 0 scores because testres only records name scores and
+    # having multiple annotations causes some good scores to be truncated to 0.
+    isvalid[gt_rawscore == 0] = False
+    isvalid[gf_rawscore == 0] = False
+
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
     # hack
@@ -122,7 +128,6 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
 
-    #ut.embed()
     encoder.fit(name_scores, labels, attrs, verbose=verbose)
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
 
@@ -270,7 +275,6 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         gt_is_problem = truth2_prop['gt']['score'] < score_thresh
         gf_is_problem = truth2_prop['gf']['score'] >= score_thresh
         other_is_problem = ~np.logical_or(gt_is_problem, gf_is_problem)
-        #ut.embed()
         def zipmask(_tags, _flags):
             return [[item if flag else [] for item, flag
                      in zip(list_, flags)] for list_,
@@ -989,7 +993,6 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     from ibeis.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
-    #ut.embed()
     #rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
     #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
@@ -1000,7 +1003,6 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     #K_basis = testres.get_param_basis('K')
     #K_cfgx_lists = [testres.get_cfgx_with_param('K', K) for K in K_basis]
     #param_key_list = testres.get_all_varied_params()
-    #ut.embed()
 
     # Extract the requested keys
     default_param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
@@ -1030,7 +1032,6 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         #const_basis_cfgx_lists
         # Create a single empty dimension for a single pnum
         # correct, but not conceptually right
-        #ut.embed()
         cfgx_lists_dict[None] = ut.list_transpose(cfgx_lists_dict[param_key_list[0]])
     elif len(param_key_list) > 1:
         # Hold a key constant if more than 1 subplot
