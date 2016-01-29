@@ -29,7 +29,7 @@ FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 #@devcmd('scores', 'score', 'namescore_roc')
 #def draw_score_sep(ibs, qaid_list, daid_list=None):
-def draw_score_sep(ibs, testres, f=None):
+def draw_score_sep(ibs, testres, f=None, verbose=None):
     """
     Draws the separation between true positive and true negative name scores.
 
@@ -117,13 +117,13 @@ def draw_score_sep(ibs, testres, f=None):
     encoder = vt.ScoreNormalizer(
         #adjust=8,
         adjust=1.5,
-        fpr=fpr, tpr=tpr, monotonize=True, verbose=True)
+        fpr=fpr, tpr=tpr, monotonize=True, verbose=verbose)
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
 
     #ut.embed()
-    encoder.fit(name_scores, labels, attrs)
+    encoder.fit(name_scores, labels, attrs, verbose=verbose)
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
 
     # --- NEW ---
@@ -200,7 +200,7 @@ def draw_score_sep(ibs, testres, f=None):
         attr_callback=attr_callback,
         #bin_width=.125,
         #bin_width=.05,
-        verbose=True
+        verbose=verbose
     )
 
     icon = ibs.get_database_icon()
