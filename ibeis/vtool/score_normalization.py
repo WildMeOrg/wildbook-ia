@@ -922,11 +922,11 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tp_pdf = vt.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
-    assert score_tp_pdf.bw != 0, 'error bandwidth estimated to be 0'
+    #assert score_tp_pdf.bw != 0, 'error bandwidth estimated to be 0'
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tn_pdf = vt.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
-    assert score_tn_pdf.bw != 0, 'error bandwidth estimated to be 0'
+    #assert score_tn_pdf.bw != 0, 'error bandwidth estimated to be 0'
     if verbose:
         print('[scorenorm] %d/%d estimating score domain' % (next_(), total))
     # Evaluate true negative density
