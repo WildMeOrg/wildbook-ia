@@ -321,20 +321,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         Example:
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
-            >>> encoder, X, y = testdata_score_normalier(
-            >>>     [(3.5, 64), (9.5, 1024), (15.5, 2048)],
-            >>>     [(6.5, 256), (12.5, 5064)],
-            >>>     adjust=1, p_tp_method='ratio')
-            >>> encoder, X, y = testdata_score_normalier(
-            >>>     adjust=1, p_tp_method='ratio')
-            >>> encoder, X, y = testdata_score_normalier(
-            >>>     [(3.5, 2048)],
-            >>>     [(30.5, 128)],
-            >>>     tn_scale=.1, adjust=1, p_tp_method='ratio')
-            >>> encoder, X, y = testdata_score_normalier(
-            >>>     [(3.5, 64), (9.5, 1024), (15.5, 5064)],
-            >>>     [(6.5, 256), (12.5, 2048), (18.5, 128)],
-            >>>     adjust=1, p_tp_method='ratio')
+            >>> encoder, X, y = testdata_score_normalier([(3.5, 256), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 5064), (18.5, 128)], adjust=1, p_tp_method='ratio')
+            >>> #encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 5064)], [(6.5, 256), (12.5, 2048), (18.5, 128)], adjust=1, p_tp_method='ratio')
+            >>> #encoder, X, y = testdata_score_normalier(adjust=1)
+            >>> #encoder, X, y = testdata_score_normalier([(3.5, 2048)], [(30.5, 128)], tn_scale=.1, adjust=1)
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
@@ -347,13 +337,13 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>>               linewidth_list=[4, 4, 1], title='intersection points',
             >>>               pnum=(4, 1, 1), fnum=fnum, xmax=xdata.max(), xmin=0)
             >>> pt.plot(x_submax, y_submax, 'o')
-            >>> pt.plot(xdata[maxima_x], maxima_y, 'rx')
+            >>> pt.plot(xdata[argmaxima], distance[argmaxima], 'rx')
             >>> pt.plot(x_submax, y_submax, 'o')
-            >>> pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
-            >>> pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
-            >>> pt.plot(xdata[maxima_x], tp_curve[maxima_x], 'rx')
-            >>> pt.plot(xdata[maxima_x], tn_curve[maxima_x], 'rx')
-            >>> #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
+            >>> pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
+            >>> pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
+            >>> pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
+            >>> pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
+            >>> #pt.plot(xdata[argmaxima], encoder.interp_fn(x_submax), 'rx')
             >>> #
             >>> _interp_sgtp = scipy.interpolate.interp1d(
             >>>     xdata, tn_curve, kind='linear', copy=False, assume_sorted=False)
@@ -380,46 +370,54 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> pt.show_if_requested()
         """
         import vtool as vt
-        #weights = encoder.p_score_given_tp
-        weights = encoder.p_score_given_tn
-
-        if 1:
+        if False:
+            # New stuff with area should make this irrelevant
+            #weights = encoder.p_score_given_tp
+            weights = encoder.p_score_given_tn
             values = encoder.score_domain
             mean = np.average(values, weights=weights)
             std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
             score_cutoff = mean + (2.5 * std)
             cutx = np.sum(encoder.score_domain < score_cutoff)
+            xdata = encoder.score_domain[:cutx]
+            tp_curve = encoder.p_score_given_tp[:cutx]
+            tn_curve = encoder.p_score_given_tn[:cutx]
         else:
-            cutx = None
-
-        xdata = encoder.score_domain[:cutx]
-
-        tp_curve = encoder.p_score_given_tp[:cutx]
-        tn_curve = encoder.p_score_given_tn[:cutx]
-
-        distance = -np.abs(tp_curve - tn_curve)
-        distance = distance - distance.min()
+            xdata = encoder.score_domain
+            tp_curve = encoder.p_score_given_tp
+            tn_curve = encoder.p_score_given_tn
+            #tp_curve[:] = .1
+            #tn_curve[:] = .5
 
         # Find locations of intersection
-        maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
-        # Choose the location of intersection that performs best on some test
-        # statistic. (pos likelihood ratio)
-        if 1:
+        distance = -np.abs(tp_curve - tn_curve)
+        distance = distance - distance.min()
+        argmaxima = vt.hist_argmaxima2(distance)
+
+        # Now find which intersection points are "best"
+        # TODO: have user specify metric that they care about
+        # https://en.wikipedia.org/wiki/Confusion_matrix
+        if True:
             # Use area under curves to determine the probability density of tp,
             # fp, tn, fn at each candidate threshold.
-
             tp_area = get_right_area(tp_curve, xdata, argmaxima)
             fp_area = get_right_area(tn_curve, xdata, argmaxima)
             tn_area = get_left_area(tn_curve, xdata, argmaxima)
             fn_area = get_left_area(tp_curve, xdata, argmaxima)  # NOQA
-            # Positive liklihood ratio
+            # Choose the location of intersection that performs best on some test
+            # statistic. (Positive likelihood ratio)
             lr_pos = tp_area / fp_area
             lr_neg = fp_area / tn_area
-            lr_pos = lr_pos / lr_pos.max()
-            lr_neg = lr_neg / lr_neg.max()
-            #np.trapz(encoder.p_score_given_tp, encoder.score_domain)
-            #assert np.isclose(np.trapz(p_score, score_domain), 1.0)
-            #assert np.isclose(np.trapz(p_score, p_tp_given_score), 1.0)
+            # Normalize likelihood into range 0 to 1
+            pos_norm = max(1, vt.safe_extreme(lr_pos, op=np.nanmax, fill=1, finite=True))
+            neg_norm = max(1, vt.safe_extreme(lr_neg, op=np.nanmax, fill=1, finite=True))
+            lr_pos = lr_pos / pos_norm
+            lr_neg = lr_neg / neg_norm
+            # Hack for infinity and nans. bring thems out of the 0 and 1 range, but only by a bit.
+            lr_pos[np.isnan(lr_pos)] = -.1
+            lr_neg[np.isnan(lr_neg)] = -.1
+            lr_pos[np.isinf(lr_pos)] = 1.1
+            lr_neg[np.isinf(lr_neg)] = 1.1
             maxpos = argmaxima[lr_pos.argmax()]
         else:
             maxpos = np.array([distance.argmax()])
@@ -432,23 +430,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             x_submax = xdata[0:1]
         else:
             x_submax, y_submax = vt.interpolate_submaxima(maxpos, distance, xdata)
-        #x_submax = distance[maxpos[0]]
         score_thresh = x_submax[0]
-        # Find intersection point
-        # TODO: Improve robustness
-        #from scipy.optimize import fsolve
-        #def f(input_vector):
-        #   x, y = input_vector
-        #   return  np.array([
-        #       y - x ** 2,
-        #       y - x - 1.0
-        #   ])
-        # Solve the function, using (x=1, y=2) as the initial guess
-        #fsolve(f, [1.0, 2.0])
-
-        #print('score_thresh = %r' % (score_thresh,))
-        #print('y_submax = %r' % (y_submax,))
-        #print('x_submax = %r' % (x_submax,))
         return score_thresh
 
     def learn_threshold(encoder, verbose=False, **thresh_kw):

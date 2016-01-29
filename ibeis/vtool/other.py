@@ -1628,8 +1628,17 @@ def ensure_rng(seed=None):
     return rng
 
 
+def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False):
+    if finite:
+        arr = arr.compress(np.isfinite(arr))
+    if len(arr) == 0:
+        return fill
+    else:
+        return op(arr)
+
+
 def safe_max(arr, fill=np.nan):
-    return fill if arr is None or len(arr) == 0 else arr.max()
+    return safe_extreme(arr, np.max, fill)
 
 
 def safe_min(arr, fill=np.nan):

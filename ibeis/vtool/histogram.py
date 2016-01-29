@@ -537,6 +537,70 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=.8):
     return maxima_x, maxima_y, argmaxima
 
 
+def hist_argmaxima2(hist, maxima_thresh=.8):
+    """
+    must take positive only values
+
+    Setup:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+
+    GridSearch:
+        >>> hist1 = np.array([1, .9, .8, .99, .99, 1.1, .9, 1.0, 1.0])
+        >>> hist2 = np.array([1, .9, .8, .99, .99, 1.1, 1.0, 1.0])
+        >>> hist2 = np.array([1, .9, .8, .99, .99, 1.1, 1.0])
+        >>> hist2 = np.array([1, .9, .8, .99, .99, 1.1, 1.2])
+        >>> hist2 = np.array([1, 1.2])
+        >>> hist2 = np.array([1, 1, 1.2])
+        >>> hist2 = np.array([1])
+        >>> hist2 = np.array([])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # build test data
+        >>> maxima_thresh = .8
+        >>> hist = np.array([1, .9, .8, .99, .99, 1.1, .9, 1.0, 1.0])
+        >>> # execute function
+        >>> maxima_x, maxima_y, argmaxima = hist_argmaxima2(hist)
+        >>> # verify results
+        >>> result = str((maxima_x, maxima_y, argmaxima))
+        >>> print(result)
+        (array([ 2.75]), array([ 34.62]), array([4]))
+
+    """
+    # FIXME: Not handling general cases
+    # [0] index because argrelmaxima returns a tuple
+    if len(hist) == 0:
+        return np.empty(dtype=np.int)
+    comperetor = np.greater
+    argmaxima_ = scipy.signal.argrelextrema(hist, comperetor)[0]
+    if len(argmaxima_) == 0:
+        argmaxima_ = np.array([hist.argmax()])  # Hack for no maxima
+    maxval = hist[argmaxima_].max()
+    size = len(hist)
+    end = size - 1
+    # Test if 0 is a maximum point
+    if 0 not in argmaxima_ and size > 0:
+        start_is_extreme = hist[0] > hist[1]
+        if start_is_extreme and hist[0] >= maxval * maxima_thresh:
+            argmaxima_ = np.hstack([[0], argmaxima_])
+    # Test if end is maximum point
+    if end not in argmaxima_ and end > 0:
+        #end_is_extreme = np.all(hist[argmaxima_[-1] + 1:(end - 1)] < hist[end] )
+        end_is_extreme = hist[end] > hist[end - 1]
+        if not end_is_extreme:
+            # FIXME: might be a case when end is level
+            pass
+            #end_is_extreme = np.all(hist[argmaxima_[-1] + 1:(end - 1)] == hist[end] )
+        if end_is_extreme and hist[end] >= maxval * maxima_thresh:
+            argmaxima_ = np.hstack([argmaxima_, [end]])
+    # threshold maxima to be within a factor of the maximum
+    maxima_y = hist[argmaxima_]
+    isvalid = maxima_y >= maxval * maxima_thresh
+    argmaxima = argmaxima_[isvalid]
+    return argmaxima
+
+
 @profile
 def maxima_neighbors(argmaxima, hist, centers=None):
     neighbs = np.vstack((argmaxima - 1, argmaxima, argmaxima + 1))
