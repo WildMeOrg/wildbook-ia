@@ -384,8 +384,11 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             tn_curve = encoder.p_score_given_tn[:cutx]
         else:
             xdata = encoder.score_domain
+            print('xdata = %r' % (xdata,))
             tp_curve = encoder.p_score_given_tp
+            print('tp_curve = %r' % (tp_curve,))
             tn_curve = encoder.p_score_given_tn
+            print('tn_curve = %r' % (tn_curve,))
             #tp_curve[:] = .1
             #tn_curve[:] = .5
 
