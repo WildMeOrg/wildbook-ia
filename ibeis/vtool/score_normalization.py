@@ -959,7 +959,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         assert np.isclose(np.trapz(p_score, score_domain), 1.0)
         assert np.isclose(np.trapz(p_score, p_tp_given_score), 1.0)
     if np.any(np.isnan(p_tp_given_score)):
-        if False:
+        if verbose:
             # np.trapz(p_tp_given_score / np.trapz(p_tp_given_score, score_domain), score_domain)
             print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
             print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
