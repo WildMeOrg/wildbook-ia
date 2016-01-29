@@ -937,6 +937,8 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[scorenorm] %d/%d evaluating tn density' % (next_(), total))
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
 
+    # Not sure why the pdfs returned from statsmodels dont integrate to 1
+
     if verbose:
         print('[sn.pre]stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True))
         print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, use_nan=True))
@@ -954,6 +956,9 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         # normalize to ensure
         p_score_given_tp = p_score_given_tp / area_tp
         p_score_given_tn = p_score_given_tn / area_tn
+
+        area_tp = np.trapz(p_score_given_tp, score_domain)
+        area_tn = np.trapz(p_score_given_tn, score_domain)
         #if ut.DEBUG2:
         if verbose:
             print('norm.area_tp = %r' % (area_tp,))
