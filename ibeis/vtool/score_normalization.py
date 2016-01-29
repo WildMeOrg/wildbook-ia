@@ -15,11 +15,14 @@ def check_unused_kwargs(kwargs, expected_keys):
         print('unused kwargs keys = %r' % (unused_keys))
 
 
-def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)], tp_scale=1.0, tn_scale=1.0, **kwargs):
+def testdata_score_normalier(tp_bumps=[(6.5, 256)], tn_bumps=[(3.5, 256)], tp_scale=1.0, tn_scale=1.0, min_clip=None, **kwargs):
     rng = np.random.RandomState(seed=0)
     # Get a training sample
     tp_support = np.hstack([rng.normal(loc=loc, scale=tp_scale, size=(size,)) for loc, size in tp_bumps])
     tn_support = np.hstack([rng.normal(loc=loc, scale=tn_scale, size=(size,)) for loc, size in tn_bumps])
+    if min_clip is not None:
+        tp_support[tp_support < min_clip] = min_clip
+        tn_support[tn_support < min_clip] = min_clip
     data   = np.hstack((tp_support, tn_support))
     labels = np.array([True] * len(tp_support) + [False] * len(tn_support))
     encoder = ScoreNormalizer(**kwargs)
@@ -321,10 +324,11 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         Example:
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
-            >>> encoder, X, y = testdata_score_normalier([(3.5, 256), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 5064), (18.5, 128)], adjust=1, p_tp_method='ratio')
+            >>> #encoder, X, y = testdata_score_normalier([(3.5, 256), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 5064), (18.5, 128)], adjust=1, p_tp_method='ratio')
             >>> #encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 5064)], [(6.5, 256), (12.5, 2048), (18.5, 128)], adjust=1, p_tp_method='ratio')
             >>> #encoder, X, y = testdata_score_normalier(adjust=1)
             >>> #encoder, X, y = testdata_score_normalier([(3.5, 2048)], [(30.5, 128)], tn_scale=.1, adjust=1)
+            >>> encoder, X, y = testdata_score_normalier([(0, 64)], [(-.1, 12)], adjust=8, min_clip=0)
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
@@ -384,20 +388,20 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             tn_curve = encoder.p_score_given_tn[:cutx]
         else:
             xdata = encoder.score_domain
-            print('xdata = %r' % (xdata,))
+            #print('xdata = %r' % (xdata,))
             tp_curve = encoder.p_score_given_tp
-            print('tp_curve = %r' % (tp_curve,))
+            #print('tp_curve = %r' % (tp_curve,))
             tn_curve = encoder.p_score_given_tn
-            print('tn_curve = %r' % (tn_curve,))
+            #print('tn_curve = %r' % (tn_curve,))
             #tp_curve[:] = .1
             #tn_curve[:] = .5
 
         # Find locations of intersection
         distance = -np.abs(tp_curve - tn_curve)
         distance = distance - distance.min()
-        print('distance = %r' % (distance,))
+        #print('distance = %r' % (distance,))
         argmaxima = vt.hist_argmaxima2(distance)
-        print('argmaxima = %r' % (argmaxima,))
+        #print('argmaxima = %r' % (argmaxima,))
 
         # Now find which intersection points are "best"
         # TODO: have user specify metric that they care about
@@ -413,20 +417,23 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             # statistic. (Positive likelihood ratio)
             lr_pos = tp_area / fp_area
             lr_neg = fp_area / tn_area
-            print('lr_neg = %r' % (lr_neg,))
-            print('lr_pos = %r' % (lr_pos,))
+            #print('lr_neg = %r' % (lr_neg,))
+            #print('lr_pos = %r' % (lr_pos,))
             # Normalize likelihood into range 0 to 1
             pos_norm = max(1, vt.safe_extreme(lr_pos, op=np.nanmax, fill=1, finite=True))
             neg_norm = max(1, vt.safe_extreme(lr_neg, op=np.nanmax, fill=1, finite=True))
             lr_pos = lr_pos / pos_norm
             lr_neg = lr_neg / neg_norm
+            # Choose a finite argmax
+            ranked_poses = lr_pos.argsort()[::-1]
+            maxpos = ranked_poses[np.isfinite(ranked_poses)][0]
+            #maxpos = argmaxima[lr_pos.argmax()]
+            #print('lr_pos.argmax = %r' % (lr_pos.argmax,))
             # Hack for infinity and nans. bring thems out of the 0 and 1 range, but only by a bit.
-            lr_pos[np.isnan(lr_pos)] = -.1
-            lr_neg[np.isnan(lr_neg)] = -.1
-            lr_pos[np.isinf(lr_pos)] = 1.1
-            lr_neg[np.isinf(lr_neg)] = 1.1
-            print('lr_pos.argmax = %r' % (lr_pos.argmax,))
-            maxpos = argmaxima[lr_pos.argmax()]
+            #lr_pos[np.isnan(lr_pos)] = -.1
+            #lr_neg[np.isnan(lr_neg)] = -.1
+            #lr_pos[np.isinf(lr_pos)] = 1.1
+            #lr_neg[np.isinf(lr_neg)] = 1.1
         else:
             maxpos = np.array([distance.argmax()])
 
@@ -687,7 +694,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> encoder.visualize(target_tpr=.95, **kwargs)
             >>> ut.show_if_requested()
         """
-        import plottool as pt
+        #import plottool as pt
         default_kw = dict(
             with_scores=False,
             with_roc=True,
@@ -734,8 +741,6 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             score_thresh=score_thresh, part_attrs=part_attrs,
             thresh_kw=encoder.thresh_kw,
             **inspect_kw)
-        pt.adjust_subplots(bottom=.06, left=.06, right=.97, wspace=.25,
-                           hspace=.25, top=.9)
         return inter
 
 
@@ -940,9 +945,9 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     # Not sure why the pdfs returned from statsmodels dont integrate to 1
 
     if verbose:
-        print('[sn.pre]stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True))
-        print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, use_nan=True))
-        print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, use_nan=True))
+        print('[sn.pre]stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True, precision=5))
+        print('[sn.pre]stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, use_nan=True, precision=5))
+        print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, use_nan=True, precision=5))
         #print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
 
     if True:
@@ -964,16 +969,16 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
             print('norm.area_tp = %r' % (area_tp,))
             print('norm.area_tn = %r' % (area_tn,))
 
-        assert np.isclose(area_tp, 1.0)
-        assert np.isclose(area_tn, 1.0)
+        assert np.isclose(area_tp, 1.0), area_tp
+        assert np.isclose(area_tn, 1.0), area_tn
 
     if verbose:
         print('[scorenorm] %d/%d evaluating posterior probabilities' % (next_(), total))
+        print('p_tp_method = %r' % (p_tp_method,))
 
     # For inbalanced data there are several methods we might want to use to
     # calculate p_tp.  not always going to be equal probability of true and
     # positive cases
-    print('p_tp_method = %r' % (p_tp_method,))
     if p_tp_method == 'eq':
         p_tp = .5
     elif p_tp_method == 'ratio':
@@ -991,10 +996,10 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         p_tp_given_score = vt.interpolate_nans(p_tp_given_score)
     if verbose:
         # np.trapz(p_tp_given_score / np.trapz(p_tp_given_score, score_domain), score_domain)
-        print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
-        print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
-        print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=True, use_nan=True))
-        print('stats:p_tp_given_score = ' + ut.get_stats_str(p_tp_given_score, newlines=True, use_nan=True))
+        print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=0, use_nan=True, precision=5))
+        print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=0, use_nan=True, precision=5))
+        print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=0, use_nan=True, precision=5))
+        print('stats:p_tp_given_score = ' + ut.get_stats_str(p_tp_given_score, newlines=0, use_nan=True, precision=5))
     if monotonize:
         if reverse:
             if verbose:
@@ -1230,8 +1235,6 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
                      p_tn_given_score, p_score_given_tp, p_score_given_tn,
                      p_score, with_scores=with_scores, with_roc=with_roc,
                      with_precision_recall=with_precision_recall, fnum=fnum)
-
-        pt.adjust_subplots(hspace=.3, bottom=.05, left=.05)
 
         if figtitle is not None:
             pt.set_figtitle(figtitle)
