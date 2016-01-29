@@ -912,7 +912,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     # import utool
     # utool.embed()
     # Find good score domain range
-    if False:
+    if True:
         min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
     else:
         min_score = min(tp_support.min(), tn_support.min())
