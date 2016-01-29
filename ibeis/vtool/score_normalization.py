@@ -411,7 +411,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             tp_area = get_right_area(tp_curve, xdata, argmaxima)
             fp_area = get_right_area(tn_curve, xdata, argmaxima)
             tn_area = get_left_area(tn_curve, xdata, argmaxima)
-            fn_area = get_left_area(tp_curve, xdata, argmaxima)
+            fn_area = get_left_area(tp_curve, xdata, argmaxima)  # NOQA
             # Positive liklihood ratio
             lr_pos = tp_area / fp_area
             lr_neg = fp_area / tn_area
