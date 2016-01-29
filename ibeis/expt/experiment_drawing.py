@@ -52,7 +52,7 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
         >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
-        >>> draw_score_sep(ibs, testres, f=f)
+        >>> draw_score_sep(ibs, testres, f=f, verbose=ut.VERBOSE)
         >>> ut.show_if_requested()
 
     Ignore:
