@@ -26,7 +26,6 @@ DEBUG_CHIPMATCH = False
 
 MAX_FNAME_LEN = 80 if ut.WIN32 else 200
 TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
-#or ( ut.is_developer() and not ut.get_argflag(('--notrunc-uuids',)))
 
 
 def safeop(op_, xs, *args, **kwargs):

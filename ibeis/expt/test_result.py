@@ -1898,7 +1898,7 @@ class TestResult(object):
             pt.multi_plot(xdata, ydata_list, spread_list=spread_list,
                           fnum=fnum, pnum=pnum_(), **plotkw2)
 
-        pt.adjust_subplots2(hspace=.3)
+        #pt.adjust_subplots2(hspace=.3)
         figtitle = 'Score vs DBSize: %s' % (testres.get_title_aug())
         pt.set_figtitle(figtitle)
 
@@ -2074,18 +2074,18 @@ class TestResult(object):
         """
         #from ibeis.init import main_helpers
         import utool as ut
-        import plottool as pt
+        #import plottool as pt
         ut.ensure_pylab_qt4()
 
         testres.draw_annot_scoresep(f='fail=False')
-        pt.adjust_subplots(bottom=.25, top=.8)
+        #pt.adjust_subplots(bottom=.25, top=.8)
         encoder = testres.draw_feat_scoresep(f='fail=False', disttype=None)
-        pt.adjust_subplots(bottom=.25, top=.8)
+        #pt.adjust_subplots(bottom=.25, top=.8)
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn'])
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['ratio'])
         #encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['L2_sift'])
         encoder = testres.draw_feat_scoresep(f='fail=False', disttype=['lnbnn', 'fg'])
-        pt.adjust_subplots(bottom=.25, top=.8)
+        #pt.adjust_subplots(bottom=.25, top=.8)
 
         #ibs, testres = main_helpers.testdata_expts(
         #    defaultdb=defaultdb, a=['timectrl'], t=['best:lnbnn_on=False,ratio_thresh=1.0'])

@@ -459,7 +459,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         nGTCols = 1
 
     if nRows == 0:
-        pt.imshow_null(fnum=fnum)
+        pt.imshow_null('[viz_qres] No matches. nRows=0', fnum=fnum)
     else:
         fig = pt.figure(fnum=fnum, pnum=(nRows, nGTCols, 1), docla=True, doclf=True)
         pt.plt.subplot(nRows, nGTCols, 1)

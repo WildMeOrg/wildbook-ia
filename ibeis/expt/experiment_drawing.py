@@ -24,11 +24,26 @@ DUMP_REGCHIP = False
 
 
 #fontkw = dict(legendsize=8, labelsize=10, ticksize=8, titlesize=8)
-FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
+#FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 
 #@devcmd('scores', 'score', 'namescore_roc')
 #def draw_score_sep(ibs, qaid_list, daid_list=None):
+def draw_annot_scoresep(ibs, *args, **kwargs):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
+        >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+        >>> draw_score_sep(ibs, testres, f=f, verbose=ut.VERBOSE)
+        >>> ut.show_if_requested()
+    """
+    return draw_score_sep(ibs, *args, **kwargs)
+
+
 def draw_score_sep(ibs, testres, f=None, verbose=None):
     """
     Draws the separation between true positive and true negative name scores.
@@ -1141,7 +1156,9 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
                                     marker_list=nonconst_marker_list, fnum=fnum,
                                     pnum=pnum, num_yticks=num_yticks,
                                     ymin=ymin, ymax=100, ypad=.5,
-                                    xpad=.05, legend_loc='lower right', **FONTKW)
+                                    xpad=.05, legend_loc='lower right',
+                                    #**FONTKW
+                                    )
 
     fig = pt.gcf()
     ax = fig.axes[0]
@@ -1277,7 +1294,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=.5, xmax=maxrank + .5,
         #xpad=.05,
-        **FONTKW)
+        #**FONTKW
+    )
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
@@ -1389,7 +1407,8 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
     """
     #category_poses = testres.partition_case_types()
     # TODO: Split up into cfgxs
-    plotkw = FONTKW.copy()
+    #plotkw = FONTKW.copy()
+    plotkw = {}
     plotkw['markersize'] = 12
     plotkw['marker_list'] = []
     #plotkw['linestyle'] = '--'

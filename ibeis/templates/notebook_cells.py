@@ -296,8 +296,8 @@ all_annot_scoresep = ('# All Score Distribution', ut.codeblock(
     )
     _ = testres.draw_func()
     fix_figsize()
-    testres.draw_taghist()()
-    fix_figsize()
+    #testres.draw_taghist()()
+    #fix_figsize()
     # ENDBLOCK
     '''))
 

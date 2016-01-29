@@ -143,9 +143,25 @@ def run_ipython_notebook(notebook_str):
 
 def make_autogen_str():
     import sys
+
+    def get_regen_cmd():
+        # TODO: move to utool
+        try:
+            if len(sys.argv) > 0 and ut.checkpath(sys.argv[0]):
+                # Check if running python command
+                if ut.is_python_module(sys.argv[0]):
+                    python_exe = ut.python_executable(check=False)
+                    modname = ut.get_modname_from_modpath(sys.argv[0])
+                    new_argv = [python_exe, '-m', modname] + sys.argv[1:]
+                    return ' '.join(new_argv)
+        except Exception as ex:
+            ut.printex(ex, iswarning=True)
+        return ' '.join(sys.argv)
+
     autogenkw = dict(
         stamp=ut.timestamp('printable'),
-        regen_cmd=' '.join(sys.argv)
+        regen_cmd=get_regen_cmd()
+        #' '.join(sys.argv)
     )
     return ut.codeblock(
         '''

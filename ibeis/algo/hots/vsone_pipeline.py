@@ -934,7 +934,7 @@ def quick_vsone_flann(flann_cachedir, qvecs):
         'algorithm': 'kdtree',
         'trees': 8
     }
-    use_cache = save = True  # False and ut.is_developer()
+    use_cache = save = True
     flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params,
                            quiet=True, verbose=False, use_cache=use_cache, save=save)
     return flann
