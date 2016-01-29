@@ -931,6 +931,10 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[scorenorm] %d/%d evaluating tn density' % (next_(), total))
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
 
+    if verbose:
+        print('stats.score_domain = ' + ut.get_stats_str(score_domain, use_nan=True))
+        #print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
+
     if True:
         # Make sure we still have probability functions
         p_score_given_tp = p_score_given_tp / np.trapz(p_score_given_tp, score_domain)
