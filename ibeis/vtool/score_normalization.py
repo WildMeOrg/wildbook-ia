@@ -283,6 +283,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         # heuristic
         encoder.learn_kw['reverse'] = tp_support.mean() < tn_support.mean()
         if verbose:
+            print('stats(tp_support) = ' + ut.get_stats_str(tp_support, use_nan=True))
+            print('stats(tn_support) = ' + ut.get_stats_str(tn_support, use_nan=True))
             print('[scorenorm] setting reverse = %r' %
                   (encoder.learn_kw['reverse']))
 
