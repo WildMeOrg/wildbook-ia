@@ -90,8 +90,8 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
     # HACK:
     # REMOVE 0 scores because testres only records name scores and
     # having multiple annotations causes some good scores to be truncated to 0.
-    isvalid[gt_rawscore == 0] = False
-    isvalid[gf_rawscore == 0] = False
+    #isvalid[gt_rawscore == 0] = False
+    #isvalid[gf_rawscore == 0] = False
 
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
@@ -102,6 +102,10 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
     tn_qaids = tp_qaids = common_qaids[isvalid]
     tn_daids = gf_daid[isvalid]
     tp_daids = gt_daid[isvalid]
+
+    import utool
+    utool.embed()
+
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     #print(qreq_.get_cfgstr())
