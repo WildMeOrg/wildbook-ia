@@ -393,6 +393,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         distance = -np.abs(tp_curve - tn_curve)
         distance = distance - distance.min()
         argmaxima = vt.hist_argmaxima2(distance)
+        print('argmaxima = %r' % (argmaxima,))
 
         # Now find which intersection points are "best"
         # TODO: have user specify metric that they care about
@@ -408,6 +409,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             # statistic. (Positive likelihood ratio)
             lr_pos = tp_area / fp_area
             lr_neg = fp_area / tn_area
+            print('lr_neg = %r' % (lr_neg,))
+            print('lr_pos = %r' % (lr_pos,))
             # Normalize likelihood into range 0 to 1
             pos_norm = max(1, vt.safe_extreme(lr_pos, op=np.nanmax, fill=1, finite=True))
             neg_norm = max(1, vt.safe_extreme(lr_neg, op=np.nanmax, fill=1, finite=True))
@@ -418,6 +421,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             lr_neg[np.isnan(lr_neg)] = -.1
             lr_pos[np.isinf(lr_pos)] = 1.1
             lr_neg[np.isinf(lr_neg)] = 1.1
+            print('lr_pos.argmax = %r' % (lr_pos.argmax,))
             maxpos = argmaxima[lr_pos.argmax()]
         else:
             maxpos = np.array([distance.argmax()])
