@@ -256,17 +256,23 @@ def unsupervised_similarity(ibs, aids):
     Ignore:
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
         >>> import ibeis
-        >>> ibs, aids = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=1,exclude_reference=True')
+        >>> #ibs, aids = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=1,exclude_reference=True')
+        >>> ibs, aids = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
     """
     ut.ensure_pylab_qt4()
 
-    qreq_ = ibs.new_query_request(aids, aids)
+    # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=False))
+    # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict())
+    qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=True, augment_queryside_hack=True))
+
     qconfig2_ = qreq_.get_external_query_config2()
     dconfig2_ = qreq_.get_external_query_config2()
     qaid, daid = aids[2:4]
 
-    aids = aids[0:8]
-    nids = ibs.get_annot_nids(aids)
+    # [0:8]
+    aids = aids
+    aids = aids[0:6]
+    nids = np.array(ibs.get_annot_nids(aids))
 
     pair_dict = ut.ddict(dict)
 
@@ -275,30 +281,29 @@ def unsupervised_similarity(ibs, aids):
     #idx_list = list(ut.iprod(range(len(aids)), range(len(aids))))
 
     cfgdict = {'ratio_thresh': 1.0, 'sver_xy_thresh': .001, 'scale_thresh': 1.5}
+    cfgdict = {'ratio_thresh': 1.0, 'sver_xy_thresh': .001, 'scale_thresh': 1.5, 'symmetric': False}
     verbose = None
 
     qx, dx = idx_list[0]
 
     for qx, dx in ut.ProgressIter(idx_list):
-        qaid = aids[qx]
-        daid = aids[dx]
-        #matches, metadata = vsone_single2(ibs, qaid, daid, qconfig2_, dconfig2_, True, None)
+        qaid, daid = ut.take(aids, [qx, dx])
         metadata = ibs.get_annot_pair_lazy_dict(qaid, daid, qconfig2_, dconfig2_)
         flann_params = {'algorithm': 'kdtree', 'trees': 8}
+        # truth = (nids[qx] == nids[dx])
         metadata['flann1'] = vt.flann_cache(metadata['vecs1'], flann_params=flann_params)
+        # metadata['flann2'] = vt.flann_cache(metadata['vecs2'], flann_params=flann_params)
         match = vt.vsone_matching2(metadata, cfgdict=cfgdict, verbose=verbose)
         pair_dict[(qx, dx)] = match
 
     for qx, dx in ut.ProgressIter(idx_list):
-        qaid = aids[qx]
-        daid = aids[dx]
+        qaid, daid = ut.take(aids, [qx, dx])
         match = pair_dict[(qx, dx)]
         print(match)
         score_mat[qx, dx] = match.matches['TOP+SV'].fs.sum()
         (nids[qx] == nids[dx])
 
     pos = np.meshgrid(np.arange(len(aids)), np.arange(len(aids)))
-    #nids[pos[0]] = nids[pos[1]]
     gt_scores = score_mat[nids[pos[1]] == nids[pos[0]]]
     min_gt_score = gt_scores.min()
 
@@ -317,30 +322,27 @@ def unsupervised_similarity(ibs, aids):
     fnum = 1
     #_pnumiter = pt.make_pnum_nextgen(nSubplots=score_mat.size)
     nRows, nCols = pt.get_square_row_cols(score_mat.size, fix=True)
+    ut.ensure_pylab_qt4()
     inter = ExpandableInteraction(fnum, nRows=nRows, nCols=nCols)
 
+    # Show matches in off-diagonal
     for qx, dx in ut.ProgressIter(idx_list):
         match = pair_dict[(qx, dx)]
-        match_inter = match.make_interaction()
-        match_inter.mode = 1
         score = score_mat[qx, dx]
-        match_inter.title = '%.2f' % (score,)
-        match_inter.truth = nids[qx] == nids[dx]
+        match_inter = match.make_interaction(mode=1, title='%.2f' % (score,),
+                                             truth=(nids[qx] == nids[dx]))
         if score >= min_gt_score:
             inter.append_plot(match_inter, px=(qx, dx))
             #inter.append_plot(ut.partial(pt.imshow_null, msg=(('qx=%r, dx=%r') % (qx, dx))), px=(qx, dx))
 
+    # Show chips in diagonal
     for qx in range(len(aids)):
         qaid = aids[qx]
         chip = ibs.get_annot_chips(qaid)
-        inter.append_plot(ut.partial(pt.imshow, chip, msg=(('qx=%r, dx=%r') % (qx, qx))), px=(qx, qx))
-        #inter.append_plot(, px=(qx, dx))
-        pass
+        inter.append_plot(ut.partial(pt.imshow, chip), px=(qx, qx))
 
     inter.start()
-
     #vt.show_matching_dict(matches, metadata, 'RAT')
-
     #pt.plot_score_histograms([fx2_to_dist.T[0]])
     #import plottool as pt
     #pt.plot_score_histograms([m.matches['TOP+SV'][1]])
@@ -350,9 +352,7 @@ def unsupervised_similarity(ibs, aids):
     alg.fit_predict((1 / score_mat))
     #import pandas
     #score_mat = pandas.DataFrame(pairs).as_matrix()
-
     #[vsone_single(qaid, daid) for qaid, daid in ]
-
     pass
 
 

@@ -171,6 +171,92 @@ def segmentation_example():
         pt.imshow(argImg.swapaxes(0, 1).squeeze(), cmap=cmap)
 
 
+def dummy_multicut():
+    """ """
+    # Places to look for the definition of PottsGFunction class
+    # ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx
+    # /src/interfaces/python/opengm/opengmcore/function_injector.py
+    # A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems
+    # http://arxiv.org/pdf/1404.0533.pdf
+    # __init__( (object)arg1, (object)shape [, (object)values=()]) -> object :
+    # values = np.arange(1, ut.num_partitions(num_annots) + 1)
+    # http://hci.iwr.uni-heidelberg.de/opengm2/doxygen/opengm-2.1.1/classopengm_1_1PottsGFunction.html
+    import opengm
+    import numpy as np
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+    cost_matrix = np.array([
+        [0.5, 0.6, 0.2, 0.4],
+        [0.0, 0.5, 0.2, 0.9],
+        [0.0, 0.0, 0.5, 0.1],
+        [0.0, 0.0, 0.0, 0.5],
+    ])
+    cost_matrix += cost_matrix.T
+    cost_matrix = (2 * cost_matrix) - 1
+
+    cost_matrix = np.array([
+        [ 1. ,  0.2, -0.6, -0.2],
+        [ 0.2,  1. , -0.6,  0.8],
+        [-0.6, -0.6,  1. , -0.8],
+        [-0.2,  0.8, -0.8,  1. ]])
+    num_vars = len(cost_matrix)
+
+    from itertools import product
+    var_indexes = np.arange(num_vars)
+    varindex_pairs = np.array([(a1, a2) for a1, a2 in product(var_indexes, var_indexes) if a1 != a2], dtype=np.uint32)
+    varindex_pairs.sort(axis=1)
+
+    gm = opengm.gm(np.ones(num_vars) * num_vars)
+
+    # add a potts function
+    shape = [num_vars] * 2
+    # num_parts = 5  # possible number paritions with 4 variables
+    # num_parts = ut.get_nth_bell_number(num_vars - 1)
+    # Causes a segfault if values is passed in
+    # values = np.arange(1, num_parts + 1).astype(np.float64)
+    # gpotts_func = opengm.PottsGFunction(shape, values)
+    gpotts_func = opengm.PottsGFunction(shape)
+    gpotts_fid = gm.addFunction(gpotts_func)
+    # Commenting out the next line results in a segfault
+    gm.addFactors(gpotts_fid, varindex_pairs)
+
+    # 2nd order function
+    # Seems to cause OpenGM error: Invalid Model for Multicut-Solver! Solver requires a generalized potts model!
+    # pair_fid = gm.addFunction(cost_matrix)
+    # gm.addFactors(pair_fid, varindex_pairs)
+
+    Inf = opengm.inference.Multicut
+    # Not sure what parameters are allowed to be passed here.
+    parameter = opengm.InfParam()
+    inf = Inf(gm, parameter=parameter)
+
+    class PyCallback(object):
+
+        def __init__(self,):
+            self.labels = []
+
+        def begin(self, inference):
+            print("begin of inference")
+
+        def end(self, inference):
+            self.labels.append(inference.arg())
+
+        def visit(self, inference):
+            gm = inference.gm()
+            labelVector = inference.arg()
+            print("energy  %r" % (gm.evaluate(labelVector),))
+            self.labels.append(labelVector)
+
+    callback = PyCallback()
+    visitor = inf.pythonVisitor(callback, visitNth=1)
+    inf.infer(visitor)
+    print(callback.labels)
+
+    print(cost_matrix)
+    pt.imshow(cost_matrix, cmap='magma')
+    opengm.visualizeGm(gm=gm)
+
+
 def dummy_cut_example():
     r"""
     CommandLine:
@@ -191,15 +277,14 @@ def dummy_cut_example():
     pt.ensure_pylab_qt4()
     # Matching Graph
     cost_matrix = np.array([
-        [0.5, 0.6, 0.2, 0.4, 0.1],
-        [0.0, 0.5, 0.2, 0.9, 0.2],
-        [0.0, 0.0, 0.5, 0.1, 0.1],
-        [0.0, 0.0, 0.0, 0.5, 0.1],
-        [0.0, 0.0, 0.0, 0.0, 0.5],
+        [0.5, 0.6, 0.2, 0.4],
+        [0.0, 0.5, 0.2, 0.9],
+        [0.0, 0.0, 0.5, 0.1],
+        [0.0, 0.0, 0.0, 0.5],
     ])
     cost_matrix += cost_matrix.T
-    number_of_labels = 5
-    num_annots = 5
+    number_of_labels = 4
+    num_annots = 4
     #cost_matrix = (cost_matrix * 2) - 1
 
     #gm = opengm.gm(number_of_labels)
@@ -211,7 +296,8 @@ def dummy_cut_example():
 
     # add a potts function
     # penalizes neighbors for having different labels
-    beta = 0   # 0.1  # strength of potts regularizer
+    # beta = 0   # 0.1  # strength of potts regularizer
+    beta = 0.1   # 0.1  # strength of potts regularizer
 
     # Places to look for the definition of this stupid class
     # ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx
@@ -219,12 +305,18 @@ def dummy_cut_example():
 
     shape = [number_of_labels] * 2
     #regularizer = opengm.PottsGFunction(shape, 0.0, beta)
-    regularizer = opengm.PottsGFunction(shape)
+    # __init__( (object)arg1, (object)shape [, (object)values=()]) -> object :
 
-    regularizer = opengm.pottsFunction([number_of_labels] * 2, 0.0, beta)
+    # values = np.arange(1, ut.num_partitions(num_annots) + 1)
+    regularizer = opengm.PottsGFunction(shape)
     reg_fid = gm.addFunction(regularizer)
 
-    gm.addFactors(reg_fid, aid_pairs)
+    # A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems
+    # http://arxiv.org/pdf/1404.0533.pdf
+
+    # regularizer1 = opengm.pottsFunction([number_of_labels] * 2, valueEqual=0.0, valueNotEqual=beta)
+
+    # gm.addFactors(reg_fid, aid_pairs)
 
     # 2nd order function
     pair_fid = gm.addFunction(cost_matrix)

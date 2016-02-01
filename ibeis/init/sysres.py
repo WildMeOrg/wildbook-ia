@@ -429,7 +429,7 @@ def ensure_wd_peter2():
         >>> ut.rsync(archive_name, 'joncrall@lev.cs.rpi.edu:/media/hdd/PUBLIC/databases')
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_wd_peter2 --show
+        python -m ibeis.init.sysres --exec-ensure_wd_peter2
 
     Example:
         >>> # SCRIPT
