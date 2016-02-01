@@ -183,17 +183,7 @@ def dummy_multicut():
     # http://hci.iwr.uni-heidelberg.de/opengm2/doxygen/opengm-2.1.1/classopengm_1_1PottsGFunction.html
     import opengm
     import numpy as np
-    import plottool as pt
-    pt.ensure_pylab_qt4()
-    cost_matrix = np.array([
-        [0.5, 0.6, 0.2, 0.4],
-        [0.0, 0.5, 0.2, 0.9],
-        [0.0, 0.0, 0.5, 0.1],
-        [0.0, 0.0, 0.0, 0.5],
-    ])
-    cost_matrix += cost_matrix.T
-    cost_matrix = (2 * cost_matrix) - 1
-
+    from itertools import product
     cost_matrix = np.array([
         [ 1. ,  0.2, -0.6, -0.2],
         [ 0.2,  1. , -0.6,  0.8],
@@ -201,34 +191,70 @@ def dummy_multicut():
         [-0.2,  0.8, -0.8,  1. ]])
     num_vars = len(cost_matrix)
 
-    from itertools import product
-    var_indexes = np.arange(num_vars)
-    varindex_pairs = np.array([(a1, a2) for a1, a2 in product(var_indexes, var_indexes) if a1 != a2], dtype=np.uint32)
+    # Enumerate undirected edges (node index pairs)
+    var_indices = np.arange(num_vars)
+    varindex_pairs = np.array(
+        [(a1, a2) for a1, a2 in product(var_indices, var_indices)
+         if a1 != a2 and a1 > a2], dtype=np.uint32)
     varindex_pairs.sort(axis=1)
 
-    gm = opengm.gm(np.ones(num_vars) * num_vars)
+    # Create nodes in the graphical model.  In this case there are <num_vars>
+    # nodes and each node can be assigned to one of <num_vars> possible labels
+    num_nodes = num_vars
+    space = np.full((num_nodes,), fill_value=num_vars, dtype=np.int)
+    gm = opengm.gm(space)
+
+    # Use one potts function for each edge
+    for varx1, varx2 in varindex_pairs:
+        cost = cost_matrix[varx1, varx2]
+        potts_func = opengm.PottsFunction((num_vars, num_vars), valueEqual=0, valueNotEqual=cost)
+        potts_func_id = gm.addFunction(potts_func)
+        var_indicies = np.array([varx1, varx2])
+        gm.addFactor(potts_func_id, var_indicies)
+
+    #opengm.visualizeGm(gm=gm)
+
+    InfAlgo = opengm.inference.Multicut
+    parameter = opengm.InfParam()
+    inf = InfAlgo(gm, parameter=parameter)
+    inf.infer()
+    labels = inf.arg()
+    print(labels)
+
+    import plottool as pt
+
+    #varindex_pairs = np.vstack(np.triu_indices_from(cost_matrix)).T
+
+    # Dummy unaries
+    #for varx in var_indices:
+    #    unary_func = np.ones(num_vars)
+    #    unary_func_id = gm.addFunction(unary_func)
+    #    gm.addFactor(unary_func_id, varx1)
+
+    #pt.ensure_pylab_qt4()
 
     # add a potts function
-    shape = [num_vars] * 2
+    #shape = [num_vars] * 2
     # num_parts = 5  # possible number paritions with 4 variables
     # num_parts = ut.get_nth_bell_number(num_vars - 1)
     # Causes a segfault if values is passed in
     # values = np.arange(1, num_parts + 1).astype(np.float64)
     # gpotts_func = opengm.PottsGFunction(shape, values)
-    gpotts_func = opengm.PottsGFunction(shape)
-    gpotts_fid = gm.addFunction(gpotts_func)
+    #gpotts_func = opengm.PottsGFunction(shape)
+    #gpotts_fid = gm.addFunction(gpotts_func)
     # Commenting out the next line results in a segfault
-    gm.addFactors(gpotts_fid, varindex_pairs)
+    #gm.addFactors(gpotts_fid, varindex_pairs)
 
     # 2nd order function
     # Seems to cause OpenGM error: Invalid Model for Multicut-Solver! Solver requires a generalized potts model!
     # pair_fid = gm.addFunction(cost_matrix)
     # gm.addFactors(pair_fid, varindex_pairs)
 
-    Inf = opengm.inference.Multicut
+    InfAlgo = opengm.inference.Multicut
     # Not sure what parameters are allowed to be passed here.
     parameter = opengm.InfParam()
-    inf = Inf(gm, parameter=parameter)
+    inf = InfAlgo(gm, parameter=parameter)
+    inf.infer()
 
     class PyCallback(object):
 
@@ -297,19 +323,19 @@ def dummy_cut_example():
     # add a potts function
     # penalizes neighbors for having different labels
     # beta = 0   # 0.1  # strength of potts regularizer
-    beta = 0.1   # 0.1  # strength of potts regularizer
+    #beta = 0.1   # 0.1  # strength of potts regularizer
 
     # Places to look for the definition of this stupid class
     # ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx
     # /src/interfaces/python/opengm/opengmcore/function_injector.py
 
-    shape = [number_of_labels] * 2
+    #shape = [number_of_labels] * 2
     #regularizer = opengm.PottsGFunction(shape, 0.0, beta)
     # __init__( (object)arg1, (object)shape [, (object)values=()]) -> object :
 
     # values = np.arange(1, ut.num_partitions(num_annots) + 1)
-    regularizer = opengm.PottsGFunction(shape)
-    reg_fid = gm.addFunction(regularizer)
+    #regularizer = opengm.PottsGFunction(shape)
+    #reg_fid = gm.addFunction(regularizer)
 
     # A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems
     # http://arxiv.org/pdf/1404.0533.pdf
