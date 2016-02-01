@@ -687,7 +687,7 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
 
 
 def haversine(latlon1, latlon2):
-    """
+    r"""
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
 
@@ -702,6 +702,24 @@ def haversine(latlon1, latlon2):
 
     CommandLine:
         python -m vtool.distance --exec-haversine
+
+    LaTeX:
+        from sympy import *
+        import vtool as vt
+        source = ut.get_func_sourcecode(vt.haversine, stripdef=True, strip_docstr=True, strip_comments=False, stripret=True)
+        source = source[source.find('# haversine formula'):]
+        source = source.replace('np.', '')
+        source = source.replace('arcsin', 'asin')
+        print(source)
+        lon1, lon2, lat1, lat2 = symbols('\lon_1, \lon_2, \lat_1, \lat_2')
+        locals_ = globals()
+        locals_.update(locals())
+        exec(source, locals_)
+        c = locals_['c']
+        print(vt.sympy_latex_repr(c))
+
+        2 \operatorname{asin}{(\sqrt{\sin^{2}{(\frac{\lat_1}{2} - \frac{\lat_2}{2} )} + \sin^{2}{(\frac{\lon_1}{2} - \frac{\lon_2}{2} )} \cos{(\lat_1 )} \cos{(\lat_2 )}} )}
+
 
     Example:
         >>> # ENABLE_DOCTEST
