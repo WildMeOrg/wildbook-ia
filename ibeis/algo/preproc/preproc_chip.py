@@ -145,6 +145,7 @@ class ChipConfig(dtool.TableConfig):
             ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
             ut.ParamInfo('preserve_aspect', True, hideif=True),
             ut.ParamInfo('histeq', False, hideif=False),
+            ut.ParamInfo('cropmethod', None, 'crop', hideif=None),
             ut.ParamInfo('ext', '.png'),
         ]
 
@@ -239,6 +240,13 @@ def preproc_chip(depc, aid_list, config=None):
         if resize_dim == 'root_area':
             dim_size = dim_size ** 2
         newsize_list = [scale_func(dim_size, w, h) for (w, h) in bbox_size_list]
+
+    # HACKED in customized code for cropping to tips
+    if config['cropmethod'] == 'tips':
+        config_ = config_.copy()
+        config_['cropmethod'] = None
+        uncropped_tips = depc.get_property('Notch_Tips', aid_list, config=config_)
+        pass
 
     # Build transformation from image to chip
     M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
