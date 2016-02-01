@@ -479,21 +479,21 @@ def get_imageset_gsgrids(ibs, imgsetid_list=None, gid_list=None):
         where_clause = 'imageset_rowid=?'
         # list of relationships for each imageset
         gsgrids_list = ibs.db.get_where(const.GSG_RELATION_TABLE, ('gsgr_rowid',),
-                                       params_iter, where_clause, unpack_scalars=False)
+                                        params_iter, where_clause, unpack_scalars=False)
     elif gid_list is not None and imgsetid_list is None:
         # TODO: Group type
         params_iter = ((gid,) for gid in gid_list)
         where_clause = 'image_rowid=?'
         # list of relationships for each imageset
         gsgrids_list = ibs.db.get_where(const.GSG_RELATION_TABLE, ('gsgr_rowid',),
-                                       params_iter, where_clause, unpack_scalars=False)
+                                        params_iter, where_clause, unpack_scalars=False)
     else:
         # TODO: Group type
         params_iter = ((imgsetid, gid,) for imgsetid, gid in zip(imgsetid_list, gid_list))
         where_clause = 'imageset_rowid=? AND image_rowid=?'
         # list of relationships for each imageset
         gsgrids_list = ibs.db.get_where(const.GSG_RELATION_TABLE, ('gsgr_rowid',),
-                                       params_iter, where_clause, unpack_scalars=False)
+                                        params_iter, where_clause, unpack_scalars=False)
     return gsgrids_list
 
 
@@ -950,6 +950,44 @@ def get_imageset_start_time_posix(ibs, imageset_rowid_list):
     imageset_start_time_posix_list = ibs.db.get(
         const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
     return imageset_start_time_posix_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+@register_api('/api/imageset/duration/', methods=['GET'])
+def get_imageset_duration(ibs, imageset_rowid_list):
+    r"""
+    gets the imageset's duration
+
+    Args:
+        imageset_rowid_list (list):
+
+    Returns:
+        list: imageset_duration
+
+    RESTful:
+        Method: GET
+        URL:    /api/imageset/duration/
+    """
+    def _process(start, end):
+        if start is None or end is None:
+            return 'None'
+        seconds_in_day = 60 * 60 * 24
+        days = 0
+        duration = int(end - start)
+        if duration >= seconds_in_day:
+            days = duration // seconds_in_day
+            duration = duration % seconds_in_day
+        duration_str = time.strftime('%H:%M:%S', time.gmtime(duration))
+        if days > 0:
+            duration_str = '%d days, %s' % (days, duration_str, )
+        return duration_str
+    import time
+    start_time_list = ibs.get_imageset_start_time_posix(imageset_rowid_list)
+    end_time_list = ibs.get_imageset_end_time_posix(imageset_rowid_list)
+    zipped = zip(start_time_list, end_time_list)
+    duration_list = [ _process(start, end) for start, end in zipped ]
+    return duration_list
 
 
 @register_ibs_method
