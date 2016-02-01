@@ -691,6 +691,12 @@ class DependencyCache(_CoreDependencyCache):
             db = table.db
             db.print_table_csv(tablename)
 
+    def print_config_tables(depc):
+        for key in depc.fname_to_db:
+            print('---')
+            print('key = %r' % (key,))
+            depc.fname_to_db[key].print_table_csv('config')
+
     def get_edges(depc):
         edges = [(parent, key)
                  for key, table in depc.cachetable_dict.items()

@@ -4,6 +4,7 @@ import utool as ut
 import six
 from six.moves import zip, range
 from os.path import join, exists
+from math import ceil
 from dtool import base
 from dtool import __SQLITE__ as lite
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
@@ -11,9 +12,10 @@ from dtool import __SQLITE__ as lite
 
 EXTERN_SUFFIX = '_extern_uri'
 
-CONFIG_TABLE = 'config'
-CONFIG_ROWID = 'config_rowid'
+CONFIG_TABLE  = 'config'
+CONFIG_ROWID  = 'config_rowid'
 CONFIG_HASHID = 'config_hashid'
+CONFIG_STRID  = 'config_strid'
 
 
 def ensure_config_table(db):
@@ -23,14 +25,26 @@ def ensure_config_table(db):
             ('coldef_list', [
                 (CONFIG_ROWID, 'INTEGER PRIMARY KEY'),
                 (CONFIG_HASHID, 'TEXT'),
+                (CONFIG_STRID, 'TEXT'),
             ],),
             ('docstr', 'table for algo configurations'),
             ('superkeys', [(CONFIG_HASHID,)]),
             ('dependson', [])
         ]
     )
+
     if not db.has_table(CONFIG_TABLE):
         db.add_table(**config_addtable_kw)
+    else:
+        current_state = db.get_table_autogen_dict(CONFIG_TABLE)
+        new_state = config_addtable_kw
+        if current_state['coldef_list'] != new_state['coldef_list']:
+            print('WARNING CONFIG TABLE IS MODIFIED')
+            if ut.are_you_sure('About to reset (DROP) entire cache=%r' % (CONFIG_TABLE,)):
+                db.delete_table()
+                db.add_table(**new_state)
+            else:
+                raise NotImplementedError('Need to be able to modify tables')
 
 
 class DependencyCacheTable(object):
@@ -287,7 +301,7 @@ class DependencyCacheTable(object):
             print('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
         config_rowid_list = table.db.add_cleanly(
-            CONFIG_TABLE, (CONFIG_HASHID,), [(config_hashid,)],
+            CONFIG_TABLE, (CONFIG_HASHID, CONFIG_STRID,), [(config_hashid, config_strid,)],
             get_rowid_from_superkey)
         config_rowid = config_rowid_list[0]
         if table.depc._debug:
@@ -413,8 +427,6 @@ class DependencyCacheTable(object):
 
             # TODO: Separate this as a function which can be specified as a
             # callback.
-
-            from math import ceil
             num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
             chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
             lbl = 'adding %s chunk' % (table.tablename)

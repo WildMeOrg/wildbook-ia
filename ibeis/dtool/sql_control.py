@@ -1375,6 +1375,16 @@ class SQLDatabaseController(object):
             (colname, None, '', None),
         ))
 
+    def delete_table(db):
+        """
+        DELETES ALL INFO IN TABLE
+        """
+        db._tablenames = None
+        for tablename in db.get_table_names():
+            if tablename != 'metadata':
+                db.drop_table(tablename)
+        db._tablenames = None
+
     #==============
     # CONVINENCE
     #==============
