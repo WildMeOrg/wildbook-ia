@@ -213,16 +213,17 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
     vecs2 = metadata['vecs2']
     dlen_sqrd2 = metadata['dlen_sqrd2']
     flann1 = metadata.get('flann1', None)
+    flann2 = metadata.get('flann2', None)
 
     matches, output_metdata = vsone_feature_matching(
         kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
-        flann1=flann1, verbose=verbose)
+        flann1=flann1, flann2=flann2, verbose=verbose)
     metadata.update(output_metdata)
     return matches, metadata
 
 
 def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
-                           flann1=None, verbose=None):
+                           flann1=None, flann2=None, verbose=None):
     r"""
     Actual logic for matching
     Args:
@@ -248,6 +249,7 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
     ratio_thresh =  cfgdict.get('ratio_thresh', .625)
     refine_method =  cfgdict.get('refine_method', 'homog')
+    symmetric =  cfgdict.get('symmetric', False)
     K =  cfgdict.get('K', 1)
     Knorm =  cfgdict.get('Knorm', 1)
     #ratio_thresh =  .99
@@ -257,25 +259,37 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     #pseudo_max_dist_sqrd = 2 * (512 ** 2)
     if verbose is None:
         verbose = True
+
+    flann_params = {'algorithm': 'kdtree', 'trees': 8}
     if flann1 is None:
-        flann_params = {
-            'algorithm': 'kdtree',
-            'trees': 8
-        }
-        flann = vt.flann_cache(vecs1, flann_params=flann_params, verbose=verbose)
-    else:
-        flann = flann1
+        flann1 = vt.flann_cache(vecs1, flann_params=flann_params, verbose=verbose)
+
+    print('symmetric = %r' % (symmetric,))
+    if symmetric:
+        if flann2 is None:
+            flann2 = vt.flann_cache(vecs2, flann_params=flann_params, verbose=verbose)
+
     try:
         num_neighbors = K + Knorm
-        fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, num_neighbors, checks)
-        #fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+        fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann1, vecs2, num_neighbors, checks)
+        #fx2_to_fx1, _fx2_to_dist = flann1.nn_index(vecs2, num_neighbors=K, checks=checks)
+        if symmetric:
+            fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(flann2, vecs1, K, checks)
+
     except pyflann.FLANNException:
         print('vecs1.shape = %r' % (vecs1.shape,))
         print('vecs2.shape = %r' % (vecs2.shape,))
         print('vecs1.dtype = %r' % (vecs1.dtype,))
         print('vecs2.dtype = %r' % (vecs2.dtype,))
         raise
+
+    if symmetric:
+        is_symmetric = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2)
+        fx2_to_fx1 = fx2_to_fx1.compress(is_symmetric, axis=0)
+        fx2_to_dist = fx2_to_dist.compress(is_symmetric, axis=0)
+
     assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
+
     fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
     fm_ORIG = np.vstack((fx1_match, fx2_match)).T
     fs_ORIG = 1 - np.divide(match_dist, norm_dist)
@@ -337,9 +351,12 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
     uses flann index to return nearest neighbors with distances normalized
     between 0 and 1 using sifts uint8 trick
     """
+    import vtool as vt
     fx2_to_fx1, _fx2_to_dist_sqrd = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
     _fx2_to_dist = np.sqrt(_fx2_to_dist_sqrd.astype(np.float64))
     fx2_to_dist = np.divide(_fx2_to_dist, PSEUDO_MAX_DIST)  # normalized dist
+    fx2_to_fx1 = vt.atleast_nd(fx2_to_fx1, 2)
+    fx2_to_dist = vt.atleast_nd(fx2_to_dist, 2)
     #fx2_to_dist = np.divide(_fx2_to_dist.astype(np.float64),
     #PSEUDO_MAX_DIST_SQRD)  # squared normalized dist
     return fx2_to_fx1, fx2_to_dist
@@ -491,6 +508,34 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist):
     norm_dist  = fx2_to_dist.T[1]
     assigntup = fx2_match, fx1_match, fx1_norm, match_dist, norm_dist
     return assigntup
+
+
+def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
+        >>> rng = np.random.RandomState(0)
+        >>> fx2_to_fx1 = np.array([[ 0,  1],
+        >>>                        [ 1,  4],
+        >>>                        [ 3,  4],
+        >>>                        [ 2,  0]], dtype=np.int32)
+        >>> fx1_to_fx2 = np.array([[ 0, 1],
+        >>>                        [ 2, 1],
+        >>>                        [ 3, 1],
+        >>>                        [ 3, 1],
+        >>>                        [ 0, 1]], dtype=np.int32)
+        >>> is_symmetric1 = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2)
+        >>> result = ut.array_repr2(is_symmetric1)
+        >>> print(result)
+        array([ True, False,  True, False], dtype=bool)
+    """
+    # np.arange(len(fx2_to_fx1), dtype=fx2_to_fx1.dtype)
+    match_fx1_to_fx2 = fx1_to_fx2.T[0]
+    match_fx2_to_fx1 = fx2_to_fx1.T[0]
+    indices2 = np.arange(len(match_fx2_to_fx1))
+    is_symmetric2 = match_fx1_to_fx2[match_fx2_to_fx1] == indices2
+    return is_symmetric2
 
 
 def unconstrained_ratio_match(flann, vecs2, unc_ratio_thresh=.625,
