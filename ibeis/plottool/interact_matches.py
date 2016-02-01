@@ -34,7 +34,7 @@ class MatchInteraction2(BASE_CLASS):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict())
+        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(augment_queryside_hack=True))
         >>> cm = ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
         >>> qaid = cm.qaid
         >>> daid = cm.get_top_aids()[0]
@@ -68,7 +68,6 @@ class MatchInteraction2(BASE_CLASS):
         self.vecs2 = vecs2
         self.H1 = H1
         self.H2 = H2
-        self.truth = None
 
         # Drawing settings
         kwargs = kwargs.copy()
@@ -78,12 +77,13 @@ class MatchInteraction2(BASE_CLASS):
         self.vert = kwargs.pop('vert', None)
         self.same_fig = kwargs.get('same_fig', True)
         self.last_fx = 0
-        self.figtitle = kwargs.get('figtitle', 'Inspect Matches')
+        # self.figtitle = kwargs.get('figtitle', 'Inspect Matches')
         self.xywh2 = None
         import plottool as pt
         self.fnum2 = pt.ensure_fnum(fnum)
 
-        self.title = None
+        self.title = kwargs.get('title', True)
+        self.truth = kwargs.pop('truth', None)
         #self.fnum2 = pt.next_fnum()
 
         #if BASE_CLASS is not object:
@@ -95,7 +95,7 @@ class MatchInteraction2(BASE_CLASS):
     def plot(self, *args, **kwargs):
         self.chipmatch_view(*args, **kwargs)
 
-    def chipmatch_view(self, fnum=None, pnum=(1, 1, 1), **kwargs_):
+    def chipmatch_view(self, fnum=None, pnum=(1, 1, 1), verbose=None, **kwargs_):
         """
         just visualizes the matches using some type of lines
         """
@@ -103,13 +103,18 @@ class MatchInteraction2(BASE_CLASS):
         from plottool import plot_helpers as ph
         if fnum is None:
             fnum     = self.fnum
-        print('-- CHIPMATCH VIEW --')
-        print('[ichipmatch_view] self.mode = %r' % (self.mode,))
+        if verbose is None:
+            verbose = ut.VERBOSE
+
+        if verbose:
+            print('-- CHIPMATCH VIEW --')
+            print('[ichipmatch_view] self.mode = %r' % (self.mode,))
         mode = kwargs_.get('mode', self.mode)
         draw_ell = mode >= 1
         draw_lines = mode == 2
-        print('[ichipmatch_view] draw_lines = %r' % (draw_lines,))
-        print('[ichipmatch_view] draw_ell = %r' % (draw_ell,))
+        if verbose:
+            print('[ichipmatch_view] draw_lines = %r' % (draw_lines,))
+            print('[ichipmatch_view] draw_ell = %r' % (draw_ell,))
         #pt.figure(fnum=fnum, docla=True, doclf=True)
         # NOTE: i remove the clf here. might cause issues
         pt.figure(fnum=fnum, docla=True, doclf=False)
@@ -122,11 +127,13 @@ class MatchInteraction2(BASE_CLASS):
             vert=self.vert)
         show_matches_kw.update(kwargs_)
 
-        print('self.warp_homog = %r' % (self.warp_homog,))
+        if verbose:
+            print('self.warp_homog = %r' % (self.warp_homog,))
         if self.warp_homog:
             show_matches_kw['H1'] = self.H1
             show_matches_kw['H2'] = self.H2
-        print('show_matches_kw = %s' % (ut.dict_str(show_matches_kw, truncate=True)))
+        if verbose:
+            print('show_matches_kw = %s' % (ut.dict_str(show_matches_kw, truncate=True)))
 
         #tup = show_matches(fm, fs, **show_matches_kw)
         ax, xywh1, xywh2 = pt.show_chipmatch2(
@@ -157,7 +164,6 @@ class MatchInteraction2(BASE_CLASS):
         from plottool import interact_helpers as ih
         # <CLOSURE VARS>
         fnum       = self.fnum
-        #figtitle   = self.figtitle
         same_fig   = self.same_fig
         rchip1     = self.rchip1
         rchip2     = self.rchip2
@@ -271,6 +277,18 @@ class MatchInteraction2(BASE_CLASS):
         #    # Ctrl-Click
         #    print('.. control click')
         #    return self.sv_view()
+        elif viztype.startswith('colorbar'):
+            # Hack to get a specific scoring feature
+            sortx = self.fs.argsort()
+            idx = np.clip(int(np.round(y * len(sortx))), 0, len(sortx) - 1)
+            mx = sortx[idx]
+            (fx1, fx2) = self.fm[mx]
+            (fx1, fx2) = self.fm[mx]
+            print('... selected score at rank idx=%r' % (idx,))
+            print('... selected score with fs=%r' % (self.fs[mx],))
+            print('... resolved to mx=%r' % mx)
+            print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
+            self.select_ith_match(mx)
         else:
             print('...Unknown viztype: %r' % viztype)
         self.draw()
