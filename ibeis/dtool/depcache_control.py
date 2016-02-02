@@ -421,7 +421,8 @@ class _CoreDependencyCache(object):
 
     def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
                                   ensure=True, eager=True, nInput=None,
-                                  recompute=False, recompute_all=False):
+                                  recompute=False, recompute_all=False,
+                                  _debug=False):
         r"""
         Connects `root_rowids` to rowids in `tablename`, and computes all
         values needed along the way.
@@ -443,36 +444,92 @@ class _CoreDependencyCache(object):
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> depc._debug = True
             >>> tablename = 'spam'
-            >>> root_rowids = [1, 2, 3]
-            >>> config, ensure, eager, nInput = None, True, True, None
-            >>> result = ut.repr3(depc.get_all_descendant_rowids(tablename, root_rowids,
-            >>>                                              config, ensure, eager,
-            >>>                                              nInput), nl=1)
+            >>> root_rowids = [1, 2]
+            >>> config1 = {'size': 500}
+            >>> config2 = {'size': 100}
+            >>> config3 = {'size': 500, 'adapt_shape': False}
+            >>> ensure, eager, nInput = True, True, None
+            >>> _debug = True
+            >>> rowid_dict1 = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config1, ensure, eager, nInput, _debug=_debug)
+            >>> rowid_dict2 = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config2, ensure, eager, nInput, _debug=_debug)
+            >>> rowid_dict3 = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config3, ensure, eager, nInput, _debug=_debug)
+            >>> result1 = ut.repr3(rowid_dict1, nl=1)
+            >>> result2 = ut.repr3(rowid_dict2, nl=1)
+            >>> result3 = ut.repr3(rowid_dict3, nl=1)
+            >>> result = '\n'.join([result1, result2, result3])
             >>> print(result)
             {
-                'chip': [1, 2, 3],
-                'dummy_annot': [1, 2, 3],
-                'fgweight': [1, 2, 3],
-                'keypoint': [1, 2, 3],
-                'probchip': [1, 2, 3],
-                'spam': [1, 2, 3],
+                'chip': [1, 2],
+                'dummy_annot': [1, 2],
+                'fgweight': [1, 2],
+                'keypoint': [1, 2],
+                'probchip': [1, 2],
+                'spam': [1, 2],
             }
+            {
+                'chip': [3, 4],
+                'dummy_annot': [1, 2],
+                'fgweight': [3, 4],
+                'keypoint': [3, 4],
+                'probchip': [1, 2],
+                'spam': [3, 4],
+            }
+            {
+                'chip': [1, 2],
+                'dummy_annot': [1, 2],
+                'fgweight': [5, 6],
+                'keypoint': [5, 6],
+                'probchip': [1, 2],
+                'spam': [5, 6],
+            }
+
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> depc._debug = True
+            >>> _debug = True
             >>> tablename = 'dumbalgo'
+            >>> config = depc.configclass_dict['dumbalgo']()
             >>> root_rowids = [1, 2, 3]
-            >>> config, ensure, eager, nInput = None, False, True, None
-            >>> result = ut.repr3(depc.get_all_descendant_rowids(tablename, root_rowids,
-            >>>                                              config, ensure, eager,
-            >>>                                              nInput), nl=1)
+            >>> ensure, eager, nInput = False, True, None
+            >>> # Get rowids of algo ( should be None )
+            >>> rowid_dict = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config, ensure, eager, nInput,
+            >>>     _debug=_debug)
+            >>> result = ut.repr3(rowid_dict, nl=1)
             >>> print(result)
+            {
+                'dumbalgo': [None, None, None],
+                'dummy_annot': [1, 2, 3],
+            }
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> # Make sure algo config can correctly get properites
+            >>> depc = testdata_depc()
+            >>> tablename = 'chip'
+            >>> recompute = False
+            >>> recompute_all = False
+            >>> _debug = True
+            >>> root_rowids = [1, 2]
+            >>> configclass = depc.configclass_dict['chip']
+            >>> config_ = configclass()
+            >>> config1 = depc.configclass_dict['dumbalgo'](size=500)
+            >>> config2 = depc.configclass_dict['dumbalgo'](size=100)
+            >>> config = config2
+            >>> prop_dicts1 = depc.get_all_descendant_rowids(tablename, root_rowids, config=config1, _debug=_debug)
+            >>> prop_dicts2 = depc.get_all_descendant_rowids(tablename, root_rowids, config=config2, _debug=_debug)
+            >>> print(prop_dicts2)
+            >>> print(prop_dicts1)
+            >>> assert prop_dicts1 != prop_dicts2
         """
         # TODO: Need to have a nice way of ensuring configs dont overlap
         # via namespaces.
@@ -482,54 +539,66 @@ class _CoreDependencyCache(object):
         #    # TODO: configclass should belong here
         #    pass
         # if True:
+        _debug = depc._debug if _debug is None else _debug
         indenter = ut.Indenter('[Descend-%s]' % (tablename,),
-                               enabled=depc._debug)
-        if depc._debug:
+                               enabled=_debug)
+        if _debug:
             indenter.start()
             print(' * GET DESCENDANT ROWIDS %s ' % (tablename,))
             print(' * config = %r' % (config,))
         dependency_levels = depc.get_dependencies(tablename)
         configclass_levels = [[depc.configclass_dict.get(key, None)
                                for key in keys] for keys in dependency_levels]
-        if depc._debug:
+        if _debug:
             print('[depc] dependency_levels = %s' %
                   (ut.repr3(dependency_levels, nl=2),))
             print('[depc] dependency_levels = %s' %
                   (ut.repr3(configclass_levels, nl=2),))
         rowid_dict = {depc.root: root_rowids}
         for level_keys in dependency_levels[1:]:
-            if depc._debug:
+            if _debug:
                 print(' * level_keys %s ' % (level_keys,))
             #[depc.configclass_dict.get(key, None) for key in level_keys]
             for key in level_keys:
                 configclass = depc.configclass_dict.get(key, None)
                 requestclass = depc.requestclass_dict.get(key, None)
-                if depc._debug:
+                if _debug:
                     print('   * key = %r' % (key,))
                     print('   * configclass = %r' % (configclass,))
                     print('   * requestclass = %r' % (requestclass,))
                 if configclass is None:
                     config_ = config
                 else:
+                    # Grab the correct configclass for the current table
                     if config is None:
                         config_ = configclass()
+                    elif len(getattr(config, '_subconfig_attrs', [])) > 0:
+                        target_name = configclass().get_config_name()
+                        if target_name in config._subconfig_names:
+                            _index = config._subconfig_names.index(target_name)
+                            subcfg_attr = config._subconfig_attrs[_index]
+                            config_ = config[subcfg_attr]
+                        else:
+                            config_ = configclass(**config)
                     else:
                         config_ = configclass(**config)
+                if _debug:
+                    print('   * config_ = %r' % (config_,))
                 table = depc[key]
                 parent_rowids = list(zip(*ut.dict_take(rowid_dict,
                                                        table.parents)))
-                if depc._debug:
+                if _debug:
                     print('   * parent_rowids = %r' %
                           (ut.trunc_repr(parent_rowids),))
                 _recompute = recompute_all or (key == tablename and recompute)
                 child_rowids = table.get_rowid(
                     parent_rowids, config=config_, eager=eager, nInput=nInput,
                     ensure=ensure, recompute=_recompute)
-                if depc._debug:
+                if _debug:
                     print('   * child_rowids = %r' %
                           (ut.trunc_repr(child_rowids),))
                 rowid_dict[key] = child_rowids
-        if depc._debug:
+        if _debug:
             print(' GOT DESCENDANT ROWIDS')
             indenter.stop()
         return rowid_dict
@@ -578,6 +647,8 @@ class _CoreDependencyCache(object):
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
                      ensure=True, _debug=None, recompute=False, recompute_all=False):
         """
+        Primary function to load or compute values in the dependency cache.
+
         Gets the data in `colnames` of `tablename` that correspond to
         `root_rowids` using `config`.  if colnames is None, all columns are
         returned.
@@ -590,7 +661,7 @@ class _CoreDependencyCache(object):
                 print(' * colnames = %r' % (colnames,))
                 print(' * config = %r' % (config,))
             # Vectorized get of properties
-            tbl_rowids = depc.get_rowids(tablename, root_rowids, config,
+            tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config,
                                          ensure=ensure, _debug=_debug,
                                          recompute=recompute,
                                          recompute_all=recompute_all)

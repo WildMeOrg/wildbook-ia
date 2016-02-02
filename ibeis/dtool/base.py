@@ -44,7 +44,7 @@ def make_config_metaclass():
 
     @_register
     def get_varnames(self):
-        return [pi.varname for pi in self.get_param_info_list()] + self._subconfig_names
+        return [pi.varname for pi in self.get_param_info_list()] + self._subconfig_attrs
 
     @_register
     def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
@@ -79,13 +79,19 @@ def make_config_metaclass():
             setattr(cfg, pi.varname, pi.default)
 
         # SO HACKY
+        # Hacks in implicit edges from nodes to the algorithm
+        # using their subconfigurations
+        cfg._subconfig_attrs = []
         cfg._subconfig_names = []
         if hasattr(cfg, 'get_sub_config_list'):
             for subclass in cfg.get_sub_config_list():
+                #subclass.static_config_name()
                 subcfg = subclass()
-                subcfg_name = ut.to_underscore_case(subcfg.get_config_name()) + '_cfg'
-                setattr(cfg, subcfg_name, subcfg)
+                subcfg_name = subcfg.get_config_name()
+                subcfg_attr = ut.to_underscore_case(subcfg_name) + '_cfg'
+                setattr(cfg, subcfg_attr, subcfg)
                 cfg._subconfig_names.append(subcfg_name)
+                cfg._subconfig_attrs.append(subcfg_attr)
                 subcfg.update(**kwargs)
         cfg.update(**kwargs)
 
@@ -112,8 +118,8 @@ def make_config_metaclass():
     @_register
     def get_cfgstr(cfg, **kwargs):
         str_ = ''.join(cfg.get_cfgstr_list(**kwargs))
-        return '_'.join([str_] + [cfg[subcfg_name].get_cfgstr()
-                                  for subcfg_name in cfg._subconfig_names])
+        return '_'.join([str_] + [cfg[subcfg_attr].get_cfgstr()
+                                  for subcfg_attr in cfg._subconfig_attrs])
 
     @_register
     def get_hashid(cfg):
@@ -429,6 +435,13 @@ class Config(ut.NiceRepr, ut.DictLike):
             raise NotImplementedError(
                 'Need to define _param_info_list or get_param_info_list')
 
+    #@classmethod
+    #def static_config_name(cls):
+    #    class_str = str(cls)
+    #    full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
+    #    config_name = splitext(full_class_str)[1][1:].replace('Config', '')
+    #    return config_name
+
     @classmethod
     def from_argv_dict(cls):
         """
@@ -445,9 +458,12 @@ class Config(ut.NiceRepr, ut.DictLike):
         """
         self = cls()
         name = self.get_config_name()
+        #name = cls.static_config_name()
         argname = '--' + name
         if hasattr(self, '_alias'):
             argname = (argname, '--' + self._alias)
+        #if hasattr(cls, '_alias'):
+        #    argname = (argname, '--' + cls._alias)
         new_vals_list = ut.parse_argv_cfg(argname)
         self_list = [cls(**new_vals) for new_vals in new_vals_list]
         return self_list
