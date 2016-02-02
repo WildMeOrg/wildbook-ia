@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-TODO: make qparams and qreq_ serializeable
-
 TODO:
+    replace with dtool
     Rename to IdentifyRequest
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -15,12 +14,11 @@ from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from os.path import join
 import vtool as vt
-#import copy
 import six
+import dtool
 import utool as ut
 import numpy as np
 import warnings
-#from ibeis.algo.hots import hots_query_result
 (print, rrr, profile) = ut.inject2(__name__, '[qreq]')
 
 VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qreq', '--verbqreq'))
@@ -144,14 +142,13 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
     # HACK FOR DEPC REQUESTS:
     algoname = cfg.get_config_name()
-    if algoname != 'Query':
+    if isinstance(cfg, dtool.AlgoConfig):
         requestclass = ibs.depc.requestclass_dict[algoname]
         cfgdict = dict(cfg.parse_items())
         qreq_ = request = requestclass.new_algo_request(  # NOQA
             ibs.depc, algoname, qaid_list, daid_list, cfgdict)
     else:
         #if cfgdict.get('pipeline_root', None)
-
         DYNAMIC_K = False
         if DYNAMIC_K and 'K' not in cfgdict:
             model_params = [0.2,  0.5]
@@ -160,12 +157,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             cfgdict['K'] = compute_K(nDaids, model_params)
 
         # <HACK>
-
         if not hasattr(ibs, 'generate_species_background_mask'):
             print('HACKING FG OFF')
             cfgdict['fg_on'] = False
             #pass
-
         if unique_species is None:
             unique_species_ = apply_species_with_detector_hack(
                 ibs, cfgdict, qaid_list, daid_list)
@@ -241,7 +236,6 @@ class QueryRequest(object):
     """
     Request object for pipline paramter run
     """
-
     _isnewreq = False
 
     @classmethod
