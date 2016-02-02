@@ -233,6 +233,24 @@ class _CoreDependencyCache(object):
         for table in depc.cachetable_dict.values():
             table.initialize()
 
+        # HACKS:
+        # Define injected functions for autocomplete convinience
+        class InjectedDepc(object):
+            pass
+        depc.d = InjectedDepc()
+        depc.w = InjectedDepc()
+        d = depc.d
+        w = depc.w
+        for table in depc.cachetable_dict.values():
+            attrname = 'get_{tablename}_rowids'.format(tablename=table.tablename)
+            get_rowids = ut.partial(depc.get_rowids, table.tablename)
+            wobj = InjectedDepc()
+            # Set flat version
+            setattr(d, attrname, get_rowids)
+            # Set nested version
+            setattr(w, table.tablename, wobj)
+            setattr(wobj, 'get_rowids', get_rowids)
+
     # @ut.memoize
     def get_dependencies(depc, tablename):
         """
