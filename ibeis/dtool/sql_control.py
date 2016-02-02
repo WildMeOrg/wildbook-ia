@@ -312,10 +312,11 @@ class SQLDatabaseController(object):
             db.dir_ = dirname(db.fpath)
             db.fname = basename(db.fpath)
 
-        assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
         db.text_factory = text_factory
-        if not exists(db.fpath):
-            print('[sql] Initializing new database')
+        if db.fname != ':memory:':
+            assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
+            if not exists(db.fpath):
+                print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         #lite.enable_callback_tracebacks(True)
         #db.fpath = ':memory:'

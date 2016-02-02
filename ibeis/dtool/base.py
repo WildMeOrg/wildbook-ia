@@ -473,6 +473,17 @@ class AlgoConfig(TableConfig):
     pass
 
 
+def make_new_config(default_cfgdict, tablename):
+    import dtool
+    class UnnamedConfig(dtool.TableConfig):
+        def get_param_info_list(self):
+            #print('default_cfgdict = %r' % (default_cfgdict,))
+            return [ut.ParamInfo(key, val)
+                    for key, val in default_cfgdict.items()]
+    UnnamedConfig.__name__ = str(tablename + 'Config')
+    return UnnamedConfig
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

@@ -13,6 +13,7 @@ import six
 from six.moves import zip
 from dtool import sql_control
 from dtool import depcache_table
+from dtool import base
 (print, rrr, profile) = ut.inject2(__name__, '[depcache]')
 
 
@@ -105,16 +106,6 @@ class _CoreDependencyCache(object):
         Registers a table with this dependency cache.
         """
 
-        def make_new_config(default_cfgdict):
-            import dtool
-            class UnnamedConfig(dtool.TableConfig):
-                def get_param_info_list(self):
-                    #print('default_cfgdict = %r' % (default_cfgdict,))
-                    return [ut.ParamInfo(key, val)
-                            for key, val in default_cfgdict.items()]
-            UnnamedConfig.__name__ = str(tablename + 'Config')
-            return UnnamedConfig
-
         if depc._debug:
             print('[depc] Registering tablename=%r' % (tablename,))
             print('[depc]  * preproc_func=%r' % (preproc_func,))
@@ -135,11 +126,11 @@ class _CoreDependencyCache(object):
         if configclass is None:
             # Make a default config with no parameters
             default_cfgdict = configclass
-            configclass = make_new_config({})
+            configclass = base.dict_as_config({}, tablename)
         if isinstance(configclass, dict):
             # Dynamically make config class
             default_cfgdict = configclass
-            configclass = make_new_config(default_cfgdict)
+            configclass = base.dict_as_config(default_cfgdict, tablename)
 
         depc.fname_to_db[fname] = None
         table = depcache_table.DependencyCacheTable(
