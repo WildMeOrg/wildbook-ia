@@ -473,7 +473,7 @@ class AlgoConfig(TableConfig):
     pass
 
 
-def make_new_config(default_cfgdict, tablename):
+def dict_as_config(default_cfgdict, tablename):
     import dtool
     class UnnamedConfig(dtool.TableConfig):
         def get_param_info_list(self):
