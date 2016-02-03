@@ -83,8 +83,13 @@ def make_config_metaclass():
         # using their subconfigurations
         cfg._subconfig_attrs = []
         cfg._subconfig_names = []
+        _sub_config_list = None
         if hasattr(cfg, 'get_sub_config_list'):
-            for subclass in cfg.get_sub_config_list():
+            _sub_config_list = cfg.get_sub_config_list()
+        if hasattr(cfg, '_sub_config_list'):
+            _sub_config_list = cfg._sub_config_list
+        if _sub_config_list:
+            for subclass in _sub_config_list:
                 #subclass.static_config_name()
                 subcfg = subclass()
                 subcfg_name = subcfg.get_config_name()

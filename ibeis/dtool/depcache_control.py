@@ -525,8 +525,10 @@ class _CoreDependencyCache(object):
             >>> config1 = depc.configclass_dict['dumbalgo'](size=500)
             >>> config2 = depc.configclass_dict['dumbalgo'](size=100)
             >>> config = config2
-            >>> prop_dicts1 = depc.get_all_descendant_rowids(tablename, root_rowids, config=config1, _debug=_debug)
-            >>> prop_dicts2 = depc.get_all_descendant_rowids(tablename, root_rowids, config=config2, _debug=_debug)
+            >>> prop_dicts1 = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config=config1, _debug=_debug)
+            >>> prop_dicts2 = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config=config2, _debug=_debug)
             >>> print(prop_dicts2)
             >>> print(prop_dicts1)
             >>> assert prop_dicts1 != prop_dicts2
@@ -672,6 +674,8 @@ class _CoreDependencyCache(object):
             if _debug:
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
+
+    get = get_property
 
     def get_native_property(depc, tablename, tbl_rowids, colnames=None,
                             _debug=None, read_extern=True):

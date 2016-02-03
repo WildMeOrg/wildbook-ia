@@ -455,7 +455,8 @@ class DependencyCacheTable(object):
             ])
             raise
 
-    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True, _debug=None):
+    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True,
+                             _debug=None):
         """
         Lazy addition
         """
@@ -483,7 +484,8 @@ class DependencyCacheTable(object):
                     print(fmtstr % (num_dirty, num_total, table.tablename,
                                     config_rowid))
                 print("ADD DIRTY")
-                table._add_dirty_rows(dirty_parent_rowids, config_rowid, isdirty_list, config)
+                table._add_dirty_rows(dirty_parent_rowids, config_rowid,
+                                      isdirty_list, config)
                 # Get correct order, now that everything is clean in the database
                 print("GET ROWID")
                 rowid_list = table._get_rowid(parent_rowids,
