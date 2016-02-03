@@ -515,7 +515,8 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
 
 
 class FeatureConfig(dtool.TableConfig):
-    """
+    r"""
+    Example:
         >>> from ibeis.core import *  # NOQA
         >>> feat_cfg = FeatureConfig()
         >>> result = str(feat_cfg)
@@ -529,7 +530,7 @@ class FeatureConfig(dtool.TableConfig):
         default_items = list(pyhesaff.get_hesaff_default_params().items())
         param_info_list = [
             ut.ParamInfo('feat_type', 'hesaff+sift', ''),
-            ut.ParamInfo('bgmethod', None, hideif=None)
+            ut.ParamInfo('maskmethod', None, hideif=None)
         ]
         param_info_dict = {
             name: ut.ParamInfo(name, default, hideif=default)
@@ -542,21 +543,21 @@ class FeatureConfig(dtool.TableConfig):
 
 @register_preproc(
     tablename='feat', parents=['chips'],
-    colnames=['kpts', 'vecs', 'num_feats'],
+    colnames=['num_feats', 'kpts', 'vecs'],
     coltypes=[np.ndarray, np.ndarray, int],
     configclass=FeatureConfig,
     fname='featcache',
     version=0
 )
-def compute_feats(ibs, cid_list, config=None):
+def compute_feats(depc, cid_list, config=None):
     r"""
     Computes features and yields results asynchronously: TODO: Remove IBEIS from
     this equation. Move the firewall towards the controller
 
     Args:
-        ibs (IBEISController):
+        depc (dtool.DependencyCache):
         cid_list (list):
-        nInput (None):
+        config (None):
 
     Returns:
         generator : generates param tups
@@ -572,9 +573,10 @@ def compute_feats(ibs, cid_list, config=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
-        >>> config = {}
-        >>> cid_list = ibs.depc.get_rowids('chips', aid_list, config=config)
-        >>> featgen = compute_feats(ibs, cid_list, config, nInput)
+        >>> chip_config = {}
+        >>> config = FeatureConfig()
+        >>> cid_list = depc.get_rowids('chips', aid_list, config=chip_config)
+        >>> featgen = compute_feats(depc, cid_list, config)
         >>> feat_list = list(featgen)
         >>> assert len(feat_list) == len(aid_list)
         >>> (nFeat, kpts, vecs) = feat_list[0]
@@ -583,31 +585,29 @@ def compute_feats(ibs, cid_list, config=None):
         >>> assert vecs.shape[1] == 128
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> chip_fpath = ibs.depc.get('chips', aid_list[0], 'img', config=config, read_extern=False)
-        >>> pt.interact_keypoints.KeypointInteraction(chip_fpath, kpts, vecs, autostart=True)
+        >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
+        >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
     """
     nInput = len(cid_list)
-    feat_cfgstr     = config.get('feat_cfgstr')
-    hesaff_params   = config.get('hesaff_params')
-    feat_type       = config.get('feat_type')
-    bgmethod        = config.get('bgmethod')
-    assert feat_cfgstr is not None
-    assert hesaff_params is not None
+    hesaff_params  = config.asdict()
+    feat_type      = config['feat_type']
+    maskmethod       = config['maskmethod']
 
     ut.assert_all_not_None(cid_list, 'cid_list')
-    chip_fpath_list = ibs.get_chip_fpath(cid_list, check_external_storage=True)
+    chip_fpath_list = depc.get_native('chips', cid_list, 'img', read_extern=False)
 
-    if bgmethod is not None:
-        aid_list = ibs.get_chip_aids(cid_list)
-        probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)
+    if maskmethod is not None:
+        assert False
+        #aid_list = ibs.get_chip_aids(cid_list)
+        #probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)
     else:
         probchip_fpath_list = (None for _ in range(nInput))
 
     if ut.NOT_QUIET:
-        print('[preproc_feat] feat_cfgstr = %s' % feat_cfgstr)
+        print('[preproc_feat] config = %s' % config)
         if ut.VERYVERBOSE:
-            print('hesaff_params = ' + ut.dict_str(hesaff_params))
+            print('full_params = ' + ut.dict_str())
 
     if feat_type == 'hesaff+sift':
         # Multiprocessing parallelization
@@ -619,8 +619,9 @@ def compute_feats(ibs, cid_list, config=None):
         featgen = ut.util_parallel.generate(gen_feat_worker, arg_list, nTasks=nInput, freq=10, ordered=True)
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
-        assert bgmethod is None, 'not implemented'
+        assert maskmethod is None, 'not implemented'
         assert False, 'not implemented'
+        ibs = depc.controller
         featgen = _plugin.generate_siam_l2_128_feats(ibs, cid_list, config=config)
     else:
         raise AssertionError('unknown feat_type=%r' % (feat_type,))
@@ -643,7 +644,7 @@ def gen_feat_worker(tup):
     CommandLine:
         python -m ibeis.core --exec-gen_feat_worker --show
         python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
-        python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --bgmethod=None  --scale_max=30
+        python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -653,8 +654,8 @@ def gen_feat_worker(tup):
         >>> config = {}
         >>> feat_config = FeatureConfig.from_argv_dict()
         >>> chip_fpath = ibs.depc.get('chips', aid_list[0], 'img', config=config, read_extern=False)
-        >>> bgmethod = ut.get_argval('--bgmethod', type_=str, default='cnn')
-        >>> probchip_fpath = ibs.depc.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['bgmethod'] == 'cnn' else None
+        >>> maskmethod = ut.get_argval('--maskmethod', type_=str, default='cnn')
+        >>> probchip_fpath = ibs.depc.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['maskmethod'] == 'cnn' else None
         >>> hesaff_params = feat_config.asdict()
         >>> # Exec function source
         >>> tup = (chip_fpath, probchip_fpath, hesaff_params)
@@ -687,6 +688,120 @@ def gen_feat_worker(tup):
     kpts, vecs = pyhesaff.detect_kpts_in_image(masked_chip, **hesaff_params)
     num_kpts = kpts.shape[0]
     return (num_kpts, kpts, vecs)
+
+
+class FeatWeightConfig(dtool.TableConfig):
+    _param_info_list = []
+
+
+#@register_preproc(
+#    tablename='featweight', parents=['feat', 'probchip'],
+#    colnames=['fwg'],
+#    coltypes=[np.ndarray],
+#    configclass=FeatWeightConfig,
+#    fname='featcache',
+#    version=0
+#)
+def compute_fgweights(depc, fid_list, pcid_list, config=None):
+    """
+    Args:
+        depc (dtool.DependencyCache): depc
+        fid_list (list):
+        config (None): (default = None)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> full_config = {}
+        >>> config = FeatureConfig()
+        >>> fid_list = depc.get_rowids('feat', aid_list, config=full_config)
+        >>> pcid_list = depc.get_rowids('probchip', aid_list, config=full_config)
+        >>> featweight_list = compute_fgweights(ibs, fid_list, pcid_list)
+        >>> result = np.array_str(featweight_list[0][0:3], precision=3)
+        >>> print(result)
+        [ 0.125  0.061  0.053]
+    """
+    nTasks = len(fid_list)
+    print('[preproc_featweight.compute_fgweights] Preparing to compute %d fgweights' % (nTasks,))
+    #aid_list = depc.get_ancestor_rowids('feat', fid_list, 'annotations')
+    #probchip_fpath_list = depc.get(aid_list, 'img', config={}, read_extern=False)
+    probchip_list = depc.get_native('probchip', pcid_list, 'img')
+    cid_list = depc.get_ancestor_rowids('feat', fid_list, 'chips')
+    chipsize_list = depc.get_native('chips', cid_list, ('width', 'height'))
+    kpts_list = depc.get_native('feat', fid_list, 'kpts')
+    # Force grayscale reading of chips
+    print('[preproc_featweight.compute_fgweights] Computing %d fgweights' % (nTasks,))
+    arg_iter = zip(kpts_list, probchip_list, chipsize_list)
+    #featweight_gen = ut.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10)
+    featweight_gen = ut.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10, force_serial=True)
+    featweight_list = list(featweight_gen)
+    print('[preproc_featweight.compute_fgweights] Done computing %d fgweights' % (nTasks,))
+    for fw in featweight_list:
+        yield (fw,)
+
+
+def gen_featweight_worker(tup):
+    """
+    Function to be parallelized by multiprocessing / joblib / whatever.
+    Must take in one argument to be used by multiprocessing.map_async
+
+    Args:
+        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
+           aid, kpts, probchip_fpath
+
+    CommandLine:
+        python -m ibeis.core --test-gen_featweight_worker --show
+        python -m ibeis.core --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
+        python -m ibeis.core --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core import *  # NOQA
+        >>> #test_featweight_worker()
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> aid_list = aid_list[0:1]
+        >>> config = {}
+        >>> probchip = depc.get('probchip', aid_list, 'img', config)[0]
+        >>> chipsize = depc.get('chips', aid_list, ('width', 'height'), config)[0]
+        >>> kpts = depc.get('feat', aid_list, 'kpts', config)[0]
+        >>> tup = (kpts, probchip, chipsize)
+        >>> weights = gen_featweight_worker(tup)
+        >>> chip = depc.get('chips', aid_list, 'img', config)[0]
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pnum_ = pt.make_pnum_nextgen(1, 3)
+        >>> fnum = 1
+        >>> pt.figure(fnum=fnum, doclf=True)
+        >>> pt.imshow(chip, pnum=pnum_(0), fnum=fnum)
+        >>> if ut.get_argflag('--numlbl'):
+        >>>     pt.gca().set_xlabel('(1)')
+        >>> pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
+        >>> if ut.get_argflag('--numlbl'):
+        >>>     pt.gca().set_xlabel('(2)')
+        >>> pt.imshow(chip, pnum=pnum_(1), fnum=fnum)
+        >>> color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)
+        >>> cb = pt.colorbar(weights, color_list)
+        >>> cb.set_label('featweights')
+        >>> if ut.get_argflag('--numlbl'):
+        >>>     pt.gca().set_xlabel('(3)')
+        >>> pt.draw()
+        >>> pt.show_if_requested()
+    """
+    (kpts, probchip, chipsize) = tup
+    if probchip is None:
+        # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
+        weights = np.full(len(kpts), .25, dtype=np.float32)
+    else:
+        sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
+        kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
+        #vtpatch.get_warped_patches()
+        # VERY SLOW
+        patch_list  = [vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts_]
+        weight_list = [vt.gaussian_average_patch(patch) for patch in patch_list]
+        #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+        weights = np.array(weight_list, dtype=np.float32)
+    return weights
 
 
 if __name__ == '__main__':
