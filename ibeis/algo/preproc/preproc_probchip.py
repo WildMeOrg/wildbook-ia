@@ -603,7 +603,7 @@ def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_
     ]
     bbox_pcs = bbox_cs_list[index]
     aid = aid_list[0]
-    print('new_size = %r' % (new_size,))
+    #print('new_size = %r' % (new_size,))
     print('newsize_list[index] = %r' % (newsize_list[index],))
 
     fnum = 1

@@ -73,9 +73,9 @@ from ibeis.control.controller_inject import register_preproc
 def testdata_core():
     import ibeis
     # import plottool as pt
-    ibs = ibeis.opendb('testdb1')
+    ibs = ibeis.opendb(defaultdb='testdb1')
     depc = ibs.depc
-    aid_list = ibs.get_valid_aids()[0:2]
+    aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=ibs.get_valid_aids()[0:2])
     return ibs, depc, aid_list
 
 
@@ -297,10 +297,20 @@ def compute_annotmask(depc, aid_list, config=None):
 
 
 class ProbchipConfig(dtool.TableConfig):
+    # TODO: incorporate into base
+    _named_defaults = {
+        'rf': {
+            'detector': 'rf',
+            'smooth_thresh': None,
+            'smooth_ksize': None,
+        }
+    }
     _param_info_list = [
         #ut.ParamInfo('preserve_aspect', True, hideif=True),
         ut.ParamInfo('detector', 'cnn'),
         ut.ParamInfo('dim_size', 256),
+        ut.ParamInfo('smooth_thresh', 20),
+        ut.ParamInfo('smooth_ksize', 20, hideif=lambda cfg: cfg['smooth_thresh'] is None),
         #ut.ParamInfo('ext', '.png'),
     ]
     #_sub_config_list = [
@@ -308,26 +318,36 @@ class ProbchipConfig(dtool.TableConfig):
     #]
 
 
+@register_preproc(
+    tablename='probchip', parents=['annotations'],
+    colnames=['img'],
+    coltypes=[('extern', vt.imread, vt.imwrite)],
+    configclass=ProbchipConfig,
+    fname='chipcache4',
+    # isinteractive=True,
+)
 def compute_probchip(depc, aid_list, config=None):
     """ Computes probability chips using pyrf
 
     CommandLine:
-        python -m ibeis.core --test-compute_probchip --nocnn --show
+        python -m ibeis.core --test-compute_probchip --nocnn --show --db PZ_MTEST
+        python -m ibeis.core --test-compute_probchip --show --detector=cnn
+        python -m ibeis.core --test-compute_probchip --show --detector=rf --smooth_thresh=None
 
     Example1:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> depc = ibs.depc
-        >>> config = ProbchipConfig.from_argv_dict(detector='rf')
-        >>> aid_list = ibs.get_valid_aids(species='zebra_plains')
-        >>> probchip_fpath_list_ = compute_probchip(depc, aid_list, config)
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
+        >>> config = ProbchipConfig.from_argv_dict(detector='rf', smooth_thresh=None)
+        >>> probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4)
+        >>> xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
         >>> ut.show_if_requested()
     """
     import vtool as vt
@@ -338,16 +358,17 @@ def compute_probchip(depc, aid_list, config=None):
     species_list = ibs.get_annot_species_texts(aid_list)
 
     detector = config['detector']
-    pad = 64
+    dim_size = config['dim_size']
+    smooth_thresh = config['smooth_thresh']
+    smooth_ksize = config['smooth_ksize']
 
     if detector == 'rf':
-        from ibeis.algo.detect import randomforest
+        pad = 64
+    else:
+        pad = 0
 
-    cfghashid = config.get_hashid()
     probchip_dir = ibs.get_probchip_dir() + '2'
-
-    chip_config = ChipConfig(pad=pad, dim_size=config['dim_size'])
-    mchip_path_list = depc.get('chips', aid_list, 'img', config=chip_config, read_extern=False)
+    cfghashid = config.get_hashid()
 
     # TODO: just hash everything together
     ut.ensuredir(probchip_dir)
@@ -355,6 +376,9 @@ def compute_probchip(depc, aid_list, config=None):
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
     probchip_fpath_list = [ut.unixjoin(probchip_dir, _fmt.format(avuuid=avuuid))
                            for avuuid in annot_visual_uuid_list]
+
+    chip_config = ChipConfig(pad=pad, dim_size=dim_size)
+    mchip_path_list = depc.get('chips', aid_list, 'img', config=chip_config, read_extern=False)
 
     aid_list = np.array(aid_list)
     species_list = np.array(species_list)
@@ -368,68 +392,82 @@ def compute_probchip(depc, aid_list, config=None):
     grouped_ppaths = ut.apply_grouping(probchip_fpath_list, groupxs)
     unique_species = ut.get_list_column(grouped_species, 0)
 
-    nSpecies = len(unique_species)
-    nTasks = len(aid_list)
-    print(('[preproc_probchip.compute_and_write_probchip] '
-          'Preparing to compute %d probchips of %d species')
-          % (nTasks, nSpecies))
-
-    grouped_probchip_fpath_list = []
     if ut.VERBOSE:
         print('[preproc_probchip] +--------------------')
+    print(('[preproc_probchip.compute_and_write_probchip] '
+          'Preparing to compute %d probchips of %d species')
+          % (len(aid_list), len(unique_species)))
+    print(config)
 
-
+    grouped_probchip_fpath_list = []
     _iter = zip(grouped_aids, unique_species, grouped_ppaths, grouped_mpaths)
-    for aids, species, probchip_fpaths, margin_fpaths in _iter:
-        if ut.VERBOSE:
-            print('[preproc_probchip] Computing probchips for species=%r' % species)
-            print('[preproc_probchip] |--------------------')
-        if len(aids) == 0:
-            continue
-        # No filtering
-        if detector == 'rf':
-            probchip_extramargin_fpath_list = [ut.augpath(path, 'margin') for path in probchip_fpaths]
-            #dirty_cfpath_list  = ibs.get_annot_chip_fpath(aids, ensure=True, config2_=config2_)
+    _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
+                        lbl='probchip for species', enabled=ut.VERBOSE)
 
-            config = {
-                'scale_list': [1.0],
-                'output_gpath_list': probchip_extramargin_fpath_list,
-                'mode': 1,
-            }
-            probchip_generator = randomforest.detect_gpath_list_with_species(
-                ibs, margin_fpaths, species, **config)
-            # Evalutate genrator until completion
-            ut.evaluate_generator(probchip_generator)
-            extramargin_mask_gen = (
-                vt.imread(fpath, grayscale=True) for fpath in probchip_extramargin_fpath_list
-            )
-            # Crop the extra margin off of the new probchips
-            _iter = zip(probchip_fpath_list,
-                        extramargin_mask_gen)
-            for (probchip_fpath, extramargin_probchip) in _iter:
-                half_w, half_h = (pad, pad)
-                probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
-                vt.imwrite(probchip_fpath, probchip)
-        elif detector == 'cnn':
-            # dont use extrmargin here (for now)
-            mask_gen = ibs.generate_species_background_mask(margin_fpaths, species)
-            _iter = zip(probchip_fpath_list, mask_gen)
-            for chunk in ut.ichunks(_iter, 64):
-                _progiter = ut.ProgIter(chunk, lbl='write probchip chunk', adjust=True, time_thresh=30.0)
-                for probchip_fpath, probchip in _progiter:
-                    probchip = postprocess_mask(probchip)
-                    vt.imwrite(probchip_fpath, probchip)
-        grouped_probchip_fpath_list.append(probchip_fpaths)
+    if detector == 'rf':
+        for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
+            if len(aids) == 0:
+                continue
+            rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
+                         smooth_thresh, smooth_ksize)
+            grouped_probchip_fpath_list.append(probchip_fpaths)
+    elif detector == 'cnn':
+        for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
+            if len(aids) == 0:
+                continue
+            cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths,
+                          smooth_thresh, smooth_ksize)
+            grouped_probchip_fpath_list.append(probchip_fpaths)
+    else:
+        raise NotImplementedError('unknown detector=%r' % (detector,))
+
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
 
     probchip_fpath_list = vt.invert_apply_grouping2(
         grouped_probchip_fpath_list, groupxs, dtype=object)
-    return probchip_fpath_list
+
+    for fpath in probchip_fpath_list:
+        yield (fpath,)
 
 
-def postprocess_mask(mask):
+def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_thresh, smooth_ksize):
+    # dont use extrmargin here (for now)
+    mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
+    _iter = zip(probchip_fpath_list, mask_gen)
+    for chunk in ut.ichunks(_iter, 64):
+        _progiter = ut.ProgIter(chunk, lbl='write probchip chunk', adjust=True, time_thresh=30.0)
+        for probchip_fpath, probchip in _progiter:
+            if smooth_thresh is not None and smooth_ksize is not None:
+                probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
+            vt.imwrite(probchip_fpath, probchip)
+
+
+def rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
+                 smooth_thresh, smooth_ksize):
+    from ibeis.algo.detect import randomforest
+    extramargin_probchip_fpaths = [ut.augpath(path, '_margin')
+                                   for path in probchip_fpaths]
+    rfconfig = {'scale_list': [1.0], 'mode': 1,
+                'output_gpath_list': extramargin_probchip_fpaths}
+    probchip_generator = randomforest.detect_gpath_list_with_species(
+        ibs, inputchip_fpaths, species, **rfconfig)
+    # Evalutate genrator until completion
+    ut.evaluate_generator(probchip_generator)
+    extramargin_mask_gen = (vt.imread(fpath, grayscale=True)
+                            for fpath in extramargin_probchip_fpaths)
+    # Crop the extra margin off of the new probchips
+    _iter = zip(probchip_fpaths, extramargin_mask_gen)
+    for (probchip_fpath, extramargin_probchip) in _iter:
+        half_w, half_h = (pad, pad)
+        probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
+        if smooth_thresh is not None and smooth_ksize is not None:
+            probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
+        vt.imwrite(probchip_fpath, probchip)
+
+
+def postprocess_mask(mask, thresh=20, kernel_size=20):
     r"""
     Args:
         mask (ndarray):
@@ -438,40 +476,28 @@ def postprocess_mask(mask):
         ndarray: mask2
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_probchip --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
-        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970
-        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970 --adapteq=True
-        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1 --aid 9970 --adapteq=True
-        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1
+        python -m ibeis.core --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
+        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
 
     SeeAlso:
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> import ibeis_cnn
-        >>> import ibeis
-        >>> import vtool as vt
+        >>> from ibeis.core import *  # NOQA
         >>> import plottool as pt
         >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=[10])
-        >>> default_config = dict(ibs.cfg.chip_cfg.parse_items())
-        >>> cfgdict = ut.argparse_dict(default_config)
-        >>> config2_ = ibs.new_query_params(cfgdict=cfgdict)
-        >>> chip_fpath = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)[0]
-        >>> chip = vt.imread(chip_fpath)
-        >>> #species = ibs.const.TEST_SPECIES.ZEB_PLAIN
-        >>> species = ibs.get_primary_database_species()
-        >>> print('species = %r' % (species,))
-        >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath], species))
-        >>> mask = mask_list[0]
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> config = ChipConfig.from_argv_dict()
+        >>> probchip_config = ProbchipConfig(smooth_thresh=None)
+        >>> chip = ibs.depc.get('chips', aid_list, 'img', config)[0]
+        >>> mask = ibs.depc.get('probchip', aid_list, 'img', probchip_config)[0]
         >>> mask2 = postprocess_mask(mask)
         >>> ut.quit_if_noshow()
         >>> fnum = 1
-        >>> pt.imshow(chip, pnum=(1, 3, 1), fnum=fnum)
-        >>> pt.imshow(mask, pnum=(1, 3, 2), fnum=fnum, title='before')
-        >>> pt.imshow(mask2, pnum=(1, 3, 3), fnum=fnum, title='after')
+        >>> pt.imshow(chip, pnum=(1, 3, 1), fnum=fnum, xlabel=str(chip.shape))
+        >>> pt.imshow(mask, pnum=(1, 3, 2), fnum=fnum, title='before', xlabel=str(mask.shape))
+        >>> pt.imshow(mask2, pnum=(1, 3, 3), fnum=fnum, title='after', xlabel=str(mask2.shape))
         >>> ut.show_if_requested()
     """
     import cv2
@@ -486,6 +512,181 @@ def postprocess_mask(mask):
     mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernel)
     mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
     return mask2
+
+
+class FeatureConfig(dtool.TableConfig):
+    """
+        >>> from ibeis.core import *  # NOQA
+        >>> feat_cfg = FeatureConfig()
+        >>> result = str(feat_cfg)
+        >>> print(result)
+        <FeatureConfig(hesaff+sift,scale_max=40)>
+    """
+
+    def get_param_info_list(self):
+        import pyhesaff
+        default_keys = list(pyhesaff.get_hesaff_default_params().keys())
+        default_items = list(pyhesaff.get_hesaff_default_params().items())
+        param_info_list = [
+            ut.ParamInfo('feat_type', 'hesaff+sift', ''),
+            ut.ParamInfo('bgmethod', None, hideif=None)
+        ]
+        param_info_dict = {
+            name: ut.ParamInfo(name, default, hideif=default)
+            for name, default in default_items
+        }
+        param_info_dict['scale_max'].default = 50
+        param_info_list += ut.dict_take(param_info_dict, default_keys)
+        return param_info_list
+
+
+@register_preproc(
+    tablename='feat', parents=['chips'],
+    colnames=['kpts', 'vecs', 'num_feats'],
+    coltypes=[np.ndarray, np.ndarray, int],
+    configclass=FeatureConfig,
+    fname='featcache',
+    version=0
+)
+def compute_feats(ibs, cid_list, config=None):
+    r"""
+    Computes features and yields results asynchronously: TODO: Remove IBEIS from
+    this equation. Move the firewall towards the controller
+
+    Args:
+        ibs (IBEISController):
+        cid_list (list):
+        nInput (None):
+
+    Returns:
+        generator : generates param tups
+
+    SeeAlso:
+        ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
+
+    CommandLine:
+        python -m ibeis.core --test-compute_feats:0 --show
+        python -m ibeis.core --test-compute_feats:1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> config = {}
+        >>> cid_list = ibs.depc.get_rowids('chips', aid_list, config=config)
+        >>> featgen = compute_feats(ibs, cid_list, config, nInput)
+        >>> feat_list = list(featgen)
+        >>> assert len(feat_list) == len(aid_list)
+        >>> (nFeat, kpts, vecs) = feat_list[0]
+        >>> assert nFeat == len(kpts) and nFeat == len(vecs)
+        >>> assert kpts.shape[1] == 6
+        >>> assert vecs.shape[1] == 128
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> chip_fpath = ibs.depc.get('chips', aid_list[0], 'img', config=config, read_extern=False)
+        >>> pt.interact_keypoints.KeypointInteraction(chip_fpath, kpts, vecs, autostart=True)
+        >>> ut.show_if_requested()
+    """
+    nInput = len(cid_list)
+    feat_cfgstr     = config.get('feat_cfgstr')
+    hesaff_params   = config.get('hesaff_params')
+    feat_type       = config.get('feat_type')
+    bgmethod        = config.get('bgmethod')
+    assert feat_cfgstr is not None
+    assert hesaff_params is not None
+
+    ut.assert_all_not_None(cid_list, 'cid_list')
+    chip_fpath_list = ibs.get_chip_fpath(cid_list, check_external_storage=True)
+
+    if bgmethod is not None:
+        aid_list = ibs.get_chip_aids(cid_list)
+        probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)
+    else:
+        probchip_fpath_list = (None for _ in range(nInput))
+
+    if ut.NOT_QUIET:
+        print('[preproc_feat] feat_cfgstr = %s' % feat_cfgstr)
+        if ut.VERYVERBOSE:
+            print('hesaff_params = ' + ut.dict_str(hesaff_params))
+
+    if feat_type == 'hesaff+sift':
+        # Multiprocessing parallelization
+        dictargs_iter = (hesaff_params for _ in range(nInput))
+        arg_iter = zip(chip_fpath_list, probchip_fpath_list, dictargs_iter)
+        # eager evaluation.
+        # TODO: Check if there is any benefit to just passing in the iterator.
+        arg_list = list(arg_iter)
+        featgen = ut.util_parallel.generate(gen_feat_worker, arg_list, nTasks=nInput, freq=10, ordered=True)
+    elif feat_type == 'hesaff+siam128':
+        from ibeis_cnn import _plugin
+        assert bgmethod is None, 'not implemented'
+        assert False, 'not implemented'
+        featgen = _plugin.generate_siam_l2_128_feats(ibs, cid_list, config=config)
+    else:
+        raise AssertionError('unknown feat_type=%r' % (feat_type,))
+
+    for nFeat, kpts, vecs in featgen:
+        yield (nFeat, kpts, vecs,)
+
+
+def gen_feat_worker(tup):
+    r"""
+    Function to be parallelized by multiprocessing / joblib / whatever.
+    Must take in one argument to be used by multiprocessing.map_async
+
+    Args:
+        tup (tuple):
+
+    Returns:
+        tuple: (None, kpts, vecs)
+
+    CommandLine:
+        python -m ibeis.core --exec-gen_feat_worker --show
+        python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
+        python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --bgmethod=None  --scale_max=30
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> aid = aid_list[0]
+        >>> config = {}
+        >>> feat_config = FeatureConfig.from_argv_dict()
+        >>> chip_fpath = ibs.depc.get('chips', aid_list[0], 'img', config=config, read_extern=False)
+        >>> bgmethod = ut.get_argval('--bgmethod', type_=str, default='cnn')
+        >>> probchip_fpath = ibs.depc.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['bgmethod'] == 'cnn' else None
+        >>> hesaff_params = feat_config.asdict()
+        >>> # Exec function source
+        >>> tup = (chip_fpath, probchip_fpath, hesaff_params)
+        >>> masked_chip, num_kpts, kpts, vecs = ut.exec_func_src(
+        >>>     gen_feat_worker, key_list=['masked_chip', 'num_kpts', 'kpts', 'vecs'],
+        >>>     sentinal='num_kpts = kpts.shape[0]')
+        >>> result = ('(num_kpts, kpts, vecs) = %s' % (ut.repr2((num_kpts, kpts, vecs)),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> from plottool.interactions import ExpandableInteraction
+        >>> interact = ExpandableInteraction()
+        >>> interact.append_plot(pt.interact_keypoints.KeypointInteraction(masked_chip, kpts, vecs))
+        >>> interact.append_plot(lambda **kwargs: pt.plot_score_histograms([vt.get_scales(kpts)], **kwargs))
+        >>> interact.start()
+        >>> ut.show_if_requested()
+    """
+    import pyhesaff
+    #import numpy as np
+    #import vtool as vt
+    chip_fpath, probchip_fpath, hesaff_params = tup
+    chip = vt.imread(chip_fpath)
+    if probchip_fpath is not None:
+        probchip = vt.imread(probchip_fpath, grayscale=True)
+        probchip = vt.resize_mask(probchip, chip)
+        #vt.blend_images_multiply(chip, probchip)
+        masked_chip = (chip * (probchip[:, :, None].astype(np.float32) / 255)).astype(np.uint8)
+    else:
+        masked_chip = chip
+    kpts, vecs = pyhesaff.detect_kpts_in_image(masked_chip, **hesaff_params)
+    num_kpts = kpts.shape[0]
+    return (num_kpts, kpts, vecs)
 
 
 if __name__ == '__main__':
