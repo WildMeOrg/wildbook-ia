@@ -340,6 +340,92 @@ def apply_filter_funcs(chipBGR, filter_funcs):
         chipBGR_ = func(chipBGR)
     return chipBGR_
 
+
+def get_extramargin_measures(bbox, new_size, factor=4):
+    r"""
+    Computes a detection chip with a bit of spatial context so the detection
+    algorithm doesn't clip boundaries
+
+    CommandLine:
+        python -m vtool.chip --test-get_extramargin_measures --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.chip import *  # NOQA
+        >>> gfpath = ut.grab_test_imgpath('carl.jpg')
+        >>> bbox = [40, 40, 150, 150]
+        >>> theta = .15 * (np.pi * 2)
+        >>> new_size = (150, 150)
+        >>> factor = 4
+        >>> tup = get_extramargin_measures(bbox, new_size, factor)
+        >>> expanded_bbox_gs, expanded_new_size, halfoffset_cs = tup
+        >>> ut.quit_if_noshow()
+        >>> testshow_extramargin_info(gfpath, bbox, theta, new_size, expanded_bbox_gs, halfoffset_cs)
+    """
+    # There are two spaces we are working in here
+    # probchipspace _pcs (the space of the margined chip computed for probchip)
+    # and imagespace _gs (the space using in bbox specification)
+    x_gs, y_gs, w_gs, h_gs = bbox
+    if w_gs == 0 or  h_gs == 0:
+        msg = ("REMOVE INVALID (BAD WIDTH AND/OR HEIGHT)")
+        print(msg)
+        raise Exception(msg)
+    # Compute the offset we would like in chip space for margin expansion
+    # TODO: Find correct offsets
+    # new_size = get_scaled_size_with_width(target_width, *bbox_size)
+    # w, h = new_size
+    halfoffset_cs = (16 * factor, 16 * factor)  # (w / 16, h / 16)
+    # Compute expanded newsize list to include the extra margin offset
+    w_pcs, h_pcs = new_size
+    xo_pcs, yo_pcs = halfoffset_cs
+    expanded_new_size = (w_pcs + (2 * xo_pcs), h_pcs + (2 * yo_pcs))
+    # Get the conversion from chip to image space
+    to_imgspace_scale_factor = (w_gs / w_pcs, h_gs / h_pcs)
+    sx, sy = to_imgspace_scale_factor
+    xo, yo = halfoffset_cs
+    # Convert the chip offsets to image space
+    halfoffset_gs = ((sx * xo), (sy * yo))
+    # Find the size of the expanded margin bbox in image space
+    xo_gs, yo_gs = halfoffset_gs
+    expanded_bbox_gs = (x_gs - xo_gs, y_gs - yo_gs,
+                        w_gs + (2 * xo_gs), h_gs + (2 * yo_gs))
+    return expanded_bbox_gs, expanded_new_size, halfoffset_cs
+
+
+def testshow_extramargin_info(gfpath, bbox, theta, new_size, expanded_bbox_gs, halfoffset_cs):
+    import plottool as pt
+    import vtool as vt
+
+    imgBGR = vt.imread(gfpath)
+    chipBGR = compute_chip(gfpath, bbox, theta, new_size, [])
+    expanded_chipBGR = compute_chip(gfpath, expanded_bbox_gs, theta, new_size, [])
+
+    #index = 0
+    w_pcs, h_pcs = new_size
+    xo_pcs, yo_pcs = halfoffset_cs
+    bbox_pcs = [xo_pcs, yo_pcs, w_pcs, h_pcs]
+
+    verts_gs = vt.scaled_verts_from_bbox(bbox, theta, 1, 1)
+    expanded_verts_gs = vt.scaled_verts_from_bbox(expanded_bbox_gs, theta, 1, 1)
+    # topheavy
+    imgBGR = vt.draw_verts(imgBGR, verts_gs[0:2], color=(0, 0, 0), thickness=8)
+    imgBGR = vt.draw_verts(imgBGR, verts_gs)
+    imgBGR = vt.draw_verts(imgBGR, expanded_verts_gs)
+
+    expanded_verts_pcs = vt.scaled_verts_from_bbox(bbox_pcs, theta, 1, 1)
+    expanded_chipBGR = vt.draw_verts(expanded_chipBGR, expanded_verts_pcs)
+
+    fnum = 1
+    pt.imshow(imgBGR, pnum=(1, 3, 1), fnum=fnum, title='original image')
+    pt.imshow(chipBGR, pnum=(1, 3, 2), fnum=fnum, title='original chip')
+    pt.imshow(expanded_chipBGR, pnum=(1, 3, 3), fnum=fnum,
+              title='scaled chip with expanded margin.\n(orig margin drawn in orange)')
+
+    pt.show_if_requested()
+    #pt.imshow(chipBGR)
+
+
+
 if __name__ == '__main__':
     """
     CommandLine:

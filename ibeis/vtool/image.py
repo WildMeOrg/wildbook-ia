@@ -942,7 +942,7 @@ def resize_thumb(img, max_dsize=(64, 64)):
         return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
 
 
-def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy):
+def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
     r"""
     Helps with drawing scaled bbounding boxes on thumbnails
 
