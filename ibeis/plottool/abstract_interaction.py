@@ -77,10 +77,11 @@ class AbstractInteraction(object):
 
         autostart = kwargs.get('autostart', False)
         if autostart:
-            self._ensure_running()
+            self.start()
 
     def _start_interaction(self):
-        self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+        #self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+        self.fig = df2.figure(fnum=self.fnum, doclf=True)
         ih.connect_callback(self.fig, 'close_event', self.on_close)
         register_interaction(self)
         self.is_running = True

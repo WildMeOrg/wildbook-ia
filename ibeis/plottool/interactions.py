@@ -52,13 +52,23 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                     px = (rx * self.nCols) + cx + 1
                 pnum = (self.nRows, self.nCols, px)
             else:
-                pnum = self._pnumiter()
+                if self._pnumiter is None:
+                    pnum = None
+                else:
+                    pnum = self._pnumiter()
         self.pnum_list.append(pnum)
         self.func_list.append(func)
         self.ishow_func_list.append(ishow_func)
 
     def show_page(self):
         fig = ih.begin_interaction('expandable', self.fnum)
+        if not any(self.pnum_list) and self.nRows is None and self.nRows is None:
+            # Hack if no pnum was given
+            import plottool as pt
+            self.nRows, self.nCols = pt.get_square_row_cols(len(self.pnum_list))
+            pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols)
+            self.pnum_list = [pnum_() for _ in self.pnum_list]
+
         for index, (pnum, func) in enumerate(zip(self.pnum_list, self.func_list)):
             if check_if_subinteract(func):
                 # Hack

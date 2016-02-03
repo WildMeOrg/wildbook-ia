@@ -13,12 +13,94 @@ from plottool import abstract_interaction
 
 
 class KeypointInteraction(abstract_interaction.AbstractInteraction):
-    pass
+    r"""
+    CommandLine:
+        python -m plottool.interact_keypoints --exec-KeypointInteraction --show
+        python -m plottool.interact_keypoints --exec-KeypointInteraction --show --fname=lena.png
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.interact_keypoints import *  # NOQA
+        >>> import numpy as np
+        >>> import plottool as pt
+        >>> import utool as ut
+        >>> import pyhesaff
+        >>> import vtool as vt
+        >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
+        >>> ut.quit_if_noshow()
+        >>> #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
+        >>> pt.interact_keypoints.KeypointInteraction(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, autostart=True)
+        >>> pt.show_if_requested()
+    """
+
+    def __init__(self, chip, kpts, vecs, fnum=0, figtitle=None, **kwargs):
+        self.chip = chip
+        self.kpts = kpts
+        self.vecs = vecs
+        self.figtitle = figtitle
+        self.mode = 0
+        super(KeypointInteraction, self).__init__(**kwargs)
+
+    def plot(self, fnum=None, pnum=(1, 1, 1), **kwargs):
+        import plottool as pt
+        fnum = pt.ensure_fnum(fnum)
+        pt.figure(fnum=fnum, docla=True, doclf=True)
+        show_keypoints(self.chip, self.kpts, fnum=fnum, pnum=pnum, **kwargs)
+        if self.figtitle is not None:
+            pt.set_figtitle(self.figtitle)
+
+    def _select_ith_kpt(self, fx):
+        print('[interact] viewing ith=%r keypoint' % fx)
+        # Get the fx-th keypiont
+        kp, sift = self.kpts[fx], self.vecs[fx]
+        # Draw the image with keypoint fx highlighted
+        self.plot(self.fnum, (2, 1, 1), sel_fx=fx)
+        # Draw the selected feature
+        nRows, nCols, px = (2, 3, 3)
+        draw_feat_row(self.chip, fx, kp, sift, self.fnum, nRows, nCols, px, None)
+
+    def on_click_outside(self, event):
+        self.mode = (self.mode + 1) % 3
+        ell = self.mode == 1
+        pts = self.mode == 2
+        print('... default kpts view mode=%r' % self.mode)
+        self.plot(self.fnum, ell=ell, pts=pts)
+        self.draw()
+
+    def on_click_inside(self, event, ax):
+        import plottool as pt
+        viztype = ph.get_plotdat(ax, 'viztype', None)
+        print('[ik] viztype=%r' % viztype)
+        if viztype is None:
+            pass
+        elif viztype == 'keypoints':
+            kpts = ph.get_plotdat(ax, 'kpts', [])
+            if len(kpts) == 0:
+                print('...nokpts')
+            else:
+                print('...nearest')
+                x, y = event.xdata, event.ydata
+                fx = ut.nearest_point(x, y, kpts)[0]
+                self._select_ith_kpt(fx)
+        elif viztype == 'warped':
+            hs_fx = ph.get_plotdat(ax, 'fx', None)
+            if hs_fx is not None:
+                kp = self.kpts[hs_fx]  # FIXME
+                sift = self.vecs[hs_fx]
+                df2.draw_keypoint_gradient_orientations(self.chip, kp,
+                                                        sift=sift, mode='vec',
+                                                        fnum=pt.next_fnum())
+                pt.draw()
+        elif viztype.startswith('colorbar'):
+            pass
+        else:
+            print('...unhandled')
+        self.draw()
 
 
 def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
     """
-    TODO: make into a class
+    TODO: Depricate in favor of the class
 
     CommandLine:
         python -m plottool.interact_keypoints --test-ishow_keypoints --show
@@ -46,12 +128,13 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
 
     self = ut.DynStruct()  # MOVE TO A CLASS INTERACTION
     self.kpts = kpts
-    self.desc = desc
+    vecs = desc
+    self.vecs = vecs
 
     def _select_ith_kpt(fx):
         print('[interact] viewing ith=%r keypoint' % fx)
         # Get the fx-th keypiont
-        kp, sift = kpts[fx], desc[fx]
+        kp, sift = kpts[fx], vecs[fx]
         # Draw the image with keypoint fx highlighted
         _viz_keypoints(fnum, (2, 1, 1), sel_fx=fx, **kwargs)  # MAYBE: remove kwargs
         # Draw the selected feature
@@ -92,7 +175,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                 if hs_fx is not None:
                     # Ugly. Interactions should be changed to classes.
                     kp = self.kpts[hs_fx]  # FIXME
-                    sift = self.desc[hs_fx]
+                    sift = self.vecs[hs_fx]
                     df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift, mode='vec',
                                                             fnum=df2.next_fnum())
             elif viztype.startswith('colorbar'):

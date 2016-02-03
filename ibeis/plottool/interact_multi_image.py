@@ -46,7 +46,7 @@ class MultiImageInteraction(BASE_CLASS):
 
     def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
                  thetas_list=None, verts_list=None, gid_list=None, nImgs=None,
-                 fnum=None, context_option_funcs=None):
+                 fnum=None, context_option_funcs=None, xlabel_list=None):
         # TODO: overlay function or draw function using a metadata object
         print('Creating multi-image interaction')
 
@@ -58,9 +58,8 @@ class MultiImageInteraction(BASE_CLASS):
         self.context_option_funcs = context_option_funcs
         if nImgs is None:
             nImgs = len(gpath_list)
-        if BASE_CLASS is object:
-            if fnum is None:
-                self.fnum = df2.next_fnum()
+        #if BASE_CLASS is object:
+        #    self.fnum = df2.ensure_fnum(fnum)
         if bboxes_list is None:
             bboxes_list = [[]] * nImgs
         if thetas_list is None:
@@ -68,6 +67,7 @@ class MultiImageInteraction(BASE_CLASS):
         # How many images we are showing and per page
         self.thetas_list = thetas_list
         self.bboxes_list = bboxes_list
+        self.xlabel_list = xlabel_list
         if gid_list is None:
             self.gid_list = None
         else:
@@ -84,7 +84,8 @@ class MultiImageInteraction(BASE_CLASS):
         self.scope = []
         self.current_pagenum = 0
         self.nPages = vt.iceil(self.nImgs / nPerPage)
-        self.show_page()
+        #self.show_page()
+        self.start()
 
     def make_hud(self):
         """ Creates heads up display """
@@ -123,8 +124,9 @@ class MultiImageInteraction(BASE_CLASS):
         self.stop_index = self.start_index + self.nDisplay
         # Clear current figure
         self.clean_scope()
-        self.fig = df2.figure(fnum=self.fnum, pnum=self.pnum_(0),
-                              doclf=True, docla=True)
+        self.fig = df2.figure(fnum=self.fnum, pnum=self.pnum_(0), doclf=True, docla=False)
+        # For some reason clf isn't working correctly in figure
+        self.fig.clf()
         ih.disconnect_callback(self.fig, 'button_press_event')
         ih.connect_callback(self.fig, 'button_press_event',
                             self.on_click)
@@ -183,6 +185,9 @@ class MultiImageInteraction(BASE_CLASS):
             #print(utool.dict_str(_vizkw))
             #print('vizkw = ' + utool.dict_str(_vizkw))
             _, ax = viz_image2.show_image(img, **_vizkw)
+            if self.xlabel_list is not None:
+                import plottool as pt
+                pt.set_xlabel(self.xlabel_list[index])
             #print(index)
             ph.set_plotdat(ax, 'bbox_list', bbox_list)
             ph.set_plotdat(ax, 'gpath', gpath)

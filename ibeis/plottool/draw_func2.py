@@ -2548,7 +2548,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
            data_colorbar=False, darken=DARKEN, update=False,
-           redraw_image=True, ax=None, alpha=None, **kwargs):
+           xlabel=None, redraw_image=True, ax=None, alpha=None, **kwargs):
     """
     Args:
         img (ndarray): image data
@@ -2595,6 +2595,9 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
         ax = gca()
         nospecial = False
+        #ax.set_xticks([])
+        #ax.set_yticks([])
+        #return fig, ax
 
     if not redraw_image:
         return fig, ax
@@ -2689,6 +2692,9 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             cmap = 'hot'
         colors = scores_to_color(scores, cmap)
         colorbar(scores, colors)
+
+    if xlabel is not None:
+        custom_figure.set_xlabel(xlabel)
 
     if figtitle is not None:
         custom_figure.set_figtitle(figtitle)
