@@ -448,11 +448,11 @@ class Config(ut.NiceRepr, ut.DictLike):
     #    return config_name
 
     @classmethod
-    def from_argv_dict(cls):
+    def from_argv_dict(cls, **kwargs):
         """
         ut.parse_argv_cfg
         """
-        self = cls()
+        self = cls(**kwargs)
         new_vals = ut.parse_dict_from_argv(self)
         self.update(**new_vals)
         return self

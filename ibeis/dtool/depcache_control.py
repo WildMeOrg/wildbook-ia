@@ -647,7 +647,8 @@ class _CoreDependencyCache(object):
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
-                     ensure=True, _debug=None, recompute=False, recompute_all=False):
+                     ensure=True, _debug=None, recompute=False,
+                     recompute_all=False, read_extern=True):
         """
         Primary function to load or compute values in the dependency cache.
 
@@ -670,7 +671,9 @@ class _CoreDependencyCache(object):
             if _debug:
                 print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
             table = depc[tablename]
-            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug)
+            prop_list = table.get_row_data(tbl_rowids, colnames,
+                                           read_extern=read_extern,
+                                           _debug=_debug)
             if _debug:
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
