@@ -29,8 +29,7 @@ import vtool.image as gtool
 # VTool
 #import vtool.chip as ctool
 #import vtool.image as gtool
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[preproc_probchip]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_probchip]')
 
 
 def postprocess_dev():
@@ -544,32 +543,27 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
     halfoffset_cs_list = [
         # TODO: Find correct offsets
         (16 * FACTOR, 16 * FACTOR)  # (w / 16, h / 16)
-        for (w, h) in newsize_list
-    ]
+        for (w, h) in newsize_list ]
 
     # Compute expanded newsize list to include the extra margin offset
     expanded_newsize_list = [
         (w_pcs + (2 * xo_pcs), h_pcs + (2 * yo_pcs))
-        for (w_pcs, h_pcs), (xo_pcs, yo_pcs) in zip(newsize_list, halfoffset_cs_list)
-    ]
+        for (w_pcs, h_pcs), (xo_pcs, yo_pcs) in zip(newsize_list, halfoffset_cs_list) ]
 
     # Get the conversion from chip to image space
     to_imgspace_scale_factors = [
         (w_gs / w_pcs, h_gs / h_pcs)
-        for ((w_pcs, h_pcs), (w_gs, h_gs)) in zip(newsize_list, bbox_size_list)
-    ]
+        for ((w_pcs, h_pcs), (w_gs, h_gs)) in zip(newsize_list, bbox_size_list) ]
 
     # Convert the chip offsets to image space
     halfoffset_gs_list = [
         ((sx * xo), (sy * yo))
-        for (sx, sy), (xo, yo) in zip(to_imgspace_scale_factors, halfoffset_cs_list)
-    ]
+        for (sx, sy), (xo, yo) in zip(to_imgspace_scale_factors, halfoffset_cs_list) ]
 
     # Find the size of the expanded margin bbox in image space
     expanded_bbox_gs_list = [
         (x_gs - xo_gs, y_gs - yo_gs, w_gs + (2 * xo_gs), h_gs + (2 * yo_gs))
-        for (x_gs, y_gs, w_gs, h_gs), (xo_gs, yo_gs) in zip(bbox_list, halfoffset_gs_list)
-    ]
+        for (x_gs, y_gs, w_gs, h_gs), (xo_gs, yo_gs) in zip(bbox_list, halfoffset_gs_list) ]
 
     # TODO: make this work
     probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list,

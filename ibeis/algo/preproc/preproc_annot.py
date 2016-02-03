@@ -19,7 +19,7 @@ import utool as ut
 import uuid
 from vtool import geometry
 from ibeis import constants as const
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[preproc_annot]')
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
 
 
 def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):

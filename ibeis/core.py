@@ -31,6 +31,23 @@ NOTES:
 
         callback function adds the rowids to the table.
 
+Needed Tables:
+    Chip
+    NormChip
+    Feats
+    Keypoints
+    Descriptors
+    ProbChip
+
+    IdentifyQuery
+    NeighborIndex
+    QualityClassifier
+    ViewpointClassifier
+
+
+CommandLine:
+    python -m ibeis.control.IBEISControl --test-show_depc_digraph --show
+
 Setup:
     >>> from ibeis.core import *  # NOQA
     >>> import ibeis
@@ -60,88 +77,6 @@ def testdata_core():
     depc = ibs.depc
     aid_list = ibs.get_valid_aids()[0:2]
     return ibs, depc, aid_list
-
-
-class AnnotMaskConfig(dtool.TableConfig):
-    _param_info_list = [
-        ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
-        ut.ParamInfo('manual', True)
-    ]
-
-
-@register_preproc(
-    tablename='annotmask', parents=['annotations'],
-    colnames=['img', 'width', 'height'],
-    coltypes=[('extern', vt.imread, vt.imwrite), int, int],
-    configclass=AnnotMaskConfig,
-    fname='../maskcache2',
-    # isinteractive=True,
-)
-def compute_annotmask(depc, aid_list, config=None):
-    r"""
-    Interaction dispatcher for annotation masks.
-
-    Args:
-        depc (ibeis.depends_cache.DependencyCache):
-        aid_list (list):  list of annotation rowids
-        config (AnnotMaskConfig): (default = None)
-
-    Yields:
-        (uri, int, int): tup
-
-    CommandLine:
-        python -m ibeis.core --exec-compute_annotmask --show
-        python -m ibeis.core --exec-compute_annotmask --show --edit
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core()
-        >>> chip_config = ChipConfig(dim_size=None)
-        >>> edit = ut.get_argflag('--edit')
-        >>> mask = depc.get_property('annotmask', aid_list, 'img', recompute=edit)[0]
-        >>> chip = depc.get_property(const.CHIP_TABLE, aid_list, 'img', config=chip_config)[0]
-        >>> ut.quit_if_noshow()
-        >>> pt.imshow(vt.blend_images_multiply(chip, vt.resize_mask(mask, chip)), title='mask')
-        >>> pt.show_if_requested()
-    """
-    from plottool import interact_impaint
-    # TODO: Ensure interactive required cache words
-    # Keep manual things above the cache dir
-    mask_dpath = ut.unixjoin(depc.cache_dpath, '../ManualChipMask')
-    ut.ensuredir(mask_dpath)
-
-    ibs = depc.controller
-    #chip_config = ChipConfig(dim_size=None)
-    chip_config = ChipConfig(dim_size=config['dim_size'])
-    chip_imgs = depc.get_property('chips', aid_list, 'img',
-                                  config=chip_config)
-
-    cfghashid = config.get_hashid()
-    avuuid_list = ibs.get_annot_visual_uuids(aid_list)
-
-    # TODO: just hash everything together
-    ext = '.png'
-    _fmt = 'mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
-    fname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
-                   for aid, avuuid in zip(aid_list, avuuid_list)]
-
-    for img, fname, aid in zip(chip_imgs, fname_list, aid_list):
-        mask_fpath = ut.unixjoin(mask_dpath, fname)
-        if ut.checkpath(mask_fpath):
-            # Allow for editing on recompute
-            init_mask = vt.imread(mask_fpath)
-        else:
-            init_mask = None
-        mask = interact_impaint.impaint_mask2(img, init_mask=init_mask)
-        vt.imwrite(mask_fpath, mask)
-        print('imwrite')
-        w, h = vt.get_size(mask)
-
-        yield mask_fpath, w, h
-        # Remove the old chips
-        #ibs.delete_annot_chips([aid])
-        #ibs.delete_annot_chip_thumbs([aid])
 
 
 class ChipConfig(dtool.TableConfig):
@@ -178,6 +113,7 @@ def compute_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
+        python -m ibeis.core --exec-compute_chip --show
         python -m ibeis.core --exec-compute_chip --show --db humpbacks
 
     Example:
@@ -189,6 +125,8 @@ def compute_chip(depc, aid_list, config=None):
         >>> config = ChipConfig(dim_size=None)
         >>> aid_list = ibs.get_valid_aids()[0:20]
         >>> chips = depc.get_property('chips', aid_list, 'img', {})
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
         >>> pt.show_if_requested()
     """
@@ -197,8 +135,6 @@ def compute_chip(depc, aid_list, config=None):
 
     ibs = depc.controller
     chip_dpath = ibs.get_chipdir() + '2'
-    #if config is None:
-    #    config = ChipConfig()
 
     ut.ensuredir(chip_dpath)
 
@@ -260,6 +196,412 @@ def compute_chip(depc, aid_list, config=None):
         # Write chip to disk
         vt.imwrite(cfpath, chipBGR)
         yield (cfpath, width, height, M)
+
+
+class AnnotMaskConfig(dtool.TableConfig):
+    _param_info_list = [
+        ut.ParamInfo('manual', True)
+    ]
+    _sub_config_list = [
+        ChipConfig
+    ]
+
+
+@register_preproc(
+    tablename='annotmask', parents=['annotations'],
+    colnames=['img', 'width', 'height'],
+    coltypes=[('extern', vt.imread, vt.imwrite), int, int],
+    configclass=AnnotMaskConfig,
+    fname='../maskcache2',
+    # isinteractive=True,
+)
+def compute_annotmask(depc, aid_list, config=None):
+    r"""
+    Interaction dispatcher for annotation masks.
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        aid_list (list):  list of annotation rowids
+        config (AnnotMaskConfig): (default = None)
+
+    Yields:
+        (uri, int, int): tup
+
+    CommandLine:
+        python -m ibeis.core --exec-compute_annotmask --show
+        python -m ibeis.core --exec-compute_annotmask --show --edit
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> config = AnnotMaskConfig(dim_size=None)
+        >>> chip_config = config.chip_cfg
+        >>> edit = ut.get_argflag('--edit')
+        >>> mask = depc.get_property('annotmask', aid_list, 'img', config, recompute=edit)[0]
+        >>> chip = depc.get_property('chips', aid_list, 'img', config=chip_config)[0]
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> resized = vt.resize_mask(mask, chip)
+        >>> blended = vt.blend_images_multiply(chip, resized)
+        >>> pt.imshow(blended, title='mask')
+        >>> pt.show_if_requested()
+    """
+    from plottool import interact_impaint
+    # TODO: Ensure interactive required cache words
+    # Keep manual things above the cache dir
+    mask_dpath = ut.unixjoin(depc.cache_dpath, '../ManualChipMask')
+    ut.ensuredir(mask_dpath)
+
+    ibs = depc.controller
+    chip_config = config.chip_cfg
+    chip_imgs = depc.get('chips', aid_list, 'img', config=chip_config)
+
+    cfghashid = config.get_hashid()
+    avuuid_list = ibs.get_annot_visual_uuids(aid_list)
+
+    # TODO: just hash everything together
+    ext = '.png'
+    _fmt = 'mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
+    fname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
+                   for aid, avuuid in zip(aid_list, avuuid_list)]
+
+    for img, fname, aid in zip(chip_imgs, fname_list, aid_list):
+        mask_fpath = ut.unixjoin(mask_dpath, fname)
+        if ut.checkpath(mask_fpath):
+            # Allow for editing on recompute
+            init_mask = vt.imread(mask_fpath)
+        else:
+            init_mask = None
+        mask = interact_impaint.impaint_mask2(img, init_mask=init_mask)
+        vt.imwrite(mask_fpath, mask)
+        print('imwrite')
+        w, h = vt.get_size(mask)
+
+        yield mask_fpath, w, h
+        # Remove the old chips
+        #ibs.delete_annot_chips([aid])
+        #ibs.delete_annot_chip_thumbs([aid])
+
+
+class ExtraMarginChipConfig(dtool.TableConfig):
+    _param_info_list = [
+        #ut.ParamInfo('preserve_aspect', True, hideif=True),
+        ut.ParamInfo('detector', 'cnn'),
+        ut.ParamInfo('dim_size', 128),
+        #ut.ParamInfo('ext', '.png'),
+    ]
+    #_sub_config_list = [
+    #    ChipConfig
+    #]
+
+
+def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, FACTOR=4):
+    r"""
+    Computes a detection chip with a bit of spatial context so the detection algorithm doesn't clip boundaries
+
+    CommandLine:
+        python -m ibeis.algo.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show
+        python -m ibeis.algo.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 27
+        python -m ibeis.algo.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.init import main_helpers
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = main_helpers.get_test_qaids(ibs)
+        >>> arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list)
+        >>> ut.quit_if_noshow()
+        >>> testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_cs_list)
+    """
+    target_width = 128 * FACTOR
+    gfpath_list = ibs.get_annot_image_paths(aid_list)
+    bbox_list   = ibs.get_annot_bboxes(aid_list)
+    theta_list  = ibs.get_annot_thetas(aid_list)
+    bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
+    newsize_list = list(map(
+        lambda size: vt.get_scaled_size_with_width(target_width, *size),
+        bbox_size_list))
+    invalid_aids = [aid for aid, (w, h) in zip(aid_list, bbox_size_list) if w == 0 or h == 0]
+    if len(invalid_aids) > 0:
+        msg = ("REMOVE INVALID (BAD WIDTH AND/OR HEIGHT) AIDS TO COMPUTE AND WRITE CHIPS")
+        msg += ("INVALID AIDS: %r" % (invalid_aids, ))
+        print(msg)
+        raise Exception(msg)
+    # There are two spaces we are working in here
+    # probchipspace _pcs (the space of the margined chip computed for probchip) and
+    # imagespace _gs (the space using in bbox specification)
+
+    # Compute the offset we would like in chip space for margin expansion
+    halfoffset_cs_list = [
+        # TODO: Find correct offsets
+        (16 * FACTOR, 16 * FACTOR)  # (w / 16, h / 16)
+        for (w, h) in newsize_list ]
+
+    # Compute expanded newsize list to include the extra margin offset
+    expanded_newsize_list = [
+        (w_pcs + (2 * xo_pcs), h_pcs + (2 * yo_pcs))
+        for (w_pcs, h_pcs), (xo_pcs, yo_pcs) in zip(newsize_list, halfoffset_cs_list) ]
+
+    # Get the conversion from chip to image space
+    to_imgspace_scale_factors = [
+        (w_gs / w_pcs, h_gs / h_pcs)
+        for ((w_pcs, h_pcs), (w_gs, h_gs)) in zip(newsize_list, bbox_size_list) ]
+
+    # Convert the chip offsets to image space
+    halfoffset_gs_list = [
+        ((sx * xo), (sy * yo))
+        for (sx, sy), (xo, yo) in zip(to_imgspace_scale_factors, halfoffset_cs_list) ]
+
+    # Find the size of the expanded margin bbox in image space
+    expanded_bbox_gs_list = [
+        (x_gs - xo_gs, y_gs - yo_gs, w_gs + (2 * xo_gs), h_gs + (2 * yo_gs))
+        for (x_gs, y_gs, w_gs, h_gs), (xo_gs, yo_gs) in zip(bbox_list, halfoffset_gs_list) ]
+
+    # TODO: make this work
+    probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list,
+                                                        config2_=config2_,
+                                                        species=species)
+    #probchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin') for
+    #fpath in probchip_fpath_list]
+    extramargin_fpath_list = [ut.augpath(fpath, '_extramargin').replace('probchip', 'detectchip')
+                              for fpath in probchip_fpath_list]
+    # # filter by species and add a suffix for the probchip_input
+    # # also compute a probchip fpath with an expanded suffix for the detector
+    #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=None, species=species)
+    # Then crop the output and write that as the real probchip
+
+    filtlist_iter = ([] for _ in range(len(aid_list)))
+    arg_iter = zip(extramargin_fpath_list, gfpath_list,
+                   expanded_bbox_gs_list, theta_list, expanded_newsize_list,
+                   filtlist_iter)
+    arg_list = list(arg_iter)
+    return arg_list, newsize_list, halfoffset_cs_list
+
+
+class ProbchipConfig(dtool.TableConfig):
+    _param_info_list = [
+        #ut.ParamInfo('preserve_aspect', True, hideif=True),
+        ut.ParamInfo('detector', 'cnn'),
+        ut.ParamInfo('dim_size', 128),
+        #ut.ParamInfo('ext', '.png'),
+    ]
+    #_sub_config_list = [
+    #    ChipConfig
+    #]
+
+
+def compute_probchip(ibs, aid_list, config=None):
+    """ Computes probability chips using pyrf
+
+    CommandLine:
+        python -m ibeis.algo.preproc.preproc_probchip --test-compute_and_write_probchip:0 --show
+        python -m ibeis.algo.preproc.preproc_probchip --test-compute_and_write_probchip:1
+        python -m ibeis.algo.preproc.preproc_probchip --test-compute_and_write_probchip:2 --show --cnn
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> config = ProbchipConfig()
+        >>> lazy = True
+        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)[0:4]
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config, lazy=lazy)
+        >>> result = ut.list_str(probchip_fpath_list_)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4)
+        >>> ut.show_if_requested()
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> config = ProbchipConfig()
+        >>> lazy = True
+        >>> aid_list = ibs.get_valid_aids()
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config, lazy=lazy)
+        >>> result = ut.list_str(probchip_fpath_list_)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4)
+        >>> ut.show_if_requested()
+    """
+    # Get probchip dest information (output path)
+    # TODO; properly ungroup output
+    import vtool as vt
+
+    if config is None:
+        featweight_species = ibs.cfg.featweight_cfg.featweight_species
+    else:
+        featweight_species = config.get('featweight_species')
+        assert featweight_species is not None
+    if featweight_species == 'uselabel':
+        # Use the labeled species for the detector
+        species_list = ibs.get_annot_species_texts(aid_list)
+    else:
+        species_list = [featweight_species]
+
+    detector = config['detector']
+    cfghashid = config.get_hashid()
+
+    probchip_dir = ibs.get_probchip_dir()
+
+    # TODO: just hash everything together
+    ut.ensuredir(probchip_dir)
+    _fmt = 'probchip_avuuid_{avuuid}_' + cfghashid + '.png'
+    annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
+    probchip_fpath_list = [ut.unixjoin(probchip_dir, _fmt.format(avuuid=avuuid))
+                           for avuuid in annot_visual_uuid_list]
+
+    aid_list = np.array(aid_list)
+    species_list = np.array(species_list)
+    species_rowid = np.array(ibs.get_species_rowids_from_text(species_list))
+
+    # Group by species
+    unique_species_rowids, groupxs = vt.group_indices(species_rowid)
+    grouped_aids    = vt.apply_grouping(aid_list, groupxs)
+    grouped_species = vt.apply_grouping(species_list, groupxs)
+    unique_species = ut.get_list_column(grouped_species, 0)
+
+    nSpecies = len(unique_species)
+    nTasks = len(aid_list)
+    print(('[preproc_probchip.compute_and_write_probchip] '
+          'Preparing to compute %d probchips of %d species')
+          % (nTasks, nSpecies))
+    cachedir = ibs.get_probchip_dir()
+    ut.ensuredir(cachedir)
+
+    grouped_probchip_fpath_list = []
+    if ut.VERBOSE:
+        print('[preproc_probchip] +--------------------')
+
+
+    def write_dirty_aids(ibs, probchip_fpath_list, dirty_aids, config2_, species):
+        if detector == 'rf':
+            (extramargin_fpath_list,
+             probchip_extramargin_fpath_list,
+             halfoffset_cs_list,
+             ) = compute_extramargin_detectchip(
+                 ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
+            #dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)
+
+            config = {
+                'scale_list': [1.0],
+                'output_gpath_list': probchip_extramargin_fpath_list,
+                'mode': 1,
+            }
+            probchip_generator = randomforest.detect_gpath_list_with_species(
+                ibs, extramargin_fpath_list, species, **config)
+            # Evalutate genrator until completion
+            ut.evaluate_generator(probchip_generator)
+            extramargin_mask_gen = (
+                vt.imread(fpath, grayscale=True) for fpath in probchip_extramargin_fpath_list
+            )
+            # Crop the extra margin off of the new probchips
+            _iter = zip(probchip_fpath_list,
+                        extramargin_mask_gen,
+                        halfoffset_cs_list)
+            for (probchip_fpath, extramargin_probchip, halfmargin) in _iter:
+                half_w, half_h = halfmargin
+                probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
+                vt.imwrite(probchip_fpath, probchip)
+        elif detector == 'cnn':
+            # dont use extrmargin here (for now)
+            chip_fpath_list = ibs.get_annot_chip_fpath(dirty_aids, config2_=config2_)
+            mask_gen = ibs.generate_species_background_mask(chip_fpath_list, species)
+            _iter = zip(probchip_fpath_list, mask_gen)
+            for chunk in ut.ichunks(_iter, 64):
+                for probchip_fpath, probchip in ut.ProgressIter(chunk, lbl='write probchip chunk', adjust=True, time_thresh=30.0):
+                    probchip = postprocess_mask(probchip)
+                    vt.imwrite(probchip_fpath, probchip)
+
+        for aids, species, probchip_fpaths in zip(grouped_aids, unique_species):
+            if ut.VERBOSE:
+                print('[preproc_probchip] Computing probchips for species=%r' % species)
+                print('[preproc_probchip] |--------------------')
+            if len(aids) == 0:
+                continue
+
+            # No filtering
+            dirty_aids = aids
+            probchip_fpaths
+
+            if len(dirty_aids) > 0:
+                write_dirty_aids(ibs, probchip_fpaths, dirty_aids, config, species)
+
+        grouped_probchip_fpath_list.append(probchip_fpaths)
+    if ut.VERBOSE:
+        print('[preproc_probchip] Done computing probability images')
+        print('[preproc_probchip] L_______________________')
+
+    probchip_fpath_list = vt.invert_apply_grouping2(
+        grouped_probchip_fpath_list, groupxs, dtype=object)
+    return probchip_fpath_list
+
+
+def postprocess_mask(mask):
+    r"""
+    Args:
+        mask (ndarray):
+
+    Returns:
+        ndarray: mask2
+
+    CommandLine:
+        python -m ibeis.algo.preproc.preproc_probchip --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
+        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970
+        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970 --adapteq=True
+        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1 --aid 9970 --adapteq=True
+        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1
+
+    SeeAlso:
+        python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis_cnn
+        >>> import ibeis
+        >>> import vtool as vt
+        >>> import plottool as pt
+        >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=[10])
+        >>> default_config = dict(ibs.cfg.chip_cfg.parse_items())
+        >>> cfgdict = ut.argparse_dict(default_config)
+        >>> config2_ = ibs.new_query_params(cfgdict=cfgdict)
+        >>> chip_fpath = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)[0]
+        >>> chip = vt.imread(chip_fpath)
+        >>> #species = ibs.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = ibs.get_primary_database_species()
+        >>> print('species = %r' % (species,))
+        >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath], species))
+        >>> mask = mask_list[0]
+        >>> mask2 = postprocess_mask(mask)
+        >>> ut.quit_if_noshow()
+        >>> fnum = 1
+        >>> pt.imshow(chip, pnum=(1, 3, 1), fnum=fnum)
+        >>> pt.imshow(mask, pnum=(1, 3, 2), fnum=fnum, title='before')
+        >>> pt.imshow(mask2, pnum=(1, 3, 3), fnum=fnum, title='after')
+        >>> ut.show_if_requested()
+    """
+    import cv2
+    thresh = 20
+    kernel_size = 20
+    mask2 = mask.copy()
+    # light threshold
+    mask2[mask2 < thresh] = 0
+    # open and close
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
+    mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernel)
+    mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
+    return mask2
 
 
 if __name__ == '__main__':

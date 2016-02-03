@@ -434,7 +434,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         from ibeis.expt import cfghelpers
         verbose = True
         filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False))[0]
-        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
 
     print('f = %r' % (f,))
     if flat_case_labels is None:
@@ -1225,6 +1225,10 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd
         python -m ibeis --tf draw_match_cases --db PZ_Master1 -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd
+
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_Master1 --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
+
 
     Example:
         >>> # DISABLE_DOCTEST
