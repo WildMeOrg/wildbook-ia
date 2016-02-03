@@ -45,11 +45,6 @@ from plottool import fig_presenter
 DEBUG = False
 # Try not injecting into plotting things
 ut.noinject(__name__, '[df2]')
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[df2]', DEBUG=DEBUG)
-
-
-def printDBG(*args):
-    pass
 
 
 def is_texmode():
@@ -2404,15 +2399,15 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         kpts = np.array(kpts)
 
     #if ut.DEBUG2:
-    #    printDBG('-------------')
-    #    printDBG('draw_kpts2():')
-    #    #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
-    #    printDBG(' * kpts.shape=%r:' % (kpts.shape,))
-    #    printDBG(' * ell=%r pts=%r' % (ell, pts))
-    #    printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
-    #    printDBG(' * scale_factor=%r' % (scale_factor,))
-    #    printDBG(' * offset=%r' % (offset,))
-    #    printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
+    #    print('-------------')
+    #    print('draw_kpts2():')
+    #    #print(' * kwargs.keys()=%r' % (kwargs.keys(),))
+    #    print(' * kpts.shape=%r:' % (kpts.shape,))
+    #    print(' * ell=%r pts=%r' % (ell, pts))
+    #    print(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
+    #    print(' * scale_factor=%r' % (scale_factor,))
+    #    print(' * offset=%r' % (offset,))
+    #    print(' * drawing kpts.shape=%r' % (kpts.shape,))
     try:
         assert len(kpts) > 0, 'len(kpts) < 0'
     except AssertionError as ex:
@@ -3477,14 +3472,11 @@ def draw_text_annotations(text_list,
 def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     r"""
     Args:
-        graph (?):
+        graph (networkx.Graph):
         with_labels (bool): (default = True)
         node_size (int): (default = 1100)
         fnum (int):  figure number(default = None)
         pnum (tuple):  plot number(default = None)
-
-    Returns:
-        ?: e
 
     CommandLine:
         python -m plottool.draw_func2 --exec-show_netx --show

@@ -97,79 +97,6 @@ class AbstractInteraction(object):
         print('is_down = ' + ut.repr2(self.is_down))
         print('is_drag = ' + ut.repr2(self.is_drag))
 
-    def clear_parent_axes(self, ax):
-        """ for clearing axes that we appended anything to """
-        child_axes = ph.get_plotdat(ax, 'child_axes', [])
-        ph.set_plotdat(ax, 'child_axes', [])
-        for subax in child_axes:
-            to_remove = None
-            for tup in self.scope:
-                if tup[1] is subax:
-                    to_remove = tup
-                    break
-            if to_remove is not None:
-                self.scope.remove(to_remove)
-            subax.cla()
-            self.fig.delaxes(subax)
-        ph.del_plotdat(ax, df2.DF2_DIVIDER_KEY)
-        ax.cla()
-
-    def clean_scope(self):
-        """ Removes any widgets saved in the interaction scope """
-        self.scope = []
-
-    def append_button(self, text, divider=None, rect=None, callback=None,
-                      size='9%', location='bottom', ax=None, **kwargs):
-        """ Adds a button to the current page """
-
-        if rect is not None:
-            new_ax = df2.plt.axes(rect)
-        if rect is None and divider is None:
-            if ax is None:
-                ax = df2.gca()
-            divider = df2.ensure_divider(ax)
-        if divider is not None:
-            new_ax = divider.append_axes(location, size=size, pad=.05)
-        if callback is not None:
-            color, hovercolor = u'.85', u'.95'
-        else:
-            color, hovercolor = u'.88', u'.88'
-            #color, hovercolor = u'.45', u'.45'
-        new_but = mpl.widgets.Button(
-            new_ax, text, color=color, hovercolor=hovercolor)
-        if callback is not None:
-            new_but.on_clicked(callback)
-        else:
-            button_text = new_but.ax.texts[0]
-            button_text.set_color('.6')
-            #button_text.set_color('r')
-            #ut.embed()
-            #print('new_but.color = %r' % (new_but.color,))
-        #else:
-        # TODO: figure ou how to gray out these buttons
-        #    new_but.color = u'.1'
-        #    new_but.hovercolor = u'.1'
-        #    new_but.active = False
-        #    print('new_but.color = %r' % (new_but.color,))
-        ph.set_plotdat(new_ax, 'viztype', 'button')
-        ph.set_plotdat(new_ax, 'text', text)
-        #ph.set_plotdat(new_ax, 'parent_axes', ax)
-        if ax is not None:
-            child_axes = ph.get_plotdat(ax, 'child_axes', [])
-            child_axes.append(new_ax)
-            ph.set_plotdat(ax, 'child_axes', child_axes)
-        for key, val in six.iteritems(kwargs):
-            ph.set_plotdat(new_ax, key, val)
-        # Keep buttons from losing scrop
-        tup = (new_but, new_ax)
-        self.scope.append(tup)
-        return tup
-
-    # def make_hud(self):
-
-    # def prepare_page(self, pagenum):
-    #    self.clean_scope()
-
     def show_page(self, *args):
         """
         Hack: this function should probably not be defined, but it is for
@@ -235,6 +162,7 @@ class AbstractInteraction(object):
     def on_close(self, event=None):
         print('[pt] handling interaction close')
         unregister_interaction(self)
+        self.is_running = False
 
     def on_motion(self, event):
         if self.debug > 5:
@@ -330,6 +258,79 @@ class AbstractInteraction(object):
         qpoint = guitool.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas
         guitool.popup_menu(qwin, qpoint, options)
+
+    def clear_parent_axes(self, ax):
+        """ for clearing axes that we appended anything to """
+        child_axes = ph.get_plotdat(ax, 'child_axes', [])
+        ph.set_plotdat(ax, 'child_axes', [])
+        for subax in child_axes:
+            to_remove = None
+            for tup in self.scope:
+                if tup[1] is subax:
+                    to_remove = tup
+                    break
+            if to_remove is not None:
+                self.scope.remove(to_remove)
+            subax.cla()
+            self.fig.delaxes(subax)
+        ph.del_plotdat(ax, df2.DF2_DIVIDER_KEY)
+        ax.cla()
+
+    # def make_hud(self):
+
+    # def prepare_page(self, pagenum):
+    #    self.clean_scope()
+
+    def clean_scope(self):
+        """ Removes any widgets saved in the interaction scope """
+        self.scope = []
+
+    def append_button(self, text, divider=None, rect=None, callback=None,
+                      size='9%', location='bottom', ax=None, **kwargs):
+        """ Adds a button to the current page """
+
+        if rect is not None:
+            new_ax = df2.plt.axes(rect)
+        if rect is None and divider is None:
+            if ax is None:
+                ax = df2.gca()
+            divider = df2.ensure_divider(ax)
+        if divider is not None:
+            new_ax = divider.append_axes(location, size=size, pad=.05)
+        if callback is not None:
+            color, hovercolor = u'.85', u'.95'
+        else:
+            color, hovercolor = u'.88', u'.88'
+            #color, hovercolor = u'.45', u'.45'
+        new_but = mpl.widgets.Button(
+            new_ax, text, color=color, hovercolor=hovercolor)
+        if callback is not None:
+            new_but.on_clicked(callback)
+        else:
+            button_text = new_but.ax.texts[0]
+            button_text.set_color('.6')
+            #button_text.set_color('r')
+            #ut.embed()
+            #print('new_but.color = %r' % (new_but.color,))
+        #else:
+        # TODO: figure ou how to gray out these buttons
+        #    new_but.color = u'.1'
+        #    new_but.hovercolor = u'.1'
+        #    new_but.active = False
+        #    print('new_but.color = %r' % (new_but.color,))
+        ph.set_plotdat(new_ax, 'viztype', 'button')
+        ph.set_plotdat(new_ax, 'text', text)
+        #ph.set_plotdat(new_ax, 'parent_axes', ax)
+        if ax is not None:
+            child_axes = ph.get_plotdat(ax, 'child_axes', [])
+            child_axes.append(new_ax)
+            ph.set_plotdat(ax, 'child_axes', child_axes)
+        for key, val in six.iteritems(kwargs):
+            ph.set_plotdat(new_ax, key, val)
+        # Keep buttons from losing scrop
+        tup = (new_but, new_ax)
+        self.scope.append(tup)
+        return tup
 
 
 class AbstractPagedInteraction(AbstractInteraction):

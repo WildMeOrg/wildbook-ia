@@ -33,38 +33,31 @@ class PaintInteraction(PAINTER_BASE):
         python -m plottool.interact_impaint --exec-draw_demo --show
     """
     def __init__(self, img, **kwargs):
-        import plottool as pt
         super(PaintInteraction, self).__init__(**kwargs)
         init_mask = kwargs.get('init_mask', None)
-
         if init_mask is None:
             mask = np.full(img.shape, 255, dtype=np.uint8)
         else:
             mask = init_mask
-
         self.mask = mask
         self.img = img
         self.brush_size = 75
         self.bg_color = (255, 255, 255)
         self.fg_color = (0, 0, 0)
         self.background = None
+        self.last_stroke = None
+        self.finished_callback = None
         self._imshow_running = True
 
+    def static_plot(self, fnum=None, pnum=(1, 1, 1)):
+        import plottool as pt
         self.ax = pt.gca()
         #self.ax.imshow(img, interpolation='nearest', alpha=1)
         #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
-        pt.imshow(img, ax=self.ax, interpolation='nearest', alpha=1)
-        pt.imshow(mask, ax=self.ax, interpolation='nearest', alpha=0.6)
+        pt.imshow(self.img, ax=self.ax, interpolation='nearest', alpha=1)
+        pt.imshow(self.mask, ax=self.ax, interpolation='nearest', alpha=0.6)
+        pt.plt.title('Click on the image to draw. exit to finish')
         self.ax.grid(False)
-        self.fig = pt.gcf()
-
-        self.last_stroke = None
-
-        # self.start()
-
-        self.connect_callbacks()
-        # self.update_image()
-        self.finished_callback = None
 
     def update_image(self):
         import plottool as pt
@@ -84,7 +77,6 @@ class PaintInteraction(PAINTER_BASE):
         if self.finished_callback is not None:
             self.finished_callback(self.mask)
         super(PaintInteraction, self).on_close(event)
-        self._imshow_running = False
 
     def do_blit(self):
         if self.debug > 3:
@@ -101,9 +93,9 @@ class PaintInteraction(PAINTER_BASE):
         self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
 
     def apply_stroke(self, x, y, color):
+        import cv2
         if self.debug > 3:
             print('[pt.impaint] apply stroke')
-        import cv2
         center = (x, y)
         radius = int(self.brush_size / 2)
         thickness = -1
@@ -125,7 +117,6 @@ class PaintInteraction(PAINTER_BASE):
         self.update_image()
         #self.draw()
         #self.print_status()
-        #update the image
 
     def on_scroll(self, event):
         self.brush_size = max(self.brush_size + event.step, 1)
@@ -185,16 +176,15 @@ def impaint_mask2(img, init_mask=None):
     else:
         pntr = PaintInteraction(img, init_mask=init_mask)
         #pntr.show_page()
-        # plt.title('Click on the image to draw. exit to finish')
         # print('Starting interaction')
-        # pntr.start()
+        pntr.start()
         pntr.show()
 
         # Hacky code to block until the interaction is actually done
         # pntr.show()
         import time
         from guitool.__PYQT__ import QtGui
-        while pntr._imshow_running:
+        while pntr.is_running:
             QtGui.qApp.processEvents()
             time.sleep(0.05)
         #plt.show()
