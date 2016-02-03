@@ -699,6 +699,24 @@ def get_annot_aids_from_uuid(ibs, uuid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/annot/missing_uuid/', methods=['GET'])
+def get_annot_missing_uuid(ibs, uuid_list):
+    r"""
+    Returns:
+        list_ (list): a list of missing annot uuids
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/missing_uuid/
+    """
+    aid_list = ibs.get_annot_aids_from_uuid(uuid_list)
+    zipped = zip(aid_list, uuid_list)
+    missing_uuid_list = [ uuid for aid, uuid in zipped if aid is None ]
+    return missing_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/aids_from_visual_uuid/', methods=['GET'])
 def get_annot_aids_from_visual_uuid(ibs, visual_uuid_list):
     r"""

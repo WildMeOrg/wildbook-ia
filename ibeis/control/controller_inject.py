@@ -145,7 +145,18 @@ class WebException(Exception):
         self.message = message
 
     def __str__(self):
-        return repr('%r: %r' % (self.code, self.message, ))
+        args = (self.__class__.__name__, self.code, self.message, )
+        return repr('<%s | %r: %r>' % args)
+
+
+class WebMissingUUIDException(WebException):
+    def __init__(self, missing_image_uuid_list=[], missing_annot_uuid_list=[]):
+        args = (len(missing_image_uuid_list), len(missing_annot_uuid_list), )
+        message = 'Missing image and/or annotation UUIDs (%d, %d)' % args
+        code = 600
+        WebException.__init__(self, message, code)
+        self.missing_image_uuid_list = missing_image_uuid_list
+        self.missing_annot_uuid_list = missing_annot_uuid_list
 
 
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
@@ -262,6 +273,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     except TypeError:
         try:
             output = func(ibs=ibs, **kwargs)
+        except WebMissingUUIDException:
+            raise
         except Exception as ex2:
             msg_list = []
             msg_list.append('Error in translate_ibeis_webcall')
@@ -498,6 +511,15 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
 
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message = resp_tup
+                    except WebMissingUUIDException as uuidex:
+                        rawreturn = {
+                            'missing_image_uuid_list' : uuidex.missing_image_uuid_list,
+                            'missing_annot_uuid_list' : uuidex.missing_annot_uuid_list,
+                        }
+                        success = False
+                        code = uuidex.code
+                        message = uuidex.message
+                        jQuery_callback = None
                     except WebException as webex:
                         ut.printex(webex)
                         rawreturn = ''
