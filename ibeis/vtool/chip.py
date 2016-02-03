@@ -426,7 +426,6 @@ def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, m
     #pt.imshow(chipBGR)
 
 
-
 if __name__ == '__main__':
     """
     CommandLine:
