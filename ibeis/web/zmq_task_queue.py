@@ -101,6 +101,24 @@ def ensure_simple_server(port=5832):
     return bgserver
 
 
+@accessor_decors.default_decorator
+@register_api('/api/core/check_uuids/', methods=['GET', 'POST'])
+@register_ibs_method
+def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
+    # Unique list
+    image_uuid_list = list(set(image_uuid_list))
+    annot_uuid_list = list(set(annot_uuid_list))
+    # Check for all annot UUIDs exist
+    missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
+    missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
+    if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
+        kwargs = {
+            'missing_image_uuid_list' : missing_image_uuid_list,
+            'missing_annot_uuid_list' : missing_annot_uuid_list,
+        }
+        raise controller_inject.WebMissingUUIDException(**kwargs)
+
+
 @register_ibs_method
 def initialize_job_manager(ibs):
     """
@@ -240,6 +258,10 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         http://127.0.1.1:5000/api/core/start_identify_annots/'
         jobid = ibs.start_identify_annots(**payload)
     """
+    # Check UUIDs
+    combined_annot_uuid_list = qannot_uuid_list + dannot_uuid_list
+    ibs.web_check_uuids(annot_uuid_list=combined_annot_uuid_list)
+
     #import ibeis
     #from ibeis.web import zmq_task_queue
     #ibs.load_plugin_module(zmq_task_queue)

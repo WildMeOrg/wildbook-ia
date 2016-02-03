@@ -926,6 +926,24 @@ def get_image_gids_from_uuid(ibs, uuid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/image/missing_uuid/', methods=['GET'])
+def get_image_missing_uuid(ibs, uuid_list):
+    r"""
+    Returns:
+        list_ (list): a list of missing image uuids
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/missing_uuid/
+    """
+    gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+    zipped = zip(gid_list, uuid_list)
+    missing_uuid_list = [ uuid for gid, uuid in zipped if gid is None ]
+    return missing_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/image/paths/', methods=['GET'])
 def get_image_paths(ibs, gid_list):
     r"""
@@ -1302,7 +1320,7 @@ def get_image_imgsetids(ibs, gid_list):
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     colnames = ('imageset_rowid',)
     imgsetids_list = ibs.db.get(const.GSG_RELATION_TABLE, colnames, gid_list,
-                           id_colname='image_rowid', unpack_scalars=False)
+                                id_colname='image_rowid', unpack_scalars=False)
     return imgsetids_list
 
 

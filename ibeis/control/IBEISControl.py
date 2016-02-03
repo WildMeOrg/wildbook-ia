@@ -203,7 +203,9 @@ def request_IBEISController(
 
 @atexit.register
 def __cleanup():
-    """ prevents flann errors (not for cleaning up individual objects) """
+    """
+    prevents flann errors (not for cleaning up individual objects)
+    """
     global __ALL_CONTROLLERS__
     global __IBEIS_CONTROLLER_CACHE__
     try:
