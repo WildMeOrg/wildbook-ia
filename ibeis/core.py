@@ -162,13 +162,12 @@ class ChipConfig(dtool.TableConfig):
     colnames=['img', 'width', 'height', 'M'],
     coltypes=[('extern', vt.imread, vt.imwrite), int, int, np.ndarray],
     configclass=ChipConfig,
-    docstr='Used to store *processed* annots as chips',
     fname='chipcache4',
     version=0
 )
 def compute_chip(depc, aid_list, config=None):
     r"""
-    Example of using the dependency cache.
+    Extracts the annotation chip from the bounding box
 
     Args:
         depc (ibeis.depends_cache.DependencyCache):
