@@ -480,6 +480,9 @@ class Config(ut.NiceRepr, ut.DictLike):
             if key in self_keys:
                 setattr(cfg, key, val)
 
+    # @classmethod
+    # def register_func
+
 
 class TableConfig(Config):
     pass
