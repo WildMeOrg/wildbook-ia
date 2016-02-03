@@ -693,6 +693,8 @@ class _CoreDependencyCache(object):
                                            read_extern=read_extern)
         return prop_list
 
+    get_native = get_native_property
+
     def delete_property(depc, tablename, root_rowids, config=None):
         """
         Deletes the rowids of `tablename` that correspond to `root_rowids`
