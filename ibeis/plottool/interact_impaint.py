@@ -33,9 +33,8 @@ class PaintInteraction(PAINTER_BASE):
         python -m plottool.interact_impaint --exec-draw_demo --show
     """
     def __init__(self, img, **kwargs):
-        super(PaintInteraction, self).__init__(**kwargs)
         import plottool as pt
-
+        super(PaintInteraction, self).__init__(**kwargs)
         init_mask = kwargs.get('init_mask', None)
 
         if init_mask is None:
@@ -43,25 +42,28 @@ class PaintInteraction(PAINTER_BASE):
         else:
             mask = init_mask
 
-        self.ax = pt.gca()
-        #self.ax.imshow(img, interpolation='nearest', alpha=1)
-        #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
-        pt.imshow(img, ax=self.ax, interpolation='nearest', alpha=1)
-        pt.imshow(mask, ax=self.ax, interpolation='nearest', alpha=0.6)
-        self.ax.grid(False)
-
         self.mask = mask
         self.img = img
         self.brush_size = 75
         self.bg_color = (255, 255, 255)
         self.fg_color = (0, 0, 0)
         self.background = None
-        self._running = True
+        self._imshow_running = True
+
+        self.ax = pt.gca()
+        #self.ax.imshow(img, interpolation='nearest', alpha=1)
+        #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
+        pt.imshow(img, ax=self.ax, interpolation='nearest', alpha=1)
+        pt.imshow(mask, ax=self.ax, interpolation='nearest', alpha=0.6)
+        self.ax.grid(False)
+        self.fig = pt.gcf()
 
         self.last_stroke = None
 
+        # self.start()
+
         self.connect_callbacks()
-        self.update_image()
+        # self.update_image()
         self.finished_callback = None
 
     def update_image(self):
@@ -82,7 +84,7 @@ class PaintInteraction(PAINTER_BASE):
         if self.finished_callback is not None:
             self.finished_callback(self.mask)
         super(PaintInteraction, self).on_close(event)
-        self._running = False
+        self._imshow_running = False
 
     def do_blit(self):
         if self.debug > 3:
@@ -171,7 +173,7 @@ def impaint_mask2(img, init_mask=None):
         #ax.set_xticks([])
         #ax.set_yticks([])
 
-        #pntr = _OldPainter(fig, ax, mask)
+        #pstartntr = _OldPainter(fig, ax, mask)
         #ax.set_title('Click on the image to draw. exit to finish')
         #print('Starting interaction')
         #if not QT:
@@ -183,14 +185,16 @@ def impaint_mask2(img, init_mask=None):
     else:
         pntr = PaintInteraction(img, init_mask=init_mask)
         #pntr.show_page()
-        plt.title('Click on the image to draw. exit to finish')
-        print('Starting interaction')
+        # plt.title('Click on the image to draw. exit to finish')
+        # print('Starting interaction')
+        # pntr.start()
+        pntr.show()
 
         # Hacky code to block until the interaction is actually done
-        pntr.show()
+        # pntr.show()
         import time
         from guitool.__PYQT__ import QtGui
-        while pntr._running:
+        while pntr._imshow_running:
             QtGui.qApp.processEvents()
             time.sleep(0.05)
         #plt.show()
