@@ -62,6 +62,11 @@ def compare_featscores():
             -p default:K=[1,2],normalizer_rule=name \
             --save featscore{db}.png --figsize=13,20 --diskshow
 
+        ibeis --tf compare_featscores  --db PZ_MTEST \
+            --nfscfg :disttype=[L2_sift,normdist,lnbnn],top_percent=[None,.5] -a timectrl \
+            -p default:K=[1],normalizer_rule=name,sv_on=[True,False] \
+            --save featscore{db}.png --figsize=13,10 --diskshow
+
         ibeis --tf compare_featscores --nfscfg :disttype=[L2_sift,normdist,lnbnn] \
             -a timectrl -p default:K=1,normalizer_rule=name --db PZ_Master1 \
             --save featscore{db}.png  --figsize=13,13 --diskshow
