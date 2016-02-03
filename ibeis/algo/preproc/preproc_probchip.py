@@ -595,8 +595,8 @@ def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_
     from ibeis.viz import viz_chip
 
     index = 0
-    cfpath, gfpath, bbox, theta, new_size, filter_list = arg_list[index]
-    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    cfpath, gfpath, expanded_bbox, theta, expanded_new_size, filter_list = arg_list[index]
+    expanded_chipBGR = ctool.compute_chip(gfpath, expanded_bbox, theta, expanded_new_size, filter_list)
     bbox_cs_list = [
         (xo_pcs, yo_pcs, w_pcs, h_pcs)
         for (w_pcs, h_pcs), (xo_pcs, yo_pcs) in zip(newsize_list, halfoffset_cs_list)
@@ -607,15 +607,15 @@ def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_
     print('newsize_list[index] = %r' % (newsize_list[index],))
 
     fnum = 1
-    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 1), fnum=fnum, annote=False, in_image=True ,
+    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 1), fnum=fnum, annote=False, in_image=True,
                        title_suffix='\noriginal image')
     viz_chip.show_chip(ibs, aid, pnum=(1, 3, 2), fnum=fnum, annote=False,
                        title_suffix='\noriginal chip')
-    bboxed_chip = vt.draw_verts(chipBGR,
+    bboxed_chip = vt.draw_verts(expanded_chipBGR,
                                 vt.scaled_verts_from_bbox(bbox_pcs, theta, 1, 1))
     pt.imshow(bboxed_chip, pnum=(1, 3, 3), fnum=fnum,
               title='scaled chip with expanded margin.\n(orig margin drawn in orange)')
-
+    pt.gca().set_xlabel(str(bboxed_chip.shape))
     pt.show_if_requested()
     #pt.imshow(chipBGR)
 
