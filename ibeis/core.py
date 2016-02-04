@@ -694,14 +694,14 @@ class FeatWeightConfig(dtool.TableConfig):
     _param_info_list = []
 
 
-#@register_preproc(
-#    tablename='featweight', parents=['feat', 'probchip'],
-#    colnames=['fwg'],
-#    coltypes=[np.ndarray],
-#    configclass=FeatWeightConfig,
-#    fname='featcache',
-#    version=0
-#)
+@register_preproc(
+    tablename='featweight', parents=['feat', 'probchip'],
+    colnames=['fwg'],
+    coltypes=[np.ndarray],
+    configclass=FeatWeightConfig,
+    fname='featcache',
+    version=0
+)
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
     Args:
@@ -770,22 +770,15 @@ def gen_featweight_worker(tup):
         >>> chip = depc.get('chips', aid_list, 'img', config)[0]
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> fnum = 1
+        >>> pnum_ = pt.make_pnum_nextgen(1, 3)
         >>> pt.figure(fnum=fnum, doclf=True)
         >>> pt.imshow(chip, pnum=pnum_(0), fnum=fnum)
-        >>> if ut.get_argflag('--numlbl'):
-        >>>     pt.gca().set_xlabel('(1)')
         >>> pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
-        >>> if ut.get_argflag('--numlbl'):
-        >>>     pt.gca().set_xlabel('(2)')
         >>> pt.imshow(chip, pnum=pnum_(1), fnum=fnum)
         >>> color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)
         >>> cb = pt.colorbar(weights, color_list)
         >>> cb.set_label('featweights')
-        >>> if ut.get_argflag('--numlbl'):
-        >>>     pt.gca().set_xlabel('(3)')
-        >>> pt.draw()
         >>> pt.show_if_requested()
     """
     (kpts, probchip, chipsize) = tup
