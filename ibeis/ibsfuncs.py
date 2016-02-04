@@ -2374,6 +2374,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
             '%s_%s_%04d' % (location_text, code, get_next_index(code))
             for code in code_list]
     new_nid_list = nid_list
+    assert len(new_nid_list) == len(new_name_list)
     return new_nid_list, new_name_list
 
 
