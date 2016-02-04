@@ -1813,6 +1813,21 @@ def delete_images_json(ibs, image_uuid_list):
     return True
 
 
+@register_api('/api/annot/json/', methods=['DELETE'])
+def delete_annots_json(ibs, annot_uuid_list):
+    """
+    REST:
+        Method: POST
+        URL: /api/annot/json/
+
+    Args:
+        annot_uuid_list (list of str) : list of annot UUIDs to be delete from IBEIS
+    """
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    ibs.delete_annots(aid_list)
+    return True
+
+
 @register_api('/api/image/', methods=['POST'])
 def image_upload(cleanup=True, **kwargs):
     r"""
