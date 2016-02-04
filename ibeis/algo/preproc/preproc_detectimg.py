@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-# Python
 from six.moves import zip
 from os.path import exists, join
-# UTool
-import utool
-# VTool
-import utool as ut  # NOQA
-import vtool.chip as ctool
-import vtool.image as gtool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[preproc_detectimg]', DEBUG=False)
+import utool as ut
+import vtool as vt
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_detectimg]')
 
 
 def gen_detectimg_and_write(tup):
     """ worker function for parallel generator """
     gid, gfpath, new_gfpath, new_size = tup
     #print('[preproc] writing detectimg: %r' % new_gfpath)
-    img = gtool.imread(gfpath)
-    new_img = gtool.resize(img, new_size)
-    gtool.imwrite(new_gfpath, new_img)
+    img = vt.imread(gfpath)
+    new_img = vt.resize(img, new_size)
+    vt.imwrite(new_gfpath, new_img)
     return gid, new_gfpath
 
 
@@ -32,7 +26,7 @@ def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
     arg_iter = zip(gid_list, gfpath_list, new_gfpath_list, newsize_list)
     arg_list = list(arg_iter)
     # THis probably wont work for the same reason gen_chip wont work
-    return utool.util_parallel.generate(gen_detectimg_and_write, arg_list, force_serial=True)
+    return ut.util_parallel.generate(gen_detectimg_and_write, arg_list, force_serial=True)
 
 
 def get_image_detectimg_fpath_list(ibs, gid_list):
@@ -54,7 +48,7 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
         >>> assert result == target, 'got result=\n%s' % result
 
     """
-    utool.assert_all_not_None(gid_list, 'gid_list')
+    ut.assert_all_not_None(gid_list, 'gid_list')
     sqrt_area   = ibs.cfg.detect_cfg.detectimg_sqrt_area
     gext_list    = ibs.get_image_exts(gid_list)
     guuid_list   = ibs.get_image_uuids(gid_list)
@@ -85,7 +79,7 @@ def compute_and_write_detectimg(ibs, gid_list):
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(new_gfpath_list, nPerPage=4)
         >>> pt.show_if_requested()
     """
-    utool.ensuredir(ibs.get_detectimg_cachedir())
+    ut.ensuredir(ibs.get_detectimg_cachedir())
     # Get img configuration information
     sqrt_area   = ibs.cfg.detect_cfg.detectimg_sqrt_area
     target_area = sqrt_area ** 2
@@ -94,7 +88,7 @@ def compute_and_write_detectimg(ibs, gid_list):
     # Get img source information (image, annotation_bbox, theta)
     gfpath_list  = ibs.get_image_paths(gid_list)
     gsize_list   = ibs.get_image_sizes(gid_list)
-    newsize_list = ctool.get_scaled_sizes_with_area(target_area, gsize_list)
+    newsize_list = vt.get_scaled_sizes_with_area(target_area, gsize_list)
     # Define "Asynchronous" generator
     print('[preproc_detectimg] Computing %d imgs asynchronously' % (len(gfpath_list)))
     detectimg_async_iter = gen_detectimg_async(gid_list, gfpath_list,
@@ -124,7 +118,7 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
     # Mark which aid's need their detectimg computed
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
     exists_flags = [exists(gfpath) for gfpath in new_gfpath_list]
-    invalid_gids = utool.get_dirty_items(gid_list, exists_flags)
+    invalid_gids = ut.get_dirty_items(gid_list, exists_flags)
     print('[preproc_detectimg] %d / %d detectimgs need to be computed' %
           (len(invalid_gids), len(gid_list)))
     compute_and_write_detectimg(ibs, invalid_gids)
