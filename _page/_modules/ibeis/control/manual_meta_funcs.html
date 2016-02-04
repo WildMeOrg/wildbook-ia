@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_meta_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_meta_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -144,7 +144,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="c">#from ibeis import ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_meta]&#39;</span><span class="p">)</span>
@@ -182,7 +182,7 @@
         <span class="k">return</span> <span class="n">default</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> encounters&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))</span>
     <span class="c"># Add contributors to database</span>
     <span class="k">if</span> <span class="n">name_first_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">name_first_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
@@ -464,7 +464,7 @@
         <span class="n">new_contrib_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_new_temp_contributor</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">),</span> <span class="n">user_prompt</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">,</span> <span class="n">autolocate</span><span class="o">=</span><span class="n">autolocate</span><span class="p">)</span>
         <span class="c"># SET UNASSIGNED IMAGE CONTRIBUTORS</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">new_contrib_rowid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">))</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_encounter_configs_populated</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_imageset_configs_populated</span><span class="p">()</span>
     <span class="c"># make sure that all images have assigned contributors</span>
     <span class="c"># Get new non-conflicting contributor for unassigned images</span>
     <span class="c">#contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)</span>
@@ -485,7 +485,7 @@
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">is_unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">contrib_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">contrib_rowid</span> <span class="ow">in</span> <span class="n">contrib_rowid_list</span><span class="p">]</span>
-    <span class="n">unassigned_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">is_unassigned</span><span class="p">)</span>
+    <span class="n">unassigned_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">is_unassigned</span><span class="p">)</span>
     <span class="c">#sum(is_unassigned)</span>
     <span class="c">#len(is_unassignd)</span>
     <span class="c">#unassigned_gid_list = [</span>
@@ -509,7 +509,7 @@
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_configids</span><span class="p">()</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_config_contributor_rowid</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="n">isunassigned_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_contrib_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">_contrib_rowid</span> <span class="ow">in</span> <span class="n">contrib_rowid_list</span><span class="p">]</span>
-    <span class="n">unassigned_config_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">isunassigned_list</span><span class="p">)</span>
+    <span class="n">unassigned_config_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">isunassigned_list</span><span class="p">)</span>
     <span class="c">#unassigned_config_rowid_list = [</span>
     <span class="c">#    config_rowid</span>
     <span class="c">#    for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)</span>
@@ -535,23 +535,23 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<div class="viewcode-block" id="ensure_encounter_configs_populated"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.ensure_encounter_configs_populated">[docs]</a><span class="k">def</span> <span class="nf">ensure_encounter_configs_populated</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+<div class="viewcode-block" id="ensure_imageset_configs_populated"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.ensure_imageset_configs_populated">[docs]</a><span class="k">def</span> <span class="nf">ensure_imageset_configs_populated</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;ensure_encounter_configs_populated&#39;</span>
+<span class="sd">    Auto-docstr for &#39;ensure_imageset_configs_populated&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_configid</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_configid</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
     <span class="n">isunassigned_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">config_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">config_rowid</span> <span class="ow">in</span> <span class="n">config_rowid_list</span><span class="p">]</span>
-    <span class="n">unassigned_eid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isunassigned_list</span><span class="p">)</span>
-    <span class="c">#unassigned_eid_list = [</span>
-    <span class="c">#    eid</span>
-    <span class="c">#    for eid, config_rowid in zip(eid_list, config_rowid_list)</span>
+    <span class="n">unassigned_imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">isunassigned_list</span><span class="p">)</span>
+    <span class="c">#unassigned_imgsetid_list = [</span>
+    <span class="c">#    imgsetid</span>
+    <span class="c">#    for imgsetid, config_rowid in zip(imgsetid_list, config_rowid_list)</span>
     <span class="c">#    if config_rowid is None</span>
     <span class="c">#]</span>
-    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">eid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">unassigned_eid_list</span><span class="p">)</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">])</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_eid_list</span><span class="p">)</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">imgsetid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">unassigned_imgsetid_list</span><span class="p">)</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">])</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_imgsetid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">config_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">config_rowid</span> <span class="ow">in</span> <span class="n">config_rowid_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 
 <span class="c">#</span>
@@ -889,18 +889,18 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/eids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_contributor_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_eids">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_contributor_imgsetids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_imgsetids">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        eid_list (list):  eids for a contributor</span>
+<span class="sd">        imgsetid_list (list):  imgsetids for a contributor</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/contributor/eids/</span>
+<span class="sd">        URL:    /api/contributor/imgsetids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">eid_list</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;imageset_rowid&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1022,12 +1022,12 @@
     <span class="c"># Delete configs (UNSURE IF THIS IS CORRECT)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_configs</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="c"># CONTRIBUTORS SHOULD NOT DELETE IMAGES</span>
-    <span class="c"># Delete encounters</span>
-    <span class="c">#eid_list = ibs.get_valid_eids()</span>
-    <span class="c">#eid_config_list = ibs.get_encounter_configid(eid_list)</span>
-    <span class="c">#valid_list = [config in config_rowid_list for config in eid_config_list ]</span>
-    <span class="c">#eid_list = ut.filter_items(eid_list, valid_list)</span>
-    <span class="c">#ibs.delete_encounters(eid_list)</span>
+    <span class="c"># Delete imagesets</span>
+    <span class="c">#imgsetid_list = ibs.get_valid_imgsetids()</span>
+    <span class="c">#imgsetid_config_list = ibs.get_imageset_configid(imgsetid_list)</span>
+    <span class="c">#valid_list = [config in config_rowid_list for config in imgsetid_config_list ]</span>
+    <span class="c">#imgsetid_list = ut.compress(imgsetid_list, valid_list)</span>
+    <span class="c">#ibs.delete_imagesets(imgsetid_list)</span>
     <span class="c"># Remote image contributors ~~~Delete images~~~~</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_contributor_gids</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
@@ -1145,7 +1145,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> metadata&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">))</span>
-    <span class="c"># Add encounter text names to database</span>
+    <span class="c"># Add imageset text names to database</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s">&#39;metadata_value&#39;</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">metadata_value_list</span><span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_metadata_rowid_from_metadata_key</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="p">(</span><span class="n">db</span><span class="p">,))</span>
@@ -1201,6 +1201,37 @@
 
 
 <span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_init_burned_in_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># Add missing &quot;required&quot; species</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;Giraffe (Masai)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Giraffe (Reticulated)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Other&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Zebra (Grevy</span><span class="se">\&#39;</span><span class="s">s)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Zebra (Hybrid)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Zebra (Plains)&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;giraffe_masai&#39;</span><span class="p">,</span>
+        <span class="s">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+        <span class="s">&#39;other&#39;</span><span class="p">,</span>
+        <span class="s">&#39;zebra_grevys&#39;</span><span class="p">,</span>
+        <span class="s">&#39;zebra_hybrid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;zebra_plains&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">species_code_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;GIRM&#39;</span><span class="p">,</span>
+        <span class="s">&#39;GIR&#39;</span><span class="p">,</span>
+        <span class="s">&#39;OTHER&#39;</span><span class="p">,</span>
+        <span class="s">&#39;GZ&#39;</span><span class="p">,</span>
+        <span class="s">&#39;HZ&#39;</span><span class="p">,</span>
+        <span class="s">&#39;PZ&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_code_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_init_burned_in_species] Burned in mising species...&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_load_named_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Auto-docstr for &#39;_load_named_config&#39;</span>
@@ -1227,7 +1258,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.Config import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_meta_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
@@ -1338,7 +1369,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1360,7 +1391,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_lblannot_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_lblannot_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -216,7 +216,7 @@
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;lbltype_rowid=? AND lblannot_value=?&#39;</span>
     <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
     <span class="c"># BIG HACK FOR ENFORCING UNKNOWN LBLANNOTS HAVE ROWID 0</span>
-    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
                            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">lblannot_rowid_list</span>
 
@@ -446,8 +446,8 @@
     <span class="n">aid_list_to_add</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
     <span class="n">lblannot_rowid_list_to_add</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
     <span class="c"># set the existing relationship if one already exists</span>
-    <span class="n">alrids_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
-    <span class="n">lblannot_rowid_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
+    <span class="n">alrids_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
+    <span class="n">lblannot_rowid_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
     <span class="c"># Assert each annot has only one relationship of this type</span>
     <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_singleton_relationship</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">alrids_list_to_set</span><span class="p">)</span>
     <span class="n">alrid_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">alrids_list_to_set</span><span class="p">)</span>
@@ -477,8 +477,8 @@
     <span class="n">notdefault_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="o">!=</span> <span class="n">DEFAULT_VALUE</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list_</span><span class="p">]</span>
     <span class="n">aid_list_to_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="c"># Set all the valid valids</span>
-    <span class="n">aids_to_set</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
-    <span class="n">values_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">value_list_</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
+    <span class="n">aids_to_set</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
+    <span class="n">values_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">value_list_</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_relations_oftype</span><span class="p">(</span><span class="n">aid_list_to_delete</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">)</span>
     <span class="c"># remove the relationships that have now been unnamed</span>
     <span class="c"># Convert names into lblannot_rowid</span>
@@ -548,7 +548,7 @@
     <span class="n">lbltype_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_lbltypes_rowids</span><span class="p">,</span> <span class="n">lblannot_rowids_list</span><span class="p">)</span>
     <span class="c"># only want the nids of individuals, not species, for example</span>
     <span class="n">valids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">lbltype_rowid</span> <span class="k">for</span> <span class="n">typeid</span> <span class="ow">in</span> <span class="n">rowids</span><span class="p">]</span> <span class="k">for</span> <span class="n">rowids</span> <span class="ow">in</span> <span class="n">lbltype_rowids_list</span><span class="p">]</span>
-    <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
+    <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">configid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">resolution_func_first</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span> <span class="n">alrid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
@@ -619,7 +619,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -641,7 +641,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

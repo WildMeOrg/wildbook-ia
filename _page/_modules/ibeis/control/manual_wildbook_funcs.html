@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -151,8 +151,8 @@
 <span class="sd">    # Login to wildbook (can skip)</span>
 <span class="sd">    python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login</span>
 
-<span class="sd">    # Ship Encounters to wildbook</span>
-<span class="sd">    python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list</span>
+<span class="sd">    # Ship ImageSets to wildbook</span>
+<span class="sd">    python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list</span>
 
 <span class="sd">    # Change annotations names to a single name</span>
 <span class="sd">    python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1</span>
@@ -168,7 +168,9 @@
 <span class="kn">import</span> <span class="nn">lockfile</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_wildbook]&#39;</span><span class="p">)</span>
@@ -216,8 +218,6 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;tomcat_dpath = %s&#39; % (str(tomcat_dpath),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="kn">import</span> <span class="nn">os</span>
     <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Tomcat&#39;</span><span class="p">,</span> <span class="s">&#39;tomcat&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">ALLOW_SYSTEM_TOMCAT</span><span class="p">:</span>
         <span class="c"># Places for system install of tomcat</span>
@@ -260,7 +260,6 @@
 <span class="sd">        # Reset</span>
 <span class="sd">        python -c &quot;import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir(&#39;ibeis&#39;), &#39;tomcat&#39;))&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">dirname</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Grabbing tomcat&#39;</span><span class="p">)</span>
     <span class="c"># FIXME: need to make a stable link</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
@@ -398,7 +397,6 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_wildbook_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; reset_local_wildbook()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">shutdown_wildbook_server</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -436,10 +434,6 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: allow custom specified tomcat directory</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span>
-    <span class="kn">import</span> <span class="nn">time</span>
-    <span class="kn">import</span> <span class="nn">re</span>
-    <span class="kn">import</span> <span class="nn">subprocess</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s">&#39;java&#39;</span><span class="p">,</span> <span class="s">&#39;-version&#39;</span><span class="p">],</span>
                                          <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
@@ -522,6 +516,7 @@
     <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">)</span>
     <span class="n">permission_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">)</span>
     <span class="n">lines_to_remove</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c"># &#39;/ImageSetSetMarkedIndividual = authc, roles[admin]&#39;</span>
         <span class="s">&#39;/EncounterSetMarkedIndividual = authc, roles[admin]&#39;</span>
     <span class="p">]</span>
     <span class="n">new_permission_text</span> <span class="o">=</span> <span class="n">permission_text</span><span class="p">[:]</span>
@@ -568,8 +563,6 @@
 <span class="sd">        &gt;&gt;&gt; ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: allow custom specified tomcat directory</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-    <span class="kn">import</span> <span class="nn">time</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
 
@@ -604,8 +597,6 @@
 <span class="sd">        &gt;&gt;&gt; ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: allow custom specified tomcat directory</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-    <span class="kn">import</span> <span class="nn">time</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">(</span><span class="n">check_unpacked</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="c"># Ensure environment variables</span>
@@ -774,7 +765,7 @@
 <div class="viewcode-block" id="update_wildbook_config"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.update_wildbook_config">[docs]</a><span class="k">def</span> <span class="nf">update_wildbook_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="n">wildbook_properteis_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">wildbook_tomcat_path</span><span class="p">,</span>
                                      <span class="s">&#39;WEB-INF/classes/bundles/&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_eid_list()] Wildbook properties=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.update_wildbook_config()] Wildbook properties=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
         <span class="n">wildbook_properteis_dpath</span><span class="p">,</span> <span class="p">))</span>
     <span class="c"># The src file is non-standard. It should be remove here as well</span>
     <span class="n">wildbook_config_fpath_dst</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">wildbook_properteis_dpath</span><span class="p">,</span>
@@ -802,29 +793,6 @@
                 <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">wildbook_config_fpath_dst</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
-
-
-<span class="c"># @default_decorator</span></div>
-<div class="viewcode-block" id="export_to_wildbook"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.export_to_wildbook">[docs]</a><span class="k">def</span> <span class="nf">export_to_wildbook</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Exports identified chips to wildbook</span>
-
-<span class="sd">        Legacy:</span>
-<span class="sd">            import ibeis.dbio.export_wb as wb</span>
-<span class="sd">            print(&#39;[ibs] exporting to wildbook&#39;)</span>
-<span class="sd">            eid_list = ibs.get_valid_eids()</span>
-<span class="sd">            addr = &#39;http://127.0.0.1:8080/wildbook-4.1.0-RELEASE&#39;</span>
-<span class="sd">            #addr = &#39;http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL&#39;</span>
-<span class="sd">            ibs._send_wildbook_request(addr)</span>
-<span class="sd">            wb.export_ibeis_to_wildbook(ibs, eid_list)</span>
-
-<span class="sd">            # compute encounters</span>
-<span class="sd">            # get encounters by id</span>
-<span class="sd">            # get ANNOTATIONs by encounter id</span>
-<span class="sd">            # submit requests to wildbook</span>
-<span class="sd">            return None</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -901,9 +869,10 @@
 <span class="sd">        &gt;&gt;&gt; wb_target, tomcat_dpath = testdata_wildbook_server()</span>
 <span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_eid_list()] signaling any annotation name changes to wildbook&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_imgsetid_list()] signaling any annotation name changes to wildbook&#39;</span><span class="p">)</span>
 
     <span class="n">wildbook_base_url</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_info</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
+    <span class="c"># url_command = &#39;ImageSetSetMarkedIndividual&#39;</span>
     <span class="n">url_command</span> <span class="o">=</span> <span class="s">&#39;EncounterSetMarkedIndividual&#39;</span>
     <span class="n">BASIC_AUTH</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">BASIC_AUTH</span><span class="p">:</span>
@@ -913,7 +882,7 @@
         <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">username</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">password</span> <span class="o">+</span> <span class="s">&#39;@&#39;</span> <span class="o">+</span>
                              <span class="n">wildbook_base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;http://&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
     <span class="n">url_args_fmtstr</span> <span class="o">=</span> <span class="s">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-        <span class="s">&#39;encounterID={annot_uuid!s}&#39;</span><span class="p">,</span>
+        <span class="s">&#39;imagesetID={annot_uuid!s}&#39;</span><span class="p">,</span>
         <span class="s">&#39;individualID={name_text!s}&#39;</span><span class="p">,</span>
     <span class="p">])</span>
     <span class="n">submit_namchange_url_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
@@ -944,7 +913,7 @@
         <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response_json</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-            <span class="c"># encounter in this message is a wb-encounter not our ia-encounter</span>
+            <span class="c"># imageset in this message is a wb-imageset not our ia-imageset</span>
             <span class="c">#if ut.VERBOSE:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s">&#39;message&#39;</span><span class="p">])</span>
             <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s">&#39;message&#39;</span><span class="p">]))</span>
@@ -959,21 +928,22 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/wildbook_signal_eid_list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="wildbook_signal_eid_list"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.wildbook_signal_eid_list">[docs]</a><span class="k">def</span> <span class="nf">wildbook_signal_eid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">set_shipped_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                             <span class="n">open_url_on_complete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                             <span class="n">wb_target</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/wildbook_signal_imgsetid_list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="wildbook_signal_imgsetid_list"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.wildbook_signal_imgsetid_list">[docs]</a><span class="k">def</span> <span class="nf">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                  <span class="n">set_shipped_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                  <span class="n">open_url_on_complete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                  <span class="n">wb_target</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Exports specified encounters to wildbook. This is a synchronous call.</span>
+<span class="sd">    Exports specified imagesets to wildbook. This is a synchronous call.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        eid_list (list): (default = None)</span>
+<span class="sd">        imgsetid_list (list): (default = None)</span>
 <span class="sd">        set_shipped_flag (bool): (default = True)</span>
 <span class="sd">        open_url_on_complete (bool): (default = True)</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
-<span class="sd">        URL:    /api/core/wildbook_signal_eid_list/</span>
+<span class="sd">        URL:    /api/core/wildbook_signal_imgsetid_list/</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        cd $CODE_DIR/Wildbook/tmp</span>
@@ -998,9 +968,9 @@
 <span class="sd">        #python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login</span>
 <span class="sd">        python -m ibeis --tf test_wildbook_login</span>
 
-<span class="sd">        # Ship Encounters to wildbook</span>
-<span class="sd">        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list</span>
-<span class="sd">        python -m ibeis --tf wildbook_signal_eid_list</span>
+<span class="sd">        # Ship ImageSets to wildbook</span>
+<span class="sd">        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list</span>
+<span class="sd">        python -m ibeis --tf wildbook_signal_imgsetid_list</span>
 
 <span class="sd">        # Change annotations names to a single name</span>
 <span class="sd">        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1</span>
@@ -1011,9 +981,9 @@
 <span class="sd">        python -m ibeis --tf wildbook_signal_annot_name_changes:2</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list</span>
-<span class="sd">        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list --dryrun</span>
-<span class="sd">        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list --break</span>
+<span class="sd">        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list</span>
+<span class="sd">        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list --dryrun</span>
+<span class="sd">        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_imgsetid_list --break</span>
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        ~/local/build_scripts/init_wildbook.sh</span>
@@ -1027,27 +997,27 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; #gid_list = ibs.get_valid_gids()[0:10]</span>
 <span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[3:5]</span>
-<span class="sd">        &gt;&gt;&gt; new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;new encounter uuid = %r&#39; % (ibs.get_encounter_uuid(new_eid),))</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;new encounter text = %r&#39; % (ibs.get_encounter_text(new_eid),))</span>
-<span class="sd">        &gt;&gt;&gt; eid_list = [new_eid]</span>
-<span class="sd">        &gt;&gt;&gt; ibs.set_encounter_processed_flags([new_eid], [1])</span>
-<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_encounter_gids(new_eid)</span>
+<span class="sd">        &gt;&gt;&gt; new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;new imageset uuid = %r&#39; % (ibs.get_imageset_uuid(new_imgsetid),))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;new imageset text = %r&#39; % (ibs.get_imageset_text(new_imgsetid),))</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = [new_imgsetid]</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_imageset_processed_flags([new_imgsetid], [1])</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_imageset_gids(new_imgsetid)</span>
 <span class="sd">        &gt;&gt;&gt; ibs.set_image_reviewed(gid_list, [1] * len(gid_list))</span>
 <span class="sd">        &gt;&gt;&gt; set_shipped_flag = True</span>
 <span class="sd">        &gt;&gt;&gt; open_url_on_complete = True</span>
-<span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_eid_list(eid_list, set_shipped_flag, open_url_on_complete, tomcat_dpath, wb_target, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, tomcat_dpath, wb_target, dryrun)</span>
 <span class="sd">        &gt;&gt;&gt; # cleanup</span>
-<span class="sd">        &gt;&gt;&gt; #ibs.delete_encounters(new_eid)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs.delete_imagesets(new_imgsetid)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_send</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">use_config_file</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">):</span>
-        <span class="n">encounter_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_uuid</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">submit_eid_url_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">encounter_uuid</span><span class="o">=</span><span class="n">encounter_uuid</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_send</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">use_config_file</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">):</span>
+        <span class="n">imageset_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">submit_imgsetid_url_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imageset_uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_send] URL=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">smart_xml_fname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_smart_xml_fnames</span><span class="p">([</span><span class="n">eid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">smart_waypoint_id</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_smart_waypoint_ids</span><span class="p">([</span><span class="n">eid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">smart_xml_fname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_smart_xml_fnames</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">smart_waypoint_id</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_smart_waypoint_ids</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">smart_xml_fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">smart_waypoint_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Send smart data if availabel</span>
             <span class="k">print</span><span class="p">(</span><span class="n">smart_xml_fname</span><span class="p">,</span> <span class="n">smart_waypoint_id</span><span class="p">)</span>
@@ -1072,41 +1042,43 @@
         <span class="n">status</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">submit_wildbook_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">status</span>
 
-    <span class="k">def</span> <span class="nf">_complete</span><span class="p">(</span><span class="n">eid</span><span class="p">):</span>
-        <span class="n">encounter_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_uuid</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_complete</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">):</span>
+        <span class="n">imageset_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="n">complete_url_</span> <span class="o">=</span> <span class="n">complete_url_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">encounter_uuid</span><span class="o">=</span><span class="n">encounter_uuid</span><span class="p">)</span>
+            <span class="n">imageset_uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_complete] URL=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">complete_url_</span><span class="p">,</span> <span class="p">))</span>
         <span class="k">if</span> <span class="n">open_url_on_complete</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
             <span class="n">_browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span>
             <span class="n">_browser</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">complete_url_</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
-    <span class="c"># Check to make sure encounters are ok:</span>
-    <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">:</span>
-        <span class="c"># First, check if encounter can be pushed</span>
-        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
+    <span class="c"># Check to make sure imagesets are ok:</span>
+    <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">:</span>
+        <span class="c"># First, check if imageset can be pushed</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s">&#39;Encounter eid=</span><span class="si">%r</span><span class="s"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,))</span>
+            <span class="s">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,))</span>
         <span class="n">unknown_flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">unnamed_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">)</span>
+        <span class="n">unnamed_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unnamed_aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s">&#39;Encounter eid=</span><span class="si">%r</span><span class="s"> cannot be shipped becuase &#39;</span>
-             <span class="s">&#39;annotation(s) </span><span class="si">%r</span><span class="s"> are not named&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="p">))</span>
+            <span class="p">(</span><span class="s">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s"> cannot be shipped becuase &#39;</span>
+             <span class="s">&#39;annotation(s) </span><span class="si">%r</span><span class="s"> are not named&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="p">))</span>
 
     <span class="c"># Configuration</span>
     <span class="n">use_config_file</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">wildbook_base_url</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_info</span><span class="p">(</span>
         <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
-    <span class="n">submit_eid_url_fmtstr</span>  <span class="o">=</span> <span class="p">(</span>
+    <span class="n">submit_imgsetid_url_fmtstr</span>  <span class="o">=</span> <span class="p">(</span>
         <span class="n">wildbook_base_url</span> <span class="o">+</span>
-        <span class="s">&#39;/OccurrenceCreateIBEIS?ibeis_encounter_id={encounter_uuid!s}&#39;</span><span class="p">)</span>
+        <span class="c"># TODO: wildbook should rename their function</span>
+        <span class="c"># &#39;/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}&#39;)</span>
+        <span class="s">&#39;/OccurrenceCreateIBEIS?ibeis_encounter_id={imageset_uuid!s}&#39;</span><span class="p">)</span>
     <span class="n">complete_url_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s">&#39;/occurrence.jsp?number={encounter_uuid!s}&#39;</span><span class="p">)</span>
+        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s">&#39;/occurrence.jsp?number={imageset_uuid!s}&#39;</span><span class="p">)</span>
     <span class="c"># Call Wildbook url to signal update</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_eid_list] ship eid_list = </span><span class="si">%r</span><span class="s"> to wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="n">eid_list</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = </span><span class="si">%r</span><span class="s"> to wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">imgsetid_list</span><span class="p">,</span> <span class="p">))</span>
 
     <span class="c"># With a lock file, modify the configuration with the new settings</span>
     <span class="n">lock_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">(),</span> <span class="s">&#39;wildbook.lock&#39;</span><span class="p">)</span>
@@ -1115,18 +1087,18 @@
         <span class="k">if</span> <span class="n">use_config_file</span><span class="p">:</span>
             <span class="n">update_wildbook_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
 
-        <span class="c"># Check and push &#39;done&#39; encounters</span>
+        <span class="c"># Check and push &#39;done&#39; imagesets</span>
         <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">:</span>
             <span class="c">#Check for nones</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="n">_send</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">use_config_file</span><span class="o">=</span><span class="n">use_config_file</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_send</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">use_config_file</span><span class="o">=</span><span class="n">use_config_file</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
             <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">set_shipped_flag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
-                    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_shipped_flags</span><span class="p">([</span><span class="n">eid</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">_complete</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">set_imageset_shipped_flags</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">_complete</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_shipped_flags</span><span class="p">([</span><span class="n">eid</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">set_imageset_shipped_flags</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">status_list</span>
 
 </div>
@@ -1152,7 +1124,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1174,7 +1146,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

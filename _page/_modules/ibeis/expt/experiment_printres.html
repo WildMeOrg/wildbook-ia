@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_printres &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.expt.experiment_printres &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -137,7 +137,7 @@
 
 <span class="sd">TODO: save a testres variable so reloading and regenration becomes easier.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -145,7 +145,7 @@
 <span class="c">#from ibeis.expt import experiment_drawing</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_printres]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_printres]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_diffranks"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_printres.get_diffranks">[docs]</a><span class="k">def</span> <span class="nf">get_diffranks</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
@@ -153,7 +153,7 @@
 <span class="sd">    FIXME: duplicated</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">isdiff_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">row</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rank_mat</span><span class="p">]</span>
-    <span class="n">diff_aids</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">isdiff_flags</span><span class="p">)</span>
+    <span class="n">diff_aids</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">isdiff_flags</span><span class="p">)</span>
     <span class="n">diff_rank</span>    <span class="o">=</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isdiff_flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">diff_qxs</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">isdiff_flags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">diff_aids</span><span class="p">,</span> <span class="n">diff_rank</span><span class="p">,</span> <span class="n">diff_qxs</span>
@@ -326,7 +326,7 @@
             <span class="c"># FIXME</span>
             <span class="n">best_rankscore</span> <span class="o">+=</span> <span class="n">rankscore_str</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">max_nLessX</span><span class="p">,</span> <span class="n">cfgx2_nQuery</span><span class="p">[</span><span class="n">bestX_cfgx_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
             <span class="n">best_rankscore_summary</span> <span class="o">+=</span> <span class="p">[</span><span class="n">best_rankscore</span><span class="p">]</span>
-            <span class="c">#to_intersect_list.append(ut.list_take(cfgx2_lbl, max_nLessX))</span>
+            <span class="c">#to_intersect_list.append(ut.take(cfgx2_lbl, max_nLessX))</span>
 
         <span class="c">#intersected = to_intersect_list[0] if len(to_intersect_list) &gt; 0 else []</span>
         <span class="c">#for ix in range(1, len(to_intersect_list)):</span>
@@ -377,9 +377,9 @@
         <span class="n">failed</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">rank_mat</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="n">colx2_failed</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">failed_col</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">failed_col</span> <span class="ow">in</span> <span class="n">failed</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
         <span class="c">#failed_col2_only = np.setdiff1d(colx2_failed[1], colx2_failed[0])</span>
-        <span class="c">#failed_col2_only_aids = ut.list_take(testres.qaids, failed_col2_only)</span>
+        <span class="c">#failed_col2_only_aids = ut.take(testres.qaids, failed_col2_only)</span>
         <span class="n">failed_col1_only</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">colx2_failed</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">colx2_failed</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">failed_col1_only_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">testres</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">failed_col1_only</span><span class="p">)</span>
+        <span class="n">failed_col1_only_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">testres</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">failed_col1_only</span><span class="p">)</span>
         <span class="n">gt_aids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">failed_col1_only_aids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_qreq_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
         <span class="n">gt_aids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">failed_col1_only_aids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_qreq_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
 
@@ -425,19 +425,6 @@
         <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
 
         <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">testres_list</span>  <span class="c"># NOQA</span>
-
-        <span class="c">#aidcfg = dcfg</span>
-        <span class="c">#available_aids = available_daids</span>
-        <span class="c">#reference_aids = qaids_expt</span>
-        <span class="c">#prefix = &#39;d&#39;</span>
-        <span class="c">#gt_avl_aids = gt_aids_expt1</span>
-        <span class="c"># TODO: figure out how to take the hard cases from one test and throw</span>
-        <span class="c"># them back info another test for futher processing</span>
-
-        <span class="c"># Need to encode in a cfg</span>
-        <span class="c"># a total override to the query annots and</span>
-        <span class="c"># a partial override of the database annots. (gf is still expanded, but gt is locked)</span>
-        <span class="k">pass</span>
     <span class="c">#ut.embed()</span>
     <span class="c">#intersect_hack()</span>
 
@@ -730,7 +717,7 @@
         <span class="c"># Treat infinite as nan</span>
         <span class="n">stat_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_jagged_stats</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">use_nan</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">sel_stat_dict</span><span class="p">,</span> <span class="n">sel_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_interesting_stats</span><span class="p">(</span><span class="n">stat_dict</span><span class="p">,</span> <span class="n">col_lbls</span><span class="p">)</span>
-        <span class="n">sel_col_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">col_lbls</span><span class="p">,</span> <span class="n">sel_indices</span><span class="p">)</span>
+        <span class="n">sel_col_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">col_lbls</span><span class="p">,</span> <span class="n">sel_indices</span><span class="p">)</span>
         <span class="n">statstr_kw</span>   <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">stat_str</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">stat_dict</span><span class="o">=</span><span class="n">stat_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">statstr_kw</span><span class="p">)</span>
         <span class="n">sel_stat_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">stat_dict</span><span class="o">=</span><span class="n">sel_stat_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">statstr_kw</span><span class="p">)</span>
@@ -871,7 +858,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -893,7 +880,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

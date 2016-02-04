@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.hots.smk.smk_match &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.hots.smk" href="../smk.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../../hots.html">ibeis.algo.hots</a> &raquo;</li>
+      
+          <li><a href="../smk.html">ibeis.algo.hots.smk</a> &raquo;</li>
+      
+    <li>ibeis.algo.hots.smk.smk_match</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.hots.smk.smk_match</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c">#import six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_repr</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_core</span>
+<span class="c">#from six.moves import zip</span>
+<span class="c">#from ibeis.algo.hots.hstypes import INTEGER_TYPE</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_match]&#39;</span><span class="p">)</span>
+
+
+<span class="n">DEBUG_SMK</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-smk&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@utool.indent_func</span><span class="p">(</span><span class="s">&#39;[smk_query]&#39;</span><span class="p">)</span>
+<span class="c">#@utool.memprof</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="execute_smk_L5"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_match.execute_smk_L5">[docs]</a><span class="k">def</span> <span class="nf">execute_smk_L5</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ibeis query interface</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.smk.smk_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.smk import smk_match</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full()</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_scores, qaid2_chipmatch = smk_match.execute_smk_L5(qreq_)</span>
+
+<span class="sd">    Dev::</span>
+<span class="sd">        from ibeis.algo.hots import pipeline</span>
+<span class="sd">        filt2_meta = {}</span>
+<span class="sd">        # Get both spatial verified and not</span>
+<span class="sd">        qaid2_chipmatch_FILT_ = qaid2_chipmatch</span>
+<span class="sd">        qaid2_chipmatch_SVER_ = pipeline.spatial_verification(qaid2_chipmatch_FILT_, qreq_)</span>
+<span class="sd">        qaid2_qres_FILT_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch_FILT_, filt2_meta, qreq_)</span>
+<span class="sd">        qaid2_qres_SVER_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch_SVER_, filt2_meta, qreq_)</span>
+<span class="sd">        qres_FILT = qaid2_qres_FILT_[qaids[0]]</span>
+<span class="sd">        qres_SVER = qaid2_qres_SVER_[qaids[0]]</span>
+<span class="sd">        fig1 = qres_FILT.show_top(ibs, fnum=1, figtitle=&#39;filt&#39;)</span>
+<span class="sd">        fig2 = qres_SVER.show_top(ibs, fnum=2, figtitle=&#39;sver&#39;)</span>
+<span class="sd">        fig1.show()</span>
+<span class="sd">        fig2.show()</span>
+
+<span class="sd">    CommandLine::</span>
+<span class="sd">        python -m memory_profiler dev.py --db PZ_Mothers -t smk2 --allgt --index 0</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:10 --vf --va</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:10 --vf --va --print-cfgstr</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL --index 2:20 --vf --va</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db GZ_ALL --noqcache --index 2:20 --va --vf</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db PZ_Master0 &amp;&amp; python dev.py -t smk3 --allgt --db PZ_Master0</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db PZ_Master0 --index 2:10 --va</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db PZ_Mothers --index 20:30</span>
+<span class="sd">        python dev.py -t smk2 --allgt --db PZ_Mothers --noqcache --index 18:20 --super-strict --va</span>
+<span class="sd">        python dev.py -t smk2 --db PZ_Master0 --qaid 7199 --va --quality --vf --noqcache</span>
+<span class="sd">        python dev.py -t smk3 --allgt --db GZ_ALL --index 2:10 --vf --va</span>
+<span class="sd">        python dev.py -t smk5 --allgt --db PZ_Master0 --noqcache ; python dev.py -t smk5 --allgt --db GZ_ALL --noqcache</span>
+<span class="sd">        python dev.py -t smkd --allgt --db PZ_Mothers --index 1:3 --va --quality --vf --noqcache</span>
+
+<span class="sd">        python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --va --vf</span>
+<span class="sd">        python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --echo-hardcase</span>
+<span class="sd">        python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --vh</span>
+<span class="sd">        python dev.py -t smk_8k_compare --allgt --db PZ_Mothers --index 20:30 --view-hard</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">memtrack</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">MemoryTracker</span><span class="p">(</span><span class="s">&#39;[SMK ENTRY]&#39;</span><span class="p">)</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">ibs</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c"># Params</span>
+    <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+    <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;[SMK PREINIT]&#39;</span><span class="p">)</span>
+    <span class="c"># Build ~~Pandas~~ dataframe (or maybe not)</span>
+    <span class="n">annots_df</span> <span class="o">=</span> <span class="n">smk_repr</span><span class="o">.</span><span class="n">make_annot_df</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">words</span><span class="p">,</span> <span class="n">invindex</span> <span class="o">=</span> <span class="n">prepare_qreq</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">memtrack</span><span class="p">)</span>
+    <span class="n">withinfo</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c"># Execute smk for each query</span>
+    <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;[SMK QREQ INITIALIZED]&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SMK_MEM] invindex is using &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">invindex</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SMK_MEM] qreq_ is using &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">qreq_</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">invindex_dbgstr</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
+
+    <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">execute_smk_L4</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">)</span>
+    <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;[SMK QREQ FINISHED]&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span>
+
+
+<span class="c">#@utool.memprof</span></div>
+<div class="viewcode-block" id="prepare_qreq"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_match.prepare_qreq">[docs]</a><span class="k">def</span> <span class="nf">prepare_qreq</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">memtrack</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Called if pipeline did not setup qreq correctly &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">+--- QREQ NEEDS TO LOAD VOCAB --- &#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;words&#39;</span><span class="p">):</span>
+        <span class="c"># Hack</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;pipeline still isnt fully ready for smk&#39;</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">words</span>
+        <span class="n">invindex</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">invindex</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Load vocabulary</span>
+        <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+        <span class="n">daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>
+        <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;[SMK LEARN VWORDS]&#39;</span><span class="p">)</span>
+        <span class="c"># Index database annotations</span>
+        <span class="n">with_internals</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_repr</span><span class="o">.</span><span class="n">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span>
+                                               <span class="n">with_internals</span><span class="p">,</span> <span class="n">memtrack</span><span class="p">)</span>
+        <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;[SMK INDEX ANNOTS]&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___ FINISHED LOADING VOCAB ___</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">words</span><span class="p">,</span> <span class="n">invindex</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="execute_smk_L4"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_match.execute_smk_L4">[docs]</a><span class="k">def</span> <span class="nf">execute_smk_L4</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loop over execute_smk_L3</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t smk --allgt --db PZ_Mothers --index 1:3 --noqcache --va --vf</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Progress</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;ASMK query: &#39;</span> <span class="k">if</span> <span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span> <span class="k">else</span> <span class="s">&#39;SMK query: &#39;</span>
+    <span class="n">logkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flushfreq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">writefreq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_totaltime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="o">**</span><span class="n">logkw</span><span class="p">)</span>
+    <span class="c"># Output</span>
+    <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">qaid2_scores</span>    <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Foreach query annotation</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qaids</span><span class="p">):</span>
+        <span class="n">mark</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="n">execute_smk_L3</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">)</span>
+        <span class="n">daid2_score</span><span class="p">,</span> <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="n">qaid2_scores</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>    <span class="o">=</span> <span class="n">daid2_score</span>
+        <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">daid2_chipmatch</span>
+        <span class="c">#memtrack.report(&#39;[SMK SINGLE QUERY]&#39;)</span>
+    <span class="n">end_</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_qaid2_chipmatch</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="execute_smk_L3"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_match.execute_smk_L3">[docs]</a><span class="k">def</span> <span class="nf">execute_smk_L3</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">withinfo</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes a single smk query</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.smk.smk_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_internals_full()</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; qparams = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; withinfo = True</span>
+<span class="sd">        &gt;&gt;&gt; daid2_totalscore, daid2_chipmatch = execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from ibeis.algo.hots.smk import smk_index</span>
+    <span class="c"># Get query words / residuals</span>
+    <span class="n">qindex</span> <span class="o">=</span> <span class="n">smk_repr</span><span class="o">.</span><span class="n">new_qindex</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">)</span>
+    <span class="c"># Compute match kernel for all database aids</span>
+    <span class="n">daid2_totalscore</span><span class="p">,</span> <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="n">smk_core</span><span class="o">.</span><span class="n">match_kernel_L2</span><span class="p">(</span><span class="n">qindex</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">)</span>  <span class="c"># 54 %</span>
+    <span class="c"># Prevent self matches</span>
+    <span class="n">allow_self_match</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">allow_self_match</span>
+    <span class="c">#utool.get_argflag(&#39;--self-match&#39;)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">allow_self_match</span><span class="p">)</span> <span class="ow">and</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">daid2_totalscore</span><span class="p">:</span>
+        <span class="c"># If we cannot do self-matches</span>
+        <span class="n">daid2_totalscore</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">daid2_chipmatch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">daid2_chipmatch</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">daid2_chipmatch</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="c"># Build chipmatches if daid2_wx2_scoremat is not None</span>
+    <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_daid2_chipmatch</span><span class="p">(</span><span class="n">daid2_chipmatch</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">daid2_totalscore</span><span class="p">,</span> <span class="n">daid2_chipmatch</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_ibeis2</span><span class="p">()</span>
+        <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">execute_smk_L5</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres_</span><span class="p">[</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">show_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">main</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

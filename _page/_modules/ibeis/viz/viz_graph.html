@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_graph &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.viz.viz_graph &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -184,7 +184,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.chip_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=[1, 2, 3, 4, 5, 6, 7, 18])</span>
 <span class="sd">        &gt;&gt;&gt; [cm.score_nsum(qreq_) for cm in cm_list]</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
@@ -197,7 +197,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.chip_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; #ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=&#39;all&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;PZ_MTEST&#39;, qaid_list=&#39;all&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; [cm.score_nsum(qreq_) for cm in cm_list]</span>
@@ -207,7 +207,6 @@
 <span class="sd">        &gt;&gt;&gt; show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)</span>
 <span class="sd">        &gt;&gt;&gt; #cm.show_single_annotmatch(qreq_, daid)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
     <span class="c"># breaking</span>
@@ -353,7 +352,7 @@
 <span class="sd">    TODO: look into DraggableAnnotation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">matplotlib.offsetbox</span> <span class="kn">import</span> <span class="n">OffsetImage</span><span class="p">,</span> <span class="n">AnnotationBbox</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter] drawing </span><span class="si">%d</span><span class="s"> images&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_graph] drawing </span><span class="si">%d</span><span class="s"> images&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_list</span><span class="p">))</span>
     <span class="c"># Thumb stackartist</span>
     <span class="n">ax</span>  <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
     <span class="n">artist_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -477,7 +476,7 @@
         <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
 
     <span class="c">#zoom = .8</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter] drawing chip graph&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_graph] drawing chip graph&#39;</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
     <span class="c">#pos = netx.spring_layout(graph)</span>
@@ -602,6 +601,8 @@
 <span class="sd">        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 2068 1003 --show</span>
 <span class="sd">        python -m ibeis --tf make_name_graph_interaction --aids 3 --show</span>
 
+<span class="sd">        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids 193 194 195 196 --show --db WD_Siva</span>
+
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -625,6 +626,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span> <span class="o">=</span> <span class="n">selected_aids</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_nids</span> <span class="o">=</span> <span class="n">nids</span> <span class="k">if</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_aids</span> <span class="o">=</span> <span class="n">aids</span> <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">with_images</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="k">def</span> <span class="nf">update_netx_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -651,7 +653,7 @@
             <span class="kn">from</span> <span class="nn">ibeis.viz.viz_graph</span> <span class="kn">import</span> <span class="n">viz_netx_chipgraph</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_netx_graph</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">viz_netx_chipgraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">netx_graph</span><span class="p">,</span>
-                                          <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                          <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_images</span><span class="p">,</span>
                                           <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
@@ -666,6 +668,10 @@
             <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2_index</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
             <span class="n">artist</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">artists</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">artist</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">toggle_images</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">with_images</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_images</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
 
         <span class="k">def</span> <span class="nf">toggle_selected_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">:</span>
@@ -756,6 +762,12 @@
                         <span class="n">with_interact_name</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                         <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="p">(</span><span class="s">&#39;Toggle images&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">toggle_images</span><span class="p">),</span>
+                    <span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
 
     <span class="bp">self</span> <span class="o">=</span> <span class="n">NameGraphInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="n">selected_aids</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
@@ -799,7 +811,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -821,7 +833,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

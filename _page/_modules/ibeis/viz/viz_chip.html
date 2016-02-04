@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_chip &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.viz.viz_chip &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -138,8 +138,7 @@
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_chip]&#39;</span><span class="p">,</span>
-                                                       <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span>  <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_chip]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="testdata_showchip"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_chip.testdata_showchip">[docs]</a><span class="k">def</span> <span class="nf">testdata_showchip</span><span class="p">():</span>
@@ -152,7 +151,7 @@
     <span class="n">annote</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-annote&#39;</span><span class="p">)</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ori</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ori&#39;</span><span class="p">),</span> <span class="n">weight_label</span><span class="o">=</span><span class="n">weight_label</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">FeatureWeightConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
+    <span class="n">default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">FeatureWeightConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">default_config</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_chip.testdata] cfgdict = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgdict</span><span class="p">,))</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
@@ -223,7 +222,7 @@
 <span class="sd">        &gt;&gt;&gt;     kpts = ibs.get_annot_kpts(aid, config2_=config2_)</span>
 <span class="sd">        &gt;&gt;&gt;     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]</span>
 <span class="sd">        &gt;&gt;&gt;     kpts = ut.random_sample(kpts[weights &gt; .9], 200, seed=0)</span>
-<span class="sd">        &gt;&gt;&gt;     ecc = vt.get_kpts_excentricity(kpts)</span>
+<span class="sd">        &gt;&gt;&gt;     ecc = vt.get_kpts_eccentricity(kpts)</span>
 <span class="sd">        &gt;&gt;&gt;     scale = 1 / vt.get_scales(kpts)</span>
 <span class="sd">        &gt;&gt;&gt;     s = ecc if config2_.affine_invariance else scale</span>
 <span class="sd">        &gt;&gt;&gt;     colors = pt.scores_to_color(s, cmap_=&#39;jet&#39;)</span>
@@ -236,7 +235,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] show_chip(aid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
     <span class="c">#ibs.assert_valid_aids((aid,))</span>
     <span class="c"># Get chip</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;in_image = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">in_image</span><span class="p">,))</span>
+    <span class="c">#print(&#39;in_image = %r&#39; % (in_image,))</span>
     <span class="n">chip</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="c"># Create chip title</span>
     <span class="n">chip_text</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -253,7 +252,7 @@
     <span class="k">if</span> <span class="n">annote</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nokpts&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="c"># Get and draw keypoints</span>
         <span class="k">if</span> <span class="s">&#39;color&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="c">#from ibeis.model.preproc import preproc_featweight</span>
+            <span class="c">#from ibeis.algo.preproc import preproc_featweight</span>
             <span class="c">#featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]</span>
             <span class="k">if</span> <span class="n">weight_label</span> <span class="o">==</span> <span class="s">&#39;fg_weights&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">)):</span>
@@ -292,12 +291,12 @@
 
         <span class="n">zoom_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--zoom&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">zoom_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
             <span class="c"># Zoom into the chip for some image context</span>
             <span class="n">rotated_verts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
             <span class="n">bbox</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">rotated_verts</span><span class="p">)</span>
-            <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+            <span class="c">#print(bbox)</span>
+            <span class="c">#print(rotated_verts)</span>
             <span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">bbox_from_verts</span><span class="p">(</span><span class="n">rotated_verts</span><span class="p">)</span>
             <span class="n">imgw</span><span class="p">,</span> <span class="n">imgh</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
@@ -341,7 +340,7 @@
 <span class="c">#    annote = True</span>
 <span class="c">#    kpts = ibs.get_annot_kpts(aid)</span>
 <span class="c">#    kwargs = {}</span>
-<span class="c">#    #from ibeis.model.preproc import preproc_featweight</span>
+<span class="c">#    #from ibeis.algo.preproc import preproc_featweight</span>
 <span class="c">#    #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]</span>
 <span class="c">#    #color = featweights</span>
 <span class="c">#    #import numpy as np</span>
@@ -376,7 +375,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -398,7 +397,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_image_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_image_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -138,7 +138,7 @@
 
 
 <span class="sd">CommandLine:</span>
-<span class="sd">    # Autogenerate Encounter Functions</span>
+<span class="sd">    # Autogenerate ImageSet Functions</span>
 <span class="sd">    # key should be the table name</span>
 <span class="sd">    # the write flag makes a file, but dont use that</span>
 <span class="sd">    python -m ibeis.templates.template_generator --key image --onlyfn</span>
@@ -219,11 +219,11 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_valid_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_gids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">reviewed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_valid_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_gids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">reviewed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        eid (None):</span>
+<span class="sd">        imgsetid (None):</span>
 <span class="sd">        require_unixtime (bool):</span>
 <span class="sd">        reviewed (None):</span>
 
@@ -243,21 +243,21 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; eid = None</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid = None</span>
 <span class="sd">        &gt;&gt;&gt; require_unixtime = False</span>
 <span class="sd">        &gt;&gt;&gt; reviewed = None</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; gid_list = get_valid_gids(ibs, eid, require_unixtime, reviewed)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = get_valid_gids(ibs, imgsetid, require_unixtime, reviewed)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(gid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">imgsetid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_gids</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">require_unixtime</span><span class="p">:</span>
         <span class="c"># Remove images without timestamps</span>
         <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -302,7 +302,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/valid_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_valid_image_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_image_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_image_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reviewed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_valid_image_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_image_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_image_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reviewed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    alias</span>
 
@@ -310,7 +310,7 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/image/valid_rowids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">get_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="p">,</span> <span class="n">reviewed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_valid_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">require_unixtime</span><span class="p">,</span> <span class="n">reviewed</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -329,7 +329,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.adder</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/path&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.add_images">[docs]</a><span class="k">def</span> <span class="nf">add_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">as_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                <span class="n">sanitize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -385,7 +385,7 @@
 <span class="sd">        &gt;&gt;&gt; # Clean things up</span>
 <span class="sd">        &gt;&gt;&gt; ibs.delete_images(new_gids1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_image</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_image</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] add_images&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] len(gpath_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
@@ -622,7 +622,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_image_reviewed"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_image_reviewed">[docs]</a><span class="k">def</span> <span class="nf">set_image_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -717,37 +717,37 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/enctext/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="set_image_enctext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_image_enctext">[docs]</a><span class="k">def</span> <span class="nf">set_image_enctext</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/imagesettext/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_image_imagesettext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_image_imagesettext">[docs]</a><span class="k">def</span> <span class="nf">set_image_imagesettext</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">imagesettext_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Sets the encoutertext of each image</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
-<span class="sd">        URL:    /api/image/enctext/</span>
+<span class="sd">        URL:    /api/image/imagesettext/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: Slow and weird</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] setting </span><span class="si">%r</span><span class="s"> image encounter ids (from text)&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_encounters</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] setting </span><span class="si">%r</span><span class="s"> image imageset ids (from text)&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="n">imagesettext_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/eids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="set_image_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_image_eids">[docs]</a><span class="k">def</span> <span class="nf">set_image_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_image_imgsetids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_image_imgsetids">[docs]</a><span class="k">def</span> <span class="nf">set_image_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Sets the encoutertext of each image</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
-<span class="sd">        URL:    /api/image/eids/</span>
+<span class="sd">        URL:    /api/image/imgsetids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] setting </span><span class="si">%r</span><span class="s"> image encounter ids&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-    <span class="n">egrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_image_relationship</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
-    <span class="k">del</span> <span class="n">egrid_list</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] setting </span><span class="si">%r</span><span class="s"> image imageset ids&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="n">gsgrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_image_relationship</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">gsgrid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1059,6 +1059,24 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/missing_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_image_missing_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_missing_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_image_missing_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of missing image uuids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/missing_uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">)</span>
+    <span class="n">missing_uuid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">uuid</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">uuid</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="p">]</span>
+    <span class="k">return</span> <span class="n">missing_uuid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/paths/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_image_paths"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_paths">[docs]</a><span class="k">def</span> <span class="nf">get_image_paths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -1121,7 +1139,7 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/image/detectpaths/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_detectimg</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_detectimg</span>
     <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">preproc_detectimg</span><span class="o">.</span><span class="n">compute_and_write_detectimg_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new_gfpath_list</span>
 
@@ -1422,38 +1440,38 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1toM</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/eids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_image_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_eids">[docs]</a><span class="k">def</span> <span class="nf">get_image_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_image_imgsetids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_imgsetids">[docs]</a><span class="k">def</span> <span class="nf">get_image_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list): a list of encounter ids for each image by gid</span>
+<span class="sd">        list_ (list): a list of imageset ids for each image by gid</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/image/eids/</span>
+<span class="sd">        URL:    /api/image/imgsetids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,)</span>
-    <span class="n">eids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span>
-                           <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">eids_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;imageset_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span>
+                                <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetids_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1toM</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/enctext/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_image_enctext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_enctext">[docs]</a><span class="k">def</span> <span class="nf">get_image_enctext</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/imagesettext/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_image_imagesettext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_imagesettext">[docs]</a><span class="k">def</span> <span class="nf">get_image_imagesettext</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        list_ (list): a list of enctexts for each image by gid</span>
+<span class="sd">        list_ (list): a list of imagesettexts for each image by gid</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/image/enctext/</span>
+<span class="sd">        URL:    /api/image/imagesettext/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">eids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">enctext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">,</span> <span class="n">eids_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">enctext_list</span>
+    <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">imagesettext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">,</span> <span class="n">imgsetids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">imagesettext_list</span>
 
 </div>
 <span class="n">ANNOT_ROWID</span> <span class="o">=</span> <span class="s">&#39;annot_rowid&#39;</span>
@@ -1602,7 +1620,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.deleter</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.delete_images">[docs]</a><span class="k">def</span> <span class="nf">delete_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">trash_images</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -1674,9 +1692,9 @@
     <span class="c"># TODO: pass flag to not delete them in delete_annots</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-    <span class="c">#egrid_list = ut.flatten(ibs.get_image_egrids(gid_list))</span>
-    <span class="c">#ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">)</span>
+    <span class="c">#gsgrid_list = ut.flatten(ibs.get_image_gsgrids(gid_list))</span>
+    <span class="c">#ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2025,7 +2043,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -2047,7 +2065,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

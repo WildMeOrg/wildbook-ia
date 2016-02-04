@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utool.util_class &mdash; ibeis 1.4.7 documentation</title>
+  <title>utool.util_class &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -289,7 +289,12 @@
 <span class="k">def</span> <span class="nf">reload_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">):</span>
     <span class="n">injected_modules</span> <span class="o">=</span> <span class="n">get_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">injected_modules</span><span class="p">:</span>
-        <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+            <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">imp</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;rrr not defined in module=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,))</span>
+            <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">get_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">):</span>
@@ -344,7 +349,8 @@
     <span class="k">return</span> <span class="n">src</span>
 
 
-<span class="k">def</span> <span class="nf">autogen_explicit_injectable_metaclass</span><span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">regen_command</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">conditional_imports</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">autogen_explicit_injectable_metaclass</span><span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">regen_command</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                          <span class="n">conditional_imports</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        classname (?):</span>
@@ -476,12 +482,13 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;Cheese shop does not have cheese. All is well.&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">__APP_MODNAME_REGISTER__</span>
-    <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register make_class_method_decorator classkey=</span><span class="si">%r</span><span class="s">, modname=</span><span class="si">%r</span><span class="s">&#39;</span>
+    <span class="c">#if util_arg.VERBOSE or VERBOSE_CLASS:</span>
+    <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register via make_class_method_decorator classkey=</span><span class="si">%r</span><span class="s">, modname=</span><span class="si">%r</span><span class="s">&#39;</span>
               <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="c"># skips reinjects into main</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register class functions as __main__&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register classkey=</span><span class="si">%r</span><span class="s"> functions as __main__&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,))</span>
         <span class="k">return</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">func</span>
     <span class="c"># register that this module was injected into</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
@@ -500,7 +507,8 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning not using classkey for </span><span class="si">%r</span><span class="s"> </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;classkey no longer supported. Use class_inject_key instead&#39;</span><span class="p">)</span>
-    <span class="n">closure_decorate_class_method</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_class_method</span><span class="p">,</span> <span class="n">classkey</span><span class="o">=</span><span class="n">classkey</span><span class="p">)</span>
+    <span class="n">closure_decorate_class_method</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_class_method</span><span class="p">,</span>
+                                                      <span class="n">classkey</span><span class="o">=</span><span class="n">classkey</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">closure_decorate_class_method</span>
 
 
@@ -523,7 +531,8 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register class functions as __main__&#39;</span><span class="p">)</span>
         <span class="c"># skips reinjects into main</span>
         <span class="k">return</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">func</span>
-    <span class="n">closure_decorate_postinject</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_postinject</span><span class="p">,</span> <span class="n">classkey</span><span class="o">=</span><span class="n">classkey</span><span class="p">)</span>
+    <span class="n">closure_decorate_postinject</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_postinject</span><span class="p">,</span>
+                                                    <span class="n">classkey</span><span class="o">=</span><span class="n">classkey</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">closure_decorate_postinject</span>
 
 
@@ -874,7 +883,8 @@
                 <span class="n">class_list</span> <span class="o">=</span> <span class="n">find_base_clases</span><span class="p">(</span><span class="n">head_class</span><span class="p">,</span> <span class="n">find_base_clases</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">_class</span> <span class="ow">in</span> <span class="n">class_list</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading parent &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading parent &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span>
+                              <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
                         <span class="n">module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -894,7 +904,8 @@
                         <span class="k">try</span><span class="p">:</span>
                             <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module_</span><span class="p">)</span>
                         <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
-                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] fallback reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
+                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] fallback reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span>
+                                  <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
                             <span class="c"># one last thing to try. probably used ut.import_module_from_fpath</span>
                             <span class="c"># when importing this module</span>
                             <span class="n">imp</span><span class="o">.</span><span class="n">load_source</span><span class="p">(</span><span class="n">module_</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">module_</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
@@ -1044,6 +1055,34 @@
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">truename</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
 
 
+<span class="k">def</span> <span class="nf">get_classname</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        class_ (type):</span>
+<span class="sd">        local (bool): (default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: classname</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_class --exec-get_classname --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_class import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; class_ = ReloadingMetaclass</span>
+<span class="sd">        &gt;&gt;&gt; local = False</span>
+<span class="sd">        &gt;&gt;&gt; assert get_classname(class_, local) == &#39;utool.util_class.ReloadingMetaclass&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert get_classname(class_, local=True) == &#39;ReloadingMetaclass&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">local</span><span class="p">:</span>
+        <span class="n">classname</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">classname</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
+    <span class="k">return</span> <span class="n">classname</span>
+
+
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -c &quot;import utool; utool.doctest_funcs(utool.util_class, allexamples=True)&quot;</span>
@@ -1064,7 +1103,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1086,7 +1125,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

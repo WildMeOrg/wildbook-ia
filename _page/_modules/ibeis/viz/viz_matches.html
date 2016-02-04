@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_matches &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.viz.viz_matches &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -154,9 +154,19 @@
 
 
 <div class="viewcode-block" id="get_query_annot_pair_info"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.get_query_annot_pair_info">[docs]</a><span class="k">def</span> <span class="nf">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c">#print(&#39;!!! qqreq_ = %r&#39; % (qreq_,))</span>
     <span class="n">query_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span>
                       <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
-    <span class="n">rchip1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c">#print(&#39;!!! query_config2_ = %r&#39; % (query_config2_,))</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;get_fmatch_overlayed_chip&#39;</span><span class="p">)</span>  <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="o">!=</span> <span class="s">&#39;hackoff&#39;</span><span class="p">:</span>
+            <span class="n">rchip1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_fmatch_overlayed_chip</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rchip1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rchip1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">draw_fmatches</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kpts1</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">kpts1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -169,7 +179,19 @@
                              <span class="n">scale_down</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="n">data_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
                      <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">())</span>
-    <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
+    <span class="c">#print(&#39;!!! data_config2_ = %r&#39; % (data_config2_,))</span>
+    <span class="c">#print(&#39;!!! dqreq_ = %r&#39; % (qreq_,))</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;get_fmatch_overlayed_chip&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="o">!=</span> <span class="s">&#39;hackoff&#39;</span><span class="p">:</span>
+            <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_fmatch_overlayed_chip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
+            <span class="c">#rchip2_list = ibs.depc.get_property(&#39;chips&#39;, aid_list, &#39;img&#39;, config=data_config2_)</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
+            <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c">#vh.get_chips(ibs, aid_list, config2_=data_config2_)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">draw_fmatches</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kpts2_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
@@ -205,40 +227,20 @@
 <span class="sd">        show_nid, show_aid, show_annot_score, show_truth, name_score,</span>
 <span class="sd">        show_name_score, show_name_rank, show_timedelta</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        ?: ax</span>
-
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.viz_matches --exec-show_name_matches</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_matches import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; qaid = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; name_daid_list = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; name_fm_list = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; name_fs_list = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; name_H1_list = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; name_featflag_list = &#39;?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
-<span class="sd">        &gt;&gt;&gt; ax = show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_)</span>
-<span class="sd">        &gt;&gt;&gt; result = (&#39;ax = %s&#39; % (str(ax),))</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-
-<span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.viz_matches --test-show_name_matches --show</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import chip_match</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import name_scoring</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_matches import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import _pipeline_helpers as plh  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import chip_match</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import name_scoring</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; func = chip_match.ChipMatch2.show_single_namematch</span>
-<span class="sd">        &gt;&gt;&gt; sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)</span>
+<span class="sd">        &gt;&gt;&gt; func = chip_match.ChipMatch.show_single_namematch</span>
+<span class="sd">        &gt;&gt;&gt; sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True, strip_docstr=True)</span>
 <span class="sd">        &gt;&gt;&gt; setup = ut.regex_replace(&#39;viz_matches.show_name_matches&#39;, &#39;#&#39;, sourcecode)</span>
 <span class="sd">        &gt;&gt;&gt; homog = False</span>
 <span class="sd">        &gt;&gt;&gt; print(ut.indent(setup, &#39;&gt;&gt;&gt; &#39;))</span>
@@ -247,41 +249,16 @@
 <span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; dnid = ibs.get_annot_nids(cm.qaid)</span>
 <span class="sd">        &gt;&gt;&gt; # +--- COPIED SECTION</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.viz import viz_matches</span>
-<span class="sd">        &gt;&gt;&gt; qaid = cm.qaid</span>
-<span class="sd">        &gt;&gt;&gt; # &lt;GET NAME GROUPXS&gt;</span>
-<span class="sd">        &gt;&gt;&gt; nidx = cm.nid2_nidx[dnid]</span>
-<span class="sd">        &gt;&gt;&gt; groupxs = cm.name_groupxs[nidx]</span>
-<span class="sd">        &gt;&gt;&gt; daids = np.take(cm.daid_list, groupxs)</span>
-<span class="sd">        &gt;&gt;&gt; groupxs = groupxs.compress(daids != cm.qaid)</span>
-<span class="sd">        &gt;&gt;&gt; # &lt;/GET NAME GROUPXS&gt;</span>
-<span class="sd">        &gt;&gt;&gt; # sort annots in this name by the chip score</span>
-<span class="sd">        &gt;&gt;&gt; group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]</span>
-<span class="sd">        &gt;&gt;&gt; sorted_groupxs = groupxs.take(group_sortx)</span>
-<span class="sd">        &gt;&gt;&gt; # get the info for this name</span>
-<span class="sd">        &gt;&gt;&gt; name_fm_list  = ut.list_take(cm.fm_list, sorted_groupxs)</span>
-<span class="sd">        &gt;&gt;&gt; REMOVE_EMPTY_MATCHES = len(sorted_groupxs) &gt; 3</span>
-<span class="sd">        &gt;&gt;&gt; if REMOVE_EMPTY_MATCHES:</span>
-<span class="sd">        &gt;&gt;&gt;     isvalid_list = [len(fm) &gt; 0 for fm in name_fm_list]</span>
-<span class="sd">        &gt;&gt;&gt;     name_fm_list = ut.list_compress(name_fm_list, isvalid_list)</span>
-<span class="sd">        &gt;&gt;&gt;     sorted_groupxs = sorted_groupxs.compress(isvalid_list)</span>
-<span class="sd">        &gt;&gt;&gt; name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)</span>
-<span class="sd">        &gt;&gt;&gt; name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)</span>
-<span class="sd">        &gt;&gt;&gt; name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]</span>
-<span class="sd">        &gt;&gt;&gt; name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)</span>
-<span class="sd">        &gt;&gt;&gt; # find features marked as invalid by name scoring</span>
-<span class="sd">        &gt;&gt;&gt; featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)</span>
-<span class="sd">        &gt;&gt;&gt; name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)</span>
-<span class="sd">        &gt;&gt;&gt; # Get the scores for names and chips</span>
-<span class="sd">        &gt;&gt;&gt; name_score = cm.name_score_list[nidx]</span>
-<span class="sd">        &gt;&gt;&gt; name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)</span>
-<span class="sd">        &gt;&gt;&gt; name_annot_scores = cm.csum_score_list.take(sorted_groupxs)</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = locals()</span>
+<span class="sd">        &gt;&gt;&gt; var_list = ut.exec_func_src(func, locals_=locals_, sentinal=&#39;name_annot_scores = cm.annot_score_list.take(sorted_groupxs&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; exec(ut.execstr_dict(var_list))</span>
 <span class="sd">        &gt;&gt;&gt; # L___ COPIED SECTION</span>
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
 <span class="sd">        &gt;&gt;&gt; show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#print(&quot;SHOW NAME MATCHES&quot;)</span>
     <span class="c">#print(ut.repr2(kwargs, nl=True))</span>
     <span class="c">#from ibeis import constants as const</span>
     <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
@@ -465,7 +442,7 @@
                 <span class="n">pt</span><span class="o">.</span><span class="n">absolute_lbl</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
     <span class="c"># No matches draw a red box</span>
     <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">no_matches</span> <span class="o">=</span> <span class="nb">all</span><span class="p">([</span><span class="bp">True</span> <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">name_fm_list</span><span class="p">])</span>
+        <span class="n">no_matches</span> <span class="o">=</span> <span class="n">name_fm_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">([</span><span class="bp">True</span> <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">name_fm_list</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">no_matches</span><span class="p">:</span>
             <span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
             <span class="c">#axes_bbox = (xy[0], xy[1], w, h)</span>
@@ -584,16 +561,39 @@
 <div class="viewcode-block" id="show_matches2"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.show_matches2">[docs]</a><span class="k">def</span> <span class="nf">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="p">[],</span>
                   <span class="n">H1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: use this as the main function.</span>
-<span class="sd">    Integrate ChipMatch2</span>
+<span class="sd">    TODO: DEPRICATE and use special case of show_name_matches</span>
+<span class="sd">    Integrate ChipMatch</span>
+
+<span class="sd">    Used in:</span>
+<span class="sd">        Found 1 line(s) in &#39;/home/joncrall/code/ibeis_cnn/ibeis_cnn/ingest_ibeis.py&#39;:</span>
+<span class="sd">        ingest_ibeis.py : 827 |        &gt;&gt;&gt;     ibeis.viz.viz_matches.show_matches2(ibs, aid1, aid2, fm=None, kpts1=kpts1, kpts2=kpts2)</span>
+<span class="sd">        ----------------------</span>
+<span class="sd">        Found 4 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/viz/viz_matches.py&#39;:</span>
+<span class="sd">        viz_matches.py : 423 |def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],</span>
+<span class="sd">        viz_matches.py : 430 |        python -m ibeis.viz.viz_matches --exec-show_matches2 --show</span>
+<span class="sd">        viz_matches.py : 431 |        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show</span>
+<span class="sd">        viz_matches.py : 515 |    return show_matches2(ibs, aid1, aid2, fm, fs, qreq_=qreq_, **kwargs)</span>
+<span class="sd">        ----------------------</span>
+<span class="sd">        Found 1 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/viz/interact/interact_matches.py&#39;:</span>
+<span class="sd">        interact_matches.py : 372 |            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,</span>
+<span class="sd">        ----------------------</span>
+<span class="sd">        Found 1 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/algo/hots/vsone_pipeline.py&#39;:</span>
+<span class="sd">        vsone_pipeline.py : 1339 |    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm, ori=True,</span>
+<span class="sd">        ----------------------</span>
+<span class="sd">        Found 2 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/algo/hots/chip_match.py&#39;:</span>
+<span class="sd">        chip_match.py : 204 |        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,</span>
+<span class="sd">        chip_match.py : 219 |            ibeis.viz.viz_matches.show_matches2</span>
+<span class="sd">        ----------------------</span>
+<span class="sd">        Found 1 line(s) in &#39;/home/joncrall/code/ibeis/ibeis/algo/hots/scoring.py&#39;:</span>
+<span class="sd">        scoring.py : 562 |        viz.viz_matches.show_matches2(qreq_.ibs, qaid, daid, fm, fs,</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.viz_matches --exec-show_matches2 --show</span>
-<span class="sd">        python -m ibeis --tf ChipMatch2.ishow_single_annotmatch show_matches2 --show</span>
+<span class="sd">        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.chip_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(defaultdb=&#39;PZ_MTEST&#39;, default_qaids=[18])</span>
 <span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
@@ -707,6 +707,10 @@
     <span class="n">target_wh1</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">H1</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">rchip1_</span> <span class="o">=</span> <span class="n">preprocess_chips</span><span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="n">target_wh1</span><span class="p">)</span>
+    <span class="c"># Hack to visually identify the query</span>
+    <span class="n">rchip1_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span>
+        <span class="n">rchip1_</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">rchip1_</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
     <span class="n">wh1</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">rchip1_</span><span class="p">)</span>
     <span class="n">rchip2_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">preprocess_chips</span><span class="p">(</span><span class="n">rchip2</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">wh1</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">rchip2</span> <span class="ow">in</span> <span class="n">rchip2_list</span><span class="p">]</span>
@@ -802,7 +806,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -824,7 +828,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

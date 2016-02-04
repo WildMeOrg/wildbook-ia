@@ -1,0 +1,849 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.hots.pgm_viz &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.algo.hots</a> &raquo;</li>
+      
+    <li>ibeis.algo.hots.pgm_viz</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.hots.pgm_viz</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pgmext]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="print_ascii_graph"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.print_ascii_graph">[docs]</a><span class="k">def</span> <span class="nf">print_ascii_graph</span><span class="p">(</span><span class="n">model_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pip install img2txt.py</span>
+
+<span class="sd">    python -c</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+    <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">StringIO</span>
+    <span class="c">#import networkx as netx</span>
+    <span class="kn">import</span> <span class="nn">copy</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model_</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">model_</span>
+    <span class="c"># model.graph.setdefault(&#39;graph&#39;, {})[&#39;size&#39;] = &#39;&quot;.4,.4&quot;&#39;</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;graph&#39;</span><span class="p">,</span> <span class="p">{})[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&quot;.3,.3&quot;&#39;</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;graph&#39;</span><span class="p">,</span> <span class="p">{})[</span><span class="s">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&quot;.3,.3&quot;&#39;</span>
+    <span class="n">pydot_graph</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">to_pydot</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">png_str</span> <span class="o">=</span> <span class="n">pydot_graph</span><span class="o">.</span><span class="n">create_png</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s">&#39;dot&#39;</span><span class="p">)</span>
+    <span class="n">sio</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">sio</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">png_str</span><span class="p">)</span>
+    <span class="n">sio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">sio</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;pil_img.size = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">size</span><span class="p">,))</span>
+    <span class="c">#def print_ascii_image(pil_img):</span>
+    <span class="c">#    img2txt = ut.import_module_from_fpath(&#39;/home/joncrall/venv/bin/img2txt.py&#39;)</span>
+    <span class="c">#    import sys</span>
+    <span class="c">#    pixel = pil_img.load()</span>
+    <span class="c">#    width, height = pil_img.size</span>
+    <span class="c">#    bgcolor = None</span>
+    <span class="c">#    #fill_string =</span>
+    <span class="c">#    img2txt.getANSIbgstring_for_ANSIcolor(img2txt.getANSIcolor_for_rgb(bgcolor))</span>
+    <span class="c">#    fill_string = &quot;\x1b[49m&quot;</span>
+    <span class="c">#    fill_string += &quot;\x1b[K&quot;          # does not move the cursor</span>
+    <span class="c">#    sys.stdout.write(fill_string)</span>
+    <span class="c">#    img_ansii_str = img2txt.generate_ANSI_from_pixels(pixel, width, height, bgcolor)</span>
+    <span class="c">#    sys.stdout.write(img_ansii_str)</span>
+    <span class="k">def</span> <span class="nf">print_ascii_image</span><span class="p">(</span><span class="n">pil_img</span><span class="p">):</span>
+        <span class="c">#https://gist.github.com/cdiener/10491632</span>
+        <span class="n">SC</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">GCF</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">WCF</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">pil_img</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">SC</span> <span class="o">*</span> <span class="n">WCF</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">SC</span><span class="p">)))</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;img.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+        <span class="n">img</span> <span class="o">-=</span> <span class="n">img</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="s">&#39; .,:;irsXA253hMHGS#9B&amp;@&#39;</span><span class="p">))</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">img</span> <span class="o">/</span> <span class="n">img</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">**</span> <span class="n">GCF</span> <span class="o">*</span> <span class="p">(</span><span class="n">chars</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="p">(</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)])</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">print_ascii_image</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
+    <span class="n">pil_img</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">pass</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_debug_repr_model</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="n">cpd_code_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_debug_repr_cpd</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">cpds</span><span class="p">]</span>
+    <span class="n">code_fmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        import numpy as np</span>
+<span class="sd">        import pgmpy</span>
+<span class="sd">        import pgmpy.inference</span>
+<span class="sd">        import pgmpy.factors</span>
+<span class="sd">        import pgmpy.models</span>
+
+<span class="sd">        {cpds}</span>
+
+<span class="sd">        cpd_list = {nodes}</span>
+<span class="sd">        input_graph = {edges}</span>
+<span class="sd">        model = pgmpy.models.BayesianModel(input_graph)</span>
+<span class="sd">        model.add_cpds(*cpd_list)</span>
+<span class="sd">        infr = pgmpy.inference.BeliefPropagation(model)</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">code</span> <span class="o">=</span> <span class="n">code_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">cpds</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpd_code_list</span><span class="p">),</span>
+        <span class="n">nodes</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">nodes</span><span class="p">()),</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">edges</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">edges</span><span class="p">()),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_code</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy_text_to_clipboard</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_debug_repr_cpd</span><span class="p">(</span><span class="n">cpd</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">code_fmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        {variable} = pgmpy.factors.TabularCPD(</span>
+<span class="sd">            variable={variable_repr},</span>
+<span class="sd">            variable_card={variable_card_repr},</span>
+<span class="sd">            values={get_cpd_repr},</span>
+<span class="sd">            evidence={evidence_repr},</span>
+<span class="sd">            evidence_card={evidence_card_repr},</span>
+<span class="sd">        )</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;variable&#39;</span><span class="p">,</span> <span class="s">&#39;variable_card&#39;</span><span class="p">,</span> <span class="s">&#39;values&#39;</span><span class="p">,</span> <span class="s">&#39;evidence&#39;</span><span class="p">,</span> <span class="s">&#39;evidence_card&#39;</span><span class="p">]</span>
+    <span class="n">dict_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]))</span>
+    <span class="c"># HACK</span>
+    <span class="n">dict_</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpd</span><span class="o">.</span><span class="n">get_cpd</span><span class="p">()</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nobraces</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="c"># Parse props that are needed for this fmtstr</span>
+    <span class="n">fmt_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="s">&#39;{(.*?)}&#39;</span><span class="p">,</span> <span class="n">code_fmt</span><span class="p">)]</span>
+    <span class="n">need_reprs</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fmt_keys</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_repr&#39;</span><span class="p">)]</span>
+    <span class="n">need_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fmt_keys</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_repr&#39;</span><span class="p">)]</span>
+    <span class="c"># Get corresponding props</span>
+    <span class="c"># Call methods if needbe</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">[(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">need_reprs</span><span class="p">]</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">())</span> <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">]</span>
+    <span class="n">fmtdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+    <span class="n">fmtdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">)</span>
+    <span class="n">fmtdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s">&#39;_repr&#39;</span><span class="p">,</span> <span class="n">fmtdict</span><span class="p">)</span>
+    <span class="n">tmp2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">need_keys</span><span class="p">]</span>
+    <span class="n">fmtdict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">tmp2</span><span class="p">))</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">code_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">code</span>
+
+
+<div class="viewcode-block" id="make_factor_text"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.make_factor_text">[docs]</a><span class="k">def</span> <span class="nf">make_factor_text</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="n">collapse_uniform</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">collapse_uniform</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">almost_allsame</span><span class="p">(</span><span class="n">factor</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+        <span class="c"># Reduce uniform text</span>
+        <span class="n">ftext</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;:</span><span class="se">\n</span><span class="s">uniform(</span><span class="si">%.3f</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">factor</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rowstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;p(</span><span class="si">%s</span><span class="s">)=</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">v</span><span class="p">,)</span>
+                       <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">factor</span><span class="o">.</span><span class="n">statenames</span><span class="p">),</span> <span class="n">values</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">rowstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;p(</span><span class="si">%s</span><span class="s">)=</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">v</span><span class="p">,)</span>
+                       <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">factor</span><span class="o">.</span><span class="n">_row_labels</span><span class="p">(</span><span class="bp">False</span><span class="p">),</span> <span class="n">values</span><span class="p">)]</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argmaxima</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">idxs</span><span class="p">:</span>
+            <span class="n">rowstrs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;*&#39;</span>
+        <span class="n">thresh</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">always_sort</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowstrs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">thresh</span><span class="p">:</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">rowstrs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">rowstrs</span><span class="p">,</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">0</span><span class="p">:(</span><span class="n">thresh</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
+            <span class="n">rowstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;... </span><span class="si">%d</span><span class="s"> more&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowstrs</span><span class="p">)),)]</span>
+        <span class="k">elif</span> <span class="n">always_sort</span><span class="p">:</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">rowstrs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">rowstrs</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+        <span class="n">ftext</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;: </span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rowstrs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ftext</span>
+
+</div>
+<div class="viewcode-block" id="get_bayesnet_layout"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.get_bayesnet_layout">[docs]</a><span class="k">def</span> <span class="nf">get_bayesnet_layout</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name_nodes</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s">&#39;dot&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures ordering of layers is in order of addition via templates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">pygraphviz</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>
+    <span class="c"># Add &quot;invisible&quot; edges to induce an ordering</span>
+    <span class="c"># Hack for layout (ordering of top level nodes)</span>
+    <span class="n">netx_graph2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s">&#39;ttype2_cpds&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">grouped_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ttype</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">ttype_cpds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="n">ttype</span><span class="p">]</span>
+            <span class="c"># use defined ordering</span>
+            <span class="n">ttype_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">ttype_cpds</span><span class="p">,</span> <span class="s">&#39;variable&#39;</span><span class="p">)</span>
+            <span class="c"># ttype_nodes = sorted(ttype_nodes)</span>
+            <span class="n">invis_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">ttype_nodes</span><span class="p">))</span>
+            <span class="n">netx_graph2</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">invis_edges</span><span class="p">)</span>
+            <span class="n">grouped_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ttype_nodes</span><span class="p">)</span>
+
+        <span class="n">A</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">to_agraph</span><span class="p">(</span><span class="n">netx_graph2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="n">grouped_nodes</span><span class="p">:</span>
+            <span class="n">A</span><span class="o">.</span><span class="n">add_subgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="s">&#39;same&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">to_agraph</span><span class="p">(</span><span class="n">netx_graph2</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">layout</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+    <span class="c">#A.draw(&#39;example.png&#39;, prog=&#39;dot&#39;)</span>
+    <span class="n">node_pos</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">model</span><span class="p">:</span>
+        <span class="n">node_</span> <span class="o">=</span> <span class="n">pygraphviz</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">node_</span><span class="o">.</span><span class="n">attr</span><span class="p">[</span><span class="s">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">node_pos</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">xx</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">yy</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;no position for node&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+            <span class="n">node_pos</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">node_pos</span>
+
+</div>
+<div class="viewcode-block" id="draw_map_histogram"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.draw_map_histogram">[docs]</a><span class="k">def</span> <span class="nf">draw_map_histogram</span><span class="p">(</span><span class="n">top_assignments</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">bin_labels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">top_assignments</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">bin_vals</span> <span class="o">=</span>  <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">top_assignments</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="c"># bin_labels = [&#39;\n&#39;.join(ut.textwrap.wrap(_lbl, width=30)) for _lbl in bin_labels]</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">draw_histogram</span><span class="p">(</span><span class="n">bin_labels</span><span class="p">,</span> <span class="n">bin_vals</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span>
+                      <span class="n">transpose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">use_darkbackground</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="c">#xtick_rotation=-10,</span>
+                      <span class="n">ylabel</span><span class="o">=</span><span class="s">&#39;Prob&#39;</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s">&#39;assignment&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Assignment probabilities&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_node_viz_attrs"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.get_node_viz_attrs">[docs]</a><span class="k">def</span> <span class="nf">get_node_viz_attrs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="p">,</span> <span class="n">soft_evidence</span><span class="p">,</span> <span class="n">factor_list</span><span class="p">,</span>
+                       <span class="n">ttype_colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+
+    <span class="n">var2_post</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factor_list</span><span class="p">}</span>
+
+    <span class="n">pos_dict</span> <span class="o">=</span> <span class="n">get_bayesnet_layout</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="c">#pos_dict = netx.pygraphviz_layout(netx_graph)</span>
+    <span class="c">#pos_dict = netx.pydot_layout(netx_graph, prog=&#39;dot&#39;)</span>
+    <span class="c">#pos_dict = netx.graphviz_layout(netx_graph)</span>
+
+    <span class="n">netx_nodes</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">node_key_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">netx_nodes</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">pos_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">pos_dict</span><span class="p">,</span> <span class="n">node_key_list</span><span class="p">)</span>
+
+    <span class="n">prior_text</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">post_text</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">evidence_tas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">post_tas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">prior_tas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">node_color</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">has_infered</span> <span class="o">=</span> <span class="n">evidence</span> <span class="ow">or</span> <span class="n">var2_post</span>
+    <span class="k">if</span> <span class="n">has_infered</span><span class="p">:</span>
+        <span class="n">ignore_prior_with_ttype</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="s">&#39;match&#39;</span><span class="p">]</span>
+        <span class="n">show_prior</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ignore_prior_with_ttype</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#show_prior = True</span>
+        <span class="n">show_prior</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">dpy</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">dbx</span><span class="p">,</span> <span class="n">dby</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+    <span class="n">takw1</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bbox_align&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s">&#39;pos_offset&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">dpy</span><span class="p">],</span>
+             <span class="s">&#39;bbox_offset&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">dbx</span><span class="p">,</span> <span class="n">dby</span><span class="p">]}</span>
+    <span class="n">takw2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bbox_align&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;pos_offset&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">dpy</span><span class="p">],</span>
+             <span class="s">&#39;bbox_offset&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="n">dbx</span><span class="p">,</span> <span class="o">-</span><span class="n">dby</span><span class="p">]}</span>
+
+    <span class="k">def</span> <span class="nf">get_name_color</span><span class="p">(</span><span class="n">phi</span><span class="p">):</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">dist_next</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dist_next</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">phi</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">dist_total</span> <span class="o">=</span> <span class="p">(</span><span class="n">phi</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist_total</span> <span class="o">*</span> <span class="n">dist_next</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">2.5</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="c">#print(&#39;confidence = %r&#39; % (confidence,))</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">ttype_colors</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">][</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">color_funcs</span><span class="o">.</span><span class="n">desaturate_rgb</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">confidence</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">color</span>
+
+    <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">netx_nodes</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">):</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span>
+        <span class="n">prior_marg</span> <span class="o">=</span> <span class="p">(</span><span class="n">cpd</span> <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
+                      <span class="n">cpd</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+        <span class="n">show_evidence</span> <span class="o">=</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">evidence</span>
+        <span class="n">show_prior</span> <span class="o">=</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_prior_with_ttype</span>
+        <span class="n">show_post</span> <span class="o">=</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">var2_post</span>
+        <span class="n">show_prior</span> <span class="o">|=</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_prior_with_ttype</span>
+
+        <span class="n">show_prior</span> <span class="o">&amp;=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_prior&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">post_marg</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">show_post</span><span class="p">:</span>
+            <span class="n">post_marg</span> <span class="o">=</span> <span class="n">var2_post</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">evidence</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;score&#39;</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">ttype_colors</span><span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">][</span><span class="n">evidence</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="p">]</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+                <span class="n">node_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">ttype_colors</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">][</span><span class="n">evidence</span><span class="p">[</span><span class="n">variable</span><span class="p">]]</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+                <span class="n">node_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span>
+                <span class="n">node_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="c">#elif variable in soft_evidence:</span>
+        <span class="c">#    color = pt.LIGHT_PINK</span>
+        <span class="c">#    show_prior = True</span>
+        <span class="c">#    color = get_name_color(prior_marg)</span>
+        <span class="c">#    node_color.append(color)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span> <span class="ow">and</span> <span class="n">post_marg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">get_name_color</span><span class="p">(</span><span class="n">post_marg</span><span class="p">)</span>
+                <span class="n">node_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;match&#39;</span> <span class="ow">and</span> <span class="n">post_marg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c"># color = cmap(post_marg.values[1])</span>
+                <span class="c"># color = pt.lighten_rgb(color, .4)</span>
+                <span class="c"># color = np.array(color)</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">NEUTRAL</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">LIGHT_PINK</span>
+                <span class="n">node_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#color = pt.WHITE</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">NEUTRAL</span>
+                <span class="n">node_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">show_prior</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">soft_evidence</span><span class="p">:</span>
+                <span class="n">prior_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">LIGHT_PINK</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prior_color</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">prior_text</span> <span class="o">=</span> <span class="n">make_factor_text</span><span class="p">(</span><span class="n">prior_marg</span><span class="p">,</span> <span class="s">&#39;prior&#39;</span><span class="p">)</span>
+            <span class="n">prior_tas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">prior_text</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">prior_color</span><span class="p">,</span> <span class="o">**</span><span class="n">takw2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">show_evidence</span><span class="p">:</span>
+            <span class="n">_takw1</span> <span class="o">=</span> <span class="n">takw1</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;score&#39;</span><span class="p">:</span>
+                <span class="n">_takw1</span> <span class="o">=</span> <span class="n">takw2</span>
+            <span class="n">evidence_text</span> <span class="o">=</span> <span class="n">cpd</span><span class="o">.</span><span class="n">variable_statenames</span><span class="p">[</span><span class="n">evidence</span><span class="p">[</span><span class="n">variable</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">evidence_text</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">evidence_text</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">evidence_text</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">variable_card</span><span class="p">)</span>
+            <span class="n">evidence_tas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">evidence_text</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">_takw1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">show_post</span><span class="p">:</span>
+            <span class="n">_takw1</span> <span class="o">=</span> <span class="n">takw1</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;match&#39;</span><span class="p">:</span>
+                <span class="n">_takw1</span> <span class="o">=</span> <span class="n">takw2</span>
+            <span class="n">post_text</span> <span class="o">=</span> <span class="n">make_factor_text</span><span class="p">(</span><span class="n">post_marg</span><span class="p">,</span> <span class="s">&#39;post&#39;</span><span class="p">)</span>
+            <span class="n">post_tas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">post_text</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">_takw1</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">trnps_</span><span class="p">(</span><span class="n">dict_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; tranpose dict list &quot;&quot;&quot;</span>
+        <span class="n">list_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">dict_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">list_dict</span><span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">list_dict</span>
+
+    <span class="n">takw1_</span> <span class="o">=</span> <span class="n">trnps_</span><span class="p">(</span><span class="n">post_tas</span> <span class="o">+</span> <span class="n">evidence_tas</span><span class="p">)</span>
+    <span class="n">takw2_</span> <span class="o">=</span> <span class="n">trnps_</span><span class="p">(</span><span class="n">prior_tas</span><span class="p">)</span>
+    <span class="n">takws</span> <span class="o">=</span> <span class="p">[</span><span class="n">takw1_</span><span class="p">,</span> <span class="n">takw2_</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">node_color</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">,</span> <span class="n">pos_dict</span><span class="p">,</span> <span class="n">takws</span>
+
+</div>
+<div class="viewcode-block" id="make_colorcodes"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.make_colorcodes">[docs]</a><span class="k">def</span> <span class="nf">make_colorcodes</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        python -m ibeis.algo.hots.bayes --exec-make_name_model --show</span>
+<span class="sd">        python -m ibeis.algo.hots.bayes --exec-cluster_query --show</span>
+<span class="sd">        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=n0,rand_scores=True --show --verbose</span>
+<span class="sd">        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,Na=n0,rand_scores=True --show --verbose</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">ttype_colors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">ttype_scalars</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c"># Hacked in custom colors</span>
+
+    <span class="k">if</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">:</span>
+        <span class="n">basis</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">basis</span>
+        <span class="n">card</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">basis</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">card</span><span class="p">,</span> <span class="mi">10</span><span class="p">))[:</span><span class="n">card</span><span class="p">]</span>
+        <span class="n">ttype_colors</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colors</span>
+        <span class="n">ttype_scalars</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">basis</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">:</span>
+        <span class="n">cmap_</span><span class="p">,</span> <span class="n">mn</span><span class="p">,</span> <span class="n">mx</span> <span class="o">=</span> <span class="s">&#39;plasma&#39;</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">1.0</span>
+        <span class="n">_cmap</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap_</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">cmap</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_cmap</span><span class="p">((</span><span class="n">x</span> <span class="o">*</span> <span class="n">mx</span><span class="p">)</span> <span class="o">+</span> <span class="n">mn</span><span class="p">)</span>
+        <span class="n">basis</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">basis</span>
+        <span class="n">scalars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">basis</span><span class="p">))</span>
+        <span class="c"># scalars = np.linspace(0, 1, 100)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="n">cmap_</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">cmap_range</span><span class="o">=</span><span class="p">(</span><span class="n">mn</span><span class="p">,</span> <span class="n">mx</span><span class="p">))</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">lighten_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">]</span>
+        <span class="n">ttype_scalars</span><span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scalars</span>
+        <span class="n">ttype_colors</span><span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colors</span>
+
+    <span class="k">return</span> <span class="n">ttype_colors</span><span class="p">,</span> <span class="n">ttype_scalars</span>
+
+</div>
+<div class="viewcode-block" id="draw_bayesian_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.draw_bayesian_model">[docs]</a><span class="k">def</span> <span class="nf">draw_bayesian_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="o">=</span><span class="p">{},</span> <span class="n">soft_evidence</span><span class="o">=</span><span class="p">{},</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="kn">from</span> <span class="nn">pgmpy.models</span> <span class="kn">import</span> <span class="n">BayesianModel</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">BayesianModel</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to_bayesian_model</span><span class="p">()</span>
+
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>
+    <span class="n">factor_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;factor_list&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="n">ttype_colors</span><span class="p">,</span> <span class="n">ttype_scalars</span> <span class="o">=</span> <span class="n">make_colorcodes</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="n">textprops</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;horizontalalignment&#39;</span><span class="p">:</span> <span class="s">&#39;left&#39;</span><span class="p">,</span> <span class="s">&#39;family&#39;</span><span class="p">:</span> <span class="s">&#39;monospace&#39;</span><span class="p">,</span> <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="p">}</span>
+
+    <span class="c"># build graph attrs</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">get_node_viz_attrs</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="p">,</span> <span class="n">soft_evidence</span><span class="p">,</span> <span class="n">factor_list</span><span class="p">,</span> <span class="n">ttype_colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">node_color</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">,</span> <span class="n">pos_dict</span><span class="p">,</span> <span class="n">takws</span> <span class="o">=</span> <span class="n">tup</span>
+
+    <span class="c"># draw graph</span>
+    <span class="n">has_infered</span> <span class="o">=</span> <span class="n">evidence</span> <span class="ow">or</span> <span class="s">&#39;factor_list&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">drawkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">pos_dict</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">1100</span><span class="p">,</span>
+                  <span class="n">node_color</span><span class="o">=</span><span class="n">node_color</span><span class="p">)</span>
+    <span class="n">netx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">drawkw</span><span class="p">)</span>
+    <span class="n">hacks</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">draw_text_annotations</span><span class="p">(</span><span class="n">textprops</span><span class="o">=</span><span class="n">textprops</span><span class="p">,</span> <span class="o">**</span><span class="n">takw</span><span class="p">)</span>
+             <span class="k">for</span> <span class="n">takw</span> <span class="ow">in</span> <span class="n">takws</span> <span class="k">if</span> <span class="n">takw</span><span class="p">]</span>
+
+    <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">:</span>
+        <span class="n">num_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">basis</span><span class="p">)</span>
+        <span class="n">num_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">num_annots</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">xmin</span> <span class="o">-</span> <span class="mi">40</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">+</span> <span class="mi">40</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="n">ymin</span> <span class="o">-</span> <span class="mi">50</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">+</span> <span class="mi">50</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">xmin</span> <span class="o">-</span> <span class="mi">42</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">+</span> <span class="mi">42</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="n">ymin</span> <span class="o">-</span> <span class="mi">50</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">+</span> <span class="mi">50</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;num_names=</span><span class="si">%r</span><span class="s">, num_annots=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">,)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">map_assign</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;map_assign&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">word_insert</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">text</span> <span class="o">+</span> <span class="s">&#39; &#39;</span>
+
+    <span class="n">top_assignments</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_assignments&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">top_assignments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">map_assign</span><span class="p">,</span> <span class="n">map_prob</span> <span class="o">=</span> <span class="n">top_assignments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">map_assign</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="si">%s</span><span class="s">MAP: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word_insert</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;method&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)))</span>
+            <span class="n">title</span> <span class="o">+=</span> <span class="n">map_assign</span> <span class="o">+</span> <span class="s">&#39; @&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%.2f%%</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">map_prob</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_title&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">hack</span> <span class="ow">in</span> <span class="n">hacks</span><span class="p">:</span>
+        <span class="n">hack</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">has_infered</span><span class="p">:</span>
+        <span class="c"># Hack in colorbars</span>
+        <span class="c"># if ut.list_type(basis) is int:</span>
+        <span class="c">#     pt.colorbar(scalars, colors, lbl=&#39;score&#39;, ticklabels=np.array(basis) + 1)</span>
+        <span class="c"># else:</span>
+        <span class="c">#     pt.colorbar(scalars, colors, lbl=&#39;score&#39;, ticklabels=basis)</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">]</span>
+        <span class="n">locs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;left&#39;</span><span class="p">,</span> <span class="s">&#39;right&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">locs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ttype_colors</span><span class="p">:</span>
+                <span class="n">basis</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">basis</span>
+                <span class="c"># scalars =</span>
+                <span class="n">colors</span> <span class="o">=</span> <span class="n">ttype_colors</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">scalars</span> <span class="o">=</span> <span class="n">ttype_scalars</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">ticklabels</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span>
+                            <span class="n">ticklocation</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="draw_markov_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.draw_markov_model">[docs]</a><span class="k">def</span> <span class="nf">draw_markov_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.models</span> <span class="kn">import</span> <span class="n">MarkovModel</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">MarkovModel</span><span class="p">):</span>
+        <span class="n">markovmodel</span> <span class="o">=</span> <span class="n">model</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">markovmodel</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to_markov_model</span><span class="p">()</span>
+    <span class="c"># pos = netx.pydot_layout(markovmodel)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">pygraphviz_layout</span><span class="p">(</span><span class="n">markovmodel</span><span class="p">)</span>
+    <span class="c"># Referenecs:</span>
+    <span class="c"># https://groups.google.com/forum/#!topic/networkx-discuss/FwYk0ixLDuY</span>
+
+    <span class="c"># pos = netx.spring_layout(markovmodel)</span>
+    <span class="c"># pos = netx.circular_layout(markovmodel)</span>
+    <span class="c"># curved-arrow</span>
+    <span class="c"># markovmodel.edge_attr[&#39;curved-arrow&#39;] = True</span>
+    <span class="c"># markovmodel.graph.setdefault(&#39;edge&#39;, {})[&#39;splines&#39;] = &#39;curved&#39;</span>
+    <span class="c"># markovmodel.graph.setdefault(&#39;graph&#39;, {})[&#39;splines&#39;] = &#39;curved&#39;</span>
+    <span class="c"># markovmodel.graph.setdefault(&#39;edge&#39;, {})[&#39;splines&#39;] = &#39;curved&#39;</span>
+
+    <span class="n">node_color</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">NEUTRAL</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+    <span class="n">drawkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">node_color</span><span class="p">,</span>  <span class="c"># NOQA</span>
+                  <span class="n">node_size</span><span class="o">=</span><span class="mi">1100</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">FancyArrowPatch</span><span class="p">,</span> <span class="n">Circle</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+    <span class="k">def</span> <span class="nf">draw_network</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">sg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">NEUTRAL_BLUE</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s">&#39;patch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">ax_absolute_text</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">)</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="n">n1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="s">&#39;patch&#39;</span><span class="p">]</span>
+            <span class="n">n2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s">&#39;patch&#39;</span><span class="p">]</span>
+            <span class="n">rad</span> <span class="o">=</span> <span class="mf">0.1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">rad</span> <span class="o">=</span> <span class="n">seen</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                <span class="n">rad</span> <span class="o">=</span> <span class="p">(</span><span class="n">rad</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">rad</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;k&#39;</span>
+
+            <span class="n">e</span> <span class="o">=</span> <span class="n">FancyArrowPatch</span><span class="p">(</span><span class="n">n1</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">n2</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">patchA</span><span class="o">=</span><span class="n">n1</span><span class="p">,</span> <span class="n">patchB</span><span class="o">=</span><span class="n">n2</span><span class="p">,</span>
+                                <span class="c"># arrowstyle=&#39;-|&gt;&#39;,</span>
+                                <span class="n">arrowstyle</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span>
+                                <span class="n">connectionstyle</span><span class="o">=</span><span class="s">&#39;arc3,rad=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rad</span><span class="p">,</span>
+                                <span class="n">mutation_scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+                                <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">seen</span><span class="p">[(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)]</span> <span class="o">=</span> <span class="n">rad</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e</span>
+    <span class="c"># netx.draw(markovmodel, **drawkw)</span>
+    <span class="n">draw_network</span><span class="p">(</span><span class="n">markovmodel</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">&#39;off&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_title&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;Markov Model&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="draw_junction_tree"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.draw_junction_tree">[docs]</a><span class="k">def</span> <span class="nf">draw_junction_tree</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.models</span> <span class="kn">import</span> <span class="n">JunctionTree</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">JunctionTree</span><span class="p">):</span>
+        <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to_junction_tree</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">model</span>
+    <span class="c"># prettify nodes</span>
+    <span class="k">def</span> <span class="nf">fixtupkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">k</span><span class="p">:</span> <span class="n">fixtupkeys</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">fixtupkeys</span><span class="p">(</span><span class="n">netx_graph</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">fixtupkeys</span><span class="p">(</span><span class="n">netx_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">fixtupkeys</span><span class="p">(</span><span class="n">netx_graph</span><span class="o">.</span><span class="n">adj</span><span class="p">)</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">n</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">edge</span> <span class="o">=</span> <span class="n">e</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">adj</span> <span class="o">=</span> <span class="n">a</span>
+    <span class="c">#netx_graph = model.to_markov_model()</span>
+    <span class="c">#pos = netx.pygraphviz_layout(netx_graph)</span>
+    <span class="c">#pos = netx.graphviz_layout(netx_graph)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">pydot_layout</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">)</span>
+    <span class="n">node_color</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">NEUTRAL</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+    <span class="n">drawkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">node_color</span><span class="p">,</span>
+                  <span class="n">node_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+    <span class="n">netx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">,</span> <span class="o">**</span><span class="n">drawkw</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_title&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;Junction / Clique Tree / Cluster Graph&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="show_junction_tree"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.show_junction_tree">[docs]</a><span class="k">def</span> <span class="nf">show_junction_tree</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">draw_junction_tree</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="show_markov_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.show_markov_model">[docs]</a><span class="k">def</span> <span class="nf">show_markov_model</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">draw_markov_model</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="show_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.show_model">[docs]</a><span class="k">def</span> <span class="nf">show_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">modeltype</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;modeltype&#39;</span><span class="p">,</span> <span class="s">&#39;bayes&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">modeltype</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;bayesian&#39;</span><span class="p">,</span> <span class="s">&#39;bayes&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">show_bayesian_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">modeltype</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;markov&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">show_markov_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">modeltype</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;junc&#39;</span><span class="p">,</span> <span class="s">&#39;junction&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">show_junction_tree</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Unknown modeltype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">modeltype</span><span class="p">,))</span>
+
+</div>
+<div class="viewcode-block" id="show_bayesian_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_viz.show_bayesian_model">[docs]</a><span class="k">def</span> <span class="nf">show_bayesian_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="o">=</span><span class="p">{},</span> <span class="n">soft_evidence</span><span class="o">=</span><span class="p">{},</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/22207802/networkx-node-level-or-layer</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        import nx2tikz</span>
+<span class="sd">        print(nx2tikz.dumps_tikz(model, layout=&#39;layered&#39;, use_label=True))</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        sudo apt-get  install libgraphviz4 libgraphviz-dev -y</span>
+<span class="sd">        sudo apt-get install libgraphviz-dev</span>
+<span class="sd">        pip install pygraphviz</span>
+<span class="sd">        sudo pip3 install pygraphviz \</span>
+<span class="sd">            --install-option=&quot;--include-path=/usr/include/graphviz&quot; \</span>
+<span class="sd">            --install-option=&quot;--library-path=/usr/lib/graphviz/&quot;</span>
+<span class="sd">        python -c &quot;import pygraphviz; print(pygraphviz.__file__)&quot;</span>
+<span class="sd">        python3 -c &quot;import pygraphviz; print(pygraphviz.__file__)&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_viz --exec-show_model --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pgm_viz import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; model = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; evidence = {}</span>
+<span class="sd">        &gt;&gt;&gt; soft_evidence = {}</span>
+<span class="sd">        &gt;&gt;&gt; result = show_model(model, evidence, soft_evidence)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">top_assignments</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_assignments&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">evidence</span> <span class="ow">and</span> <span class="n">top_assignments</span> <span class="ow">and</span> <span class="s">&#39;factor_list&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">pnum1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">pnum2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="bp">None</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pnum1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">draw_bayesian_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="p">,</span> <span class="n">soft_evidence</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c"># Draw probability hist</span>
+    <span class="k">if</span> <span class="n">top_assignments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">draw_map_histogram</span><span class="p">(</span><span class="n">top_assignments</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum2</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_viz</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_viz --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

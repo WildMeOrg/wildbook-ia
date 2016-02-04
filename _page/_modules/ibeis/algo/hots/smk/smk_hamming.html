@@ -1,0 +1,241 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.hots.smk.smk_hamming &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.hots.smk" href="../smk.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../../hots.html">ibeis.algo.hots</a> &raquo;</li>
+      
+          <li><a href="../smk.html">ibeis.algo.hots.smk</a> &raquo;</li>
+      
+    <li>ibeis.algo.hots.smk.smk_hamming</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.hots.smk.smk_hamming</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="make_projetion_matrix"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_hamming.make_projetion_matrix">[docs]</a><span class="k">def</span> <span class="nf">make_projetion_matrix</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">):</span>
+    <span class="n">sig_dim</span> <span class="o">=</span> <span class="mi">64</span>   <span class="c"># binary signature dimension</span>
+    <span class="c"># Initialize random matrix</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
+    <span class="n">randstate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">rand_mat</span> <span class="o">=</span> <span class="n">randstate</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c"># Q is orthogonal</span>
+    <span class="c"># R is upper triangular</span>
+    <span class="n">Q</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">rand_mat</span><span class="p">)</span>
+    <span class="c"># alias Q to be the projection matrix P</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">sig_dim</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">P</span>
+
+</div>
+<div class="viewcode-block" id="get_vecs_hamming_encoding"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_hamming.get_vecs_hamming_encoding">[docs]</a><span class="k">def</span> <span class="nf">get_vecs_hamming_encoding</span><span class="p">(</span><span class="n">vecs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        vecs (ndarray): descriptors assigned to a single word</span>
+<span class="sd">        P (ndarray): random orthognoal projection matrix for that word</span>
+
+
+<span class="sd">    Exmaple:</span>
+<span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
+<span class="sd">        &gt;&gt;&gt; vecs = np.random.rand(10, 128)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Embeding Step to compute binary signature:</span>
+    <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># raw vector dimension</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">make_projetion_matrix</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vecs</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c"># find median values</span>
+    <span class="n">hamming_sig_bools</span> <span class="o">=</span> <span class="p">(</span><span class="n">z</span> <span class="o">&gt;</span> <span class="n">thresh</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c"># mapping to binary encoding</span>
+    <span class="n">sig_dim</span> <span class="o">=</span> <span class="n">hamming_sig_bools</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">sig_dim</span> <span class="o">&lt;=</span> <span class="mi">64</span><span class="p">,</span> <span class="s">&#39;only up to 64 dimensions implemented&#39;</span>
+    <span class="n">basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sig_dim</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">))</span>
+    <span class="n">haming_codes</span> <span class="o">=</span> <span class="p">[</span><span class="n">basis</span><span class="p">[</span><span class="n">bools</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">bools</span> <span class="ow">in</span> <span class="n">hamming_sig_bools</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">haming_codes</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

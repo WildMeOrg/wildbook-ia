@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_name &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.viz.interact.interact_name &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -244,8 +244,8 @@
 <div class="viewcode-block" id="testsdata_match_verification"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.testsdata_match_verification">[docs]</a><span class="k">def</span> <span class="nf">testsdata_match_verification</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">aid1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        main.py --eid 2</span>
-<span class="sd">        main.py --eid 13 --db PZ_MUGU_19</span>
+<span class="sd">        main.py --imgsetid 2</span>
+<span class="sd">        main.py --imgsetid 13 --db PZ_MUGU_19</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show</span>
@@ -304,8 +304,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cm&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">)</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infer_data</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">dodraw</span><span class="p">:</span>
@@ -360,7 +360,7 @@
         <span class="n">is_name1</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nid_list</span><span class="p">]</span>
         <span class="n">is_name2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nid_list</span><span class="p">]</span>
         <span class="n">is_other</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">and_lists</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">,</span> <span class="p">(</span><span class="n">is_name1</span><span class="p">,</span> <span class="n">is_name2</span><span class="p">,</span> <span class="n">is_unknown</span><span class="p">))))</span>
-        <span class="n">other_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">unique_nid_list</span><span class="p">,</span> <span class="n">is_other</span><span class="p">)</span>
+        <span class="n">other_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">unique_nid_list</span><span class="p">,</span> <span class="n">is_other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">other_nid_list</span>
 </div>
 <div class="viewcode-block" id="MatchVerificationInteraction.get_rotating_columns"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.get_rotating_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_rotating_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowx</span><span class="p">):</span>
@@ -772,7 +772,7 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">aid_list</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span>
         <span class="n">is_unknown</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">aid_list_filtered</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_unknown</span><span class="p">)</span>
+        <span class="n">aid_list_filtered</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_unknown</span><span class="p">)</span>
         <span class="c"># Rename annotations</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_different_new_names</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
@@ -843,7 +843,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -865,7 +865,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

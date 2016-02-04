@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.guimenus &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.gui.guimenus &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -139,7 +139,7 @@
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">guitool</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[guimenus]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[guimenus]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DummyBack"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.DummyBack">[docs]</a><span class="k">class</span> <span class="nc">DummyBack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -293,10 +293,10 @@
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuActions&#39;</span><span class="p">,</span> <span class="s">&#39;Actions&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Encounters&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Group Encounters&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Occurrences&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Group Occurrences&#39;</span><span class="p">,</span>
         <span class="c">#shortcut=&#39;Ctrl+2&#39;,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">)</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_occurrences</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDetect&#39;</span><span class="p">,</span>
@@ -310,9 +310,9 @@
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">use_visual_selection</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchIntraEncounterQueries&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query: Intra Encounter&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchIntraOccurrenceQueries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query: Intra Occurrence&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchVsExemplarQueries&#39;</span><span class="p">,</span>
@@ -350,22 +350,28 @@
 
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionShipProcessedEncounters&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Ship Processed Encounters&#39;</span><span class="p">,</span>
-        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This action will ship to WildBook any encounters that have</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionShipProcessedOccurrences&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Ship Processed Occurrences&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This action will ship to WildBook any occurrences that have</span>
 <span class="s">                    been marked as processed.  This can also be used to send</span>
-<span class="s">                    processed encounters that failed to ship correctly.&#39;&#39;&#39;</span><span class="p">,</span>
+<span class="s">                    processed imagesets that failed to ship correctly.&#39;&#39;&#39;</span><span class="p">,</span>
         <span class="c">#shortcut=&#39;Ctrl+5&#39;,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_encounters</span><span class="p">)</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_imagesets</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Override All Annotation Species&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">override_all_annotation_species</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Rename Species&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_species_nice_name</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Species&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_selected_species</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeleteAllEncounters&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete All Encounters&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">)</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeleteAllImageSets&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete All ImageSets&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_imagesets</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Image&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Image&#39;</span><span class="p">,</span>
@@ -492,6 +498,10 @@
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuDev&#39;</span><span class="p">,</span> <span class="s">&#39;Dev&#39;</span><span class="p">)</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionMakeIPythonNotebook&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Launch IPython Notebook&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">launch_ipy_notebook</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeveloper_mode&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Developer IPython&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+I&#39;</span><span class="p">,</span>
@@ -530,17 +540,17 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Export learning data&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_export_annotations</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionTrainWithEncounters&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Train RF with Open Encounter&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">train_rf_with_encounter</span><span class="p">)</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionTrainWithImageSets&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Train RF with Open ImageSet&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">train_rf_with_imageset</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
-    <span class="n">adv_ieq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedIEQuery</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="s">&#39;menuAdvancedIEQuery&#39;</span><span class="p">,</span> <span class="s">&#39;Advanced Intra Encounter Queries&#39;</span><span class="p">)</span>
+    <span class="n">adv_ieq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedIEQuery</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="s">&#39;menuAdvancedIEQuery&#39;</span><span class="p">,</span> <span class="s">&#39;Advanced Intra Occurrence Queries&#39;</span><span class="p">)</span>
     <span class="n">adv_exq_menu</span> <span class="o">=</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menuAdvancedEXQuery</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">menu</span><span class="p">,</span> <span class="s">&#39;menuAdvancedEXQuery&#39;</span><span class="p">,</span> <span class="s">&#39;Advanced Vs Exemplar Queries&#39;</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">adv_ieq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchUnknownIntraEncounterQueries&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query: Unknown Intra Encounter&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchUnknownIntraImageSetQueries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query: Unknown Intra Occurrence&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">adv_exq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchUnknownVsExemplarQueries&#39;</span><span class="p">,</span>
@@ -566,8 +576,8 @@
     <span class="p">)</span>
     <span class="n">adv_ieq_menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionQueryInEncMode1&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query: Names Intra Encounter With OriAugment&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query: Names Intra Occurrence With OriAugment&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">,</span>
                                   <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                   <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">augment_queryside_hack</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">can_match_samename</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_k_padding</span><span class="o">=</span><span class="bp">False</span><span class="p">)),</span>
     <span class="p">)</span>
@@ -598,9 +608,9 @@
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_cls</span><span class="p">)</span>
     <span class="c"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionUpdateSpecialEncounters&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Refresh Special Encounters&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">)</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionUpdateSpecialImageSets&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Refresh Special ImageSets&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">update_special_imagesets</span><span class="p">)</span>
     <span class="c"># ---------</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionReconnectController&#39;</span><span class="p">,</span>
@@ -672,8 +682,8 @@
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+R&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_reload</span><span class="p">)</span>
     <span class="n">menu</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Reviewed All Encounter Images&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">encounter_reviewed_all_images</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Reviewed All Occurrence Images&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">imageset_reviewed_all_images</span><span class="p">)</span>
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -698,7 +708,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -720,7 +730,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

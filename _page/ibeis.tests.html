@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests package &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.tests package &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.viz package" href="ibeis.viz.html"/>
         <link rel="prev" title="ibeis.templates package" href="ibeis.templates.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -85,12 +85,12 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
@@ -99,39 +99,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.assert_modules">ibeis.tests.assert_modules module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.reset_testdbs">ibeis.tests.reset_testdbs module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.run_tests">ibeis.tests.run_tests module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_delete_annotation">ibeis.tests.test_delete_annotation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_delete_annotation_all">ibeis.tests.test_delete_annotation_all module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_delete_annotation_chips">ibeis.tests.test_delete_annotation_chips module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_delete_chips">ibeis.tests.test_delete_chips module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_delete_enc">ibeis.tests.test_delete_enc module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_delete_features">ibeis.tests.test_delete_features module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_gui_add_annotation">ibeis.tests.test_gui_add_annotation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_gui_all">ibeis.tests.test_gui_all module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_gui_import_images">ibeis.tests.test_gui_import_images module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_gui_open_database">ibeis.tests.test_gui_open_database module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_gui_selection">ibeis.tests.test_gui_selection module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs">ibeis.tests.test_ibs module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_control">ibeis.tests.test_ibs_control module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_convert_bbox_poly">ibeis.tests.test_ibs_convert_bbox_poly module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_detect">ibeis.tests.test_ibs_detect module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_detectimg_compute">ibeis.tests.test_ibs_detectimg_compute module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_encounters">ibeis.tests.test_ibs_encounters module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_feat_compute">ibeis.tests.test_ibs_feat_compute module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_getters">ibeis.tests.test_ibs_getters module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_info">ibeis.tests.test_ibs_info module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_query_components">ibeis.tests.test_ibs_query_components module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_ibs_uuid">ibeis.tests.test_ibs_uuid module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_new_schema">ibeis.tests.test_new_schema module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_pil_hash">ibeis.tests.test_pil_hash module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_qt_tree">ibeis.tests.test_qt_tree module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_sql_control">ibeis.tests.test_sql_control module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_sql_ids">ibeis.tests.test_sql_ids module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_sql_modify">ibeis.tests.test_sql_modify module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_sql_names">ibeis.tests.test_sql_names module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_sql_numpy">ibeis.tests.test_sql_numpy module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_sql_revert">ibeis.tests.test_sql_revert module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_utool_parallel">ibeis.tests.test_utool_parallel module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests.test_weakref">ibeis.tests.test_weakref module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.tests">Module contents</a></li>
 </ul>
 </li>
@@ -146,13 +113,16 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -330,6 +300,11 @@ checkinfo_func</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.tests.assert_modules.pygraphviz_version">
+<code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">pygraphviz_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pygraphviz_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pygraphviz_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.tests.assert_modules.pyhesaff_version">
 <code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">pyhesaff_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pyhesaff_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pyhesaff_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -391,11 +366,12 @@ checkinfo_func</p>
 <dl class="function">
 <dt id="ibeis.tests.reset_testdbs.ensure_smaller_testingdbs">
 <code class="descclassname">ibeis.tests.reset_testdbs.</code><code class="descname">ensure_smaller_testingdbs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/reset_testdbs.html#ensure_smaller_testingdbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.reset_testdbs.ensure_smaller_testingdbs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Makes the smaller test databases</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.tests.reset_testdbs.get_testdata_dir">
-<code class="descclassname">ibeis.tests.reset_testdbs.</code><code class="descname">get_testdata_dir</code><span class="sig-paren">(</span><em>ensure=True</em>, <em>key='testdb1'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/reset_testdbs.html#get_testdata_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.reset_testdbs.get_testdata_dir" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.tests.reset_testdbs.</code><code class="descname">get_testdata_dir</code><span class="sig-paren">(</span><em>ensure=True</em>, <em>key=u'testdb1'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/reset_testdbs.html#get_testdata_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.reset_testdbs.get_testdata_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets test img directory and downloads it if it doesn&#8217;t exist</p>
 </dd></dl>
 
@@ -442,443 +418,6 @@ checkinfo_func</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-ibeis.tests.test_delete_annotation">
-<span id="ibeis-tests-test-delete-annotation-module"></span><h2>ibeis.tests.test_delete_annotation module<a class="headerlink" href="#module-ibeis.tests.test_delete_annotation" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_delete_annotation.TEST_DELETE_ANNOTATION">
-<code class="descclassname">ibeis.tests.test_delete_annotation.</code><code class="descname">TEST_DELETE_ANNOTATION</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_delete_annotation.html#TEST_DELETE_ANNOTATION"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_delete_annotation.TEST_DELETE_ANNOTATION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_delete_annotation_all">
-<span id="ibeis-tests-test-delete-annotation-all-module"></span><h2>ibeis.tests.test_delete_annotation_all module<a class="headerlink" href="#module-ibeis.tests.test_delete_annotation_all" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_delete_annotation_all.TEST_DELETE_ANNOTATION_ALL">
-<code class="descclassname">ibeis.tests.test_delete_annotation_all.</code><code class="descname">TEST_DELETE_ANNOTATION_ALL</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_delete_annotation_all.html#TEST_DELETE_ANNOTATION_ALL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_delete_annotation_all.TEST_DELETE_ANNOTATION_ALL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_delete_annotation_chips">
-<span id="ibeis-tests-test-delete-annotation-chips-module"></span><h2>ibeis.tests.test_delete_annotation_chips module<a class="headerlink" href="#module-ibeis.tests.test_delete_annotation_chips" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_delete_annotation_chips.TEST_DELETE_ANNOTATION_CHIPS">
-<code class="descclassname">ibeis.tests.test_delete_annotation_chips.</code><code class="descname">TEST_DELETE_ANNOTATION_CHIPS</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_delete_annotation_chips.html#TEST_DELETE_ANNOTATION_CHIPS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_delete_annotation_chips.TEST_DELETE_ANNOTATION_CHIPS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_delete_chips">
-<span id="ibeis-tests-test-delete-chips-module"></span><h2>ibeis.tests.test_delete_chips module<a class="headerlink" href="#module-ibeis.tests.test_delete_chips" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_delete_chips.TEST_DELETE_CHIPS">
-<code class="descclassname">ibeis.tests.test_delete_chips.</code><code class="descname">TEST_DELETE_CHIPS</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_delete_chips.html#TEST_DELETE_CHIPS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_delete_chips.TEST_DELETE_CHIPS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_delete_enc">
-<span id="ibeis-tests-test-delete-enc-module"></span><h2>ibeis.tests.test_delete_enc module<a class="headerlink" href="#module-ibeis.tests.test_delete_enc" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_delete_enc.TEST_DELETE_ENC">
-<code class="descclassname">ibeis.tests.test_delete_enc.</code><code class="descname">TEST_DELETE_ENC</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_delete_enc.html#TEST_DELETE_ENC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_delete_enc.TEST_DELETE_ENC" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_delete_features">
-<span id="ibeis-tests-test-delete-features-module"></span><h2>ibeis.tests.test_delete_features module<a class="headerlink" href="#module-ibeis.tests.test_delete_features" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_delete_features.TEST_DELETE_FEATURE">
-<code class="descclassname">ibeis.tests.test_delete_features.</code><code class="descname">TEST_DELETE_FEATURE</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_delete_features.html#TEST_DELETE_FEATURE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_delete_features.TEST_DELETE_FEATURE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_gui_add_annotation">
-<span id="ibeis-tests-test-gui-add-annotation-module"></span><h2>ibeis.tests.test_gui_add_annotation module<a class="headerlink" href="#module-ibeis.tests.test_gui_add_annotation" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_gui_add_annotation.TEST_GUI_ADD_ANNOTATION">
-<code class="descclassname">ibeis.tests.test_gui_add_annotation.</code><code class="descname">TEST_GUI_ADD_ANNOTATION</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_gui_add_annotation.html#TEST_GUI_ADD_ANNOTATION"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_gui_add_annotation.TEST_GUI_ADD_ANNOTATION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_gui_all">
-<span id="ibeis-tests-test-gui-all-module"></span><h2>ibeis.tests.test_gui_all module<a class="headerlink" href="#module-ibeis.tests.test_gui_all" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_gui_all.TEST_GUI_ALL">
-<code class="descclassname">ibeis.tests.test_gui_all.</code><code class="descname">TEST_GUI_ALL</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em>, <em>gpath_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_gui_all.html#TEST_GUI_ALL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_gui_all.TEST_GUI_ALL" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a new database
-Adds test images
-Creates dummy ANNOTATIONS
-Selects things</p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_gui_import_images">
-<span id="ibeis-tests-test-gui-import-images-module"></span><h2>ibeis.tests.test_gui_import_images module<a class="headerlink" href="#module-ibeis.tests.test_gui_import_images" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_gui_import_images.TEST_GUI_IMPORT_IMAGES">
-<code class="descclassname">ibeis.tests.test_gui_import_images.</code><code class="descname">TEST_GUI_IMPORT_IMAGES</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_gui_import_images.html#TEST_GUI_IMPORT_IMAGES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_gui_import_images.TEST_GUI_IMPORT_IMAGES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_gui_open_database">
-<span id="ibeis-tests-test-gui-open-database-module"></span><h2>ibeis.tests.test_gui_open_database module<a class="headerlink" href="#module-ibeis.tests.test_gui_open_database" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_gui_open_database.TEST_GUI_OPEN_DATABASE">
-<code class="descclassname">ibeis.tests.test_gui_open_database.</code><code class="descname">TEST_GUI_OPEN_DATABASE</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_gui_open_database.html#TEST_GUI_OPEN_DATABASE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_gui_open_database.TEST_GUI_OPEN_DATABASE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_gui_selection">
-<span id="ibeis-tests-test-gui-selection-module"></span><h2>ibeis.tests.test_gui_selection module<a class="headerlink" href="#module-ibeis.tests.test_gui_selection" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_gui_selection.TEST_GUI_SELECTION">
-<code class="descclassname">ibeis.tests.test_gui_selection.</code><code class="descname">TEST_GUI_SELECTION</code><span class="sig-paren">(</span><em>ibs</em>, <em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_gui_selection.html#TEST_GUI_SELECTION"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_gui_selection.TEST_GUI_SELECTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs">
-<span id="ibeis-tests-test-ibs-module"></span><h2>ibeis.tests.test_ibs module<a class="headerlink" href="#module-ibeis.tests.test_ibs" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs.TEST_IBS">
-<code class="descclassname">ibeis.tests.test_ibs.</code><code class="descname">TEST_IBS</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs.html#TEST_IBS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs.TEST_IBS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_control">
-<span id="ibeis-tests-test-ibs-control-module"></span><h2>ibeis.tests.test_ibs_control module<a class="headerlink" href="#module-ibeis.tests.test_ibs_control" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_control.TEST_IBS_CONTROL">
-<code class="descclassname">ibeis.tests.test_ibs_control.</code><code class="descname">TEST_IBS_CONTROL</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_control.html#TEST_IBS_CONTROL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_control.TEST_IBS_CONTROL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_convert_bbox_poly">
-<span id="ibeis-tests-test-ibs-convert-bbox-poly-module"></span><h2>ibeis.tests.test_ibs_convert_bbox_poly module<a class="headerlink" href="#module-ibeis.tests.test_ibs_convert_bbox_poly" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_convert_bbox_poly.TEST_CONVERT_BBOX_POLY">
-<code class="descclassname">ibeis.tests.test_ibs_convert_bbox_poly.</code><code class="descname">TEST_CONVERT_BBOX_POLY</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_convert_bbox_poly.html#TEST_CONVERT_BBOX_POLY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_convert_bbox_poly.TEST_CONVERT_BBOX_POLY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_detect">
-<span id="ibeis-tests-test-ibs-detect-module"></span><h2>ibeis.tests.test_ibs_detect module<a class="headerlink" href="#module-ibeis.tests.test_ibs_detect" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_detect.TEST_DETECT">
-<code class="descclassname">ibeis.tests.test_ibs_detect.</code><code class="descname">TEST_DETECT</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_detect.html#TEST_DETECT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_detect.TEST_DETECT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_detectimg_compute">
-<span id="ibeis-tests-test-ibs-detectimg-compute-module"></span><h2>ibeis.tests.test_ibs_detectimg_compute module<a class="headerlink" href="#module-ibeis.tests.test_ibs_detectimg_compute" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_detectimg_compute.TEST_COMPUTE_DETECTIMG">
-<code class="descclassname">ibeis.tests.test_ibs_detectimg_compute.</code><code class="descname">TEST_COMPUTE_DETECTIMG</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_detectimg_compute.html#TEST_COMPUTE_DETECTIMG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_detectimg_compute.TEST_COMPUTE_DETECTIMG" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_encounters">
-<span id="ibeis-tests-test-ibs-encounters-module"></span><h2>ibeis.tests.test_ibs_encounters module<a class="headerlink" href="#module-ibeis.tests.test_ibs_encounters" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_encounters.TEST_ENCOUNTERS">
-<code class="descclassname">ibeis.tests.test_ibs_encounters.</code><code class="descname">TEST_ENCOUNTERS</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_encounters.html#TEST_ENCOUNTERS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_encounters.TEST_ENCOUNTERS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_feat_compute">
-<span id="ibeis-tests-test-ibs-feat-compute-module"></span><h2>ibeis.tests.test_ibs_feat_compute module<a class="headerlink" href="#module-ibeis.tests.test_ibs_feat_compute" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_feat_compute.TEST_COMPUTE_FEATS">
-<code class="descclassname">ibeis.tests.test_ibs_feat_compute.</code><code class="descname">TEST_COMPUTE_FEATS</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_feat_compute.html#TEST_COMPUTE_FEATS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_feat_compute.TEST_COMPUTE_FEATS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_getters">
-<span id="ibeis-tests-test-ibs-getters-module"></span><h2>ibeis.tests.test_ibs_getters module<a class="headerlink" href="#module-ibeis.tests.test_ibs_getters" title="Permalink to this headline">¶</a></h2>
-<p>python ibeis/tests/test_ibs_getters.py</p>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_getters.TEST_IBS_GETTERS">
-<code class="descclassname">ibeis.tests.test_ibs_getters.</code><code class="descname">TEST_IBS_GETTERS</code><span class="sig-paren">(</span><em>ibs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_getters.html#TEST_IBS_GETTERS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_getters.TEST_IBS_GETTERS" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_IBS_GETTERS</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_info">
-<span id="ibeis-tests-test-ibs-info-module"></span><h2>ibeis.tests.test_ibs_info module<a class="headerlink" href="#module-ibeis.tests.test_ibs_info" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_info.TEST_IBS_INFO">
-<code class="descclassname">ibeis.tests.test_ibs_info.</code><code class="descname">TEST_IBS_INFO</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_info.html#TEST_IBS_INFO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_info.TEST_IBS_INFO" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_query_components">
-<span id="ibeis-tests-test-ibs-query-components-module"></span><h2>ibeis.tests.test_ibs_query_components module<a class="headerlink" href="#module-ibeis.tests.test_ibs_query_components" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_query_components.TEST_QUERY_COMP">
-<code class="descclassname">ibeis.tests.test_ibs_query_components.</code><code class="descname">TEST_QUERY_COMP</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_query_components.html#TEST_QUERY_COMP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_query_components.TEST_QUERY_COMP" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.tests.test_ibs_query_components --test-TEST_QUERY_COMP
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.test_ibs_query_components</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">TEST_QUERY_COMP</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_ibs_uuid">
-<span id="ibeis-tests-test-ibs-uuid-module"></span><h2>ibeis.tests.test_ibs_uuid module<a class="headerlink" href="#module-ibeis.tests.test_ibs_uuid" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_uuid.TEST_UUID">
-<code class="descclassname">ibeis.tests.test_ibs_uuid.</code><code class="descname">TEST_UUID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_uuid.html#TEST_UUID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_uuid.TEST_UUID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_uuid.get_gpath_from_key">
-<code class="descclassname">ibeis.tests.test_ibs_uuid.</code><code class="descname">get_gpath_from_key</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_uuid.html#get_gpath_from_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_uuid.get_gpath_from_key" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_uuid.print_var">
-<code class="descclassname">ibeis.tests.test_ibs_uuid.</code><code class="descname">print_var</code><span class="sig-paren">(</span><em>key</em>, <em>indent='    '</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_uuid.html#print_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_uuid.print_var" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_uuid.test_specs">
-<code class="descclassname">ibeis.tests.test_ibs_uuid.</code><code class="descname">test_specs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_uuid.html#test_specs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_uuid.test_specs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_uuid.test_uuid">
-<code class="descclassname">ibeis.tests.test_ibs_uuid.</code><code class="descname">test_uuid</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_ibs_uuid.html#test_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_ibs_uuid.test_uuid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_ibs_uuid.writeln">
-<code class="descclassname">ibeis.tests.test_ibs_uuid.</code><code class="descname">writeln</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.tests.test_ibs_uuid.writeln" title="Permalink to this definition">¶</a></dt>
-<dd><p>L.append(object) &#8211; append object to end</p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_new_schema">
-<span id="ibeis-tests-test-new-schema-module"></span><h2>ibeis.tests.test_new_schema module<a class="headerlink" href="#module-ibeis.tests.test_new_schema" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_new_schema.TEST_NEW_SCHEMA">
-<code class="descclassname">ibeis.tests.test_new_schema.</code><code class="descname">TEST_NEW_SCHEMA</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_new_schema.html#TEST_NEW_SCHEMA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_new_schema.TEST_NEW_SCHEMA" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_pil_hash">
-<span id="ibeis-tests-test-pil-hash-module"></span><h2>ibeis.tests.test_pil_hash module<a class="headerlink" href="#module-ibeis.tests.test_pil_hash" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_pil_hash.TEST_PIL_HASH">
-<code class="descclassname">ibeis.tests.test_pil_hash.</code><code class="descname">TEST_PIL_HASH</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_pil_hash.html#TEST_PIL_HASH"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_pil_hash.TEST_PIL_HASH" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_qt_tree">
-<span id="ibeis-tests-test-qt-tree-module"></span><h2>ibeis.tests.test_qt_tree module<a class="headerlink" href="#module-ibeis.tests.test_qt_tree" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-ibeis.tests.test_sql_control">
-<span id="ibeis-tests-test-sql-control-module"></span><h2>ibeis.tests.test_sql_control module<a class="headerlink" href="#module-ibeis.tests.test_sql_control" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_sql_control.TEST_SQL_CONTROL">
-<code class="descclassname">ibeis.tests.test_sql_control.</code><code class="descname">TEST_SQL_CONTROL</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_control.html#TEST_SQL_CONTROL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_control.TEST_SQL_CONTROL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_sql_ids">
-<span id="ibeis-tests-test-sql-ids-module"></span><h2>ibeis.tests.test_sql_ids module<a class="headerlink" href="#module-ibeis.tests.test_sql_ids" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_sql_ids.TEST_SQL_NAMES">
-<code class="descclassname">ibeis.tests.test_sql_ids.</code><code class="descname">TEST_SQL_NAMES</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_ids.html#TEST_SQL_NAMES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_ids.TEST_SQL_NAMES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_sql_modify">
-<span id="ibeis-tests-test-sql-modify-module"></span><h2>ibeis.tests.test_sql_modify module<a class="headerlink" href="#module-ibeis.tests.test_sql_modify" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.TEST_SQL_MODIFY">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">TEST_SQL_MODIFY</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#TEST_SQL_MODIFY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.TEST_SQL_MODIFY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.add_column">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">add_column</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#add_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.add_column" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.add_table">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">add_table</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#add_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.add_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.add_text">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">add_text</code><span class="sig-paren">(</span><em>db</em>, <em>text_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#add_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.add_text" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.converter">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">converter</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#converter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.converter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.drop_column">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">drop_column</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#drop_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.drop_column" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.drop_table">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">drop_table</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#drop_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.drop_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.duplicate_column">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">duplicate_column</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#duplicate_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.duplicate_column" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.duplicate_table">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">duplicate_table</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#duplicate_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.duplicate_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.get_integers">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">get_integers</code><span class="sig-paren">(</span><em>db</em>, <em>tablename</em>, <em>rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#get_integers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.get_integers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.get_integers2">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">get_integers2</code><span class="sig-paren">(</span><em>db</em>, <em>tablename</em>, <em>rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#get_integers2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.get_integers2" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.get_rowid_from_text">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">get_rowid_from_text</code><span class="sig-paren">(</span><em>db</em>, <em>text_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#get_rowid_from_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.get_rowid_from_text" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.get_text">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">get_text</code><span class="sig-paren">(</span><em>db</em>, <em>tablename</em>, <em>rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#get_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.get_text" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.modify_table">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">modify_table</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#modify_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.modify_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.rename_column">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">rename_column</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#rename_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.rename_column" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.rename_table">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">rename_table</code><span class="sig-paren">(</span><em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#rename_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.rename_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.reorder_columns">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">reorder_columns</code><span class="sig-paren">(</span><em>db</em>, <em>order_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#reorder_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.reorder_columns" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_modify.set_integers">
-<code class="descclassname">ibeis.tests.test_sql_modify.</code><code class="descname">set_integers</code><span class="sig-paren">(</span><em>db</em>, <em>tablename</em>, <em>integer_list</em>, <em>rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_modify.html#set_integers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_modify.set_integers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_sql_names">
-<span id="ibeis-tests-test-sql-names-module"></span><h2>ibeis.tests.test_sql_names module<a class="headerlink" href="#module-ibeis.tests.test_sql_names" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_sql_names.TEST_SQL_NAMES">
-<code class="descclassname">ibeis.tests.test_sql_names.</code><code class="descname">TEST_SQL_NAMES</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_names.html#TEST_SQL_NAMES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_names.TEST_SQL_NAMES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_sql_numpy">
-<span id="ibeis-tests-test-sql-numpy-module"></span><h2>ibeis.tests.test_sql_numpy module<a class="headerlink" href="#module-ibeis.tests.test_sql_numpy" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_sql_numpy.TEST_SQL_NUMPY">
-<code class="descclassname">ibeis.tests.test_sql_numpy.</code><code class="descname">TEST_SQL_NUMPY</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_numpy.html#TEST_SQL_NUMPY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_numpy.TEST_SQL_NUMPY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_numpy.grab_numpy_testdata">
-<code class="descclassname">ibeis.tests.test_sql_numpy.</code><code class="descname">grab_numpy_testdata</code><span class="sig-paren">(</span><em>shape=(3000.0</em>, <em>128)</em>, <em>dtype=&lt;type 'numpy.uint8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_numpy.html#grab_numpy_testdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_numpy.grab_numpy_testdata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_sql_revert">
-<span id="ibeis-tests-test-sql-revert-module"></span><h2>ibeis.tests.test_sql_revert module<a class="headerlink" href="#module-ibeis.tests.test_sql_revert" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.tests.test_sql_revert.TEST_SQL_REVERT">
-<code class="descclassname">ibeis.tests.test_sql_revert.</code><code class="descname">TEST_SQL_REVERT</code><span class="sig-paren">(</span><em>isolation_level=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_revert.html#TEST_SQL_REVERT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_revert.TEST_SQL_REVERT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_revert.alter_delete">
-<code class="descclassname">ibeis.tests.test_sql_revert.</code><code class="descname">alter_delete</code><span class="sig-paren">(</span><em>connection</em>, <em>cur</em>, <em>bound</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_revert.html#alter_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_revert.alter_delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_revert.alter_insert">
-<code class="descclassname">ibeis.tests.test_sql_revert.</code><code class="descname">alter_insert</code><span class="sig-paren">(</span><em>connection</em>, <em>cur</em>, <em>bound</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_revert.html#alter_insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_revert.alter_insert" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_revert.alter_update">
-<code class="descclassname">ibeis.tests.test_sql_revert.</code><code class="descname">alter_update</code><span class="sig-paren">(</span><em>connection</em>, <em>cur</em>, <em>bound</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_revert.html#alter_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_revert.alter_update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.test_sql_revert.test_query">
-<code class="descclassname">ibeis.tests.test_sql_revert.</code><code class="descname">test_query</code><span class="sig-paren">(</span><em>connection</em>, <em>cur</em>, <em>_type</em>, <em>alter_callback</em>, <em>isolation_level</em>, <em>bound=10</em>, <em>transaction=True</em>, <em>commit=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_sql_revert.html#test_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_sql_revert.test_query" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_utool_parallel">
-<span id="ibeis-tests-test-utool-parallel-module"></span><h2>ibeis.tests.test_utool_parallel module<a class="headerlink" href="#module-ibeis.tests.test_utool_parallel" title="Permalink to this headline">¶</a></h2>
-<p>Tests IBEIS parallel</p>
-<dl class="function">
-<dt id="ibeis.tests.test_utool_parallel.TEST_PARALLEL">
-<code class="descclassname">ibeis.tests.test_utool_parallel.</code><code class="descname">TEST_PARALLEL</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_utool_parallel.html#TEST_PARALLEL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_utool_parallel.TEST_PARALLEL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.tests.test_weakref">
-<span id="ibeis-tests-test-weakref-module"></span><h2>ibeis.tests.test_weakref module<a class="headerlink" href="#module-ibeis.tests.test_weakref" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="ibeis.tests.test_weakref.Dummy">
-<em class="property">class </em><code class="descclassname">ibeis.tests.test_weakref.</code><code class="descname">Dummy</code><a class="reference internal" href="_modules/ibeis/tests/test_weakref.html#Dummy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_weakref.Dummy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="ibeis.tests.test_weakref.Dummy.notify">
-<code class="descname">notify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_weakref.html#Dummy.notify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_weakref.Dummy.notify" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.tests.test_weakref.Dummy.register_dummy">
-<code class="descname">register_dummy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_weakref.html#Dummy.register_dummy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_weakref.Dummy.register_dummy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.tests.test_weakref.Dummy.unregister_dummy">
-<code class="descname">unregister_dummy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/test_weakref.html#Dummy.unregister_dummy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.test_weakref.Dummy.unregister_dummy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-ibeis.tests">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.tests" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -903,7 +442,7 @@ Selects things</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -925,7 +464,7 @@ Selects things</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -1,0 +1,948 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.hots.pgm_ext &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.algo.hots</a> &raquo;</li>
+      
+    <li>ibeis.algo.hots.pgm_ext</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.hots.pgm_ext</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">pgm_viz</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pgmpy</span>
+    <span class="kn">import</span> <span class="nn">pgmpy.inference</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.extern</span> <span class="kn">import</span> <span class="n">tabulate</span>
+    <span class="n">HAS_PGMPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAS_PGMPY</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">pass</span>
+<span class="c"># from ibeis.algo.hots.pgm_viz import *  # NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pgmext]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="define_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.define_model">[docs]</a><span class="k">def</span> <span class="nf">define_model</span><span class="p">(</span><span class="n">cpd_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom extensions of pgmpy modl</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">input_graph</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
+        <span class="p">[(</span><span class="n">evar</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span> <span class="k">for</span> <span class="n">evar</span> <span class="ow">in</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpd_list</span> <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="p">])</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">pgmpy</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">BayesianModel</span><span class="p">(</span><span class="n">input_graph</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add_cpds</span><span class="p">(</span><span class="o">*</span><span class="n">cpd_list</span><span class="p">)</span>
+    <span class="n">customize_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+</div>
+<div class="viewcode-block" id="customize_model"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.customize_model">[docs]</a><span class="k">def</span> <span class="nf">customize_model</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">var2_cpd</span> <span class="o">=</span> <span class="p">{</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span><span class="p">:</span> <span class="n">cpd</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">cpds</span><span class="p">}</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">groupby_attr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">cpds</span><span class="p">,</span> <span class="s">&#39;ttype&#39;</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_templates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">cpd</span><span class="o">.</span><span class="n">_template_</span>
+                                 <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">var2_cpd</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">ttype2_template</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="o">.</span><span class="n">ttype</span><span class="p">:</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">_templates</span><span class="p">}</span>
+    <span class="k">def</span> <span class="nf">pretty_evidence</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">evar</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">evar</span><span class="p">]</span><span class="o">.</span><span class="n">variable_statenames</span><span class="p">[</span><span class="n">val</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">evar</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">evidence</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">print_templates</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ignore_ttypes</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="n">templates</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_templates</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s"> --- CPD Templates ---&#39;</span><span class="p">,</span> <span class="s">&#39;blue&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">temp_cpd</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">temp_cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_ttypes</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">temp_cpd</span><span class="o">.</span><span class="n">_cpdstr</span><span class="p">(</span><span class="s">&#39;psql&#39;</span><span class="p">),</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">print_priors</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ignore_ttypes</span><span class="o">=</span><span class="p">[],</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Priors&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;darkblue&#39;</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s"> --- </span><span class="si">%s</span><span class="s"> ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">title</span><span class="p">,),</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ttype</span><span class="p">,</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">ttype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_ttypes</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">fs_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">cpds</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">_cpdstr</span><span class="p">(</span><span class="s">&#39;psql&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fs_</span><span class="p">]),</span> <span class="n">color</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">print_priors</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">print_templates</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pretty_evidence</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pgm_viz</span><span class="o">.</span><span class="n">show_model</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pgm_viz</span><span class="o">.</span><span class="n">show_markov_model</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pgm_viz</span><span class="o">.</span><span class="n">show_junction_tree</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+</div>
+<div class="viewcode-block" id="ApproximateFactor"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor">[docs]</a><span class="k">class</span> <span class="nc">ApproximateFactor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instead of holding a weight for all possible states, an approximate factor</span>
+<span class="sd">    simply lists a set of (potentially duplicate) states. Each state has a</span>
+<span class="sd">    weight that is approximately proportional to the probability of that state.</span>
+
+<span class="sd">    The main difference is that the cardinality are implicit and the row labels</span>
+<span class="sd">    are explicit. In a normal factor it is reversed.</span>
+
+<span class="sd">    Maybe rename to sparse factor?</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --exec-ApproximateFactor --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]</span>
+<span class="sd">        &gt;&gt;&gt; weights = [.1, .2, .1]</span>
+<span class="sd">        &gt;&gt;&gt; variables = [&#39;v1&#39;, &#39;v2&#39;, &#39;v3&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; self = ApproximateFactor(state_idxs, weights, variables)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(self)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ApproximateFactor.from_sampled"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.from_sampled">[docs]</a>    <span class="k">def</span> <span class="nf">from_sampled</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">sampled</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">statename_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        convert sampled states into an approximate factor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">variables</span> <span class="o">=</span> <span class="n">sampled</span><span class="o">.</span><span class="n">columns</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">state_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">item</span><span class="o">.</span><span class="n">state</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span>
+                                     <span class="n">sampled</span><span class="p">[</span><span class="n">variables</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">sampled</span><span class="p">[</span><span class="s">&#39;_weight&#39;</span><span class="p">]</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">state_idxs</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">statename_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">phi</span>
+</div>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_idxs</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">statename_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">state_idxs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statename_dict</span> <span class="o">=</span> <span class="n">statename_dict</span>
+
+<div class="viewcode-block" id="ApproximateFactor.copy"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a copy of the factor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">statename_dict</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">statename_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">statename_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">other</span> <span class="o">=</span> <span class="n">ApproximateFactor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="n">statename_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">other</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
+
+<div class="viewcode-block" id="ApproximateFactor.get_sparse_values"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.get_sparse_values">[docs]</a>    <span class="k">def</span> <span class="nf">get_sparse_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># http://stackoverflow.com/questions/20114194/sparse-array-in-python-cython</span>
+        <span class="c">#from scipy.sparse import coo_matrix</span>
+        <span class="c">#values = coo_matrix((self.weights, self.state_idxs.T), shape=self.cardinality)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;scipy only supports sparse 2D-arrays&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ApproximateFactor.scope"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.scope">[docs]</a>    <span class="k">def</span> <span class="nf">scope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span>
+</div>
+<div class="viewcode-block" id="ApproximateFactor.marginalize"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.marginalize">[docs]</a>    <span class="k">def</span> <span class="nf">marginalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Modifies the factor with marginalized values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            variables (list, array-like):</span>
+<span class="sd">                List of variables over which to marginalize.</span>
+
+<span class="sd">            inplace (bool):</span>
+<span class="sd">                If inplace=True it will modify the factor itself, else would</span>
+<span class="sd">                return a new factor.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Factor or None:</span>
+<span class="sd">                if inplace=True (default) returns None</span>
+<span class="sd">                if inplace=False returns a new `Factor` instance.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]</span>
+<span class="sd">            &gt;&gt;&gt; weights = [.1, .2, .1]</span>
+<span class="sd">            &gt;&gt;&gt; variables = [&#39;v1&#39;, &#39;v2&#39;, &#39;v3&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; self = ApproximateFactor(state_idxs, weights, variables)</span>
+<span class="sd">            &gt;&gt;&gt; variables = [&#39;v2&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; inplace = False</span>
+<span class="sd">            &gt;&gt;&gt; phi = self.marginalize(variables, inplace)</span>
+<span class="sd">            &gt;&gt;&gt; print(phi)</span>
+<span class="sd">            +------+------+--------------------+</span>
+<span class="sd">            | v1   | v3   |   \hat{phi}(v1,v3) |</span>
+<span class="sd">            |------+------+--------------------|</span>
+<span class="sd">            | v1_1 | v3_1 |             0.3000 |</span>
+<span class="sd">            | v1_2 | v3_2 |             0.1000 |</span>
+<span class="sd">            +------+------+--------------------+</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;variables: Expected type list or array-like, got type str&quot;</span><span class="p">)</span>
+
+        <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">inplace</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phi</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;{var} not in scope.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">))</span>
+
+        <span class="n">var_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">phi</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">]</span>
+
+        <span class="n">index_to_keep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">)))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">var_indexes</span><span class="p">))</span>
+        <span class="n">index_to_keep</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">index_to_keep</span><span class="p">)</span>
+        <span class="n">phi</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">phi</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">index_to_keep</span><span class="p">]</span>
+        <span class="n">phi</span><span class="o">.</span><span class="n">state_idxs</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">state_idxs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">index_to_keep</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">phi</span><span class="o">.</span><span class="n">consolidate</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">phi</span>
+</div>
+    <span class="k">def</span> <span class="nf">_compute_unique_state_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+        <span class="n">data_ids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_ndarray_unique_rowids_unsafe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span><span class="p">)</span>
+        <span class="c">#data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))</span>
+        <span class="k">return</span> <span class="n">data_ids</span>
+
+<div class="viewcode-block" id="ApproximateFactor.consolidate"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.consolidate">[docs]</a>    <span class="k">def</span> <span class="nf">consolidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; removes duplicate entries</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; state_idxs = [[1, 0, 1], [1, 0, 1], [1, 0, 2]]</span>
+<span class="sd">            &gt;&gt;&gt; weights = [.1, .2, .1]</span>
+<span class="sd">            &gt;&gt;&gt; variables = [&#39;v1&#39;, &#39;v2&#39;, &#39;v3&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; self = ApproximateFactor(state_idxs, weights, variables)</span>
+<span class="sd">            &gt;&gt;&gt; inplace = False</span>
+<span class="sd">            &gt;&gt;&gt; phi = self.consolidate(inplace)</span>
+<span class="sd">            &gt;&gt;&gt; result = str(phi)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            +------+------+------+-----------------------+</span>
+<span class="sd">            | v1   | v2   | v3   |   \hat{phi}(v1,v2,v3) |</span>
+<span class="sd">            |------+------+------+-----------------------|</span>
+<span class="sd">            | v1_1 | v2_0 | v3_1 |                0.3000 |</span>
+<span class="sd">            | v1_1 | v2_0 | v3_2 |                0.1000 |</span>
+<span class="sd">            +------+------+------+-----------------------+</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+
+        <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">inplace</span> <span class="k">else</span> <span class="bp">self</span>
+
+        <span class="n">data_ids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_ndarray_unique_rowids_unsafe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span><span class="p">)</span>
+        <span class="n">unique_ids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">data_ids</span><span class="p">)</span>
+        <span class="c">#assert len(unique_ids) == len(np.unique(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs)))))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_ids</span><span class="p">):</span>
+            <span class="c"># Sum the values in the cpd to marginalize the duplicate probs</span>
+            <span class="c"># Take only the unique rows under this induced labeling</span>
+            <span class="n">unique_tmp_groupxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">gxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gxs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_tmp_groupxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+            <span class="p">])</span>
+            <span class="c">#print(&#39;[pgm] Consolidated %r states into %r states&#39; % (len(data_ids), len(unique_ids),))</span>
+        <span class="c">#else:</span>
+        <span class="c">#    print(&#39;[pgm] Cannot consolidated %r unique states&#39; % (len(data_ids),))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">phi</span>
+</div>
+<div class="viewcode-block" id="ApproximateFactor.normalize"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Normalizes the weights of factor so that they sum to 1.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inplace (bool): (default = True)</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.algo.hots.pgm_ext --exec-normalize</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]</span>
+<span class="sd">            &gt;&gt;&gt; weights = [.1, .2, .1]</span>
+<span class="sd">            &gt;&gt;&gt; variables = [&#39;v1&#39;, &#39;v2&#39;, &#39;v3&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; self = ApproximateFactor(state_idxs, weights, variables)</span>
+<span class="sd">            &gt;&gt;&gt; inplace = True</span>
+<span class="sd">            &gt;&gt;&gt; print(self)</span>
+<span class="sd">            &gt;&gt;&gt; self.normalize(inplace)</span>
+<span class="sd">            &gt;&gt;&gt; result = (&#39;%s&#39; % (self,))</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            +------+------+------+-----------------------+</span>
+<span class="sd">            | v1   | v2   | v3   |   \hat{phi}(v1,v2,v3) |</span>
+<span class="sd">            |------+------+------+-----------------------|</span>
+<span class="sd">            | v1_0 | v2_0 | v3_1 |                0.2500 |</span>
+<span class="sd">            | v1_1 | v2_0 | v3_1 |                0.5000 |</span>
+<span class="sd">            | v1_2 | v2_0 | v3_2 |                0.2500 |</span>
+<span class="sd">            +------+------+------+-----------------------+</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">inplace</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">phi</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">weights</span> <span class="o">/</span> <span class="n">phi</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">phi</span>
+</div>
+<div class="viewcode-block" id="ApproximateFactor.reorder"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.ApproximateFactor.reorder">[docs]</a>    <span class="k">def</span> <span class="nf">reorder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        Changes internal variable ordering</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.algo.hots.pgm_ext --exec-reorder</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]</span>
+<span class="sd">            &gt;&gt;&gt; weights = [.1, .2, .1]</span>
+<span class="sd">            &gt;&gt;&gt; variables = [&#39;v1&#39;, &#39;v2&#39;, &#39;v3&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; self = ApproximateFactor(state_idxs, weights, variables)</span>
+<span class="sd">            &gt;&gt;&gt; order = [2, 0, 1]</span>
+<span class="sd">            &gt;&gt;&gt; inplace = True</span>
+<span class="sd">            &gt;&gt;&gt; print(self)</span>
+<span class="sd">            &gt;&gt;&gt; self.reorder(order, inplace)</span>
+<span class="sd">            &gt;&gt;&gt; result = (&#39;%s&#39; % (self,))</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            +------+------+------+-----------------------+</span>
+<span class="sd">            | v3   | v1   | v2   |   \hat{phi}(v3,v1,v2) |</span>
+<span class="sd">            |------+------+------+-----------------------|</span>
+<span class="sd">            | v3_1 | v1_0 | v2_0 |                0.1000 |</span>
+<span class="sd">            | v3_1 | v1_1 | v2_0 |                0.2000 |</span>
+<span class="sd">            | v3_2 | v1_2 | v2_0 |                0.1000 |</span>
+<span class="sd">            +------+------+------+-----------------------+</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">inplace</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">order</span><span class="p">):</span>
+                <span class="n">sortx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sortx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">phi</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">order</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">phi</span><span class="o">.</span><span class="n">variables</span><span class="p">,))</span>
+        <span class="n">phi</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">phi</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sortx</span><span class="p">]</span>
+        <span class="n">phi</span><span class="o">.</span><span class="n">state_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">phi</span><span class="o">.</span><span class="n">state_idxs</span><span class="p">[:,</span> <span class="n">sortx</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">phi</span>
+</div>
+    <span class="k">def</span> <span class="nf">_row_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asindex</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">asindex</span><span class="p">:</span>
+            <span class="n">row_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">row_labels</span> <span class="o">=</span> <span class="p">[[</span><span class="s">&#39;{var}_{i}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="n">state</span><span class="p">)]</span>
+                          <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">row_labels</span>
+
+    <span class="k">def</span> <span class="nf">_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phi_or_p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">maxrows</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the string from `__str__` method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">phi_or_p</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">phi_or_p</span> <span class="o">=</span> <span class="s">r&#39;\hat{phi}&#39;</span>
+        <span class="k">if</span> <span class="n">tablefmt</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">tablefmt</span> <span class="o">=</span> <span class="s">&#39;psql&#39;</span>
+        <span class="n">string_header</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="p">())</span>
+        <span class="n">string_header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;{phi_or_p}({variables})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">phi_or_p</span><span class="o">=</span><span class="n">phi_or_p</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string_header</span><span class="p">)))</span>
+
+        <span class="n">factor_table</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">row_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">row_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_labels</span><span class="p">(</span><span class="n">asindex</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">factor_table</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">lbls</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">val</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">lbls</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">row_labels</span><span class="p">,</span> <span class="n">row_values</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">sort</span><span class="p">:</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="n">row_values</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="n">sort</span><span class="p">]</span>
+            <span class="n">factor_table</span> <span class="o">=</span> <span class="p">[</span><span class="n">factor_table</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">sortx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">maxrows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">maxrows</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">factor_table</span><span class="p">):</span>
+            <span class="n">factor_table</span> <span class="o">=</span> <span class="n">factor_table</span><span class="p">[:</span><span class="n">maxrows</span><span class="p">]</span>
+            <span class="n">factor_table</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&#39;...&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">string_header</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">factor_table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">string_header</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="n">tablefmt</span><span class="p">,</span>
+                        <span class="n">floatfmt</span><span class="o">=</span><span class="s">&#39;.4f&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_str</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cardinality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cardinality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_idxs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">cardinality</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">var_card</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="s">&#39;{var}:{card}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var</span><span class="p">,</span> <span class="n">card</span><span class="o">=</span><span class="n">card</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">card</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cardinality</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="s">r&#39;&lt;ApproximateFactor representing phi({var_card}) at {address}&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">address</span><span class="o">=</span><span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="n">var_card</span><span class="o">=</span><span class="n">var_card</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="print_factors"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.print_factors">[docs]</a><span class="k">def</span> <span class="nf">print_factors</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">factor_list</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s">&#39;var2_cpd&#39;</span><span class="p">):</span>
+        <span class="n">semtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">ttype</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factor_list</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">semtypes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">factor_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">factors</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">factor_list</span><span class="p">,</span> <span class="n">semtypes</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Result Factors (</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_</span><span class="p">,))</span>
+        <span class="n">factors</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">fs_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">_str</span><span class="p">(</span><span class="s">&#39;phi&#39;</span><span class="p">,</span> <span class="s">&#39;psql&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fs_</span><span class="p">]),</span>
+                          <span class="s">&#39;yellow&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="TemplateCPD"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.TemplateCPD">[docs]</a><span class="k">class</span> <span class="nc">TemplateCPD</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory for templated cpds</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ttype</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span> <span class="n">varpref</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">evidence_ttypes</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">pmf_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">special_basis_pool</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">state_pref</span><span class="p">,</span> <span class="n">state_card</span> <span class="o">=</span> <span class="n">basis</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">state_card</span>
+            <span class="n">basis</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">num_special</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">special_basis_pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">stop</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">special_basis_pool</span><span class="p">)</span>
+                <span class="n">num_special</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">special_basis_pool</span><span class="p">),</span> <span class="n">state_card</span><span class="p">)</span>
+                <span class="n">basis</span> <span class="o">=</span> <span class="n">special_basis_pool</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">num_special</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">state_card</span> <span class="o">-</span> <span class="n">num_special</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">num_special</span>
+                <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">+</span> <span class="p">[</span><span class="n">state_pref</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">varpref</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">varpref</span> <span class="o">=</span> <span class="n">ttype</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ttype</span> <span class="o">=</span> <span class="n">ttype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varpref</span> <span class="o">=</span> <span class="n">varpref</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evidence_ttypes</span> <span class="o">=</span> <span class="n">evidence_ttypes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pmf_func</span> <span class="o">=</span> <span class="n">pmf_func</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_cpdstr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">example_cpd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">example_cpd</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">example_cpd</span><span class="o">.</span><span class="n">_cpdstr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@ut.memoize</span>
+<div class="viewcode-block" id="TemplateCPD.example_cpd"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.TemplateCPD.example_cpd">[docs]</a>    <span class="k">def</span> <span class="nf">example_cpd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evidence_ttypes</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">kw</span><span class="p">[</span><span class="s">&#39;parents&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">id_</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kw</span><span class="p">[</span><span class="s">&#39;parents&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">tcpd</span><span class="o">.</span><span class="n">example_cpd</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tcpd</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evidence_ttypes</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="n">example_cpd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">example_cpd</span>
+</div>
+<div class="viewcode-block" id="TemplateCPD.new_cpd"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.TemplateCPD.new_cpd">[docs]</a>    <span class="k">def</span> <span class="nf">new_cpd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pmf_func</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes a new random variable that is an instance of this tempalte</span>
+
+<span class="sd">        parents : only used to define the name of this node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pmf_func</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">pmf_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pmf_func</span>
+
+        <span class="c"># --- MAKE VARIABLE ID</span>
+        <span class="k">def</span> <span class="nf">_getid</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">_template_id</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">parents</span><span class="p">):</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="p">[</span><span class="n">parents</span><span class="p">]</span>
+
+        <span class="n">template_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">_getid</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">]</span>
+        <span class="n">HACK_SAME_IDS</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># TODO: keep track of parent index inheritence</span>
+        <span class="c"># then rectify uniqueness based on that</span>
+        <span class="k">if</span> <span class="n">HACK_SAME_IDS</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">template_ids</span><span class="p">):</span>
+            <span class="n">_id</span> <span class="o">=</span> <span class="n">template_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_id</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_ids</span><span class="p">)</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">varpref</span><span class="p">,</span> <span class="n">_id</span><span class="p">])</span>
+        <span class="c">#variable = &#39;_&#39;.join([self.varpref, &#39;{&#39; + _id + &#39;}&#39;])</span>
+        <span class="c">#variable = &#39;$%s$&#39; % (variable,)</span>
+
+        <span class="n">evidence_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">cpd</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">parents</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s">&#39;ttype&#39;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">evidence_cpds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">evidence_cpds</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">variable_card</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">)</span>
+        <span class="n">statename_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">variable</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evidence_ttypes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">!=</span> <span class="n">tcpd</span><span class="o">.</span><span class="n">ttype</span>
+                   <span class="k">for</span> <span class="n">cpd</span><span class="p">,</span> <span class="n">tcpd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">evidence_cpds</span><span class="p">,</span> <span class="n">evidence_cpds</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Evidence is not of appropriate type&#39;</span><span class="p">)</span>
+            <span class="n">evidence_bases</span> <span class="o">=</span> <span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable_statenames</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">evidence_cpds</span><span class="p">]</span>
+            <span class="n">evidence_card</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">evidence_bases</span><span class="p">))</span>
+            <span class="n">evidence_states</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">evidence_bases</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">evidence_cpds</span><span class="p">:</span>
+                <span class="n">_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">statename_dict</span><span class="p">,</span> <span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span><span class="p">])</span>
+                <span class="n">statename_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_dict</span><span class="p">)</span>
+
+            <span class="n">evidence</span> <span class="o">=</span> <span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">evidence_cpds</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">evidence_cpds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Gave evidence for evidence-less template&#39;</span><span class="p">)</span>
+            <span class="n">evidence</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">evidence_card</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># --- MAKE TABLE VALUES</span>
+        <span class="k">if</span> <span class="n">pmf_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pmf_func</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pmf_func</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                    <span class="p">[</span><span class="n">pmf_func</span><span class="p">(</span><span class="n">vstate</span><span class="p">,</span> <span class="o">*</span><span class="n">estates</span><span class="p">)</span> <span class="k">for</span> <span class="n">estates</span> <span class="ow">in</span> <span class="n">evidence_states</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">vstate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span>
+                <span class="p">])</span>
+            <span class="n">ensure_normalized</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">ensure_normalized</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span> <span class="o">/</span> <span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># assume uniform</span>
+            <span class="n">fill_value</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">variable_card</span>
+            <span class="k">if</span> <span class="n">evidence_card</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">variable_card</span><span class="p">),</span> <span class="n">fill_value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">variable_card</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">evidence_card</span><span class="p">),</span> <span class="n">fill_value</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cpd</span> <span class="o">=</span> <span class="n">pgmpy</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">TabularCPD</span><span class="p">(</span>
+                <span class="n">variable</span><span class="o">=</span><span class="n">variable</span><span class="p">,</span>
+                <span class="n">variable_card</span><span class="o">=</span><span class="n">variable_card</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span><span class="p">,</span>
+                <span class="n">evidence_card</span><span class="o">=</span><span class="n">evidence_card</span><span class="p">,</span>
+                <span class="n">statename_dict</span><span class="o">=</span><span class="n">statename_dict</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Failed to create TabularCPD&#39;</span><span class="p">,</span>
+                       <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                           <span class="s">&#39;variable&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;variable_card&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;statename_dict&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;evidence_card&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;evidence&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;values.shape&#39;</span><span class="p">,</span>
+                       <span class="p">])</span>
+            <span class="k">raise</span>
+
+        <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttype</span>
+        <span class="n">cpd</span><span class="o">.</span><span class="n">_template_</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">cpd</span><span class="o">.</span><span class="n">_template_id</span> <span class="o">=</span> <span class="n">_id</span>
+        <span class="k">return</span> <span class="n">cpd</span>
+
+</div></div>
+<div class="viewcode-block" id="mustbe_example"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.mustbe_example">[docs]</a><span class="k">def</span> <span class="nf">mustbe_example</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple example where observing F0 forces N0 to take on a value.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --exec-mustbe_example --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; model = mustbe_example()</span>
+<span class="sd">        &gt;&gt;&gt; model.print_templates()</span>
+<span class="sd">        &gt;&gt;&gt; model.print_priors()</span>
+<span class="sd">        &gt;&gt;&gt; #infr = pgmpy.inference.VariableElimination(model)</span>
+<span class="sd">        &gt;&gt;&gt; infr = pgmpy.inference.BeliefPropagation(model)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Observe: &#39; + &#39;,&#39;.join(model.pretty_evidence({})))</span>
+<span class="sd">        &gt;&gt;&gt; factor_list1 = infr.query([&#39;N0&#39;], {}).values()</span>
+<span class="sd">        &gt;&gt;&gt; map1 = infr.map_query([&#39;N0&#39;], evidence={})</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;map1 = %r&#39; % (map1,))</span>
+<span class="sd">        &gt;&gt;&gt; print_factors(model, factor_list1)</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; evidence = model._ensure_internal_evidence({&#39;F0&#39;: &#39;true&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Observe: &#39; + &#39;,&#39;.join(model.pretty_evidence(evidence)))</span>
+<span class="sd">        &gt;&gt;&gt; factor_list2 = infr.query([&#39;N0&#39;], evidence).values()</span>
+<span class="sd">        &gt;&gt;&gt; map2 = infr.map_query([&#39;N0&#39;], evidence)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;map2 = %r&#39; % (map2,))</span>
+<span class="sd">        &gt;&gt;&gt; print_factors(model, factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; evidence = model._ensure_internal_evidence({&#39;F0&#39;: &#39;false&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Observe: &#39; + &#39;,&#39;.join(model.pretty_evidence(evidence)))</span>
+<span class="sd">        &gt;&gt;&gt; factor_list3 = infr.query([&#39;N0&#39;], evidence).values()</span>
+<span class="sd">        &gt;&gt;&gt; map3 = infr.map_query([&#39;N0&#39;], evidence)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;map3 = %r&#39; % (map3,))</span>
+<span class="sd">        &gt;&gt;&gt; print_factors(model, factor_list3)</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; phi1 = factor_list1[0]</span>
+<span class="sd">        &gt;&gt;&gt; phi2 = factor_list2[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert phi1[&#39;fred&#39;] == phi1[&#39;sue&#39;], &#39;should be uniform&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert phi2[&#39;fred&#39;] == 1, &#39;should be 1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; #netx.draw_graphviz(model, with_labels=True)</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pgm_viz.show_model(model, fnum=1)</span>
+<span class="sd">        &gt;&gt;&gt; pgm_viz.show_model(model, fnum=2, evidence=evidence, factor_list=factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        from ibeis.algo.hots.pgm_ext import _debug_repr_model</span>
+<span class="sd">        _debug_repr_model(model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">isfred_pmf</span><span class="p">(</span><span class="n">isfred</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&#39;fred&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="s">&#39;true&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;false&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="s">&#39;sue&#39;</span>  <span class="p">:</span> <span class="p">{</span><span class="s">&#39;true&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;false&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="s">&#39;tom&#39;</span>  <span class="p">:</span> <span class="p">{</span><span class="s">&#39;true&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;false&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="p">}[</span><span class="n">name</span><span class="p">][</span><span class="n">isfred</span><span class="p">]</span>
+    <span class="n">name_cpd_t</span> <span class="o">=</span> <span class="n">TemplateCPD</span><span class="p">(</span>
+        <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;fred&#39;</span><span class="p">,</span> <span class="s">&#39;sue&#39;</span><span class="p">,</span> <span class="s">&#39;tom&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">)</span>
+    <span class="n">isfred_cpd_t</span> <span class="o">=</span> <span class="n">TemplateCPD</span><span class="p">(</span>
+        <span class="s">&#39;fred&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;true&#39;</span><span class="p">,</span> <span class="s">&#39;false&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">,</span>
+        <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">isfred_pmf</span><span class="p">)</span>
+    <span class="n">name_cpd</span> <span class="o">=</span> <span class="n">name_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">isfred_cpd</span> <span class="o">=</span> <span class="n">isfred_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd</span><span class="p">])</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">define_model</span><span class="p">([</span><span class="n">name_cpd</span><span class="p">,</span> <span class="n">isfred_cpd</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+</div>
+<div class="viewcode-block" id="map_example"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.map_example">[docs]</a><span class="k">def</span> <span class="nf">map_example</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --exec-map_example --show</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://class.coursera.org/pgm-003/lecture/44</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; model = map_example()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; #netx.draw_graphviz(model, with_labels=True)</span>
+<span class="sd">        &gt;&gt;&gt; pgm_viz.show_model(model, fnum=1)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        from ibeis.algo.hots.pgm_ext import _debug_repr_model</span>
+<span class="sd">        _debug_repr_model(model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># https://class.coursera.org/pgm-003/lecture/44</span>
+    <span class="n">a_cpd_t</span> <span class="o">=</span> <span class="n">TemplateCPD</span><span class="p">(</span>
+        <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;0&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="n">pmf_func</span><span class="o">=</span><span class="p">[[</span><span class="o">.</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="o">.</span><span class="mi">6</span><span class="p">]])</span>
+    <span class="n">b_cpd_t</span> <span class="o">=</span> <span class="n">TemplateCPD</span><span class="p">(</span>
+        <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;0&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;B&#39;</span><span class="p">,</span>
+        <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">a_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="p">[[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]])</span>
+    <span class="n">a_cpd</span> <span class="o">=</span> <span class="n">a_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">b_cpd</span> <span class="o">=</span> <span class="n">b_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">a_cpd</span><span class="p">])</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">define_model</span><span class="p">([</span><span class="n">a_cpd</span><span class="p">,</span> <span class="n">b_cpd</span><span class="p">])</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">print_templates</span><span class="p">()</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">print_priors</span><span class="p">()</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">pgmpy</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">VariableElimination</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">marg_factors</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s">&#39;A0&#39;</span><span class="p">,</span> <span class="s">&#39;B0&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="n">print_factors</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">marg_factors</span><span class="p">)</span>
+    <span class="n">map_res</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">map_query</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;map_res = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">map_res</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+</div>
+<div class="viewcode-block" id="coin_example"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.coin_example">[docs]</a><span class="k">def</span> <span class="nf">coin_example</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple example of conditional independence.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        We are given a coin.</span>
+<span class="sd">        We do not know if it is fair or unfair.</span>
+<span class="sd">        There is an equal chance of either.</span>
+<span class="sd">        (If it is unfair it has a a 9-to-1 odds).</span>
+<span class="sd">        Initially, the results a coin toss are initially conditionally</span>
+<span class="sd">          independant of any other toss.</span>
+<span class="sd">        However, if we observe a heads on the first toss the chance of heads</span>
+<span class="sd">          on the second toss will increase.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --exec-coin_example</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show --cmd</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; model = coin_example()</span>
+<span class="sd">        &gt;&gt;&gt; model.print_templates()</span>
+<span class="sd">        &gt;&gt;&gt; model.print_priors()</span>
+<span class="sd">        &gt;&gt;&gt; query_vars = [&#39;T02&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; infr = pgmpy.inference.VariableElimination(model)</span>
+<span class="sd">        &gt;&gt;&gt; # Inference (1)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;(1.a) Observe nothing&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; evidence1 = {}</span>
+<span class="sd">        &gt;&gt;&gt; factor_list1 = infr.query(query_vars, evidence1).values()</span>
+<span class="sd">        &gt;&gt;&gt; print_factors(model, factor_list1)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;(1.b)  nothing changes&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Inference (2)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;(2.a) Observe that toss 1 was heads&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; evidence2 = model._ensure_internal_evidence({&#39;T01&#39;: &#39;heads&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; factor_list2 = infr.query(query_vars, evidence2).values()</span>
+<span class="sd">        &gt;&gt;&gt; print_factors(model, factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; phi1 = factor_list1[0]</span>
+<span class="sd">        &gt;&gt;&gt; phi2 = factor_list2[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert phi2[&#39;heads&#39;] &gt; phi1[&#39;heads&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;(2.b) Slightly more likely to see heads in the second coin toss&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; # print(&#39;Observe that toss 1 was tails&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # evidence = model._ensure_internal_evidence({&#39;T01&#39;: &#39;tails&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; # factor_list2 = infr.query(query_vars, evidence).values()</span>
+<span class="sd">        &gt;&gt;&gt; # print_factors(model, factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import bayes</span>
+<span class="sd">        &gt;&gt;&gt; kw = bayes.cluster_query(model, query_vars,evidence2,</span>
+<span class="sd">        &gt;&gt;&gt;                          method=&#39;bp&#39;, operation=&#39;marginalize&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #model.show_model(fnum=1)</span>
+<span class="sd">        &gt;&gt;&gt; #model.show_model(fnum=2, evidence=evidence2, factor_list=factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; model.show_model(fnum=3, evidence=evidence2, **kw)</span>
+<span class="sd">        &gt;&gt;&gt; model.show_markov_model(fnum=4, evidence=evidence2, factor_list=factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; model.show_junction_tree(fnum=5, evidence=evidence2, factor_list=factor_list2)</span>
+<span class="sd">        &gt;&gt;&gt; #netx.draw_graphviz(model, with_labels=True)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">toss_pmf</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="n">coin</span><span class="p">):</span>
+        <span class="n">toss_lookup</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;fair&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;heads&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;tails&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">},</span>
+            <span class="c">#&#39;bias&#39;: {&#39;heads&#39;: .6, &#39;tails&#39;: .4},</span>
+            <span class="s">&#39;bias&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;heads&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;tails&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">toss_lookup</span><span class="p">[</span><span class="n">coin</span><span class="p">][</span><span class="n">side</span><span class="p">]</span>
+    <span class="n">coin_cpd_t</span> <span class="o">=</span> <span class="n">TemplateCPD</span><span class="p">(</span>
+        <span class="s">&#39;coin&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;fair&#39;</span><span class="p">,</span> <span class="s">&#39;bias&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+    <span class="n">toss_cpd_t</span> <span class="o">=</span> <span class="n">TemplateCPD</span><span class="p">(</span>
+        <span class="s">&#39;toss&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;heads&#39;</span><span class="p">,</span> <span class="s">&#39;tails&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;T&#39;</span><span class="p">,</span>
+        <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">coin_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">toss_pmf</span><span class="p">)</span>
+    <span class="n">coin_cpd</span> <span class="o">=</span> <span class="n">coin_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">toss1_cpd</span> <span class="o">=</span> <span class="n">toss_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">coin_cpd</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">toss2_cpd</span> <span class="o">=</span> <span class="n">toss_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">coin_cpd</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">define_model</span><span class="p">([</span><span class="n">coin_cpd</span><span class="p">,</span> <span class="n">toss1_cpd</span><span class="p">,</span> <span class="n">toss2_cpd</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+</div>
+<div class="viewcode-block" id="test_markovmodel"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pgm_ext.test_markovmodel">[docs]</a><span class="k">def</span> <span class="nf">test_markovmodel</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pgm_ext import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.models</span> <span class="kn">import</span> <span class="n">MarkovModel</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.factors</span> <span class="kn">import</span> <span class="n">Factor</span>
+    <span class="n">markovmodel</span> <span class="o">=</span> <span class="n">MarkovModel</span><span class="p">([(</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">)])</span>
+    <span class="n">factor_a_b</span> <span class="o">=</span> <span class="n">Factor</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">],</span> <span class="n">cardinality</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
+    <span class="n">factor_b_c</span> <span class="o">=</span> <span class="n">Factor</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">],</span> <span class="n">cardinality</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+    <span class="n">factor_c_d</span> <span class="o">=</span> <span class="n">Factor</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">],</span> <span class="n">cardinality</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+    <span class="n">factor_d_a</span> <span class="o">=</span> <span class="n">Factor</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">],</span> <span class="n">cardinality</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">markovmodel</span><span class="o">.</span><span class="n">add_factors</span><span class="p">(</span><span class="n">factor_a_b</span><span class="p">,</span> <span class="n">factor_b_c</span><span class="p">,</span> <span class="n">factor_c_d</span><span class="p">,</span> <span class="n">factor_d_a</span><span class="p">)</span>
+
+    <span class="n">pgm_viz</span><span class="o">.</span><span class="n">show_markov_model</span><span class="p">(</span><span class="n">markovmodel</span><span class="p">)</span>
+    <span class="n">pgm_viz</span><span class="o">.</span><span class="n">show_junction_tree</span><span class="p">(</span><span class="n">markovmodel</span><span class="p">)</span>
+    <span class="c"># model = markovmodel.to_bayesian_model()</span>
+    <span class="c"># customize_model(model)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext</span>
+<span class="sd">        python -m ibeis.algo.hots.pgm_ext --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">HAS_PGMPY</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.other package &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.other package &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,10 +30,10 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.scripts package" href="ibeis.scripts.html"/>
-        <link rel="prev" title="ibeis.model.preproc package" href="ibeis.model.preproc.html"/> 
+        <link rel="prev" title="ibeis.init package" href="ibeis.init.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -85,12 +85,12 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.other package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.other.dbinfo">ibeis.other.dbinfo module</a></li>
@@ -113,13 +113,16 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -321,7 +324,7 @@ python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
 <span class="gp">&gt;&gt;&gt; </span><span class="n">infostr</span> <span class="o">=</span> <span class="n">get_short_infostr</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">infostr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">dbname = u&#39;testdb1&#39;</span>
+<span class="go">dbname = &#39;testdb1&#39;</span>
 <span class="go">num_images = 13</span>
 <span class="go">num_annotations = 13</span>
 <span class="go">num_names = 7</span>
@@ -484,7 +487,7 @@ python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show --db ly
 
 <dl class="function">
 <dt id="ibeis.other.duct_tape.remove_database_slag">
-<code class="descclassname">ibeis.other.duct_tape.</code><code class="descname">remove_database_slag</code><span class="sig-paren">(</span><em>ibs</em>, <em>delete_empty_names=False</em>, <em>delete_empty_encounters=False</em>, <em>delete_annotations_for_missing_images=False</em>, <em>delete_image_labels_for_missing_types=False</em>, <em>delete_annot_labels_for_missing_types=False</em>, <em>delete_chips_for_missing_annotations=False</em>, <em>delete_features_for_missing_annotations=False</em>, <em>delete_invalid_eg_relations=False</em>, <em>delete_invalid_gl_relations=False</em>, <em>delete_invalid_al_relations=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/duct_tape.html#remove_database_slag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.duct_tape.remove_database_slag" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.other.duct_tape.</code><code class="descname">remove_database_slag</code><span class="sig-paren">(</span><em>ibs</em>, <em>delete_empty_names=False</em>, <em>delete_empty_imagesets=False</em>, <em>delete_annotations_for_missing_images=False</em>, <em>delete_image_labels_for_missing_types=False</em>, <em>delete_annot_labels_for_missing_types=False</em>, <em>delete_chips_for_missing_annotations=False</em>, <em>delete_features_for_missing_annotations=False</em>, <em>delete_invalid_eg_relations=False</em>, <em>delete_invalid_gl_relations=False</em>, <em>delete_invalid_al_relations=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/duct_tape.html#remove_database_slag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.duct_tape.remove_database_slag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -593,7 +596,7 @@ python -m ibeis.other.optimize_k --test-learn_k --show --dummy
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.other" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="ibeis.other.IMPORT_TUPLES">
-<code class="descclassname">ibeis.other.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('dbinfo', None), ('duct_tape', None), ('optimize_k', None)]</em><a class="headerlink" href="#ibeis.other.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.other.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [(u'dbinfo', None), (u'duct_tape', None), (u'optimize_k', None)]</em><a class="headerlink" href="#ibeis.other.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Regen Command</em> &#8211; cd /home/joncrall/code/ibeis/ibeis/other
 makeinit.py</p>
 </dd></dl>
@@ -629,7 +632,7 @@ makeinit.py</p>
         <a href="ibeis.scripts.html" class="btn btn-neutral float-right" title="ibeis.scripts package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ibeis.model.preproc.html" class="btn btn-neutral" title="ibeis.model.preproc package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ibeis.init.html" class="btn btn-neutral" title="ibeis.init package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -638,7 +641,7 @@ makeinit.py</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -660,7 +663,7 @@ makeinit.py</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

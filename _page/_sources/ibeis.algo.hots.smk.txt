@@ -1,0 +1,86 @@
+ibeis.algo.hots.smk package
+===========================
+
+Submodules
+----------
+
+ibeis.algo.hots.smk.smk_core module
+-----------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_core
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_debug module
+------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_debug
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_hamming module
+--------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_hamming
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_index module
+------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_match module
+------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_match
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_plots module
+------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_plots
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_repr module
+-----------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_repr
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_residuals module
+----------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_residuals
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.smk.smk_scoring module
+--------------------------------------
+
+.. automodule:: ibeis.algo.hots.smk.smk_scoring
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.hots.smk
+    :members:
+    :undoc-members:
+    :show-inheritance:

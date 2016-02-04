@@ -4,6 +4,14 @@ ibeis.init package
 Submodules
 ----------
 
+ibeis.init._grave module
+------------------------
+
+.. automodule:: ibeis.init._grave
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.init.filter_annots module
 -------------------------------
 

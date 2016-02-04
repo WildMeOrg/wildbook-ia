@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dev &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.dev &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -168,7 +168,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="c">#from ibeis.model.hots import smk</span>
+<span class="c">#from ibeis.algo.hots import smk</span>
 <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -183,7 +183,7 @@
 <span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">dbinfo</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_harness</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span><span class="p">,</span> <span class="n">constants</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>  <span class="c"># NOQA</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dev]&#39;</span><span class="p">)</span>
 
 
@@ -307,7 +307,7 @@
 <span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()</span>
 <span class="sd">        &gt;&gt;&gt; daid_list = None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_matcher</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">automated_matcher</span>
     <span class="n">ibs1</span> <span class="o">=</span> <span class="n">ibs</span>
     <span class="n">num_initial</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--ninit&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">automated_matcher</span><span class="o">.</span><span class="n">incremental_test</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">num_initial</span><span class="p">)</span>
@@ -516,7 +516,7 @@
 <div class="viewcode-block" id="dev_snippets"><a class="viewcode-back" href="../../ibeis.html#ibeis.dev.dev_snippets">[docs]</a><span class="k">def</span> <span class="nf">dev_snippets</span><span class="p">(</span><span class="n">main_locals</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Common variables for convineince when interacting with IPython &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] dev_snippets&#39;</span><span class="p">)</span>
-    <span class="n">species</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
     <span class="n">quick</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="c"># Get reference to IBEIS Controller</span>
@@ -631,8 +631,8 @@
     <span class="sd">&quot;&quot;&quot; Function for developing something &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] devfunc&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>  <span class="c"># NOQA</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>  <span class="c"># NOQA</span>
-    <span class="c">#from ibeis.model.Config import *  # NOQA</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>  <span class="c"># NOQA</span>
+    <span class="c">#from ibeis.algo.Config import *  # NOQA</span>
     <span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">FeatureConfig</span><span class="p">()</span>
     <span class="c">#feat_cfg.printme3()</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">cfgstr..&#39;</span><span class="p">)</span>
@@ -1053,7 +1053,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1075,7 +1075,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

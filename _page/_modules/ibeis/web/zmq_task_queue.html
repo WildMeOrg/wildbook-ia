@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.zmq_task_queue &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.web.zmq_task_queue &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -210,6 +210,46 @@
 <span class="n">VERBOSE_JOBS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--bg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--fg&#39;</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="ensure_simple_server"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.ensure_simple_server">[docs]</a><span class="k">def</span> <span class="nf">ensure_simple_server</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">5832</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.zmq_task_queue --exec-ensure_simple_server</span>
+<span class="sd">        python -m utool.util_web --exec-start_simple_webserver</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.zmq_task_queue import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = ensure_simple_server()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_local_port_open</span><span class="p">(</span><span class="n">port</span><span class="p">):</span>
+        <span class="n">bgserver</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_process</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">start_simple_webserver</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bgserver</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bgserver</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+        <span class="n">bgserver</span><span class="o">.</span><span class="n">terminate2</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;server is running elsewhere&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bgserver</span>
+
+</div>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/check_uuids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="web_check_uuids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.web_check_uuids">[docs]</a><span class="k">def</span> <span class="nf">web_check_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="c"># Unique list</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">))</span>
+    <span class="c"># Check for all annot UUIDs exist</span>
+    <span class="n">missing_image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_missing_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">missing_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_missing_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_image_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;missing_image_uuid_list&#39;</span> <span class="p">:</span> <span class="n">missing_image_uuid_list</span><span class="p">,</span>
+            <span class="s">&#39;missing_annot_uuid_list&#39;</span> <span class="p">:</span> <span class="n">missing_annot_uuid_list</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebMissingUUIDException</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="initialize_job_manager"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.initialize_job_manager">[docs]</a><span class="k">def</span> <span class="nf">initialize_job_manager</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -258,40 +298,9 @@
 
 </div>
 <span class="nd">@accessor_decors.default_decorator</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/start_detect_image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
-<span class="nd">@register_ibs_method</span>
-<div class="viewcode-block" id="start_detect_image"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.start_detect_image">[docs]</a><span class="k">def</span> <span class="nf">start_detect_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    REST:</span>
-<span class="sd">        Method: GET</span>
-<span class="sd">        URL: /api/core/start_detect_image/</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        image_uuid_list (list) : list of image uuids to detect on.</span>
-<span class="sd">        species (str) : species to detect</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;add_images_json&#39;</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="send_ibeis_request"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.send_ibeis_request">[docs]</a><span class="k">def</span> <span class="nf">send_ibeis_request</span><span class="p">(</span><span class="n">suffix</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;post&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">requests</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">baseurl</span> <span class="o">=</span> <span class="s">&#39;http://127.0.1.1:5000&#39;</span>
-    <span class="n">payload</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s">&#39;post&#39;</span><span class="p">:</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">_content</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
-        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s">&#39;response&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">response</span>
-
-</div>
-<span class="nd">@accessor_decors.default_decorator</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/start_identify_annots/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <span class="nd">@register_ibs_method</span>
-<div class="viewcode-block" id="start_identify_annots"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.start_identify_annots">[docs]</a><span class="k">def</span> <span class="nf">start_identify_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qannot_uuid_list</span><span class="p">,</span> <span class="n">adata_annot_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="start_identify_annots"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.start_identify_annots">[docs]</a><span class="k">def</span> <span class="nf">start_identify_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qannot_uuid_list</span><span class="p">,</span> <span class="n">dannot_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                           <span class="n">pipecfg</span><span class="o">=</span><span class="p">{},</span> <span class="n">callback_url</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    REST:</span>
@@ -301,7 +310,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        qannot_uuid_list (list) : specifies the query annotations to</span>
 <span class="sd">            identify.</span>
-<span class="sd">        adata_annot_uuid_list (list) : specifies the annotations that the</span>
+<span class="sd">        dannot_uuid_list (list) : specifies the annotations that the</span>
 <span class="sd">            algorithm is allowed to use for identification.  If not</span>
 <span class="sd">            specified all annotations are used.   (default=None)</span>
 <span class="sd">        pipecfg (dict) : dictionary of pipeline configuration arguments</span>
@@ -317,6 +326,12 @@
 <span class="sd">        python -m ibeis.web.zmq_task_queue --main --bg</span>
 <span class="sd">        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --fg</span>
 
+<span class="sd">        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88</span>
+
+<span class="sd">        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --duuids=[]</span>
+<span class="sd">        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880</span>
+
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.web.zmq_task_queue import *  # NOQA</span>
@@ -325,54 +340,59 @@
 <span class="sd">        &gt;&gt;&gt; ibs, qaids, daids = ibeis.testdata_expanded_aids(</span>
 <span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;PZ_MTEST&#39;, a=[&#39;default:qsize=2,dsize=10&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; qannot_uuid_list = ibs.get_annot_uuids(qaids)</span>
-<span class="sd">        &gt;&gt;&gt; adata_annot_uuid_list = ibs.get_annot_uuids(daids)</span>
+<span class="sd">        &gt;&gt;&gt; dannot_uuid_list = ibs.get_annot_uuids(daids)</span>
 <span class="sd">        &gt;&gt;&gt; pipecfg = {}</span>
 <span class="sd">        &gt;&gt;&gt; ibs.initialize_job_manager()</span>
-<span class="sd">        &gt;&gt;&gt; jobid = ibs.start_identify_annots(qannot_uuid_list, adata_annot_uuid_list, pipecfg)</span>
+<span class="sd">        &gt;&gt;&gt; jobid = ibs.start_identify_annots(qannot_uuid_list, dannot_uuid_list, pipecfg)</span>
 <span class="sd">        &gt;&gt;&gt; result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.to_json(result))</span>
 <span class="sd">        &gt;&gt;&gt; ibs.close_job_manager()</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.web.zmq_task_queue import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; web_instance = ibeis.opendb_bg_web(&#39;testdb1&#39;, wait=4)</span>
-<span class="sd">        &gt;&gt;&gt; aids = send_ibeis_request(&#39;/api/annot/&#39;, &#39;get&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; response = send_ibeis_request(&#39;/api/annot/uuids/&#39;, aid_list=aids)</span>
-<span class="sd">        &gt;&gt;&gt; uuid_list = response</span>
-<span class="sd">        &gt;&gt;&gt; data = dict(qannot_uuid_list=uuid_list,</span>
-<span class="sd">        &gt;&gt;&gt;             adata_annot_uuid_list=uuid_list,</span>
-<span class="sd">        &gt;&gt;&gt;             pipecfg={})</span>
-<span class="sd">        &gt;&gt;&gt; response = send_ibeis_request(&#39;/api/core/start_identify_annots/&#39;, **data)</span>
-<span class="sd">        &gt;&gt;&gt; jobid = response</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, wait=3)  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = web_ibs.send_ibeis_request(&#39;/api/annot/&#39;, &#39;get&#39;)[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; uuid_list = web_ibs.send_ibeis_request(&#39;/api/annot/uuids/&#39;, aid_list=aids)</span>
+<span class="sd">        &gt;&gt;&gt; quuid_list = ut.get_argval(&#39;--quuids&#39;, type_=list, default=uuid_list)</span>
+<span class="sd">        &gt;&gt;&gt; duuid_list = ut.get_argval(&#39;--duuids&#39;, type_=list, default=uuid_list)</span>
+<span class="sd">        &gt;&gt;&gt; data = dict(</span>
+<span class="sd">        &gt;&gt;&gt;     qannot_uuid_list=quuid_list, dannot_uuid_list=duuid_list,</span>
+<span class="sd">        &gt;&gt;&gt;     pipecfg={},</span>
+<span class="sd">        &gt;&gt;&gt;     callback_url=&#39;http://127.0.1.1:5832&#39;</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; # Start callback server</span>
+<span class="sd">        &gt;&gt;&gt; bgserver = ensure_simple_server()</span>
+<span class="sd">        &gt;&gt;&gt; # --</span>
+<span class="sd">        &gt;&gt;&gt; jobid = web_ibs.send_ibeis_request(&#39;/api/core/start_identify_annots/&#39;, **data)</span>
+<span class="sd">        &gt;&gt;&gt; waittime = 1</span>
 <span class="sd">        &gt;&gt;&gt; while True:</span>
-<span class="sd">        &gt;&gt;&gt;     print(&#39;response = %s&#39; % (response,))</span>
-<span class="sd">        &gt;&gt;&gt;     response1 = send_ibeis_request(&#39;/api/core/get_job_status/&#39;, jobid=jobid)</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;jobid = %s&#39; % (jobid,))</span>
+<span class="sd">        &gt;&gt;&gt;     response1 = web_ibs.send_ibeis_request(&#39;/api/core/get_job_status/&#39;, jobid=jobid)</span>
 <span class="sd">        &gt;&gt;&gt;     if response1[&#39;jobstatus&#39;] == &#39;completed&#39;:</span>
 <span class="sd">        &gt;&gt;&gt;         break</span>
-<span class="sd">        &gt;&gt;&gt;     time.sleep(10)</span>
+<span class="sd">        &gt;&gt;&gt;     time.sleep(waittime)</span>
+<span class="sd">        &gt;&gt;&gt;     waittime = 10</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;response1 = %s&#39; % (response1,))</span>
-<span class="sd">        &gt;&gt;&gt; response2 = send_ibeis_request(&#39;/api/core/get_job_result/&#39;, jobid=jobid)</span>
+<span class="sd">        &gt;&gt;&gt; response2 = web_ibs.send_ibeis_request(&#39;/api/core/get_job_result/&#39;, jobid=jobid)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;response2 = %s&#39; % (response2,))</span>
 <span class="sd">        &gt;&gt;&gt; cmdict = ut.from_json(response2[&#39;json_result&#39;])[0]</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;Finished test&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; import signal</span>
-<span class="sd">        &gt;&gt;&gt; import os</span>
-<span class="sd">        &gt;&gt;&gt; #os.kill(web_instance.pid, signal.SIGINT)</span>
-<span class="sd">        &gt;&gt;&gt; #web_instance.join()</span>
-<span class="sd">        &gt;&gt;&gt; webproc = psutil.Process(pid=web_instance.pid)</span>
-<span class="sd">        &gt;&gt;&gt; child_proces = webproc.children()</span>
-<span class="sd">        &gt;&gt;&gt; [x.terminate() for x in child_proces]</span>
-<span class="sd">        &gt;&gt;&gt; web_instance.terminate()</span>
-<span class="sd">        &gt;&gt;&gt; # FIXME! This orphans the background processes</span>
-<span class="sd">        &gt;&gt;&gt; #web_instance.terminate()</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+<span class="sd">        &gt;&gt;&gt; bgserver.terminate2()</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        qaids = daids = ibs.get_valid_aids()</span>
 <span class="sd">        http://127.0.1.1:5000/api/core/start_identify_annots/&#39;</span>
 <span class="sd">        jobid = ibs.start_identify_annots(**payload)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Check UUIDs</span>
+    <span class="n">combined_annot_uuid_list</span> <span class="o">=</span> <span class="n">qannot_uuid_list</span> <span class="o">+</span> <span class="n">dannot_uuid_list</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="o">=</span><span class="n">combined_annot_uuid_list</span><span class="p">)</span>
+
     <span class="c">#import ibeis</span>
     <span class="c">#from ibeis.web import zmq_task_queue</span>
     <span class="c">#ibs.load_plugin_module(zmq_task_queue)</span>
@@ -380,16 +400,23 @@
         <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="n">list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">list_</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">list_</span>
-    <span class="c">#return 123</span>
 
     <span class="n">qannot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
-    <span class="n">adata_annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">adata_annot_uuid_list</span><span class="p">)</span>
+    <span class="n">dannot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
 
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">adata_annot_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">dannot_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="c">#None</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">adata_annot_uuid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dannot_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># VERY HACK</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;error in start_identify qaids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;error in start_identify daids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
     <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="s">&#39;query_chips_simple_dict&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">pipecfg</span><span class="p">)</span>
 
     <span class="c">#if callback_url is not None:</span>
@@ -397,13 +424,52 @@
     <span class="c">#    #requests.</span>
     <span class="c">#    #callback_url</span>
     <span class="k">return</span> <span class="n">jobid</span>
-    <span class="c">#result = ibs.get_job_result(jobid)</span>
-    <span class="c">#raise NotImplementedError(&#39;add_images_json&#39;)</span>
+
+</div>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/start_detect_image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="start_detect_image"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.start_detect_image">[docs]</a><span class="k">def</span> <span class="nf">start_detect_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/core/start_detect_image/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list) : list of image uuids to detect on.</span>
+<span class="sd">        species (str) : species to detect</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;add_images_json&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/get_job_status/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_job_status"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.get_job_status">[docs]</a><span class="k">def</span> <span class="nf">get_job_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Web call that returns the status of a job</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Run Everything together</span>
+<span class="sd">        python -m ibeis.web.zmq_task_queue --exec-get_job_status</span>
+
+<span class="sd">        # Start job queue in its own process</span>
+<span class="sd">        python -m ibeis.web.zmq_task_queue --main --bg</span>
+<span class="sd">        # Start web server in its own process</span>
+<span class="sd">        ./dev.py --web</span>
+<span class="sd">        pass</span>
+<span class="sd">        # Run foreground process</span>
+<span class="sd">        python -m ibeis.web.zmq_task_queue --exec-get_job_status:0 --fg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.zmq_task_queue import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, wait=3)  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Test get status of a job id that does not exist</span>
+<span class="sd">        &gt;&gt;&gt; response = web_ibs.send_ibeis_request(&#39;/api/core/get_job_status/&#39;, jobid=&#39;badjob&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">status</span>
 
@@ -411,6 +477,9 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/get_job_result/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_job_result"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.get_job_result">[docs]</a><span class="k">def</span> <span class="nf">get_job_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Web call that returns the result of a job</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">get_job_result</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span>
 
@@ -448,7 +517,7 @@
         <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="s">&#39;cache&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>
                                       <span class="n">cache_priority</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">reciever</span><span class="o">.</span><span class="n">initialize_background_processes</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;parent process is looping forever&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[testzmq] parent process is looping forever&#39;</span><span class="p">)</span>
         <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--fg&#39;</span><span class="p">):</span>
@@ -556,7 +625,9 @@
         <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">VERBOSE_JOBS</span> <span class="k">else</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="JobInterface.init"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.JobInterface.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">jobiface</span><span class="p">):</span>
+        <span class="c"># Starts several new processes</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">initialize_background_processes</span><span class="p">()</span>
+        <span class="c"># Does not create a new process, but connects sockets on this process</span>
         <span class="n">jobiface</span><span class="o">.</span><span class="n">initialize_client_thread</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="JobInterface.initialize_client_thread"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.zmq_task_queue.JobInterface.initialize_client_thread">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_client_thread</span><span class="p">(</span><span class="n">jobiface</span><span class="p">):</span>
@@ -584,6 +655,7 @@
 <span class="sd">        The client - sends messages, and receives replies after they</span>
 <span class="sd">        have been processed by the</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># NAME: job_client</span>
         <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[client </span><span class="si">%d</span><span class="s">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobiface</span><span class="o">.</span><span class="n">id_</span><span class="p">)):</span>
             <span class="k">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
@@ -591,9 +663,12 @@
             <span class="n">engine_request</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span> <span class="s">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span> <span class="s">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;callback_url&#39;</span><span class="p">:</span> <span class="n">callback_url</span><span class="p">}</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Queue job: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_request</span><span class="p">))</span>
+            <span class="c"># Flow of information tags:</span>
+            <span class="c"># CALLS: engine_queue</span>
             <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">engine_request</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;..sent, waiting for response&#39;</span><span class="p">)</span>
+            <span class="c"># RETURNED FROM: job_client_return</span>
             <span class="n">reply_notify</span> <span class="o">=</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">engine_deal_sock</span><span class="o">.</span><span class="n">recv_json</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Got reply: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">reply_notify</span><span class="p">))</span>
@@ -607,6 +682,7 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Request status of jobid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
             <span class="n">pair_msg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s">&#39;job_status&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">)</span>
+            <span class="c"># CALLS: collector_request_status</span>
             <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">pair_msg</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;... waiting for collector reply&#39;</span><span class="p">)</span>
@@ -622,6 +698,7 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Request result of jobid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jobid</span><span class="p">,))</span>
             <span class="n">pair_msg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s">&#39;job_result&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">)</span>
+            <span class="c"># CALLER: collector_request_result</span>
             <span class="n">jobiface</span><span class="o">.</span><span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">pair_msg</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">jobiface</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;... waiting for collector reply&#39;</span><span class="p">)</span>
@@ -726,6 +803,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Specialized queue loop</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Flow of information tags:</span>
+    <span class="c"># NAME: engine_queue</span>
     <span class="n">iface1</span><span class="p">,</span> <span class="n">iface2</span> <span class="o">=</span> <span class="n">engine_url1</span><span class="p">,</span> <span class="n">engine_url2</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;engine&#39;</span>
     <span class="n">queue_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;_queue&#39;</span>
@@ -762,6 +841,7 @@
             <span class="k">if</span> <span class="n">rout_sock</span> <span class="ow">in</span> <span class="n">evts</span><span class="p">:</span>
                 <span class="c"># HACK GET REQUEST FROM CLIENT</span>
                 <span class="n">job_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c"># CALLER: job_client</span>
                 <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">rout_sock</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="k">print</span><span class="o">=</span><span class="k">print</span><span class="p">)</span>
 
                 <span class="c">#jobid = &#39;result_%s&#39; % (id_,)</span>
@@ -781,12 +861,15 @@
                 <span class="n">engine_request</span><span class="p">[</span><span class="s">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
                 <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;...notifying collector about new job&#39;</span><span class="p">)</span>
+                <span class="c"># CALLS: collector_notify</span>
                 <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">reply_notify</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;... notifying client that job was accepted&#39;</span><span class="p">)</span>
+                <span class="c"># RETURNS: job_client_return</span>
                 <span class="n">send_multipart_json</span><span class="p">(</span><span class="n">rout_sock</span><span class="p">,</span> <span class="n">idents</span><span class="p">,</span> <span class="n">reply_notify</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;... notifying backend engine to start&#39;</span><span class="p">)</span>
+                <span class="c"># CALL: engine_</span>
                 <span class="n">send_multipart_json</span><span class="p">(</span><span class="n">deal_sock</span><span class="p">,</span> <span class="n">idents</span><span class="p">,</span> <span class="n">engine_request</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">deal_sock</span> <span class="ow">in</span> <span class="n">evts</span><span class="p">:</span>
                 <span class="k">pass</span>
@@ -806,6 +889,8 @@
 <span class="sd">    The engine_loop - receives messages, performs some action, and sends a reply,</span>
 <span class="sd">    preserving the leading two message parts as routing identities</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># NAME: engine_</span>
+    <span class="c"># CALLED_FROM: engine_queue</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="c">#base_print = print  # NOQA</span>
     <span class="k">print</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;darkred&#39;</span><span class="p">)</span>
@@ -856,6 +941,7 @@
                 <span class="n">exec_status</span> <span class="o">=</span> <span class="s">&#39;ok&#39;</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;jobid&#39;</span><span class="p">],</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strip_ansi</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
                 <span class="n">exec_status</span> <span class="o">=</span> <span class="s">&#39;exception&#39;</span>
 
             <span class="n">json_result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -876,6 +962,7 @@
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;...done working. pushing result to collector&#39;</span><span class="p">)</span>
+            <span class="c"># CALLS: collector_store</span>
             <span class="n">collect_deal_sock</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">collect_request</span><span class="p">)</span>
         <span class="c"># ----</span>
         <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
@@ -899,6 +986,11 @@
         <span class="n">awaiting_data</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="c"># several callers here</span>
+            <span class="c"># CALLER: collector_notify</span>
+            <span class="c"># CALLER: collector_store</span>
+            <span class="c"># CALLER: collector_request_status</span>
+            <span class="c"># CALLER: collector_request_result</span>
             <span class="n">idents</span><span class="p">,</span> <span class="n">collect_request</span> <span class="o">=</span> <span class="n">rcv_multipart_json</span><span class="p">(</span><span class="n">collect_rout_sock</span><span class="p">,</span> <span class="k">print</span><span class="o">=</span><span class="k">print</span><span class="p">)</span>
             <span class="n">reply</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s">&#39;action&#39;</span><span class="p">]</span>
@@ -919,10 +1011,12 @@
                         <span class="k">print</span><span class="p">(</span><span class="s">&#39;calling callback_url&#39;</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="kn">import</span> <span class="nn">requests</span>
-                        <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">callback_url</span><span class="p">)</span>
+                        <span class="c"># requests.get(callback_url)</span>
+                        <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">callback_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;jobid&#39;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">})</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ERROR in collector. callback_url=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">callback_url</span><span class="p">,))</span>
-                        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;ERROR in collector. Tried to call callback_url=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">callback_url</span><span class="p">,)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
                     <span class="c">#requests.post(callback_url)</span>
                 <span class="k">if</span> <span class="n">VERBOSE_JOBS</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;stored result&#39;</span><span class="p">)</span>
@@ -942,11 +1036,22 @@
             <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s">&#39;job_result&#39;</span><span class="p">:</span>
                 <span class="c"># From a Client</span>
                 <span class="n">jobid</span> <span class="o">=</span> <span class="n">collect_request</span><span class="p">[</span><span class="s">&#39;jobid&#39;</span><span class="p">]</span>
-                <span class="n">engine_result</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
-                <span class="n">json_result</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s">&#39;json_result&#39;</span><span class="p">]</span>
-                <span class="n">reply</span><span class="p">[</span><span class="s">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
-                <span class="n">reply</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;ok&#39;</span>
-                <span class="n">reply</span><span class="p">[</span><span class="s">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json_result</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">engine_result</span> <span class="o">=</span> <span class="n">collecter_data</span><span class="p">[</span><span class="n">jobid</span><span class="p">]</span>
+                    <span class="n">json_result</span> <span class="o">=</span> <span class="n">engine_result</span><span class="p">[</span><span class="s">&#39;json_result&#39;</span><span class="p">]</span>
+                    <span class="n">reply</span><span class="p">[</span><span class="s">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+                    <span class="n">reply</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;ok&#39;</span>
+                    <span class="c"># reply[&#39;json_result&#39;] = json_result</span>
+                    <span class="c"># We want to parse the JSON result here, since we need to live in</span>
+                    <span class="c"># Python land for the rest of the call until the API wrapper</span>
+                    <span class="c"># converts the Python objcets to JSON before the response is</span>
+                    <span class="c"># generated.  This prevents the API from converting a Python</span>
+                    <span class="c"># string of JSON to a JSON string of JSON, which is bad.</span>
+                    <span class="n">reply</span><span class="p">[</span><span class="s">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_result</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">reply</span><span class="p">[</span><span class="s">&#39;jobid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobid</span>
+                    <span class="n">reply</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;invalid&#39;</span>
+                    <span class="n">reply</span><span class="p">[</span><span class="s">&#39;json_result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c"># Other</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;...error unknown action=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">,))</span>
@@ -1017,7 +1122,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1039,7 +1144,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

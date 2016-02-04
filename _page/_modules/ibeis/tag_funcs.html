@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tag_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.tag_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -130,31 +130,37 @@
             
   <h1>Source code for ibeis.tag_funcs</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tag_funcs]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tag_funcs]&#39;</span><span class="p">)</span>
 
 
 <span class="c"># Create dectorator to inject functions in this module into the IBEISController</span>
-<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">)</span>
 
 
 <span class="c"># TODO : make a annot_tags file</span>
 
 
 <span class="n">ANNOTMATCH_PROPS_STANDARD</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c">#&#39;SceneryMatch&#39;,</span>
+    <span class="c">#&#39;Photobomb&#39;,</span>
+    <span class="c">#&#39;Hard&#39;,</span>
+    <span class="c">#&#39;NonDistinct&#39;,</span>
+<span class="p">]</span>
+
+<span class="n">ANNOTMATCH_PROPS_OTHER</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s">&#39;SceneryMatch&#39;</span><span class="p">,</span>
     <span class="s">&#39;Photobomb&#39;</span><span class="p">,</span>
     <span class="s">&#39;Hard&#39;</span><span class="p">,</span>
     <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-<span class="p">]</span>
 
-<span class="n">ANNOTMATCH_PROPS_OTHER</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s">&#39;Occlusion&#39;</span><span class="p">,</span>
     <span class="s">&#39;Viewpoint&#39;</span><span class="p">,</span>
     <span class="s">&#39;MildViewpoint&#39;</span><span class="p">,</span>
@@ -200,7 +206,7 @@
     <span class="s">&#39;success&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="s">&#39;GoodCoverage&#39;</span><span class="p">:</span>  <span class="bp">None</span><span class="p">,</span>
 
-    <span class="s">&#39;Hard&#39;</span>           <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="c">#&#39;Hard&#39;           : &#39;NeedsWork&#39;,</span>
     <span class="s">&#39;shouldhavemore&#39;</span> <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
     <span class="s">&#39;BadCoverage&#39;</span>    <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
     <span class="s">&#39;ScoringIssue&#39;</span>   <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
@@ -393,7 +399,7 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_all_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="n">filterflags_general_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aid_list</span>
 
 </div>
@@ -528,8 +534,11 @@
     <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
 
     <span class="n">flags</span> <span class="o">=</span> <span class="n">filterflags_general_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">filtered_annotmatch_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">filtered_annotmatch_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">filtered_annotmatch_rowids</span>
+
+
+<span class="c"># TODO: ut.filterflags_general_tags</span>
 
 </div>
 <div class="viewcode-block" id="filterflags_general_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.filterflags_general_tags">[docs]</a><span class="k">def</span> <span class="nf">filterflags_general_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span>
@@ -570,7 +579,7 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;kwargs = %r&#39; % (kwargs,))</span>
 <span class="sd">        &gt;&gt;&gt; flags = filterflags_general_tags(tags_list, **kwargs)</span>
 <span class="sd">        &gt;&gt;&gt; print(flags)</span>
-<span class="sd">        &gt;&gt;&gt; result = ut.list_compress(tags_list, flags)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.compress(tags_list, flags)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;result = %r&#39; % (result,))</span>
 
 <span class="sd">    Example1:</span>
@@ -580,7 +589,7 @@
 <span class="sd">        &gt;&gt;&gt; has_all = &#39;n&#39;</span>
 <span class="sd">        &gt;&gt;&gt; min_num = 1</span>
 <span class="sd">        &gt;&gt;&gt; flags = filterflags_general_tags(tags_list, has_all=has_all, min_num=min_num)</span>
-<span class="sd">        &gt;&gt;&gt; result = ut.list_compress(tags_list, flags)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.compress(tags_list, flags)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;result = %r&#39; % (result,))</span>
 
 <span class="sd">    Example2:</span>
@@ -599,7 +608,7 @@
 <span class="sd">        &gt;&gt;&gt;     &#39;none_match&#39;: [&#39;P&#39;],</span>
 <span class="sd">        &gt;&gt;&gt; }</span>
 <span class="sd">        &gt;&gt;&gt; flags = filterflags_general_tags(tags_list, **kwargs)</span>
-<span class="sd">        &gt;&gt;&gt; filtered = ut.list_compress(tags_list, flags)</span>
+<span class="sd">        &gt;&gt;&gt; filtered = ut.compress(tags_list, flags)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;result = %s&#39; % (ut.repr2(filtered),))</span>
 <span class="sd">        result = [[&#39;vn&#39;, &#39;no&#39;], [&#39;n&#39;, &#39;o&#39;], [&#39;n&#39;, &#39;N&#39;], [&#39;n&#39;], [&#39;n&#39;, &#39;nP&#39;]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -711,30 +720,30 @@
 <span class="sd">        tags_list = [[u&#39;occlusion&#39;, u&#39;pose&#39;, &#39;Hard&#39;, &#39;NonDistinct&#39;], [], [&#39;Hard&#39;]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">standard</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="n">get_cate_categories</span><span class="p">()</span>
-    <span class="n">annotmatch_notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_note</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
-    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">annotmatch_notes_list</span><span class="p">]</span>
-    <span class="n">NEW</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="k">if</span> <span class="n">NEW</span><span class="p">:</span>
-        <span class="c"># hack for faster tag parsing</span>
-        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_autogen_annotmatch_funcs</span> <span class="k">as</span> <span class="n">_aaf</span>
-        <span class="kn">import</span> <span class="nn">itertools</span>
-        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">_aaf</span><span class="o">.</span><span class="n">ANNOTMATCH_IS_HARD</span><span class="p">,</span> <span class="n">_aaf</span><span class="o">.</span><span class="n">ANNOTMATCH_IS_SCENERYMATCH</span><span class="p">,</span>
-                    <span class="n">_aaf</span><span class="o">.</span><span class="n">ANNOTMATCH_IS_PHOTOBOMB</span><span class="p">,</span> <span class="n">_aaf</span><span class="o">.</span><span class="n">ANNOTMATCH_IS_NONDISTINCT</span><span class="p">)</span>
-        <span class="n">id_iter</span> <span class="o">=</span> <span class="n">annotmatch_rowids</span>
-        <span class="n">annotmatch_is_col</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span>
-            <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">annotmatch_is_col</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">)</span>
-                             <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">annotmatch_is_col</span><span class="p">]</span>
-        <span class="n">standardtags</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s">&#39;annotmatch_is_&#39;</span><span class="p">):]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">colnames</span><span class="p">]</span>
-        <span class="n">standard_tags_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_zipcompress</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">standardtags</span><span class="p">),</span> <span class="n">annotmatch_is_col</span><span class="p">)</span>
-        <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tags1</span> <span class="o">+</span> <span class="n">tags2</span> <span class="k">for</span> <span class="n">tags1</span><span class="p">,</span> <span class="n">tags2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="n">standard_tags_list</span><span class="p">)]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">standard</span><span class="p">:</span>
-            <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_prop</span><span class="p">(</span><span class="n">case</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
-                <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
-    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">__STR__</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
+    <span class="n">annotmatch_tag_texts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">annotmatch_tag_texts_list</span><span class="p">]</span>
+    <span class="c">#NEW = False</span>
+    <span class="c">#if NEW:</span>
+    <span class="c">#    # hack for faster tag parsing</span>
+    <span class="c">#    from ibeis.control import _autogen_annotmatch_funcs as _aaf</span>
+    <span class="c">#    import itertools</span>
+    <span class="c">#    colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,</span>
+    <span class="c">#                _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)</span>
+    <span class="c">#    id_iter = annotmatch_rowids</span>
+    <span class="c">#    annotmatch_is_col = ibs.db.get(</span>
+    <span class="c">#        ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname=&#39;rowid&#39;,</span>
+    <span class="c">#        eager=True, nInput=None, unpack_scalars=True)</span>
+    <span class="c">#    annotmatch_is_col = [col if col is not None else [None] * len(colnames)</span>
+    <span class="c">#                         for col in annotmatch_is_col]</span>
+    <span class="c">#    standardtags = [x[len(&#39;annotmatch_is_&#39;):] for x in colnames]</span>
+    <span class="c">#    standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)</span>
+    <span class="c">#    tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]</span>
+    <span class="c">#else:</span>
+    <span class="c">#    for case in standard:</span>
+    <span class="c">#        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)</span>
+    <span class="c">#        for tags in ut.compress(tags_list, flag_list):</span>
+    <span class="c">#            tags.append(case)</span>
+    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
     <span class="c">#if ut.get_argval(&#39;--consol&#39;) or True:</span>
     <span class="c">#    tags_list = consolodate_annotmatch_tags(tags_list)</span>
     <span class="k">return</span> <span class="n">tags_list</span>
@@ -814,7 +823,7 @@
     <span class="k">elif</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span> <span class="ow">or</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OLD_SET</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">set_annotmatch_other_prop</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Unknown prop=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Unknown prop=</span><span class="si">%r</span><span class="s"> not in </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span><span class="p">))</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">):</span>
@@ -833,8 +842,8 @@
 
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="get_annotmatch_other_prop"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_annotmatch_other_prop">[docs]</a><span class="k">def</span> <span class="nf">get_annotmatch_other_prop</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">):</span>
-    <span class="n">annotmatch_notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_note</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
-    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">get_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_notes_list</span><span class="p">)</span>
+    <span class="n">annotmatch_tag_texts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">get_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_tag_texts_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">flag_list</span>
 
 </div>
@@ -842,9 +851,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    sets nonstandard properties using the notes column</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">annotmatch_notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_note</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
-    <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">set_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_notes_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_note</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">)</span>
+    <span class="n">annotmatch_tag_texts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+    <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">set_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_tag_texts_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_tag_text</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -869,9 +878,7 @@
     <span class="k">for</span> <span class="n">tags</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_tags_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
             <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
-    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span>
-    <span class="p">]</span>
+    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">new_text_list</span>
 
 </div>
@@ -913,7 +920,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Annot tags</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="n">get_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">text_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">flag_list</span>
 
@@ -925,15 +932,33 @@
 
 <span class="sd">    http://localhost:5000/group_review/?aid_list=1,2,3,4</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">new_text_list</span> <span class="o">=</span> <span class="n">set_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">text_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_text_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="append_annot_case_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.append_annot_case_tags">[docs]</a><span class="k">def</span> <span class="nf">append_annot_case_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generally appends tags to annotations. Careful not to introduce too many</span>
+<span class="sd">    random tags. Maybe we should just let that happen and introduce tag-aliases</span>
+
+<span class="sd">    Note: this is more of a set add rather than a list append</span>
+
+<span class="sd">    TODO: remove</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tag_list</span><span class="p">]</span>
+    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">orig_tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
+    <span class="n">new_tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">t1</span> <span class="o">+</span> <span class="n">t2</span> <span class="k">for</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="n">orig_tags_list</span><span class="p">)]</span>
+    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">))))</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_text_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_annot_case_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_annot_case_tags">[docs]</a><span class="k">def</span> <span class="nf">get_annot_case_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    returns list of tags. Use instead of get_annot_tags</span>
+<span class="sd">    returns list of tags. Use instead of get_annot_tag_text</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
@@ -961,8 +986,8 @@
 <span class="sd">        aid_list = ibs.get_valid_aids()</span>
 <span class="sd">        notes_list = ibs.get_annot_notes(aid_list)</span>
 <span class="sd">        flags = [len(notes) &gt; 0 for notes in notes_list]</span>
-<span class="sd">        aid_list = ut.list_compress(aid_list, flags)</span>
-<span class="sd">        notes_list = ut.list_compress(notes_list, flags)</span>
+<span class="sd">        aid_list = ut.compress(aid_list, flags)</span>
+<span class="sd">        notes_list = ut.compress(notes_list, flags)</span>
 
 <span class="sd">        import re</span>
 <span class="sd">        notes_list = [note.replace(&#39;rfdetect&#39;, &#39;&#39;) for note in notes_list]</span>
@@ -976,26 +1001,26 @@
 <span class="sd">        notes_list = [note.strip() for note in notes_list]</span>
 
 <span class="sd">        flags = [len(notes) &lt; 70 and len(notes) &gt; 0 for notes in notes_list]</span>
-<span class="sd">        aid_list = ut.list_compress(aid_list, flags)</span>
-<span class="sd">        notes_list = ut.list_compress(notes_list, flags)</span>
+<span class="sd">        aid_list = ut.compress(aid_list, flags)</span>
+<span class="sd">        notes_list = ut.compress(notes_list, flags)</span>
 
 <span class="sd">        flags = [&#39;M;&#39; not in notes and &#39;F;&#39; not in notes and &#39;H1&#39; not in notes for notes in notes_list]</span>
 <span class="sd">        flags = [ &#39;M;&#39; not in notes and &#39;F;&#39; not in notes and &#39;H1&#39; not in notes for notes in notes_list]</span>
-<span class="sd">        aid_list = ut.list_compress(aid_list, flags)</span>
-<span class="sd">        notes_list = ut.list_compress(notes_list, flags)</span>
+<span class="sd">        aid_list = ut.compress(aid_list, flags)</span>
+<span class="sd">        notes_list = ut.compress(notes_list, flags)</span>
 
 <span class="sd">        flags = [&#39;aliases&#39; not in notes for notes in notes_list]</span>
-<span class="sd">        aid_list = ut.list_compress(aid_list, flags)</span>
-<span class="sd">        notes_list = ut.list_compress(notes_list, flags)</span>
+<span class="sd">        aid_list = ut.compress(aid_list, flags)</span>
+<span class="sd">        notes_list = ut.compress(notes_list, flags)</span>
 
 <span class="sd">        #flags = [not re.match(&#39;;\d*;&#39;, note) for note  in notes_list]</span>
 <span class="sd">        flags = [not re.match(r&#39;\d\d*&#39;, note) for note  in notes_list]</span>
-<span class="sd">        aid_list = ut.list_compress(aid_list, flags)</span>
-<span class="sd">        notes_list = ut.list_compress(notes_list, flags)</span>
+<span class="sd">        aid_list = ut.compress(aid_list, flags)</span>
+<span class="sd">        notes_list = ut.compress(notes_list, flags)</span>
 
 <span class="sd">        flags = [not notes.startswith(&#39;Foal;&#39;) for notes in notes_list]</span>
-<span class="sd">        aid_list = ut.list_compress(aid_list, flags)</span>
-<span class="sd">        notes_list = ut.list_compress(notes_list, flags)</span>
+<span class="sd">        aid_list = ut.compress(aid_list, flags)</span>
+<span class="sd">        notes_list = ut.compress(notes_list, flags)</span>
 
 <span class="sd">        old_tags_list = [_parse_note(note) for note in notes_list]</span>
 
@@ -1013,7 +1038,7 @@
 <span class="sd">        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">tags_list</span>
 
@@ -1096,7 +1121,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1118,7 +1143,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

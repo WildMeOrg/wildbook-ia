@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.scripts package &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.scripts package &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.templates package" href="ibeis.templates.html"/>
         <link rel="prev" title="ibeis.other package" href="ibeis.other.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -85,12 +85,12 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.scripts package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -113,13 +113,16 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -464,33 +467,6 @@ python -m ibeis.scripts.rsync_ibeisdb --dryrun
 </pre></div>
 </div>
 <dl class="function">
-<dt id="ibeis.scripts.rsync_ibeisdb.rsync">
-<code class="descclassname">ibeis.scripts.rsync_ibeisdb.</code><code class="descname">rsync</code><span class="sig-paren">(</span><em>src_uri</em>, <em>dst_uri</em>, <em>exclude_dirs=[]</em>, <em>port=22</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync" title="Permalink to this definition">¶</a></dt>
-<dd><p>General function to push or pull a directory from a remote server to a local path</p>
-<p class="rubric">References</p>
-<p><a class="reference external" href="http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/">http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/</a>
-<a class="reference external" href="http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible">http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible</a></p>
-<dl class="docutils">
-<dt>Notes (rsync commandline options):</dt>
-<dd><p class="first">rsync [OPTION]... SRC [SRC]... DEST
--v : verbose
--r : copies data recursively (but dont preserve timestamps and</p>
-<blockquote>
-<div>permission while transferring data</div></blockquote>
-<dl class="docutils">
-<dt>-a <span class="classifier-delimiter">:</span> <span class="classifier">archive mode, allows recursive copying and preserves symlinks,</span></dt>
-<dd>permissions, user and group ownerships, and timestamps</dd>
-</dl>
-<p class="last">-z : compress file data
--i, &#8211;itemize-changes       output a change-summary for all updates
--s, &#8211;protect-args :        no space-splitting; only wildcard special-chars
--h : human-readable, output numbers in a human-readable format
--P                          same as &#8211;partial &#8211;progress</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
 <dt id="ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main">
 <code class="descclassname">ibeis.scripts.rsync_ibeisdb.</code><code class="descname">rsync_ibsdb_main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync_ibsdb_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -528,7 +504,7 @@ old hots database)</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -550,7 +526,7 @@ old hots database)</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

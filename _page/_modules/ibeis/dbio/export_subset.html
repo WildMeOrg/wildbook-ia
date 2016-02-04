@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.export_subset &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.dbio.export_subset &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -142,7 +142,6 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="c"># import ibeis</span>
@@ -150,7 +149,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="c"># from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,</span>
-<span class="c">#                              CONTRIBUTOR_TABLE, EG_RELATION_TABLE, ENCOUNTER_TABLE,</span>
+<span class="c">#                              CONTRIBUTOR_TABLE, GSG_RELATION_TABLE, IMAGESET_TABLE,</span>
 <span class="c">#                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,</span>
 <span class="c">#                              LBLIMAGE_TABLE, __STR__)</span>
 <span class="c"># from vtool import geometry</span>
@@ -185,7 +184,7 @@
         <span class="s">&#39;contributor_location_zip&#39;</span><span class="p">,</span>
         <span class="s">&#39;contributor_note&#39;</span><span class="p">,</span>
         <span class="s">&#39;config_td&#39;</span><span class="p">,</span>
-        <span class="s">&#39;encounter_td&#39;</span><span class="p">,</span>
+        <span class="s">&#39;imageset_td&#39;</span><span class="p">,</span>
         <span class="s">&#39;image_td&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
@@ -199,7 +198,9 @@
 <span class="n">SPECIES_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s">&#39;SPECIES_TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="s">&#39;species_uuid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species_nice_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;species_text_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species_code_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;species_note_list&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
@@ -208,17 +209,17 @@
         <span class="s">&#39;config_suffixes_list&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
-<span class="n">ENCOUNTER_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
-    <span class="s">&#39;ENCOUNTER_TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
+<span class="n">IMAGESET_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s">&#39;IMAGESET_TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="s">&#39;config_INDEX_list&#39;</span><span class="p">,</span>
-        <span class="s">&#39;encounter_uuid_list&#39;</span><span class="p">,</span>
-        <span class="s">&#39;encounter_text_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;imageset_uuid_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;imageset_text_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;encoutner_note_list&#39;</span><span class="p">,</span>
     <span class="p">))</span>
 
 <span class="n">IMAGE_TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s">&#39;IMAGE_TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
-        <span class="s">&#39;encounter_INDEXs_list&#39;</span><span class="p">,</span>
+        <span class="s">&#39;imageset_INDEXs_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;image_path_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;image_uuid_list&#39;</span><span class="p">,</span>
         <span class="s">&#39;image_ext_list&#39;</span><span class="p">,</span>
@@ -421,28 +422,28 @@
 <span class="sd">        config_suffix_list = ibs.get_config_suffixes(configid_list)</span>
 <span class="sd">        print(ut.list_str(list(zip(configid_list, config_suffix_list))))</span>
 
-<span class="sd">        eid_list = ibs.get_valid_eids()</span>
-<span class="sd">        enc_config_rowid_list = ibs.get_encounter_configid(eid_list)</span>
-<span class="sd">        enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)</span>
-<span class="sd">        print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))</span>
+<span class="sd">        imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        imageset_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)</span>
+<span class="sd">        imageset_suffix_list = ibs.get_config_suffixes(config_rowid_list)</span>
+<span class="sd">        print(ut.list_str(list(zip(imageset_config_rowid_list, imageset_suffix_list))))</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get configs</span>
     <span class="c">#config_rowid_list = ibs_src.get_contributor_config_rowids(contributor_rowid)</span>
-    <span class="c"># Hack around config-less encounters</span>
+    <span class="c"># Hack around config-less imagesets</span>
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_configids</span><span class="p">()</span>
     <span class="n">config_td</span> <span class="o">=</span> <span class="n">export_config_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
-    <span class="c"># Get encounters</span>
-    <span class="c">#eid_list = ibs_src.get_valid_eids()</span>
-    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_eids</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">))</span>
-    <span class="n">encounter_td</span> <span class="o">=</span> <span class="n">export_encounter_transfer_data</span><span class="p">(</span>
-        <span class="n">ibs_src</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
+    <span class="c"># Get imagesets</span>
+    <span class="c">#imgsetid_list = ibs_src.get_valid_imgsetids()</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_imgsetids</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">))</span>
+    <span class="n">imageset_td</span> <span class="o">=</span> <span class="n">export_imageset_transfer_data</span><span class="p">(</span>
+        <span class="n">ibs_src</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="c"># Get images</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_gids</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">valid_gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">in</span> <span class="n">valid_gid_list</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">]</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
-    <span class="n">image_td</span> <span class="o">=</span> <span class="n">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="n">image_td</span> <span class="o">=</span> <span class="n">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span>
                                           <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="c"># Create Contributor TransferData</span>
     <span class="n">contributor_td</span> <span class="o">=</span> <span class="n">CONTRIBUTOR_TransferData</span><span class="p">(</span>
@@ -456,7 +457,7 @@
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_zip</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_contributor_note</span><span class="p">(</span><span class="n">contributor_rowid</span><span class="p">),</span>
         <span class="n">config_td</span><span class="p">,</span>
-        <span class="n">encounter_td</span><span class="p">,</span>
+        <span class="n">imageset_td</span><span class="p">,</span>
         <span class="n">image_td</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">contributor_td</span>
@@ -489,7 +490,9 @@
     <span class="c"># Create Species TransferData</span>
     <span class="n">species_td</span> <span class="o">=</span> <span class="n">SPECIES_TransferData</span><span class="p">(</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_uuids</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_nice</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_codes</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_species_notes</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">species_td</span>
@@ -505,39 +508,39 @@
     <span class="k">return</span> <span class="n">config_td</span>
 
 </div>
-<div class="viewcode-block" id="export_encounter_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_encounter_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<div class="viewcode-block" id="export_imageset_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_imageset_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_imageset_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
-    <span class="c"># Get encounter data</span>
+    <span class="c"># Get imageset data</span>
     <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">tryindex</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_encounter_configid</span><span class="p">(</span><span class="n">eid</span><span class="p">),</span> <span class="n">config_rowid_list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">]</span>
-    <span class="c"># Create Encounter TransferData</span>
-    <span class="n">encounter_td</span> <span class="o">=</span> <span class="n">ENCOUNTER_TransferData</span><span class="p">(</span>
+        <span class="n">tryindex</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_imageset_configid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">),</span> <span class="n">config_rowid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">]</span>
+    <span class="c"># Create ImageSet TransferData</span>
+    <span class="n">imageset_td</span> <span class="o">=</span> <span class="n">IMAGESET_TransferData</span><span class="p">(</span>
         <span class="n">config_INDEX_list</span><span class="p">,</span>
-        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_encounter_uuid</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span>
-        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span>
-        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_encounter_note</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">),</span>
+        <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_imageset_note</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">encounter_td</span>
+    <span class="k">return</span> <span class="n">imageset_td</span>
 
 </div>
-<div class="viewcode-block" id="export_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span>
+<div class="viewcode-block" id="export_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.export_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">export_image_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span>
                                <span class="n">species_rowid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    builds transfer data for seleted image ids in ibs_src.</span>
-<span class="sd">    NOTE: gid_list, config_rowid_list and eid_list do not correspond</span>
+<span class="sd">    NOTE: gid_list, config_rowid_list and imgsetid_list do not correspond</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="c"># Get image data</span>
     <span class="c">#image_size_list = ibs_src.get_image_sizes(gid_list)</span>
     <span class="c">#image_gps_list = ibs_src.get_image_gps(gid_list)</span>
-    <span class="c"># Get encounter INDEXs</span>
-    <span class="n">eids_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">encounter_INDEXs_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">[</span><span class="n">tryindex</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list_</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">eid_list_</span> <span class="ow">in</span> <span class="n">eids_list</span>
+    <span class="c"># Get imageset INDEXs</span>
+    <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">imageset_INDEXs_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">tryindex</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list_</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">imgsetid_list_</span> <span class="ow">in</span> <span class="n">imgsetids_list</span>
     <span class="p">]</span>
     <span class="c"># Get image-label relationships</span>
     <span class="n">glrids_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_glrids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -554,7 +557,7 @@
     <span class="p">]</span>
     <span class="c"># Create Image TransferData</span>
     <span class="n">image_td</span> <span class="o">=</span> <span class="n">IMAGE_TransferData</span><span class="p">(</span>
-        <span class="n">encounter_INDEXs_list</span><span class="p">,</span>
+        <span class="n">imageset_INDEXs_list</span><span class="p">,</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
@@ -740,7 +743,7 @@
     <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c"># Import configs</span>
     <span class="k">if</span> <span class="n">contributor_td</span><span class="o">.</span><span class="n">config_td</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Importing configs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">config_td</span><span class="o">.</span><span class="n">config_suffixes_list</span><span class="p">,))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -756,27 +759,27 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)&#39;</span><span class="p">)</span>
-    <span class="c"># Import encounters</span>
-    <span class="k">if</span> <span class="n">contributor_td</span><span class="o">.</span><span class="n">encounter_td</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Importing encounters: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-                  <span class="p">(</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">encounter_td</span><span class="o">.</span><span class="n">encounter_uuid_list</span><span class="p">,))</span>
+    <span class="c"># Import imagesets</span>
+    <span class="k">if</span> <span class="n">contributor_td</span><span class="o">.</span><span class="n">imageset_td</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Importing imagesets: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">imageset_td</span><span class="o">.</span><span class="n">imageset_uuid_list</span><span class="p">,))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Importing encounters:&#39;</span><span class="p">)</span>
-            <span class="n">eid_list</span> <span class="o">=</span> <span class="n">import_encounter_transfer_data</span><span class="p">(</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Importing imagesets:&#39;</span><span class="p">)</span>
+            <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">import_imageset_transfer_data</span><span class="p">(</span>
                 <span class="n">ibs_dst</span><span class="p">,</span>
-                <span class="n">contributor_td</span><span class="o">.</span><span class="n">encounter_td</span><span class="p">,</span>
+                <span class="n">contributor_td</span><span class="o">.</span><span class="n">imageset_td</span><span class="p">,</span>
                 <span class="n">config_rowid_list</span><span class="p">,</span>
                 <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span>
             <span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   ...imported </span><span class="si">%i</span><span class="s"> encounters&#39;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   ...imported </span><span class="si">%i</span><span class="s"> imagesets&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">),))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   NO ENCOUNTERS TO IMPORT&#39;</span><span class="p">)</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   NO IMAGESETS TO IMPORT&#39;</span><span class="p">)</span>
     <span class="c"># Import images</span>
     <span class="k">if</span> <span class="n">contributor_td</span><span class="o">.</span><span class="n">image_td</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Importing images: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">contributor_td</span><span class="o">.</span><span class="n">image_td</span><span class="o">.</span><span class="n">image_uuid_list</span><span class="p">,))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -785,7 +788,7 @@
             <span class="n">ibs_dst</span><span class="p">,</span>
             <span class="n">contributor_td</span><span class="o">.</span><span class="n">image_td</span><span class="p">,</span>
             <span class="n">contributor_rowid</span><span class="p">,</span>
-            <span class="n">eid_list</span><span class="p">,</span>
+            <span class="n">imgsetid_list</span><span class="p">,</span>
             <span class="n">nid_list</span><span class="p">,</span>
             <span class="n">species_rowid_list</span><span class="p">,</span>
             <span class="n">config_rowid_list</span><span class="p">,</span>
@@ -814,7 +817,9 @@
 <div class="viewcode-block" id="import_species_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_species_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_species_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">species_td</span><span class="p">):</span>
     <span class="c"># Import Species TransferData</span>
     <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span>
+        <span class="n">species_td</span><span class="o">.</span><span class="n">species_nice_list</span><span class="p">,</span>
         <span class="n">species_td</span><span class="o">.</span><span class="n">species_text_list</span><span class="p">,</span>
+        <span class="n">species_td</span><span class="o">.</span><span class="n">species_code_list</span><span class="p">,</span>
         <span class="n">species_td</span><span class="o">.</span><span class="n">species_uuid_list</span><span class="p">,</span>
         <span class="n">species_td</span><span class="o">.</span><span class="n">species_note_list</span>
     <span class="p">)</span>
@@ -833,13 +838,13 @@
         <span class="n">known_config_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">known_config_rowid</span> <span class="ow">in</span> <span class="n">known_config_rowid_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_list</span><span class="p">):</span>
         <span class="c"># Resolve conflicts</span>
-        <span class="n">invalid_config_rowid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span>
+        <span class="n">invalid_config_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span>
             <span class="n">known_config_rowid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
         <span class="c"># invalid_indices =</span>
-        <span class="c"># utool.filterfalse_items(range(len(known_config_rowid_list)),</span>
+        <span class="c"># ut.filterfalse_items(range(len(known_config_rowid_list)),</span>
         <span class="c"># valid_list) # TODO</span>
         <span class="k">if</span> <span class="n">bulk_conflict_resolution</span> <span class="o">==</span> <span class="s">&#39;replace&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Replacing configs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                       <span class="p">(</span><span class="n">invalid_config_rowid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -848,16 +853,16 @@
             <span class="c"># Delete invalid configs</span>
             <span class="n">ibs_dst</span><span class="o">.</span><span class="n">delete_configs</span><span class="p">(</span><span class="n">invalid_config_rowid_list</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">bulk_conflict_resolution</span> <span class="o">==</span> <span class="s">&#39;ignore&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring configs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                       <span class="p">(</span><span class="n">invalid_config_rowid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring </span><span class="si">%i</span><span class="s"> configs...&#39;</span> <span class="o">%</span>
                       <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_config_rowid_list</span><span class="p">),</span> <span class="p">))</span>
-            <span class="n">config_suffixes_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">config_suffixes_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">config_td</span><span class="o">.</span><span class="n">config_suffixes_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Merging configs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                       <span class="p">(</span><span class="n">invalid_config_rowid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -872,72 +877,72 @@
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 </div>
-<div class="viewcode-block" id="import_encounter_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_encounter_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_encounter_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">encounter_td</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span>
+<div class="viewcode-block" id="import_imageset_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_imageset_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_imageset_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">imageset_td</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span>
                                    <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
-    <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="n">encounter_td</span><span class="o">.</span><span class="n">config_INDEX_list</span>
-    <span class="n">encounter_uuid_list</span> <span class="o">=</span> <span class="n">encounter_td</span><span class="o">.</span><span class="n">encounter_uuid_list</span>
-    <span class="n">encounter_text_list</span> <span class="o">=</span> <span class="n">encounter_td</span><span class="o">.</span><span class="n">encounter_text_list</span>
-    <span class="n">encoutner_note_list</span> <span class="o">=</span> <span class="n">encounter_td</span><span class="o">.</span><span class="n">encoutner_note_list</span>
+    <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="n">imageset_td</span><span class="o">.</span><span class="n">config_INDEX_list</span>
+    <span class="n">imageset_uuid_list</span> <span class="o">=</span> <span class="n">imageset_td</span><span class="o">.</span><span class="n">imageset_uuid_list</span>
+    <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="n">imageset_td</span><span class="o">.</span><span class="n">imageset_text_list</span>
+    <span class="n">encoutner_note_list</span> <span class="o">=</span> <span class="n">imageset_td</span><span class="o">.</span><span class="n">encoutner_note_list</span>
     <span class="c"># Find conflicts</span>
-    <span class="n">known_eid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_encounter_eids_from_text</span><span class="p">(</span><span class="n">encounter_text_list</span><span class="p">)</span>
-    <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">known_eid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">known_eid</span> <span class="ow">in</span> <span class="n">known_eid_list</span><span class="p">]</span>
+    <span class="n">known_imgsetid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text_list</span><span class="p">)</span>
+    <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">known_imgsetid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">known_imgsetid</span> <span class="ow">in</span> <span class="n">known_imgsetid_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_list</span><span class="p">):</span>
         <span class="c"># Resolve conflicts</span>
-        <span class="n">invalid_eid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">known_eid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-        <span class="c"># invalid_indices = utool.filterfalse_items(range(len(known_eid_list)),</span>
+        <span class="n">invalid_imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">known_imgsetid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+        <span class="c"># invalid_indices = ut.filterfalse_items(range(len(known_imgsetid_list)),</span>
         <span class="c"># valid_list)  # TODO</span>
         <span class="k">if</span> <span class="n">bulk_conflict_resolution</span> <span class="o">==</span> <span class="s">&#39;replace&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
-                    <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Replacing encounters: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-                    <span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Replacing imagesets: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Conflict Resolution - Replacing </span><span class="si">%i</span><span class="s"> encounters...&#39;</span> <span class="o">%</span>
-                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">),</span> <span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]   Conflict Resolution - Replacing </span><span class="si">%i</span><span class="s"> imagesets...&#39;</span> <span class="o">%</span>
+                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">),</span> <span class="p">))</span>
             <span class="c"># Delete invalid gids</span>
-            <span class="n">ibs_dst</span><span class="o">.</span><span class="n">delete_encounters</span><span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">)</span>
+            <span class="n">ibs_dst</span><span class="o">.</span><span class="n">delete_imagesets</span><span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">bulk_conflict_resolution</span> <span class="o">==</span> <span class="s">&#39;ignore&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
-                    <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring encounters: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-                    <span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring imagesets: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring </span><span class="si">%i</span><span class="s"> encounters...&#39;</span> <span class="o">%</span>
-                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">),</span> <span class="p">))</span>
-            <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring </span><span class="si">%i</span><span class="s"> imagesets...&#39;</span> <span class="o">%</span>
+                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">),</span> <span class="p">))</span>
+            <span class="n">config_INDEX_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">config_INDEX_list</span><span class="p">,</span>   <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">encounter_uuid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
-                <span class="n">encounter_uuid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">encounter_text_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
-                <span class="n">encounter_text_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">encoutner_note_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">imageset_uuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+                <span class="n">imageset_uuid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+            <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+                <span class="n">imageset_text_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+            <span class="n">encoutner_note_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">encoutner_note_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
-                    <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Merging encounters: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-                    <span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Merging imagesets: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Merging </span><span class="si">%i</span><span class="s"> encounters...&#39;</span> <span class="o">%</span>
-                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_eid_list</span><span class="p">),</span> <span class="p">))</span>
-            <span class="c"># TODO: do a more sophisticated encounter merge</span>
-    <span class="c"># Add encounters</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Merging </span><span class="si">%i</span><span class="s"> imagesets...&#39;</span> <span class="o">%</span>
+                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_imgsetid_list</span><span class="p">),</span> <span class="p">))</span>
+            <span class="c"># TODO: do a more sophisticated imageset merge</span>
+    <span class="c"># Add imagesets</span>
     <span class="n">config_rowid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">config_rowid_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">config_INDEX_list</span><span class="p">]</span>
-    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_encounters</span><span class="p">(</span>
-        <span class="n">encounter_text_list</span><span class="p">,</span>
-        <span class="n">encounter_uuid_list</span><span class="o">=</span><span class="n">encounter_uuid_list</span><span class="p">,</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span>
+        <span class="n">imageset_text_list</span><span class="p">,</span>
+        <span class="n">imageset_uuid_list</span><span class="o">=</span><span class="n">imageset_uuid_list</span><span class="p">,</span>
         <span class="n">config_rowid_list</span><span class="o">=</span><span class="n">config_rowid_list_</span><span class="p">,</span>
         <span class="n">notes_list</span><span class="o">=</span><span class="n">encoutner_note_list</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">eid_list</span>
+    <span class="k">return</span> <span class="n">imgsetid_list</span>
 
 </div>
 <div class="viewcode-block" id="import_image_transfer_data"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.import_image_transfer_data">[docs]</a><span class="k">def</span> <span class="nf">import_image_transfer_data</span><span class="p">(</span><span class="n">ibs_dst</span><span class="p">,</span> <span class="n">image_td</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span>
-                               <span class="n">eid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span>
+                               <span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span>
                                <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="s">&#39;merge&#39;</span><span class="p">):</span>
     <span class="c"># Map input (because transfer objects are read-only)</span>
-    <span class="n">encounter_INDEXs_list</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">encounter_INDEXs_list</span>
+    <span class="n">imageset_INDEXs_list</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">imageset_INDEXs_list</span>
     <span class="n">image_path_list</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">image_path_list</span>
     <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">image_uuid_list</span>
     <span class="n">image_ext_list</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">image_ext_list</span>
@@ -957,11 +962,11 @@
     <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">known_gid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">known_gid</span> <span class="ow">in</span> <span class="n">known_gid_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_list</span><span class="p">):</span>
         <span class="c"># Resolve conflicts</span>
-        <span class="n">invalid_gid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">known_gid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-        <span class="c"># invalid_indices = utool.filterfalse_items(range(len(known_gid_list)),</span>
+        <span class="n">invalid_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">known_gid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+        <span class="c"># invalid_indices = ut.filterfalse_items(range(len(known_gid_list)),</span>
         <span class="c"># valid_list)  # TODO</span>
         <span class="k">if</span> <span class="n">bulk_conflict_resolution</span> <span class="o">==</span> <span class="s">&#39;replace&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
                     <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Replacing images: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">,</span> <span class="p">))</span>
@@ -971,45 +976,45 @@
             <span class="c"># Delete invalid gids</span>
             <span class="n">ibs_dst</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">bulk_conflict_resolution</span> <span class="o">==</span> <span class="s">&#39;ignore&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
                     <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring images: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Conflict Resolution - Ignoring </span><span class="si">%i</span><span class="s"> images...&#39;</span> <span class="o">%</span>
                       <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">),</span> <span class="p">))</span>
-            <span class="n">encounter_INDEXs_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
-                <span class="n">encounter_INDEXs_list</span><span class="p">,</span>      <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_path_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">imageset_INDEXs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+                <span class="n">imageset_INDEXs_list</span><span class="p">,</span>      <span class="n">valid_list</span><span class="p">)</span>
+            <span class="n">image_path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_path_list</span><span class="p">,</span>            <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_uuid_list</span><span class="p">,</span>            <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_ext_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_ext_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_ext_list</span><span class="p">,</span>             <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_original_name_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_original_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_original_name_list</span><span class="p">,</span>   <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_width_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_width_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_width_list</span><span class="p">,</span>           <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_height_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_height_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_height_list</span><span class="p">,</span>          <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_time_posix_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_time_posix_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_time_posix_list</span><span class="p">,</span>      <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_gps_lat_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_gps_lat_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_gps_lat_list</span><span class="p">,</span>         <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_gps_lon_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_gps_lon_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_gps_lon_list</span><span class="p">,</span>         <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_toggle_enabled_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_toggle_enabled_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_toggle_enabled_list</span><span class="p">,</span>  <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_toggle_reviewed_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_toggle_reviewed_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_toggle_reviewed_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">image_note_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">image_note_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">image_note_list</span><span class="p">,</span>            <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">lblimage_td_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">lblimage_td_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">lblimage_td_list</span><span class="p">,</span>           <span class="n">valid_list</span><span class="p">)</span>
-            <span class="n">annotation_td_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+            <span class="n">annotation_td_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
                 <span class="n">annotation_td_list</span><span class="p">,</span>         <span class="n">valid_list</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
                     <span class="s">&#39;[import_transfer_data]     Conflict Resolution - Merging images: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">invalid_gid_list</span><span class="p">,</span> <span class="p">))</span>
@@ -1040,13 +1045,13 @@
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_toggle_reviewed_list</span><span class="p">)</span>
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_image_enabled</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_toggle_enabled_list</span><span class="p">)</span>
-    <span class="c"># Add images to appropriate encounters</span>
+    <span class="c"># Add images to appropriate imagesets</span>
     <span class="k">print</span><span class="p">(</span>
-        <span class="s">&#39;[import_transfer_data]     Associating images with new encounters...&#39;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">encounter_INDEXs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">encounter_INDEXs_list</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">encounter_INDEX</span> <span class="ow">in</span> <span class="n">encounter_INDEXs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">encounter_INDEX</span> <span class="ow">and</span> <span class="n">encounter_INDEX</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">):</span>
-                <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_image_eids</span><span class="p">([</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">eid_list</span><span class="p">[</span><span class="n">encounter_INDEX</span><span class="p">]])</span>
+        <span class="s">&#39;[import_transfer_data]     Associating images with new imagesets...&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">imageset_INDEXs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">imageset_INDEXs_list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">imageset_INDEX</span> <span class="ow">in</span> <span class="n">imageset_INDEXs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">imageset_INDEX</span> <span class="ow">and</span> <span class="n">imageset_INDEX</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">):</span>
+                <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_image_imgsetids</span><span class="p">([</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">imgsetid_list</span><span class="p">[</span><span class="n">imageset_INDEX</span><span class="p">]])</span>
     <span class="c"># Add lblimages</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Importing lblimages...&#39;</span><span class="p">)</span>
     <span class="n">glrid_total</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1066,7 +1071,7 @@
     <span class="n">aid_total</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">annotation_td</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">annotation_td_list</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">annotation_td</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     Importing annotations for image </span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">gid</span><span class="p">,</span> <span class="n">annotation_td</span><span class="o">.</span><span class="n">annot_uuid_list</span><span class="p">,))</span>
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">import_annot_transfer_data</span><span class="p">(</span>
@@ -1078,10 +1083,10 @@
                 <span class="n">config_rowid_list</span>
             <span class="p">)</span>
             <span class="n">aid_total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span>
                     <span class="s">&#39;[import_transfer_data]     ...imported </span><span class="si">%i</span><span class="s"> annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
-        <span class="k">elif</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span>
                 <span class="s">&#39;[import_transfer_data]     NO ANNOTATIONS TO IMPORT FOR IMAGE </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]     ...imported </span><span class="si">%i</span><span class="s"> annotations&#39;</span> <span class="o">%</span>
@@ -1119,7 +1124,7 @@
         <span class="c"># Turns off thumbnail deletion print statements</span>
         <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">True</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span>
             <span class="s">&#39;[import_transfer_data]       Setting the annotation</span><span class="se">\&#39;</span><span class="s">s parent and exemplar bits...&#39;</span><span class="p">)</span>
     <span class="c"># Adding parent rowids that come from the aid_list (only can come from this list because</span>
@@ -1133,7 +1138,7 @@
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span>
         <span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_td</span><span class="o">.</span><span class="n">annot_exemplar_flag_list</span><span class="p">)</span>
     <span class="c"># Add lblannots</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]       Importing lblannots...&#39;</span><span class="p">)</span>
     <span class="n">alrid_total</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">lblannot_td</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_td</span><span class="o">.</span><span class="n">lblannot_td_list</span><span class="p">):</span>
@@ -1145,7 +1150,7 @@
                 <span class="n">config_rowid_list</span>
             <span class="p">)</span>
             <span class="n">alrid_total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[import_transfer_data]       ...imported </span><span class="si">%i</span><span class="s"> lblimages&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="n">alrid_total</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">aid_list</span>
@@ -1164,14 +1169,14 @@
         <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">config_INDEX</span> <span class="ow">and</span> <span class="n">config_INDEX</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">config_INDEX</span> <span class="ow">in</span> <span class="n">lblimage_td</span><span class="o">.</span><span class="n">config_INDEX_list</span>
     <span class="p">]</span>
-    <span class="n">lblimage_rowid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+    <span class="n">lblimage_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblimage_rowid_list</span><span class="p">)</span>
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">config_rowid_list</span><span class="p">[</span><span class="n">config_INDEX</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">config_INDEX</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lblimage_td</span><span class="o">.</span><span class="n">config_INDEX_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">valid</span>
     <span class="p">]</span>
-    <span class="n">glr_confidence_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+    <span class="n">glr_confidence_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
         <span class="n">lblimage_td</span><span class="o">.</span><span class="n">glr_confidence_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
     <span class="n">glrid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_image_relationship</span><span class="p">(</span>
         <span class="n">gid_list</span><span class="p">,</span>
@@ -1195,14 +1200,14 @@
         <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">config_INDEX</span> <span class="ow">and</span> <span class="n">config_INDEX</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">config_INDEX</span> <span class="ow">in</span> <span class="n">lblannot_td</span><span class="o">.</span><span class="n">config_INDEX_list</span>
     <span class="p">]</span>
-    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+    <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">config_rowid_list</span><span class="p">[</span><span class="n">config_INDEX</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">config_INDEX</span><span class="p">,</span> <span class="n">valid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_td</span><span class="o">.</span><span class="n">config_INDEX_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">valid</span>
     <span class="p">]</span>
-    <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
+    <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span>
         <span class="n">lblannot_td</span><span class="o">.</span><span class="n">alr_confidence_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
     <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">add_annot_relationship</span><span class="p">(</span>
         <span class="n">aid_list</span><span class="p">,</span>
@@ -1223,8 +1228,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    STEP 0) MAIN DRIVER FUNCTION</span>
 
-<span class="sd">    Conflict resolutions are only between contributors, configs, encounters and images.</span>
-<span class="sd">    Annotations, lblannots, lblimages, their respective relationships, and image-encounter</span>
+<span class="sd">    Conflict resolutions are only between contributors, configs, imagesets and images.</span>
+<span class="sd">    Annotations, lblannots, lblimages, their respective relationships, and image-imageset</span>
 <span class="sd">    relationships all inherit the resolution from their associated image.</span>
 
 <span class="sd">    Args:</span>
@@ -1338,7 +1343,7 @@
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">ensure_contributor_rowids</span><span class="p">(</span><span class="n">user_prompt</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">)</span>
     <span class="c"># Export source database</span>
     <span class="n">td</span> <span class="o">=</span> <span class="n">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[merge_databases] -------------------</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[merge_databases] </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">td</span><span class="p">,))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[merge_databases] -------------------</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
@@ -1641,8 +1646,8 @@
 <span class="sd">        gid_list (list):  list of image rowids</span>
 <span class="sd">        aid_list (list):  list of annotation rowids</span>
 <span class="sd">        nid_list (list):  list of name rowids</span>
-<span class="sd">        eid_list (list):  list of encounter rowids</span>
-<span class="sd">        egrid_list (list):  list of encounter-image pairs rowids</span>
+<span class="sd">        imgsetid_list (list):  list of imageset rowids</span>
+<span class="sd">        gsgrid_list (list):  list of imageset-image pairs rowids</span>
 <span class="sd">        new_dbpath (None): (default = None)</span>
 
 <span class="sd">    Returns:</span>
@@ -1650,9 +1655,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
 
-    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
-    <span class="n">egrid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_egrids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">gsgrid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gsgrids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
 
     <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
     <span class="n">flags1_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -1660,7 +1665,7 @@
     <span class="n">flags2_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">aid</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">)]</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">and_lists</span><span class="p">(</span><span class="n">flags1_list</span><span class="p">,</span> <span class="n">flags2_list</span><span class="p">)</span>
-    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="c">#annotmatch_rowid_list = ibs.get_valid_aids(ibs.get_valid_aids())</span>
 
     <span class="n">rowid_subsets</span> <span class="o">=</span> <span class="p">{</span>
@@ -1668,8 +1673,8 @@
         <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">:</span> <span class="n">nid_list</span><span class="p">,</span>
         <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">:</span> <span class="n">gid_list</span><span class="p">,</span>
         <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">:</span> <span class="n">annotmatch_rowid_list</span><span class="p">,</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">:</span> <span class="n">egrid_list</span><span class="p">,</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">:</span> <span class="n">eid_list</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">:</span> <span class="n">gsgrid_list</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">:</span> <span class="n">imgsetid_list</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">new_dbpath</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c"># Main merge driver</span>
@@ -1701,8 +1706,8 @@
 <span class="c">#     issameimg = [gid is not None for gid in sameimg_gid_list2_]</span>
 <span class="c"># Check if databases contain the same images</span>
 <span class="c">#     if any(issameimg):</span>
-<span class="c">#         sameimg_gid_list2 = utool.filter_items(sameimg_gid_list2_, issameimg)</span>
-<span class="c">#         sameimg_image_uuids = utool.filter_items(image_uuid_list1, issameimg)</span>
+<span class="c">#         sameimg_gid_list2 = ut.filter_items(sameimg_gid_list2_, issameimg)</span>
+<span class="c">#         sameimg_image_uuids = ut.filter_items(image_uuid_list1, issameimg)</span>
 <span class="c">#         print(&#39;! %d/%d images are duplicates&#39; % (len(sameimg_gid_list2), len(image_uuid_list1)))</span>
 <span class="c"># Check if sameimg images in dst has any annotations.</span>
 <span class="c">#         sameimg_aids_list2 = ibs_dst.get_image_aids(sameimg_gid_list2)</span>
@@ -1710,8 +1715,8 @@
 <span class="c">#         if any(hasannots):</span>
 <span class="c"># TODO: Merge based on some merge stratagy parameter (like annotation timestamp)</span>
 <span class="c">#             sameimg_gid_list1 = ibs_src.get_image_gids_from_uuid(sameimg_image_uuids)</span>
-<span class="c">#             hasannot_gid_list2 = utool.filter_items(sameimg_gid_list2, hasannots)</span>
-<span class="c">#             hasannot_gid_list1 = utool.filter_items(sameimg_gid_list1, hasannots)</span>
+<span class="c">#             hasannot_gid_list2 = ut.filter_items(sameimg_gid_list2, hasannots)</span>
+<span class="c">#             hasannot_gid_list1 = ut.filter_items(sameimg_gid_list1, hasannots)</span>
 <span class="c">#             print(&#39;  !! %d/%d of those have annotations&#39; %</span>
 <span class="c">#             (len(hasannot_gid_list2), len(sameimg_gid_list2)))</span>
 <span class="c"># They had better be the same annotations!</span>
@@ -1763,10 +1768,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dbio.export_subset import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; result = test_merge()</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>
@@ -1796,6 +1798,7 @@
     <span class="n">check_merge</span><span class="p">(</span><span class="n">ibs3</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
 
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ibs_dst</span>
 
     <span class="c">#ibs_src.print_annotation_table(exclude_columns=[&#39;annot_verts&#39;,</span>
     <span class="c">#&#39;annot_semantic_uuid&#39;, &#39;annot_note&#39;, &#39;annot_parent_rowid&#39;,</span>
@@ -1864,8 +1867,8 @@
     <span class="n">image_uuids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gids2</span><span class="p">)</span>
     <span class="n">gx_list1</span><span class="p">,</span> <span class="n">gx_list2</span> <span class="o">=</span> <span class="n">print_intersection</span><span class="p">(</span>
         <span class="n">image_uuids1</span><span class="p">,</span> <span class="n">image_uuids2</span><span class="p">,</span> <span class="s">&#39;images&#39;</span><span class="p">)</span>
-    <span class="n">gids_isect1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">gids1</span><span class="p">,</span> <span class="n">gx_list1</span><span class="p">)</span>
-    <span class="n">gids_isect2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">gids2</span><span class="p">,</span> <span class="n">gx_list2</span><span class="p">)</span>
+    <span class="n">gids_isect1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gids1</span><span class="p">,</span> <span class="n">gx_list1</span><span class="p">)</span>
+    <span class="n">gids_isect2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gids2</span><span class="p">,</span> <span class="n">gx_list2</span><span class="p">)</span>
     <span class="n">SHOW_ISECT_GIDS</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">SHOW_ISECT_GIDS</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gx_list1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1905,8 +1908,8 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_image_xs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> images with changes in annotation visual information&#39;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">changed_image_xs</span><span class="p">),))</span>
-        <span class="n">changed_gids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">gids_isect1</span><span class="p">,</span> <span class="n">changed_image_xs</span><span class="p">)</span>
-        <span class="n">changed_gids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">gids_isect2</span><span class="p">,</span> <span class="n">changed_image_xs</span><span class="p">)</span>
+        <span class="n">changed_gids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gids_isect1</span><span class="p">,</span> <span class="n">changed_image_xs</span><span class="p">)</span>
+        <span class="n">changed_gids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">gids_isect2</span><span class="p">,</span> <span class="n">changed_image_xs</span><span class="p">)</span>
 
         <span class="n">SHOW_CHANGED_GIDS</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="n">SHOW_CHANGED_GIDS</span><span class="p">:</span>
@@ -1943,11 +1946,11 @@
     <span class="n">changed_ax_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avx_list1</span><span class="p">,</span> <span class="n">asx_list1</span><span class="p">)</span>
     <span class="n">changed_ax_list2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avx_list2</span><span class="p">,</span> <span class="n">asx_list2</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_ax_list1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_ax_list2</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">annot_vuuids1</span><span class="p">,</span> <span class="n">changed_ax_list1</span><span class="p">)</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span>
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">annot_vuuids1</span><span class="p">,</span> <span class="n">changed_ax_list1</span><span class="p">)</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span>
         <span class="n">annot_vuuids2</span><span class="p">,</span> <span class="n">changed_ax_list2</span><span class="p">)</span>
 
-    <span class="n">changed_aids1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">changed_ax_list1</span><span class="p">))</span>
-    <span class="n">changed_aids2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">changed_ax_list2</span><span class="p">))</span>
+    <span class="n">changed_aids1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">changed_ax_list1</span><span class="p">))</span>
+    <span class="n">changed_aids2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">changed_ax_list2</span><span class="p">))</span>
 
     <span class="n">changed_sinfo1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">changed_aids1</span><span class="p">)</span>
     <span class="n">changed_sinfo2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">changed_aids2</span><span class="p">)</span>
@@ -2098,7 +2101,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -2120,7 +2123,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

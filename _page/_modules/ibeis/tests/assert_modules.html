@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.assert_modules &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.tests.assert_modules &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -317,8 +317,9 @@
     <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">vtool</span><span class="p">,</span> <span class="n">libdep</span><span class="o">=</span><span class="n">libdep</span><span class="p">)</span>
 
 
-<span class="c">#@checkinfo(&#39;1.1.7&#39;)</span></div>
-<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;2.4.0&#39;</span><span class="p">)</span>
+<span class="c">#@checkinfo(&#39;1.1.7&#39;)</span>
+<span class="c">#@checkinfo(&#39;2.4.0&#39;)</span></div>
+<span class="nd">@checkinfo</span><span class="p">(</span><span class="s">&#39;3.1.0&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="pillow_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.pillow_version">[docs]</a><span class="k">def</span> <span class="nf">pillow_version</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
     <span class="kn">import</span> <span class="nn">PIL</span>
@@ -412,6 +413,12 @@
 <div class="viewcode-block" id="tornado_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.tornado_version">[docs]</a><span class="k">def</span> <span class="nf">tornado_version</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">tornado</span>
     <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">tornado</span><span class="p">,</span> <span class="s">&#39;version&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@checkinfo</span><span class="p">()</span>
+<div class="viewcode-block" id="pygraphviz_version"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.pygraphviz_version">[docs]</a><span class="k">def</span> <span class="nf">pygraphviz_version</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">pygraphviz</span>
+    <span class="k">return</span> <span class="n">module_stdinfo_dict</span><span class="p">(</span><span class="n">pygraphviz</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="check_modules_exists"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.assert_modules.check_modules_exists">[docs]</a><span class="k">def</span> <span class="nf">check_modules_exists</span><span class="p">():</span>
@@ -545,7 +552,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -567,7 +574,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

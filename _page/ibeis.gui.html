@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui package &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.gui package &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.init package" href="ibeis.init.html"/>
         <link rel="prev" title="ibeis.expt package" href="ibeis.expt.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -85,6 +85,7 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
@@ -103,7 +104,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
@@ -119,13 +119,16 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -359,15 +362,15 @@ gui components is written or called from here</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.compute_encounters">
-<code class="descname">compute_encounters</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Batch -&gt; Compute Encounters</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_feats">
 <code class="descname">compute_feats</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_feats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Batch -&gt; Precompute Feats</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.compute_occurrences">
+<code class="descname">compute_occurrences</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_occurrences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch -&gt; Compute ImageSets</p>
 </dd></dl>
 
 <dl class="method">
@@ -377,8 +380,8 @@ gui components is written or called from here</p>
 <p>execute_query</p>
 <p>Batch -&gt; Compute OldStyle Queries
 and Actions -&gt; Query</p>
-<p>Computes query results for all annotations in an encounter.
-Results are either vs-exemplar or intra-encounter</p>
+<p>Computes query results for all annotations in an imageset.
+Results are either vs-exemplar or intra-imageset</p>
 <p class="rubric">CommandLine:</p>
 <div class="highlight-bash"><div class="highlight"><pre>./main.py --query <span class="m">1</span> -y
 python -m ibeis --query <span class="m">1</span> -y
@@ -401,7 +404,7 @@ python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --ho
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">refresh</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daids_mode</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -418,7 +421,8 @@ python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --ho
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog">
 <code class="descname">confirm_query_dialog</code><span class="sig-paren">(</span><em>back</em>, <em>daid_list=None</em>, <em>qaid_list=None</em>, <em>cfgdict=None</em>, <em>query_msg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.confirm_query_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Asks the user to confirm starting the identification query</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.connect_ibeis_control">
@@ -426,13 +430,13 @@ python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --ho
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.contains_special_encounters">
-<code class="descname">contains_special_encounters</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.contains_special_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.contains_special_encounters" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.contains_special_imagesets">
+<code class="descname">contains_special_imagesets</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.contains_special_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.contains_special_imagesets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.copy_encounter">
-<code class="descname">copy_encounter</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.copy_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.copy_encounter" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.copy_imageset">
+<code class="descname">copy_imageset</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.copy_imageset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.copy_imageset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -442,8 +446,8 @@ python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --ho
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.delete_all_encounters">
-<code class="descname">delete_all_encounters</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_all_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_all_encounters" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.delete_all_imagesets">
+<code class="descname">delete_all_imagesets</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_all_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_all_imagesets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -466,10 +470,10 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">eid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">eid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argmax</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)))))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argmax</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_imageset_tab</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># add a test annotation to delete</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">add_annotation_from_image</span><span class="p">([</span><span class="n">gid</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># delte annotations</span>
@@ -490,16 +494,6 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.delete_encounter">
-<code class="descname">delete_encounter</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_encounter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.delete_encounter_and_images">
-<code class="descname">delete_encounter_and_images</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_encounter_and_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_encounter_and_images" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.delete_global_prefs">
 <code class="descname">delete_global_prefs</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_global_prefs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_global_prefs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -516,8 +510,23 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.delete_imageset">
+<code class="descname">delete_imageset</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_imageset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_imageset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.delete_imageset_and_images">
+<code class="descname">delete_imageset_and_images</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_imageset_and_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_imageset_and_images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.delete_queryresults_dir">
 <code class="descname">delete_queryresults_dir</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_queryresults_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_queryresults_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.delete_selected_species">
+<code class="descname">delete_selected_species</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_selected_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_selected_species" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -576,8 +585,8 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.display_special_encounters_error">
-<code class="descname">display_special_encounters_error</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.display_special_encounters_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.display_special_encounters_error" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.display_special_imagesets_error">
+<code class="descname">display_special_imagesets_error</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.display_special_imagesets_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.display_special_imagesets_error" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -587,27 +596,14 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.encounter_reviewed_all_images">
-<code class="descname">encounter_reviewed_all_images</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>all_image_bypass=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.encounter_reviewed_all_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.encounter_reviewed_all_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets all encounters as reviwed and ships them to wildbook</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.encounter_set_species">
-<code class="descname">encounter_set_species</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.encounter_set_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.encounter_set_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>HACK: sets the species columns of all annotations in the encounter
-to be whatever is currently in the detect config</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.export_database">
 <code class="descname">export_database</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_database" title="Permalink to this definition">¶</a></dt>
 <dd><p>File -&gt; Export Database</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.export_encounters">
-<code class="descname">export_encounters</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_encounters" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.export_imagesets">
+<code class="descname">export_imagesets</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.export_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.export_imagesets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -629,14 +625,8 @@ to be whatever is currently in the detect config</p>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_daids">
-<code class="descname">get_selected_daids</code><span class="sig-paren">(</span><em>back</em>, <em>eid=None</em>, <em>daids_mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_daids" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_selected_daids</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>daids_mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_daids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_eid">
-<code class="descname">get_selected_eid</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_eid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_eid" title="Permalink to this definition">¶</a></dt>
-<dd><p>selected encounter id</p>
-</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_gid">
@@ -645,8 +635,14 @@ to be whatever is currently in the detect config</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_imgsetid">
+<code class="descname">get_selected_imgsetid</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_imgsetid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_imgsetid" title="Permalink to this definition">¶</a></dt>
+<dd><p>selected imageset id</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_qaids">
-<code class="descname">get_selected_qaids</code><span class="sig-paren">(</span><em>back</em>, <em>eid=None</em>, <em>minqual='poor'</em>, <em>is_known=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qaids" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_selected_qaids</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>minqual='poor'</em>, <em>is_known=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qaids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -665,6 +661,19 @@ to be whatever is currently in the detect config</p>
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_work_directory">
 <code class="descname">get_work_directory</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_work_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_work_directory" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.imageset_reviewed_all_images">
+<code class="descname">imageset_reviewed_all_images</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>all_image_bypass=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.imageset_reviewed_all_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.imageset_reviewed_all_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets all imagesets as reviwed and ships them to wildbook</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.imageset_set_species">
+<code class="descname">imageset_set_species</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.imageset_set_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.imageset_set_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>HACK: sets the species columns of all annotations in the imageset
+to be whatever is currently in the detect config</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images_as_annots_from_file">
@@ -727,7 +736,36 @@ python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show --au
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images_from_file">
 <code class="descname">import_images_from_file</code><span class="sig-paren">(</span><em>back</em>, <em>gpath_list=None</em>, <em>refresh=True</em>, <em>as_annots=False</em>, <em>clock_offset=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_images_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_images_from_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>File -&gt; Import Images From File</p>
+<dl class="docutils">
+<dt>Example</dt>
+<dd># GUI_DOCTEST
+&gt;&gt;&gt; print(&#8216;[TEST] GET_TEST_IMAGE_PATHS&#8217;)
+&gt;&gt;&gt; # The test api returns a list of interesting chip indexes
+&gt;&gt;&gt; mode = &#8216;FILE&#8217;
+&gt;&gt;&gt; if mode == &#8216;FILE&#8217;:
+&gt;&gt;&gt;     gpath_list = list(map(utool.unixpath, grabdata.get_test_gpaths()))
+&gt;&gt;&gt; #
+&gt;&gt;&gt;     # else:
+&gt;&gt;&gt;     #    <a href="#id1"><span class="problematic" id="id2">dir_</span></a> = utool.truepath(join(sysres.get_workdir(), &#8216;PZ_MOTHERS/images&#8217;))
+&gt;&gt;&gt;     #    gpath_list = utool.list_images(<a href="#id3"><span class="problematic" id="id4">dir_</span></a>, fullpath=True, recursive=True)[::4]
+&gt;&gt;&gt;     print(&#8216;[TEST] IMPORT IMAGES FROM FILEn * gpath_list=%r&#8217; % gpath_list)
+&gt;&gt;&gt;     gid_list = back.import_images(gpath_list=gpath_list)
+&gt;&gt;&gt;     thumbtup_list = ibs.get_image_thumbtup(gid_list)
+&gt;&gt;&gt;     imgpath_list = [tup[1] for tup in thumbtup_list]
+&gt;&gt;&gt;     gpath_list2 = ibs.get_image_paths(gid_list)
+&gt;&gt;&gt;     for path in gpath_list2:
+&gt;&gt;&gt;         assert path in imgpath_list, &#8220;Imported Image not in db, path=%r&#8221; % path
+&gt;&gt;&gt; elif mode == &#8216;DIR&#8217;:
+&gt;&gt;&gt;     <a href="#id5"><span class="problematic" id="id6">dir_</span></a> = grabdata.get_testdata_dir()
+&gt;&gt;&gt;     print(&#8216;[TEST] IMPORT IMAGES FROM DIRn * dir_=%r&#8217; % <a href="#id7"><span class="problematic" id="id8">dir_</span></a>)
+&gt;&gt;&gt;     gid_list = back.import_images(dir_=dir_)
+&gt;&gt;&gt; else:
+&gt;&gt;&gt;     raise AssertionError(&#8216;unknown mode=%r&#8217; % mode)
+&gt;&gt;&gt; #
+&gt;&gt;&gt; print(&#8216;[TEST] * len(gid_list)=%r&#8217; % len(gid_list))</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.incremental_query">
@@ -763,6 +801,11 @@ interaction to add exemplars one at a time.</p>
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.kill_web_server_parallel">
 <code class="descname">kill_web_server_parallel</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.kill_web_server_parallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.kill_web_server_parallel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.launch_ipy_notebook">
+<code class="descname">launch_ipy_notebook</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.launch_ipy_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.launch_ipy_notebook" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -814,8 +857,8 @@ interaction to add exemplars one at a time.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.merge_encounters">
-<code class="descname">merge_encounters</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em>, <em>destination_eid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.merge_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.merge_encounters" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.merge_imagesets">
+<code class="descname">merge_imagesets</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em>, <em>destination_imgsetid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.merge_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.merge_imagesets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -846,10 +889,6 @@ interaction to add exemplars one at a time.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbdir</strong> (<em>None</em>) &#8211; (default = None)</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">?</td>
-</tr>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
@@ -857,9 +896,15 @@ interaction to add exemplars one at a time.</p>
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdb0</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="s">&#39;testdb0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdb1</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] TEST_OPEN_DATABASE testdb1=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testdb1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">(</span><span class="n">testdb1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] TEST_OPEN_DATABASE testdb0=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testdb0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">(</span><span class="n">testdb0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#dbdir = join(ibeis.sysres.get_workdir(), &#39;PZ_MTEST&#39;, &#39;_ibsdb&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="bp">None</span>
@@ -907,8 +952,8 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.remove_from_encounter">
-<code class="descname">remove_from_encounter</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.remove_from_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.remove_from_encounter" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.remove_from_imageset">
+<code class="descname">remove_from_imageset</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.remove_from_imageset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.remove_from_imageset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -957,13 +1002,13 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.run_detection_on_encounter">
-<code class="descname">run_detection_on_encounter</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_on_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_on_encounter" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.run_detection_on_images">
+<code class="descname">run_detection_on_images</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_on_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_on_images" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.run_detection_on_images">
-<code class="descname">run_detection_on_images</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_on_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_on_images" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.run_detection_on_imageset">
+<code class="descname">run_detection_on_imageset</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_detection_on_imageset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_detection_on_imageset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1008,7 +1053,7 @@ interaction to add exemplars one at a time.</p>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_aid">
-<code class="descname">select_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>eid=None</em>, <em>show=True</em>, <em>show_annotation=True</em>, <em>web=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_aid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>show_annotation=True</em>, <em>web=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table Click -&gt; Chip Table</p>
 </dd></dl>
 
@@ -1018,21 +1063,44 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.select_eid">
-<code class="descname">select_eid</code><span class="sig-paren">(</span><em>back</em>, <em>eid=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_eid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_eid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Table Click -&gt; Result Table</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_gid">
-<code class="descname">select_gid</code><span class="sig-paren">(</span><em>back</em>, <em>gid</em>, <em>eid=None</em>, <em>show=True</em>, <em>sel_aids=None</em>, <em>fnum=None</em>, <em>web=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_gid</code><span class="sig-paren">(</span><em>back</em>, <em>gid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>sel_aids=None</em>, <em>fnum=None</em>, <em>web=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table Click -&gt; Image Table</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">          get_valid_gids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">          &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">          get_valid_aids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">          &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">* len(valid_aids) = </span><span class="si">%r</span><span class="s"></span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">* len(valid_gids) = </span><span class="si">%r</span><span class="s"></span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;database images cannot be empty for test&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">valid_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid">
-<code class="descname">select_gid_from_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>eid=None</em>, <em>show=True</em>, <em>web=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_gid_from_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>web=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid_from_aid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.select_imgsetid">
+<code class="descname">select_imgsetid</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_imgsetid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_imgsetid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table Click -&gt; Result Table</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_next">
@@ -1042,7 +1110,7 @@ interaction to add exemplars one at a time.</p>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_nid">
-<code class="descname">select_nid</code><span class="sig-paren">(</span><em>back</em>, <em>nid</em>, <em>eid=None</em>, <em>show=True</em>, <em>show_name=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_nid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_nid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_nid</code><span class="sig-paren">(</span><em>back</em>, <em>nid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>show_name=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_nid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_nid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table Click -&gt; Name Table</p>
 </dd></dl>
 
@@ -1054,18 +1122,18 @@ interaction to add exemplars one at a time.</p>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_qres_aid">
-<code class="descname">select_qres_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>eid=None</em>, <em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_qres_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_qres_aid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_qres_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_qres_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_qres_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table Click -&gt; Result Table</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.send_to_new_encounter">
-<code class="descname">send_to_new_encounter</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em>, <em>mode='move'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.send_to_new_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.send_to_new_encounter" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.send_to_new_imageset">
+<code class="descname">send_to_new_imageset</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em>, <em>mode=u'move'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.send_to_new_imageset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.send_to_new_imageset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.send_unshipped_processed_encounters">
-<code class="descname">send_unshipped_processed_encounters</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.send_unshipped_processed_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.send_unshipped_processed_encounters" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.send_unshipped_processed_imagesets">
+<code class="descname">send_unshipped_processed_imagesets</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.send_unshipped_processed_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.send_unshipped_processed_imagesets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1104,11 +1172,6 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.show_eid_list_in_web">
-<code class="descname">show_eid_list_in_web</code><span class="sig-paren">(</span><em>back</em>, <em>eid_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.show_eid_list_in_web"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.show_eid_list_in_web" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.show_gid_list_in_web">
 <code class="descname">show_gid_list_in_web</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.show_gid_list_in_web"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.show_gid_list_in_web" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1121,6 +1184,11 @@ interaction to add exemplars one at a time.</p>
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.show_image">
 <code class="descname">show_image</code><span class="sig-paren">(</span><em>back</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>web=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.show_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.show_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.show_imgsetid_list_in_web">
+<code class="descname">show_imgsetid_list_in_web</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.show_imgsetid_list_in_web"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.show_imgsetid_list_in_web" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1165,8 +1233,8 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.train_rf_with_encounter">
-<code class="descname">train_rf_with_encounter</code><span class="sig-paren">(</span><em>back</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.train_rf_with_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.train_rf_with_encounter" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.train_rf_with_imageset">
+<code class="descname">train_rf_with_imageset</code><span class="sig-paren">(</span><em>back</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.train_rf_with_imageset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.train_rf_with_imageset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1185,8 +1253,13 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.update_special_encounters">
-<code class="descname">update_special_encounters</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.update_special_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.update_special_encounters" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.update_special_imagesets">
+<code class="descname">update_special_imagesets</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.update_special_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.update_special_imagesets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.update_species_nice_name">
+<code class="descname">update_species_nice_name</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.update_species_nice_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.update_species_nice_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1301,7 +1374,7 @@ and potentially setters (hopefully if guitool ever gets off the ground the
 delters as well)</p>
 <p>Different columns can be hidden / shown by modifying this file</p>
 <p>TODO: need to cache the total number of annotations or something about
-encounters on disk to help startuptime.</p>
+imagesets on disk to help startuptime.</p>
 <dl class="function">
 <dt id="ibeis.gui.guiheaders.make_ibeis_headers_dict">
 <code class="descclassname">ibeis.gui.guiheaders.</code><code class="descname">make_ibeis_headers_dict</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiheaders.html#make_ibeis_headers_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiheaders.make_ibeis_headers_dict" title="Permalink to this definition">¶</a></dt>
@@ -1514,11 +1587,11 @@ some work if its to be re-integrated.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; ibeis controller object</li>
 <li><strong>aid1</strong> (<em>int</em>) &#8211; annotation id</li>
 <li><strong>aid2</strong> (<em>int</em>) &#8211; annotation id</li>
-<li><strong>cm</strong> (<a class="reference internal" href="ibeis.model.hots.html#ibeis.model.hots.chip_match.ChipMatch2" title="ibeis.model.hots.chip_match.ChipMatch2"><em>ChipMatch2</em></a>) &#8211; object of feature correspondences and scores</li>
-<li><strong>qreq</strong> (<a class="reference internal" href="ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest" title="ibeis.model.hots.query_request.QueryRequest"><em>QueryRequest</em></a>) &#8211; query request object with hyper-parameters(default = None)</li>
+<li><strong>cm</strong> (<em>ibeis.ChipMatch</em>) &#8211; object of feature correspondences and scores</li>
+<li><strong>qreq</strong> (<em>ibeis.QueryRequest</em>) &#8211; query request object with hyper-parameters(default = None)</li>
 <li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids(default = None)</li>
 </ul>
 </td>
@@ -1820,7 +1893,7 @@ python -m ibeis.gui.inspect_gui --test-make_qres_api
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><a href="#id1"><span class="problematic" id="id2">locals_</span></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><a href="#id9"><span class="problematic" id="id10">locals_</span></a></p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
@@ -1862,25 +1935,6 @@ python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 <p>This provides concrete classes which inherit from abstract
 api_item_models/api_table_models/api_tree_models in guitool.</p>
 <dl class="class">
-<dt id="ibeis.gui.models_and_views.EncTableModel">
-<em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">EncTableModel</code><span class="sig-paren">(</span><em>model</em>, <em>headers=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#EncTableModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.EncTableModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_model.APIItemModel</span></code></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ibeis.gui.models_and_views.EncTableView">
-<em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">EncTableView</code><span class="sig-paren">(</span><em>tblview</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#EncTableView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.EncTableView" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_table_view.APITableView</span></code></p>
-<p>View for Encounter Table</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ibeis.gui.models_and_views.EncTableWidget">
-<em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">EncTableWidget</code><span class="sig-paren">(</span><em>widget</em>, <em>headers=None</em>, <em>parent=None</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#EncTableWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.EncTableWidget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_widget.APIItemWidget</span></code></p>
-</dd></dl>
-
-<dl class="class">
 <dt id="ibeis.gui.models_and_views.IBEISItemModel">
 <em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">IBEISItemModel</code><span class="sig-paren">(</span><em>model</em>, <em>headers=None</em>, <em>parent=None</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#IBEISItemModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.IBEISItemModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_model.APIItemModel</span></code></p>
@@ -1918,6 +1972,25 @@ api_item_models/api_table_models/api_tree_models in guitool.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_widget.APIItemWidget</span></code></p>
 </dd></dl>
 
+<dl class="class">
+<dt id="ibeis.gui.models_and_views.ImagesetTableModel">
+<em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">ImagesetTableModel</code><span class="sig-paren">(</span><em>model</em>, <em>headers=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#ImagesetTableModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.ImagesetTableModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_model.APIItemModel</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.gui.models_and_views.ImagesetTableView">
+<em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">ImagesetTableView</code><span class="sig-paren">(</span><em>tblview</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#ImagesetTableView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.ImagesetTableView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_table_view.APITableView</span></code></p>
+<p>View for ImageSet Table</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.gui.models_and_views.ImagesetTableWidget">
+<em class="property">class </em><code class="descclassname">ibeis.gui.models_and_views.</code><code class="descname">ImagesetTableWidget</code><span class="sig-paren">(</span><em>widget</em>, <em>headers=None</em>, <em>parent=None</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/models_and_views.html#ImagesetTableWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.models_and_views.ImagesetTableWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_widget.APIItemWidget</span></code></p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ibeis.gui.newgui">
 <span id="ibeis-gui-newgui-module"></span><h2>ibeis.gui.newgui module<a class="headerlink" href="#module-ibeis.gui.newgui" title="Permalink to this headline">¶</a></h2>
@@ -1927,9 +2000,9 @@ logic.</p>
 <dl class="docutils">
 <dt>BUGS:</dt>
 <dd><ul class="first simple">
-<li>Copying the ungrouped encounter raises an error. Should have the option</li>
+<li>Copying the ungrouped imageset raises an error. Should have the option</li>
 </ul>
-<p>to copy or move it. Other special encounter should not have this option.</p>
+<p>to copy or move it. Other special imageset should not have this option.</p>
 <p class="last">Should gray out an option if it is not available.</p>
 </dd>
 </dl>
@@ -1939,13 +2012,6 @@ logic.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QTabWidget</span></code></p>
 <p>Holds the table-tabs</p>
 <p>use setCurrentIndex to change the selection</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="ibeis.gui.newgui.EncoutnerTabWidget">
-<em class="property">class </em><code class="descclassname">ibeis.gui.newgui.</code><code class="descname">EncoutnerTabWidget</code><span class="sig-paren">(</span><em>enc_tabwgt</em>, <em>parent=None</em>, <em>horizontalStretch=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#EncoutnerTabWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.EncoutnerTabWidget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QTabWidget</span></code></p>
-<p>Handles the super-tabs for the encounters that hold the table-tabs</p>
 </dd></dl>
 
 <dl class="class">
@@ -1993,7 +2059,7 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 <code class="descname">filter_annotation_table</code><span class="sig-paren">(</span><em>ibswgt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.filter_annotation_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.filter_annotation_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO:  Finish implementation</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --eid 2
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
 </pre></div>
 </div>
 <p class="rubric">Example</p>
@@ -2075,7 +2141,7 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 <dd><p>Right click anywhere in the GUI
 Context menus on right click of a table</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db WS_ALL --eid <span class="m">2</span> --select-name<span class="o">=</span>A-003
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db WS_ALL --imgsetid <span class="m">2</span> --select-name<span class="o">=</span>A-003
 </pre></div>
 </div>
 </dd></dl>
@@ -2085,7 +2151,7 @@ Context menus on right click of a table</p>
 <code class="descname">on_doubleclick</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.on_doubleclick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.on_doubleclick" title="Permalink to this definition">¶</a></dt>
 <dd><p>Double clicking anywhere in the GUI</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db lynx --eid <span class="m">2</span> --select-name<span class="o">=</span>goku
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db lynx --imgsetid <span class="m">2</span> --select-name<span class="o">=</span>goku
 </pre></div>
 </div>
 </dd></dl>
@@ -2107,13 +2173,13 @@ Context menus on right click of a table</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.newgui.IBEISGuiWidget.select_encounter_tab">
-<code class="descname">select_encounter_tab</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>eid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.select_encounter_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.select_encounter_tab" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.newgui.IBEISGuiWidget.select_image_text_editing_finished">
+<code class="descname">select_image_text_editing_finished</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.select_image_text_editing_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.select_image_text_editing_finished" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.newgui.IBEISGuiWidget.select_image_text_editing_finished">
-<code class="descname">select_image_text_editing_finished</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.select_image_text_editing_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.select_image_text_editing_finished" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.newgui.IBEISGuiWidget.select_imageset_tab">
+<code class="descname">select_imageset_tab</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>imgsetid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.select_imageset_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.select_imageset_tab" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -2123,7 +2189,7 @@ Context menus on right click of a table</p>
 
 <dl class="method">
 <dt id="ibeis.gui.newgui.IBEISGuiWidget.select_table_id">
-<code class="descname">select_table_id</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>table_key</em>, <em>level</em>, <em>id_</em>, <em>eid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.select_table_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.select_table_id" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_table_id</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>table_key</em>, <em>level</em>, <em>id_</em>, <em>imgsetid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.select_table_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.select_table_id" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -2177,13 +2243,13 @@ Image, ImageGrid, Annotation, or Names table/tree</p>
 
 <dl class="method">
 <dt id="ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction">
-<code class="descname">spawn_edit_image_annotation_interaction</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>model</em>, <em>qtindex</em>, <em>gid</em>, <em>eid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.spawn_edit_image_annotation_interaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spawn_edit_image_annotation_interaction</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>model</em>, <em>qtindex</em>, <em>gid</em>, <em>imgsetid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.spawn_edit_image_annotation_interaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO: needs reimplement using more standard interaction methods</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid">
-<code class="descname">spawn_edit_image_annotation_interaction_from_aid</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>aid</em>, <em>eid</em>, <em>model=None</em>, <em>qtindex=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spawn_edit_image_annotation_interaction_from_aid</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>aid</em>, <em>imgsetid</em>, <em>model=None</em>, <em>qtindex=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>hack for letting annots spawn image editing</p>
 <p class="rubric">CommandLine:</p>
 <div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-spawn_edit_image_annotation_interaction_from_aid --show
@@ -2197,8 +2263,8 @@ Image, ImageGrid, Annotation, or Names table/tree</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibswgt</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">eid</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">show_was_requested</span><span class="p">():</span>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">ibswgt</span><span class="p">)</span>
 </pre></div>
@@ -2229,6 +2295,11 @@ with deltas.</p>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.newgui.IBEISGuiWidget.update_species_available">
+<code class="descname">update_species_available</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>reselect=False</em>, <em>reselect_new_name=None</em>, <em>deleting=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.update_species_available"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.update_species_available" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.newgui.IBEISGuiWidget.update_tables">
@@ -2272,6 +2343,13 @@ with deltas.</p>
 <code class="descname">quitSignal</code><a class="headerlink" href="#ibeis.gui.newgui.IBEISMainWindow.quitSignal" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.gui.newgui.ImagesetTabWidget">
+<em class="property">class </em><code class="descclassname">ibeis.gui.newgui.</code><code class="descname">ImagesetTabWidget</code><span class="sig-paren">(</span><em>imageset_tabwgt</em>, <em>parent=None</em>, <em>horizontalStretch=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#ImagesetTabWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.ImagesetTabWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QTabWidget</span></code></p>
+<p>Handles the super-tabs for the imagesets that hold the table-tabs</p>
 </dd></dl>
 
 <dl class="function">
@@ -2322,7 +2400,7 @@ python -m ibeis.gui.newgui --test-testfunc --cmd
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -2344,7 +2422,7 @@ python -m ibeis.gui.newgui --test-testfunc --cmd
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

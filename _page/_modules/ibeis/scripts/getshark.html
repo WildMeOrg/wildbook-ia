@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.scripts.getshark &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.scripts.getshark &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -144,7 +144,7 @@
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;WS_ALL&#39;</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_been_adjusted</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">adjusted_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">adjusted_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">adjusted_aids</span>
 
 </div>
@@ -182,8 +182,8 @@
 
     <span class="k">for</span> <span class="n">shark</span> <span class="ow">in</span> <span class="n">dom</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;shark&#39;</span><span class="p">):</span>
         <span class="n">localCount</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">encounter</span> <span class="ow">in</span> <span class="n">shark</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;encounter&#39;</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">encounter</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;img&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">imageset</span> <span class="ow">in</span> <span class="n">shark</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;imageset&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">imageset</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;img&#39;</span><span class="p">):</span>
                 <span class="n">localCount</span> <span class="o">+=</span> <span class="mi">1</span>
 
                 <span class="n">img_url</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">&#39;href&#39;</span><span class="p">)</span>
@@ -212,7 +212,7 @@
     <span class="c"># Filter based on image type (keep only jpgs)</span>
     <span class="n">ext_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.jpg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.jpg&#39;</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">_fname</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fname_list&#39;</span><span class="p">]]</span>
-    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">ext_flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">ext_flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="c"># Filter to only images matching the appropriate tags</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
@@ -222,7 +222,7 @@
         <span class="n">has_any</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;view-left&#39;</span><span class="p">],</span>
         <span class="n">none_match</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qual.*&#39;</span><span class="p">,</span> <span class="s">&#39;view-top&#39;</span><span class="p">,</span> <span class="s">&#39;part-.*&#39;</span><span class="p">,</span> <span class="s">&#39;cropped&#39;</span><span class="p">],</span>
     <span class="p">)</span>
-    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">tag_flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">tag_flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Tags in chosen images:&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;tags_list&#39;</span><span class="p">]</span> <span class="p">)))</span>
 
@@ -240,7 +240,7 @@
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="n">noncorrupt_flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">filterflags_valid_images</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">])</span>
     <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">noncorrupt_flags</span><span class="p">)</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">noncorrupt_flags</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">}</span>
 
@@ -249,13 +249,13 @@
     <span class="n">imgsize_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vt</span><span class="o">.</span><span class="n">open_image_size</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">]])</span>
     <span class="n">sqrt_area_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">imgsize_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">areq_flags_list</span> <span class="o">=</span> <span class="n">sqrt_area_list</span> <span class="o">&gt;=</span> <span class="mi">750</span>
-    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">areq_flags_list</span><span class="p">)</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">areq_flags_list</span><span class="p">)</span>
                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="n">grouped_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">]))),</span>
                                   <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">])</span>
     <span class="n">keep_idxs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">idxs</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">grouped_idxs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">]))</span>
-    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">keep_idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">keep_idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Moving imagse to secondary directory&#39;</span><span class="p">)</span>
     <span class="n">named_outputdir</span> <span class="o">=</span> <span class="s">&#39;named-left-sharkimages&#39;</span>
@@ -292,7 +292,7 @@
         <span class="s">&#39;australien&#39;</span><span class="p">,</span>
         <span class="s">&#39;australia&#39;</span><span class="p">,</span>
         <span class="s">&#39;nick&#39;</span><span class="p">,</span> <span class="s">&#39;tim</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span>
-        <span class="s">&#39;encounter&#39;</span><span class="p">,</span>
+        <span class="s">&#39;imageset&#39;</span><span class="p">,</span>
         <span class="s">&#39;holiday&#39;</span><span class="p">,</span> <span class="s">&#39;visit&#39;</span><span class="p">,</span> <span class="s">&#39;tour&#39;</span><span class="p">,</span> <span class="s">&#39;trip&#39;</span><span class="p">,</span> <span class="s">&#39;pec&#39;</span><span class="p">,</span> <span class="s">&#39;sv&#39;</span><span class="p">,</span>
         <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span>
         <span class="s">&#39;gender&#39;</span><span class="p">,</span> <span class="s">&#39;sex&#39;</span><span class="p">,</span>
@@ -483,7 +483,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -505,7 +505,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

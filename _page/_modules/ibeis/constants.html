@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.constants &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.constants &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -139,7 +139,7 @@
 <span class="c"># import utool</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -279,9 +279,6 @@
 <span class="c"># Names normalized to the standard UNKNOWN_NAME</span>
 <span class="n">ACCEPTED_UNKNOWN_NAMES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;Unassigned&#39;</span><span class="p">])</span>
 
-<span class="c"># Name used to denote that idkwtfthisis</span>
-<span class="n">ENCTEXT_PREFIX</span> <span class="o">=</span> <span class="s">&#39;enc_&#39;</span>
-
 <span class="n">INDIVIDUAL_KEY</span> <span class="o">=</span> <span class="s">&#39;INDIVIDUAL_KEY&#39;</span>
 <span class="n">SPECIES_KEY</span>    <span class="o">=</span> <span class="s">&#39;SPECIES_KEY&#39;</span>
 <span class="n">EMPTY_KEY</span>      <span class="o">=</span> <span class="s">&#39;&#39;</span>
@@ -329,8 +326,8 @@
 <span class="n">CHIP_TABLE</span>           <span class="o">=</span> <span class="s">&#39;chips&#39;</span>
 <span class="n">CONFIG_TABLE</span>         <span class="o">=</span> <span class="s">&#39;configs&#39;</span>
 <span class="n">CONTRIBUTOR_TABLE</span>    <span class="o">=</span> <span class="s">&#39;contributors&#39;</span>
-<span class="n">EG_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;encounter_image_relationship&#39;</span>
-<span class="n">ENCOUNTER_TABLE</span>      <span class="o">=</span> <span class="s">&#39;encounters&#39;</span>
+<span class="n">GSG_RELATION_TABLE</span>   <span class="o">=</span> <span class="s">&#39;imageset_image_relationship&#39;</span>
+<span class="n">IMAGESET_TABLE</span>       <span class="o">=</span> <span class="s">&#39;imagesets&#39;</span>
 <span class="n">FEATURE_TABLE</span>        <span class="o">=</span> <span class="s">&#39;features&#39;</span>
 <span class="n">FEATURE_WEIGHT_TABLE</span> <span class="o">=</span> <span class="s">&#39;feature_weights&#39;</span>
 <span class="n">GL_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;image_lblimage_relationship&#39;</span>
@@ -353,6 +350,10 @@
 <span class="c">#################################################################</span>
 
 
+<span class="c"># DEPCACHE TABLENAMES</span>
+<span class="c">#CHIPTHUMB_TABLE = &#39;chipthumb&#39;</span>
+
+
 <span class="n">UNKNOWN_PURPLE_RGBA255</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
 <span class="n">NAME_BLUE_RGBA255</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
 <span class="n">NAME_RED_RGBA255</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">235</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
@@ -363,17 +364,17 @@
 <span class="n">NAME_RED_RGBA01</span>       <span class="o">=</span> <span class="n">NAME_RED_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
 <span class="n">NEW_YELLOW_RGBA01</span>     <span class="o">=</span> <span class="n">NEW_YELLOW_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
 
-<span class="n">EXEMPLAR_ENCTEXT</span>         <span class="o">=</span> <span class="s">&#39;*Exemplars&#39;</span>
-<span class="n">ALL_IMAGE_ENCTEXT</span>        <span class="o">=</span> <span class="s">&#39;*All Images&#39;</span>
-<span class="n">UNREVIEWED_IMAGE_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;*Unreviewed Images&#39;</span>
-<span class="n">REVIEWED_IMAGE_ENCTEXT</span>   <span class="o">=</span> <span class="s">&#39;*Reviewed Images&#39;</span>
-<span class="n">UNGROUPED_IMAGES_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;*Ungrouped Images&#39;</span>
-<span class="n">SPECIAL_ENCOUNTER_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">EXEMPLAR_ENCTEXT</span><span class="p">,</span>
-                            <span class="n">ALL_IMAGE_ENCTEXT</span><span class="p">,</span>
-                            <span class="n">UNREVIEWED_IMAGE_ENCTEXT</span><span class="p">,</span>
-                            <span class="n">REVIEWED_IMAGE_ENCTEXT</span><span class="p">,</span>
-                            <span class="n">UNGROUPED_IMAGES_ENCTEXT</span><span class="p">]</span>
-<span class="n">NEW_ENCOUNTER_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;NEW ENCOUNTER&#39;</span>
+<span class="n">EXEMPLAR_IMAGESETTEXT</span>         <span class="o">=</span> <span class="s">&#39;*Exemplars&#39;</span>
+<span class="n">ALL_IMAGE_IMAGESETTEXT</span>        <span class="o">=</span> <span class="s">&#39;*All Images&#39;</span>
+<span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span> <span class="o">=</span> <span class="s">&#39;*Unreviewed Images&#39;</span>
+<span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span>   <span class="o">=</span> <span class="s">&#39;*Reviewed Images&#39;</span>
+<span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span> <span class="o">=</span> <span class="s">&#39;*Ungrouped Images&#39;</span>
+<span class="n">SPECIAL_IMAGESET_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">EXEMPLAR_IMAGESETTEXT</span><span class="p">,</span>
+                           <span class="n">ALL_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
+                           <span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
+                           <span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
+                           <span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span><span class="p">]</span>
+<span class="n">NEW_IMAGESET_IMAGESETTEXT</span> <span class="o">=</span> <span class="s">&#39;NEW IMAGESET&#39;</span>
 
 <span class="c">#IMAGE_THUMB_SUFFIX = &#39;_thumb.png&#39;</span>
 <span class="c">#CHIP_THUMB_SUFFIX  = &#39;_chip_thumb.png&#39;</span>
@@ -381,98 +382,9 @@
 <span class="n">IMAGE_BARE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;_thumb_bare.jpg&#39;</span>
 <span class="n">CHIP_THUMB_SUFFIX</span>  <span class="o">=</span> <span class="s">&#39;_chip_thumb.jpg&#39;</span>
 
-<span class="c"># FIXME UNKNOWN should not be a valid species</span>
-
-
-<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">ZEB_PLAIN</span>     <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
-    <span class="n">ZEB_GREVY</span>     <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
-    <span class="n">ZEB_HYBRID</span>    <span class="o">=</span> <span class="s">&#39;zebra_hybrid&#39;</span>
-    <span class="c"># TODO change to giraffe_reticulated</span>
-    <span class="n">GIRAFFE</span>       <span class="o">=</span> <span class="s">&#39;giraffe&#39;</span>
-    <span class="n">GIRAFFE_MASAI</span> <span class="o">=</span> <span class="s">&#39;giraffe_masai&#39;</span>
-    <span class="n">ELEPHANT_SAV</span>  <span class="o">=</span> <span class="s">&#39;elephant_savanna&#39;</span>
-    <span class="n">JAG</span>           <span class="o">=</span> <span class="s">&#39;jaguar&#39;</span>
-    <span class="n">LEOPARD</span>       <span class="o">=</span> <span class="s">&#39;leopard&#39;</span>
-    <span class="n">SNOW_LEOPARD</span>  <span class="o">=</span> <span class="s">&#39;snow_leopard&#39;</span>
-    <span class="n">LION</span>          <span class="o">=</span> <span class="s">&#39;lion&#39;</span>
-    <span class="n">WILDDOG</span>       <span class="o">=</span> <span class="s">&#39;wild_dog&#39;</span>
-    <span class="n">WHALESHARK</span>    <span class="o">=</span> <span class="s">&#39;whale_shark&#39;</span>
-    <span class="n">LYNX</span>          <span class="o">=</span> <span class="s">&#39;lynx&#39;</span>
-    <span class="n">WHALEHUMPBACK</span> <span class="o">=</span> <span class="s">&#39;whale_humpback&#39;</span>
-    <span class="n">SNAIL</span>         <span class="o">=</span> <span class="s">&#39;snail&#39;</span>
-    <span class="n">SEALS_SPOTTED</span> <span class="o">=</span> <span class="s">&#39;seals_spotted&#39;</span>
-    <span class="n">SEALS_RINGED</span>  <span class="o">=</span> <span class="s">&#39;seals_saimma_ringed&#39;</span>
-    <span class="n">POLAR_BEAR</span>    <span class="o">=</span> <span class="s">&#39;bear_polar&#39;</span>
-    <span class="n">FROGS</span>         <span class="o">=</span> <span class="s">&#39;frogs&#39;</span>
-    <span class="n">LIONFISH</span>      <span class="o">=</span> <span class="s">&#39;lionfish&#39;</span>
-    <span class="n">WYTOADS</span>       <span class="o">=</span> <span class="s">&#39;toads_wyoming&#39;</span>
-    <span class="n">RHINO_BLACK</span>   <span class="o">=</span> <span class="s">&#39;rhino_black&#39;</span>
-    <span class="n">RHINO_WHITE</span>   <span class="o">=</span> <span class="s">&#39;rhino_white&#39;</span>
-    <span class="n">WILDEBEEST</span>    <span class="o">=</span> <span class="s">&#39;wildebeest&#39;</span>
-    <span class="n">WATER_BUFFALO</span> <span class="o">=</span> <span class="s">&#39;water_buffalo&#39;</span>
-    <span class="n">CHEETAH</span>       <span class="o">=</span> <span class="s">&#39;cheetah&#39;</span>
-    <span class="n">TIGER</span>         <span class="o">=</span> <span class="s">&#39;tiger&#39;</span>
-    <span class="n">HYENA</span>         <span class="o">=</span> <span class="s">&#39;hyena&#39;</span>
-    <span class="n">NAUT</span>          <span class="o">=</span> <span class="s">&#39;nautilus&#39;</span>
-    <span class="n">OTHER</span>         <span class="o">=</span> <span class="s">&#39;other&#39;</span>
-    <span class="n">UNKNOWN</span>       <span class="o">=</span> <span class="n">UNKNOWN</span>
-
-<span class="c"># TODO: allow for custom species</span></div>
-<span class="n">SpeciesTupleProperties</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;species_text&#39;</span><span class="p">,</span> <span class="s">&#39;species_code&#39;</span><span class="p">,</span> <span class="s">&#39;species_nice&#39;</span><span class="p">)</span>
-<span class="n">SpeciesTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;SpeciesTuple&#39;</span><span class="p">,</span> <span class="n">SpeciesTupleProperties</span><span class="p">)</span>
-
-<span class="n">SPECIES_TUPS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>          <span class="s">&#39;PZ&#39;</span><span class="p">,</span> <span class="s">&#39;Zebra (Plains)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>          <span class="s">&#39;GZ&#39;</span><span class="p">,</span> <span class="s">&#39;Zebra (Grevy</span><span class="se">\&#39;</span><span class="s">s)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_HYBRID</span><span class="p">,</span>         <span class="s">&#39;HZ&#39;</span><span class="p">,</span> <span class="s">&#39;Zebra (Hybrid)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span><span class="p">,</span>           <span class="s">&#39;GIR&#39;</span><span class="p">,</span> <span class="s">&#39;Giraffes (Reticulated)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE_MASAI</span><span class="p">,</span>    <span class="s">&#39;GIRM&#39;</span><span class="p">,</span> <span class="s">&#39;Giraffes (Masai)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ELEPHANT_SAV</span><span class="p">,</span>     <span class="s">&#39;ELEP&#39;</span><span class="p">,</span> <span class="s">&#39;Elephant (savanna)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span><span class="p">,</span>         <span class="s">&#39;PB&#39;</span><span class="p">,</span> <span class="s">&#39;Polar Bear&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDDOG</span><span class="p">,</span>            <span class="s">&#39;WD&#39;</span><span class="p">,</span> <span class="s">&#39;Wild Dog&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LIONFISH</span><span class="p">,</span>           <span class="s">&#39;LF&#39;</span><span class="p">,</span> <span class="s">&#39;Lionfish&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WHALESHARK</span><span class="p">,</span>         <span class="s">&#39;WS&#39;</span><span class="p">,</span> <span class="s">&#39;Whale Shark&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDEBEEST</span><span class="p">,</span>         <span class="s">&#39;WB&#39;</span><span class="p">,</span> <span class="s">&#39;Wildebeest&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">JAG</span><span class="p">,</span>               <span class="s">&#39;JAG&#39;</span><span class="p">,</span> <span class="s">&#39;Jaguar&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LEOPARD</span><span class="p">,</span>          <span class="s">&#39;LOEP&#39;</span><span class="p">,</span> <span class="s">&#39;Leopard&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SNOW_LEOPARD</span><span class="p">,</span>    <span class="s">&#39;SLEOP&#39;</span><span class="p">,</span> <span class="s">&#39;Snow Leopard&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">TIGER</span><span class="p">,</span>           <span class="s">&#39;TIGER&#39;</span><span class="p">,</span> <span class="s">&#39;Tiger&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">HYENA</span><span class="p">,</span>           <span class="s">&#39;HYENA&#39;</span><span class="p">,</span> <span class="s">&#39;Hyena&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LION</span><span class="p">,</span>             <span class="s">&#39;LION&#39;</span><span class="p">,</span> <span class="s">&#39;Lion&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">CHEETAH</span><span class="p">,</span>          <span class="s">&#39;CHTH&#39;</span><span class="p">,</span> <span class="s">&#39;Cheetah&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_SPOTTED</span><span class="p">,</span>   <span class="s">&#39;SEAL1&#39;</span><span class="p">,</span> <span class="s">&#39;Seal (spotted)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span><span class="p">,</span>    <span class="s">&#39;SEAL2&#39;</span><span class="p">,</span> <span class="s">&#39;Seal (Siamaa Ringed)&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">NAUT</span><span class="p">,</span>             <span class="s">&#39;NAUT&#39;</span><span class="p">,</span> <span class="s">&#39;Nautilus&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SNAIL</span><span class="p">,</span>           <span class="s">&#39;SNAIL&#39;</span><span class="p">,</span> <span class="s">&#39;Snail&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LYNX</span><span class="p">,</span>            <span class="s">&#39;LYNX&#39;</span><span class="p">,</span>  <span class="s">&#39;Lynx&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">OTHER</span><span class="p">,</span>           <span class="s">&#39;OTHER&#39;</span><span class="p">,</span> <span class="s">&#39;Other&#39;</span><span class="p">),</span>
-    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span>       <span class="s">&#39;UNKNOWN&#39;</span><span class="p">,</span> <span class="s">&#39;Unknown&#39;</span><span class="p">),</span>
-<span class="p">]</span>
-
-<span class="c"># FIXME: infer this</span>
-<span class="n">SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>
-    <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>
-    <span class="c">#Species.GIRAFFE,</span>
-    <span class="c">#Species.ELEPHANT_SAV,</span>
-
-    <span class="c">#Species.GIRAFFE_MASAI,</span>
-<span class="p">)</span>
-
-<span class="n">SPECIES_CODE_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">tup</span><span class="o">.</span><span class="n">species_code</span><span class="p">:</span> <span class="n">tup</span><span class="o">.</span><span class="n">species_text</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span>
-<span class="p">}</span>
-<span class="n">SPECIES_TEXT_TO_CODE</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">tup</span><span class="o">.</span><span class="n">species_text</span><span class="p">:</span> <span class="n">tup</span><span class="o">.</span><span class="n">species_code</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span>
-<span class="p">}</span>
-
-<span class="n">VALID_SPECIES</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">species_text</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
-<span class="n">SPECIES_NICE</span>  <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">species_nice</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
-
 
 <span class="n">VS_EXEMPLARS_KEY</span> <span class="o">=</span> <span class="s">&#39;vs_exemplars&#39;</span>
-<span class="n">INTRA_ENC_KEY</span> <span class="o">=</span> <span class="s">&#39;intra_encounter&#39;</span>
+<span class="n">INTRA_OCCUR_KEY</span> <span class="o">=</span> <span class="s">&#39;intra_occurrence&#39;</span>
 
 <span class="n">HARD_NOTE_TAG</span> <span class="o">=</span> <span class="s">&#39;&lt;HARDCASE&gt;&#39;</span>
 
@@ -484,18 +396,11 @@
                                     <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_species_code"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.get_species_code">[docs]</a><span class="k">def</span> <span class="nf">get_species_code</span><span class="p">(</span><span class="n">species_text_</span><span class="p">):</span>
-    <span class="s">&quot; functions should not be in const &quot;&quot;&quot;</span>
-    <span class="n">species_text</span> <span class="o">=</span> <span class="n">species_text_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">species_text</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
-        <span class="n">species_text</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span>
-    <span class="n">species_code</span> <span class="o">=</span> <span class="n">SPECIES_TEXT_TO_CODE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_text</span><span class="p">,</span> <span class="n">species_text</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">species_code</span>
-
-</div>
 <div class="viewcode-block" id="ZIPPED_URLS"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.ZIPPED_URLS">[docs]</a><span class="k">class</span> <span class="nc">ZIPPED_URLS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">PZ_MTEST</span>       <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip&#39;</span>
-    <span class="n">NAUTS</span>          <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip&#39;</span>
+    <span class="n">PZ_MTEST</span>       <span class="o">=</span> <span class="s">&#39;https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip&#39;</span>
+    <span class="n">NAUTS</span>          <span class="o">=</span> <span class="s">&#39;https://lev.cs.rpi.edu/public/databases/NAUT_test.zip&#39;</span>
+    <span class="c">#PZ_MTEST       = &#39;https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip&#39;</span>
+    <span class="c">#NAUTS          = &#39;https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip&#39;</span>
     <span class="n">PZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/gbp24qks9z3fzm6/distinctivness_zebra_plains.zip&#39;</span>
     <span class="n">GZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/nb5gv7wibwo3ib4/distinctivness_zebra_grevys.zip&#39;</span>
 </div>
@@ -531,6 +436,27 @@
     <span class="s">&#39;GIRM_Master1&#39;</span><span class="p">:</span> <span class="s">&#39;GIRM&#39;</span><span class="p">,</span>
     <span class="s">&#39;GZ_ALL&#39;</span><span class="p">:</span> <span class="s">&#39;GZ&#39;</span><span class="p">,</span>
 <span class="p">}</span>
+
+
+<div class="viewcode-block" id="TEST_SPECIES"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.TEST_SPECIES">[docs]</a><span class="k">class</span> <span class="nc">TEST_SPECIES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">BEAR_POLAR</span>      <span class="o">=</span> <span class="s">&#39;bear_polar&#39;</span>
+    <span class="n">BUILDING</span>        <span class="o">=</span> <span class="s">&#39;building&#39;</span>
+    <span class="n">GIR_RETICULATED</span> <span class="o">=</span> <span class="s">&#39;giraffe_reticulated&#39;</span>
+    <span class="n">GIR_MASAI</span>       <span class="o">=</span> <span class="s">&#39;giraffe_masai&#39;</span>
+    <span class="n">WHALE_FLUKE</span>     <span class="o">=</span> <span class="s">&#39;whale_fluke&#39;</span><span class="p">,</span>
+    <span class="n">WHALE_HUMPBACK</span>  <span class="o">=</span> <span class="s">&#39;whale_humpback&#39;</span><span class="p">,</span>
+    <span class="n">ZEB_GREVY</span>       <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
+    <span class="n">ZEB_HYBRID</span>      <span class="o">=</span> <span class="s">&#39;zebra_hybrid&#39;</span>
+    <span class="n">ZEB_PLAIN</span>       <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
+    <span class="n">UNKNOWN</span>         <span class="o">=</span> <span class="n">UNKNOWN</span>
+
+</div>
+<span class="n">SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>
+    <span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>
+    <span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">WHALE_FLUKE</span><span class="p">,</span>
+    <span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">WHALE_HUMPBACK</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 
            </div>
@@ -542,7 +468,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -564,7 +490,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

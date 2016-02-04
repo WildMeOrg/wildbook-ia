@@ -6,12 +6,12 @@ Subpackages
 
 .. toctree::
 
+    ibeis.algo
     ibeis.control
     ibeis.dbio
     ibeis.expt
     ibeis.gui
     ibeis.init
-    ibeis.model
     ibeis.other
     ibeis.scripts
     ibeis.templates
@@ -70,6 +70,14 @@ ibeis.constants module
     :undoc-members:
     :show-inheritance:
 
+ibeis.core module
+-----------------
+
+.. automodule:: ibeis.core
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.dev module
 ----------------
 
@@ -90,6 +98,14 @@ ibeis.ibsfuncs module
 ---------------------
 
 .. automodule:: ibeis.ibsfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.luigi_backend module
+--------------------------
+
+.. automodule:: ibeis.luigi_backend
     :members:
     :undoc-members:
     :show-inheritance:
@@ -122,6 +138,14 @@ ibeis.tag_funcs module
 ----------------------
 
 .. automodule:: ibeis.tag_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.workflow module
+---------------------
+
+.. automodule:: ibeis.workflow
     :members:
     :undoc-members:
     :show-inheritance:

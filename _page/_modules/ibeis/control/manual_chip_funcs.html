@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_chip_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_chip_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -238,7 +238,7 @@
 <span class="sd">        &gt;&gt;&gt; assert num_dirty1 == 2, &#39;Only two params should have been computed here&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(sub_chip_rowid_list3_ensured)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39; annot_rowid_list&#39;</span><span class="p">)</span>
     <span class="c"># Get requested configuration id</span>
     <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -246,7 +246,7 @@
     <span class="n">initial_chip_rowid_list</span> <span class="o">=</span> <span class="n">get_annot_chip_rowids_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="c"># Get corresponding &quot;dirty&quot; parent rowids</span>
     <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_chip_rowid_list</span><span class="p">)</span>
-    <span class="n">dirty_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+    <span class="n">dirty_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
     <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">)</span>
     <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -553,6 +553,9 @@
 <div class="viewcode-block" id="get_annot_chip_thumbtup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_chip_funcs.get_annot_chip_thumbtup">[docs]</a><span class="k">def</span> <span class="nf">get_annot_chip_thumbtup</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    get chip thumb info</span>
+<span class="sd">    The return type of this is interpreted and computed in ~/code/guitool/guitool/api_thumb_delegate.py</span>
+
+
 
 <span class="sd">    Args:</span>
 <span class="sd">        aid_list  (list):</span>
@@ -577,6 +580,10 @@
 <span class="sd">        &gt;&gt;&gt; thumbsize = 128</span>
 <span class="sd">        &gt;&gt;&gt; result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; #ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; #import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; #pt.imshow()</span>
+<span class="sd">        &gt;&gt;&gt; #ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#isiterable = isinstance(aid_list, (list, tuple, np.ndarray))</span>
     <span class="c">#if not isiterable:</span>
@@ -695,7 +702,7 @@
 <span class="sd">        Method: DELETE</span>
 <span class="sd">        URL:    /api/chip/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> annotation-chips&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
     <span class="c"># Delete sql-external (on-disk) information</span>
@@ -736,8 +743,8 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_chip_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model import Config</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import query_params</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo import Config</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import query_params</span>
 <span class="sd">        &gt;&gt;&gt; #chip_config2_ = Config.ChipConfig(chip_sqrt_area=450)</span>
 <span class="sd">        &gt;&gt;&gt; #chip_config3_ = Config.ChipConfig(chip_sqrt_area=200)</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
@@ -818,7 +825,7 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/chip/detectpaths/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_detectimg</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_detectimg</span>
     <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">preproc_detectimg</span><span class="o">.</span><span class="n">compute_and_write_detectchip_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new_gfpath_list</span>
 
@@ -873,7 +880,7 @@
     <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">get_chip_fpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">check_external_storage</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">notexists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">chip_fpath_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">notexists_flags</span><span class="p">):</span>
-        <span class="n">invalid_cids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">notexists_flags</span><span class="p">)</span>
+        <span class="n">invalid_cids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">notexists_flags</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;ERROR: </span><span class="si">%d</span><span class="s"> CHIPS DO NOT EXIST&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_cids</span><span class="p">)))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;ATTEMPING TO FIX </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> non-existing chip paths&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_cids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_chips</span><span class="p">(</span><span class="n">invalid_cids</span><span class="p">)</span>
@@ -921,7 +928,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: HACK: this should not have to read in config2</span>
     <span class="c"># (unless it needs to compute the chips?)</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
     <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
@@ -979,7 +986,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1001,7 +1008,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

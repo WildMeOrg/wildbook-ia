@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control._sql_helpers &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control._sql_helpers &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -135,11 +135,8 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
-<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">__SQLITE3__</span> <span class="k">as</span> <span class="n">lite</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">distutils</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
@@ -150,42 +147,6 @@
 <span class="n">VERBOSE_SQL</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbsql&#39;</span><span class="p">))</span>
 <span class="c">#AUTODUMP = ut.get_argflag(&#39;--auto-dump&#39;)</span>
 <span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">))</span>
-
-
-<div class="viewcode-block" id="default_decor"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.default_decor">[docs]</a><span class="k">def</span> <span class="nf">default_decor</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">profile</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="c">#return func</span>
-
-</div>
-<span class="nd">@default_decor</span>
-<span class="k">def</span> <span class="nf">_results_gen</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">get_last_id</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; HELPER - Returns as many results as there are.</span>
-<span class="sd">    Careful. Overwrites the results once you call it.</span>
-<span class="sd">    Basically: Dont call this twice.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">get_last_id</span><span class="p">:</span>
-        <span class="c"># The sqlite3_last_insert_rowid(D) interface returns the</span>
-        <span class="c"># &lt;b&gt; rowid of the most recent successful INSERT &lt;/b&gt;</span>
-        <span class="c"># into a rowid table in D</span>
-        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT last_insert_rowid()&#39;</span><span class="p">,</span> <span class="p">())</span>
-    <span class="c"># Wraping fetchone in a generator for some pretty tight calls.</span>
-    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c"># Results are always returned wraped in a tuple</span>
-            <span class="n">result_</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">result</span>
-            <span class="c">#if get_last_id and result == 0:</span>
-            <span class="c">#    result = None</span>
-            <span class="k">yield</span> <span class="n">result_</span>
-
-
-<span class="k">def</span> <span class="nf">_unpacker</span><span class="p">(</span><span class="n">results_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; HELPER: Unpacks results if unpack_scalars is True &quot;&quot;&quot;</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">results_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;throwing away results! { </span><span class="si">%r</span><span class="s"> }&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">results_</span><span class="p">,)</span>
-    <span class="k">return</span> <span class="n">results</span>
 
 
 <div class="viewcode-block" id="compare_string_versions"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.compare_string_versions">[docs]</a><span class="k">def</span> <span class="nf">compare_string_versions</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
@@ -487,8 +448,6 @@
             <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">db_fpath</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">clearbackup</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
-            <span class="c"># Why are we using the logging module when ut does it for us?</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span>
@@ -498,165 +457,12 @@
     <span class="k">if</span> <span class="n">dobackup</span> <span class="ow">and</span> <span class="n">clearbackup</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">)</span>
 
-
-<span class="c"># =======================</span>
-<span class="c"># SQL Context Class</span>
-<span class="c"># =======================</span>
-
-</div>
-<div class="viewcode-block" id="SQLExecutionContext"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext">[docs]</a><span class="k">class</span> <span class="nc">SQLExecutionContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Context manager for transactional database calls</span>
-
-<span class="sd">    FIXME: hash out details. I don&#39;t think anybody who programmed this</span>
-<span class="sd">    knows what is going on here. So much for fine grained control.</span>
-
-<span class="sd">    Referencs:</span>
-<span class="sd">        http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">auto_commit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                 <span class="n">start_transaction</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SQL</span><span class="p">):</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">auto_commit</span> <span class="o">=</span> <span class="n">auto_commit</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>  <span class="c"># Reference to sqldb</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">operation</span> <span class="o">=</span> <span class="n">operation</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">nInput</span> <span class="o">=</span> <span class="n">nInput</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">start_transaction</span> <span class="o">=</span> <span class="n">start_transaction</span>
-        <span class="c">#context.__dict__.update(locals())  # Too mystic?</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span> <span class="o">=</span> <span class="n">get_operation_type</span><span class="p">(</span><span class="n">operation</span><span class="p">)</span>  <span class="c"># Parse the optype</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">is_insert</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;INSERT&#39;</span><span class="p">)</span>
-
-    <span class="nd">@default_decor</span>
-<div class="viewcode-block" id="SQLExecutionContext.__enter__"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.__enter__">[docs]</a>    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Checks to see if the operating will change the database &quot;&quot;&quot;</span>
-        <span class="c">#ut.printif(lambda: &#39;[sql] Callers: &#39; + ut.get_caller_name(range(3, 6)), DEBUG)</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">nInput</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;[sql] execute nInput=</span><span class="si">%d</span><span class="s"> optype=</span><span class="si">%s</span><span class="s">: &#39;</span>
-                                       <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">nInput</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span> <span class="o">=</span> <span class="s">&#39;[sql] executeone optype=</span><span class="si">%s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation_type</span><span class="p">)</span>
-        <span class="c"># Start SQL Transaction</span>
-        <span class="n">context</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>  <span class="c"># HACK in a new cursor</span>
-        <span class="c">#context.cur = context.db.cur  # OR USE DB CURSOR??</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">start_transaction</span><span class="p">:</span>
-            <span class="c">#context.cur.execute(&#39;BEGIN&#39;, ())</span>
-            <span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;BEGIN&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">or</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] operation=</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">context</span><span class="o">.</span><span class="n">operation</span><span class="p">)</span>
-        <span class="c"># Comment out timeing code</span>
-        <span class="c">#if __debug__:</span>
-        <span class="c">#    if NOT_QUIET and (VERBOSE_SQL or context.verbose):</span>
-        <span class="c">#        context.tt = ut.tic(context.operation_lbl)</span>
-        <span class="k">return</span> <span class="n">context</span>
-
-    <span class="c"># --- with SQLExecutionContext: statment code happens here ---</span>
-</div>
-    <span class="nd">@default_decor</span>
-<div class="viewcode-block" id="SQLExecutionContext.execute_and_generate_results"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.execute_and_generate_results">[docs]</a>    <span class="k">def</span> <span class="nf">execute_and_generate_results</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; helper for context statment &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c">#print(context.cur.rowcount)</span>
-            <span class="c">#print(id(context.cur))</span>
-            <span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-            <span class="c">#print(context.cur.rowcount)</span>
-        <span class="k">except</span> <span class="n">lite</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">))</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;sql.Error&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">])</span>
-            <span class="c">#print(&#39;[sql.Error] %r&#39; % (type(ex),))</span>
-            <span class="c">#print(&#39;[sql.Error] params=&lt;%r&gt;&#39; % (params,))</span>
-            <span class="k">raise</span>
-        <span class="k">return</span> <span class="n">_results_gen</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">cur</span><span class="p">,</span> <span class="n">get_last_id</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">is_insert</span><span class="p">)</span>
-</div>
-    <span class="nd">@default_decor</span>
-<div class="viewcode-block" id="SQLExecutionContext.__exit__"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Finalization of an SQLController call &quot;&quot;&quot;</span>
-        <span class="c">#print(&#39;exit context&#39;)</span>
-        <span class="c">#if __debug__:</span>
-        <span class="c">#    if NOT_QUIET and (VERBOSE_SQL or context.verbose):</span>
-        <span class="c">#        ut.toc(context.tt)</span>
-        <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># An SQLError is a serious offence.</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] FATAL ERROR IN QUERY CONTEXT&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] operation=</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">context</span><span class="o">.</span><span class="n">operation</span><span class="p">)</span>
-            <span class="n">DUMP_ON_EXCEPTION</span> <span class="o">=</span> <span class="bp">False</span>
-            <span class="k">if</span> <span class="n">DUMP_ON_EXCEPTION</span><span class="p">:</span>
-                <span class="n">context</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump</span><span class="p">()</span>  <span class="c"># Dump on error</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] Error in context manager!: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-            <span class="k">return</span> <span class="bp">False</span>  <span class="c"># return a falsey value on error</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c"># Commit the transaction</span>
-            <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">auto_commit</span><span class="p">:</span>
-                <span class="c">#print(&#39;commit %r&#39; % context.operation_lbl)</span>
-                <span class="n">context</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-                <span class="c">#if context.start_transaction:</span>
-                <span class="c">#    context.cur.execute(&#39;COMMIT&#39;)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;no commit </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span><span class="p">)</span>
-                <span class="c">#context.db.commit(verbose=False)</span>
-                <span class="c">#context.cur.commit()</span>
-            <span class="c">#context.cur.close()</span>
-
-</div></div>
-<div class="viewcode-block" id="get_operation_type"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.get_operation_type">[docs]</a><span class="k">def</span> <span class="nf">get_operation_type</span><span class="p">(</span><span class="n">operation</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parses the operation_type from an SQL operation</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">operation</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="n">operation_type</span> <span class="o">=</span> <span class="n">operation</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;SELECT&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">str_between</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">operation_type</span><span class="p">,</span> <span class="s">&#39;FROM&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;INSERT&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">str_between</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">operation_type</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;DROP&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-    <span class="k">elif</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;ALTER&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-    <span class="k">elif</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;UPDATE&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">str_between</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">operation_type</span><span class="p">,</span> <span class="s">&#39;FROM&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;DELETE&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">str_between</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">operation_type</span><span class="p">,</span> <span class="s">&#39;FROM&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;CREATE&#39;</span><span class="p">):</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">str_between</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">operation_type</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">operation_args</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">operation_type</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">operation_args</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">operation_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-
-</div>
-<div class="viewcode-block" id="sanitize_sql"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.sanitize_sql">[docs]</a><span class="k">def</span> <span class="nf">sanitize_sql</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Sanatizes an sql tablename and column. Use sparingly &quot;&quot;&quot;</span>
-    <span class="n">tablename</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;[^a-z_0-9]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
-    <span class="n">valid_tables</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">tablename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_tables</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;UNSAFE TABLE: tablename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">tablename</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tablename</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">_sanitize_sql_helper</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
-            <span class="n">column</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;[^a-z_0-9]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
-            <span class="n">valid_columns</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_columns</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;UNSAFE COLUMN: tablename=</span><span class="si">%r</span><span class="s"> column=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-                                <span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">column</span><span class="p">))</span>
-                <span class="k">return</span> <span class="bp">None</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">column</span>
-
-        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">_sanitize_sql_helper</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]</span>
-        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">columns</span>
-
 </div>
 <div class="viewcode-block" id="autogenerate_nth_schema_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.autogenerate_nth_schema_version">[docs]</a><span class="k">def</span> <span class="nf">autogenerate_nth_schema_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="p">,</span> <span class="n">n</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    dumps, prints, or diffs autogen schema based on command line</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        schema_spec (?):</span>
 <span class="sd">        n (int):</span>
 
 <span class="sd">    CommandLine:</span>
@@ -728,14 +534,14 @@
 <span class="sd">        schema_spec (module): schema module to get nth version of</span>
 <span class="sd">        n (int): version index (-1 is the latest)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span> <span class="k">as</span> <span class="n">sqldbc</span>
+    <span class="kn">from</span> <span class="nn">dtool.sql_control</span> <span class="kn">import</span> <span class="n">SQLDatabaseController</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">__name__</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] getting n=</span><span class="si">%r</span><span class="s">-th version of </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dbname</span><span class="p">))</span>
     <span class="n">version_expected</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VALID_VERSIONS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">n</span><span class="p">]</span>
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis_test&#39;</span><span class="p">)</span>
     <span class="n">db_fname</span> <span class="o">=</span> <span class="s">&#39;test_</span><span class="si">%s</span><span class="s">.sqlite3&#39;</span> <span class="o">%</span> <span class="n">dbname</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">))</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">text_factory</span><span class="o">=</span><span class="nb">unicode</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">text_factory</span><span class="o">=</span><span class="nb">unicode</span><span class="p">)</span>
     <span class="n">ensure_correct_version</span><span class="p">(</span>
         <span class="bp">None</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span> <span class="n">schema_spec</span><span class="p">,</span> <span class="n">dobackup</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">db</span>
@@ -762,7 +568,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -784,7 +590,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

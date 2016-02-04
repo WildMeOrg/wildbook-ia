@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.preproc.preproc_feat &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../preproc.html">ibeis.algo.preproc</a> &raquo;</li>
+      
+    <li>ibeis.algo.preproc.preproc_feat</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.preproc.preproc_feat</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">Computes patch based features based on Hesaff, SIFT, or convnets.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">pyhesaff</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="c">#ut.noinject(&#39;[preproc_feat]&#39;)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_feat]&#39;</span><span class="p">)</span>
+
+
+<span class="c">#USE_OPENMP = not utool.WIN32</span>
+<span class="n">USE_OPENMP</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># do not use openmp until we have the gravity vector</span>
+
+
+<div class="viewcode-block" id="generate_feat_properties"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.generate_feat_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Computes features and yields results asynchronously: TODO: Remove IBEIS from</span>
+<span class="sd">    this equation. Move the firewall towards the controller</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        cid_list (list):</span>
+<span class="sd">        nInput (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        generator : generates param tups</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        ~/code/ibeis_cnn/ibeis_cnn/_plugin.py</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --test-generate_feat_properties:0 --show</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --test-generate_feat_properties:1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_feat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = ibs.new_query_params({})</span>
+<span class="sd">        &gt;&gt;&gt; nInput = None</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[::2]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(aid_list, &#39;aid_list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(cid_list, &#39;cid_list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; featgen = generate_feat_properties(ibs, cid_list, config2_, nInput)</span>
+<span class="sd">        &gt;&gt;&gt; feat_list = list(featgen)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(feat_list) == len(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; (nFeat, kpts, vecs) = feat_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert nFeat == len(kpts) and nFeat == len(vecs)</span>
+<span class="sd">        &gt;&gt;&gt; assert kpts.shape[1] == 6</span>
+<span class="sd">        &gt;&gt;&gt; assert vecs.shape[1] == 128</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; chip_fpath = ibs.get_annot_chip_fpath(aid_list[0], config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; pt.interact_keypoints.ishow_keypoints(chip_fpath, kpts, vecs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_feat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = {}</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict[&#39;feat_type&#39;] = &#39;hesaff+siam128&#39;</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request([1], [1, 2, 3], cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; query_config2 = qreq_.get_external_query_config2()</span>
+<span class="sd">        &gt;&gt;&gt; data_config2 = qreq_.get_external_data_config2()</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(ibs.get_valid_aids())</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = query_config2</span>
+<span class="sd">        &gt;&gt;&gt; nInput = None</span>
+<span class="sd">        &gt;&gt;&gt; featgen = generate_feat_properties(ibs, cid_list, config2_, nInput)</span>
+<span class="sd">        &gt;&gt;&gt; result = list(featgen)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_feat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = ibs.new_query_params({&#39;affine_invariance&#39;: False, &#39;bgmethod&#39;: &#39;cnn&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; nInput = None</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:4]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(aid_list, &#39;aid_list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(cid_list, &#39;cid_list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; featgen = generate_feat_properties(ibs, cid_list, config2_, nInput)</span>
+<span class="sd">        &gt;&gt;&gt; feat_list = list(featgen)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(feat_list) == len(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; (nFeat, kpts, vecs) = feat_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert nFeat == len(kpts) and nFeat == len(vecs)</span>
+<span class="sd">        &gt;&gt;&gt; assert kpts.shape[1] == 6</span>
+<span class="sd">        &gt;&gt;&gt; assert vecs.shape[1] == 128</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; chip_fpath = ibs.get_annot_chip_fpath(aid_list[0], config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; pt.interact_keypoints.ishow_keypoints(chip_fpath, kpts, vecs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        import plottool as pt</span>
+<span class="sd">        chip_fpath_list = ibs.get_chip_fpath(cid_list)</span>
+<span class="sd">        fpath_list = list(ut.interleave((probchip_fpath_list, chip_fpath_list)))</span>
+<span class="sd">        iteract_obj = pt.interact_multi_image.MultiImageInteraction(fpath_list, nPerPage=4)</span>
+<span class="sd">        ut.show_if_requested()</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Get config from config2_ object</span>
+        <span class="c">#print(&#39;id(config2_) = &#39; + str(id(config2_)))</span>
+        <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;feat_cfgstr&#39;</span><span class="p">)</span>
+        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;hesaff_params&#39;</span><span class="p">)</span>
+        <span class="n">feat_type</span>       <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;feat_type&#39;</span><span class="p">)</span>
+        <span class="n">bgmethod</span>        <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;bgmethod&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">feat_cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">assert</span> <span class="n">hesaff_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># TODO: assert False here</span>
+        <span class="c"># Get config from IBEIS controller</span>
+        <span class="n">bgmethod</span>        <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">bgmethod</span>
+        <span class="n">feat_type</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">feat_type</span>
+        <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
+    <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fpath</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">check_external_storage</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_aids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+        <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] feat_cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfgstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;hesaff_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">hesaff_params</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+sift&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">USE_OPENMP</span><span class="p">:</span>
+            <span class="c"># Use Avi&#39;s openmp parallelization</span>
+            <span class="k">assert</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+            <span class="n">featgen_mp</span> <span class="o">=</span> <span class="n">gen_feat_openmp</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">hesaff_params</span><span class="p">)</span>
+            <span class="n">featgen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">featgen_mp</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;openmp feat&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Multiprocessing parallelization</span>
+            <span class="n">featgen</span> <span class="o">=</span> <span class="n">extract_hesaff_sift_feats</span><span class="p">(</span>
+                <span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span>
+                <span class="n">hesaff_params</span><span class="o">=</span><span class="n">hesaff_params</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis_cnn</span> <span class="kn">import</span> <span class="n">_plugin</span>
+        <span class="k">assert</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+        <span class="n">featgen</span> <span class="o">=</span> <span class="n">_plugin</span><span class="o">.</span><span class="n">generate_siam_l2_128_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown feat_type=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_type</span><span class="p">,))</span>
+
+    <span class="k">for</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">featgen</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,)</span>
+
+</div>
+<div class="viewcode-block" id="extract_hesaff_sift_feats"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.extract_hesaff_sift_feats">[docs]</a><span class="k">def</span> <span class="nf">extract_hesaff_sift_feats</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">hesaff_params</span><span class="o">=</span><span class="p">{},</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        chip_fpath_list (list):</span>
+<span class="sd">        hesaff_params (dict):</span>
+<span class="sd">        nInput (None):</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        passed to utool.generate</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        featgen</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">)</span>
+    <span class="n">dictargs_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">hesaff_params</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
+    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">dictargs_iter</span><span class="p">)</span>
+    <span class="c"># eager evaluation.</span>
+    <span class="c"># TODO: Check if there is any benefit to just passing in the iterator.</span>
+    <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
+    <span class="n">featgen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+                                           <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">featgen</span>
+
+
+<span class="c">#def gen_feat_worker(tup):</span>
+<span class="c">#    r&quot;&quot;&quot;</span>
+<span class="c">#    Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="c">#    Must take in one argument to be used by multiprocessing.map_async</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    cid, cpath, hesaff_params = tup</span>
+<span class="c">#    kpts, vecs = pyhesaff.detect_kpts(cpath, **hesaff_params)</span>
+<span class="c">#    return (cid, len(kpts), kpts, vecs)</span>
+
+</div>
+<div class="viewcode-block" id="gen_feat_worker"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.gen_feat_worker">[docs]</a><span class="k">def</span> <span class="nf">gen_feat_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tup (tuple):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (None, kpts, vecs)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid 2</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --bgmethod=None  --scale_max=30</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_feat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = ibeis.testdata_aids(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid = aid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; chip_fpath = ibs.get_annot_chip_fpath(aid)</span>
+<span class="sd">        &gt;&gt;&gt; bgmethod = ut.get_argval(&#39;--bgmethod&#39;, type_=str, default=&#39;cnn&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; probchip_fpath = ibs.get_annot_probchip_fpath(aid) if &#39;cnn&#39; == bgmethod else None</span>
+<span class="sd">        &gt;&gt;&gt; hesaff_params = {}  # {&#39;affine_invariance&#39;: False}</span>
+<span class="sd">        &gt;&gt;&gt; hesaff_params = ut.argparse_dict(pyhesaff.get_hesaff_default_params())</span>
+<span class="sd">        &gt;&gt;&gt; tup = (chip_fpath, probchip_fpath, hesaff_params)</span>
+<span class="sd">        &gt;&gt;&gt; (num_kpts, kpts, vecs) = gen_feat_worker(tup)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(num_kpts, kpts, vecs) = %s&#39; % (ut.repr2((num_kpts, kpts, vecs)),))</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; masked_chip, = ut.exec_func_src(gen_feat_worker, key_list=[&#39;masked_chip&#39;], sentinal=&#39;kpts, vecs = pyhesaff&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.interact_keypoints.ishow_keypoints(masked_chip, kpts, vecs)</span>
+<span class="sd">        &gt;&gt;&gt; #pt.plot_score_histograms([vt.get_scales(kpts)])</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">probchip_fpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">probchip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">masked_chip</span> <span class="o">=</span> <span class="p">(</span><span class="n">chip</span> <span class="o">*</span> <span class="p">(</span><span class="n">probchip</span><span class="p">[:,</span> <span class="p">:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masked_chip</span> <span class="o">=</span> <span class="n">chip</span>
+    <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="o">=</span> <span class="n">pyhesaff</span><span class="o">.</span><span class="n">detect_kpts_in_image</span><span class="p">(</span><span class="n">masked_chip</span><span class="p">,</span> <span class="o">**</span><span class="n">hesaff_params</span><span class="p">)</span>
+    <span class="n">num_kpts</span> <span class="o">=</span> <span class="n">kpts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">num_kpts</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="gen_feat_worker_old"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.gen_feat_worker_old">[docs]</a><span class="k">def</span> <span class="nf">gen_feat_worker_old</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#import vtool as vt</span>
+    <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="o">=</span> <span class="n">pyhesaff</span><span class="o">.</span><span class="n">detect_kpts</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">,</span> <span class="o">**</span><span class="n">hesaff_params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">kpts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="gen_feat_openmp"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.gen_feat_openmp">[docs]</a><span class="k">def</span> <span class="nf">gen_feat_openmp</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">hesaff_params</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Compute features in parallel on the C++ side, return generator here</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Detecting </span><span class="si">%r</span><span class="s"> features in parallel: &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
+    <span class="n">kpts_list</span><span class="p">,</span> <span class="n">desc_list</span> <span class="o">=</span> <span class="n">pyhesaff</span><span class="o">.</span><span class="n">detect_kpts_list</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">hesaff_params</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">kpts_list</span><span class="p">,</span> <span class="n">desc_list</span><span class="p">):</span>
+        <span class="n">nFeat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">cid</span><span class="p">,</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span>
+
+</div>
+<div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">):</span>
+    <span class="c"># remove dependants of these rowids</span>
+    <span class="c"># No external data to remove</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m ibeis.algo.preproc.preproc_feat</span>
+<span class="sd">    python -m ibeis.algo.preproc.preproc_feat --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

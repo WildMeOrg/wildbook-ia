@@ -20,14 +20,6 @@ ibeis.dbio.export_subset module
     :undoc-members:
     :show-inheritance:
 
-ibeis.dbio.export_wb module
----------------------------
-
-.. automodule:: ibeis.dbio.export_wb
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.dbio.ingest_database module
 ---------------------------------
 

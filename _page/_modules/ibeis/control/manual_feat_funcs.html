@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_feat_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_feat_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -256,7 +256,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_feat_funcs import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import _pipeline_helpers as plh  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
@@ -354,7 +354,7 @@
 <span class="c">#@adder</span>
 <span class="c">#def add_chip_feat(ibs, cid_list, force=False, config2_=None):</span>
 <span class="c">#    &quot;&quot;&quot; Computes the features for every chip without them &quot;&quot;&quot;</span>
-<span class="c">#    from ibeis.model.preproc import preproc_feat</span>
+<span class="c">#    from ibeis.algo.preproc import preproc_feat</span>
 <span class="c">#    fid_list = ibs.get_chip_fids(cid_list, ensure=False, config2_=config2_)</span>
 <span class="c">#    dirty_cids = ut.get_dirty_items(cid_list, fid_list)</span>
 <span class="c">#    if len(dirty_cids) &gt; 0:</span>
@@ -383,6 +383,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_feat_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
 <span class="sd">        &gt;&gt;&gt; chip_rowid_list = ibs._get_all_chip_rowids()[::3]</span>
 <span class="sd">        &gt;&gt;&gt; ibs.delete_chip_feats(chip_rowid_list, config2_=config2_)</span>
@@ -454,7 +455,7 @@
 <span class="sd">        &gt;&gt;&gt; assert num_dirty1 == 2, &#39;Only two params should have been computed here&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(sub_feat_rowid_list3_ensured)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">chip_rowid_list</span><span class="p">,</span> <span class="s">&#39; chip_rowid_list&#39;</span><span class="p">)</span>
     <span class="c"># Get requested configuration id</span>
     <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -463,7 +464,7 @@
         <span class="n">ibs</span><span class="p">,</span> <span class="n">chip_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="c"># Get corresponding &quot;dirty&quot; parent rowids</span>
     <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_feat_rowid_list</span><span class="p">)</span>
-    <span class="n">dirty_chip_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">chip_rowid_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+    <span class="n">dirty_chip_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">chip_rowid_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
     <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_chip_rowid_list</span><span class="p">)</span>
     <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chip_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -570,7 +571,7 @@
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_chip_feat_rowids_"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_feat_funcs.get_chip_feat_rowids_">[docs]</a><span class="k">def</span> <span class="nf">get_chip_feat_rowids_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">chip_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    equivalent to get_chip_feat_rowids_ except ensure is constrained</span>
+<span class="sd">    equivalent to get_chip_feat_rowids except ensure is constrained</span>
 <span class="sd">    to be False.</span>
 
 <span class="sd">    Also you save a stack frame because get_chip_feat_rowid just</span>
@@ -648,7 +649,7 @@
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">)</span>
 <div class="viewcode-block" id="delete_features"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_feat_funcs.delete_features">[docs]</a><span class="k">def</span> <span class="nf">delete_features</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">feat_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; deletes images from the database that belong to fids&quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> features&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat_rowid_list</span><span class="p">))</span>
     <span class="c"># remove non-sql external dependeinces of these rowids</span>
@@ -679,7 +680,7 @@
 <span class="sd">    defined by ibs.cfg.feat_cfg.get_cfgstr()</span>
 
 <span class="sd">    # FIXME: Configs are still handled poorly</span>
-<span class="sd">    used in ibeis.model.preproc.preproc_feats in the param</span>
+<span class="sd">    used in ibeis.algo.preproc.preproc_feats in the param</span>
 <span class="sd">    generator. (that should probably be moved into the controller)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -763,7 +764,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -785,7 +786,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

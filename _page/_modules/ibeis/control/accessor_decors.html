@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.accessor_decors &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.accessor_decors &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -133,19 +133,38 @@
   <h1>Source code for ibeis.control.accessor_decors</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># import decorator  # NOQA</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="c">#import numpy as np</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
 
 <span class="n">DEBUG_ADDERS</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--debug-adders&#39;</span><span class="p">,</span> <span class="s">&#39;--verbadd&#39;</span><span class="p">))</span>
 <span class="n">DEBUG_SETTERS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--debug-setters&#39;</span><span class="p">,</span> <span class="s">&#39;--verbset&#39;</span><span class="p">))</span>
 <span class="n">DEBUG_GETTERS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--debug-getters&#39;</span><span class="p">,</span> <span class="s">&#39;--verbget&#39;</span><span class="p">))</span>
 <span class="n">VERB_CONTROL</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verb-control&#39;</span><span class="p">))</span>
 
+<span class="n">DEV_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dev-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--devcache&#39;</span><span class="p">))</span>
+<span class="n">DEBUG_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-api-cache&#39;</span><span class="p">)</span>
+<span class="n">RELEASE_MODE</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="k">if</span> <span class="n">RELEASE_MODE</span><span class="p">:</span>
+    <span class="c"># API Cache is only for when you can gaurentee one instance of the</span>
+    <span class="c"># Controller will be running. This is not safe to use in production.  Use</span>
+    <span class="c"># only for local testing.</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--api-cache&#39;</span><span class="p">)</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--noassert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-api-cache&#39;</span><span class="p">)</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--assert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS DISABLED&#39;</span><span class="p">)</span>
 <span class="c">#</span>
 <span class="c">#-----------------</span>
 <span class="c"># IBEIS DECORATORS</span>
@@ -165,44 +184,8 @@
 
 
 <span class="c"># DECORATORS::ADDER</span>
-<span class="c">#TABLE_CACHE = {}</span>
 
-
-<span class="c">#class ColumnsCache(object):</span>
-<span class="c">#    def __init__(self):</span>
-<span class="c">#        self._cache = {}</span>
-
-<span class="c">#    def __setitem__(self, index, value):</span>
-<span class="c">#        self._cache[index] = value</span>
-
-<span class="c">#    def __getitem__(self, index):</span>
-<span class="c">#        return self._cache[index]</span>
-
-<span class="c">#    def __delitem__(self, index):</span>
-<span class="c">#        del self._cache[index]</span>
 </div>
-<span class="n">DEV_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dev-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--devcache&#39;</span><span class="p">))</span>
-<span class="n">DEBUG_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-api-cache&#39;</span><span class="p">)</span>
-
-<span class="n">RELEASE_MODE</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="k">if</span> <span class="n">RELEASE_MODE</span><span class="p">:</span>
-    <span class="c"># API Cache is only for when you can gaurentee one instance of the</span>
-    <span class="c"># Controller will be running. This is not safe to use in production.  Use</span>
-    <span class="c"># only for local testing.</span>
-    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--api-cache&#39;</span><span class="p">)</span>
-    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--noassert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-api-cache&#39;</span><span class="p">)</span>
-    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--assert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
-
-<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS DISABLED&#39;</span><span class="p">)</span>
-
-
 <div class="viewcode-block" id="init_tablecache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.init_tablecache">[docs]</a><span class="k">def</span> <span class="nf">init_tablecache</span><span class="p">():</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -217,7 +200,6 @@
 <span class="sd">        &gt;&gt;&gt; result = init_tablecache()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#return ut.ddict(ColumnsCache)</span>
     <span class="c"># 4 levels of dictionaries</span>
     <span class="c"># tablename, colname, kwargs, and then rowids</span>
     <span class="n">tablecache</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)))</span>
@@ -288,8 +270,8 @@
 <span class="sd">        &gt;&gt;&gt; # Check that config2 actually gets you different vectors in the cache</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={&#39;affine_invariance&#39;: False})</span>
 <span class="sd">        &gt;&gt;&gt; config2_ = qreq_.get_external_query_config2()</span>
-<span class="sd">        &gt;&gt;&gt; kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None, debug=True)</span>
-<span class="sd">        &gt;&gt;&gt; kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_, debug=True)</span>
+<span class="sd">        &gt;&gt;&gt; kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None)</span>
+<span class="sd">        &gt;&gt;&gt; kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_)</span>
 <span class="sd">        &gt;&gt;&gt; kp1 = kpts_list1[0][0:1]</span>
 <span class="sd">        &gt;&gt;&gt; kp2 = kpts_list2[0][0:1]</span>
 <span class="sd">        &gt;&gt;&gt; assert kp1.T[3] != 0</span>
@@ -386,7 +368,7 @@
                 <span class="c"># END HACK</span>
                 <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
                     <span class="n">miss_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
-                    <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
+                    <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
                     <span class="c"># call wrapped function</span>
                     <span class="n">miss_vals</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">miss_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="c"># overwrite missed output</span>
@@ -400,7 +382,7 @@
 
             <span class="k">def</span> <span class="nf">handle_cache_misses</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">vals_list</span><span class="p">,</span> <span class="n">cache_</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
                 <span class="n">miss_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
-                <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
+                <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
                 <span class="c"># call wrapped function</span>
                 <span class="n">miss_vals</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">miss_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="c"># overwrite missed output</span>
@@ -513,7 +495,6 @@
 <span class="c">#@decorator.decorator</span></div>
 <div class="viewcode-block" id="adder"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.adder">[docs]</a><span class="k">def</span> <span class="nf">adder</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="c">#@ut.on_exception_report_input</span>
     <span class="nd">@ut.accepts_scalar_input</span>
     <span class="nd">@ut.ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_adder</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -528,7 +509,7 @@
             <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_adder</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_adder</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="n">wrp_adder</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">wrp_adder</span><span class="p">)</span>
+    <span class="c">#wrp_adder = ut.on_exception_report_input(wrp_adder)</span>
     <span class="k">return</span> <span class="n">wrp_adder</span>
 
 
@@ -560,7 +541,6 @@
 <div class="viewcode-block" id="setter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.setter">[docs]</a><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="nd">@ut.accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">outer_wrapper</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="c">#@ut.on_exception_report_input</span>
     <span class="nd">@ut.ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_setter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">DEBUG_SETTERS</span> <span class="ow">or</span> <span class="n">VERB_CONTROL</span><span class="p">:</span>
@@ -574,7 +554,7 @@
         <span class="c">#print(&#39;set: funcname=%r, args=%r, kwargs=%r&#39; % (get_funcname(func), args, kwargs))</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_setter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_setter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="n">wrp_setter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">wrp_setter</span><span class="p">)</span>
+    <span class="c">#wrp_setter = ut.on_exception_report_input(wrp_setter)</span>
     <span class="k">return</span> <span class="n">wrp_setter</span>
 
 
@@ -587,7 +567,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#func_ = func</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="c">#@ut.on_exception_report_input</span>
     <span class="nd">@ut.accepts_scalar_input</span>
     <span class="nd">@ut.ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">wrp_getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -602,7 +581,7 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;L------&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">)</span>
+    <span class="c">#wrp_getter = ut.on_exception_report_input(wrp_getter)</span>
     <span class="k">return</span> <span class="n">wrp_getter</span>
 
 
@@ -634,13 +613,12 @@
     <span class="c">#getter_func = getter(func)</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="nd">@ut.accepts_numpy</span>
-    <span class="c">#@ut.on_exception_report_input</span>
     <span class="nd">@ut.accepts_scalar_input</span>
     <span class="nd">@ut.ignores_exc_tb</span>
     <span class="k">def</span> <span class="nf">getter_numpy_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">getter_numpy_wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="n">getter_numpy_wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">on_exception_report_input</span><span class="p">(</span><span class="n">getter_numpy_wrp</span><span class="p">)</span>
+    <span class="c">#getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)</span>
     <span class="k">return</span> <span class="n">getter_numpy_wrp</span>
 
 
@@ -663,7 +641,19 @@
     <span class="sd">&quot;&quot;&quot; This function takes returns ids subject to conditions &quot;&quot;&quot;</span>
     <span class="n">ider_func</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="n">ider_func</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">ider_func</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ider_func</span></div>
+    <span class="k">return</span> <span class="n">ider_func</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.accessor_decors</span>
+<span class="sd">        python -m ibeis.control.accessor_decors --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
            </div>
@@ -675,7 +665,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -697,7 +687,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

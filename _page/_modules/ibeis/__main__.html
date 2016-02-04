@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.__main__ &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.__main__ &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -186,14 +186,17 @@
     <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--run-utool-tests&#39;</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">utool.tests.run_tests</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">run_tests</span><span class="o">.</span><span class="n">run_tests</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... exiting&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--run-vtool-tests&#39;</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">vtool.tests.run_tests</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">run_tests</span><span class="o">.</span><span class="n">run_tests</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... exiting&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--run-ibeis-tests&#39;</span><span class="p">,</span> <span class="s">&#39;--run-tests&#39;</span><span class="p">)):</span>
         <span class="kn">from</span> <span class="nn">ibeis.tests</span> <span class="kn">import</span> <span class="n">run_tests</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="n">run_tests</span><span class="o">.</span><span class="n">run_tests</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... exiting&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;-e&#39;</span><span class="p">):</span>
@@ -203,14 +206,8 @@
         <span class="c"># Run dev script if -e given</span>
         <span class="kn">import</span> <span class="nn">ibeis.dev</span>  <span class="c"># NOQA</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">devmain</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... exiting&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="c">#if ut.get_argflag(&#39;-e&#39;):</span>
-    <span class="c">#    import ibeis</span>
-    <span class="c">#    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),</span>
-    <span class="c">#    prefix_list=[&#39;--&#39;, &#39;-&#39;])</span>
-    <span class="c">#    ibeis.run_experiment(**expt_kw)</span>
-    <span class="c">#    sys.exit(0)</span>
 
     <span class="c"># Attempt to run a test using the funciton name alone</span>
     <span class="c"># with the --tf flag</span>
@@ -221,7 +218,18 @@
         <span class="s">&#39;ibeis.control.__SQLITE3__&#39;</span><span class="p">,</span>
         <span class="s">&#39;_autogen_explicit_controller&#39;</span><span class="p">]</span>
     <span class="n">ignore_suffix</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_grave&#39;</span><span class="p">]</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">main_function_tester</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="n">ignore_prefix</span><span class="p">,</span> <span class="n">ignore_suffix</span><span class="p">)</span>
+    <span class="n">func_to_module_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;demo_bayesnet&#39;</span><span class="p">:</span> <span class="s">&#39;ibeis.algo.hots.demobayes&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">main_function_tester</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="n">ignore_prefix</span><span class="p">,</span> <span class="n">ignore_suffix</span><span class="p">,</span>
+                            <span class="n">func_to_module_dict</span><span class="o">=</span><span class="n">func_to_module_dict</span><span class="p">)</span>
+
+    <span class="c">#if ut.get_argflag(&#39;-e&#39;):</span>
+    <span class="c">#    import ibeis</span>
+    <span class="c">#    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),</span>
+    <span class="c">#    prefix_list=[&#39;--&#39;, &#39;-&#39;])</span>
+    <span class="c">#    ibeis.run_experiment(**expt_kw)</span>
+    <span class="c">#    sys.exit(0)</span>
 
     <span class="n">doctest_modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;--doctest-module&#39;</span><span class="p">,</span> <span class="s">&#39;--tmod&#39;</span><span class="p">,</span> <span class="s">&#39;-tm&#39;</span><span class="p">,</span> <span class="s">&#39;--testmod&#39;</span><span class="p">),</span>
@@ -231,9 +239,9 @@
 <span class="sd">        Allow any doctest to be run the main ibeis script</span>
 
 <span class="sd">        python -m ibeis --tmod utool.util_str --test-align:0</span>
-<span class="sd">        python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show</span>
+<span class="sd">        python -m ibeis --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show</span>
 <span class="sd">        python -m ibeis --tf request_ibeis_query_L0:0 --show</span>
-<span class="sd">        ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA</span>
+<span class="sd">        ./dist/ibeis/IBEISApp --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA</span>
 <span class="sd">        ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0</span>
 <span class="sd">        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0</span>
 <span class="sd">        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests</span>
@@ -279,7 +287,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -301,7 +309,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

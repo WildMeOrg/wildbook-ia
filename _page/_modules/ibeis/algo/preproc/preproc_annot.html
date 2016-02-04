@@ -1,0 +1,420 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.preproc.preproc_annot &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../preproc.html">ibeis.algo.preproc</a> &raquo;</li>
+      
+    <li>ibeis.algo.preproc.preproc_annot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.preproc.preproc_annot</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The goal of this module is to offload annotation work from the controller into a</span>
+<span class="sd">single place.</span>
+
+<span class="sd">CommandLine Help for manual controller functions</span>
+
+<span class="sd"># Cross platform alias helper</span>
+<span class="sd">python -c &quot;import utool as ut; ut.write_to(&#39;Tgen.sh&#39;, &#39;python -m ibeis.control.template_generator $@&#39;)&quot;  # NOQA</span>
+
+<span class="sd">Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False</span>
+<span class="sd">Tgen.sh --tbls annotations --Tcfg with_getters:True with_native:True strip_docstr:True</span>
+<span class="sd">Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True with_columns:False --quiet</span>
+<span class="sd">Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_annot]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="make_annotation_uuids"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.make_annotation_uuids">[docs]</a><span class="k">def</span> <span class="nf">make_annotation_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># Check to make sure bbox input is a tuple-list, not a list-list</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">),</span> <span class="s">&#39;Bounding boxes must be tuples of ints!&#39;</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s">&#39;Bounding boxes must be tuples of ints!&#39;</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;bbox_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox_list</span><span class="p">,))</span>
+                <span class="k">raise</span>
+        <span class="n">annotation_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="n">img_uuid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">img_uuid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span>
+                                <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span><span class="p">:</span>
+            <span class="c"># Augment determenistic uuid with a random uuid to ensure randomness</span>
+            <span class="c"># (this should be ensured in all hardward situations)</span>
+            <span class="n">annotation_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">random_uuid</span><span class="p">(),</span> <span class="n">_uuid</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">_uuid</span> <span class="ow">in</span> <span class="n">annotation_uuid_list</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error building annotation_uuids&#39;</span><span class="p">,</span> <span class="s">&#39;[add_annot]&#39;</span><span class="p">,</span>
+                      <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;image_uuid_list&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">annotation_uuid_list</span>
+
+</div>
+<div class="viewcode-block" id="generate_annot_properties"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.generate_annot_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_annot_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">species_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">detect_confidence_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">vert_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">yaw_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="c">#annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,</span>
+    <span class="c">#                                                      theta_list, deterministic=False)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))]</span>
+    <span class="c"># Prepare the SQL input</span>
+    <span class="k">assert</span> <span class="n">name_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s">&#39;cannot specify both names and nids&#39;</span><span class="p">)</span>
+    <span class="c"># For import only, we can specify both by setting import_override to True</span>
+    <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">bbox_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">vert_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span> <span class="p">(</span>
+        <span class="s">&#39;must specify exactly one of bbox_list or vert_list&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">theta_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">detect_confidence_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">detect_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">notes_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">vert_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">vert_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_list_from_bboxes_list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">bbox_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+
+    <span class="n">len_bbox</span>    <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="n">len_vert</span>    <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">len_gid</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">len_notes</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">notes_list</span><span class="p">)</span>
+    <span class="n">len_theta</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">len_vert</span> <span class="o">==</span> <span class="n">len_bbox</span><span class="p">,</span> <span class="s">&#39;bbox and verts are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_gid</span>  <span class="o">==</span> <span class="n">len_bbox</span><span class="p">,</span> <span class="s">&#39;bbox and gid are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_gid</span>  <span class="o">==</span> <span class="n">len_theta</span><span class="p">,</span> <span class="s">&#39;bbox and gid are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_notes</span> <span class="o">==</span> <span class="n">len_gid</span><span class="p">,</span> <span class="s">&#39;notes and gids are not of same size&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;len_vert&#39;</span><span class="p">,</span> <span class="s">&#39;len_gid&#39;</span><span class="p">,</span> <span class="s">&#39;len_bbox&#39;</span>
+                                    <span class="s">&#39;len_theta&#39;</span><span class="p">,</span> <span class="s">&#39;len_notes&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># nothing is being added</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] WARNING: 0 annotations are beign added!&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="c"># Build ~~deterministic?~~ random and unique ANNOTATION ids</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="c">#annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,</span>
+    <span class="c">#                                                      theta_list, deterministic=False)</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">yaw_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">yaw_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">nVert_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">vert_list</span><span class="p">]</span>
+    <span class="n">vertstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">__STR__</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">vert_list</span><span class="p">]</span>
+    <span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">bbox_list</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nVert_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
+    <span class="c"># Define arguments to insert</span>
+
+</div>
+<div class="viewcode-block" id="make_annot_visual_uuid"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.make_annot_visual_uuid">[docs]</a><span class="k">def</span> <span class="nf">make_annot_visual_uuid</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        visual_infotup (tuple):  (image_uuid_list, verts_list, theta_list)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: annot_visual_uuid_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_annot import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = testdata_preproc_annot()</span>
+<span class="sd">        &gt;&gt;&gt; visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; annot_visual_uuid_list = make_annot_visual_uuid(visual_infotup)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(annot_visual_uuid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#39;len=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">),)</span>
+    <span class="n">annot_visual_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="o">*</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">visual_infotup</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">annot_visual_uuid_list</span>
+
+</div>
+<div class="viewcode-block" id="make_annot_semantic_uuid"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.make_annot_semantic_uuid">[docs]</a><span class="k">def</span> <span class="nf">make_annot_semantic_uuid</span><span class="p">(</span><span class="n">semantic_infotup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        semantic_infotup (tuple): (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: annot_semantic_uuid_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_annot import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = testdata_preproc_annot()</span>
+<span class="sd">        &gt;&gt;&gt; semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(annot_semantic_uuid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        bf774bf3-582d-dbce-6ca6-329adeb086a6</span>
+
+<span class="sd">        215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">semantic_infotup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">,</span> <span class="s">&#39;len=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">semantic_infotup</span><span class="p">),)</span>
+    <span class="n">annot_semantic_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="o">*</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">semantic_infotup</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">annot_semantic_uuid_list</span>
+
+</div>
+<div class="viewcode-block" id="testdata_preproc_annot"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.testdata_preproc_annot">[docs]</a><span class="k">def</span> <span class="nf">testdata_preproc_annot</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span>
+
+</div>
+<div class="viewcode-block" id="test_annotation_uuid"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.test_annotation_uuid">[docs]</a><span class="k">def</span> <span class="nf">test_annotation_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Consistency test &quot;&quot;&quot;</span>
+    <span class="c"># DEPRICATE</span>
+    <span class="n">aid_list</span>        <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">bbox_list</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">theta_list</span>      <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">annotation_uuid_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">annotation_uuid_list2</span> <span class="o">=</span> <span class="n">make_annotation_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">annotation_uuid_list1</span> <span class="o">==</span> <span class="n">annotation_uuid_list2</span>
+
+
+<span class="c">#def distinguish_unknown_nids(ibs, aid_list, nid_list_):</span>
+<span class="c">#    nid_list = [-aid if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid</span>
+<span class="c">#                for nid, aid in zip(nid_list_, aid_list)]</span>
+<span class="c">#    return nid_list</span>
+
+</div>
+<div class="viewcode-block" id="postget_annot_verts"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.postget_annot_verts">[docs]</a><span class="k">def</span> <span class="nf">postget_annot_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">):</span>
+    <span class="c"># TODO: Sanatize input for eval</span>
+    <span class="c">#print(&#39;vertstr_list = %r&#39; % (vertstr_list,))</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">globals_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">eval</span><span class="p">(</span><span class="n">vertstr</span><span class="p">,</span> <span class="n">globals_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span> <span class="k">for</span> <span class="n">vertstr</span> <span class="ow">in</span> <span class="n">vertstr_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">vert_list</span>
+
+</div>
+<div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_annot.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="c">#ibs.delete_annot_relations(aid_list)</span>
+    <span class="c"># image thumbs are deleted in here too, this needs to be fixed</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.template_generator --tbls annotations --Tflags getters native</span>
+
+<span class="sd">        python -m ibeis.algo.preproc.preproc_annot</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_annot --allexamples</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_annot --allexamples --noface --nosrc</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

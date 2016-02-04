@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.controller_inject &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.controller_inject &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -132,10 +132,20 @@
             
   <h1>Source code for ibeis.control.controller_inject</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO:</span>
+<span class="sd">    Move flask registering into another file.</span>
+<span class="sd">    Should also make the actual flask registration lazy.</span>
+<span class="sd">    It should only be executed if a web instance is being started.</span>
+
+
+<span class="sd">python -c &quot;import ibeis&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">dtool</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">update_wrapper</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
@@ -149,13 +159,14 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="c">#import numpy as np</span>
 <span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">requests</span>
 <span class="c"># &lt;flask&gt;</span>
 <span class="c"># TODO: allow optional flask import</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">flask</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span>
     <span class="n">HAS_FLASK</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="n">HAS_FLASK</span> <span class="o">=</span> <span class="bp">False</span>
@@ -169,6 +180,22 @@
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="n">HAS_FLASK_CORS</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Missing flask.ext.cors&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+        <span class="k">raise</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">flask.ext.cas</span> <span class="kn">import</span> <span class="n">CAS</span>
+    <span class="kn">from</span> <span class="nn">flask.ext.cas</span> <span class="kn">import</span> <span class="n">login_required</span>
+    <span class="n">HAS_FLASK_CAS</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="n">HAS_FLASK_CAS</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">login_required</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">identity</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Missing flask.ext.cas.</span><span class="se">\n</span><span class="s">&#39;</span>
+           <span class="s">&#39;To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># sudo</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
         <span class="k">raise</span>
 <span class="c"># &lt;/flask&gt;</span>
@@ -186,6 +213,7 @@
 
 <span class="n">GLOBAL_APP</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="n">GLOBAL_CORS</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">GLOBAL_CAS</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="c">#JSON_PYTHON_OBJECT_TAG = &#39;__PYTHON_OBJECT__&#39;</span>
 
 <span class="c"># REMOTE_PROXY_URL = &#39;dozer.cs.rpi.edu&#39;</span>
@@ -200,6 +228,7 @@
     <span class="c"># TODO this should be initialized explicity in main_module.py only if needed</span>
     <span class="k">global</span> <span class="n">GLOBAL_APP</span>
     <span class="k">global</span> <span class="n">GLOBAL_CORS</span>
+    <span class="k">global</span> <span class="n">GLOBAL_CAS</span>
     <span class="k">global</span> <span class="n">HAS_FLASK</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_FLASK</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;flask is not installed&#39;</span><span class="p">)</span>
@@ -222,6 +251,12 @@
                                  <span class="n">static_folder</span><span class="o">=</span><span class="n">static_dpath</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">HAS_FLASK_CORS</span><span class="p">:</span>
             <span class="n">GLOBAL_CORS</span> <span class="o">=</span> <span class="n">CORS</span><span class="p">(</span><span class="n">GLOBAL_APP</span><span class="p">,</span> <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s">r&quot;/api/*&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;origins&quot;</span><span class="p">:</span> <span class="s">&quot;*&quot;</span><span class="p">}})</span>  <span class="c"># NOQA</span>
+        <span class="k">if</span> <span class="n">HAS_FLASK_CAS</span><span class="p">:</span>
+            <span class="n">GLOBAL_CAS</span> <span class="o">=</span> <span class="n">CAS</span><span class="p">(</span><span class="n">GLOBAL_APP</span><span class="p">,</span> <span class="s">&#39;/cas&#39;</span><span class="p">)</span>
+            <span class="n">GLOBAL_APP</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;SESSION_TYPE&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="s">&#39;memcached&#39;</span>
+            <span class="n">GLOBAL_APP</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;SECRET_KEY&#39;</span><span class="p">]</span>      <span class="o">=</span> <span class="n">GLOBAL_APP_SECRET</span>
+            <span class="n">GLOBAL_APP</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;CAS_SERVER&#39;</span><span class="p">]</span>      <span class="o">=</span> <span class="s">&#39;https://cas-auth.rpi.edu&#39;</span>
+            <span class="n">GLOBAL_APP</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;CAS_AFTER_LOGIN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;root&#39;</span>
     <span class="k">return</span> <span class="n">GLOBAL_APP</span>
 
 <span class="c"># try and load flask</span></div>
@@ -243,7 +278,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="s">&#39;&lt;</span><span class="si">%s</span><span class="s"> | </span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="WebMissingUUIDException"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.WebMissingUUIDException">[docs]</a><span class="k">class</span> <span class="nc">WebMissingUUIDException</span><span class="p">(</span><span class="n">WebException</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_image_uuid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">missing_annot_uuid_list</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">missing_image_uuid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_annot_uuid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;Missing image and/or annotation UUIDs (</span><span class="si">%d</span><span class="s">, </span><span class="si">%d</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="mi">600</span>
+        <span class="n">WebException</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_image_uuid_list</span> <span class="o">=</span> <span class="n">missing_image_uuid_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_annot_uuid_list</span> <span class="o">=</span> <span class="n">missing_annot_uuid_list</span>
 
 </div>
 <div class="viewcode-block" id="translate_ibeis_webreturn"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.translate_ibeis_webreturn">[docs]</a><span class="k">def</span> <span class="nf">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -260,78 +306,125 @@
             <span class="s">&#39;code&#39;</span><span class="p">:</span>    <span class="n">code</span><span class="p">,</span>
             <span class="s">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
             <span class="s">&#39;cache&#39;</span><span class="p">:</span>   <span class="n">cache</span><span class="p">,</span>
+            <span class="c">#&#39;debug&#39;: {}  # TODO</span>
         <span class="p">},</span>
         <span class="s">&#39;response&#39;</span> <span class="p">:</span> <span class="n">rawreturn</span>
     <span class="p">}</span>
-    <span class="c">#response = json.dumps(template, cls=JSONPythonObjectEncoder)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">jQuery_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">jQuery_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Including jQuery callback function: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">response</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jQuery_callback</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span>
 
 </div>
-<div class="viewcode-block" id="translate_ibeis_webcall"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.translate_ibeis_webcall">[docs]</a><span class="k">def</span> <span class="nf">translate_ibeis_webcall</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c">#print(&#39;Processing: %r with args: %r and kwargs: %r&#39; % (func, args, kwargs, ))</span>
-    <span class="k">def</span> <span class="nf">_process_input</span><span class="p">(</span><span class="n">multidict</span><span class="p">):</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">multidict</span><span class="o">.</span><span class="n">iterlists</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">WebException</span><span class="p">(</span><span class="s">&#39;Cannot specify a parameter more than once: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">))</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s">&#39;[&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s">&#39;]&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="s">&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
-            <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;True&#39;</span><span class="p">,</span> <span class="s">&#39;False&#39;</span><span class="p">]:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="c">#converted = json.loads(value, object_hook=_as_python_object)</span>
-                <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="c"># try making string and try again...</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
-                <span class="c">#converted = json.loads(value, object_hook=_as_python_object)</span>
-                <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_list&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">:</span>
-                    <span class="n">converted</span> <span class="o">=</span> <span class="n">converted</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_process_input</span><span class="p">(</span><span class="n">multidict</span><span class="p">):</span>
+    <span class="n">kwargs2</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">multidict</span><span class="o">.</span><span class="n">iterlists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WebException</span><span class="p">(</span><span class="s">&#39;Cannot specify a parameter more than once: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s">&#39;[&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s">&#39;]&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="s">&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;True&#39;</span><span class="p">,</span> <span class="s">&#39;False&#39;</span><span class="p">]:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c"># try making string and try again...</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_list&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">:</span>
+                <span class="n">converted</span> <span class="o">=</span> <span class="n">converted</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">converted</span> <span class="o">=</span> <span class="p">[</span><span class="n">converted</span><span class="p">]</span>
+        <span class="c"># Allow JSON formatted strings to be placed into note fields</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;note_list&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;notes_list&#39;</span><span class="p">))</span> <span class="ow">and</span>
+           <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))):</span>
+            <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">converted</span><span class="p">)</span>
+            <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">converted</span> <span class="o">=</span> <span class="p">[</span><span class="n">converted</span><span class="p">]</span>
-            <span class="c"># Allow JSON formatted strings to be placed into note fields</span>
-            <span class="k">if</span> <span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;note_list&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;notes_list&#39;</span><span class="p">))</span> <span class="ow">and</span>
-               <span class="nb">isinstance</span><span class="p">(</span><span class="n">converted</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))):</span>
-                <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">converted</span><span class="p">)</span>
-                <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">converted</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                        <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
-                <span class="n">converted</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">converted</span>
-    <span class="c"># Pipe web input into Python web call</span>
-    <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-    <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
-    <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="s">&#39;callback&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s">&#39;jQuery&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;callback&#39;</span><span class="p">]:</span>
-        <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Calling: </span><span class="si">%r</span><span class="s"> with args: </span><span class="si">%r</span><span class="s"> and kwargs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">))</span>
+                    <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+            <span class="n">converted</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
+        <span class="n">kwargs2</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">converted</span>
+    <span class="k">return</span> <span class="n">kwargs2</span>
+
+
+<div class="viewcode-block" id="translate_ibeis_webcall"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.translate_ibeis_webcall">[docs]</a><span class="k">def</span> <span class="nf">translate_ibeis_webcall</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Called from flask request context</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func (function):  live python function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (output, True, 200, None, jQuery_callback)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall</span>
+<span class="sd">        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --domain http://52.33.105.88</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.controller_inject import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import time</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis.web</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, wait=1, start_job_queue=False)</span>
+<span class="sd">        &gt;&gt;&gt; aids = web_ibs.send_ibeis_request(&#39;/api/annot/&#39;, &#39;get&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; uuid_list = web_ibs.send_ibeis_request(&#39;/api/annot/uuids/&#39;, aid_list=aids)</span>
+<span class="sd">        &gt;&gt;&gt; failrsp = web_ibs.send_ibeis_request(&#39;/api/annot/uuids/&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; failrsp2 = web_ibs.send_ibeis_request(&#39;/api/core/query_chips_simple_dict/&#39;, &#39;get&#39;, qaid_list=[0], daid_list=[0])</span>
+<span class="sd">        &gt;&gt;&gt; log_text = web_ibs.send_ibeis_request(&#39;/api/core/query_chips_simple_dict/&#39;, &#39;get&#39;, qaid_list=[0], daid_list=[0])</span>
+<span class="sd">        &gt;&gt;&gt; time.sleep(.1)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;\n---\nuuid_list = %r&#39; % (uuid_list,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;\n---\nfailrsp =\n%s&#39; % (failrsp,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;\n---\nfailrsp2 =\n%s&#39; % (failrsp2,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Finished test&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        app = get_flask_app()</span>
+<span class="sd">        with app.app_context():</span>
+<span class="sd">            #ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            func = ibs.get_annot_uuids</span>
+<span class="sd">            args = tuple()</span>
+<span class="sd">            kwargs = dict()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#print(&#39;Calling: %r with args: %r and kwargs: %r&#39; % (func, args, kwargs, ))</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;&#39;</span>
+    <span class="n">funcstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,)</span> <span class="o">+</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Calling: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcstr</span><span class="p">,))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;There should not be any args=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,)</span>
+
     <span class="k">try</span><span class="p">:</span>
-        <span class="c">#output = func(*args, **kwargs)</span>
+        <span class="c"># TODO, have better way to differentiate ibs funcs from other funcs</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="c">#output = func(ibs=ibs, *args, **kwargs)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Error in translate ibeis web call&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;kwargs = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;args = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;flask.request.args = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;flask.request.form = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,))</span>
+        <span class="k">except</span> <span class="n">WebMissingUUIDException</span><span class="p">:</span>
             <span class="k">raise</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">jQuery_callback</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+            <span class="n">msg_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Error in translate_ibeis_webcall&#39;</span><span class="p">)</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Expected Function Definition: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_defsig</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Received Function Definition: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcstr</span><span class="p">,))</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;kwargs = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;args = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;flask.request.args = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,))</span>
+            <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;flask.request.form = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,))</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list</span><span class="p">)</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="c"># error_msg = ut.strip_ansi(error_msg)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="c">#raise</span>
+    <span class="n">resp_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resp_tup</span>
 
 </div>
 <div class="viewcode-block" id="authentication_challenge"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_challenge">[docs]</a><span class="k">def</span> <span class="nf">authentication_challenge</span><span class="p">():</span>
@@ -502,6 +595,9 @@
 
 </div>
 <div class="viewcode-block" id="get_ibeis_flask_api"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_ibeis_flask_api">[docs]</a><span class="k">def</span> <span class="nf">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="n">DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For function calls that resolve to api calls and return json.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
@@ -517,14 +613,49 @@
                 <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
                 <span class="c">#def translated_call(*args, **kwargs):</span>
                 <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-                    <span class="c">#from flask import make_response</span>
+
+                    <span class="k">def</span> <span class="nf">html_newlines</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+                        <span class="n">r</span> <span class="o">=</span> <span class="s">&#39;&lt;br /&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&amp;nbsp;&#39;</span><span class="p">)</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">text</span>
+
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="c">#values = translate_ibeis_webcall(func, *args, **kwargs)</span>
-                        <span class="n">values</span> <span class="o">=</span> <span class="n">translate_ibeis_webcall</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                        <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="n">values</span>
+                        <span class="c">#print(&#39;Processing: %r with args: %r and kwargs: %r&#39; % (func, args, kwargs, ))</span>
+                        <span class="c"># Pipe web input into Python web call</span>
+                        <span class="n">kwargs2</span> <span class="o">=</span> <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+                        <span class="n">kwargs3</span> <span class="o">=</span> <span class="n">_process_input</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
+                        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs2</span><span class="p">)</span>
+                        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs3</span><span class="p">)</span>
+                        <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="k">if</span> <span class="s">&#39;callback&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s">&#39;jQuery&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;callback&#39;</span><span class="p">]:</span>
+                            <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+                            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+                        <span class="c">#print(&#39;KWARGS:  %s&#39; % (kwargs, ))</span>
+                        <span class="c">#print(&#39;COOKIES: %s&#39; % (request.cookies, ))</span>
+                        <span class="n">__format__</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;__format__&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                        <span class="n">__format__</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;__format__&#39;</span><span class="p">,</span> <span class="n">__format__</span><span class="p">)</span>
+                        <span class="n">ignore_cookie_set</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="k">if</span> <span class="n">__format__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                            <span class="n">__format__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">__format__</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                            <span class="n">ignore_cookie_set</span> <span class="o">=</span> <span class="n">__format__</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;onetime&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">]</span>
+                            <span class="n">__format__</span> <span class="o">=</span> <span class="n">__format__</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;true&#39;</span><span class="p">,</span> <span class="s">&#39;enabled&#39;</span><span class="p">,</span> <span class="s">&#39;enable&#39;</span><span class="p">]</span>
+
+                        <span class="n">resp_tup</span> <span class="o">=</span> <span class="n">translate_ibeis_webcall</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                        <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">resp_tup</span>
+                    <span class="k">except</span> <span class="n">WebMissingUUIDException</span> <span class="k">as</span> <span class="n">uuidex</span><span class="p">:</span>
+                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="s">&#39;missing_image_uuid_list&#39;</span> <span class="p">:</span> <span class="n">uuidex</span><span class="o">.</span><span class="n">missing_image_uuid_list</span><span class="p">,</span>
+                            <span class="s">&#39;missing_annot_uuid_list&#39;</span> <span class="p">:</span> <span class="n">uuidex</span><span class="o">.</span><span class="n">missing_annot_uuid_list</span><span class="p">,</span>
+                        <span class="p">}</span>
+                        <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">code</span> <span class="o">=</span> <span class="n">uuidex</span><span class="o">.</span><span class="n">code</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="n">uuidex</span><span class="o">.</span><span class="n">message</span>
+                        <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="bp">None</span>
                     <span class="k">except</span> <span class="n">WebException</span> <span class="k">as</span> <span class="n">webex</span><span class="p">:</span>
+                        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">webex</span><span class="p">)</span>
                         <span class="n">rawreturn</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-                        <span class="k">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                         <span class="k">if</span> <span class="n">DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE</span><span class="p">:</span>
                             <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                         <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
@@ -532,14 +663,14 @@
                         <span class="n">message</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">message</span>
                         <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="bp">None</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
                         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-                        <span class="c">#print(traceback.format_exc())</span>
+                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
                         <span class="k">if</span> <span class="n">DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE</span><span class="p">:</span>
                             <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                         <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
                         <span class="n">code</span> <span class="o">=</span> <span class="mi">500</span>
-                        <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;API error, Python Exception thrown: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                        <span class="n">errmsg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;API error, Python Exception thrown: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
                         <span class="k">if</span> <span class="s">&quot;&#39;int&#39; object is not iterable&quot;</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
                             <span class="n">rawreturn</span> <span class="o">=</span> <span class="p">(</span>
                                 <span class="s">&#39;HINT: the input for this call is most likely &#39;</span>
@@ -548,10 +679,45 @@
                                 <span class="s">&#39;into a list) or encapsualte the input with &#39;</span>
                                 <span class="s">&#39;[].&#39;</span><span class="p">)</span>
                         <span class="n">jQuery_callback</span> <span class="o">=</span> <span class="bp">None</span>
-                    <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span>
-                                                          <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span>
-                                                          <span class="n">jQuery_callback</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="n">webreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+
+                    <span class="c">#print(&#39;RECEIVED FORMAT: %r&#39; % (__format__, ))</span>
+
+                    <span class="k">if</span> <span class="n">__format__</span><span class="p">:</span>
+                        <span class="c"># Hack for readable error messages</span>
+                        <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span>
+                            <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span><span class="p">)</span>
+                        <span class="n">webreturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">webreturn</span><span class="p">),</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="kn">from</span> <span class="nn">ansi2html</span> <span class="kn">import</span> <span class="n">Ansi2HTMLConverter</span>
+                            <span class="n">conv</span> <span class="o">=</span> <span class="n">Ansi2HTMLConverter</span><span class="p">()</span>
+                            <span class="n">webreturn</span> <span class="o">=</span> <span class="n">conv</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;pip install ansi2html&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                            <span class="n">webreturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strip_ansi</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span>
+                            <span class="n">webreturn</span> <span class="o">=</span> <span class="s">&#39;&lt;p&gt;&lt;samp&gt;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">html_newlines</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&lt;/samp&gt;&lt;/p&gt;&#39;</span>
+                            <span class="n">webreturn</span> <span class="o">=</span> <span class="s">&#39;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html;charset=ISO-8859-8&quot;&gt;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">webreturn</span>
+
+                        <span class="k">def</span> <span class="nf">get_func_href</span><span class="p">(</span><span class="n">funcname</span><span class="p">):</span>
+                            <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HTTP_HOST&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">flask</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">funcname</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;?__format__=True&#39;</span>
+                            <span class="k">return</span> <span class="s">&#39;&lt;a href=&quot;{url}&quot;&gt;{url}&lt;/a&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+                            <span class="n">webreturn</span> <span class="o">+=</span> <span class="s">&#39;&lt;pre&gt;See logs for details: </span><span class="si">%s</span><span class="s">&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="n">get_func_href</span><span class="p">(</span><span class="s">&#39;get_current_log_text&#39;</span><span class="p">)</span>
+                            <span class="n">webreturn</span> <span class="o">+=</span> <span class="s">&#39;&lt;pre&gt;Might also look into db_info: </span><span class="si">%s</span><span class="s">&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="n">get_func_href</span><span class="p">(</span><span class="s">&#39;get_dbinfo&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span>
+                            <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">jQuery_callback</span><span class="p">)</span>
+                        <span class="n">webreturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strip_ansi</span><span class="p">(</span><span class="n">webreturn</span><span class="p">)</span>
+
+                    <span class="n">resp</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="n">webreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_cookie_set</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">__format__</span><span class="p">:</span>
+                            <span class="n">resp</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="s">&#39;__format__&#39;</span><span class="p">,</span> <span class="s">&#39;enabled&#39;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">resp</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="s">&#39;__format__&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">expires</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                    <span class="k">return</span> <span class="n">resp</span>
                 <span class="c"># return the original unmodified function</span>
                 <span class="k">if</span> <span class="n">REMOTE_PROXY_URL</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">func</span>
@@ -564,6 +730,9 @@
 
 </div>
 <div class="viewcode-block" id="get_ibeis_flask_route"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_ibeis_flask_route">[docs]</a><span class="k">def</span> <span class="nf">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For function calls that resolve to webpages and return html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
@@ -576,11 +745,11 @@
                 <span class="nd">@app.route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
                 <span class="c"># @crossdomain(origin=&#39;*&#39;)</span>
                 <span class="c"># @authentication_user_only</span>
+                <span class="c"># @login_required  # FLASK CAS Authentication</span>
                 <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-                <span class="c">#def translated_call(*args, **kwargs):</span>
                 <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="c">#debug = {&#39;kwargs&#39;: kwargs}</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="c">#result = func(*args, **kwargs)</span>
                         <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                         <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
@@ -605,6 +774,7 @@
 </div>
 <div class="viewcode-block" id="api_remote_ibeis"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.api_remote_ibeis">[docs]</a><span class="k">def</span> <span class="nf">api_remote_ibeis</span><span class="p">(</span><span class="n">remote_ibeis_url</span><span class="p">,</span> <span class="n">remote_api_func</span><span class="p">,</span> <span class="n">remote_ibeis_port</span><span class="o">=</span><span class="mi">5001</span><span class="p">,</span>
                      <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">requests</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span> <span class="ow">and</span> <span class="n">GLOBAL_APP</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Flask has not been initialized&#39;</span><span class="p">)</span>
     <span class="n">api_name</span> <span class="o">=</span> <span class="n">remote_api_func</span><span class="o">.</span><span class="n">__name__</span>
@@ -657,7 +827,6 @@
         <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">)</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span>
-    <span class="c">#converted = json.loads(response, object_hook=_as_python_object)</span>
     <span class="n">converted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">converted</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;response&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;response = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,))</span>
@@ -698,7 +867,7 @@
         <span class="s">&#39;--exec-dev_autogen_explicit_injects&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">ibeis.control.IBEISControl</span>
     <span class="n">conditional_imports</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">modname</span> <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">inject_modnames</span>
+        <span class="n">modname</span> <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">AUTOLOAD_PLUGIN_MODNAMES</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">source_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">autogen_explicit_injectable_metaclass</span><span class="p">(</span>
@@ -712,13 +881,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    builds variables and functions that controller injectable modules need</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#global INJECTED_MODULES</span>
     <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register controller functions as main&#39;</span><span class="p">)</span>
-    <span class="c">#else:</span>
     <span class="n">CLASS_INJECT_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONTROLLER_CLASSNAME</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
     <span class="c"># Create dectorator to inject these functions into the IBEISController</span>
-    <span class="c">#register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)</span>
     <span class="n">register_ibs_unaliased_method</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span>
         <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
 
@@ -741,6 +907,9 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">ExternalStorageException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
+<span class="n">register_preproc</span><span class="p">,</span> <span class="n">register_algo</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+
+
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -763,7 +932,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -785,7 +954,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

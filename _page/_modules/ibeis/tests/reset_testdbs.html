@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.reset_testdbs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.tests.reset_testdbs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -135,7 +135,7 @@
 <span class="sd">downloads standard test datasets. can delete them as well</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c"># TODO: ADD COPYRIGHT TAG</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
 <span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_database</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
@@ -182,7 +182,7 @@
 <span class="sd">    Gets test img directory and downloads it if it doesn&#39;t exist</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">testdata_map</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;testdb1&#39;</span><span class="p">:</span> <span class="s">&#39;https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip&#39;</span>
+        <span class="s">&#39;testdb1&#39;</span><span class="p">:</span> <span class="s">&#39;https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip&#39;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">zipped_testdata_url</span> <span class="o">=</span> <span class="n">testdata_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="n">testdata_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_testdata_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
@@ -195,6 +195,7 @@
     <span class="s">&#39;mtest&#39;</span><span class="p">:</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
     <span class="s">&#39;testdb0&#39;</span><span class="p">:</span> <span class="s">&#39;testdb0&#39;</span><span class="p">,</span>
     <span class="s">&#39;testdb1&#39;</span><span class="p">:</span> <span class="s">&#39;testdb1&#39;</span><span class="p">,</span>
+    <span class="s">&#39;testdb2&#39;</span><span class="p">:</span> <span class="s">&#39;testdb2&#39;</span><span class="p">,</span>
     <span class="s">&#39;testdb_guiall&#39;</span><span class="p">:</span> <span class="s">&#39;testdb_guiall&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
@@ -204,6 +205,9 @@
 
 </div>
 <div class="viewcode-block" id="ensure_smaller_testingdbs"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.ensure_smaller_testingdbs">[docs]</a><span class="k">def</span> <span class="nf">ensure_smaller_testingdbs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Makes the smaller test databases</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">make_testdb0</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot; makes testdb0 &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -262,7 +266,9 @@
 
 </div>
 <div class="viewcode-block" id="reset_testdbs"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.reset_testdbs.reset_testdbs">[docs]</a><span class="k">def</span> <span class="nf">reset_testdbs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">:</span> <span class="bp">False</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">TEST_DBNAMES_MAP</span><span class="p">)</span> <span class="p">}</span>
+    <span class="c"># Step 0) Parse Args</span>
+    <span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">:</span> <span class="bp">False</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">TEST_DBNAMES_MAP</span><span class="p">)}</span>
     <span class="n">default_args</span><span class="p">[</span><span class="s">&#39;reset_all&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">default_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">argdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_dict_from_argv</span><span class="p">(</span><span class="n">default_args</span><span class="p">)</span>
@@ -271,14 +277,23 @@
         <span class="n">argdict</span><span class="p">[</span><span class="s">&#39;reset_testdb0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">argdict</span><span class="p">[</span><span class="s">&#39;reset_testdb1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">argdict</span><span class="p">[</span><span class="s">&#39;reset_testdb_guiall&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c"># Step 1) Delete DBs to be Reset</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">TEST_DBNAMES_MAP</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">argdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;reset_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">argdict</span><span class="p">[</span><span class="s">&#39;reset_all&#39;</span><span class="p">]:</span>
             <span class="n">delete_dbdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+
+    <span class="c"># Step 3) Ensure DBs that dont exist</span>
     <span class="n">ensure_smaller_testingdbs</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s">&#39;NAUT_test&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;NAUT_test&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_nauts</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb2&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">ibeis</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">ensure_testdb2</span><span class="p">()</span>
+
+    <span class="c"># Step 4) testdb1 becomes the main database</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
     <span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">)</span>
@@ -306,8 +321,6 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.tests.reset_testdbs import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; result = reset_testdbs()</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
@@ -327,7 +340,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -349,7 +362,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

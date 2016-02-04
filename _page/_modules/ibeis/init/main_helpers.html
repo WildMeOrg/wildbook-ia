@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.main_helpers &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.init.main_helpers &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -134,12 +134,14 @@
 <span class="sd">This module defines helper functions to access common input needed to test many</span>
 <span class="sd">functions. These functions give a rich command line interface to specifically</span>
 <span class="sd">select subsets of annotations, pipeline configurations, and other filters.</span>
+
+<span class="sd">TODO: standardize function signatures</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">old_main_helpers</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[main_helpers]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[main_helpers]&#39;</span><span class="p">)</span>
 
 
 <span class="c"># DEPRICATE</span>
@@ -155,7 +157,7 @@
 <span class="c">#or ut.VERBOSE or VERB_TESTDATA</span>
 
 
-<div class="viewcode-block" id="testdata_pipecfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_pipecfg">[docs]</a><span class="k">def</span> <span class="nf">testdata_pipecfg</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]):</span>
+<div class="viewcode-block" id="testdata_pipecfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_pipecfg">[docs]</a><span class="k">def</span> <span class="nf">testdata_pipecfg</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: pcfgdict</span>
@@ -171,8 +173,13 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;pcfgdict = %s&#39; % (ut.dict_str(pcfgdict),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_pipecfg&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
-    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="s">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
     <span class="n">pcfgdict_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pcfgdict_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;can only specify one pipeline config here&#39;</span>
     <span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">pcfgdict_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -181,22 +188,53 @@
 </div>
 <div class="viewcode-block" id="testdata_filtcfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_filtcfg">[docs]</a><span class="k">def</span> <span class="nf">testdata_filtcfg</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_filtcfg&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">default</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span>
     <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_argv_cfg</span><span class="p">((</span><span class="s">&#39;--filt&#39;</span><span class="p">,</span> <span class="s">&#39;-f&#39;</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">filt_cfg</span>
 
 </div>
-<div class="viewcode-block" id="testdata_qreq_"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_qreq_">[docs]</a><span class="k">def</span> <span class="nf">testdata_qreq_</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">testdata_pipecfg</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<div class="viewcode-block" id="testdata_qreq_"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_qreq_">[docs]</a><span class="k">def</span> <span class="nf">testdata_qreq_</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        t (None): (default = None)</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        default_qaids, a, defaultdb, ibs, verbose, return_annot_info</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-testdata_qreq_ --show --qaid 3</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">        &gt;&gt;&gt; p = None</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = testdata_qreq_(p)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;qreq_ = %s&#39; % (str(qreq_),))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_qreq_&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">acfg</span> <span class="o">=</span> <span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">testdata_pipecfg</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">pcfgdict</span><span class="p">)</span>
+    <span class="c"># Maintain regen command info: TODO: generalize and integrate</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">_regen_info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;_acfgstr&#39;</span><span class="p">:</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">],</span>
+        <span class="s">&#39;_pcfgstr&#39;</span><span class="p">:</span> <span class="n">pcfgdict</span><span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">],</span>
+        <span class="s">&#39;dbname&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="p">}</span>
     <span class="k">return</span> <span class="n">qreq_</span>
 
 </div>
-<div class="viewcode-block" id="testdata_cm"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_cm">[docs]</a><span class="k">def</span> <span class="nf">testdata_cm</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="testdata_cm"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_cm">[docs]</a><span class="k">def</span> <span class="nf">testdata_cm</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.init.main_helpers --test-testdata_cm</span>
@@ -211,16 +249,22 @@
 <span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, 2)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_cm&#39;</span><span class="p">)</span>
+    <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_cmlist</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
     <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;qaids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,))</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;only one qaid for this tests, qaids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,)</span>
-    <span class="n">cm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span>
 
 </div>
-<div class="viewcode-block" id="testdata_cmlist"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_cmlist">[docs]</a><span class="k">def</span> <span class="nf">testdata_cmlist</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">)</span>
+<div class="viewcode-block" id="testdata_cmlist"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_cmlist">[docs]</a><span class="k">def</span> <span class="nf">testdata_cmlist</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list, ibeis.QueryRequest: cm_list, qreq_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_cmlist&#39;</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span>
 
@@ -230,18 +274,29 @@
                    <span class="n">default_test_cfg_name_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span>
                    <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                    <span class="n">t</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                   <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                    <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                   <span class="n">daid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                   <span class="n">initial_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                    <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Command line interface to quickly get testdata for test_results</span>
+<span class="sd">    Use this if you want data from an experiment.</span>
+<span class="sd">    Command line interface to quickly get testdata for test_results.</span>
+
+<span class="sd">    Command line flags can be used to specify db, aidcfg, pipecfg, qaid</span>
+<span class="sd">    override, daid override (and maybe initial aids).</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_expts&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_harness</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">test_result</span>
     <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">default_acfgstr_name_list</span> <span class="o">=</span> <span class="n">a</span>
-    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">default_test_cfg_name_list</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">default_test_cfg_name_list</span> <span class="o">=</span> <span class="n">p</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default_acfgstr_name_list</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">default_acfgstr_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">default_acfgstr_name_list</span><span class="p">]</span>
@@ -252,24 +307,35 @@
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
     <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
                                    <span class="n">default</span><span class="o">=</span><span class="n">default_acfgstr_name_list</span><span class="p">)</span>
-    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_test_cfg_name_list</span><span class="p">)</span>
+    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="s">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_test_cfg_name_list</span><span class="p">)</span>
+    <span class="n">daid_override</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--daid-override&#39;</span><span class="p">,</span> <span class="s">&#39;--daids-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">daid_override</span><span class="p">)</span>
+    <span class="n">qaid_override</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s">&#39;--qaids-override&#39;</span><span class="p">,</span> <span class="s">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
 
     <span class="c"># Hack a cache here</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+    <span class="n">use_bigtest_cache3</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache&#39;</span><span class="p">,</span> <span class="s">&#39;--nocache-hs&#39;</span><span class="p">))</span>
+    <span class="n">use_bigtest_cache3</span> <span class="o">&amp;=</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
+    <span class="n">use_bigtest_cache3</span> <span class="o">&amp;=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">use_bigtest_cache3</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
         <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">)),</span> <span class="s">&#39;BIG_TESTLIST_CACHE3&#39;</span><span class="p">))</span>
         <span class="n">load_testres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">cached_func</span><span class="p">(</span><span class="s">&#39;testreslist&#39;</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">)(</span><span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">load_testres</span> <span class="o">=</span> <span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span>
     <span class="n">testres_list</span> <span class="o">=</span> <span class="n">load_testres</span><span class="p">(</span>
-        <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
+        <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">)</span>
     <span class="n">testres</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">combine_testres_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres_list</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="n">testres</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span>
     <span class="c">#return ibs, testres_list</span>
 
 </div>
 <div class="viewcode-block" id="testdata_expanded_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_expanded_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_expanded_aids</span><span class="p">(</span><span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                           <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                           <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">daid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        default_qaids (list): (default = [1])</span>
@@ -285,6 +351,7 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids</span>
 <span class="sd">        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:index=0:25 --verbose-testdata</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --qaid 3</span>
 <span class="sd">        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata</span>
 
 <span class="sd">    Example:</span>
@@ -300,10 +367,13 @@
 <span class="sd">        &gt;&gt;&gt; ibs.get_annotconfig_stats(qaid_list, daid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;Combined annotconfig stats&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;qaid_list = %r&#39; % (qaid_list,))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[testdata_expanded_aids] Getting test annot configs&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_expanded_aids&#39;</span><span class="p">)</span>
+    <span class="c"># print(&#39;[testdata_expanded_aids] Getting test annot configs&#39;)</span>
     <span class="k">if</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">default_qaids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c"># Hack to aggree with experiment-helpers</span>
+        <span class="n">default_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">defaultdb</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">defaultdb</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
@@ -322,7 +392,9 @@
                                                  <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">,</span>
                                                  <span class="n">return_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg_name_list</span><span class="p">)</span>
+    <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
+        <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">)</span>
 
     <span class="c">#aidcfg = old_main_helpers.get_commandline_aidcfg()</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
@@ -378,6 +450,8 @@
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_aids&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">adefault</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
@@ -437,7 +511,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -459,7 +533,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

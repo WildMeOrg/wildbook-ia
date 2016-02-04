@@ -1,0 +1,710 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dtool.base &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>dtool.base</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for dtool.base</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[depbase]&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively extracts key, val pairs from Config objects</span>
+<span class="sd">    into a flat list. (there must not be name conflicts)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">TableConfig</span><span class="p">):</span>
+            <span class="n">child_cfg</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">child_cfg</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s"> appears more than once&#39;</span> <span class="o">%</span>
+                      <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">param_list</span>
+
+
+<span class="k">def</span> <span class="nf">make_config_metaclass</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hacked over from ibeis.Config</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+    <span class="n">methods_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_comparison_methods</span><span class="p">()</span>
+
+    <span class="c"># Decorator for functions that we will inject into our metaclass</span>
+    <span class="k">def</span> <span class="nf">_register</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">methods_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_varnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subconfig_attrs</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">with_name</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; default get_cfgstr_list, can be overrided by a config object &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span>
+        <span class="n">filtered_itemstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">itemstr_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">with_name</span><span class="p">:</span>
+            <span class="n">config_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_name</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filtered_itemstr_list</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">config_name</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cfgstr</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initializes config class attributes based on params info list &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+
+        <span class="c"># SO HACKY</span>
+        <span class="c"># Hacks in implicit edges from nodes to the algorithm</span>
+        <span class="c"># using their subconfigurations</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s">&#39;get_sub_config_list&#39;</span><span class="p">):</span>
+            <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_sub_config_list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s">&#39;_sub_config_list&#39;</span><span class="p">):</span>
+            <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_sub_config_list</span>
+        <span class="k">if</span> <span class="n">_sub_config_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subclass</span> <span class="ow">in</span> <span class="n">_sub_config_list</span><span class="p">:</span>
+                <span class="c">#subclass.static_config_name()</span>
+                <span class="n">subcfg</span> <span class="o">=</span> <span class="n">subclass</span><span class="p">()</span>
+                <span class="n">subcfg_name</span> <span class="o">=</span> <span class="n">subcfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+                <span class="n">subcfg_attr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_underscore_case</span><span class="p">(</span><span class="n">subcfg_name</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_cfg&#39;</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">subcfg_attr</span><span class="p">,</span> <span class="n">subcfg</span><span class="p">)</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subcfg_name</span><span class="p">)</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subcfg_attr</span><span class="p">)</span>
+                <span class="n">subcfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">parse_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="n">duplicate_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">param_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">duplicate_keys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;Configs have duplicate names: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">duplicate_keys</span>
+        <span class="k">return</span> <span class="n">param_list</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_config_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; the user might want to overwrite this function &quot;&quot;&quot;</span>
+        <span class="n">class_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
+        <span class="n">full_class_str</span> <span class="o">=</span> <span class="n">class_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;class </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">full_class_str</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;Config&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config_name</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Needed for comparison operators &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">str_</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">cfg</span><span class="p">[</span><span class="n">subcfg_attr</span><span class="p">]</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+                                  <span class="k">for</span> <span class="n">subcfg_attr</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span><span class="p">])</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_hashid</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+
+    <span class="k">class</span> <span class="nc">ConfigMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Defines extra methods for Configs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            cls - meta</span>
+<span class="sd">            name - classname</span>
+<span class="sd">            supers - bases</span>
+<span class="sd">            dct - class dictionary</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c">#assert &#39;get_cfgstr_list&#39; in dct, (</span>
+            <span class="c">#  &#39;must have defined get_cfgstr_list.  name=%r&#39; % (name,))</span>
+            <span class="c"># Inject registered function</span>
+            <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">methods_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+                    <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                    <span class="n">dct</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                    <span class="n">dct</span><span class="p">[</span><span class="s">&#39;meta_&#39;</span> <span class="o">+</span> <span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+                <span class="c">#ut.inject_func_as_method(metaself, func)</span>
+            <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ConfigMetaclass</span>
+
+<span class="n">ConfigMetaclass</span> <span class="o">=</span> <span class="n">make_config_metaclass</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">AlgoRequest</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for algo request objects</span>
+<span class="sd">    Need this for TestResult Integration</span>
+
+<span class="sd">    This class might not be need, and is being added for</span>
+<span class="sd">    compatibility support.</span>
+<span class="sd">    The problem it solve is having daids as part of a config.  A config should</span>
+<span class="sd">    be used to specify algorithm parameters, but a referense set of matchable</span>
+<span class="sd">    annotations seems to go beyond that.  Therefore, AlgoRequest.</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        cls = dtool.AlgoRequest</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_isnewreq</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new_algo_request</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">algoname</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qaids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_daids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depc</span> <span class="o">=</span> <span class="n">depc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">daids</span>
+        <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">configclass</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">[</span><span class="n">algoname</span><span class="p">]</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configclass</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algoname</span> <span class="o">=</span> <span class="n">algoname</span>
+
+        <span class="c"># hack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ibs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">depc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+
+    <span class="k">def</span> <span class="nf">get_external_data_config2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># HACK</span>
+        <span class="c">#return None</span>
+        <span class="c">#print(&#39;[d] self.params = %r&#39; % (self.params,))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+
+    <span class="k">def</span> <span class="nf">get_external_query_config2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># HACK</span>
+        <span class="c">#return None</span>
+        <span class="c">#print(&#39;[q] self.params = %r&#39; % (self.params,))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qaids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qaids</span>
+
+    <span class="nd">@qaids.setter</span>
+    <span class="k">def</span> <span class="nf">qaids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qaids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">daids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_daids</span>
+
+    <span class="nd">@daids.setter</span>
+    <span class="k">def</span> <span class="nf">daids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_daids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaids</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="k">else</span> <span class="n">qaids</span>
+            <span class="n">subreq</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">subreq</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tablename</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">algoname</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">use_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache&#39;</span><span class="p">)</span>
+
+            <span class="n">rowids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_rowid</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">qaids</span><span class="p">)),</span> <span class="n">req</span><span class="p">,</span> <span class="n">recompute</span><span class="o">=</span><span class="ow">not</span> <span class="n">use_cache</span><span class="p">)</span>
+
+            <span class="n">result_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_query_hashid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rootset_hashid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="s">&#39;Q&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_data_hashid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rootset_hashid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_rootset_hashid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">preffix</span><span class="p">):</span>
+        <span class="n">uuid_type</span> <span class="o">=</span> <span class="s">&#39;V&#39;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">preffix</span><span class="p">,</span> <span class="n">uuid_type</span><span class="p">,</span> <span class="s">&#39;UUIDS&#39;</span><span class="p">))</span>
+        <span class="n">uuid_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get_root_uuid</span><span class="p">(</span><span class="n">root_rowids</span><span class="p">)</span>
+        <span class="c">#uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)</span>
+        <span class="n">uuid_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">uuid_hashid</span>
+
+    <span class="k">def</span> <span class="nf">get_pipe_cfgstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_pipe_hashid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">with_query</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">hash_pipe</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        main cfgstring used to identify the &#39;querytype&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">with_query</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_data</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_pipe</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hash_pipe</span><span class="p">:</span>
+                <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">())</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfgstr</span>
+
+    <span class="k">def</span> <span class="nf">get_full_cfgstr</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; main cfgstring used to identify the algo hash id &quot;&quot;&quot;</span>
+        <span class="n">full_cfgstr</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">full_cfgstr</span>
+
+    <span class="k">def</span> <span class="nf">_custom_str</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+        <span class="c"># typestr = ut.type_str(type(ibs)).split(&#39;.&#39;)[-1]</span>
+        <span class="n">typestr</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">depc</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">req</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">req</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+        <span class="c"># hashkw = dict(_new=True, pathsafe=False)</span>
+        <span class="c"># infostr_ = req.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)</span>
+        <span class="n">infostr_</span> <span class="o">=</span> <span class="s">&#39;nQ=</span><span class="si">%s</span><span class="s">, nD=</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">qaids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">daids</span><span class="p">),</span> <span class="n">req</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">())</span>
+        <span class="n">custom_str</span> <span class="o">=</span> <span class="s">&#39;&lt;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">) </span><span class="si">%s</span><span class="s"> at </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">infostr_</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">req</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">custom_str</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">_custom_str</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">_custom_str</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c"># SUPER HACK</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;dbdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;depc&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;config&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">state_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">ibeis</span>
+        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;dbdir&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;dbdir&#39;</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;params&#39;</span><span class="p">]</span>
+        <span class="n">depc</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">depc</span>
+        <span class="n">configclass</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">[</span><span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;algoname&#39;</span><span class="p">]</span> <span class="p">]</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configclass</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;depc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">depc</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="s">&#39;config&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="n">req</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">shallowcopy</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">qmask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a copy of qreq with the same qparams object and a subset of the</span>
+<span class="sd">        qx and dx objects.  used to generate chunks of vsone and vsmany queries</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#subreq = copy.copy(req)  # copy calls setstate and getstate</span>
+        <span class="n">subreq</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">__class__</span><span class="p">()</span>
+        <span class="n">subreq</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qmask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;cannot specify both&#39;</span>
+            <span class="n">qaid_list</span>  <span class="o">=</span> <span class="n">subreq</span><span class="o">.</span><span class="n">qaids</span>
+            <span class="n">subreq</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">qmask</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">subreq</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
+        <span class="k">return</span> <span class="n">subreq</span>
+
+
+<span class="k">class</span> <span class="nc">AlgoResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class for algo result objects &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_fpath</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">save_to_fpath</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="k">return</span> <span class="n">state_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">())</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">safeop</span><span class="p">(</span><span class="n">op_</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">xs</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">op_</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">MatchResult</span><span class="p">(</span><span class="n">AlgoResult</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qnid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dnid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">annot_score_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">unique_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">name_score_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dnid_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">annot_score_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">name_score_list</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_daids</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">daids</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qaids</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">typestr</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="n">infostr_</span> <span class="o">=</span> <span class="s">&#39;qaid=</span><span class="si">%s</span><span class="s"> nD=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">num_daids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> at </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">infostr_</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cm</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">typestr</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="n">infostr_</span> <span class="o">=</span> <span class="s">&#39;qaid=</span><span class="si">%s</span><span class="s"> nD=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">num_daids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">infostr_</span><span class="p">)</span>
+
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">DictLike</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class for heirarchical config</span>
+
+<span class="sd">    need to overwrite get_param_info_list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_name</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_varnames</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">getitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">setitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_info_list</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s">&#39;Need to define _param_info_list or get_param_info_list&#39;</span><span class="p">)</span>
+
+    <span class="c">#@classmethod</span>
+    <span class="c">#def static_config_name(cls):</span>
+    <span class="c">#    class_str = str(cls)</span>
+    <span class="c">#    full_class_str = class_str.replace(&#39;&lt;class \&#39;&#39;, &#39;&#39;).replace(&#39;\&#39;&gt;&#39;, &#39;&#39;)</span>
+    <span class="c">#    config_name = splitext(full_class_str)[1][1:].replace(&#39;Config&#39;, &#39;&#39;)</span>
+    <span class="c">#    return config_name</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_argv_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ut.parse_argv_cfg</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_dict_from_argv</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">new_vals</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_argv_cfgs</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+        <span class="c">#name = cls.static_config_name()</span>
+        <span class="n">argname</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_alias&#39;</span><span class="p">):</span>
+            <span class="n">argname</span> <span class="o">=</span> <span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span><span class="p">)</span>
+        <span class="c">#if hasattr(cls, &#39;_alias&#39;):</span>
+        <span class="c">#    argname = (argname, &#39;--&#39; + cls._alias)</span>
+        <span class="n">new_vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_argv_cfg</span><span class="p">(</span><span class="n">argname</span><span class="p">)</span>
+        <span class="n">self_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">new_vals</span><span class="p">)</span> <span class="k">for</span> <span class="n">new_vals</span> <span class="ow">in</span> <span class="n">new_vals_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">self_list</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="c"># @classmethod</span>
+    <span class="c"># def register_func</span>
+
+
+<span class="k">class</span> <span class="nc">TableConfig</span><span class="p">(</span><span class="n">Config</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">AlgoConfig</span><span class="p">(</span><span class="n">TableConfig</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">dict_as_config</span><span class="p">(</span><span class="n">default_cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">dtool</span>
+    <span class="k">class</span> <span class="nc">UnnamedConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">TableConfig</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="c">#print(&#39;default_cfgdict = %r&#39; % (default_cfgdict,))</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">default_cfgdict</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">UnnamedConfig</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tablename</span> <span class="o">+</span> <span class="s">&#39;Config&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">UnnamedConfig</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.base</span>
+<span class="sd">        python -m dtool.base --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

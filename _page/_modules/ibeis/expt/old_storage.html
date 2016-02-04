@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.old_storage &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.expt.old_storage &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -277,8 +277,8 @@
                         <span class="s">&#39;qx2_gt_raw_score&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gf_raw_score&#39;</span><span class="p">]</span>
     <span class="n">colname_priority</span> <span class="o">+=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">))</span>
     <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">priority_argsort</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">)</span>
-    <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
-    <span class="n">column_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
 
     <span class="n">col_lens</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">column_list</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;col_name_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_name_list</span><span class="p">,))</span>
@@ -369,7 +369,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -391,7 +391,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

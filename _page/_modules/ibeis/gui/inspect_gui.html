@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.inspect_gui &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.gui.inspect_gui &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -146,7 +146,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="c">#from ibeis.viz import interact</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
 <span class="c">#from plottool import interact_helpers as ih</span>
 <span class="c">#import functools</span>
@@ -171,11 +171,11 @@
     <span class="sd">&quot;&quot;&quot; assert that the ampersand cannot have duplicate keys</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        ibs (ibeis.IBEISController):  ibeis controller object</span>
 <span class="sd">        aid1 (int):  annotation id</span>
 <span class="sd">        aid2 (int):  annotation id</span>
-<span class="sd">        cm (ChipMatch2):  object of feature correspondences and scores</span>
-<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)</span>
+<span class="sd">        cm (ibeis.ChipMatch):  object of feature correspondences and scores</span>
+<span class="sd">        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters(default = None)</span>
 <span class="sd">        aid_list (list):  list of annotation rowids(default = None)</span>
 
 <span class="sd">    Returns:</span>
@@ -302,6 +302,11 @@
             <span class="p">(</span><span class="s">&#39;Mark as &amp;False Match.&#39;</span><span class="p">,</span>
              <span class="k">lambda</span><span class="p">:</span>  <span class="n">set_annot_pair_as_negative_match_</span><span class="p">(</span>
                  <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)),</span>
+
+            <span class="c">#(&#39;Mark Disjoint Viewpoints.&#39;,</span>
+            <span class="c"># lambda:  set_annot_pair_as_unknown_match_(</span>
+            <span class="c">#     ibs, aid1, aid2, cm, qreq_, **kwargs)),</span>
+
             <span class="p">(</span><span class="s">&#39;Inspect Match Candidates&#39;</span><span class="p">,</span>
              <span class="k">lambda</span><span class="p">:</span> <span class="n">review_match</span><span class="p">(</span>
                  <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)),</span>
@@ -312,24 +317,41 @@
 
     <span class="n">with_vsone</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">with_vsone</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">vsone_pipeline</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">vsone_pipeline</span>
 
         <span class="c">#vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])</span>
         <span class="k">def</span> <span class="nf">vsone_single_hack</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
             <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
             <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-            <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">daid</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{})</span>
-            <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">vsone_pipeline</span><span class="o">.</span><span class="n">vsone_single</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_ibscache</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">interact</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">show_matching_dict</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">interact</span>
+            <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">qreq2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">daid</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qreq2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">daid</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span>
+            <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">vsone_pipeline</span><span class="o">.</span><span class="n">vsone_single</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq2_</span><span class="p">,</span> <span class="n">use_ibscache</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">interact</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">show_matching_dict</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c"># NOQA</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
         <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s">&#39;Run Vsone(1)&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">vsone_pipeline</span><span class="o">.</span><span class="n">vsone_independant_pair_hack</span><span class="p">,</span>
-                                     <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s">&#39;Run Vsone(2)&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">vsone_single_hack</span><span class="p">,</span>
-                                     <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s">&#39;Run Vsone(ib)&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">vsone_pipeline</span><span class="o">.</span><span class="n">vsone_independant_pair_hack</span><span class="p">,</span>
+                                      <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s">&#39;Run Vsone(vt)&#39;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">vsone_single_hack</span><span class="p">,</span>
+                                      <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)),</span>
         <span class="p">]</span>
+    <span class="n">with_vsmany</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">with_vsmany</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">vsmany_load_and_show</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;no qreq_ given&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">None</span>
+                <span class="c"># qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qreq2_</span> <span class="o">=</span> <span class="n">qreq_</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">qreq2_</span><span class="o">.</span><span class="n">load_cached_chipmatch</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;Load Vsmany&#39;</span><span class="p">,</span> <span class="n">vsmany_load_and_show</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">pass</span>
 
     <span class="n">with_match_tags</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">with_match_tags</span><span class="p">:</span>
@@ -403,11 +425,19 @@
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
         <span class="k">def</span> <span class="nf">dev_debug</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;=== DBG ===&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;ibs = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;cm = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="p">,))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="p">,))</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">print_inspect_str</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">print_rawinfostr</span><span class="p">()</span>
+
+            <span class="n">cm2</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">extend_results</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+            <span class="n">cm2</span><span class="o">.</span><span class="n">print_inspect_str</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+            <span class="n">cm2</span><span class="o">.</span><span class="n">print_rawinfostr</span><span class="p">()</span>
+
         <span class="k">def</span> <span class="nf">dev_embed</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="o">=</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">cm</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">):</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
         <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
@@ -421,7 +451,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">FilterProxyModel</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># negative one is an invalid eid  # seems unused</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># negative one is an invalid imgsetid  # seems unused</span>
         <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span> <span class="o">=</span> <span class="n">APIItemModel</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">setSourceModel</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="p">)</span>
@@ -438,11 +468,11 @@
         <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="o">**</span><span class="n">headers</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Overrides the API model ider to give only selected encounter ids &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Overrides the API model ider to give only selected imageset ids &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">]()</span>
 
-    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
+    <span class="k">def</span> <span class="nf">_change_imageset</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="n">imgsetid</span>
         <span class="c"># seems unused</span>
         <span class="k">with</span> <span class="n">ChangeLayoutContext</span><span class="p">([</span><span class="n">model</span><span class="p">]):</span>
             <span class="n">FilterProxyModel</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
@@ -556,7 +586,7 @@
 </div>
 <div class="viewcode-block" id="QueryResultsWidget.set_query_results"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.set_query_results">[docs]</a>    <span class="k">def</span> <span class="nf">set_query_results</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                           <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qres_wgt] Change QueryResultsWidget data&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qres_wgt] set_query_results()&#39;</span><span class="p">)</span>
         <span class="n">tblnice</span> <span class="o">=</span> <span class="s">&#39;Query Results: &#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;query_title&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">util_dict</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;query_title&#39;</span><span class="p">])</span>
 
@@ -1029,7 +1059,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># TODO: just draw the image at the correct thumbnail size</span>
         <span class="c"># TODO: draw without matplotlib?</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">):</span>
             <span class="n">fpath</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">imwrite_single_annotmatch</span><span class="p">(</span>
                 <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">match_thumb_fpath_</span><span class="p">,</span> <span class="n">saveax</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
                 <span class="n">notitle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -1069,11 +1099,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[inspect] make_qres_api&#39;</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="c">#ibs.cfg.other_cfg.ranks_lt = 2</span>
+    <span class="c"># Overwrite</span>
+    <span class="n">ranks_lt_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ensure_attr</span><span class="p">(</span><span class="s">&#39;ranks_lt&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">filter_reviewed</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ensure_attr</span><span class="p">(</span><span class="s">&#39;filter_reviewed&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">filter_reviewed</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># only filter big queries if not specified</span>
         <span class="n">filter_reviewed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">6</span>
-    <span class="n">ranks_lt</span> <span class="o">=</span> <span class="n">ranks_lt</span> <span class="k">if</span> <span class="n">ranks_lt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_lt</span>
+    <span class="n">ranks_lt</span> <span class="o">=</span> <span class="n">ranks_lt</span> <span class="k">if</span> <span class="n">ranks_lt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ranks_lt_</span>
 
     <span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
         <span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span>
@@ -1211,22 +1244,14 @@
     <span class="p">}</span>
     <span class="n">editable_colnames</span> <span class="o">=</span>  <span class="p">[</span><span class="s">&#39;truth&#39;</span><span class="p">,</span> <span class="s">&#39;notes&#39;</span><span class="p">,</span> <span class="s">&#39;qname&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;opt&#39;</span><span class="p">]</span>
 
-    <span class="n">USE_BOOLS</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">USE_BOOLS</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">USE_BOOLS</span><span class="p">:</span>
+        <span class="c"># DEPRICATED use tag funcs</span>
         <span class="n">boolean_annotmatch_columns</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s">&#39;is_hard&#39;</span><span class="p">,</span>
             <span class="s">&#39;is_nondistinct&#39;</span><span class="p">,</span>
             <span class="s">&#39;is_scenerymatch&#39;</span><span class="p">,</span>
             <span class="s">&#39;is_photobomb&#39;</span><span class="p">,</span>
-        <span class="p">]</span>
-
-        <span class="n">boolean_annot_columns</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s">&#39;is_occluded&#39;</span><span class="p">,</span>
-            <span class="s">&#39;is_shadowed&#39;</span><span class="p">,</span>
-            <span class="s">&#39;is_washedout&#39;</span><span class="p">,</span>
-            <span class="s">&#39;is_blury&#39;</span><span class="p">,</span>
-            <span class="s">&#39;is_novelpose&#39;</span><span class="p">,</span>
-            <span class="s">&#39;is_commonpose&#39;</span><span class="p">,</span>
         <span class="p">]</span>
 
         <span class="k">def</span> <span class="nf">make_annotmatch_boolean_getter_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">colname</span><span class="p">):</span>
@@ -1264,10 +1289,6 @@
                 <span class="n">ibs</span><span class="p">,</span> <span class="n">colname</span><span class="p">)</span>
             <span class="n">col_width_dict</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="mi">70</span>
             <span class="n">editable_colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colname</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">colname_</span> <span class="ow">in</span> <span class="n">boolean_annot_columns</span><span class="p">:</span>
-            <span class="c"># TODO</span>
-            <span class="k">pass</span>
 
     <span class="n">sortby</span> <span class="o">=</span> <span class="s">&#39;score&#39;</span>
 
@@ -1397,7 +1418,7 @@
 <span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
     <span class="k">print</span><span class="p">((</span><span class="s">&#39;[resorg] get_automatch_candidates(&#39;</span>
            <span class="s">&#39;filter_reviewed={filter_reviewed},&#39;</span>
            <span class="s">&#39;filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},&#39;</span>
@@ -1415,7 +1436,7 @@
         <span class="n">cm_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cm_list</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">):</span>
             <span class="n">daids</span>  <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">ntop</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
             <span class="n">scores</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_scores</span><span class="p">(</span><span class="n">ntop</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
             <span class="n">ranks</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">))</span>
@@ -1512,7 +1533,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1534,7 +1555,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

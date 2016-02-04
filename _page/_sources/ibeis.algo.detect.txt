@@ -1,0 +1,38 @@
+ibeis.algo.detect package
+=========================
+
+Submodules
+----------
+
+ibeis.algo.detect.grabmodels module
+-----------------------------------
+
+.. automodule:: ibeis.algo.detect.grabmodels
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.randomforest module
+-------------------------------------
+
+.. automodule:: ibeis.algo.detect.randomforest
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.yolo module
+-----------------------------
+
+.. automodule:: ibeis.algo.detect.yolo
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.detect
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.main_module &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.main_module &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -249,10 +249,13 @@
     <span class="c">#util_sysreq.ensure_in_pythonpath(&#39;code&#39;)</span>
     <span class="c">#import pyhesaff  # NOQA</span>
     <span class="c">#import pyrf  # NOQA</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>  <span class="c"># NOQA</span>
 
 
 <span class="k">def</span> <span class="nf">_init_parallel</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;_init_parallel&#39;</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_parallel</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
     <span class="n">__import_parallel_modules</span><span class="p">()</span>
@@ -262,16 +265,22 @@
 
 
 <span class="k">def</span> <span class="nf">_close_parallel</span><span class="p">():</span>
+    <span class="c">#if ut.VERBOSE:</span>
+    <span class="c">#    print(&#39;_close_parallel&#39;)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_parallel</span>
         <span class="n">util_parallel</span><span class="o">.</span><span class="n">close_pool</span><span class="p">(</span><span class="n">terminate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;error closing parallel&#39;</span><span class="p">)</span>
+        <span class="k">raise</span>
 
 
 <span class="k">def</span> <span class="nf">_init_numpy</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;_init_numpy&#39;</span><span class="p">)</span>
     <span class="n">error_options</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ignore&#39;</span><span class="p">,</span> <span class="s">&#39;warn&#39;</span><span class="p">,</span> <span class="s">&#39;raise&#39;</span><span class="p">,</span> <span class="s">&#39;call&#39;</span><span class="p">,</span> <span class="s">&#39;print&#39;</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">]</span>
     <span class="n">on_err</span> <span class="o">=</span> <span class="n">error_options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c">#np.seterr(divide=&#39;ignore&#39;, invalid=&#39;ignore&#39;)</span>
@@ -423,7 +432,7 @@
             <span class="n">back</span> <span class="o">=</span> <span class="n">_init_gui</span><span class="p">(</span><span class="n">activate</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;activate&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">))</span>
             <span class="n">back</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main()] IBEIS LOAD encountered exception: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main()] IBEIS LOAD imageseted exception: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
         <span class="k">raise</span>
     <span class="n">main_commands</span><span class="o">.</span><span class="n">postload_commands</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>  <span class="c"># POSTLOAD CMDS</span>
     <span class="n">main_locals</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ibs&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">:</span> <span class="n">back</span><span class="p">}</span>
@@ -449,9 +458,44 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper around opendb_in_background</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">opendb_in_background</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kw</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;domain&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--domain&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;port&#39;</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">domain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Requesting a local test server</span>
+        <span class="n">_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">web_ibs</span> <span class="o">=</span> <span class="n">opendb_in_background</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Using a remote controller, no need to spin up anything</span>
+        <span class="n">web_ibs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+        <span class="n">web_ibs</span><span class="o">.</span><span class="n">terminate2</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span>
+    <span class="c"># Augment web instance with usefull test functions</span>
+    <span class="k">if</span> <span class="n">domain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="s">&#39;http://127.0.1.1&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">domain</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http://&#39;</span><span class="p">):</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="s">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">domain</span>
+    <span class="n">baseurl</span> <span class="o">=</span> <span class="n">domain</span>  <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">send_ibeis_request</span><span class="p">(</span><span class="n">suffix</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;post&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Posts a request to a url suffix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">requests</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s">&#39;post&#39;</span><span class="p">:</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">_content</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s">&#39;response&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="n">web_ibs</span><span class="o">.</span><span class="n">send_ibeis_request</span> <span class="o">=</span> <span class="n">send_ibeis_request</span>
+    <span class="k">return</span> <span class="n">web_ibs</span>
 
 </div>
 <div class="viewcode-block" id="opendb"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.opendb">[docs]</a><span class="k">def</span> <span class="nf">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
@@ -476,7 +520,7 @@
 <span class="sd">            controller</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        IBEISController: ibs</span>
+<span class="sd">        ibeis.IBEISController: ibs</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -529,6 +573,8 @@
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
     <span class="k">if</span>  <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;MainProcess&#39;</span><span class="p">:</span>
         <span class="k">return</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibies] _preload&#39;</span><span class="p">)</span>
     <span class="n">_parse_args</span><span class="p">()</span>
     <span class="c"># mpl backends</span>
     <span class="k">if</span> <span class="n">logging</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nologging</span><span class="p">:</span>
@@ -592,6 +638,9 @@
 
 </div>
 <div class="viewcode-block" id="main_close"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.main_close">[docs]</a><span class="k">def</span> <span class="nf">main_close</span><span class="p">(</span><span class="n">main_locals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c">#import utool as ut</span>
+    <span class="c">#if ut.VERBOSE:</span>
+    <span class="c">#    print(&#39;main_close&#39;)</span>
     <span class="n">_close_parallel</span><span class="p">()</span>
     <span class="n">_reset_signals</span><span class="p">()</span>
 
@@ -619,7 +668,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -641,7 +690,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

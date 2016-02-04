@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact package &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.viz.interact package &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
         <link rel="up" title="ibeis.viz package" href="ibeis.viz.html"/>
         <link rel="next" title="ibeis.web package" href="ibeis.web.html"/>
         <link rel="prev" title="ibeis.viz package" href="ibeis.viz.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -85,12 +85,12 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
@@ -121,13 +121,16 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -487,7 +490,7 @@ python -m ibeis.viz.interact.interact_matches --test-begin --show
 <dl class="method">
 <dt id="ibeis.viz.interact.interact_matches.MatchInteraction.init_new">
 <code class="descname">init_new</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>aid2=None</em>, <em>fnum=None</em>, <em>figtitle=u'Match Interaction'</em>, <em>same_fig=True</em>, <em>qreq_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.init_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.init_new" title="Permalink to this definition">¶</a></dt>
-<dd><p>new init function for use with ChipMatch2 class</p>
+<dd><p>new init function for use with ChipMatch class</p>
 </dd></dl>
 
 <dl class="method">
@@ -625,7 +628,7 @@ python -m ibeis.viz.interact.interact_matches --test-show_coverage
 <dt id="ibeis.viz.interact.interact_matches.testdata_match_interact">
 <code class="descclassname">ibeis.viz.interact.interact_matches.</code><code class="descname">testdata_match_interact</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#testdata_match_interact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.testdata_match_interact" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
 </pre></div>
 </div>
 <p class="rubric">Example</p>
@@ -885,8 +888,8 @@ python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTES
 <dt id="ibeis.viz.interact.interact_name.testsdata_match_verification">
 <code class="descclassname">ibeis.viz.interact.interact_name.</code><code class="descname">testsdata_match_verification</code><span class="sig-paren">(</span><em>defaultdb='testdb1'</em>, <em>aid1=1</em>, <em>aid2=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#testsdata_match_verification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.testsdata_match_verification" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>main.py --eid 2
-main.py --eid <span class="m">13</span> --db PZ_MUGU_19
+<div class="highlight-bash"><div class="highlight"><pre>main.py --imgsetid 2
+main.py --imgsetid <span class="m">13</span> --db PZ_MUGU_19
 </pre></div>
 </div>
 <p class="rubric">CommandLine:</p>
@@ -997,7 +1000,7 @@ TODO; dodraw should be false by default</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>cm</strong> (<a class="reference internal" href="ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult" title="ibeis.model.hots.hots_query_result.QueryResult"><em>QueryResult</em></a>) &#8211; object of feature correspondences and scores</li>
+<li><strong>cm</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</li>
 <li><strong>analysis</strong> (<em>bool</em>) &#8211; </li>
 </ul>
 </td>
@@ -1150,7 +1153,7 @@ visualiztion</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">plottool.abstract_interaction.AbstractInteraction</span></code></p>
 <p class="rubric">CommandLine:</p>
 <div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show
-python -m ibeis --eid <span class="m">2</span> --inc-query --yes
+python -m ibeis --imgsetid <span class="m">2</span> --inc-query --yes
 </pre></div>
 </div>
 <p class="rubric">Example</p>
@@ -1303,7 +1306,7 @@ python -m ibeis --eid <span class="m">2</span> --inc-query --yes
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1325,7 +1328,7 @@ python -m ibeis --eid <span class="m">2</span> --inc-query --yes
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

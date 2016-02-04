@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.old_main_helpers &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.init.old_main_helpers &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -383,7 +383,7 @@
         <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including hard qaids&#39;</span><span class="p">)</span>
         <span class="n">is_hard_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_is_hard</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-        <span class="n">hard_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">is_hard_list</span><span class="p">)</span>
+        <span class="n">hard_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">is_hard_list</span><span class="p">)</span>
         <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hard_aids</span><span class="p">)</span>
         <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;hard_cases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
 
@@ -391,7 +391,7 @@
         <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including groundtruth qaids&#39;</span><span class="p">)</span>
         <span class="n">has_gt_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_groundtruth</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-        <span class="n">hasgt_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">has_gt_list</span><span class="p">)</span>
+        <span class="n">hasgt_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">has_gt_list</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] Adding all </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> ground-truthed test cases&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)))</span>
         <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">)</span>
         <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;gt_cases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
@@ -456,7 +456,7 @@
         <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Filtering to species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">))</span> <span class="o">==</span> <span class="n">species</span>
-        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
         <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;species_filter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species</span>
 
     <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
@@ -468,7 +468,7 @@
     <span class="c">#ut.get_argval(&#39;--qshuffle&#39;)</span>
     <span class="k">if</span> <span class="n">QSHUFFLE</span><span class="p">:</span>
         <span class="c"># Determenistic shuffling</span>
-        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">))</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">))</span>
         <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;shuffled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
 
     <span class="c"># Sample a large pool of chosen query qindexes</span>
@@ -614,7 +614,7 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * Filtering to species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">available_daids</span><span class="p">))</span> <span class="o">==</span> <span class="n">species</span>
-        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
 
     <span class="c"># ---- SUBINDEXING STEP</span>
     <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
@@ -624,7 +624,7 @@
     <span class="c">#ut.get_argval(&#39;--qshuffle&#39;)</span>
     <span class="k">if</span> <span class="n">DSHUFFLE</span><span class="p">:</span>
         <span class="c"># Determenistic shuffling</span>
-        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">43</span><span class="p">))</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">43</span><span class="p">))</span>
         <span class="n">daid_request_info</span><span class="p">[</span><span class="s">&#39;shuffled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
 
     <span class="k">if</span> <span class="n">DINDEX</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -640,63 +640,7 @@
     <span class="k">if</span> <span class="n">return_annot_info</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">available_daids</span><span class="p">,</span> <span class="n">daid_request_info</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">available_daids</span>
-
-
-<span class="c">#def expand_aidcfg_dict(ibs, aidcfg=None, reference_aids=None):</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    DEPRICATE</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-
-<span class="c">#    # ---- INCLUDING STEP</span>
-<span class="c">#    available_aids = expand_to_default_aids(ibs, aidcfg)</span>
-
-<span class="c">#    # ---- FILTERING STEP</span>
-<span class="c">#    available_aids = filter_independent_properties(ibs, available_aids, aidcfg)</span>
-
-<span class="c">#    # ---- FILTERING WITH RESPECT TO WHAT GROUNDTRUTH IS ABAILABLE (what the daid will contain)</span>
-
-<span class="c">#    available_aids = filter_reference_properties(ibs, available_aids, aidcfg, reference_aids)</span>
-
-<span class="c">#    # ---- SAMPLE SELECTION</span>
-<span class="c">#    available_aids = sample_available_aids(ibs, available_aids, aidcfg, reference_aids)</span>
-
-<span class="c">#    return available_aids</span>
-
-<span class="c">## ------</span>
-<span class="c">#    if OLD:</span>
-<span class="c">#        # extract qaid list</span>
-<span class="c">#        if VERB_MAIN_HELPERS:</span>
-<span class="c">#            print(&#39;\n[expand_aidcfg] + --- GET_TEST_QAIDS ---&#39;)</span>
-<span class="c">#        qaid_list = expand_aidcfg_dict(ibs, aidcfg=qcfg)</span>
-<span class="c">#        if VERB_MAIN_HELPERS:</span>
-<span class="c">#            print(&#39;[expand_aidcfg] L ___ GET_TEST_QAIDS&#39;)</span>
-
-<span class="c">#        # extract daid list</span>
-<span class="c">#        if VERB_MAIN_HELPERS:</span>
-<span class="c">#            print(&#39;[expand_aidcfg] + --- GET_TEST_DAIDS ---&#39;)</span>
-<span class="c">#        daid_list = expand_aidcfg_dict(ibs, aidcfg=dcfg, reference_aids=qaid_list)</span>
-<span class="c">#        if VERB_MAIN_HELPERS:</span>
-<span class="c">#            print(&#39;[expand_aidcfg] L ___ GET_TEST_DAIDS \n&#39;)</span>
-<span class="c">#    else:</span>
-
-<span class="c">#def register_utool_aliases():</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    registers commmon class names with utool so they are printed nicely</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    #print(&#39;REGISTER UTOOL ALIASES&#39;)</span>
-<span class="c">#    import utool as ut</span>
-<span class="c">#    import matplotlib as mpl</span>
-<span class="c">#    from ibeis.control import IBEISControl, SQLDatabaseControl</span>
-<span class="c">#    from ibeis.gui import guiback</span>
-<span class="c">#    #from ibeis.gui import guifront</span>
-<span class="c">#    ut.extend_global_aliases([</span>
-<span class="c">#        (SQLDatabaseControl.SQLDatabaseController, &#39;sqldb&#39;),</span>
-<span class="c">#        (IBEISControl.IBEISController, &#39;ibs&#39;),</span>
-<span class="c">#        (guiback.MainWindowBackend, &#39;back&#39;),</span>
-<span class="c">#        #(guifront.MainWindowFrontend, &#39;front&#39;),</span>
-<span class="c">#        (mpl.figure.Figure, &#39;fig&#39;)</span>
-<span class="c">#    ])</span></div>
+        <span class="k">return</span> <span class="n">available_daids</span></div>
 </pre></div>
 
            </div>
@@ -708,7 +652,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -730,7 +674,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

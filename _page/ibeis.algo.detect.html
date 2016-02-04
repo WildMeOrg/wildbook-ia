@@ -1,0 +1,638 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.detect package &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
+        <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
+        <link rel="next" title="ibeis.algo.hots package" href="ibeis.algo.hots.html"/>
+        <link rel="prev" title="ibeis.algo package" href="ibeis.algo.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="ibeis.algo.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.algo.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.algo.html#module-ibeis.algo.Config">ibeis.algo.Config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.algo.html#module-ibeis.algo">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.web.html">ibeis.web package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+          <li><a href="ibeis.algo.html">ibeis.algo package</a> &raquo;</li>
+      
+    <li>ibeis.algo.detect package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.algo.detect.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-algo-detect-package">
+<h1>ibeis.algo.detect package<a class="headerlink" href="#ibeis-algo-detect-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.algo.detect.grabmodels">
+<span id="ibeis-algo-detect-grabmodels-module"></span><h2>ibeis.algo.detect.grabmodels module<a class="headerlink" href="#module-ibeis.algo.detect.grabmodels" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.algo.detect.grabmodels.assert_models">
+<code class="descclassname">ibeis.algo.detect.grabmodels.</code><code class="descname">assert_models</code><span class="sig-paren">(</span><em>modeldir='default'</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/grabmodels.html#assert_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.grabmodels.assert_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.grabmodels.ensure_models">
+<code class="descclassname">ibeis.algo.detect.grabmodels.</code><code class="descname">ensure_models</code><span class="sig-paren">(</span><em>modeldir='default'</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/grabmodels.html#ensure_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.grabmodels.ensure_models" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>modeldir</strong> (<em>str</em>) &#8211; </td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.grabmodels --test-ensure_models
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.grabmodels.get_species_trees_paths">
+<code class="descclassname">ibeis.algo.detect.grabmodels.</code><code class="descname">get_species_trees_paths</code><span class="sig-paren">(</span><em>species</em>, <em>modeldir='default'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/grabmodels.html#get_species_trees_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.grabmodels.get_species_trees_paths" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>species</strong> &#8211; </li>
+<li><strong>modeldir</strong> (<em>str</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">trees_path</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><p>?</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.grabmodels --test-get_species_trees_paths
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trees_path</span> <span class="o">=</span> <span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">trees_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.grabmodels.iter_algo_modeldirs">
+<code class="descclassname">ibeis.algo.detect.grabmodels.</code><code class="descname">iter_algo_modeldirs</code><span class="sig-paren">(</span><em>modeldir='default'</em>, <em>ensurebase=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/grabmodels.html#iter_algo_modeldirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.grabmodels.iter_algo_modeldirs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.grabmodels.redownload_models">
+<code class="descclassname">ibeis.algo.detect.grabmodels.</code><code class="descname">redownload_models</code><span class="sig-paren">(</span><em>modeldir='default'</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/grabmodels.html#redownload_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.grabmodels.redownload_models" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>modeldir</strong> (<em>str</em>) &#8211; (default = &#8216;default&#8217;)</li>
+<li><strong>verbose</strong> (<em>bool</em>) &#8211; verbosity flag(default = True)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.grabmodels --test-redownload_models
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">redownload_models</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.randomforest">
+<span id="ibeis-algo-detect-randomforest-module"></span><h2>ibeis.algo.detect.randomforest module<a class="headerlink" href="#module-ibeis.algo.detect.randomforest" title="Permalink to this headline">¶</a></h2>
+<p>Interface to pyrf random forest object detection.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.randomforest.detect">
+<code class="descclassname">ibeis.algo.detect.randomforest.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>ibs</em>, <em>gpath_list</em>, <em>tree_path_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/randomforest.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.randomforest.detect" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gpath_list</strong> (<em>list of str</em>) &#8211; the list of image paths that need detection</li>
+<li><strong>tree_path_list</strong> (<em>list of str</em>) &#8211; the list of trees to load for detection</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.randomforest.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.randomforest.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>tree_path_list</em>, <em>downsample=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/randomforest.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.randomforest.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
+<li><strong>tree_path_list</strong> (<em>list of str</em>) &#8211; the list of trees to load for detection</li>
+<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.randomforest.detect_gid_list_with_species">
+<code class="descclassname">ibeis.algo.detect.randomforest.</code><code class="descname">detect_gid_list_with_species</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>species</em>, <em>downsample=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/randomforest.html#detect_gid_list_with_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.randomforest.detect_gid_list_with_species" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
+<li><strong>species</strong> (<em>str</em>) &#8211; the species that should be used to select the pre-trained
+random forest model</li>
+<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.randomforest --test-detect_gid_list_with_species
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="n">_get_models</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">downsample</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.randomforest.detect_gpath_list_with_species">
+<code class="descclassname">ibeis.algo.detect.randomforest.</code><code class="descname">detect_gpath_list_with_species</code><span class="sig-paren">(</span><em>ibs</em>, <em>gpath_list</em>, <em>species</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/randomforest.html#detect_gpath_list_with_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.randomforest.detect_gpath_list_with_species" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gpath_list</strong> (<em>list of str</em>) &#8211; the list of image paths that need detection</li>
+<li><strong>species</strong> (<em>str</em>) &#8211; the species that should be used to select the pre-trained
+random forest model</li>
+<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.randomforest.train_gid_list">
+<code class="descclassname">ibeis.algo.detect.randomforest.</code><code class="descname">train_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>trees_path=None</em>, <em>species=None</em>, <em>setup=True</em>, <em>teardown=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/randomforest.html#train_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.randomforest.train_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
+<li><strong>trees_path</strong> (<em>str</em>) &#8211; the path that the trees will be saved into (along
+with temporary training inventory folders that are deleted once
+training is finished)</li>
+<li><strong>species</strong> (<em>str</em>) &#8211; the species that should be used to assign to the newly
+trained trees</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.randomforest.train_gpath_list">
+<code class="descclassname">ibeis.algo.detect.randomforest.</code><code class="descname">train_gpath_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>train_pos_cpath_list</em>, <em>train_neg_cpath_list</em>, <em>trees_path=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/randomforest.html#train_gpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.randomforest.train_gpath_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>train_pos_cpath_list</strong> (<em>list of str</em>) &#8211; the list of positive image paths
+for training</li>
+<li><strong>train_neg_cpath_list</strong> (<em>list of str</em>) &#8211; the list of negative image paths
+for training</li>
+<li><strong>trees_path</strong> (<em>str</em>) &#8211; the path that the trees will be saved into (along
+with temporary training inventory folders that are deleted once
+training is finished)</li>
+<li><strong>species</strong> (<em>str, optional</em>) &#8211; the species that should be used to assign to
+the newly trained trees</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.yolo">
+<span id="ibeis-algo-detect-yolo-module"></span><h2>ibeis.algo.detect.yolo module<a class="headerlink" href="#module-ibeis.algo.detect.yolo" title="Permalink to this headline">¶</a></h2>
+<p>Interface to pydarknet yolo object detection.</p>
+<dl class="function">
+<dt id="ibeis.algo.detect.yolo.detect">
+<code class="descclassname">ibeis.algo.detect.yolo.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/yolo.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.yolo.detect" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gpath_list</strong> (<em>list of str</em>) &#8211; the list of image paths that need detection</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyDarknet documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.yolo.detect_gid_list">
+<code class="descclassname">ibeis.algo.detect.yolo.</code><code class="descname">detect_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>downsample=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/yolo.html#detect_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.yolo.detect_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gid_list</strong> (<em>list of int</em>) &#8211; the list of IBEIS image_rowids that need detection</li>
+<li><strong>downsample</strong> (<em>bool, optional</em>) &#8211; <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kwargs (optional): refer to the PyDarknet documentation for configuration settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">results (list of dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.algo.detect" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.algo.detect.reload_subs">
+<code class="descclassname">ibeis.algo.detect.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.algo.detect and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.rrrr">
+<code class="descclassname">ibeis.algo.detect.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.algo.detect.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.algo.detect and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.algo.hots.html" class="btn btn-neutral float-right" title="ibeis.algo.hots package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.algo.html" class="btn btn-neutral" title="ibeis.algo package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

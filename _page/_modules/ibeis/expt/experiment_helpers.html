@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_helpers &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.expt.experiment_helpers &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -136,24 +136,29 @@
 <span class="sd">Helper module that helps expand parameters for grid search</span>
 <span class="sd">TODO: move into custom pipe_cfg and annot_cfg modules</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
-<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">filter_annots</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_helpers]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_helpers]&#39;</span><span class="p">)</span>
 
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span>
 
 
-<div class="viewcode-block" id="get_varied_pipecfg_lbls"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.get_varied_pipecfg_lbls">[docs]</a><span class="k">def</span> <span class="nf">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
-    <span class="n">cfg_default_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
-    <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">get_varied_cfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfg_default_dict</span><span class="p">)</span>
+<div class="viewcode-block" id="get_varied_pipecfg_lbls"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.get_varied_pipecfg_lbls">[docs]</a><span class="k">def</span> <span class="nf">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">pipecfg_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
+        <span class="c">#cls_list = [Config] * len(cfgdict_list)</span>
+        <span class="n">cfg_default_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
+        <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varied_cfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfg_default_dict</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># TODO: group cfgdict by config type and then get varied labels</span>
+        <span class="n">cfg_default_dict</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varied_cfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfg_default_dict</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfgx2_lbl</span>
 
 </div>
@@ -174,8 +179,8 @@
 <span class="sd">                If there is just one config then nothing is varied</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.expt.experiment_helpers --test-get_pipecfg_list</span>
-<span class="sd">        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list</span>
+<span class="sd">        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list:0</span>
+<span class="sd">        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list:1 --db humpbacks</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -197,6 +202,19 @@
 <span class="sd">            &#39;default:&#39;,</span>
 <span class="sd">            &#39;default:sv_on=False&#39;,</span>
 <span class="sd">        ]</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis_flukematch.plugin</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;humpbacks&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;default:pipeline_root=BC_DTW,decision=average&#39;, &#39;default:K=[1,4]&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;pipecfg_lbls = &#39;+ ut.list_str(pipecfg_lbls))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; print_pipe_configs(pcfgdict_list, pipecfg_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[expt_help.get_pipecfg_list] building pipecfg_list using: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
@@ -205,6 +223,7 @@
         <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_cfg_name_list</span><span class="p">]</span>
     <span class="n">_standard_cfg_names</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_pcfgdict_list</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="c"># HACK: Parse out custom configs first</span>
     <span class="k">for</span> <span class="n">test_cfg_name</span> <span class="ow">in</span> <span class="n">test_cfg_name_list</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">test_cfg_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;custom:&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">test_cfg_name</span> <span class="o">==</span> <span class="s">&#39;custom&#39;</span><span class="p">:</span>
@@ -229,8 +248,8 @@
     <span class="c"># Handle stanndard configs next</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_standard_cfg_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c"># Get parsing information</span>
-        <span class="n">cfg_default_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
-        <span class="n">valid_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cfg_default_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c">#cfg_default_dict = dict(Config.QueryConfig().parse_items())</span>
+        <span class="c">#valid_keys = list(cfg_default_dict.keys())</span>
         <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="n">_standard_cfg_names</span>
         <span class="n">named_defaults_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span>
             <span class="n">experiment_configs</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">)</span>
@@ -238,22 +257,39 @@
         <span class="c"># Parse standard pipeline cfgstrings</span>
         <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ibs&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="p">}</span>
         <span class="n">dict_comb_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">(</span>
-            <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">named_defaults_dict</span><span class="p">,</span> <span class="n">cfgtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span>
-            <span class="n">valid_keys</span><span class="o">=</span><span class="n">valid_keys</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+            <span class="n">cfgstr_list</span><span class="p">,</span>
+            <span class="n">named_defaults_dict</span><span class="p">,</span>
+            <span class="n">cfgtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span>
+            <span class="c"># Hack out valid keys for humpbacks</span>
+            <span class="c">#valid_keys=valid_keys,</span>
+            <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span>
+        <span class="p">)</span>
         <span class="c"># Get varied params (there may be duplicates)</span>
         <span class="n">_pcfgdict_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dict_comb_list</span><span class="p">))</span>
 
+    <span class="c"># TODO: respsect different algorithm parameters</span>
+    <span class="c"># like flukes</span>
+
     <span class="c"># Expand cfgdicts into PipelineConfig config objects</span>
-    <span class="n">_pipecfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">(</span><span class="o">**</span><span class="n">_cfgdict</span><span class="p">)</span> <span class="k">for</span> <span class="n">_cfgdict</span> <span class="ow">in</span> <span class="n">_pcfgdict_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">configclass_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">root_to_config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span>
+        <span class="n">configclass_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">root_to_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_cfgdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">),</span> <span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_cfgdict</span> <span class="ow">in</span> <span class="n">_pcfgdict_list</span><span class="p">]</span>
+    <span class="n">_pipecfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">_cfgdict</span><span class="p">)</span> <span class="k">for</span> <span class="n">cls</span><span class="p">,</span> <span class="n">_cfgdict</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">configclass_list</span><span class="p">,</span> <span class="n">_pcfgdict_list</span><span class="p">)]</span>
 
     <span class="c"># Enforce rule that removes duplicate configs</span>
-    <span class="c"># by using feasiblity from ibeis.model.Config</span>
+    <span class="c"># by using feasiblity from ibeis.algo.Config</span>
     <span class="c"># TODO: Move this unique finding code to its own function</span>
     <span class="c"># and then move it up one function level so even the custom</span>
     <span class="c"># configs can be uniquified</span>
     <span class="n">_flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">_pipecfg_list</span><span class="p">)</span>
-    <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">,</span> <span class="n">_flag_list</span><span class="p">)</span>
-    <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">_pipecfg_list</span><span class="p">,</span> <span class="n">_flag_list</span><span class="p">)</span>
+    <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">,</span> <span class="n">_flag_list</span><span class="p">)</span>
+    <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">_pipecfg_list</span><span class="p">,</span> <span class="n">_flag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn.help] return </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> unique pipeline configs from: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">),</span> <span class="n">test_cfg_name_list</span><span class="p">))</span>
@@ -268,7 +304,9 @@
 
 </div>
 <div class="viewcode-block" id="print_pipe_configs"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.print_pipe_configs">[docs]</a><span class="k">def</span> <span class="nf">print_pipe_configs</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">):</span>
-    <span class="n">pipecfg_lbls</span> <span class="o">=</span> <span class="n">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">)</span>
+    <span class="n">pipecfg_lbls</span> <span class="o">=</span> <span class="n">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">)</span>
+    <span class="c">#pipecfg_lbls = pipecfg_list</span>
+    <span class="c">#assert len(pipecfg_lbls) == len(pipecfg_lbls), &#39;unequal lens&#39;</span>
     <span class="k">for</span> <span class="n">pcfgx</span><span class="p">,</span> <span class="p">(</span><span class="n">pipecfg</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">pipecfg_lbls</span><span class="p">)):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> ===&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfgx</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">))))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
@@ -428,7 +466,9 @@
     <span class="k">return</span> <span class="n">expanded_aids_list_</span><span class="p">,</span> <span class="n">acfg_list_</span>
 
 </div>
-<div class="viewcode-block" id="get_annotcfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.get_annotcfg_list">[docs]</a><span class="k">def</span> <span class="nf">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">filter_dups</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annotcfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.get_annotcfg_list">[docs]</a><span class="k">def</span> <span class="nf">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">filter_dups</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">initial_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    For now can only specify one acfg name list</span>
 
@@ -446,6 +486,9 @@
 <span class="sd">        ibeis -e print_acfg --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd</span>
 <span class="sd">        ibeis -e print_acfg --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd</span>
 <span class="sd">        ibeis -e print_acfg --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid</span>
+<span class="sd">        ibeis -e print_acfg --db testdb1 -a default --ainfo --nocache-aid</span>
+<span class="sd">        ibeis -e print_acfg --db Oxford -a default:qhas_any=query --ainfo --nocache-aid</span>
+<span class="sd">        ibeis -e print_acfg --db Oxford -a default:qhas_any=query,dhas_any=distractor --ainfo --nocache-aid</span>
 
 <span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -473,7 +516,7 @@
     <span class="c">#acfg_slice = ut.get_argval(&#39;--acfg_slice&#39;, type_=slice, default=None)</span>
     <span class="c"># HACK: Sliceing happens before expansion (dependenceis get)</span>
     <span class="n">combo_slice</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--combo_slice&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span>
-    <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">acfg_combo_</span><span class="p">,</span> <span class="n">combo_slice</span><span class="p">)</span>
+    <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">acfg_combo_</span><span class="p">,</span> <span class="n">combo_slice</span><span class="p">)</span>
                        <span class="k">for</span> <span class="n">acfg_combo_</span> <span class="ow">in</span> <span class="n">acfg_combo_list</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--consistent&#39;</span><span class="p">):</span>
@@ -482,7 +525,10 @@
 
     <span class="c"># + --- Do Parsing ---</span>
     <span class="n">expanded_aids_combo_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_acfgs_consistently</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_combo_</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
+        <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_acfgs_consistently</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_combo_</span><span class="p">,</span>
+                                                <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">,</span>
+                                                <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                                                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">acfg_combo_</span> <span class="ow">in</span> <span class="n">acfg_combo_list</span>
     <span class="p">]</span>
     <span class="n">expanded_aids_combo_flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">expanded_aids_combo_list</span><span class="p">)</span>
@@ -490,23 +536,27 @@
     <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">expanded_aids_combo_flag_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="c"># L___</span>
 
-    <span class="c"># Sliceing happens after expansion (but the labels get screwed up)</span>
+    <span class="c"># Slicing happens after expansion (but the labels get screwed up)</span>
     <span class="n">acfg_slice</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--acfg_slice&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">acfg_slice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">acfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">acfg_slice</span><span class="p">)</span>
-        <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_slice</span><span class="p">)</span>
+        <span class="n">acfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">acfg_slice</span><span class="p">)</span>
+        <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_slice</span><span class="p">)</span>
 
     <span class="c"># + --- Hack: Override qaids ---</span>
-    <span class="n">_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
+    <span class="n">_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">_qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">expanded_aids_list</span><span class="p">]</span>
+    <span class="c"># more hack for daids</span>
+    <span class="n">_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--daids-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">daid_override</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_daids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">_daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">expanded_aids_list</span><span class="p">]</span>
     <span class="c"># L___</span>
 
     <span class="k">if</span> <span class="n">filter_dups</span><span class="p">:</span>
         <span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_list</span> <span class="o">=</span> <span class="n">filter_duplicate_acfgs</span><span class="p">(</span>
             <span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_list</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--acfginfo&#39;</span><span class="p">,</span> <span class="s">&#39;--ainfo&#39;</span><span class="p">,</span> <span class="s">&#39;--aidcfginfo&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--acfginfo&#39;</span><span class="p">,</span> <span class="s">&#39;--ainfo&#39;</span><span class="p">,</span> <span class="s">&#39;--aidcfginfo&#39;</span><span class="p">,</span> <span class="s">&#39;--print-acfg&#39;</span><span class="p">,</span> <span class="s">&#39;--printacfg&#39;</span><span class="p">)):</span>
         <span class="kn">import</span> <span class="nn">sys</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[experiment_helpers] Requested AcfgInfo ... &#39;</span><span class="p">,</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;combo_slice = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">combo_slice</span><span class="p">,))</span>
@@ -540,7 +590,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -562,7 +612,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

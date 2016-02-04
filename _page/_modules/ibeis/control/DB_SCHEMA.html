@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.DB_SCHEMA &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.DB_SCHEMA &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -185,7 +185,6 @@
 <span class="n">CONFIG_ROWID</span>        <span class="o">=</span> <span class="s">&#39;config_rowid&#39;</span>
 <span class="n">IMAGE_UUID</span>          <span class="o">=</span> <span class="s">&#39;image_uuid&#39;</span>
 <span class="n">CONFIG_SUFFIX</span>       <span class="o">=</span> <span class="s">&#39;config_suffix&#39;</span>
-<span class="n">ENCOUNTER_ROWID</span>     <span class="o">=</span> <span class="s">&#39;encounter_rowid&#39;</span>
 
 <span class="c"># =======================</span>
 <span class="c"># Schema Version 1.0.0</span>
@@ -213,8 +212,8 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        First class table used to store image locations and meta-data&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
-        <span class="p">(</span><span class="n">ENCOUNTER_ROWID</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;encounter_uuid&#39;</span><span class="p">,</span>               <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;encounter_note&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
@@ -321,12 +320,12 @@
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store individual chip features (ellipses)&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;encounter_image_relationship&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="n">ENCOUNTER_ROWID</span><span class="p">,</span>                <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="n">ENCOUNTER_ROWID</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="s">&#39;encounter_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Relationship between encounters and images (many to many mapping) the</span>
 <span class="s">        many-to-many relationship between images and encounters is encoded here</span>
@@ -378,7 +377,7 @@
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">            &gt;&gt;&gt; from ibeis.model.preproc.preproc_annot import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.preproc.preproc_annot import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
 <span class="sd">            &gt;&gt;&gt; #import sys</span>
 <span class="sd">            #&gt;&gt;&gt; sys.argv.append(&#39;--force-fresh&#39;)</span>
@@ -441,7 +440,7 @@
             <span class="n">lbltype_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_lbltypes_rowids</span><span class="p">,</span> <span class="n">lblannot_rowids_list</span><span class="p">)</span>
             <span class="c"># only want the nids of individuals, not species, for example</span>
             <span class="n">valids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">lbltype_rowid</span> <span class="k">for</span> <span class="n">typeid</span> <span class="ow">in</span> <span class="n">rowids</span><span class="p">]</span> <span class="k">for</span> <span class="n">rowids</span> <span class="ow">in</span> <span class="n">lbltype_rowids_list</span><span class="p">]</span>
-            <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
+            <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
             <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">alrid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span>
@@ -458,7 +457,7 @@
             <span class="n">species_lbltype_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;keys&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,),</span> <span class="p">(</span><span class="s">&#39;SPECIES_KEY&#39;</span><span class="p">,),</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;lbltype_text&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">get_annot_alrids_oftype</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_lbltype_rowid</span><span class="p">)</span>
             <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">get_alr_lblannot_rowids</span><span class="p">,</span> <span class="n">alrids_list</span><span class="p">)</span>
-            <span class="n">speciesid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">lblannot_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">for</span>
+            <span class="n">speciesid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">lblannot_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">for</span>
                               <span class="n">lblannot_rowids</span> <span class="ow">in</span> <span class="n">lblannot_rowids_list</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">speciesid_list</span>
 
@@ -469,7 +468,7 @@
             <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">get_alr_lblannot_rowids</span><span class="p">,</span> <span class="n">alrids_list</span><span class="p">)</span>
             <span class="c"># Get a single nid from the list of lblannot_rowids of type INDIVIDUAL</span>
             <span class="c"># TODO: get index of highest confidencename</span>
-            <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">lblannot_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">for</span>
+            <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">lblannot_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">for</span>
                          <span class="n">lblannot_rowids</span> <span class="ow">in</span> <span class="n">lblannot_rowids_list</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">nid_list</span>
 
@@ -515,7 +514,7 @@
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;applying post_1_2_1&#39;</span><span class="p">)</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-        <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
         <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">_init_rowid_constants</span><span class="p">()</span>
             <span class="c">#db = ibs.db</span>
@@ -624,7 +623,7 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">_init_config</span><span class="p">()</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="k">def</span> <span class="nf">pre_1_3_1_update_visual_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+            <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
             <span class="k">def</span> <span class="nf">pre_1_3_1_get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
                 <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
                 <span class="n">verts_list</span>      <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -662,13 +661,13 @@
         <span class="n">dupaids_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs_dup_annots</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">dupxs</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">ibs_dup_annots</span><span class="p">):</span>
-                <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">dupxs</span><span class="p">)</span>
+                <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">dupxs</span><span class="p">)</span>
                 <span class="n">dupaids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
             <span class="n">toremove_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dupaids_list</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;About to delete toremove_aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">toremove_aids</span><span class="p">,))</span>
             <span class="c">#if ut.are_you_sure():</span>
             <span class="c">#ibs.delete_annots(toremove_aids)</span>
-            <span class="c">#from ibeis.model.preproc import preproc_annot</span>
+            <span class="c">#from ibeis.algo.preproc import preproc_annot</span>
             <span class="c">#preproc_annot.on_delete(ibs, toremove_aids)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">toremove_aids</span><span class="p">)</span>
 
@@ -761,7 +760,7 @@
     <span class="p">)</span>
 
     <span class="c"># Add config to encounters</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># add column to v1.0.2 at index 2</span>
         <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">),</span>
@@ -860,7 +859,7 @@
 
     <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">NAME_TABLE_v121</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;encounter_start_time_posix&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="bp">None</span><span class="p">),</span>
         <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;encounter_end_time_posix&#39;</span><span class="p">,</span>   <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="bp">None</span><span class="p">),</span>
         <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;encounter_gps_lat&#39;</span><span class="p">,</span>          <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span>           <span class="bp">None</span><span class="p">),</span>
@@ -921,7 +920,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    for SMART DATA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;encounter_smart_xml_fpath&#39;</span><span class="p">,</span>   <span class="s">&#39;TEXT&#39;</span><span class="p">,</span>           <span class="bp">None</span><span class="p">),</span>
         <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;encounter_smart_waypoint_id&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span>        <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
@@ -929,7 +928,7 @@
 </div>
 <div class="viewcode-block" id="update_1_3_3"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_3_3">[docs]</a><span class="k">def</span> <span class="nf">update_1_3_3</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># we should only be storing names here not paths</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;encounter_smart_xml_fpath&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_smart_xml_fname&#39;</span><span class="p">,</span>  <span class="s">&#39;TEXT&#39;</span><span class="p">,</span>           <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
 
@@ -980,8 +979,8 @@
         <span class="n">yaw</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">angle</span> <span class="o">+</span> <span class="p">(</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">%</span> <span class="n">TAU</span>
         <span class="k">return</span> <span class="n">yaw</span>
 
-    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">db</span><span class="p">,</span>  <span class="n">SQLDatabaseControl</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">dtool.sql_control</span> <span class="kn">import</span> <span class="n">SQLDatabaseController</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">db</span><span class="p">,</span>  <span class="n">SQLDatabaseController</span><span class="p">)</span>
 
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="c"># Add original image path to image table for more data persistance and</span>
@@ -1067,9 +1066,9 @@
 
     <span class="c"># add metadata props</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span>
+        <span class="s">&#39;encounter_image_relationship&#39;</span><span class="p">,</span>
         <span class="n">shortname</span><span class="o">=</span><span class="s">&#39;egr&#39;</span><span class="p">,</span>
-        <span class="n">relates</span><span class="o">=</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">))</span>
+        <span class="n">relates</span><span class="o">=</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="s">&#39;encounters&#39;</span><span class="p">))</span>
 
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span>
@@ -1122,17 +1121,17 @@
     <span class="p">)</span>
 
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>
+        <span class="s">&#39;encounters&#39;</span><span class="p">,</span>
         <span class="n">dependsmap</span><span class="o">=</span><span class="p">{</span>
             <span class="s">&#39;config_rowid&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span>       <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span>          <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">CONFIG_SUFFIX</span><span class="p">,)),</span>
         <span class="p">}</span>
     <span class="p">)</span>
 
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span>
+        <span class="s">&#39;encounter_image_relationship&#39;</span><span class="p">,</span>
         <span class="n">dependsmap</span><span class="o">=</span><span class="p">{</span>
             <span class="s">&#39;image_rowid&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>     <span class="p">(</span><span class="n">IMAGE_ROWID</span><span class="p">,),</span>   <span class="p">(</span><span class="n">IMAGE_UUID</span><span class="p">,)),</span>
-            <span class="n">ENCOUNTER_ROWID</span><span class="p">:</span>     <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>  <span class="p">(</span><span class="n">ENCOUNTER_ROWID</span><span class="p">,),</span>   <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,)),</span>
+            <span class="s">&#39;encounter_rowid&#39;</span><span class="p">:</span>     <span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,),</span>   <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,)),</span>
         <span class="p">}</span>
     <span class="p">)</span>
 
@@ -1141,7 +1140,7 @@
     <span class="c"># Encounters only care about their text again as a uuid We are removing</span>
     <span class="c"># config_rowid from encounters. Thus the dependency is not encoded</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>
+        <span class="s">&#39;encounters&#39;</span><span class="p">,</span>
         <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,)],</span>
     <span class="p">)</span>
 
@@ -1167,15 +1166,15 @@
 <div class="viewcode-block" id="update_1_4_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Remove contributors from configs</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span>
-        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="n">ENCOUNTER_ROWID</span><span class="p">,)],</span>
+        <span class="s">&#39;encounter_image_relationship&#39;</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_ROWID</span><span class="p">,</span> <span class="s">&#39;encounter_rowid&#39;</span><span class="p">,)],</span>
         <span class="c">#superkeys=[(CONFIG_SUFFIX,)]</span>
     <span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="update_1_4_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>
+        <span class="s">&#39;encounters&#39;</span><span class="p">,</span>
         <span class="n">dependsmap</span><span class="o">=</span><span class="p">{</span>
             <span class="s">&#39;config_rowid&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span>       <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span>          <span class="p">(</span><span class="n">CONFIG_SUFFIX</span><span class="p">,)),</span>
         <span class="p">}</span>
@@ -1304,57 +1303,189 @@
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
         <span class="p">[</span>
-            <span class="c"># change type of annot_visual_uuid</span>
+            <span class="c"># change type of image_uri_original</span>
             <span class="p">(</span><span class="s">&#39;image_uri_original&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
         <span class="p">],</span>
     <span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="pre_1_4_8"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.pre_1_4_8">[docs]</a><span class="k">def</span> <span class="nf">pre_1_4_8</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (ibeis.IBEISController):</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
+
+        <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
+        <span class="n">id_iter</span> <span class="o">=</span> <span class="n">annotmatch_rowids</span>
+        <span class="n">annotmatch_is_photobomb_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annotmatch_is_photobomb&#39;</span><span class="p">,),</span> <span class="n">id_iter</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+        <span class="n">annotmatch_is_nondistinct</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annotmatch_is_nondistinct&#39;</span><span class="p">,),</span> <span class="n">id_iter</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+        <span class="n">annotmatch_is_hard</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annotmatch_is_hard&#39;</span><span class="p">,),</span> <span class="n">id_iter</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+        <span class="n">annotmatch_is_scenerymatch</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annotmatch_is_scenerymatch&#39;</span><span class="p">,),</span> <span class="n">id_iter</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+
+        <span class="c">#ibs.get_annotmatch_note(annotmatch_rowids)</span>
+        <span class="n">annotmatch_note_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annotmatch_note&#39;</span><span class="p">,),</span> <span class="n">annotmatch_rowids</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+        <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">annotmatch_note_list</span>
+        <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">set_tags_in_textformat</span><span class="p">(</span>
+            <span class="s">&#39;photobomb&#39;</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">,</span> <span class="n">annotmatch_is_photobomb_list</span><span class="p">)</span>
+        <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">set_tags_in_textformat</span><span class="p">(</span>
+            <span class="s">&#39;nondistinct&#39;</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">,</span> <span class="n">annotmatch_is_nondistinct</span><span class="p">)</span>
+        <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">set_tags_in_textformat</span><span class="p">(</span>
+            <span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">,</span> <span class="n">annotmatch_is_hard</span><span class="p">)</span>
+        <span class="n">new_notes_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">set_tags_in_textformat</span><span class="p">(</span>
+            <span class="s">&#39;scenerymatch&#39;</span><span class="p">,</span> <span class="n">new_notes_list</span><span class="p">,</span> <span class="n">annotmatch_is_scenerymatch</span><span class="p">)</span>
+
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annotmatch_note&#39;</span><span class="p">,),</span>
+                   <span class="n">new_notes_list</span><span class="p">,</span>
+                   <span class="n">annotmatch_rowids</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="update_1_4_8"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_8">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_8</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Need to;</span>
-<span class="sd">        change notes to tag_text_data</span>
-<span class="sd">        add configuration that made the match</span>
-<span class="sd">        add the score of the match</span>
-<span class="sd">        add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE</span>
+<span class="sd">    change notes to tag_text_data</span>
+<span class="sd">    add configuration that made the match</span>
+<span class="sd">    add the score of the match</span>
+<span class="sd">    add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE</span>
 
 <span class="sd">    Probably want a separate table for the config_rowid matching results</span>
 <span class="sd">    because the primary key needs to be (config_rowid, aid1, aid2) OR just</span>
 <span class="sd">    (config_rowid, annotmatch_rowid)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span>
-    <span class="c">#db.modify_table(</span>
-    <span class="c">#    const.ANNOTMATCH_TABLE, [</span>
-    <span class="c">#        (None, &#39;annotmatch_posixtime_modified&#39;,  &#39;INTEGER&#39;, None),</span>
-    <span class="c">#        (None, &#39;annotmatch_score&#39;,  &#39;REAL&#39;, None),</span>
-    <span class="c">#        (None, &#39;config_rowid&#39;,  &#39;INTEGER&#39;, None),</span>
-    <span class="c">#    ]</span>
-    <span class="c">#)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span>
+            <span class="c"># HACK: add a column for parsable tags, this should later be</span>
+            <span class="c"># replaced with a tag table and a tag-annot relation table</span>
+            <span class="p">(</span><span class="s">&#39;annot_tags&#39;</span><span class="p">,</span> <span class="s">&#39;annot_tag_text&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;annotmatch_note&#39;</span><span class="p">,</span> <span class="s">&#39;annotmatch_tag_text&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annotmatch_posixtime_modified&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annotmatch_pairwise_prob&#39;</span><span class="p">,</span>  <span class="s">&#39;REAL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;config_hashid&#39;</span><span class="p">,</span>  <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="c"># Remove explicit case tags in favor of consistency</span>
+            <span class="p">(</span><span class="s">&#39;annotmatch_is_photobomb&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>  <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;annotmatch_is_nondistinct&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>  <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;annotmatch_is_hard&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>  <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;annotmatch_is_scenerymatch&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>  <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
 </div>
-<span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">#def update_lost_to_time(db, ibs=None):</span>
-<span class="sd">#    #db.modify_table(</span>
-<span class="sd">#    #    const.ANNOTMATCH_TABLE, [</span>
-<span class="sd">#    #        (None, &#39;annotmatch_is_interesting&#39;,      &#39;INTEGER&#39;, None),</span>
-<span class="sd">#    #        (None, &#39;annotmatch_posixtime_modified&#39;,  &#39;INTEGER&#39;, None),</span>
-<span class="sd">#    #        (None, &#39;annotmatch_score&#39;,  &#39;REAL&#39;, None),</span>
-<span class="sd">#    #        (None, &#39;config_rowid&#39;,  &#39;INTEGER&#39;, None),</span>
-<span class="sd">#    #    ]</span>
-<span class="sd">#    #)</span>
-<span class="sd">#    # Maybe we want the notation of each annotation having having a set of</span>
-<span class="sd">#    # classes with probabilities (c, p). Or an annotation label with a</span>
-<span class="sd">#    # confidence.</span>
-<span class="sd">#    db.modify_table(</span>
-<span class="sd">#        const.ANNOTATION_TABLE, [</span>
-<span class="sd">#            (None, &#39;annot_mask_uri&#39;,    &#39;TEXT&#39;, None),</span>
-<span class="sd">#        ]</span>
-<span class="sd">#    )</span>
-<span class="sd">#    db.modify_table(</span>
-<span class="sd">#        const.NAME_TABLE, [</span>
-<span class="sd">#            (None, &#39;name_nickname_text&#39;,    &#39;TEXT&#39;, None),</span>
-<span class="sd">#        ]</span>
-<span class="sd">#    )</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="pre_1_4_9"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.pre_1_4_9">[docs]</a><span class="k">def</span> <span class="nf">pre_1_4_9</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">remapping_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;frogs&#39;</span>               <span class="p">:</span> <span class="s">&#39;frog&#39;</span><span class="p">,</span>
+            <span class="s">&#39;giraffe&#39;</span>             <span class="p">:</span> <span class="s">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+            <span class="s">&#39;seals_spotted&#39;</span>       <span class="p">:</span> <span class="s">&#39;seal_spotted&#39;</span><span class="p">,</span>
+            <span class="s">&#39;seals_saimma_ringed&#39;</span> <span class="p">:</span> <span class="s">&#39;seal_saimma_ringed&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+        <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">remapping_dict</span><span class="p">:</span>
+                <span class="c"># Update record for reticulated giraffe</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">_set_species_texts</span><span class="p">([</span><span class="n">rowid</span><span class="p">],</span> <span class="p">[</span><span class="n">remapping_dict</span><span class="p">[</span><span class="n">text</span><span class="p">]])</span>
+
+                <span class="c"># Delete obsolete cPkl file on disk</span>
+                <span class="n">cPlk_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.cPkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cPlk_path</span><span class="p">)</span>
+
+                <span class="c"># Recompute all effected annotation&#39;s semantic UUIDs</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
+                <span class="n">annot_species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">annot_species_rowid</span> <span class="o">==</span> <span class="n">rowid</span>
+                    <span class="k">for</span> <span class="n">annot_species_rowid</span> <span class="ow">in</span> <span class="n">annot_species_rowid_list</span>
+                <span class="p">]</span>
+                <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="update_1_4_9"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_9">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_9</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;species_code&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;species_nice&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;species_toggle_enabled&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER DEFAULT 1&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="post_1_4_9"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.post_1_4_9">[docs]</a><span class="k">def</span> <span class="nf">post_1_4_9</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="c"># change type of species_nice</span>
+                <span class="p">(</span><span class="s">&#39;species_nice&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+                <span class="p">(</span><span class="s">&#39;species_code&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="update_1_5_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_5_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_5_0</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># Rename encounters to imagesets</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">rename_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="s">&#39;imagesets&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">rename_table</span><span class="p">(</span><span class="s">&#39;encounter_image_relationship&#39;</span><span class="p">,</span> <span class="s">&#39;imageset_image_relationship&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="s">&#39;imagesets&#39;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>             <span class="s">&#39;imageset_rowid&#39;</span><span class="p">,</span>              <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_uuid&#39;</span><span class="p">,</span>              <span class="s">&#39;imageset_uuid&#39;</span><span class="p">,</span>               <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,</span>              <span class="s">&#39;imageset_text&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_note&#39;</span><span class="p">,</span>              <span class="s">&#39;imageset_note&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_start_time_posix&#39;</span><span class="p">,</span>  <span class="s">&#39;imageset_start_time_posix&#39;</span><span class="p">,</span>   <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_end_time_posix&#39;</span><span class="p">,</span>    <span class="s">&#39;imageset_end_time_posix&#39;</span><span class="p">,</span>     <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_gps_lat&#39;</span><span class="p">,</span>           <span class="s">&#39;imageset_gps_lat&#39;</span><span class="p">,</span>            <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_gps_lon&#39;</span><span class="p">,</span>           <span class="s">&#39;imageset_gps_lon&#39;</span><span class="p">,</span>            <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>    <span class="s">&#39;imageset_processed_flag&#39;</span><span class="p">,</span>     <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>      <span class="s">&#39;imageset_shipped_flag&#39;</span><span class="p">,</span>       <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_smart_xml_fname&#39;</span><span class="p">,</span>   <span class="s">&#39;imageset_smart_xml_fname&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_smart_waypoint_id&#39;</span><span class="p">,</span> <span class="s">&#39;imageset_smart_waypoint_id&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        List of all imagesets. This used to be called the encounter table.</span>
+<span class="s">        It represents a group of potentially many individuals seen in a</span>
+<span class="s">        specific place at a specific time.</span>
+<span class="s">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;imageset_text&#39;</span><span class="p">,)],</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="s">&#39;imageset_image_relationship&#39;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,</span>       <span class="s">&#39;gsgr_rowid&#39;</span><span class="p">,</span>      <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;imageset_rowid&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Relationship between imagesets and images (many to many mapping) the</span>
+<span class="s">        many-to-many relationship between images and imagesets is encoded</span>
+<span class="s">        here imageset_image_relationship stands for imageset-image-pairs.</span>
+<span class="s">        &#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;imageset_rowid&#39;</span><span class="p">)],</span>
+        <span class="n">relates</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;images&#39;</span><span class="p">,</span> <span class="s">&#39;imagesets&#39;</span><span class="p">),</span>
+        <span class="n">shortname</span><span class="o">=</span><span class="s">&#39;gsgr&#39;</span><span class="p">,</span>
+        <span class="n">dependsmap</span><span class="o">=</span><span class="p">{</span>
+            <span class="s">&#39;imageset_rowid&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;imagesets&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;imageset_rowid&#39;</span><span class="p">,),</span> <span class="p">(</span><span class="s">&#39;imageset_text&#39;</span><span class="p">,)),</span>
+            <span class="s">&#39;image_rowid&#39;</span>    <span class="p">:</span> <span class="p">(</span><span class="s">&#39;images&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,)),</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
 
 
 <span class="c"># ========================</span>
@@ -1363,7 +1494,7 @@
 
 <span class="c"># TODO: do we save a backup with the older version number in the file name?</span>
 
-
+</div>
 <span class="n">base</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
 <span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
     <span class="c">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
@@ -1393,8 +1524,15 @@
     <span class="p">(</span><span class="s">&#39;1.4.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_5</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.4.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_6</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.4.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_7</span><span class="p">,</span>       <span class="n">post_1_4_7</span>          <span class="p">)),</span>
-    <span class="c">#(&#39;1.4.8&#39;,    (None,                 update_1_4_8,       None                )),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_4_8</span><span class="p">,</span>            <span class="n">update_1_4_8</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_4_9</span><span class="p">,</span>            <span class="n">update_1_4_9</span><span class="p">,</span>       <span class="n">post_1_4_9</span>          <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.5.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_5_0</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
 <span class="p">])</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SeeAlso:</span>
+<span class="sd">    When updating versions need to test and modify in</span>
+<span class="sd">    IBEISController._init_sqldbcore</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 
 <span class="n">LEGACY_UPDATE_FUNCTIONS</span> <span class="o">=</span> <span class="p">[</span>
@@ -1495,7 +1633,7 @@
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python -m ibeis.model.preproc.preproc_chip</span>
+<span class="sd">    python -m ibeis.algo.preproc.preproc_chip</span>
 <span class="sd">    python -m ibeis.control.DB_SCHEMA --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
@@ -1513,7 +1651,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1535,7 +1673,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

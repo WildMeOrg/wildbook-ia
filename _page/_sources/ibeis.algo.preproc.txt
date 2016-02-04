@@ -1,0 +1,102 @@
+ibeis.algo.preproc package
+==========================
+
+Submodules
+----------
+
+ibeis.algo.preproc.old_chip_preproc module
+------------------------------------------
+
+.. automodule:: ibeis.algo.preproc.old_chip_preproc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_annot module
+---------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_annot
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_chip module
+--------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_chip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_detectimg module
+-------------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_detectimg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_feat module
+--------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_feat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_featweight module
+--------------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_featweight
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_image module
+---------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_image
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_occurrence module
+--------------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_occurrence
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_probchip module
+------------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_probchip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_residual module
+------------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_residual
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.preproc.preproc_rvec module
+--------------------------------------
+
+.. automodule:: ibeis.algo.preproc.preproc_rvec
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.preproc
+    :members:
+    :undoc-members:
+    :show-inheritance:

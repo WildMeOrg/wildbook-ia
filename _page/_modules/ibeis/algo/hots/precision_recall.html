@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.hots.precision_recall &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.algo.hots</a> &raquo;</li>
+      
+    <li>ibeis.algo.hots.precision_recall</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.hots.precision_recall</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: DEPRICATE WITH QRES</span>
+
+<span class="sd">IBEIS AGNOSTIC DEFINITIONS ARE NOW IN VTOOL</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[precision_recall]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_nTruePositive"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_nTruePositive">[docs]</a><span class="k">def</span> <span class="nf">get_nTruePositive</span><span class="p">(</span><span class="n">atrank</span><span class="p">,</span> <span class="n">was_retrieved</span><span class="p">,</span> <span class="n">gt_ranks</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; the number of documents we got right &quot;&quot;&quot;</span>
+    <span class="n">TP</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">was_retrieved</span><span class="p">,</span> <span class="n">gt_ranks</span> <span class="o">&lt;=</span> <span class="n">atrank</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">TP</span>
+
+</div>
+<div class="viewcode-block" id="get_nFalseNegative"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_nFalseNegative">[docs]</a><span class="k">def</span> <span class="nf">get_nFalseNegative</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">,</span> <span class="n">nGroundTruth</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; the number of documents we should have retrieved but didn&#39;t &quot;&quot;&quot;</span>
+    <span class="c">#FN = min((atrank + 1) - TP, nGroundTruth - TP)</span>
+    <span class="c">#nRetreived = (atrank + 1)</span>
+    <span class="n">FN</span> <span class="o">=</span> <span class="n">nGroundTruth</span> <span class="o">-</span> <span class="n">TP</span>
+    <span class="c">#min(atrank, nGroundTruth - TP)</span>
+    <span class="k">return</span> <span class="n">FN</span>
+
+</div>
+<div class="viewcode-block" id="get_nFalsePositive"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_nFalsePositive">[docs]</a><span class="k">def</span> <span class="nf">get_nFalsePositive</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; the number of documents we should not have retrieved &quot;&quot;&quot;</span>
+    <span class="c">#FP = min((atrank + 1) - TP, nGroundTruth)</span>
+    <span class="n">nRetreived</span> <span class="o">=</span> <span class="p">(</span><span class="n">atrank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">FP</span> <span class="o">=</span> <span class="n">nRetreived</span> <span class="o">-</span> <span class="n">TP</span>
+    <span class="k">return</span> <span class="n">FP</span>
+
+</div>
+<div class="viewcode-block" id="get_precision"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_precision">[docs]</a><span class="k">def</span> <span class="nf">get_precision</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; precision positive predictive value &quot;&quot;&quot;</span>
+    <span class="n">precision</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="p">(</span><span class="n">TP</span> <span class="o">+</span> <span class="n">FP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">precision</span>
+
+</div>
+<div class="viewcode-block" id="get_recall"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_recall">[docs]</a><span class="k">def</span> <span class="nf">get_recall</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FN</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; recall, true positive rate, sensitivity, hit rate &quot;&quot;&quot;</span>
+    <span class="n">recall</span> <span class="o">=</span> <span class="n">TP</span> <span class="o">/</span> <span class="p">(</span><span class="n">TP</span> <span class="o">+</span> <span class="n">FN</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">recall</span>
+
+</div>
+<div class="viewcode-block" id="get_average_percision_"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_average_percision_">[docs]</a><span class="k">def</span> <span class="nf">get_average_percision_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    gets average percision using the PASCAL definition</span>
+
+<span class="sd">    FIXME: Use only the groundtruth that could have been matched in the</span>
+<span class="sd">    database. (shouldn&#39;t be an issue until we start using daid subsets)</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://en.wikipedia.org/wiki/Information_retrieval</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="k">return</span> <span class="n">ave_p</span>
+
+</div>
+<div class="viewcode-block" id="get_interpolated_precision_vs_recall_"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_interpolated_precision_vs_recall_">[docs]</a><span class="k">def</span> <span class="nf">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">get_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+    <span class="n">ofrank_curve</span><span class="p">,</span> <span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span>  <span class="o">=</span> <span class="n">tup</span>
+    <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">interpolate_precision_recall_</span><span class="p">(</span><span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span>
+
+</div>
+<div class="viewcode-block" id="interpolate_precision_recall_"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.interpolate_precision_recall_">[docs]</a><span class="k">def</span> <span class="nf">interpolate_precision_recall_</span><span class="p">(</span><span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span><span class="p">,</span> <span class="n">nSamples</span><span class="o">=</span><span class="mi">11</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">precision_curve</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+    <span class="n">recall_range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nSamples</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">p_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+        <span class="n">precision_candidates</span> <span class="o">=</span> <span class="n">precision_curve</span><span class="p">[</span><span class="n">recall_curve</span> <span class="o">&gt;=</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">precision_candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">precision_candidates</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_interp</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recall_range_</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span>
+
+</div>
+<div class="viewcode-block" id="get_precision_recall_curve_"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.get_precision_recall_curve_">[docs]</a><span class="k">def</span> <span class="nf">get_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.precision_recall --test-get_precision_recall_curve_ --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.hots_query_result import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[14:15]</span>
+<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; qres = ibs.query_chips(qaids, daids)[0]</span>
+<span class="sd">        &gt;&gt;&gt; gt_aids = None</span>
+<span class="sd">        &gt;&gt;&gt; atrank  = 18</span>
+<span class="sd">        &gt;&gt;&gt; nSamples = 20</span>
+<span class="sd">        &gt;&gt;&gt; ofrank_curve, precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)</span>
+<span class="sd">        &gt;&gt;&gt; recall_range_, p_interp_curve = interpolate_precision_recall_(precision_curve, recall_curve, nSamples=nSamples)</span>
+<span class="sd">        &gt;&gt;&gt; print((recall_range_, p_interp_curve))</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; draw_precision_recall_curve_(recall_range_, p_interp_curve)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://en.wikipedia.org/wiki/Precision_and_recall</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gt_ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_gt_ranks</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+    <span class="n">was_retrieved</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">gt_ranks</span><span class="p">])</span>
+    <span class="n">nGroundTruth</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_ranks</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">nGroundTruth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+    <span class="c"># From oxford:</span>
+    <span class="c">#Precision is defined as the ratio of retrieved positive images to the total number retrieved.</span>
+    <span class="c">#Recall is defined as the ratio of the number of retrieved positive images to the total</span>
+    <span class="c">#number of positive images in the corpus.</span>
+
+    <span class="c">#with ut.EmbedOnException():</span>
+    <span class="n">max_rank</span> <span class="o">=</span> <span class="n">gt_ranks</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">max_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">max_rank</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ofrank_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">truepos_curve</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">get_nTruePositive</span><span class="p">(</span><span class="n">ofrank</span><span class="p">,</span> <span class="n">was_retrieved</span><span class="p">,</span> <span class="n">gt_ranks</span><span class="p">)</span> <span class="k">for</span> <span class="n">ofrank</span> <span class="ow">in</span> <span class="n">ofrank_curve</span><span class="p">])</span>
+
+    <span class="n">falsepos_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">get_nFalsePositive</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">falseneg_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">get_nFalseNegative</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span><span class="p">,</span> <span class="n">nGroundTruth</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">TP</span><span class="p">,</span> <span class="n">atrank</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">ofrank_curve</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">precision_curve</span> <span class="o">=</span> <span class="n">get_precision</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">falsepos_curve</span><span class="p">)</span>
+    <span class="n">recall_curve</span>    <span class="o">=</span> <span class="n">get_recall</span><span class="p">(</span><span class="n">truepos_curve</span><span class="p">,</span> <span class="n">falseneg_curve</span><span class="p">)</span>
+
+    <span class="c">#print(np.vstack([precision_curve, recall_curve]).T)</span>
+    <span class="k">return</span> <span class="n">ofrank_curve</span><span class="p">,</span> <span class="n">precision_curve</span><span class="p">,</span> <span class="n">recall_curve</span>
+
+</div>
+<div class="viewcode-block" id="show_precision_recall_curve_"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.show_precision_recall_curve_">[docs]</a><span class="k">def</span> <span class="nf">show_precision_recall_curve_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CHANGE NAME TO REFERENCE QRES</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">get_interpolated_precision_vs_recall_</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span>
+    <span class="n">title_pref</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span>
+    <span class="k">return</span> <span class="n">draw_precision_recall_curve_</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">,</span> <span class="n">title_pref</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="draw_precision_recall_curve_"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.precision_recall.draw_precision_recall_curve_">[docs]</a><span class="k">def</span> <span class="nf">draw_precision_recall_curve_</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">,</span> <span class="n">title_pref</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">recall_range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">p_interp_curve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># NOQA</span>
+
+    <span class="k">if</span> <span class="n">recall_range_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ave_p</span> <span class="o">=</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">p_interp_curve</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o--&#39;</span><span class="p">,</span>
+              <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;recall&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="s">&#39;precision&#39;</span><span class="p">,</span> <span class="n">unitbox</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+              <span class="n">flipx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span>
+              <span class="n">title</span><span class="o">=</span><span class="s">&#39;Interplated Precision Vs Recall</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;avep = </span><span class="si">%r</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="n">ave_p</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Interplated Precision&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">recall_range_</span><span class="p">,</span> <span class="n">p_interp_curve</span><span class="p">))))</span>
+    <span class="c">#fig.show()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.precision_recall</span>
+<span class="sd">        python -m ibeis.algo.hots.precision_recall --allexamples</span>
+<span class="sd">        python -m ibeis.algo.hots.precision_recall --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

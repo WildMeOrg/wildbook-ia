@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.main_commands &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.init.main_commands &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -132,11 +132,13 @@
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: Rename to ibeis/init/commands.py</span>
+
+<span class="sd">TODO; remove params module</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
@@ -146,7 +148,7 @@
 
 <div class="viewcode-block" id="vdq"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.vdq">[docs]</a><span class="k">def</span> <span class="nf">vdq</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;view directory and quit&quot;&quot;&quot;</span>
-    <span class="n">_ibsdb</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span>
+    <span class="n">_ibsdb</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">_ibsdb</span><span class="p">))</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
@@ -219,7 +221,7 @@
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">delete_cache_complete</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">(</span><span class="n">delete_chips</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_encounters</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">(</span><span class="n">delete_chips</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_imagesets</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">delete_query_cache</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_qres_cache</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_notes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -232,15 +234,18 @@
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_schema</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_schema</span><span class="p">()</span>
 
-    <span class="n">select_eid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--select-eid&#39;</span><span class="p">,</span> <span class="s">&#39;--eid&#39;</span><span class="p">,),</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">select_eid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+ --- CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_eid</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ipynb&#39;</span><span class="p">):</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">launch_ipy_notebook</span><span class="p">()</span>
+
+    <span class="n">select_imgsetid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--select-imgsetid&#39;</span><span class="p">,</span> <span class="s">&#39;--imgsetid&#39;</span><span class="p">,),</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">select_imgsetid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+ --- CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_imgsetid</span><span class="p">,))</span>
         <span class="c"># Whoa: this doesnt work. weird.</span>
-        <span class="c">#back.select_eid(select_eid)</span>
+        <span class="c">#back.select_imgsetid(select_imgsetid)</span>
         <span class="c"># This might be the root of gui problems</span>
-        <span class="c">#back.front._change_enc(select_eid)</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">select_eid</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ___</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_eid</span><span class="p">,))</span>
+        <span class="c">#back.front._change_imageset(select_imgsetid)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_imageset_tab</span><span class="p">(</span><span class="n">select_imgsetid</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ___</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_imgsetid</span><span class="p">,))</span>
     <span class="c"># Send commands to GUIBack</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -261,9 +266,10 @@
         <span class="n">back</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">select_table_indicies_from_text</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span><span class="p">,</span> <span class="n">select_name</span><span class="p">,</span>
                                                     <span class="n">allow_table_change</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">query_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
-        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">query_aid</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--query-aid&#39;</span><span class="p">,</span> <span class="s">&#39;--query&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">#qaid_list = params.args.query_aid</span>
         <span class="c"># fix stride case</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="n">qaid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -277,6 +283,20 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dbinfo&#39;</span><span class="p">,</span> <span class="s">&#39;--display_dbinfo&#39;</span><span class="p">)):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">display_dbinfo</span><span class="p">()</span>
         <span class="k">pass</span>
+
+    <span class="n">aidcmd</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aidcmd&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">aidcmd</span><span class="p">:</span>
+        <span class="c">#aidcmd = &#39;Interact image&#39;</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">annot_context_options</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot_context_options&#39;</span><span class="p">]</span>
+        <span class="n">aidcmd_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">annot_context_options</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;aidcmd_dict = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">aidcmd_dict</span><span class="p">),))</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="n">aidcmd_dict</span><span class="p">[</span><span class="n">aidcmd</span><span class="p">]</span>
+        <span class="n">command</span><span class="p">()</span>
+        <span class="c">#import utool</span>
+        <span class="c">#utool.embed()</span>
+        <span class="c">#back.start_web_server_parallel()</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--start-web&#39;</span><span class="p">):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">start_web_server_parallel</span><span class="p">()</span>
@@ -335,7 +355,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -357,7 +377,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

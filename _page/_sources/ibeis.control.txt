@@ -44,26 +44,18 @@ ibeis.control.IBEISControl module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control.SQLDatabaseControl module
----------------------------------------
-
-.. automodule:: ibeis.control.SQLDatabaseControl
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.control.__SQLITE3__ module
---------------------------------
-
-.. automodule:: ibeis.control.__SQLITE3__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.control._autogen_annotmatch_funcs module
 ----------------------------------------------
 
 .. automodule:: ibeis.control._autogen_annotmatch_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._autogen_explicit_controller module
+-------------------------------------------------
+
+.. automodule:: ibeis.control._autogen_explicit_controller
     :members:
     :undoc-members:
     :show-inheritance:
@@ -140,22 +132,6 @@ ibeis.control.manual_chip_funcs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control.manual_egrelate_funcs module
-------------------------------------------
-
-.. automodule:: ibeis.control.manual_egrelate_funcs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.control.manual_encounter_funcs module
--------------------------------------------
-
-.. automodule:: ibeis.control.manual_encounter_funcs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.control.manual_feat_funcs module
 --------------------------------------
 
@@ -172,6 +148,14 @@ ibeis.control.manual_garelate_funcs module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control.manual_gsgrelate_funcs module
+-------------------------------------------
+
+.. automodule:: ibeis.control.manual_gsgrelate_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.control.manual_ibeiscontrol_funcs module
 ----------------------------------------------
 
@@ -184,6 +168,14 @@ ibeis.control.manual_image_funcs module
 ---------------------------------------
 
 .. automodule:: ibeis.control.manual_image_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_imageset_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_imageset_funcs
     :members:
     :undoc-members:
     :show-inheritance:

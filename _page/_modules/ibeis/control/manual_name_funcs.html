@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -250,7 +250,7 @@
     <span class="c">#lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]</span>
     <span class="c">#lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)</span>
     <span class="c">#nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)</span>
-    <span class="c">##nid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]</span>
+    <span class="c">##nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]</span>
     <span class="c">#return nid_list</span>
 
 
@@ -370,7 +370,7 @@
     <span class="n">nRois_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">)</span>
     <span class="c"># Filter names with rois</span>
     <span class="n">isempty_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">nRois</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nRois</span> <span class="ow">in</span> <span class="n">nRois_list</span><span class="p">)</span>
-    <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilter_items</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">,</span> <span class="n">isempty_list</span><span class="p">))</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iter_compress</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">,</span> <span class="n">isempty_list</span><span class="p">))</span>
     <span class="c"># Filter names with aliases (TODO: use transitivity to determine validity)</span>
     <span class="n">hasalias_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">alias_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">alias_text</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_alias_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)]</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">hasalias_list</span><span class="p">))</span>
@@ -658,7 +658,7 @@
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c"># Flag any annots that are not exemplar and remove them</span>
     <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
-    <span class="n">exemplar_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">flags</span> <span class="ow">in</span>
+    <span class="n">exemplar_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">flags</span> <span class="ow">in</span>
                           <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">exemplar_aids_list</span>
 
@@ -930,7 +930,7 @@
     <span class="n">name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">apply_fix</span><span class="p">:</span>
         <span class="n">name_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
-                          <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="ow">or</span> <span class="n">name_text</span> <span class="ow">is</span> <span class="bp">None</span>
+                          <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="ow">or</span> <span class="n">name_text</span> <span class="ow">is</span> <span class="bp">None</span>
                           <span class="k">else</span> <span class="n">name_text</span>
                           <span class="k">for</span> <span class="n">name_text</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">name_text_list</span>
@@ -1047,7 +1047,7 @@
     <span class="n">name_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_name_texts</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
     <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span>
                                  <span class="n">name_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_TEXT</span><span class="p">)</span>
-    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
                            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list_</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span>
 
@@ -1055,7 +1055,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_valid_nids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_valid_nids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filter_empty</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">min_pername</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_valid_nids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_valid_nids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filter_empty</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">min_pername</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): all valid names with at least one animal</span>
@@ -1065,10 +1065,12 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/name/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">imgsetid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_nids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_nids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+    <span class="c"># HACK FOR UNKNOWN. Makes things crash</span>
+    <span class="c">#_nid_list += [0]</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">_nid_list</span>
 
     <span class="k">if</span> <span class="n">filter_empty</span><span class="p">:</span>
@@ -1077,7 +1079,7 @@
     <span class="k">if</span> <span class="n">min_pername</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nAnnot_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nAnnot_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_pername</span>
-        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">nid_list</span>
 
 </div>
@@ -1257,26 +1259,26 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/eids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_name_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_name_eids">[docs]</a><span class="k">def</span> <span class="nf">get_name_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_name_imgsetids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_name_imgsetids">[docs]</a><span class="k">def</span> <span class="nf">get_name_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_name_eids&#39;</span>
+<span class="sd">    Auto-docstr for &#39;get_name_imgsetids&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/name/eids/</span>
+<span class="sd">        URL:    /api/name/imgsetids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">name_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="n">name_aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_aids_list</span><span class="p">)</span>
     <span class="n">name_gid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
-    <span class="n">name_eids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_eids</span><span class="p">(</span><span class="n">name_gid_list</span><span class="p">)</span>
-    <span class="n">name_eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_eids_list</span><span class="p">)</span>
-    <span class="n">name_eids</span>      <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_eid_list</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">name_eids</span>
+    <span class="n">name_imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">name_gid_list</span><span class="p">)</span>
+    <span class="n">name_imgsetid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_imgsetids_list</span><span class="p">)</span>
+    <span class="n">name_imgsetids</span>      <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_imgsetid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">name_imgsetids</span>
 
 
-<span class="c">#def get_encounter_nids(ibs,</span>
+<span class="c">#def get_imageset_nids(ibs,</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -1289,7 +1291,7 @@
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/name/eids/</span>
+<span class="sd">        URL:    /api/name/imgsetids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -1306,7 +1308,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1328,7 +1330,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

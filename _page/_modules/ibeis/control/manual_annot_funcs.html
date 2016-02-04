@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_annot_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_annot_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -165,7 +165,7 @@
 <span class="n">ANNOT_NUM_VERTS</span>          <span class="o">=</span> <span class="s">&#39;annot_num_verts&#39;</span>
 <span class="n">ANNOT_PARENT_ROWID</span>       <span class="o">=</span> <span class="s">&#39;annot_parent_rowid&#39;</span>
 <span class="n">ANNOT_ROWID</span>              <span class="o">=</span> <span class="s">&#39;annot_rowid&#39;</span>
-<span class="n">ANNOT_TAGS</span>               <span class="o">=</span> <span class="s">&#39;annot_tags&#39;</span>
+<span class="n">ANNOT_TAG_TEXT</span>           <span class="o">=</span> <span class="s">&#39;annot_tag_text&#39;</span>
 <span class="n">ANNOT_SEMANTIC_UUID</span>      <span class="o">=</span> <span class="s">&#39;annot_semantic_uuid&#39;</span>
 <span class="n">ANNOT_THETA</span>              <span class="o">=</span> <span class="s">&#39;annot_theta&#39;</span>
 <span class="n">ANNOT_VERTS</span>              <span class="o">=</span> <span class="s">&#39;annot_verts&#39;</span>
@@ -221,7 +221,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_valid_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_valid_aids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">include_only_gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="get_valid_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_valid_aids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">include_only_gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                    <span class="n">yaw</span><span class="o">=</span><span class="s">&#39;no-filter&#39;</span><span class="p">,</span>
                    <span class="n">is_exemplar</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                    <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -238,7 +238,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        eid (int): encounter id (default = None)</span>
+<span class="sd">        imgsetid (int): imageset id (default = None)</span>
 <span class="sd">        include_only_gid_list (list): if specified filters annots not in these gids (default = None)</span>
 <span class="sd">        yaw (str): (default = &#39;no-filter&#39;)</span>
 <span class="sd">        is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)</span>
@@ -267,18 +267,18 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; eid = 1</span>
-<span class="sd">        &gt;&gt;&gt; ibs.delete_all_encounters()</span>
-<span class="sd">        &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid = 1</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_all_imagesets()</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences()</span>
 <span class="sd">        &gt;&gt;&gt; include_only_gid_list = None</span>
 <span class="sd">        &gt;&gt;&gt; yaw = &#39;no-filter&#39;</span>
 <span class="sd">        &gt;&gt;&gt; is_exemplar = None</span>
-<span class="sd">        &gt;&gt;&gt; species = const.Species.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; species = const.TEST_SPECIES.ZEB_PLAIN</span>
 <span class="sd">        &gt;&gt;&gt; is_known = False</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = get_valid_aids(ibs, eid, include_only_gid_list, yaw, is_exemplar, species, is_known)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = get_valid_aids(ibs, imgsetid, include_only_gid_list, yaw, is_exemplar, species, is_known)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, &#39;bad name&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, &#39;bad species&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_species(aid_list), [species] * 2, &#39;bad species&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, &#39;bad exemplar&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(aid_list)</span>
@@ -322,8 +322,8 @@
 <span class="sd">        _ = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># getting encounter aid</span>
-    <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="c"># getting imageset aid</span>
+    <span class="k">if</span> <span class="n">imgsetid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">is_exemplar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Optimization Hack</span>
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span>
@@ -332,15 +332,15 @@
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># HACK: Check to see if you want the</span>
-        <span class="c"># exemplar &quot;encounter&quot; (image group)</span>
-        <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">enctext</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">EXEMPLAR_ENCTEXT</span><span class="p">:</span>
+        <span class="c"># exemplar &quot;imageset&quot; (image group)</span>
+        <span class="n">imagesettext</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">imagesettext</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">EXEMPLAR_IMAGESETTEXT</span><span class="p">:</span>
             <span class="n">is_exemplar</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_exemplar</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
             <span class="c"># corresponding unoptimized hack for is_exemplar</span>
             <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-            <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+            <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">is_exemplar</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
             <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
@@ -360,11 +360,11 @@
     <span class="k">if</span> <span class="n">include_only_gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">gid_list</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">is_valid_gid</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">in</span> <span class="n">include_only_gid_list</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">]</span>
-        <span class="n">aid_list</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_valid_gid</span><span class="p">)</span>
+        <span class="n">aid_list</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_valid_gid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">yaw</span> <span class="o">!=</span> <span class="s">&#39;no-filter&#39;</span><span class="p">:</span>
         <span class="n">yaw_list</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">is_valid_yaw</span> <span class="o">=</span> <span class="p">[</span><span class="n">yaw</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">yaw_list</span><span class="p">]</span>
-        <span class="n">aid_list</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_valid_yaw</span><span class="p">)</span>
+        <span class="n">aid_list</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_valid_yaw</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_to_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">is_known</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -377,7 +377,7 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_using_minimum_timedelta</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">min_timedelta</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">hasgt</span><span class="p">:</span>
         <span class="n">hasgt_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_groundtruth</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">hasgt_list</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">hasgt_list</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aid_list</span>
 
@@ -412,7 +412,7 @@
 <span class="nd">@accessor_decors.adder</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">])</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_annots"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.add_annots">[docs]</a><span class="k">def</span> <span class="nf">add_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">species_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -420,7 +420,7 @@
                 <span class="n">vert_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">yaw_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">annot_visual_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_semantic_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">species_rowid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                <span class="n">prevent_visual_duplicates</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">prevent_visual_duplicates</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">skip_cleaning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds an annotation to images</span>
 
@@ -542,7 +542,7 @@
 <span class="sd">        [14, 15]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#ut.embed()</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
     <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding annotations&#39;</span><span class="p">)</span>
@@ -559,7 +559,7 @@
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+            <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">species_rowid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -567,9 +567,9 @@
         <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">species_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+            <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">skip_cleaning</span><span class="o">=</span><span class="n">skip_cleaning</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+            <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
             <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">detect_confidence_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">detect_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
@@ -633,6 +633,11 @@
                 <span class="s">&#39;annot_note&#39;</span><span class="p">,</span> <span class="s">&#39;name_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;species_rowid&#39;</span><span class="p">,</span>
                 <span class="s">&#39;annot_visual_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;annot_semantic_uuid&#39;</span><span class="p">)</span>
 
+    <span class="n">check_uuid_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">auuid</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="k">for</span> <span class="n">auuid</span> <span class="ow">in</span> <span class="n">annot_uuid_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">check_uuid_flags</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">check_uuid_flags</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;positions </span><span class="si">%r</span><span class="s"> have malformated UUIDS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pos</span><span class="p">,))</span>
+
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span>
                             <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">nVert_list</span><span class="p">,</span>
                             <span class="n">vertstr_list</span><span class="p">,</span> <span class="n">yaw_list</span><span class="p">,</span> <span class="n">detect_confidence_list</span><span class="p">,</span>
@@ -694,7 +699,7 @@
     <span class="c"># FIXME: This should be implicit by setting the anotation name to the</span>
     <span class="c"># unknown name</span>
     <span class="c">#ibs.delete_annot_relations_oftype(aid_list, const.INDIVIDUAL_KEY)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -711,7 +716,7 @@
     <span class="c"># FIXME: This should be implicit by setting the anotation name to the</span>
     <span class="c"># unknown species</span>
     <span class="c">#ibs.delete_annot_relations_oftype(aid_list, const.SPECIES_KEY)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -719,7 +724,7 @@
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_annots"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.delete_annots">[docs]</a><span class="k">def</span> <span class="nf">delete_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -775,7 +780,7 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
     <span class="c"># Delete chips and features first</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
     <span class="n">preproc_annot</span><span class="o">.</span><span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="c"># TODO:</span>
     <span class="c"># delete parent rowid column if exists in annot table</span>
@@ -823,6 +828,24 @@
     <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">ANNOT_UUID</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/missing_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_missing_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_missing_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_missing_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of missing annot uuids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/missing_uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">)</span>
+    <span class="n">missing_uuid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">uuid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">uuid</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="p">]</span>
+    <span class="k">return</span> <span class="n">missing_uuid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -984,8 +1007,8 @@
 <span class="nd">@ut.accepts_numpy</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
 <span class="c">#@cache_getter(const.ANNOTATION_TABLE, &#39;image_rowid&#39;)</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/eids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_annot_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_eids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_imgsetids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_imgsetids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Get parent image rowids of annotations</span>
 
@@ -993,11 +1016,11 @@
 <span class="sd">        aid_list (list):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        eid_list (list):  encounter rowids</span>
+<span class="sd">        imgsetid_list (list):  imageset rowids</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/annot/eids/</span>
+<span class="sd">        URL:    /api/annot/imgsetids/</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -1009,27 +1032,8 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">eids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">eids_list</span>
-
-</div>
-<span class="nd">@register_ibs_method</span>
-<span class="nd">@accessor_decors.getter_1toM</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/otherimage_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_annot_otherimage_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_otherimage_aids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_otherimage_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_annot_otherimage_aids&#39;</span>
-
-<span class="sd">    RESTful:</span>
-<span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/annot/otherimage_aids/</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">image_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="c"># Remove self from list</span>
-    <span class="n">other_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">aid</span><span class="p">})</span>
-                       <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_aids_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">other_aids_list</span>
+    <span class="n">imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetids_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1037,7 +1041,7 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/gar_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_annot_gar_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_gar_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_gar_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_annot_otherimage_aids&#39;</span>
+<span class="sd">    Auto-docstr for &#39;get_annot_gar_rowids&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -1051,8 +1055,35 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/otherimage_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_otherimage_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_otherimage_aids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_otherimage_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_annot_otherimage_aids&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/otherimage_aids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">image_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="c"># Remove self from list</span>
+        <span class="n">other_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">aid</span><span class="p">})</span>
+                           <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_aids_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">internal_data_gids</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+        <span class="n">other_aids_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">internal_data_gids</span> <span class="o">==</span> <span class="n">gid</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">other_aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1toM</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/contact_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_annot_contact_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_contact_aids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_contact_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_contact_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_contact_aids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_contact_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_isect</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns the other aids that appear in the same image that this</span>
 <span class="sd">    annotation is from.</span>
@@ -1062,7 +1093,7 @@
 <span class="sd">        aid_list (list):</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids;1</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -1086,7 +1117,7 @@
 <span class="sd">        ...     assert aid not in aids, &#39;should not include self&#39;</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
@@ -1097,14 +1128,14 @@
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)</span>
 <span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_annot_gids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;contact_aids = %r&#39; % (contact_aids,))</span>
 <span class="sd">        &gt;&gt;&gt; for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):</span>
 <span class="sd">        ...     assert ut.list_allsame(gids), &#39;annots should be from same image&#39;</span>
 <span class="sd">        ...     assert len(gids) == 0 or gids[0] == gid, &#39;and same image as parent annot&#39;</span>
 <span class="sd">        ...     assert aid not in aids, &#39;should not include self&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">other_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_otherimage_aids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">check_intersection</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="n">check_intersection</span><span class="p">:</span>
+    <span class="n">other_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_otherimage_aids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">check_isect</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">shapely.geometry</span>
         <span class="c"># TODO: might not be accounting for rotated verticies</span>
         <span class="n">verts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -1114,9 +1145,8 @@
                             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">other_verts_list</span><span class="p">]</span>
         <span class="n">flags_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">p1</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span> <span class="k">for</span> <span class="n">p2</span> <span class="ow">in</span> <span class="n">p2_list</span><span class="p">]</span>
                       <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">poly_list</span><span class="p">,</span> <span class="n">other_polys_list</span><span class="p">)]</span>
-        <span class="n">contact_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">other_aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">contact_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">other_aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">other_aids</span><span class="p">,</span> <span class="n">flags</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">other_aids_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)]</span>
-
     <span class="k">else</span><span class="p">:</span>
         <span class="n">contact_aids</span> <span class="o">=</span> <span class="n">other_aids_list</span>
     <span class="k">return</span> <span class="n">contact_aids</span>
@@ -1222,6 +1252,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ut.get_argval(&#39;--aids&#39;, list, ibs.get_valid_aids())</span>
@@ -1233,6 +1264,7 @@
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
@@ -1244,6 +1276,7 @@
 
 <span class="sd">    Example2:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
@@ -1269,7 +1302,7 @@
         <span class="c"># Filter out non-exemplars</span>
         <span class="n">exemplar_flags_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
         <span class="n">isvalids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">flag</span> <span class="o">==</span> <span class="n">is_exemplar</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flags</span><span class="p">]</span> <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">exemplar_flags_list</span><span class="p">]</span>
-        <span class="n">groundtruth_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span>
+        <span class="n">groundtruth_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span>
                              <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">noself</span><span class="p">:</span>
         <span class="c"># Remove yourself from the set</span>
@@ -1353,7 +1386,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/hashid_visual_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_annot_hashid_visual_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_hashid_visual_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">_new</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_hashid_visual_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_hashid_visual_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    builds an aggregate visual hash id for a list of aids</span>
 
@@ -1367,39 +1400,35 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">visual_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="s">&#39;VUUIDS&#39;</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">_new</span><span class="p">:</span>
-        <span class="n">visual_uuid_hashid</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">visual_uuid_hashid</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="c">#if _new:</span>
+    <span class="n">visual_uuid_hashid</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="n">pathsafe</span><span class="p">)</span>
+    <span class="c">#else:</span>
+    <span class="c">#visual_uuid_hashid  = ut.hashstr_arr(visual_uuid_list, label)</span>
     <span class="k">return</span> <span class="n">visual_uuid_hashid</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/hashid_semantic_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_annot_hashid_semantic_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_hashid_semantic_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">_new</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_hashid_semantic_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_hashid_semantic_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    builds an aggregate semantic hash id for a list of aids</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">        ibs (ibeis.IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+<span class="sd">        prefix (str): (default = &#39;&#39;)</span>
 <span class="sd">        _new (bool): Eventually we will change the hashing scheme and all old</span>
 <span class="sd">            data will be invalidated. (default=False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: semantic_uuid_hashid</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/annot/hashid_semantic_uuid/</span>
 
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        aid_list (list):  list of annotation rowids</span>
-<span class="sd">        prefix (str): (default = &#39;&#39;)</span>
-<span class="sd">        _new (bool): (default = False)</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        str: semantic_uuid_hashid</span>
-
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.control.manual_annot_funcs --exec-get_annot_hashid_semantic_uuid</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_hashid_semantic_uuid</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -1408,8 +1437,7 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
 <span class="sd">        &gt;&gt;&gt; prefix = &#39;&#39;</span>
-<span class="sd">        &gt;&gt;&gt; _new = False</span>
-<span class="sd">        &gt;&gt;&gt; semantic_uuid_hashid = get_annot_hashid_semantic_uuid(ibs, aid_list, prefix, _new)</span>
+<span class="sd">        &gt;&gt;&gt; semantic_uuid_hashid = get_annot_hashid_semantic_uuid(ibs, aid_list, prefix)</span>
 <span class="sd">        &gt;&gt;&gt; result = ut.list_str(ibs.get_annot_semantic_uuids(aid_list)) + &#39;\n&#39;</span>
 <span class="sd">        &gt;&gt;&gt; result += (&#39;semantic_uuid_hashid = %s&#39; % (str(semantic_uuid_hashid),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
@@ -1417,20 +1445,14 @@
 <span class="sd">            UUID(&#39;bf774bf3-582d-dbce-6ca6-329adeb086a6&#39;),</span>
 <span class="sd">            UUID(&#39;60f10a02-1bd1-c2b4-75bb-a34c0a4b6867&#39;),</span>
 <span class="sd">        ]</span>
-<span class="sd">        semantic_uuid_hashid = _SUUIDS((2)49@orjsiy@lbibo6)</span>
-
-<span class="sd">        [</span>
-<span class="sd">            UUID(&#39;215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6&#39;),</span>
-<span class="sd">            UUID(&#39;60f10a02-1bd1-c2b4-75bb-a34c0a4b6867&#39;),</span>
-<span class="sd">        ]</span>
-<span class="sd">        semantic_uuid_hashid = _SUUIDS((2)w9l23schf96c2n63)</span>
+<span class="sd">        semantic_uuid_hashid = _SUUIDS((2)biovwevqycuemoik)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">semantic_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="s">&#39;SUUIDS&#39;</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">_new</span><span class="p">:</span>
-        <span class="n">semantic_uuid_hashid</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">semantic_uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">semantic_uuid_hashid</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">semantic_uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="c">#if _new:</span>
+    <span class="n">semantic_uuid_hashid</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">semantic_uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="n">pathsafe</span><span class="p">)</span>
+    <span class="c">#else:</span>
+    <span class="c">#semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)</span>
     <span class="k">return</span> <span class="n">semantic_uuid_hashid</span>
 
 </div>
@@ -1580,7 +1602,7 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/annot/verts/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
     <span class="n">vertstr_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_verts&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">preproc_annot</span><span class="o">.</span><span class="n">postget_annot_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
     <span class="c">#vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]</span>
@@ -1652,7 +1674,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [None, None, None, None, None]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#from ibeis.model.preproc import preproc_annot</span>
+    <span class="c">#from ibeis.algo.preproc import preproc_annot</span>
     <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_YAW</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="n">yaw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">yaw</span> <span class="k">if</span> <span class="n">yaw</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">yaw_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">yaw_list</span>
@@ -1825,6 +1847,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
@@ -1832,20 +1855,20 @@
 <span class="sd">        &gt;&gt;&gt; nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))</span>
 <span class="sd">        &gt;&gt;&gt; nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=False))</span>
 <span class="sd">        &gt;&gt;&gt; nid_arr2 = np.array(ibs.get_annot_name_rowids(None, distinguish_unknowns=True))</span>
-<span class="sd">        &gt;&gt;&gt; assert ibs.UNKNOWN_LBLANNOT_ROWID == 0</span>
-<span class="sd">        &gt;&gt;&gt; assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] &lt; 0)</span>
+<span class="sd">        &gt;&gt;&gt; assert const.UNKNOWN_LBLANNOT_ROWID == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(nid_arr1[np.where(const.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] &lt; 0)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,)</span>
     <span class="n">nid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">distinguish_unknowns</span><span class="p">:</span>
-        <span class="c">#from ibeis.model.preproc import preproc_annot</span>
+        <span class="c">#from ibeis.algo.preproc import preproc_annot</span>
         <span class="c">#nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">aid</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">nid</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="ow">or</span> <span class="n">nid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">nid</span>
+                    <span class="k">if</span> <span class="n">nid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="ow">or</span> <span class="n">nid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">nid</span>
                     <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list_</span><span class="p">]</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list_</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">nid_list</span>
 
 </div>
@@ -2048,6 +2071,30 @@
 <span class="nd">@accessor_decors.getter_1to1</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/image_unixtimes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_annot_image_unixtimes_asfloat"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_image_unixtimes_asfloat">[docs]</a><span class="k">def</span> <span class="nf">get_annot_image_unixtimes_asfloat</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: unixtime_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --exec-get_annot_image_unixtimes_asfloat --show --db PZ_MTEST</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list = get_annot_image_unixtimes_asfloat(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;unixtime_list = %s&#39; % (str(unixtime_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
     <span class="n">unixtime_list</span><span class="p">[</span><span class="n">unixtime_list</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="k">return</span> <span class="n">unixtime_list</span>
@@ -2231,7 +2278,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_annot import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_annot import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
@@ -2273,7 +2320,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_annot import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_annot import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
@@ -2309,7 +2356,7 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/annot/semantic_uuids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
     <span class="n">semantic_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_visual_infotup</span><span class="p">)</span>
     <span class="n">annot_semantic_uuid_list</span> <span class="o">=</span> <span class="n">preproc_annot</span><span class="o">.</span><span class="n">make_annot_semantic_uuid</span><span class="p">(</span><span class="n">semantic_infotup</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_SEMANTIC_UUID</span><span class="p">,),</span> <span class="n">annot_semantic_uuid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
@@ -2345,7 +2392,7 @@
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs._get_all_aids()</span>
 <span class="sd">        &gt;&gt;&gt; update_annot_visual_uuids(ibs, aid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
     <span class="n">visual_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_visual_uuid_list</span> <span class="o">=</span> <span class="n">preproc_annot</span><span class="o">.</span><span class="n">make_annot_visual_uuid</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,),</span> <span class="n">annot_visual_uuid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
@@ -2399,7 +2446,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">ANNOT_EXEMPLAR_FLAG</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/exemplar_flags/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_annot_exemplar_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_exemplar_flags">[docs]</a><span class="k">def</span> <span class="nf">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -2417,7 +2464,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">NAME_ROWID</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/name_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_annot_name_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_name_rowids">[docs]</a><span class="k">def</span> <span class="nf">set_annot_name_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -2464,7 +2511,7 @@
     <span class="n">will_be_unknown_flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">name_rowid_list</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">will_be_unknown_flag_list</span><span class="p">):</span>
         <span class="c"># remove exemplar status from any annotations that will become unknown</span>
-        <span class="n">will_be_unknown_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">will_be_unknown_flag_list</span><span class="p">)</span>
+        <span class="n">will_be_unknown_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">will_be_unknown_flag_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
     <span class="c"># postset nids</span>
@@ -2530,6 +2577,13 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="c">#ibs.set_annot_lblannot_from_value(aid_list, species_text_list, const.SPECIES_KEY)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<div class="viewcode-block" id="set_annot_species_and_notify"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_species_and_notify">[docs]</a><span class="k">def</span> <span class="nf">set_annot_species_and_notify</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">notify_observers</span><span class="p">()</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2689,7 +2743,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: this is implemented very poorly. Caches not robust. IE they are</span>
     <span class="c"># never invalidated. Not all config information is passed through</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_probchip</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_probchip</span>
     <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_probchip</span><span class="o">.</span><span class="n">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span>
                                                                       <span class="n">aid_list</span><span class="p">,</span>
                                                                       <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -2903,8 +2957,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span> <span class="p">]</span>
-    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-    <span class="n">name_sex_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">name_sex_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">name_sex_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">name_sex_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_name_sex</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_sex_list</span><span class="p">)</span>
 
 </div>
@@ -2920,8 +2974,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span> <span class="p">]</span>
-    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-    <span class="n">name_sex_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">name_sex_text_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">name_sex_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">name_sex_text_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_name_sex_text</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_sex_text_list</span><span class="p">)</span>
 
 </div>
@@ -3254,7 +3308,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<div class="viewcode-block" id="get_annot_tags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_tags">[docs]</a><span class="k">def</span> <span class="nf">get_annot_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_tag_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_tag_text">[docs]</a><span class="k">def</span> <span class="nf">get_annot_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot; annot_tags_list &lt;- annot.annot_tags[aid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annot_tags&quot; in the &quot;annot&quot; table</span>
@@ -3276,11 +3330,11 @@
 <span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs._get_all_aids()</span>
 <span class="sd">        &gt;&gt;&gt; eager = True</span>
-<span class="sd">        &gt;&gt;&gt; annot_tags_list = ibs.get_annot_tags(aid_list, eager=eager)</span>
+<span class="sd">        &gt;&gt;&gt; annot_tags_list = ibs.get_annot_tag_text(aid_list, eager=eager)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(aid_list) == len(annot_tags_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_TAGS</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_TAG_TEXT</span><span class="p">,)</span>
     <span class="n">annot_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_tags_list</span>
@@ -3288,7 +3342,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
-<div class="viewcode-block" id="set_annot_tags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_tags">[docs]</a><span class="k">def</span> <span class="nf">set_annot_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_tags_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s">&#39;error&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="set_annot_tag_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_tag_text">[docs]</a><span class="k">def</span> <span class="nf">set_annot_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">annot_tags_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s">&#39;error&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot; annot_tags_list -&gt; annot.annot_tags[aid_list]</span>
 
 <span class="sd">    Args:</span>
@@ -3301,7 +3355,7 @@
 <span class="sd">        col = annot_tags</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_TAGS</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_TAG_TEXT</span><span class="p">,)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">annot_tags_list</span><span class="p">,</span>
                <span class="n">id_iter</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">)</span>
 
@@ -3343,7 +3397,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -3365,7 +3419,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

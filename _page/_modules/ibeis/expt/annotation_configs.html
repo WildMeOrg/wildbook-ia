@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.annotation_configs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.expt.annotation_configs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -141,7 +141,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[aidcfg]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[aidcfg]&#39;</span><span class="p">)</span>
 
 
 <span class="c"># easier to type names to alias some of these options</span>
@@ -157,10 +157,12 @@
 <span class="p">}</span>
 
 <span class="n">OTHER_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;force_const_size&#39;</span>    <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="c"># forces a consistnet sample size across combinations</span>
+    <span class="s">&#39;force_const_size&#39;</span>    <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="c">#&#39;hack_extra&#39; : None,  # hack param to make bigger db sizes</span>
-    <span class="c">#&#39;hack_encounter&#39;: None,</span>
+    <span class="c">#&#39;hack_imageset&#39;: None,</span>
+    <span class="c"># Hack out errors in test data</span>
+    <span class="s">&#39;hackerrors&#39;</span>    <span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c"># Defaults for the independent filter</span>
@@ -199,8 +201,8 @@
 
 
 <span class="n">INTRAGROUP_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c"># if True all annots must belong to the same encounter</span>
-    <span class="s">&#39;same_encounter&#39;</span>      <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># if True all annots must belong to the same imageset</span>
+    <span class="s">&#39;same_imageset&#39;</span>      <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="s">&#39;view_pername&#39;</span>        <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>  <span class="c"># formatted string filtering the viewpoints</span>
     <span class="s">&#39;min_timedelta&#39;</span>       <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
     <span class="c"># minimum number of aids for each name in sample</span>
@@ -402,7 +404,30 @@
 </div>
 <div class="viewcode-block" id="print_acfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.print_acfg_list">[docs]</a><span class="k">def</span> <span class="nf">print_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                     <span class="n">combined</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        acfg_list (list):</span>
+<span class="sd">        expanded_aids_list (list): (default = None)</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object(default = None)</span>
+<span class="sd">        combined (bool): (default = False)</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.annotation_configs --exec-print_acfg_list --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.annotation_configs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; acfg_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; expanded_aids_list = None</span>
+<span class="sd">        &gt;&gt;&gt; ibs = None</span>
+<span class="sd">        &gt;&gt;&gt; combined = False</span>
+<span class="sd">        &gt;&gt;&gt; result = print_acfg_list(acfg_list, expanded_aids_list, ibs, combined)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_tup</span> <span class="o">=</span> <span class="n">compress_acfg_list_for_printing</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
     <span class="n">nonvaried_compressed_dict</span><span class="p">,</span> <span class="n">varied_compressed_dict_list</span> <span class="o">=</span> <span class="n">_tup</span>
 
@@ -850,7 +875,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -872,7 +897,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control._autogen_featweight_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control._autogen_featweight_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -252,7 +252,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_featweight_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)[:2]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)[:2]</span>
 <span class="sd">        &gt;&gt;&gt; if &#39;annot&#39; != &#39;feat&#39;:</span>
 <span class="sd">        ...     feat_rowid_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)</span>
 <span class="sd">        &gt;&gt;&gt; featweight_rowid_list = ibs.add_feat_featweights(feat_rowid_list, config2_=config2_)</span>
@@ -264,7 +264,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control._autogen_featweight_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)[0:7]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)[0:7]</span>
 <span class="sd">        &gt;&gt;&gt; if &#39;annot&#39; != &#39;feat&#39;:</span>
 <span class="sd">        ...     feat_rowid_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)</span>
 <span class="sd">        &gt;&gt;&gt; sub_feat_rowid_list1 = feat_rowid_list[0:6]</span>
@@ -285,7 +285,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(num_dirty1, 2, &#39;Only two params should have been computed here&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(sub_featweight_rowid_list3_ensured)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_featweight</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_featweight</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">feat_rowid_list</span><span class="p">,</span> <span class="s">&#39; feat_rowid_list&#39;</span><span class="p">)</span>
     <span class="c"># Get requested configuration id</span>
     <span class="n">config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_featweight_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -294,7 +294,7 @@
         <span class="n">ibs</span><span class="p">,</span> <span class="n">feat_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="c"># Get corresponding &quot;dirty&quot; parent rowids</span>
     <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">initial_featweight_rowid_list</span><span class="p">)</span>
-    <span class="n">dirty_feat_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">feat_rowid_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
+    <span class="n">dirty_feat_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">feat_rowid_list</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
     <span class="n">num_dirty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_feat_rowid_list</span><span class="p">)</span>
     <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_dirty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -442,7 +442,7 @@
 <span class="sd">        &gt;&gt;&gt; featweight_rowid_list = ibs._get_all_featweight_rowids()[:2]</span>
 <span class="sd">        &gt;&gt;&gt; ibs.delete_featweight(featweight_rowid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_featweight</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_featweight</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> featweight rows&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">featweight_rowid_list</span><span class="p">))</span>
     <span class="c"># Prepare: Delete externally stored data (if any)</span>
@@ -770,7 +770,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -792,7 +792,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

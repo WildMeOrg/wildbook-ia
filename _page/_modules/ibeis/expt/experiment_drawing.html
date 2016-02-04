@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_drawing &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.expt.experiment_drawing &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -136,23 +136,19 @@
 <span class="sd">./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c">#from ibeis import params</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
-<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">test_result</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">old_storage</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
-<span class="c">#from plottool import plot_helpers as ph</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span>  <span class="c"># NOQA</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_drawres]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_drawres]&#39;</span><span class="p">)</span>
 
 
 <span class="n">SKIP_TO</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--skip-to&#39;</span><span class="p">,</span> <span class="s">&#39;--skipto&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="c">#SAVE_FIGURES = ut.get_argflag((&#39;--save-figures&#39;, &#39;--sf&#39;))</span>
 <span class="n">SAVE_FIGURES</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nosave-figures&#39;</span><span class="p">,</span> <span class="s">&#39;--nosf&#39;</span><span class="p">))</span>
 
 <span class="c"># only triggered if dump_extra is on</span>
@@ -161,12 +157,27 @@
 
 
 <span class="c">#fontkw = dict(legendsize=8, labelsize=10, ticksize=8, titlesize=8)</span>
-<span class="n">FONTKW</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">legendsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">ticksize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">titlesize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="c">#FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)</span>
 
 
 <span class="c">#@devcmd(&#39;scores&#39;, &#39;score&#39;, &#39;namescore_roc&#39;)</span>
 <span class="c">#def draw_score_sep(ibs, qaid_list, daid_list=None):</span>
-<div class="viewcode-block" id="draw_score_sep"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_drawing.draw_score_sep">[docs]</a><span class="k">def</span> <span class="nf">draw_score_sep</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="draw_annot_scoresep"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_drawing.draw_annot_scoresep">[docs]</a><span class="k">def</span> <span class="nf">draw_annot_scoresep</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_drawing import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init import main_helpers</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs, testres = main_helpers.testdata_expts(defaultdb, a=[&#39;timectrl&#39;], t=[&#39;best&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; f = ut.get_argval((&#39;--filt&#39;, &#39;-f&#39;), type_=list, default=[&#39;&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; draw_score_sep(ibs, testres, f=f, verbose=ut.VERBOSE)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">draw_score_sep</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="draw_score_sep"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_drawing.draw_score_sep">[docs]</a><span class="k">def</span> <span class="nf">draw_score_sep</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Draws the separation between true positive and true negative name scores.</span>
 
@@ -189,7 +200,7 @@
 <span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ibs, testres = main_helpers.testdata_expts(defaultdb, a=[&#39;timectrl&#39;], t=[&#39;best&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; f = ut.get_argval((&#39;--filt&#39;, &#39;-f&#39;), type_=list, default=[&#39;&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; draw_score_sep(ibs, testres, f=f)</span>
+<span class="sd">        &gt;&gt;&gt; draw_score_sep(ibs, testres, f=f, verbose=ut.VERBOSE)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">    Ignore:</span>
@@ -224,11 +235,21 @@
     <span class="c"># FIXME: may need to specify which cfg is used in the future</span>
     <span class="n">isvalid</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">case_sample2</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">,</span> <span class="n">return_mask</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
 
+    <span class="c"># HACK:</span>
+    <span class="c"># REMOVE 0 scores because testres only records name scores and</span>
+    <span class="c"># having multiple annotations causes some good scores to be truncated to 0.</span>
+    <span class="c">#isvalid[gt_rawscore == 0] = False</span>
+    <span class="c">#isvalid[gf_rawscore == 0] = False</span>
+
+    <span class="c"># hack</span>
+    <span class="c">#tp_nscores = np.nan_to_num(tp_nscores)</span>
+    <span class="c">#tn_nscores = np.nan_to_num(tn_nscores)</span>
+    <span class="n">isvalid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gf_rawscore</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">isvalid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gt_rawscore</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">False</span>
+
     <span class="n">tp_nscores</span> <span class="o">=</span> <span class="n">gt_rawscore</span><span class="p">[</span><span class="n">isvalid</span><span class="p">]</span>
     <span class="n">tn_nscores</span> <span class="o">=</span> <span class="n">gf_rawscore</span><span class="p">[</span><span class="n">isvalid</span><span class="p">]</span>
-    <span class="c"># hack</span>
-    <span class="n">tp_nscores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">tp_nscores</span><span class="p">)</span>
-    <span class="n">tn_nscores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">tn_nscores</span><span class="p">)</span>
+
     <span class="c"># ---</span>
     <span class="n">tn_qaids</span> <span class="o">=</span> <span class="n">tp_qaids</span> <span class="o">=</span> <span class="n">common_qaids</span><span class="p">[</span><span class="n">isvalid</span><span class="p">]</span>
     <span class="n">tn_daids</span> <span class="o">=</span> <span class="n">gf_daid</span><span class="p">[</span><span class="n">isvalid</span><span class="p">]</span>
@@ -254,13 +275,12 @@
     <span class="n">encoder</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">(</span>
         <span class="c">#adjust=8,</span>
         <span class="n">adjust</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
-        <span class="n">fpr</span><span class="o">=</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="o">=</span><span class="n">tpr</span><span class="p">,</span> <span class="n">monotonize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">fpr</span><span class="o">=</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="o">=</span><span class="n">tpr</span><span class="p">,</span> <span class="n">monotonize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">tp_scores</span> <span class="o">=</span> <span class="n">tp_nscores</span>
     <span class="n">tn_scores</span> <span class="o">=</span> <span class="n">tn_nscores</span>
     <span class="n">name_scores</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">attrs</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">_to_xy</span><span class="p">(</span><span class="n">tp_nscores</span><span class="p">,</span> <span class="n">tn_nscores</span><span class="p">,</span> <span class="n">part_attrs</span><span class="p">)</span>
 
-    <span class="c">#ut.embed()</span>
-    <span class="n">encoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">name_scores</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+    <span class="n">encoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">name_scores</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="c">#encoder.visualize(figtitle=&#39;Learned Name Score Normalizer\n&#39; + qreq_.get_cfgstr())</span>
 
     <span class="c"># --- NEW ---</span>
@@ -336,7 +356,8 @@
         <span class="n">with_roc</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
         <span class="n">attr_callback</span><span class="o">=</span><span class="n">attr_callback</span><span class="p">,</span>
         <span class="c">#bin_width=.125,</span>
-        <span class="n">bin_width</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span>
+        <span class="c">#bin_width=.05,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
     <span class="p">)</span>
 
     <span class="n">icon</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_icon</span><span class="p">()</span>
@@ -406,7 +427,6 @@
         <span class="n">gt_is_problem</span> <span class="o">=</span> <span class="n">truth2_prop</span><span class="p">[</span><span class="s">&#39;gt&#39;</span><span class="p">][</span><span class="s">&#39;score&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">score_thresh</span>
         <span class="n">gf_is_problem</span> <span class="o">=</span> <span class="n">truth2_prop</span><span class="p">[</span><span class="s">&#39;gf&#39;</span><span class="p">][</span><span class="s">&#39;score&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">score_thresh</span>
         <span class="n">other_is_problem</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">gt_is_problem</span><span class="p">,</span> <span class="n">gf_is_problem</span><span class="p">)</span>
-        <span class="c">#ut.embed()</span>
         <span class="k">def</span> <span class="nf">zipmask</span><span class="p">(</span><span class="n">_tags</span><span class="p">,</span> <span class="n">_flags</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[[</span><span class="n">item</span> <span class="k">if</span> <span class="n">flag</span> <span class="k">else</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">flag</span>
                      <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">flags</span><span class="p">)]</span> <span class="k">for</span> <span class="n">list_</span><span class="p">,</span>
@@ -428,7 +448,7 @@
     <span class="c">#filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)</span>
     <span class="n">case_pos_list</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">case_sample2</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">)</span>
     <span class="n">case_qx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">case_pos_list</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">selected_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">all_tags</span><span class="p">,</span> <span class="n">case_qx_list</span><span class="p">)</span>
+    <span class="n">selected_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">all_tags</span><span class="p">,</span> <span class="n">case_qx_list</span><span class="p">)</span>
     <span class="n">flat_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="n">selected_tags</span><span class="p">))</span>
     <span class="n">WITH_NOTAGS</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">WITH_NOTAGS</span><span class="p">:</span>
@@ -483,6 +503,10 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf -draw_match_cases</span>
 
+<span class="sd">        ibeis -e draw_cases --db humpbacks -a default:has_any=hasnotch,mingt=2,qindex=0:30 -t default:pipeline_root=BC_DTW -f :fail=False,index=0:3,sortdsc=gtscore,max_pername=1 --show</span>
+<span class="sd">        ibeis -e draw_cases --db humpbacks -a default -t default:pipeline_root=BC_DTW -f :fail=False,index=0:3,sortdsc=gtscore,max_pername=1 --show  --qaid-override=167,166,4616,4617  --daid-override=167,166,4616,4617 --nocache</span>
+
+
 <span class="sd">        python -m ibeis.dev -e draw_match_cases --figdir=individual_results</span>
 <span class="sd">        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show</span>
 <span class="sd">        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render</span>
@@ -536,7 +560,15 @@
     <span class="c"># Sel rows index into qx_list</span>
     <span class="c"># Sel cols index into cfgx2 maps</span>
     <span class="c">#_viewkw = dict(view_interesting=True)</span>
-    <span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_cols</span><span class="p">,</span> <span class="n">flat_case_labels</span> <span class="o">=</span> <span class="n">get_individual_result_sample</span><span class="p">(</span><span class="n">testres</span><span class="p">,</span> <span class="n">filt_cfg</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_cols</span><span class="p">,</span> <span class="n">flat_case_labels</span> <span class="o">=</span> <span class="n">get_individual_result_sample</span><span class="p">(</span><span class="n">testres</span><span class="p">,</span> <span class="n">filt_cfg</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">f</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">case_pos_list</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">case_sample2</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>  <span class="c"># NOQA</span>
+
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;f = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">flat_case_labels</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">flat_case_labels</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span>
@@ -593,7 +625,7 @@
 
     <span class="n">qaids</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">get_common_qaids</span><span class="p">()</span>
     <span class="c"># Ensure semantic uuids are in the APP cache.</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">sel_rows</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">sel_rows</span><span class="p">))</span>
     <span class="c">#samplekw = dict(per_group=5)</span>
     <span class="c">#case_pos_list = testres.get_case_positions(&#39;failure&#39;, samplekw=samplekw)</span>
     <span class="c">#failure_qx_list = ut.unique_keep_order(case_pos_list.T[0])</span>
@@ -645,13 +677,13 @@
             <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;flat_case_labels are known to be messed up&#39;</span><span class="p">)</span>
                 <span class="k">pass</span>
-        <span class="n">qreq_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">sel_cols</span><span class="p">)</span>
+        <span class="n">qreq_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">sel_cols</span><span class="p">)</span>
         <span class="c"># TODO: try to get away with not reloading query results or loading</span>
         <span class="c"># them in batch if possible</span>
         <span class="c"># It actually doesnt take that long. the drawing is what hurts</span>
         <span class="c"># TODO: be able to load old results even if they are currently invalid</span>
         <span class="c"># TODO: use chip_match</span>
-        <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">load_cached_chipmatch</span><span class="p">(</span><span class="n">qaids</span><span class="p">[</span><span class="n">qx</span><span class="p">])</span> <span class="k">for</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="n">qreq_list</span><span class="p">]</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">[</span><span class="n">qx</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="n">qreq_list</span><span class="p">]</span>
         <span class="n">fpaths_list</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
 
         <span class="k">if</span> <span class="n">show_in_notebook</span><span class="p">:</span>
@@ -701,6 +733,7 @@
                             <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                                 <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
                                 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="o">*</span><span class="n">figsize</span><span class="p">)</span>
+                                <span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
 
                     <span class="n">cmdaug</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--cmdaug&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cmdaug</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -1051,7 +1084,8 @@
 
     <span class="k">if</span> <span class="n">filt_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># NEW WAY OF SAMPLING</span>
-        <span class="n">case_pos_list</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">case_sample2</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">)</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;verbose&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">case_pos_list</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">case_sample2</span><span class="p">(</span><span class="n">filt_cfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">new_rows</span><span class="p">,</span> <span class="n">new_cols</span><span class="p">,</span> <span class="n">flat_case_labels</span> <span class="o">=</span> <span class="n">convert_case_pos_to_cfgx</span><span class="p">(</span><span class="n">case_pos_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">sel_rows</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_rows</span><span class="p">)</span>
         <span class="n">sel_cols</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_cols</span><span class="p">)</span>
@@ -1066,11 +1100,11 @@
     <span class="n">sel_colxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-c&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">sel_rowxs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">sel_rows</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_rowxs</span><span class="p">)</span>
+        <span class="n">sel_rows</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_rowxs</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;sel_rows = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sel_rows</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">sel_colxs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">sel_cols</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">,</span> <span class="n">sel_colxs</span><span class="p">)</span>
+        <span class="n">sel_cols</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">,</span> <span class="n">sel_colxs</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Returning Case Selection&#39;</span><span class="p">)</span>
@@ -1080,13 +1114,24 @@
     <span class="k">return</span> <span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_cols</span><span class="p">,</span> <span class="n">flat_case_labels</span>
 
 </div>
-<div class="viewcode-block" id="draw_rank_surface"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_drawing.draw_rank_surface">[docs]</a><span class="k">def</span> <span class="nf">draw_rank_surface</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="draw_rank_surface"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_drawing.draw_rank_surface">[docs]</a><span class="k">def</span> <span class="nf">draw_rank_surface</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Draws n dimensional data + a score / rank</span>
+<span class="sd">    The rank is always on the y axis.</span>
+
+<span class="sd">    The first dimension is on the x axis.</span>
+<span class="sd">    The second dimension is split over multiple plots.</span>
+<span class="sd">    The third dimension becomes multiple lines.</span>
+<span class="sd">    May need to clean this scheme up a bit.</span>
+
+
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
 <span class="sd">        testres (TestResult):  test result object</span>
 
 <span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --tf draw_rank_surface --db PZ_Master1 -a varysize_td -t CircQRH_K --show</span>
+
 <span class="sd">        python -m ibeis --tf draw_rank_surface --show  -t best -a varysize --db PZ_Master1 --show</span>
 
 <span class="sd">        python -m ibeis --tf draw_rank_surface --show  -t CircQRH_K -a varysize_td  --db PZ_Master1 --show</span>
@@ -1107,7 +1152,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
-    <span class="c">#ut.embed()</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
     <span class="c">#rank_le1_list = testres.get_rank_cumhist(bins=&#39;dense&#39;)[0].T[0]</span>
     <span class="c">#percent_le1_list = 100 * rank_le1_list / len(testres.qaids)</span>
     <span class="n">cfgx2_cumhist_percent</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">get_rank_percentage_cumhist</span><span class="p">(</span><span class="n">bins</span><span class="o">=</span><span class="s">&#39;dense&#39;</span><span class="p">)</span>
@@ -1118,7 +1164,6 @@
     <span class="c">#K_basis = testres.get_param_basis(&#39;K&#39;)</span>
     <span class="c">#K_cfgx_lists = [testres.get_cfgx_with_param(&#39;K&#39;, K) for K in K_basis]</span>
     <span class="c">#param_key_list = testres.get_all_varied_params()</span>
-    <span class="c">#ut.embed()</span>
 
     <span class="c"># Extract the requested keys</span>
     <span class="n">default_param_key_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;K&#39;</span><span class="p">,</span> <span class="s">&#39;dcfg_sample_per_name&#39;</span><span class="p">,</span> <span class="s">&#39;dcfg_sample_size&#39;</span><span class="p">]</span>
@@ -1148,7 +1193,6 @@
         <span class="c">#const_basis_cfgx_lists</span>
         <span class="c"># Create a single empty dimension for a single pnum</span>
         <span class="c"># correct, but not conceptually right</span>
-        <span class="c">#ut.embed()</span>
         <span class="n">cfgx_lists_dict</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_transpose</span><span class="p">(</span><span class="n">cfgx_lists_dict</span><span class="p">[</span><span class="n">param_key_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_key_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c"># Hold a key constant if more than 1 subplot</span>
@@ -1161,14 +1205,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">False</span>
 
-    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="o">*</span><span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">basis_dict</span><span class="p">[</span><span class="n">const_key</span><span class="p">])))</span>
-
     <span class="n">const_basis_cfgx_lists</span> <span class="o">=</span> <span class="n">cfgx_lists_dict</span><span class="p">[</span><span class="n">const_key</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_key_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="c"># Use consistent markers and colors when varying a lot of params</span>
         <span class="c">#num_other_params = len(basis_dict[param_key_list[-1]])</span>
-        <span class="n">num_other_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">basis_dict</span><span class="p">[</span><span class="n">const_key</span><span class="p">])</span>
+        <span class="c">#num_other_params = len(basis_dict[const_key])</span>
+        <span class="n">num_other_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">basis_dict</span><span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">param_key_list</span><span class="p">,</span> <span class="n">const_key</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
         <span class="n">color_list</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="n">num_other_params</span><span class="p">)</span>
         <span class="n">marker_list</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_markers</span><span class="p">(</span><span class="n">num_other_params</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1176,13 +1219,20 @@
         <span class="n">marker_list</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_markers</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
-    <span class="n">pnum0</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="n">nd_labels_full</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">param_key_list</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">const_key</span><span class="p">]</span>
 
+    <span class="c"># setup args for all plots</span>
+    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="o">*</span><span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">basis_dict</span><span class="p">[</span><span class="n">const_key</span><span class="p">])))</span>
     <span class="k">for</span> <span class="n">const_idx</span><span class="p">,</span> <span class="n">const_val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">const_basis</span><span class="p">):</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">pnum_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;---- NEXT PNUM=</span><span class="si">%r</span><span class="s"> --- &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pnum</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;const_key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">const_key</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;const_val = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">const_val</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;const_idx = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">const_idx</span><span class="p">,))</span>
         <span class="n">const_basis_cfgx_list</span> <span class="o">=</span> <span class="n">const_basis_cfgx_lists</span><span class="p">[</span><span class="n">const_idx</span><span class="p">]</span>
-        <span class="n">rank_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">percent_le1_list</span><span class="p">,</span> <span class="n">const_basis_cfgx_list</span><span class="p">)</span>
+        <span class="n">rank_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">percent_le1_list</span><span class="p">,</span> <span class="n">const_basis_cfgx_list</span><span class="p">)</span>
         <span class="c"># Figure out what the values are for other dimensions</span>
         <span class="n">agree_param_vals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span>
             <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[</span><span class="n">testres</span><span class="o">.</span><span class="n">get_param_val_from_cfgx</span><span class="p">(</span><span class="n">cfgx</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
@@ -1217,11 +1267,16 @@
             <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;accuracy when &#39;</span> <span class="o">+</span>
                      <span class="n">annotation_configs</span><span class="o">.</span><span class="n">shorten_to_alias_labels</span><span class="p">(</span><span class="n">const_key</span><span class="p">)</span> <span class="o">+</span>
                      <span class="s">&#39;=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">const_val</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;title = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">title</span><span class="p">,))</span>
+            <span class="c">#print(&#39;nd_labels = %r&#39; % (nd_labels,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;target_label = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_label</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;known_nd_data = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">known_nd_data</span><span class="p">,))</span>
+            <span class="c">#print(&#39;known_target_points = %r&#39; % (known_target_points,))</span>
+
         <span class="c">#PLOT3D = not ut.get_argflag(&#39;--no3dsurf&#39;)</span>
-        <span class="n">PLOT3D</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no2dsurf&#39;</span><span class="p">)</span>
-        <span class="n">pnum</span> <span class="o">=</span> <span class="n">pnum_</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">pnum0</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">pnum0</span> <span class="o">=</span> <span class="n">pnum</span>
+        <span class="c">#PLOT3D = ut.get_argflag(&#39;--no2dsurf&#39;)</span>
+        <span class="n">PLOT3D</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--3dsurf&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">PLOT3D</span><span class="p">:</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">plot_search_surface</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span>
                                    <span class="n">nd_labels</span><span class="p">,</span> <span class="n">target_label</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
@@ -1233,8 +1288,9 @@
             <span class="n">nonconst_key</span> <span class="o">=</span> <span class="n">nd_labels_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">nonconst_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">basis_dict</span><span class="p">[</span><span class="n">nonconst_key</span><span class="p">])</span>
             <span class="n">nonconst_covers_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">nonconst_basis</span><span class="p">,</span> <span class="n">nonconst_basis_vals</span><span class="p">)</span>
-            <span class="n">nonconst_color_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">nonconst_covers_basis</span><span class="p">)</span>
-            <span class="n">nonconst_marker_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">marker_list</span><span class="p">,</span> <span class="n">nonconst_covers_basis</span><span class="p">)</span>
+            <span class="c"># I dont remember what was trying to happen here</span>
+            <span class="n">nonconst_color_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">nonconst_covers_basis</span><span class="p">)</span>
+            <span class="n">nonconst_marker_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">marker_list</span><span class="p">,</span> <span class="n">nonconst_covers_basis</span><span class="p">)</span>
 
             <span class="n">pt</span><span class="o">.</span><span class="n">plot_multiple_scores</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span>
                                     <span class="n">nd_labels</span><span class="p">,</span> <span class="n">target_label</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
@@ -1242,20 +1298,27 @@
                                     <span class="n">marker_list</span><span class="o">=</span><span class="n">nonconst_marker_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
                                     <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">num_yticks</span><span class="o">=</span><span class="n">num_yticks</span><span class="p">,</span>
                                     <span class="n">ymin</span><span class="o">=</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">ypad</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
-                                    <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">legend_loc</span><span class="o">=</span><span class="s">&#39;lower right&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">FONTKW</span><span class="p">)</span>
+                                    <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">legend_loc</span><span class="o">=</span><span class="s">&#39;lower right&#39;</span><span class="p">,</span>
+                                    <span class="c">#**FONTKW</span>
+                                    <span class="p">)</span>
 
-    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum0</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="c">#pt.figure(fnum=fnum, pnum=pnum0)</span>
     <span class="n">icon</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_icon</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">icon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">overlay_icon</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">bbox_alignment</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="c">#pt.overlay_icon(icon, coords=(0, 0), bbox_alignment=(0, 0))</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">overlay_icon</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mo">001</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">),</span> <span class="n">bbox_alignment</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
     <span class="n">nd_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">shorten_to_alias_labels</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">nd_labels_full</span><span class="p">]</span>
-    <span class="n">plotname</span> <span class="o">=</span> <span class="s">&#39;Effect of &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">conj_phrase</span><span class="p">(</span><span class="n">nd_labels</span><span class="p">,</span> <span class="s">&#39;and&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; on Accuracy&#39;</span>
+    <span class="n">plotname</span> <span class="o">=</span> <span class="s">&#39;Effect of &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">conj_phrase</span><span class="p">(</span><span class="n">nd_labels</span><span class="p">,</span> <span class="s">&#39;and&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; on accuracy&#39;</span>
     <span class="n">figtitle</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">make_figtitle</span><span class="p">(</span><span class="n">plotname</span><span class="p">)</span>
     <span class="c"># hack</span>
-    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+    <span class="k">if</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">testres</span><span class="o">.</span><span class="n">print_unique_annot_config_stats</span><span class="p">()</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="c">#pt.set_figtitle(figtitle, size=14)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
     <span class="c"># HACK FOR FIGSIZE</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
@@ -1280,10 +1343,10 @@
 <span class="sd">        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show</span>
 <span class="sd">        \</span>
 <span class="sd">           --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow</span>
-<span class="sd">        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show</span>
-<span class="sd">        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show</span>
+<span class="sd">        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show</span>
+<span class="sd">        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show</span>
 
-<span class="sd">        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show</span>
+<span class="sd">        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show</span>
 
 <span class="sd">        python -m ibeis --tf draw_rank_cdf -t best -a timectrl --db PZ_Master1 --show</span>
 
@@ -1295,6 +1358,10 @@
 <span class="sd">        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd</span>
 <span class="sd">        python -m ibeis --tf draw_match_cases --db PZ_Master1 -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show</span>
 <span class="sd">        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd</span>
+
+<span class="sd">        python -m ibeis.dev -e draw_rank_cdf --db PZ_Master1 --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True</span>
+<span class="sd">        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True</span>
+
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -1328,18 +1395,18 @@
                                     <span class="n">default</span><span class="o">=</span><span class="n">test_cfgx_slice</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">test_cfgx_slice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;test_cfgx_slice = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">test_cfgx_slice</span><span class="p">,))</span>
-        <span class="n">cfgx2_cumhist_percent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">cfgx2_cumhist_percent</span><span class="p">,</span>
+        <span class="n">cfgx2_cumhist_percent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">cfgx2_cumhist_percent</span><span class="p">,</span>
                                                       <span class="n">test_cfgx_slice</span><span class="p">))</span>
-        <span class="n">label_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">label_list</span><span class="p">,</span> <span class="n">test_cfgx_slice</span><span class="p">)</span>
-        <span class="n">color_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">test_cfgx_slice</span><span class="p">)</span>
-        <span class="n">marker_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">marker_list</span><span class="p">,</span> <span class="n">test_cfgx_slice</span><span class="p">)</span>
+        <span class="n">label_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">label_list</span><span class="p">,</span> <span class="n">test_cfgx_slice</span><span class="p">)</span>
+        <span class="n">color_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">test_cfgx_slice</span><span class="p">)</span>
+        <span class="n">marker_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">marker_list</span><span class="p">,</span> <span class="n">test_cfgx_slice</span><span class="p">)</span>
     <span class="c"># Order cdf list by rank0</span>
     <span class="c">#sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]</span>
     <span class="n">sortx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">argsort_multiarray</span><span class="p">(</span><span class="n">cfgx2_cumhist_percent</span><span class="o">.</span><span class="n">T</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">label_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">label_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
-    <span class="n">cfgx2_cumhist_percent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">cfgx2_cumhist_percent</span><span class="p">,</span> <span class="n">sortx</span><span class="p">))</span>
-    <span class="n">color_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
-    <span class="n">marker_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">marker_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">label_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">cfgx2_cumhist_percent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">cfgx2_cumhist_percent</span><span class="p">,</span> <span class="n">sortx</span><span class="p">))</span>
+    <span class="n">color_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">color_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">marker_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">marker_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
     <span class="c">#</span>
 
     <span class="n">figtitle</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">make_figtitle</span><span class="p">(</span><span class="s">&#39;Cumulative Rank Histogram&#39;</span><span class="p">)</span>
@@ -1373,7 +1440,8 @@
         <span class="n">num_yticks</span><span class="o">=</span><span class="n">num_yticks</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ypad</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
         <span class="n">xmin</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">maxrank</span> <span class="o">+</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span>
         <span class="c">#xpad=.05,</span>
-        <span class="o">**</span><span class="n">FONTKW</span><span class="p">)</span>
+        <span class="c">#**FONTKW</span>
+    <span class="p">)</span>
 
     <span class="n">pt</span><span class="o">.</span><span class="n">plot_rank_cumhist</span><span class="p">(</span>
         <span class="n">cfgx2_cumhist_short</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges_short</span><span class="p">,</span> <span class="n">label_list</span><span class="o">=</span><span class="n">label_list</span><span class="p">,</span>
@@ -1389,7 +1457,8 @@
             <span class="n">num_xticks</span><span class="o">=</span><span class="n">maxrank</span><span class="p">,</span> <span class="n">use_legend</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(),</span> <span class="o">**</span><span class="n">cumhistkw</span><span class="p">)</span>
         <span class="n">ax2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">zoom_effect01</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">maxrank</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="c">#pt.set_figtitle(figtitle, size=14)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
 
     <span class="n">icon</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_icon</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">icon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -1427,7 +1496,7 @@
     <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">prefix</span> <span class="o">+=</span> <span class="s">&#39;rank</span><span class="si">%d</span><span class="s">_&#39;</span> <span class="o">%</span> <span class="n">rank</span>
     <span class="n">fname</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annotstr</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-    <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
     <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[expt] dumping fig to individual_results_figdir=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">individual_results_figdir</span><span class="p">)</span>
@@ -1484,7 +1553,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#category_poses = testres.partition_case_types()</span>
     <span class="c"># TODO: Split up into cfgxs</span>
-    <span class="n">plotkw</span> <span class="o">=</span> <span class="n">FONTKW</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c">#plotkw = FONTKW.copy()</span>
+    <span class="n">plotkw</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">plotkw</span><span class="p">[</span><span class="s">&#39;markersize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12</span>
     <span class="n">plotkw</span><span class="p">[</span><span class="s">&#39;marker_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c">#plotkw[&#39;linestyle&#39;] = &#39;--&#39;</span>
@@ -1543,7 +1613,7 @@
     <span class="c">#import vtool as vt</span>
     <span class="c">#xdata_pdf_list = [vt.estimate_pdf(xdata, gridsize=gridsize, adjust=adjust) for xdata in xdata_list]  # NOQA</span>
     <span class="c">#min_score = min([xdata.min() for xdata in xdata_list])</span>
-    <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">xdata</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">for</span> <span class="n">xdata</span> <span class="ow">in</span> <span class="n">xdata_list</span><span class="p">])</span>
+    <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xdata</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">xdata</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">for</span> <span class="n">xdata</span> <span class="ow">in</span> <span class="n">xdata_list</span><span class="p">])</span>
     <span class="c">#xdata_domain = np.linspace(min_score, max_score, gridsize)  # NOQA</span>
     <span class="c">#pxdata_list = [pdf.evaluate(xdata_domain) for pdf in xdata_pdf_list]</span>
 
@@ -1608,8 +1678,8 @@
             <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">())</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="mi">0</span>
             <span class="n">masked_freq</span>   <span class="o">=</span> <span class="n">freq</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">masked_lbls</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">bin_labels</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
-            <span class="n">masked_colors</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+            <span class="n">masked_lbls</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bin_labels</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+            <span class="n">masked_colors</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
             <span class="n">explode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">masked_freq</span><span class="p">)</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">masked_freq</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">masked_percent</span> <span class="o">=</span> <span class="p">(</span><span class="n">masked_freq</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">size</span><span class="p">)</span>
@@ -1762,7 +1832,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1784,7 +1854,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

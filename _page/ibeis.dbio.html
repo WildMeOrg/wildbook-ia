@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio package &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.dbio package &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.expt package" href="ibeis.expt.html"/>
         <link rel="prev" title="ibeis.control package" href="ibeis.control.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -85,12 +85,12 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.dbio package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.export_hsdb">ibeis.dbio.export_hsdb module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.export_subset">ibeis.dbio.export_subset module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.export_wb">ibeis.dbio.export_wb module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.ingest_database">ibeis.dbio.ingest_database module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.ingest_hsdb">ibeis.dbio.ingest_hsdb module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.ingest_mdb">ibeis.dbio.ingest_mdb module</a></li>
@@ -100,7 +100,6 @@
 <li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
@@ -116,13 +115,16 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -490,7 +492,7 @@ ARE NO LONGER LBLANNOTS</dd>
 
 <dl class="class">
 <dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData">
-<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">CONTRIBUTOR_TransferData</code><span class="sig-paren">(</span><em>contributor_uuid</em>, <em>contributor_tag</em>, <em>contributor_name_first</em>, <em>contributor_name_last</em>, <em>contributor_location_city</em>, <em>contributor_location_state</em>, <em>contributor_location_country</em>, <em>contributor_location_zip</em>, <em>contributor_note</em>, <em>config_td</em>, <em>encounter_td</em>, <em>image_td</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">CONTRIBUTOR_TransferData</code><span class="sig-paren">(</span><em>contributor_uuid</em>, <em>contributor_tag</em>, <em>contributor_name_first</em>, <em>contributor_name_last</em>, <em>contributor_location_city</em>, <em>contributor_location_state</em>, <em>contributor_location_country</em>, <em>contributor_location_zip</em>, <em>contributor_note</em>, <em>config_td</em>, <em>imageset_td</em>, <em>image_td</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
 <dl class="method">
 <dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__getnewargs__">
@@ -571,70 +573,70 @@ ARE NO LONGER LBLANNOTS</dd>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.encounter_td">
-<code class="descname">encounter_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.encounter_td" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 10</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.image_td">
 <code class="descname">image_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.image_td" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 11</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.imageset_td">
+<code class="descname">imageset_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.imageset_td" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData">
-<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">ENCOUNTER_TransferData</code><span class="sig-paren">(</span><em>config_INDEX_list</em>, <em>encounter_uuid_list</em>, <em>encounter_text_list</em>, <em>encoutner_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">IMAGESET_TransferData</code><span class="sig-paren">(</span><em>config_INDEX_list</em>, <em>imageset_uuid_list</em>, <em>imageset_text_list</em>, <em>encoutner_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
 <dl class="method">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getnewargs__">
-<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getstate__">
-<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exclude the OrderedDict from pickling</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.__repr__">
-<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a nicely formatted representation string</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.config_INDEX_list">
-<code class="descname">config_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.config_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.config_INDEX_list">
+<code class="descname">config_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.config_INDEX_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_text_list">
-<code class="descname">encounter_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_text_list" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.encoutner_note_list">
+<code class="descname">encoutner_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.encoutner_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.imageset_text_list">
+<code class="descname">imageset_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.imageset_text_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_uuid_list">
-<code class="descname">encounter_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.IMAGESET_TransferData.imageset_uuid_list">
+<code class="descname">imageset_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGESET_TransferData.imageset_uuid_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.encoutner_note_list">
-<code class="descname">encoutner_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.encoutner_note_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ibeis.dbio.export_subset.IMAGE_TransferData">
-<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">IMAGE_TransferData</code><span class="sig-paren">(</span><em>encounter_INDEXs_list</em>, <em>image_path_list</em>, <em>image_uuid_list</em>, <em>image_ext_list</em>, <em>image_original_name_list</em>, <em>image_width_list</em>, <em>image_height_list</em>, <em>image_time_posix_list</em>, <em>image_gps_lat_list</em>, <em>image_gps_lon_list</em>, <em>image_toggle_enabled_list</em>, <em>image_toggle_reviewed_list</em>, <em>image_note_list</em>, <em>lblimage_td_list</em>, <em>annotation_td_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">IMAGE_TransferData</code><span class="sig-paren">(</span><em>imageset_INDEXs_list</em>, <em>image_path_list</em>, <em>image_uuid_list</em>, <em>image_ext_list</em>, <em>image_original_name_list</em>, <em>image_width_list</em>, <em>image_height_list</em>, <em>image_time_posix_list</em>, <em>image_gps_lat_list</em>, <em>image_gps_lon_list</em>, <em>image_toggle_enabled_list</em>, <em>image_toggle_reviewed_list</em>, <em>image_note_list</em>, <em>lblimage_td_list</em>, <em>annotation_td_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
 <dl class="method">
 <dt id="ibeis.dbio.export_subset.IMAGE_TransferData.__getnewargs__">
@@ -658,12 +660,6 @@ ARE NO LONGER LBLANNOTS</dd>
 <dt id="ibeis.dbio.export_subset.IMAGE_TransferData.annotation_td_list">
 <code class="descname">annotation_td_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.annotation_td_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 14</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.encounter_INDEXs_list">
-<code class="descname">encounter_INDEXs_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.encounter_INDEXs_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -736,6 +732,12 @@ ARE NO LONGER LBLANNOTS</dd>
 <dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_width_list">
 <code class="descname">image_width_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_width_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.imageset_INDEXs_list">
+<code class="descname">imageset_INDEXs_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.imageset_INDEXs_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -910,7 +912,7 @@ ARE NO LONGER LBLANNOTS</dd>
 
 <dl class="class">
 <dt id="ibeis.dbio.export_subset.SPECIES_TransferData">
-<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">SPECIES_TransferData</code><span class="sig-paren">(</span><em>species_uuid_list</em>, <em>species_text_list</em>, <em>species_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">SPECIES_TransferData</code><span class="sig-paren">(</span><em>species_uuid_list</em>, <em>species_nice_list</em>, <em>species_text_list</em>, <em>species_code_list</em>, <em>species_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
 <dl class="method">
 <dt id="ibeis.dbio.export_subset.SPECIES_TransferData.__getnewargs__">
@@ -931,15 +933,27 @@ ARE NO LONGER LBLANNOTS</dd>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_code_list">
+<code class="descname">species_code_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_code_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_nice_list">
+<code class="descname">species_nice_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_nice_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_note_list">
 <code class="descname">species_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_note_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
+<dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_text_list">
 <code class="descname">species_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_text_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
+<dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1177,10 +1191,10 @@ python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Mast
 configid_list = ibs.get_valid_configids()
 config_suffix_list = ibs.get_config_suffixes(configid_list)
 print(ut.list_str(list(zip(configid_list, config_suffix_list))))</p>
-<p class="last">eid_list = ibs.get_valid_eids()
-enc_config_rowid_list = ibs.get_encounter_configid(eid_list)
-enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)
-print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))</p>
+<p class="last">imgsetid_list = ibs.get_valid_imgsetids()
+imageset_config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
+imageset_suffix_list = ibs.get_config_suffixes(config_rowid_list)
+print(ut.list_str(list(zip(imageset_config_rowid_list, imageset_suffix_list))))</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1198,8 +1212,8 @@ print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))</p>
 <li><strong>gid_list</strong> (<em>list</em>) &#8211; list of image rowids</li>
 <li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
 <li><strong>nid_list</strong> (<em>list</em>) &#8211; list of name rowids</li>
-<li><strong>eid_list</strong> (<em>list</em>) &#8211; list of encounter rowids</li>
-<li><strong>egrid_list</strong> (<em>list</em>) &#8211; list of encounter-image pairs rowids</li>
+<li><strong>imgsetid_list</strong> (<em>list</em>) &#8211; list of imageset rowids</li>
+<li><strong>gsgrid_list</strong> (<em>list</em>) &#8211; list of imageset-image pairs rowids</li>
 <li><strong>new_dbpath</strong> (<em>None</em>) &#8211; (default = None)</li>
 </ul>
 </td>
@@ -1215,15 +1229,10 @@ print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.dbio.export_subset.export_encounter_transfer_data">
-<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_encounter_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>eid_list</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_encounter_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_encounter_transfer_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="ibeis.dbio.export_subset.export_image_transfer_data">
-<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_image_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>gid_list</em>, <em>config_rowid_list</em>, <em>eid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_image_transfer_data" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_image_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>gid_list</em>, <em>config_rowid_list</em>, <em>imgsetid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_image_transfer_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>builds transfer data for seleted image ids in ibs_src.
-NOTE: gid_list, config_rowid_list and eid_list do not correspond</p>
+NOTE: gid_list, config_rowid_list and imgsetid_list do not correspond</p>
 </dd></dl>
 
 <dl class="function">
@@ -1258,6 +1267,11 @@ NOTE: gid_list, config_rowid_list and eid_list do not correspond</p>
 <dl class="function">
 <dt id="ibeis.dbio.export_subset.export_images_temp">
 <code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_images_temp</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_images_temp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_images_temp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_imageset_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_imageset_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>imgsetid_list</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_imageset_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_imageset_transfer_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1390,13 +1404,13 @@ info the transfer_data named tuple.</p>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.dbio.export_subset.import_encounter_transfer_data">
-<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_encounter_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>encounter_td</em>, <em>config_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_encounter_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_encounter_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.import_image_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_image_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>image_td</em>, <em>contributor_rowid</em>, <em>imgsetid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>config_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_image_transfer_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.dbio.export_subset.import_image_transfer_data">
-<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_image_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>image_td</em>, <em>contributor_rowid</em>, <em>eid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>config_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_image_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.dbio.export_subset.import_imageset_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_imageset_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>imageset_td</em>, <em>config_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_imageset_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_imageset_transfer_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1435,8 +1449,8 @@ info the transfer_data named tuple.</p>
 <dt id="ibeis.dbio.export_subset.merge_databases">
 <code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">merge_databases</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>ibs_dst</em>, <em>gid_list=None</em>, <em>back=None</em>, <em>user_prompt=False</em>, <em>bulk_conflict_resolution='ignore'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#merge_databases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.merge_databases" title="Permalink to this definition">¶</a></dt>
 <dd><p>STEP 0) MAIN DRIVER FUNCTION</p>
-<p>Conflict resolutions are only between contributors, configs, encounters and images.
-Annotations, lblannots, lblimages, their respective relationships, and image-encounter
+<p>Conflict resolutions are only between contributors, configs, imagesets and images.
+Annotations, lblannots, lblimages, their respective relationships, and image-imageset
 relationships all inherit the resolution from their associated image.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1601,10 +1615,7 @@ python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys -
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_merge</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1616,24 +1627,10 @@ python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys -
 <dd></dd></dl>
 
 </div>
-<div class="section" id="module-ibeis.dbio.export_wb">
-<span id="ibeis-dbio-export-wb-module"></span><h2>ibeis.dbio.export_wb module<a class="headerlink" href="#module-ibeis.dbio.export_wb" title="Permalink to this headline">¶</a></h2>
-<p>Converts an IBEIS database to a wildbook db</p>
-<dl class="function">
-<dt id="ibeis.dbio.export_wb.export_ibeis_to_wildbook">
-<code class="descclassname">ibeis.dbio.export_wb.</code><code class="descname">export_ibeis_to_wildbook</code><span class="sig-paren">(</span><em>ibs</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_wb.html#export_ibeis_to_wildbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_wb.export_ibeis_to_wildbook" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.dbio.export_wb.export_ibeis_to_wildbook2">
-<code class="descclassname">ibeis.dbio.export_wb.</code><code class="descname">export_ibeis_to_wildbook2</code><span class="sig-paren">(</span><em>ibs</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_wb.html#export_ibeis_to_wildbook2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_wb.export_ibeis_to_wildbook2" title="Permalink to this definition">¶</a></dt>
-<dd><p>LECACY CODE. DEPRICATE?</p>
-</dd></dl>
-
-</div>
 <div class="section" id="module-ibeis.dbio.ingest_database">
 <span id="ibeis-dbio-ingest-database-module"></span><h2>ibeis.dbio.ingest_database module<a class="headerlink" href="#module-ibeis.dbio.ingest_database" title="Permalink to this headline">¶</a></h2>
-<p>This module lists known raw databases and how to ingest them.</p>
+<p>This module lists known raw databases and how to ingest them.
+# TODO: ADD COPYRIGHT TAG</p>
 <dl class="class">
 <dt id="ibeis.dbio.ingest_database.FMT_KEYS">
 <em class="property">class </em><code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">FMT_KEYS</code><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#FMT_KEYS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS" title="Permalink to this definition">¶</a></dt>
@@ -1716,7 +1713,7 @@ python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys -
 
 <dl class="function">
 <dt id="ibeis.dbio.ingest_database.get_name_texts_from_parent_folder">
-<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">get_name_texts_from_parent_folder</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='name'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_parent_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_parent_folder" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">get_name_texts_from_parent_folder</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_parent_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_parent_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input: gpath_list
 Output: names based on the parent folder of each image</p>
 </dd></dl>
@@ -1757,13 +1754,29 @@ Output: names based on the parent folder of each image</p>
 
 <dl class="function">
 <dt id="ibeis.dbio.ingest_database.ingest_oxford_style_db">
-<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_oxford_style_db</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_oxford_style_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_oxford_style_db" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_oxford_style_db</code><span class="sig-paren">(</span><em>dbdir</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_oxford_style_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_oxford_style_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ingest either oxford or paris</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbdir</strong> (<em>str</em>) &#8211; </td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="s">&#39;/raid/work/Oxford&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="s">&#39;/raid/work/Paris&#39;</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="go">#&gt;&gt;&gt; ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ingest_oxford_style_db</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1777,23 +1790,13 @@ Output: names based on the parent folder of each image</p>
 <dt id="ibeis.dbio.ingest_database.ingest_rawdata">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_rawdata</code><span class="sig-paren">(</span><em>ibs</em>, <em>ingestable</em>, <em>localize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_rawdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_rawdata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ingests rawdata into an ibeis database.</p>
-<dl class="docutils">
-<dt>if ingest_type == &#8216;named_folders&#8217;:</dt>
-<dd>Converts folder structure where folders = name, to ibsdb</dd>
-<dt>if ingest_type == &#8216;named_images&#8217;:</dt>
-<dd>Converts imgname structure where imgnames = name_id.ext, to ibsdb</dd>
-</dl>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python ibeis/dbio/ingest_database.py --db seals_drop2
-</pre></div>
-</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>ingestable</strong> &#8211; </li>
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>ingestable</strong> (<a class="reference internal" href="#ibeis.dbio.ingest_database.Ingestable" title="ibeis.dbio.ingest_database.Ingestable"><em>Ingestable</em></a>) &#8211; </li>
 <li><strong>localize</strong> (<em>bool</em>) &#8211; (default = False)</li>
 </ul>
 </td>
@@ -1806,9 +1809,20 @@ Output: names based on the parent folder of each image</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<dl class="docutils">
+<dt>if ingest_type == &#8216;named_folders&#8217;:</dt>
+<dd>Converts folder structure where folders = name, to ibsdb</dd>
+<dt>if ingest_type == &#8216;named_images&#8217;:</dt>
+<dd>Converts imgname structure where imgnames = name_id.ext, to ibsdb</dd>
+</dl>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
+<div class="highlight-bash"><div class="highlight"><pre>python ibeis/dbio/ingest_database.py --db seals_drop2
+python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
 python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
+
+python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type<span class="o">=</span>named_folders --species<span class="o">=</span>wild_dog --fmtkey<span class="o">=</span><span class="s1">&#39;African Wild Dog: {name}&#39;</span> --force-delete
+python -m ibeis --tf ingest_rawdata --db &lt;newdbname&gt;  --imgdir &lt;path-to-images&gt; --ingest-type<span class="o">=</span>named_folders --species<span class="o">=</span>humpback
 </pre></div>
 </div>
 <p class="rubric">Example</p>
@@ -1819,18 +1833,20 @@ python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c"># &#39;snow-leopards&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">force_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--force_delete&#39;</span><span class="p">,</span> <span class="s">&#39;--force-delete&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--imgdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ingest_type</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--ingest-type&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;unknown&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--fmtkey&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">img_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify img dir&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify dbname&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ingestable</span> <span class="o">=</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">img_dir</span><span class="o">=</span><span class="n">img_dir</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;unknown&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">fmtkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">images_as_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ingestable</span> <span class="o">=</span> <span class="n">Ingestable</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">dbname</span><span class="p">,</span> <span class="n">img_dir</span><span class="o">=</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="n">ingest_type</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fmtkey</span><span class="o">=</span><span class="n">fmtkey</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">images_as_annots</span><span class="o">=</span><span class="n">ingest_type</span> <span class="o">!=</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">force_delete</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">delete_ibeis_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">request_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">localize</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ingest_rawdata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ingestable</span><span class="p">,</span> <span class="n">localize</span><span class="p">)</span>
@@ -1851,8 +1867,14 @@ python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --
 <dd><p>Downloads data from Serengeti dryad server</p>
 <p class="rubric">References</p>
 <p><a class="reference external" href="http://datadryad.org/resource/doi:10.5061/dryad.5pt92">http://datadryad.org/resource/doi:10.5061/dryad.5pt92</a>
-Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Scientific Data 2: 150026. <a class="reference external" href="http://dx.doi.org/10.1038/sdata.2015.26">http://dx.doi.org/10.1038/sdata.2015.26</a>
-Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Data from: Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Dryad Digital Repository. <a class="reference external" href="http://dx.doi.org/10.5061/dryad.5pt92">http://dx.doi.org/10.5061/dryad.5pt92</a></p>
+Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015)
+Snapshot Serengeti, high-frequency annotated camera trap images of 40
+mammalian species in an African savanna. Scientific Data 2: 150026.
+<a class="reference external" href="http://dx.doi.org/10.1038/sdata.2015.26">http://dx.doi.org/10.1038/sdata.2015.26</a>
+Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015)
+Data from: Snapshot Serengeti, high-frequency annotated camera trap
+images of 40 mammalian species in an African savanna. Dryad Digital
+Repository. <a class="reference external" href="http://dx.doi.org/10.5061/dryad.5pt92">http://dx.doi.org/10.5061/dryad.5pt92</a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1870,8 +1892,8 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#species = ut.get_argval(&#39;--species&#39;, str, default=ibeis.const.Species.CHEETAH)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># species = ut.get_argval(&#39;--species&#39;, type_=str, default=&#39;cheetah&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_serengeti_mamal_cameratrap</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -1931,6 +1953,15 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_whale_sharks</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_whale_sharks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_whale_sharks" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
 <div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_wilddog_peter">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_wilddog_peter</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_wilddog_peter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_wilddog_peter" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
 </pre></div>
 </div>
 </dd></dl>
@@ -2121,7 +2152,7 @@ best word i can think of is io. maybe marshall?</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -2143,7 +2174,7 @@ best word i can think of is io. maybe marshall?</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

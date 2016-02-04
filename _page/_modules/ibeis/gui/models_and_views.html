@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.models_and_views &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.gui.models_and_views &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -148,7 +148,7 @@
 <div class="viewcode-block" id="IBEISTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTableWidget">[docs]</a><span class="k">class</span> <span class="nc">IBEISTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">widget</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">widget</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
                                 <span class="n">model_class</span><span class="o">=</span><span class="n">IBEISStripeModel</span><span class="p">,</span>
                                 <span class="n">view_class</span><span class="o">=</span><span class="n">IBEISTableView</span><span class="p">)</span>
@@ -157,7 +157,7 @@
 <div class="viewcode-block" id="IBEISTreeWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTreeWidget">[docs]</a><span class="k">class</span> <span class="nc">IBEISTreeWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">widget</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">widget</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
                                 <span class="n">model_class</span><span class="o">=</span><span class="n">IBEISItemModel</span><span class="p">,</span>
                                 <span class="n">view_class</span><span class="o">=</span><span class="n">IBEISTreeView</span><span class="p">)</span>
@@ -172,7 +172,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">IBEISSTRIPEMODEL_BASE</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">numduplicates</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># negative one is an invalid eid</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># negative one is an invalid imgsetid</span>
         <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="n">IBEISSTRIPEMODEL_BASE</span> <span class="o">==</span> <span class="n">StripeProxyModel</span><span class="p">:</span>
             <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span> <span class="o">=</span> <span class="n">APIItemModel</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
@@ -193,11 +193,11 @@
         <span class="c">#return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)</span>
 
     <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Overrides the API model ider to give only selected encounter ids &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">eid</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Overrides the API model ider to give only selected imageset ids &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">imgsetid</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
+    <span class="k">def</span> <span class="nf">_change_imageset</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="n">imgsetid</span>
         <span class="k">with</span> <span class="n">ChangeLayoutContext</span><span class="p">([</span><span class="n">model</span><span class="p">]):</span>
             <span class="n">IBEISSTRIPEMODEL_BASE</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
@@ -210,18 +210,18 @@
         <span class="n">APITableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
         <span class="n">tblview</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
 
-    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_change_imageset</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
         <span class="n">tblview</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">setSliderPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">tblview</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">model</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="IBEISItemModel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISItemModel">[docs]</a><span class="k">class</span> <span class="nc">IBEISItemModel</span><span class="p">(</span><span class="n">IBEISITEMMODEL_BASE</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">IBEISITEMMODEL_BASE</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">):</span>
@@ -240,12 +240,12 @@
     <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overrides the API model ider to give filtered output,</span>
-<span class="sd">        ie: only selected encounter ids</span>
+<span class="sd">        ie: only selected imageset ids</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">eid</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">imgsetid</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
+    <span class="k">def</span> <span class="nf">_change_imageset</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="n">imgsetid</span>
         <span class="k">with</span> <span class="n">ChangeLayoutContext</span><span class="p">([</span><span class="n">model</span><span class="p">]):</span>
             <span class="n">IBEISITEMMODEL_BASE</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
@@ -258,38 +258,38 @@
         <span class="n">APITreeView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">treeview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
         <span class="n">treeview</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
 
-    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">treeview</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_change_imageset</span><span class="p">(</span><span class="n">treeview</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
         <span class="n">treeview</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">setSliderPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">treeview</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># FIXME: should defer the change of encounter until</span>
+            <span class="c"># FIXME: should defer the change of imageset until</span>
             <span class="c"># the view becomes visible</span>
-            <span class="n">model</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
 
 
 <span class="c">#-------------------------</span>
-<span class="c"># --- ENCOUNTER TABLES ---</span>
+<span class="c"># --- IMAGESET TABLES ---</span>
 <span class="c">#-------------------------</span>
 
 </div>
-<div class="viewcode-block" id="EncTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.EncTableWidget">[docs]</a><span class="k">class</span> <span class="nc">EncTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
+<div class="viewcode-block" id="ImagesetTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.ImagesetTableWidget">[docs]</a><span class="k">class</span> <span class="nc">ImagesetTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">widget</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
-                                <span class="n">model_class</span><span class="o">=</span><span class="n">EncTableModel</span><span class="p">,</span>
-                                <span class="n">view_class</span><span class="o">=</span><span class="n">EncTableView</span><span class="p">)</span>
+                                <span class="n">model_class</span><span class="o">=</span><span class="n">ImagesetTableModel</span><span class="p">,</span>
+                                <span class="n">view_class</span><span class="o">=</span><span class="n">ImagesetTableView</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="EncTableModel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.EncTableModel">[docs]</a><span class="k">class</span> <span class="nc">EncTableModel</span><span class="p">(</span><span class="n">APIItemModel</span><span class="p">):</span>
+<div class="viewcode-block" id="ImagesetTableModel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.ImagesetTableModel">[docs]</a><span class="k">class</span> <span class="nc">ImagesetTableModel</span><span class="p">(</span><span class="n">APIItemModel</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="n">model</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>
         <span class="n">APIItemModel</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="EncTableView"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.EncTableView">[docs]</a><span class="k">class</span> <span class="nc">EncTableView</span><span class="p">(</span><span class="n">APITableView</span><span class="p">):</span>
+<div class="viewcode-block" id="ImagesetTableView"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.ImagesetTableView">[docs]</a><span class="k">class</span> <span class="nc">ImagesetTableView</span><span class="p">(</span><span class="n">APITableView</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    View for Encounter Table</span>
+<span class="sd">    View for ImageSet Table</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">APITableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
@@ -306,7 +306,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -328,7 +328,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

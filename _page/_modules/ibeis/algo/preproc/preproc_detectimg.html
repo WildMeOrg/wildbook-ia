@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.preproc.preproc_detectimg &mdash; ibeis 1.5.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../preproc.html">ibeis.algo.preproc</a> &raquo;</li>
+      
+    <li>ibeis.algo.preproc.preproc_detectimg</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.preproc.preproc_detectimg</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="c"># Python</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
+<span class="c"># UTool</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="c"># VTool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">vtool.chip</span> <span class="kn">as</span> <span class="nn">ctool</span>
+<span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_detectimg]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="gen_detectimg_and_write"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.gen_detectimg_and_write">[docs]</a><span class="k">def</span> <span class="nf">gen_detectimg_and_write</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; worker function for parallel generator &quot;&quot;&quot;</span>
+    <span class="n">gid</span><span class="p">,</span> <span class="n">gfpath</span><span class="p">,</span> <span class="n">new_gfpath</span><span class="p">,</span> <span class="n">new_size</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="c">#print(&#39;[preproc] writing detectimg: %r&#39; % new_gfpath)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">new_size</span><span class="p">)</span>
+    <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">new_gfpath</span><span class="p">,</span> <span class="n">new_img</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid</span><span class="p">,</span> <span class="n">new_gfpath</span>
+
+</div>
+<div class="viewcode-block" id="gen_detectimg_async"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.gen_detectimg_async">[docs]</a><span class="k">def</span> <span class="nf">gen_detectimg_async</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span> <span class="n">new_gfpath_list</span><span class="p">,</span>
+                        <span class="n">newsize_list</span><span class="p">,</span> <span class="n">nImgs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Resizes images and yeilds results asynchronously  &quot;&quot;&quot;</span>
+    <span class="c"># Compute and write detectimg in asychronous process</span>
+    <span class="k">if</span> <span class="n">nImgs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nImgs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span> <span class="n">new_gfpath_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)</span>
+    <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
+    <span class="c"># THis probably wont work for the same reason gen_chip wont work</span>
+    <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_detectimg_and_write</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_image_detectimg_fpath_list"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.get_image_detectimg_fpath_list">[docs]</a><span class="k">def</span> <span class="nf">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot; Returns detectimg path list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_detectimg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; valid_gids = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = valid_gids[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;\n&#39;.join(map(basename, new_gfpath_list)))</span>
+<span class="sd">        &gt;&gt;&gt; target = &#39;\n&#39;.join((</span>
+<span class="sd">        ...    &#39;reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg&#39;,</span>
+<span class="sd">        ...    &#39;reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; assert result == target, &#39;got result=\n%s&#39; % result</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="s">&#39;gid_list&#39;</span><span class="p">)</span>
+    <span class="n">sqrt_area</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span>
+    <span class="n">gext_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">guuid_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_detectimg_cachedir</span><span class="p">()</span>
+    <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="s">&#39;reszd_sqrtArea=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sqrt_area</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">guuid</span><span class="p">)</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="p">(</span><span class="n">guuid</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">guuid_list</span><span class="p">,</span> <span class="n">gext_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">new_gfpath_list</span>
+
+</div>
+<div class="viewcode-block" id="compute_and_write_detectimg"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.compute_and_write_detectimg">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_detectimg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_detectimg --test-compute_and_write_detectimg --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_detectimg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; valid_gids = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = valid_gids[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; new_gfpath_list = compute_and_write_detectimg(ibs, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.list_str(new_gfpath_list))</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; #pt.imshow(new_gfpath_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(new_gfpath_list, nPerPage=4)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_detectimg_cachedir</span><span class="p">())</span>
+    <span class="c"># Get img configuration information</span>
+    <span class="n">sqrt_area</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span>
+    <span class="n">target_area</span> <span class="o">=</span> <span class="n">sqrt_area</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="c"># Get img dest information (output path)</span>
+    <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="c"># Get img source information (image, annotation_bbox, theta)</span>
+    <span class="n">gfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gsize_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">ctool</span><span class="o">.</span><span class="n">get_scaled_sizes_with_area</span><span class="p">(</span><span class="n">target_area</span><span class="p">,</span> <span class="n">gsize_list</span><span class="p">)</span>
+    <span class="c"># Define &quot;Asynchronous&quot; generator</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] Computing </span><span class="si">%d</span><span class="s"> imgs asynchronously&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gfpath_list</span><span class="p">)))</span>
+    <span class="n">detectimg_async_iter</span> <span class="o">=</span> <span class="n">gen_detectimg_async</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span>
+                                               <span class="n">new_gfpath_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">new_gfpath</span> <span class="ow">in</span> <span class="n">detectimg_async_iter</span><span class="p">:</span>
+        <span class="c"># print(&#39;Wrote detectimg: %r&#39; % new_gfpath)</span>
+        <span class="k">pass</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] Done computing detectimgs&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_gfpath_list</span>
+
+</div>
+<div class="viewcode-block" id="compute_and_write_detectimg_lazy"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.compute_and_write_detectimg_lazy">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_detectimg_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Will write a img if it does not exist on disk, regardless of if it exists</span>
+<span class="sd">    in the SQL database</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_detectimg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; valid_gids = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = valid_gids[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; result = compute_and_write_detectimg_lazy(ibs, gid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] compute_and_write_detectimg_lazy&#39;</span><span class="p">)</span>
+    <span class="c"># Mark which aid&#39;s need their detectimg computed</span>
+    <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">exists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gfpath</span> <span class="ow">in</span> <span class="n">new_gfpath_list</span><span class="p">]</span>
+    <span class="n">invalid_gids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> detectimgs need to be computed&#39;</span> <span class="o">%</span>
+          <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">compute_and_write_detectimg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invalid_gids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_gfpath_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_detectimg</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_detectimg --allexamples</span>
+<span class="sd">        python -m ibeis.algo.preproc.preproc_detectimg --test-compute_and_write_detectimg_lazy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

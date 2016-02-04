@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.newgui &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.gui.newgui &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -138,8 +138,8 @@
 
 
 <span class="sd">BUGS:</span>
-<span class="sd">    * Copying the ungrouped encounter raises an error. Should have the option</span>
-<span class="sd">    to copy or move it. Other special encounter should not have this option.</span>
+<span class="sd">    * Copying the ungrouped imageset raises an error. Should have the option</span>
+<span class="sd">    to copy or move it. Other special imageset should not have this option.</span>
 
 <span class="sd">    Should gray out an option if it is not available.</span>
 
@@ -150,7 +150,6 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isdir</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">species</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
@@ -161,12 +160,12 @@
 <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guimenus</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_annotations2</span>
-<span class="kn">from</span> <span class="nn">ibeis.gui.guiheaders</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">IMAGE_GRID</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">NAMES_TREE</span><span class="p">,</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">)</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.gui.guiheaders</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">IMAGE_GRID</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">NAMES_TREE</span><span class="p">,</span> <span class="n">IMAGESET_TABLE</span><span class="p">)</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.gui.models_and_views</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IBEISStripeModel</span><span class="p">,</span> <span class="n">IBEISTableView</span><span class="p">,</span>
                                         <span class="n">IBEISItemModel</span><span class="p">,</span> <span class="n">IBEISTreeView</span><span class="p">,</span>
-                                        <span class="n">EncTableModel</span><span class="p">,</span> <span class="n">EncTableView</span><span class="p">,</span>
+                                        <span class="n">ImagesetTableModel</span><span class="p">,</span> <span class="n">ImagesetTableView</span><span class="p">,</span>
                                         <span class="n">IBEISTableWidget</span><span class="p">,</span> <span class="n">IBEISTreeWidget</span><span class="p">,</span>
-                                        <span class="n">EncTableWidget</span><span class="p">)</span>
+                                        <span class="n">ImagesetTableWidget</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">guitool</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">color_funcs</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -182,7 +181,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,</span>
-<span class="sd">                                  NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)</span>
+<span class="sd">                                  NAME_TABLE, NAMES_TREE, IMAGESET_TABLE)</span>
 <span class="sd">ibsgwt = back.front</span>
 <span class="sd">view   = ibsgwt.views[IMAGE_TABLE]</span>
 <span class="sd">model  = ibsgwt.models[IMAGE_TABLE]</span>
@@ -213,7 +212,7 @@
 
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_on_tabletab_change</span><span class="p">(</span><span class="n">tabwgt</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Switch to the current encounter tab &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Switch to the current imageset tab &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[apitab] _onchange(index=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
         <span class="n">tblname</span> <span class="o">=</span> <span class="n">tabwgt</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="n">tabwgt</span><span class="o">.</span><span class="n">current_tblname</span> <span class="o">=</span> <span class="n">tblname</span>
@@ -233,92 +232,83 @@
     <span class="c">#    #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)</span>
 
 </div>
-<div class="viewcode-block" id="EncoutnerTabWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.EncoutnerTabWidget">[docs]</a><span class="k">class</span> <span class="nc">EncoutnerTabWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="p">):</span>
+<div class="viewcode-block" id="ImagesetTabWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.ImagesetTabWidget">[docs]</a><span class="k">class</span> <span class="nc">ImagesetTabWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Handles the super-tabs for the encounters that hold the table-tabs</span>
+<span class="sd">    Handles the super-tabs for the imagesets that hold the table-tabs</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">horizontalStretch</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">ibswgt</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">setTabsClosable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">setMaximumSize</span><span class="p">(</span><span class="mi">9999</span><span class="p">,</span> <span class="n">guitool</span><span class="o">.</span><span class="n">get_cplat_tab_height</span><span class="p">())</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">tabbar</span> <span class="o">=</span> <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">tabBar</span><span class="p">()</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">tabbar</span><span class="o">.</span><span class="n">setMovable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&#39;border: none;&#39;</span><span class="p">)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">tabbar</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&#39;border: none;&#39;</span><span class="p">)</span>
-        <span class="n">sizePolicy</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newSizePolicy</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">horizontalStretch</span><span class="o">=</span><span class="n">horizontalStretch</span><span class="p">)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">setSizePolicy</span><span class="p">(</span><span class="n">sizePolicy</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">horizontalStretch</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">ibswgt</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">setTabsClosable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">setMaximumSize</span><span class="p">(</span><span class="mi">9999</span><span class="p">,</span> <span class="n">guitool</span><span class="o">.</span><span class="n">get_cplat_tab_height</span><span class="p">())</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">tabbar</span> <span class="o">=</span> <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">tabBar</span><span class="p">()</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">tabbar</span><span class="o">.</span><span class="n">setMovable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&#39;border: none;&#39;</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">tabbar</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&#39;border: none;&#39;</span><span class="p">)</span>
+        <span class="n">sizePolicy</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newSizePolicy</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">horizontalStretch</span><span class="o">=</span><span class="n">horizontalStretch</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">setSizePolicy</span><span class="p">(</span><span class="n">sizePolicy</span><span class="p">)</span>
 
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">tabCloseRequested</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_close_tab</span><span class="p">)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">currentChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_on_enctab_change</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">tabCloseRequested</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_close_tab</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">currentChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_on_imagesettab_change</span><span class="p">)</span>
 
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c"># TURNING ON / OFF ALL IMAGES</span>
-        <span class="c"># enc_tabwgt._add_enc_tab(-1, const.ALL_IMAGE_ENCTEXT)</span>
+        <span class="c"># imageset_tabwgt._add_imageset_tab(-1, const.ALL_IMAGE_IMAGESETTEXT)</span>
 
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_on_enctab_change</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Switch to the current encounter tab &quot;&quot;&quot;</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter_tab_widget] _onchange(index=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
-        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">index</span> <span class="ow">and</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">):</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">_on_imagesettab_change</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Switch to the current imageset tab &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[imageset_tab_widget] _onchange(index=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">index</span> <span class="ow">and</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">):</span>
+            <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="c">#if ut.VERBOSE:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ENCTAB.ONCHANGE] eid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,))</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[IMAGESETTAB.ONCHANGE] imgsetid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,))</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_close_tab</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter_tab_widget] _close_tab(index=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
-        <span class="k">if</span> <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">removeTab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_close_tab</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[imageset_tab_widget] _close_tab(index=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">removeTab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 
     <span class="nd">@slot_</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_close_all_tabs</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter_tab_widget] _close_all_tabs()&#39;</span><span class="p">)</span>
-        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_close_all_tabs</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[imageset_tab_widget] _close_all_tabs()&#39;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">removeTab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">removeTab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_close_tab_with_eid</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter_tab_widget] _close_tab_with_eid(eid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">_close_tab_with_imgsetid</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[imageset_tab_widget] _close_tab_with_imgsetid(imgsetid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_close_tab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_close_tab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">_add_enc_tab</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">):</span>
-        <span class="c"># &lt;HACK&gt;</span>
-        <span class="c"># if enctext == const.ALL_IMAGE_ENCTEXT:</span>
-        <span class="c">#     eid = None</span>
-        <span class="c"># &lt;/HACK&gt;</span>
-        <span class="c">#with ut.Indenter(&#39;[_ADD_ENC_TAB]&#39;):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_add_enc_tab] eid=</span><span class="si">%r</span><span class="s">, enctext=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">:</span>
-            <span class="c"># tab_name = str(eid) + &#39; - &#39; + str(enctext)</span>
-            <span class="n">tab_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">enctext</span><span class="p">)</span>
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">(),</span> <span class="n">tab_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_add_imageset_tab</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_add_imageset_tab] imgsetid=</span><span class="si">%r</span><span class="s">, imagesettext=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">imgsetid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">:</span>
+            <span class="n">tab_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">imagesettext</span><span class="p">)</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">(),</span> <span class="n">tab_name</span><span class="p">)</span>
 
-            <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
 
-        <span class="c">#with BlockContext(enc_tabwgt):</span>
-        <span class="c">#print(&#39;SET CURRENT INDEX&#39;)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-        <span class="c">#print(&#39;DONE SETTING CURRENT INDEX&#39;)</span>
-        <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_on_enctab_change</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_on_imagesettab_change</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_update_enc_tab_name</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">eid_list</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">eid</span> <span class="o">==</span> <span class="n">_id</span><span class="p">:</span>
-                <span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">setTabText</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">enctext</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_update_imageset_tab_name</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">imgsetid_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">imgsetid</span> <span class="o">==</span> <span class="n">_id</span><span class="p">:</span>
+                <span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">setTabText</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">)</span>
 
 
 <span class="c">#############################</span>
@@ -424,10 +414,10 @@
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NAMES_TREE</span><span class="p">)</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">modelview_defs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">NAMES_TREE</span><span class="p">,</span> <span class="n">IBEISTreeWidget</span><span class="p">,</span>
                                           <span class="n">IBEISItemModel</span><span class="p">,</span> <span class="n">IBEISTreeView</span><span class="p">))</span>
-        <span class="c"># ADD ENCOUNTER TABLE</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">super_tblname_list</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span> <span class="o">+</span> <span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">modelview_defs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>  <span class="n">EncTableWidget</span><span class="p">,</span>
-                                      <span class="n">EncTableModel</span><span class="p">,</span> <span class="n">EncTableView</span><span class="p">))</span>
+        <span class="c"># ADD IMAGESET TABLE</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">super_tblname_list</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span> <span class="o">+</span> <span class="p">[</span><span class="n">IMAGESET_TABLE</span><span class="p">]</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">modelview_defs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span>  <span class="n">ImagesetTableWidget</span><span class="p">,</span>
+                                      <span class="n">ImagesetTableModel</span><span class="p">,</span> <span class="n">ImagesetTableView</span><span class="p">))</span>
 
         <span class="c"># DO INITALIZATION</span>
         <span class="c"># Create and layout components</span>
@@ -445,7 +435,7 @@
             <span class="n">tblview</span><span class="o">.</span><span class="n">doubleClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">on_doubleclick</span><span class="p">)</span>
             <span class="c">#tblview.clicked.connect(ibswgt.on_click)</span>
             <span class="n">tblview</span><span class="o">.</span><span class="n">contextMenuClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">on_contextMenuClicked</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">tblname</span> <span class="o">!=</span> <span class="n">gh</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tblname</span> <span class="o">!=</span> <span class="n">gh</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">:</span>
                 <span class="n">tblview</span><span class="o">.</span><span class="n">selectionModel</span><span class="p">()</span><span class="o">.</span><span class="n">selectionChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">update_selection</span><span class="p">)</span>
             <span class="c">#front.printSignal.connect(back.backend_print)</span>
             <span class="c">#front.raiseExceptionSignal.connect(back.backend_exception)</span>
@@ -557,8 +547,8 @@
         <span class="k">for</span> <span class="n">tblname</span> <span class="ow">in</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span><span class="p">:</span>
             <span class="c">#ibswgt._table_tab_wgt.addTab(ibswgt.widgets[tblname], tblname)</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">_table_tab_wgt</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">tblname</span><span class="p">],</span> <span class="n">tblname</span><span class="p">)</span>
-        <span class="c"># Custom Encounter Tab Wiget</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span> <span class="o">=</span> <span class="n">EncoutnerTabWidget</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">horizontalStretch</span><span class="o">=</span><span class="mi">19</span><span class="p">)</span>
+        <span class="c"># Custom ImageSet Tab Wiget</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_tabwgt</span> <span class="o">=</span> <span class="n">ImagesetTabWidget</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">horizontalStretch</span><span class="o">=</span><span class="mi">19</span><span class="p">)</span>
         <span class="c"># Other components</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">outputLog</span>   <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newOutputLog</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">pointSize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
                                                   <span class="n">visible</span><span class="o">=</span><span class="n">WITH_GUILOG</span><span class="p">,</span> <span class="n">verticalStretch</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
@@ -579,7 +569,7 @@
         <span class="n">identify_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">tablename_to_status_widget_index</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">IMAGESET_TABLE</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
             <span class="n">IMAGE_TABLE</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="n">IMAGE_GRID</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
@@ -587,7 +577,7 @@
             <span class="n">NAME_TABLE</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">status_widget_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;Selected Encounter: &#39;</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">secondary_fontkw</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">),</span>
+            <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;Selected ImageSet: &#39;</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">secondary_fontkw</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">),</span>
             <span class="n">_NEWTEXT</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">readOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
             <span class="c">##</span>
             <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;Selected Image: &#39;</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">secondary_fontkw</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">),</span>
@@ -605,24 +595,16 @@
 
         <span class="n">back</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span>
 
-        <span class="c"># TODO: update these options depending on ibs.get_species_with_detectors</span>
-        <span class="c"># when a controller is attached to the gui</span>
-        <span class="n">detection_combo_box_options</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="c"># Text              # Value</span>
-            <span class="c">#(&#39;Select Species&#39;,  &#39;none&#39;),</span>
-            <span class="p">(</span><span class="s">&#39;Select Species&#39;</span><span class="p">,</span>  <span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">),</span>
-            <span class="c">#&#39;none&#39;),</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="n">species</span><span class="o">.</span><span class="n">get_working_species_set</span><span class="p">()</span>
-
+        <span class="n">detection_combo_box_options</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span> <span class="o">=</span> <span class="n">_COMBO</span><span class="p">(</span><span class="n">detection_combo_box_options</span><span class="p">,</span>
                                       <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">change_detection_species</span><span class="p">,</span>
                                       <span class="n">fontkw</span><span class="o">=</span><span class="n">primary_fontkw</span><span class="p">)</span>
 
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">batch_intra_encounter_query_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span>
-            <span class="s">&#39;Intra Encounter&#39;</span><span class="p">,</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">batch_intra_occurrence_query_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span>
+            <span class="s">&#39;Intra Occurrrence&#39;</span><span class="p">,</span>
             <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
                 <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">,</span>
+                <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_OCCUR_KEY</span><span class="p">,</span>
                 <span class="n">use_prioritized_name_subset</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                 <span class="n">cfgdict</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;use_k_padding&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}),</span>
             <span class="n">bgcolor</span><span class="o">=</span><span class="n">color_funcs</span><span class="o">.</span><span class="n">adjust_hsv_of_rgb255</span><span class="p">(</span><span class="n">identify_color</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.01</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
@@ -644,9 +626,9 @@
             <span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir</span><span class="p">,</span>
             <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">235</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">primary_fontkw</span><span class="p">)</span>
 
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">encounter_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span>
             <span class="s">&#39;2) Group&#39;</span><span class="p">,</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">,</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">compute_occurrences</span><span class="p">,</span>
             <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">primary_fontkw</span><span class="p">)</span>
 
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">detect_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span>
@@ -670,7 +652,7 @@
 
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">reviewed_button</span> <span class="o">=</span> <span class="n">_NEWBUT</span><span class="p">(</span>
             <span class="s">&#39;5) Complete&#39;</span><span class="p">,</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">encounter_reviewed_all_images</span><span class="p">,</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">imageset_reviewed_all_images</span><span class="p">,</span>
             <span class="n">bgcolor</span><span class="o">=</span><span class="n">color_funcs</span><span class="o">.</span><span class="n">adjust_hsv_of_rgb255</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">232</span><span class="p">,</span> <span class="mi">211</span><span class="p">),</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-.</span><span class="mi">9</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
             <span class="n">fontkw</span><span class="o">=</span><span class="n">primary_fontkw</span><span class="p">,</span>
             <span class="n">enabled</span><span class="o">=</span><span class="n">enable_complete</span><span class="p">)</span>
@@ -678,8 +660,8 @@
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">control_widget_lists</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">[</span>
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">import_button</span><span class="p">,</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">encounter_button</span><span class="p">,</span>
-                <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;Encounter: &#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">primary_fontkw</span><span class="p">),</span>
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_button</span><span class="p">,</span>
+                <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;ImageSet: &#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">primary_fontkw</span><span class="p">),</span>
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">detect_button</span><span class="p">,</span>
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">inc_query_button</span><span class="p">,</span>
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">reviewed_button</span><span class="p">,</span>
@@ -689,7 +671,7 @@
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span><span class="p">,</span>
                 <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">),</span>
                 <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;*Advanced Batch Identification: &#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">advanced_fontkw</span><span class="p">),</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">batch_intra_encounter_query_button</span><span class="p">,</span>
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">batch_intra_occurrence_query_button</span><span class="p">,</span>
                 <span class="n">ibswgt</span><span class="o">.</span><span class="n">batch_vsexemplar_query_button</span><span class="p">,</span>
                 <span class="n">_NEWLBL</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">),</span>
             <span class="p">],</span>
@@ -698,12 +680,12 @@
     <span class="k">def</span> <span class="nf">_init_layout</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Lays out the defined components &quot;&quot;&quot;</span>
         <span class="c"># Add elements to the layout</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">vlayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="p">)</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">vlayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_tabwgt</span><span class="p">)</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">vlayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">vsplitter</span><span class="p">)</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">vsplitter</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">hsplitter</span><span class="p">)</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">vsplitter</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">status_wgt</span><span class="p">)</span>
         <span class="c"># Horizontal Upper</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">hsplitter</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">])</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">hsplitter</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">IMAGESET_TABLE</span><span class="p">])</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">hsplitter</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">_table_tab_wgt</span><span class="p">)</span>
         <span class="c"># Horizontal Lower</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">status_wgt</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">outputLog</span><span class="p">)</span>
@@ -753,7 +735,7 @@
 <div class="viewcode-block" id="IBEISGuiWidget.connect_ibeis_control"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.connect_ibeis_control">[docs]</a>    <span class="k">def</span> <span class="nf">connect_ibeis_control</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Connects a new ibscontroler to the models &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] connecting ibs control. ibs=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_close_all_tabs</span><span class="p">()</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_close_all_tabs</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] invalid ibs&#39;</span><span class="p">)</span>
             <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;No Database Opened&#39;</span>
@@ -764,7 +746,7 @@
             <span class="c"># Give the frontend the new control</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;update special&#39;</span><span class="p">):</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">update_special_imagesets</span><span class="p">()</span>
             <span class="c"># Update the api models to use the new control</span>
             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;make headers&#39;</span><span class="p">):</span>
                 <span class="n">header_dict</span><span class="p">,</span> <span class="n">declare_tup</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">make_ibeis_headers_dict</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="p">)</span>
@@ -805,24 +787,50 @@
             <span class="c">#ibswgt._table_tab_wgt.blockSignals(block_wgt_flag)</span>
 
             <span class="c"># FIXME: bad code</span>
-            <span class="c"># TODO: load previously loaded encounter or nothing</span>
-            <span class="n">LOAD_ENCOUNTER_ON_START</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">if</span> <span class="n">LOAD_ENCOUNTER_ON_START</span><span class="p">:</span>
-                <span class="c">#with ut.Indenter(&#39;[LOAD_ENC]&#39;):</span>
-                <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">(</span><span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">DEFAULT_LARGEST_ENCOUNTER</span> <span class="o">=</span> <span class="bp">False</span>
-                    <span class="k">if</span> <span class="n">DEFAULT_LARGEST_ENCOUNTER</span><span class="p">:</span>
-                        <span class="n">numImg_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+            <span class="c"># TODO: load previously loaded imageset or nothing</span>
+            <span class="n">LOAD_IMAGESET_ON_START</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">LOAD_IMAGESET_ON_START</span><span class="p">:</span>
+                <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">(</span><span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">DEFAULT_LARGEST_IMAGESET</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="k">if</span> <span class="n">DEFAULT_LARGEST_IMAGESET</span><span class="p">:</span>
+                        <span class="n">numImg_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_num_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
                         <span class="n">argx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">numImg_list</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                        <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span>
-                    <span class="k">else</span><span class="p">:</span>  <span class="c"># Grab &quot;first&quot; encounter</span>
-                        <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="c">#ibswgt._change_enc(eid)</span>
-                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+                        <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">imgsetid_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c"># Grab &quot;first&quot; imageset</span>
+                        <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">imgsetid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="c">#ibswgt._change_imageset(imgsetid)</span>
+                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_imageset_tab</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c">#with ut.Indenter(&#39;[SET NEG1 ENC]&#39;):</span>
-                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c"># Update species with ones enabled in database</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">update_species_available</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="IBEISGuiWidget.update_species_available"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.update_species_available">[docs]</a>    <span class="k">def</span> <span class="nf">update_species_available</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">reselect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reselect_new_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">deleting</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="c"># TODO: update these options depending on ibs.get_species_with_detectors</span>
+        <span class="c"># when a controller is attached to the gui</span>
+        <span class="n">detection_combo_box_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c"># Text              # Value</span>
+            <span class="c">#(&#39;Select Species&#39;,  &#39;none&#39;),</span>
+            <span class="p">(</span><span class="s">&#39;Select Species&#39;</span><span class="p">,</span>  <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;Unknown&#39;</span><span class="p">,</span>  <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">),</span>
+            <span class="c">#&#39;none&#39;),</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_working_species</span><span class="p">()))</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">detection_combo_box_options</span>
+        <span class="n">species_text</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">get_selected_species</span><span class="p">()</span>
+        <span class="n">reselect_index</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deleting</span> <span class="ow">and</span> <span class="n">reselect_new_name</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">species_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">species_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">reselect_new_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_nice</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[update_species_available] Reselecting old selection: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reselect_new_name</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">nice_name_list</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">str</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">detection_combo_box_options</span> <span class="p">]</span>
+        <span class="k">if</span> <span class="n">reselect_new_name</span> <span class="ow">in</span> <span class="n">nice_name_list</span><span class="p">:</span>
+            <span class="n">reselect_index</span> <span class="o">=</span> <span class="n">nice_name_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">reselect_new_name</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[update_species_available] Reselecting renamed selection: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reselect_new_name</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[update_species_available] Reselecting index: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reselect_index</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span><span class="o">.</span><span class="n">updateOptions</span><span class="p">(</span><span class="n">reselect</span><span class="o">=</span><span class="n">reselect</span><span class="p">,</span> <span class="n">reselect_index</span><span class="o">=</span><span class="n">reselect_index</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="IBEISGuiWidget.setWindowTitle"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.setWindowTitle">[docs]</a>    <span class="k">def</span> <span class="nf">setWindowTitle</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
         <span class="n">parent_</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
@@ -831,44 +839,44 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">IBEIS_WIDGET_BASE</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
 </div>
-    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] _change_enc(eid=</span><span class="si">%r</span><span class="s">, uuid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_uuid</span><span class="p">(</span><span class="n">eid</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">_change_imageset</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] _change_imageset(imgsetid=</span><span class="si">%r</span><span class="s">, uuid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)))</span>
         <span class="k">for</span> <span class="n">tblname</span> <span class="ow">in</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span><span class="p">:</span>
             <span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
             <span class="n">view</span><span class="o">.</span><span class="n">clearSelection</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">tblname</span> <span class="ow">in</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">changing_models_gen</span><span class="p">(</span><span class="n">tblnames</span><span class="o">=</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">tblname_list</span><span class="p">):</span>
             <span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
-            <span class="n">view</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-            <span class="c">#ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call</span>
+            <span class="n">view</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+            <span class="c">#ibswgt.models[tblname]._change_imageset(imgsetid)  # the view should take care of this call</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="c">#if eid is None:</span>
+            <span class="c">#if imgsetid is None:</span>
             <span class="c">#    # HACK</span>
-            <span class="c">#    enctext = const.ALL_IMAGE_ENCTEXT</span>
+            <span class="c">#    imagesettext = const.ALL_IMAGE_IMAGESETTEXT</span>
             <span class="c">#else:</span>
-            <span class="c">#    enctext = ibswgt.ibs.get_encounter_text(eid)</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_eid</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+            <span class="c">#    imagesettext = ibswgt.ibs.get_imageset_text(imgsetid)</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_imgsetid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span><span class="o">.</span><span class="n">setDefault</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span><span class="p">)</span>
             <span class="c">#text_list = [</span>
-            <span class="c">#    &#39;Identify Mode: Within-Encounter (%s vs. %s)&#39; % (enctext, enctext),</span>
-            <span class="c">#    &#39;Identify Mode: Exemplars (%s vs. %s)&#39; % (enctext, const.EXEMPLAR_ENCTEXT)]</span>
+            <span class="c">#    &#39;Identify Mode: Within-ImageSet (%s vs. %s)&#39; % (imagesettext, imagesettext),</span>
+            <span class="c">#    &#39;Identify Mode: Exemplars (%s vs. %s)&#39; % (imagesettext, const.EXEMPLAR_IMAGESETTEXT)]</span>
             <span class="c">#text_list = [</span>
-            <span class="c">#    &#39;Identify Mode: Within-Encounter&#39; ,</span>
+            <span class="c">#    &#39;Identify Mode: Within-ImageSet&#39; ,</span>
             <span class="c">#    &#39;Identify Mode: Exemplars&#39;]</span>
             <span class="c">#query_text =</span>
             <span class="c">#ibswgt.query_button</span>
             <span class="c">#ibswgt.querydb_combo.setOptionText(text_list)</span>
             <span class="c">#ibswgt.query_</span>
             <span class="c">#ibswgt.control_widget_lists[1][0].setText(&#39;Identify</span>
-            <span class="c">#(intra-encounter)\nQUERY(%r vs. %r)&#39; % (enctext, enctext))</span>
+            <span class="c">#(intra-imageset)\nQUERY(%r vs. %r)&#39; % (imagesettext, imagesettext))</span>
             <span class="c">#ibswgt.control_widget_lists[1][1].setText(&#39;Identify (vs exemplar</span>
-            <span class="c">#database)\nQUERY(%r vs. %r)&#39; % (enctext, const.EXEMPLAR_ENCTEXT))</span>
+            <span class="c">#database)\nQUERY(%r vs. %r)&#39; % (imagesettext, const.EXEMPLAR_IMAGESETTEXT))</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">set_table_tab</span><span class="p">(</span><span class="n">IMAGE_TABLE</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_update_enc_tab_name</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">):</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_update_enc_tab_name</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_update_imageset_tab_name</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">):</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_update_imageset_tab_name</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">)</span>
 
     <span class="c">#------------</span>
     <span class="c"># SLOT HELPERS</span>
@@ -900,7 +908,7 @@
         <span class="n">index</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">get_table_tab_index</span><span class="p">(</span><span class="n">tblname</span><span class="p">)</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">_table_tab_wgt</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="IBEISGuiWidget.select_encounter_tab"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.select_encounter_tab">[docs]</a>    <span class="k">def</span> <span class="nf">select_encounter_tab</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISGuiWidget.select_imageset_tab"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.select_imageset_tab">[docs]</a>    <span class="k">def</span> <span class="nf">select_imageset_tab</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[wrp_noexectb]&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
@@ -908,16 +916,16 @@
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[X]&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;[newgui] select_encounter_tab eid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eid</span><span class="p">,))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;[newgui] select_imageset_tab imgsetid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="c"># Hack</span>
-            <span class="n">enctext</span> <span class="o">=</span> <span class="n">eid</span>
+            <span class="n">imagesettext</span> <span class="o">=</span> <span class="n">imgsetid</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-        <span class="c">#ibswgt.back.select_eid(eid)</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">enc_tabwgt</span><span class="o">.</span><span class="n">_add_enc_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="n">enctext</span><span class="p">)</span>
+            <span class="n">imagesettext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+        <span class="c">#ibswgt.back.select_imgsetid(imgsetid)</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">imageset_tabwgt</span><span class="o">.</span><span class="n">_add_imageset_tab</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">imagesettext</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid">[docs]</a>    <span class="k">def</span> <span class="nf">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qtindex</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid">[docs]</a>    <span class="k">def</span> <span class="nf">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qtindex</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        hack for letting annots spawn image editing</span>
 
@@ -932,8 +940,8 @@
 <span class="sd">            &gt;&gt;&gt; ibs, back = ut.dict_take(main_locals, [&#39;ibs&#39;, &#39;back&#39;])</span>
 <span class="sd">            &gt;&gt;&gt; ibswgt = back.ibswgt  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; aid = 4</span>
-<span class="sd">            &gt;&gt;&gt; eid = 1</span>
-<span class="sd">            &gt;&gt;&gt; ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)</span>
+<span class="sd">            &gt;&gt;&gt; imgsetid = 1</span>
+<span class="sd">            &gt;&gt;&gt; ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid)</span>
 <span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
 <span class="sd">            &gt;&gt;&gt;    guitool.qtapp_loop(qwin=ibswgt)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -942,9 +950,9 @@
             <span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">IMAGE_TABLE</span><span class="p">]</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
             <span class="n">qtindex</span><span class="p">,</span> <span class="n">row</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">get_row_and_qtindex_from_id</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="IBEISGuiWidget.spawn_edit_image_annotation_interaction"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction">[docs]</a>    <span class="k">def</span> <span class="nf">spawn_edit_image_annotation_interaction</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISGuiWidget.spawn_edit_image_annotation_interaction"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction">[docs]</a>    <span class="k">def</span> <span class="nf">spawn_edit_image_annotation_interaction</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TODO: needs reimplement using more standard interaction methods</span>
 
@@ -952,7 +960,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] Creating new annotation interaction: gid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,))</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span>
         <span class="c"># Select gid</span>
-        <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="c"># Interact with gid</span>
         <span class="n">nextcb</span><span class="p">,</span> <span class="n">prevcb</span><span class="p">,</span> <span class="n">current_gid</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">_interactannot2_callbacks</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
         <span class="n">iannot2_kw</span> <span class="o">=</span> <span class="p">{</span>
@@ -1022,7 +1030,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        callbacks for the edit image annotation (from image table) interaction</span>
 
-<span class="sd">        python -m ibeis --db lynx --eid 2</span>
+<span class="sd">        python -m ibeis --db lynx --imgsetid 2</span>
 
 <span class="sd">        TODO: needs reimplement</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1034,6 +1042,8 @@
         <span class="c">#print(&#39;model.name = %r&#39; % (model.name,))</span>
         <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">gh</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">:</span>
             <span class="n">cur_gid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_row_id</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="c"># elif model.name == gh.IMAGE_GRID:</span>
+        <span class="c">#     cur_gid = model._get_row_id(qtindex)</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span><span class="p">:</span>
             <span class="n">cur_level</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_level</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">cur_level</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1191,8 +1201,8 @@
         <span class="k">if</span> <span class="n">VERBOSE_GUI</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[newgui] on_rows_updated: tblname=</span><span class="si">%12r</span><span class="s"> nRows=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">nRows</span><span class="p">))</span>
         <span class="c">#printDBG(&#39;Rows updated in tblname=%r, nRows=%r&#39; % (str(tblname), nRows))</span>
-        <span class="k">if</span> <span class="n">tblname</span> <span class="o">==</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>  <span class="c"># Hack</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... tblname == ENCOUNTER_TABLE, ...hack return&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tblname</span> <span class="o">==</span> <span class="n">IMAGESET_TABLE</span><span class="p">:</span>  <span class="c"># Hack</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... tblname == IMAGESET_TABLE, ...hack return&#39;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">tblname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tblname</span><span class="p">)</span>
         <span class="n">TABLE_NICE</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">declare_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># hack</span>
@@ -1216,7 +1226,7 @@
 <span class="sd">        Context menus on right click of a table</span>
 
 <span class="sd">        CommandLine:</span>
-<span class="sd">            python -m ibeis --db WS_ALL --eid 2 --select-name=A-003</span>
+<span class="sd">            python -m ibeis --db WS_ALL --imgsetid 2 --select-name=A-003</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
             <span class="k">return</span>
@@ -1235,7 +1245,7 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">back</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span>
 
-        <span class="k">def</span> <span class="nf">build_annot_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">build_annot_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">context_options</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1259,21 +1269,21 @@
                 <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;canedit&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
                     <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                         <span class="p">(</span><span class="s">&#39;Edit Annotation in Image&#39;</span><span class="p">,</span>
-                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">)),</span>
+                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)),</span>
                     <span class="p">]</span>
 
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
                     <span class="p">(</span><span class="s">&#39;View annotation in Web&#39;</span><span class="p">,</span>
-                        <span class="c">#lambda: ibswgt.back.select_aid(aid, eid, show=True)),</span>
+                        <span class="c">#lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),</span>
                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_annotation</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View image in Web&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="c">#(&#39;View annotation in Matplotlib&#39;,</span>
-                    <span class="c">#    #lambda: ibswgt.back.select_aid(aid, eid, show=True)),</span>
+                    <span class="c">#    #lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),</span>
                     <span class="c">#    lambda: ibswgt.back.show_annotation(aid, web=False)),</span>
                     <span class="c">#(&#39;View image in Matplotlib&#39;,</span>
-                    <span class="c">#    lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),</span>
+                    <span class="c">#    lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=False)),</span>
                     <span class="c">#(&#39;View detection chip (probability) [dev]&#39;,</span>
                     <span class="c">#    lambda: ibswgt.back.show_probability_chip(aid)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
@@ -1297,11 +1307,11 @@
                 <span class="p">]</span>
             <span class="k">return</span> <span class="n">context_options</span>
 
-        <span class="k">def</span> <span class="nf">name_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">name_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">context_options</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">context_options</span> <span class="o">+=</span> <span class="n">build_annot_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">eid</span><span class="p">)</span>
+                <span class="n">context_options</span> <span class="o">+=</span> <span class="n">build_annot_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">imgsetid</span><span class="p">)</span>
                 <span class="c">#[</span>
                 <span class="c">#    (&#39;Go to image&#39;,</span>
                 <span class="c">#     lambda: ibswgt.goto_table_id(IMAGE_TABLE,</span>
@@ -1310,13 +1320,13 @@
                 <span class="c">#     lambda: ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)),</span>
                 <span class="c">#    (&#39;----&#39;, lambda: None),</span>
                 <span class="c">#    (&#39;View annotation in Matplotlib&#39;,</span>
-                <span class="c">#     lambda: ibswgt.back.select_aid(aid, eid, show=False)),</span>
+                <span class="c">#     lambda: ibswgt.back.select_aid(aid, imgsetid, show=False)),</span>
                 <span class="c">#    (&#39;View annotation in Web&#39;,</span>
-                <span class="c">#     lambda: ibswgt.back.select_aid(aid, eid, show=True)),</span>
+                <span class="c">#     lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),</span>
                 <span class="c">#    (&#39;View image in Matplotlib&#39;,</span>
-                <span class="c">#     lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),</span>
+                <span class="c">#     lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=False)),</span>
                 <span class="c">#    (&#39;View image in Web&#39;,</span>
-                <span class="c">#     lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),</span>
+                <span class="c">#     lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),</span>
                 <span class="c">#]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">def</span> <span class="nf">set_annot_names_to_same_new_name</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
@@ -1340,17 +1350,17 @@
                         <span class="k">return</span>
                     <span class="n">export_subset</span><span class="o">.</span><span class="n">export_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
 
-                <span class="k">def</span> <span class="nf">create_new_encounter_from_names_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
-                    <span class="n">ibs</span><span class="o">.</span><span class="n">create_new_encounter_from_names</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">],</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">def</span> <span class="nf">create_new_imageset_from_names_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">create_new_imageset_from_names</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">],</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;View name(s) in Web&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_nid_list_in_web</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
                     <span class="p">(</span><span class="s">&#39;Check for splits&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">run_splits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;Export names&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">export_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Create Encounter From Name(s)&#39;</span><span class="p">,</span>
-                     <span class="k">lambda</span><span class="p">:</span> <span class="n">create_new_encounter_from_names_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Create ImageSet From Name(s)&#39;</span><span class="p">,</span>
+                     <span class="k">lambda</span><span class="p">:</span> <span class="n">create_new_imageset_from_names_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
                 <span class="p">]</span>
 
                 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_name</span>
@@ -1364,8 +1374,8 @@
                 <span class="k">pass</span>
             <span class="k">return</span> <span class="n">context_options</span>
 
-        <span class="k">def</span> <span class="nf">build_image_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="n">current_enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">build_image_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">current_imagesettext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
             <span class="n">context_options</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="c"># Conditional context menu</span>
             <span class="n">context_options</span> <span class="o">=</span> <span class="p">[</span>
@@ -1374,12 +1384,12 @@
             <span class="p">]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">gid</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">eid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span>
+                <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span>
                 <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
                 <span class="n">annot_options</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;Options aid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,),</span>
-                     <span class="n">build_annot_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">eid</span><span class="p">,</span> <span class="n">goto_image</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+                     <span class="n">build_annot_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">goto_image</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
                     <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
                 <span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1397,9 +1407,9 @@
 
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;View image in Matplotlib&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">False</span><span class="p">)),</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">False</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View image in Web&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View detection image (Hough) [dev]&#39;</span><span class="p">,</span>
                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
                     <span class="n">annot_option_item</span><span class="p">,</span>
@@ -1422,20 +1432,20 @@
                     <span class="p">(</span><span class="s">&#39;Run detection on images (can cause duplicates)&#39;</span><span class="p">,</span>
                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)),</span>
                 <span class="p">]</span>
-            <span class="c"># Special condition for encounters</span>
-            <span class="k">if</span> <span class="n">current_enctext</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">NEW_ENCOUNTER_ENCTEXT</span><span class="p">:</span>
+            <span class="c"># Special condition for imagesets</span>
+            <span class="k">if</span> <span class="n">current_imagesettext</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">NEW_IMAGESET_IMAGESETTEXT</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Move to new encounter&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">send_to_new_encounter</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;move&#39;</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Copy to new encounter&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">send_to_new_encounter</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;copy&#39;</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Move to new imageset&#39;</span><span class="p">,</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">send_to_new_imageset</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;move&#39;</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Copy to new imageset&#39;</span><span class="p">,</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">send_to_new_imageset</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;copy&#39;</span><span class="p">)),</span>
                 <span class="p">]</span>
-            <span class="k">if</span> <span class="n">current_enctext</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNGROUPED_IMAGES_ENCTEXT</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">current_imagesettext</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Remove from encounter&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">remove_from_encounter</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Remove from imageset&#39;</span><span class="p">,</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">remove_from_imageset</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)),</span>
                 <span class="p">]</span>
             <span class="c"># Continue the conditional context menu</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1457,56 +1467,56 @@
                 <span class="p">]</span>
             <span class="k">return</span> <span class="n">context_options</span>
 
-        <span class="c"># ---- ENCOUNTER CONTEXT ----</span>
-        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>
-            <span class="c"># This is for the benefit of merge encounters</span>
+        <span class="c"># ---- IMAGESET CONTEXT ----</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGESET_TABLE</span><span class="p">:</span>
+            <span class="c"># This is for the benefit of merge imagesets</span>
             <span class="n">merge_destination_id</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_row_id</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
-            <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">merge_destination_id</span><span class="p">)</span>
-            <span class="n">eid_list</span> <span class="o">=</span> <span class="n">level2_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">imagesettext</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">merge_destination_id</span><span class="p">)</span>
+            <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">level2_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="c"># Conditional context menu</span>
             <span class="c"># TODO: remove duplicate code</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;View encounter in Web&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_eid_list_in_web</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;View imageset in Web&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_imgsetid_list_in_web</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Run detection on encounter (can cause duplicates)&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Merge </span><span class="si">%d</span><span class="s"> encounter into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">)),</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_encounters</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Copy encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">copy_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Export encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">export_encounters</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Run detection on imageset (can cause duplicates)&#39;</span><span class="p">,</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Merge </span><span class="si">%d</span><span class="s"> imageset into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">),</span> <span class="p">(</span><span class="n">imagesettext</span><span class="p">)),</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_imagesets</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Copy imageset&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">copy_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Export imageset&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">export_imagesets</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Delete encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete imageset&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Delete encounter AND images&#39;</span><span class="p">,</span>
-                     <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter_and_images</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete imageset AND images&#39;</span><span class="p">,</span>
+                     <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_imageset_and_images</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
                 <span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;Run detection on encounters (can cause duplicates)&#39;</span><span class="p">,</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Copy encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">copy_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;Merge </span><span class="si">%d</span><span class="s"> encounters into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">)),</span>
-                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_encounters</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Run detection on imagesets (can cause duplicates)&#39;</span><span class="p">,</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Copy imageset&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">copy_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Merge </span><span class="si">%d</span><span class="s"> imagesets into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">),</span> <span class="p">(</span><span class="n">imagesettext</span><span class="p">)),</span>
+                        <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_imagesets</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Delete encounters&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete imagesets&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;Delete encounters AND images&#39;</span><span class="p">,</span>
-                     <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter_and_images</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)),</span>
-                    <span class="c"># (&#39;export encounters&#39;, lambda: ibswgt.back.export_encounters(eid_list)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete imagesets AND images&#39;</span><span class="p">,</span>
+                     <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_imageset_and_images</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)),</span>
+                    <span class="c"># (&#39;export imagesets&#39;, lambda: ibswgt.back.export_imagesets(imgsetid_list)),</span>
                 <span class="p">]</span>
         <span class="c"># ---- IMAGE CONTEXT ----</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_TABLE</span><span class="p">:</span>
             <span class="n">gid_list</span> <span class="o">=</span> <span class="n">level2_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">()</span>
+            <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">get_selected_imgsetid</span><span class="p">()</span>
             <span class="n">context_options</span> <span class="o">+=</span> <span class="n">build_image_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span>
-                                                           <span class="n">gid_list</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+                                                           <span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
         <span class="c"># ---- IMAGE GRID CONTEXT ----</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_GRID</span><span class="p">:</span>
             <span class="n">gid_list</span> <span class="o">=</span> <span class="n">level2_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">()</span>
+            <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">get_selected_imgsetid</span><span class="p">()</span>
             <span class="n">context_options</span> <span class="o">+=</span> <span class="n">build_image_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span>
-                                                           <span class="n">gid_list</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span>
+                                                           <span class="n">gid_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span>
                                                            <span class="n">goto_image_in_imgtbl</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="c"># ---- ANNOTATION CONTEXT ----</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">:</span>
@@ -1514,7 +1524,7 @@
             <span class="c"># Conditional context menu</span>
             <span class="c"># TODO: UNIFY COMMMON CONTEXT MENUS</span>
             <span class="n">context_options</span> <span class="o">+=</span> <span class="n">build_annot_context_options</span><span class="p">(</span>
-                <span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span><span class="p">,</span> <span class="n">goto_annot</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">goto_annot</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="c"># ---- NAMES TREE CONTEXT ----</span>
         <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">NAMES_TREE</span><span class="p">:</span>
             <span class="c"># TODO: map level list to tablename more reliably</span>
@@ -1527,8 +1537,8 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;multiple types of indicies selected&#39;</span><span class="p">)</span>
                 <span class="k">return</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">eid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span>
-                <span class="n">context_options</span> <span class="o">+=</span> <span class="n">name_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+                <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span>
+                <span class="n">context_options</span> <span class="o">+=</span> <span class="n">name_context_options</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
         <span class="c"># Show the context menu</span>
         <span class="c">#ut.print_list(context_options, nl=2)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">context_options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1540,7 +1550,7 @@
 <span class="sd">        Double clicking anywhere in the GUI</span>
 
 <span class="sd">        CommandLine:</span>
-<span class="sd">            python -m ibeis --db lynx --eid 2 --select-name=goku</span>
+<span class="sd">            python -m ibeis --db lynx --imgsetid 2 --select-name=goku</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+--- DOUBLE CLICK ---&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
@@ -1549,29 +1559,29 @@
         <span class="c">#printDBG(&#39;on_doubleclick&#39;)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="n">id_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_row_id</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">id_</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGESET_TABLE</span><span class="p">:</span>
+            <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">id_</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_imageset_tab</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span>
+            <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_TABLE</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGE_GRID</span><span class="p">):</span>
                 <span class="n">gid</span> <span class="o">=</span> <span class="n">id_</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">:</span>
                 <span class="n">aid</span> <span class="o">=</span> <span class="n">id_</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">NAME_TABLE</span><span class="p">:</span>
                 <span class="n">nid</span> <span class="o">=</span> <span class="n">id_</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+                <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">NAMES_TREE</span><span class="p">:</span>
                 <span class="n">level</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_level</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">nid</span> <span class="o">=</span> <span class="n">id_</span>
-                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">aid</span> <span class="o">=</span> <span class="n">id_</span>
-                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-                    <span class="c">#ibswgt.back.select_aid(aid, eid, show=True)</span>
+                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+                    <span class="c">#ibswgt.back.select_aid(aid, imgsetid, show=True)</span>
 </div>
     <span class="nd">@slot_</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 <div class="viewcode-block" id="IBEISGuiWidget.imagesDropped"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.imagesDropped">[docs]</a>    <span class="k">def</span> <span class="nf">imagesDropped</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">url_list</span><span class="p">):</span>
@@ -1648,9 +1658,9 @@
                 <span class="k">pass</span>
 
         <span class="c"># If no link, process normally</span>
-        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">ENCOUNTER_TABLE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">IMAGESET_TABLE</span><span class="p">:</span>
             <span class="k">pass</span>
-            <span class="c">#printDBG(&#39;clicked encounter&#39;)</span>
+            <span class="c">#printDBG(&#39;clicked imageset&#39;)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">table_key</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span>
             <span class="c"># FIXME: stripe model needs to forward get_level</span>
@@ -1658,10 +1668,10 @@
                 <span class="n">level</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">level</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_level</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eid</span>
-            <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_table_id</span><span class="p">(</span><span class="n">table_key</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+            <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span>
+            <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_table_id</span><span class="p">(</span><span class="n">table_key</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="IBEISGuiWidget.select_table_id"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.select_table_id">[docs]</a>    <span class="k">def</span> <span class="nf">select_table_id</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">table_key</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+<div class="viewcode-block" id="IBEISGuiWidget.select_table_id"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.select_table_id">[docs]</a>    <span class="k">def</span> <span class="nf">select_table_id</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">table_key</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">):</span>
         <span class="n">select_func_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="p">(</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>         <span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">,</span>
             <span class="p">(</span><span class="n">IMAGE_GRID</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>          <span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">,</span>
@@ -1671,7 +1681,7 @@
             <span class="p">(</span><span class="n">NAMES_TREE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>          <span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">select_func</span> <span class="o">=</span> <span class="n">select_func_dict</span><span class="p">[(</span><span class="n">table_key</span><span class="p">,</span> <span class="n">level</span><span class="p">)]</span>
-        <span class="n">select_func</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">select_func</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="IBEISGuiWidget.edit_image_time"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.edit_image_time">[docs]</a>    <span class="k">def</span> <span class="nf">edit_image_time</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1700,7 +1710,7 @@
 <span class="sd">        TODO:  Finish implementation</span>
 
 <span class="sd">        CommandLine:</span>
-<span class="sd">            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --eid 2</span>
+<span class="sd">            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2</span>
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -1722,7 +1732,7 @@
 
         <span class="c">#annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()</span>
         <span class="c">#isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)</span>
-        <span class="c">#ut.list_take(isscenerymatch_list, ut.list_where(isscenerymatch_list))</span>
+        <span class="c">#ut.take(isscenerymatch_list, ut.list_where(isscenerymatch_list))</span>
 
         <span class="c"># Applies annotation based filtering to the annotation table</span>
         <span class="c">#filter_kw = dict(any_matches=&#39;.*error.*&#39;, been_adjusted=True)</span>
@@ -1778,7 +1788,7 @@
         <span class="c">#scenerys     = np.array(ut.replace_nones(isscenerymatch_list, False))</span>
         <span class="c">#nondistincts = np.array(ut.replace_nones(isnondistinct_list, False))</span>
         <span class="c">#flags = vt.and_lists(vt.or_lists(hards, nondistincts), ~photobombs, ~scenerys)</span>
-        <span class="c">#annotmatch_rowid_list_ = ut.list_compress(annotmatch_rowid_list, flags)</span>
+        <span class="c">#annotmatch_rowid_list_ = ut.compress(annotmatch_rowid_list, flags)</span>
 
         <span class="c">#aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowid_list_)</span>
         <span class="c">#aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowid_list_)</span>
@@ -1874,7 +1884,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1896,7 +1906,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

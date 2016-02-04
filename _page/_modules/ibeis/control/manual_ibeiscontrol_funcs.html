@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_ibeiscontrol_funcs &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.control.manual_ibeiscontrol_funcs &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -137,11 +137,10 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="c">#from ibeis import constants as const</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span> <span class="k">as</span> <span class="n">dcvs_normer</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_newfuncs]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_newfuncs]&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
@@ -150,7 +149,7 @@
 <div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.new_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                       <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    alias for ibeis.model.hots.query_request.new_ibeis_query_request</span>
+<span class="sd">    alias for ibeis.algo.hots.query_request.new_ibeis_query_request</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        qaid_list (list):</span>
@@ -178,11 +177,11 @@
 <span class="sd">        &gt;&gt;&gt; print(qreq_.get_external_qaids())</span>
 <span class="sd">        &gt;&gt;&gt; result = str(qreq_.get_query_hashid())</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        _QSUUIDS((1)a5boe72@61xjfpo%)</span>
+<span class="sd">        _QSUUIDS((1)nozvwbdokngephfk)</span>
 
 <span class="sd">        _QSUUIDS((1)nztoqb6&amp;7apjltd1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qreq_</span>
@@ -214,7 +213,7 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;qparams = %s&#39; % (str(qparams),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_params</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">query_params</span>
     <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
     <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -253,7 +252,7 @@
 <div class="viewcode-block" id="get_vocab_words"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_words">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_words</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Hackyish way of putting vocab generation into the controller.</span>
-<span class="sd">    Ideally there would be a preproc_vocab in ibeis.model.preproc</span>
+<span class="sd">    Ideally there would be a preproc_vocab in ibeis.algo.preproc</span>
 <span class="sd">    and sql would store this under some config</span>
 
 <span class="sd">    Example:</span>
@@ -328,13 +327,13 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import distinctiveness_normalizer</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import distinctiveness_normalizer</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; config2_ = None</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; aid_list1 = aid_list[::2]</span>
 <span class="sd">        &gt;&gt;&gt; aid_list2 = aid_list[1::3]</span>
@@ -347,6 +346,8 @@
 <span class="sd">        &gt;&gt;&gt; assert np.all(np.array(stats_dict[&#39;min&#39;]) &gt;= 0), &#39;distinctiveness was out of bounds&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(np.array(stats_dict[&#39;max&#39;]) &lt;= 1), &#39;distinctiveness was out of bounds&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span> <span class="k">as</span> <span class="n">dcvs_normer</span>
+
     <span class="c"># per-species disinctivness wrapper around ibeis cached function</span>
     <span class="c"># get feature rowids</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -370,12 +371,11 @@
     <span class="n">dstncvs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping</span><span class="p">(</span><span class="n">dstncvs_groups</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dstncvs_list</span>
 
-</div>
-<span class="n">dcvs_cfgkeys</span> <span class="o">=</span> <span class="n">dcvs_normer</span><span class="o">.</span><span class="n">DCVS_DEFAULT</span><span class="o">.</span><span class="n">get_varnames</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;species_rowid&#39;</span><span class="p">]</span>
-<span class="n">dcvs_colname</span> <span class="o">=</span> <span class="n">dcvs_normer</span><span class="o">.</span><span class="n">DCVS_DEFAULT</span><span class="o">.</span><span class="n">name</span>
 
+<span class="c">#dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + [&#39;species_rowid&#39;]</span>
+<span class="c">#dcvs_colname = dcvs_normer.DCVS_DEFAULT.name</span>
 
-<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">dcvs_colname</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="o">=</span><span class="n">dcvs_cfgkeys</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="c">#@accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)</span></div>
 <div class="viewcode-block" id="get_feat_kpts_distinctiveness"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_feat_kpts_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">get_feat_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">dstncvs_normer</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">species_rowid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c">#print(&#39;[ibs] get_feat_kpts_distinctiveness fid_list=%r&#39; % (fid_list,))</span>
     <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_vecs</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
@@ -422,7 +422,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -444,7 +444,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

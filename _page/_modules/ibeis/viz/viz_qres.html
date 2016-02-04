@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_qres &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.viz.viz_qres &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -137,7 +137,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+<span class="c">#from ibeis.algo.hots import chip_match</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>  <span class="c"># NOQA</span>
@@ -154,11 +154,11 @@
 <span class="sd">    Wrapper around show_qres.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">N</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;N&#39;</span><span class="p">,</span> <span class="n">DEFAULT_NTOP</span><span class="p">)</span>
-    <span class="n">name_scoring</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
-        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">)</span>
+    <span class="c">#name_scoring = kwargs.get(&#39;name_scoring&#39;, False)</span>
+    <span class="c">#if isinstance(cm, chip_match.ChipMatch):</span>
+    <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="c">#else:</span>
+    <span class="c">#    top_aids = cm.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)</span>
     <span class="n">aidstr</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">aidstr</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
     <span class="n">figtitle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;figtitle&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -184,7 +184,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        cm (ChipMatch2):  object of feature correspondences and scores</span>
+<span class="sd">        cm (ChipMatch):  object of feature correspondences and scores</span>
 <span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)</span>
 
 <span class="sd">    Kwargs:</span>
@@ -200,7 +200,7 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_qres import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; species = ibeis.const.Species.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; species = ibeis.const.TEST_SPECIES.ZEB_PLAIN</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids(species=species)</span>
 <span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=species)</span>
@@ -251,13 +251,12 @@
     <span class="n">showgt_aids</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">show_gt</span><span class="p">:</span>
         <span class="c"># Get the missed groundtruth annotations</span>
-        <span class="c"># cm.daids comes from qreq_.get_external_daids()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
-            <span class="k">assert</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-            <span class="n">matchable_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
-            <span class="c">#matchable_aids = cm.daid_list</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">matchable_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">daids</span>
+        <span class="c">#if isinstance(cm, chip_match.ChipMatch):</span>
+        <span class="k">assert</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="n">matchable_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
+        <span class="c">#matchable_aids = cm.daid_list</span>
+        <span class="c">#else:</span>
+        <span class="c">#    matchable_aids = cm.daids</span>
         <span class="c">#matchable_aids = ibs.get_recognition_database_aids()</span>
         <span class="c">#matchable_aids = list(cm.aid2_fm.keys())</span>
         <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">matchable_aids</span><span class="p">)</span>
@@ -267,7 +266,7 @@
             <span class="n">_gtnids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">)</span>
             <span class="n">top_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
             <span class="n">_valids</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">_gtnids</span><span class="p">,</span> <span class="n">top_nids</span><span class="p">)</span>
-            <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_valids</span><span class="p">)</span>
+            <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">_valids</span><span class="p">)</span>
 
         <span class="c"># No need to display highly ranked groundtruth. It will already show up</span>
         <span class="n">_gtaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">_gtaids</span><span class="p">,</span> <span class="n">top_aids</span><span class="p">)</span>
@@ -308,7 +307,7 @@
     <span class="k">if</span> <span class="n">viz_name_score</span><span class="p">:</span>
         <span class="c"># Make sure that there is only one of each name in the list</span>
         <span class="n">top_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
-        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">top_nids</span><span class="p">))</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">top_nids</span><span class="p">))</span>
 
     <span class="c">#ut.embed()</span>
     <span class="k">return</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">showgt_aids</span><span class="p">,</span> <span class="n">top_aids</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span>
@@ -397,7 +396,7 @@
     <span class="n">show_query</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_query&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">in_image</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">sidebyside</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sidebyside&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">name_scoring</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="c">#name_scoring   = kwargs.get(&#39;name_scoring&#39;, False)</span>
     <span class="n">viz_name_score</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">,</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">max_nCols</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;max_nCols&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
@@ -412,15 +411,17 @@
                                <span class="n">exemplar</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reference_aid</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">make_figtitle</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">figtitle</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">make_title</span><span class="p">(</span><span class="n">pack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">pass</span>
+        <span class="c">#figtitle = cm.make_title(pack=True)</span>
+        <span class="c">#figtitle</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
-            <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="c">#if isinstance(cm, chip_match.ChipMatch):</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+        <span class="c">#else:</span>
+        <span class="c">#    top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)</span>
 
     <span class="n">nTop</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
 
@@ -442,6 +443,7 @@
         <span class="k">print</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
 
     <span class="n">ranked_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
+
     <span class="c">#--------------------------------------------------</span>
     <span class="c"># Get grid / cell information to build subplot grid</span>
     <span class="c">#--------------------------------------------------</span>
@@ -492,7 +494,7 @@
     <span class="n">_color_list</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="n">nTop</span><span class="p">)</span>
     <span class="n">aid2_color</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">_color_list</span><span class="p">[</span><span class="n">ox</span><span class="p">]</span> <span class="k">for</span> <span class="n">ox</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)}</span>
 
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">),</span> <span class="s">&#39;qres is no longer supported&#39;</span>
+    <span class="c">#assert isinstance(cm, chip_match.ChipMatch), &#39;qres is no longer supported&#39;</span>
 
     <span class="c"># Helpers</span>
     <span class="k">def</span> <span class="nf">_show_query_fn</span><span class="p">(</span><span class="n">plotx_shift</span><span class="p">,</span> <span class="n">rowcols</span><span class="p">):</span>
@@ -536,11 +538,11 @@
             <span class="k">if</span> <span class="n">sidebyside</span><span class="p">:</span>
                 <span class="c"># Draw each match side by side the query</span>
                 <span class="k">if</span> <span class="n">viz_name_score</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
-                        <span class="n">cm_</span> <span class="o">=</span> <span class="n">cm</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">cm_</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">from_qres</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
-                        <span class="n">cm_</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+                    <span class="c">#if isinstance(cm, chip_match.ChipMatch):</span>
+                    <span class="n">cm_</span> <span class="o">=</span> <span class="n">cm</span>
+                    <span class="c">#else:</span>
+                    <span class="c">#    cm_ = chip_match.ChipMatch.from_qres(cm)</span>
+                    <span class="c">#    cm_.score_nsum(qreq_)</span>
                     <span class="n">cm_</span><span class="o">.</span><span class="n">show_single_namematch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">_kwshow</span><span class="p">[</span><span class="s">&#39;draw_border&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
@@ -563,8 +565,11 @@
             <span class="k">return</span>
         <span class="c"># Do lazy load before show</span>
         <span class="n">data_config2_</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
+            <span class="c"># HACK FOR HUMPBACKS</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ox</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
             <span class="n">plotx</span> <span class="o">=</span> <span class="n">ox</span> <span class="o">+</span> <span class="n">plotx_shift</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="n">rowcols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rowcols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">plotx</span><span class="p">)</span>
@@ -587,7 +592,7 @@
         <span class="n">nGTCols</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="n">nRows</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="s">&#39;[viz_qres] No matches. nRows=0&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nGTCols</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nGTCols</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -628,7 +633,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -650,7 +655,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.templates.template_generator &mdash; ibeis 1.4.7 documentation</title>
+  <title>ibeis.templates.template_generator &mdash; ibeis 1.5.0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.templates" href="../templates.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.7
+                1.5.0
               </div>
             
           
@@ -157,12 +157,12 @@
 <span class="sd">    python ibeis/templates/template_generator.py</span>
 <span class="sd">    python -m ibeis.templates.template_generator --key featweight --write</span>
 <span class="sd">    python -m ibeis.templates.template_generator --key featweight</span>
-<span class="sd">    python -m ibeis.templates.template_generator --key encounter</span>
-<span class="sd">    python -m ibeis.templates.template_generator --key encounter</span>
-<span class="sd">    python -m ibeis.templates.template_generator --key encounter --onlyfn</span>
-<span class="sd">    python -m ibeis.templates.template_generator --key encounter --onlyfn --Tcfg with_native=False</span>
-<span class="sd">    python -m ibeis.templates.template_generator --key egr --Tcfg with_relations=True with_getters=True</span>
-<span class="sd">    python -m ibeis.templates.template_generator --key egr --Tcfg with_native=False</span>
+<span class="sd">    python -m ibeis.templates.template_generator --key imageset</span>
+<span class="sd">    python -m ibeis.templates.template_generator --key imageset</span>
+<span class="sd">    python -m ibeis.templates.template_generator --key imageset --onlyfn</span>
+<span class="sd">    python -m ibeis.templates.template_generator --key imageset --onlyfn --Tcfg with_native=False</span>
+<span class="sd">    python -m ibeis.templates.template_generator --key gsgr --Tcfg with_relations=True with_getters=True</span>
+<span class="sd">    python -m ibeis.templates.template_generator --key gsgr --Tcfg with_native=False</span>
 
 <span class="sd">    python -m ibeis.templates.template_generator --key match --Tcfg with_native=False</span>
 <span class="sd">    python -m ibeis.templates.template_generator --key party --Tcfg with_native=False</span>
@@ -190,7 +190,7 @@
 <span class="sd">   * consistency check that all chips in the sql table exist</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -229,7 +229,7 @@
     <span class="c">#const.FEATURE_TABLE,</span>
     <span class="c">#const.FEATURE_WEIGHT_TABLE,</span>
     <span class="c">#const.RESIDUAL_TABLE</span>
-    <span class="c">#const.ENCOUNTER_TABLE</span>
+    <span class="c">#const.IMAGESET_TABLE</span>
     <span class="c">#const.LBLIMAGE_TABLE</span>
 <span class="p">]</span>
 
@@ -263,65 +263,6 @@
     <span class="c">#const.FEATURE_WEIGHT_TABLE,</span>
     <span class="c">#const.RESIDUAL_TABLE</span>
 <span class="p">}</span>
-
-
-<span class="c"># HACK</span>
-<span class="c">#class SHORTNAMES(object):</span>
-<span class="c">#    ANNOT      = &#39;annot&#39;</span>
-<span class="c">#    CHIP       = &#39;chip&#39;</span>
-<span class="c">#    PROBCHIP   = &#39;probchip&#39;</span>
-<span class="c">#    FEAT       = &#39;feat&#39;</span>
-<span class="c">#    FEATWEIGHT = &#39;featweight&#39;</span>
-<span class="c">#    RVEC       = &#39;residual&#39;  # &#39;rvec&#39;</span>
-<span class="c">#    VOCABTRAIN = &#39;vocabtrain&#39;</span>
-<span class="c">#    DETECT     = &#39;detect&#39;</span>
-<span class="c">#    ENCOUNTER  = &#39;encounter&#39;</span>
-<span class="c">#    IMAGE      = &#39;image&#39;</span>
-<span class="c">#    MATCH      = &#39;annotmatch&#39;</span>
-<span class="c">#    EGR        = &#39;egr&#39;</span>
-<span class="c">#    PCR        = &#39;party_contrib_relation&#39;</span>
-<span class="c">#    CONTRIB    = &#39;contributor&#39;</span>
-<span class="c">#    PARTY      = &#39;party&#39;</span>
-
-<span class="c">#depends_map = {</span>
-<span class="c">#    #SHORTNAMES.MATCH     : None,</span>
-<span class="c">#    #SHORTNAMES.EGR       : None,</span>
-<span class="c">#    #SHORTNAMES.PCR       : None,</span>
-<span class="c">#    #SHORTNAMES.IMAGE     : None,</span>
-<span class="c">#    #SHORTNAMES.ENCOUNTER : None,</span>
-<span class="c">#    #SHORTNAMES.ANNOT     : None,</span>
-<span class="c">#    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,</span>
-<span class="c">#    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,</span>
-<span class="c">#    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,</span>
-<span class="c">#    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP</span>
-<span class="c">#    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,</span>
-<span class="c">#}</span>
-
-<span class="c">#relationship_map = {</span>
-<span class="c">#    SHORTNAMES.EGR: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),</span>
-<span class="c">#    SHORTNAMES.PCR: (SHORTNAMES.PARTY, SHORTNAMES.CONTRIB),</span>
-<span class="c">#    SHORTNAMES.MATCH: (SHORTNAMES.ANNOT, SHORTNAMES.ANNOT),</span>
-<span class="c">#}</span>
-
-<span class="c"># shortened tablenames</span>
-<span class="c"># Maps full table names to short table names</span>
-
-<span class="c">#tablename2_tbl = {</span>
-<span class="c">#    const.MATCH_TABLE                  : SHORTNAMES.MATCH,</span>
-<span class="c">#    const.ANNOTATION_TABLE             : SHORTNAMES.ANNOT,</span>
-<span class="c">#    const.CHIP_TABLE                   : SHORTNAMES.CHIP,</span>
-<span class="c">#    const.PROBCHIP_TABLE               : SHORTNAMES.PROBCHIP,</span>
-<span class="c">#    const.FEATURE_TABLE                : SHORTNAMES.FEAT,</span>
-<span class="c">#    const.FEATURE_WEIGHT_TABLE         : SHORTNAMES.FEATWEIGHT,</span>
-<span class="c">#    const.RESIDUAL_TABLE               : SHORTNAMES.RVEC,</span>
-<span class="c">#    const.ENCOUNTER_TABLE              : SHORTNAMES.ENCOUNTER,</span>
-<span class="c">#    const.IMAGE_TABLE                  : SHORTNAMES.IMAGE,</span>
-<span class="c">#    #</span>
-<span class="c">#    const.EG_RELATION_TABLE            : SHORTNAMES.EGR,</span>
-<span class="c">#    const.PARTY_TABLE                  : SHORTNAMES.PARTY,</span>
-<span class="c">#    const.PARTY_CONTRIB_RELATION_TABLE : SHORTNAMES.PCR,</span>
-<span class="c">#    const.CONTRIBUTOR_TABLE            : SHORTNAMES.CONTRIB,</span>
-<span class="c">#}</span>
 
 
 <span class="c"># FIXME: keys might conflict and need to be ordered</span>
@@ -603,10 +544,10 @@
     <span class="c"># sort by multiple values</span>
     <span class="c">#sorted_indexes = ut.list_argsort(func_tbl_list, func_name_list, func_type_list)</span>
     <span class="n">sorted_indexes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">func_name_list</span><span class="p">,</span> <span class="n">func_tbl_list</span><span class="p">,</span> <span class="n">func_type_list</span><span class="p">)</span>
-    <span class="n">sorted_func_code</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">func_code_list</span><span class="p">,</span> <span class="n">sorted_indexes</span><span class="p">)</span>
-    <span class="c">#sorted_func_name = ut.list_take(func_name_list, sorted_indexes)</span>
-    <span class="c">#sorted_func_type = ut.list_take(func_type_list, sorted_indexes)</span>
-    <span class="c">#sorted_func_tbl = ut.list_take(func_tbl_list, sorted_indexes)</span>
+    <span class="n">sorted_func_code</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">func_code_list</span><span class="p">,</span> <span class="n">sorted_indexes</span><span class="p">)</span>
+    <span class="c">#sorted_func_name = ut.take(func_name_list, sorted_indexes)</span>
+    <span class="c">#sorted_func_type = ut.take(func_type_list, sorted_indexes)</span>
+    <span class="c">#sorted_func_tbl = ut.take(func_tbl_list, sorted_indexes)</span>
 
     <span class="c">#functype_set.add(functype)</span>
     <span class="c">#functype_list = sorted(list(functype_set))</span>
@@ -933,7 +874,7 @@
             <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;Tdeleter_native_tbl_import&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;# NO EXTERN IMPORT&#39;</span>
             <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;Tdeleter_native_tbl_on_delete&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;# NO EXTERN DELETE&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">Tdeleter_native_tbl_on_delete_fmtstr</span> <span class="o">=</span> <span class="s">&#39;from ibeis.model.preproc import preproc_{tbl}&#39;</span>
+            <span class="n">Tdeleter_native_tbl_on_delete_fmtstr</span> <span class="o">=</span> <span class="s">&#39;from ibeis.algo.preproc import preproc_{tbl}&#39;</span>
             <span class="n">Tdeleter_native_tbl_on_delete_fmtstr</span> <span class="o">=</span> <span class="s">&#39;preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, config2_=config2_)&#39;</span>
             <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;Tdeleter_native_tbl_import&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tdeleter_native_tbl_on_delete_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
             <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;Tdeleter_native_tbl_on_delete&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tdeleter_native_tbl_on_delete_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
@@ -1397,17 +1338,9 @@
     <span class="c"># Parse command line args</span>
     <span class="n">onlyfuncname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--onlyfuncname&#39;</span><span class="p">,</span> <span class="s">&#39;--onlyfn&#39;</span><span class="p">),</span>
                                   <span class="n">help_</span><span class="o">=</span><span class="s">&#39;if specified only prints the function signatures&#39;</span><span class="p">)</span>
-    <span class="n">dowrite</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;-w&#39;</span><span class="p">,</span> <span class="s">&#39;--write&#39;</span><span class="p">,</span> <span class="s">&#39;--dump-autogen-controller&#39;</span><span class="p">))</span>
-    <span class="n">show_diff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">)</span>
-    <span class="n">num_context_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-    <span class="n">show_diff</span> <span class="o">=</span> <span class="n">show_diff</span> <span class="ow">or</span> <span class="n">num_context_lines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-    <span class="n">dowrite</span> <span class="o">=</span> <span class="n">dowrite</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">show_diff</span>
     <span class="n">autogen_key</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--key&#39;</span><span class="p">,),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">)</span>
 
     <span class="n">table_structure</span> <span class="o">=</span> <span class="n">parse_table_structure</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">verbose</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">dowrite</span>
 
     <span class="k">if</span> <span class="n">autogen_key</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
         <span class="n">default_tblname_list</span> <span class="o">=</span> <span class="n">TBLNAME_LIST</span>
@@ -1466,20 +1399,33 @@
         <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">autogen_text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;def &#39;</span><span class="p">)]))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">print_python_code</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">dowrite</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEMPLATE] Dumping autogenerated text...</span><span class="se">\n</span><span class="s">+---</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">dowrite</span><span class="p">:</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">print_python_code</span><span class="p">(</span><span class="n">autogen_text</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">L___</span><span class="se">\n</span><span class="s">...would write to: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">autogen_fpath</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">show_diff</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">autogen_fpath</span><span class="p">):</span>
-                    <span class="n">prev_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">autogen_fpath</span><span class="p">)</span>
-                    <span class="n">textdiff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_str</span><span class="o">.</span><span class="n">get_textdiff</span><span class="p">(</span><span class="n">prev_text</span><span class="p">,</span> <span class="n">autogen_text</span><span class="p">,</span> <span class="n">num_context_lines</span><span class="o">=</span><span class="n">num_context_lines</span><span class="p">)</span>
-                    <span class="c">#textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=None)</span>
-                    <span class="n">ut</span><span class="o">.</span><span class="n">print_difftext</span><span class="p">(</span><span class="n">textdiff</span><span class="p">)</span>
-                <span class="k">pass</span>
-    <span class="k">if</span> <span class="n">dowrite</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">autogen_fpath</span><span class="p">,</span> <span class="n">autogen_text</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">dump_autogen_code</span><span class="p">(</span><span class="n">autogen_fpath</span><span class="p">,</span> <span class="n">autogen_text</span><span class="p">)</span>
+
+    <span class="c">#     dowrite = ut.get_argflag((&#39;-w&#39;, &#39;--write&#39;, &#39;--dump-autogen-controller&#39;))</span>
+    <span class="c">#     show_diff = ut.get_argflag(&#39;--diff&#39;)</span>
+    <span class="c">#     num_context_lines = ut.get_argval(&#39;--diff&#39;, type_=int, default=None)</span>
+    <span class="c">#     show_diff = show_diff or num_context_lines is not None</span>
+    <span class="c">#     dowrite = dowrite and not show_diff</span>
+
+    <span class="c">#     if verbose is None:</span>
+    <span class="c">#         verbose = not dowrite</span>
+
+    <span class="c">#     if not ut.QUIET and (not dowrite or verbose):</span>
+    <span class="c">#         print(&#39;[TEMPLATE] Dumping autogenerated text...\n+---\n&#39;)</span>
+    <span class="c">#         if not dowrite:</span>
+    <span class="c">#             ut.print_python_code(autogen_text)</span>
+    <span class="c">#             print(&#39;\nL___\n...would write to: %s&#39; % autogen_fpath)</span>
+    <span class="c">#         if show_diff:</span>
+    <span class="c">#             if ut.checkpath(autogen_fpath):</span>
+    <span class="c">#                 prev_text = ut.read_from(autogen_fpath)</span>
+    <span class="c">#                 textdiff = ut.util_str.get_textdiff(</span>
+    <span class="c">#                     prev_text, autogen_text,</span>
+    <span class="c">#                     num_context_lines=num_context_lines)</span>
+    <span class="c">#                 #textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=None)</span>
+    <span class="c">#                 ut.print_difftext(textdiff)</span>
+    <span class="c">#             pass</span>
+    <span class="c"># if dowrite:</span>
+    <span class="c">#     ut.write_to(autogen_fpath, autogen_text)</span>
 
     <span class="c">#ibs.db.print_table_csv(&#39;metadata&#39;, exclude_columns=[&#39;metadata_value&#39;])</span>
     <span class="c">#ibs.dbcache.print_table_csv(&#39;metadata&#39;, exclude_columns=[&#39;metadata_value&#39;])</span>
@@ -1500,7 +1446,7 @@
 <span class="sd">        Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True</span>
 <span class="sd">        Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False</span>
 
-<span class="sd">        sh Tgen.sh --tbls encounters --Tcfg with_getters:True with_setters=True strip_docstr:False</span>
+<span class="sd">        sh Tgen.sh --tbls imagesets --Tcfg with_getters:True with_setters=True strip_docstr:False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s">&#39;ibs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
         <span class="kn">import</span> <span class="nn">ibeis</span>
@@ -1518,7 +1464,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
@@ -1540,7 +1486,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.7',
+            VERSION:'1.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
