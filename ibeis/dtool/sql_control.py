@@ -1376,7 +1376,7 @@ class SQLDatabaseController(object):
             (colname, None, '', None),
         ))
 
-    def delete_table(db):
+    def drop_all_tables(db):
         """
         DELETES ALL INFO IN TABLE
         """

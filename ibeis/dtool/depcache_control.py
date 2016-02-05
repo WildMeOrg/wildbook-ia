@@ -242,6 +242,11 @@ class _CoreDependencyCache(object):
             setattr(w, table.tablename, wobj)
             setattr(wobj, 'get_rowids', get_rowids)
 
+    def clear_all(depc):
+        for table in depc.cachetable_dict.values():
+            table.db.drop_table(table.tablename)
+            table.db.add_table(**table.get_addtable_kw())
+
     # @ut.memoize
     def get_dependencies(depc, tablename):
         """

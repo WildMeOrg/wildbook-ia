@@ -58,7 +58,7 @@ def ensure_config_table(db):
         new_state = config_addtable_kw
         if current_state['coldef_list'] != new_state['coldef_list']:
             if predrop_grace_period(CONFIG_TABLE):
-                db.delete_table()
+                db.drop_all_tables()
                 db.add_table(**new_state)
             else:
                 raise NotImplementedError('Need to be able to modify tables')
@@ -217,10 +217,13 @@ class DependencyCacheTable(object):
             if current_state['coldef_list'] != new_state['coldef_list']:
                 print('WARNING TABLE IS MODIFIED')
                 if predrop_grace_period(table.tablename):
-                    table.db.drop_table(table.tablename)
-                    table.db.add_table(**new_state)
+                    table.clear_table()
                 else:
                     raise NotImplementedError('Need to be able to modify tables')
+
+    def clear_table(table):
+        table.db.drop_table(table.tablename)
+        table.db.add_table(**table.get_addtable_kw())
 
     def print_schemadef(table):
         print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
