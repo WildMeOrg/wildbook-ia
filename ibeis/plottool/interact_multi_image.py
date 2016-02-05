@@ -46,20 +46,15 @@ class MultiImageInteraction(BASE_CLASS):
 
     def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
                  thetas_list=None, verts_list=None, gid_list=None, nImgs=None,
-                 fnum=None, context_option_funcs=None, xlabel_list=None):
+                 fnum=None, context_option_funcs=None, xlabel_list=None, **kwargs):
         # TODO: overlay function or draw function using a metadata object
         print('Creating multi-image interaction')
-
-    #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None,
-    #bboxes_list=None, nPerPage=10,fnum=None):
-        if BASE_CLASS is not object:
-            super(MultiImageInteraction, self).__init__(fnum=fnum)
+        #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None,
+        #bboxes_list=None, nPerPage=10,fnum=None):
         print('[pt] maX ', nPerPage)
         self.context_option_funcs = context_option_funcs
         if nImgs is None:
             nImgs = len(gpath_list)
-        #if BASE_CLASS is object:
-        #    self.fnum = df2.ensure_fnum(fnum)
         if bboxes_list is None:
             bboxes_list = [[]] * nImgs
         if thetas_list is None:
@@ -84,8 +79,10 @@ class MultiImageInteraction(BASE_CLASS):
         self.scope = []
         self.current_pagenum = 0
         self.nPages = vt.iceil(self.nImgs / nPerPage)
+
         #self.show_page()
-        self.start()
+        super(MultiImageInteraction, self).__init__(fnum=fnum, **kwargs)
+        #self.start()
 
     def make_hud(self):
         """ Creates heads up display """
