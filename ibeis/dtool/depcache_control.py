@@ -553,9 +553,9 @@ class _CoreDependencyCache(object):
                                for key in keys] for keys in dependency_levels]
         if _debug:
             print('[depc] dependency_levels = %s' %
-                  (ut.repr3(dependency_levels, nl=2),))
+                  (ut.repr3(dependency_levels, nl=1),))
             print('[depc] dependency_levels = %s' %
-                  (ut.repr3(configclass_levels, nl=2),))
+                  (ut.repr3(configclass_levels, nl=1),))
         rowid_dict = {depc.root: root_rowids}
         for level_keys in dependency_levels[1:]:
             if _debug:
@@ -590,14 +590,14 @@ class _CoreDependencyCache(object):
                 parent_rowids = list(zip(*ut.dict_take(rowid_dict,
                                                        table.parents)))
                 if _debug:
-                    print('   * parent_rowids = %r' %
+                    print('   * parent_rowids = %s' %
                           (ut.trunc_repr(parent_rowids),))
                 _recompute = recompute_all or (key == tablename and recompute)
                 child_rowids = table.get_rowid(
                     parent_rowids, config=config_, eager=eager, nInput=nInput,
                     ensure=ensure, recompute=_recompute)
                 if _debug:
-                    print('   * child_rowids = %r' %
+                    print('   * child_rowids = %s' %
                           (ut.trunc_repr(child_rowids),))
                 rowid_dict[key] = child_rowids
         if _debug:
@@ -639,7 +639,7 @@ class _CoreDependencyCache(object):
             rowid_dict = depc.get_all_descendant_rowids(
                 tablename, root_rowids, config=config, ensure=ensure,
                 eager=eager, nInput=nInput, recompute=recompute,
-                recompute_all=recompute_all)
+                recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
             rowid_list = rowid_dict[tablename]
             if _debug:
                 print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
@@ -707,6 +707,7 @@ class _CoreDependencyCache(object):
 
 
 # Define the class with some "nice extras """
+@six.add_metaclass(ut.ReloadingMetaclass)
 class DependencyCache(_CoreDependencyCache):
     """
     To use this class a user must:

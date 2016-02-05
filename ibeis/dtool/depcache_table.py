@@ -18,6 +18,24 @@ CONFIG_HASHID = 'config_hashid'
 CONFIG_STRID  = 'config_strid'
 
 
+def predrop_grace_period(tablename, seconds=10):
+    warnmsg_fmt = ut.codeblock(
+        '''
+        WARNING TABLE={tablename} IS MODIFIED
+
+        About to reset (DROP) entire cache={tablename}.
+
+        Generally this is OK and you shouldnt worry because depcache
+        information should be recomputable.
+
+        If you really dont want this to happen you have {seconds} seconds to
+        kill this process before deletion occurs.
+        ''')
+    warnmsg = warnmsg_fmt.format(tablename=tablename, seconds=seconds)
+    return ut.grace_period(warnmsg, seconds)
+    #return ut.are_you_sure(warnmsg)
+
+
 def ensure_config_table(db):
     config_addtable_kw = ut.odict(
         [
@@ -39,8 +57,7 @@ def ensure_config_table(db):
         current_state = db.get_table_autogen_dict(CONFIG_TABLE)
         new_state = config_addtable_kw
         if current_state['coldef_list'] != new_state['coldef_list']:
-            print('WARNING CONFIG TABLE IS MODIFIED')
-            if ut.are_you_sure('About to reset (DROP) entire cache=%r' % (CONFIG_TABLE,)):
+            if predrop_grace_period(CONFIG_TABLE):
                 db.delete_table()
                 db.add_table(**new_state)
             else:
@@ -199,7 +216,7 @@ class DependencyCacheTable(object):
             current_state = table.db.get_table_autogen_dict(table.tablename)
             if current_state['coldef_list'] != new_state['coldef_list']:
                 print('WARNING TABLE IS MODIFIED')
-                if ut.are_you_sure('About to reset (DROP) a table=%r' % (table.tablename,)):
+                if predrop_grace_period(table.tablename):
                     table.db.drop_table(table.tablename)
                     table.db.add_table(**new_state)
                 else:
