@@ -428,8 +428,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
     sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f, verbose=True)
-    import utool
-    utool.embed()
 
     filt_cfg = f
     if isinstance(filt_cfg, dict):

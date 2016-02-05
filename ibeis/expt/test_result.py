@@ -1054,6 +1054,18 @@ class TestResult(object):
             >>> assert np.all(case_pos_list1 == case_pos_list2), 'should be equiv configs'
             >>> assert np.any(case_pos_list2 != case_pos_list3), 'should be diff configs'
             >>> assert np.all(case_pos_list3 == case_pos_list4), 'should be equiv configs'
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'], t=['default:sv_on=[True,False]'])
+            >>> filt_cfg5 = filt_cfg1.copy()
+            >>> mask5 = testres.case_sample2(filt_cfg5, return_mask=True)
+            >>> case_pos_list5 = testres.case_sample2(filt_cfg5, return_mask=False)
+            >>> assert len(mask5.shape) == 2
+            >>> assert not np.all(mask5.T[0] == mask5.T[1])
+            >>> filt_cfg6 = {'fail': True, 'allcfg': True}
+            >>> mask6 = testres.case_sample2(filt_cfg6, return_mask=True)
+            >>> assert np.all(mask6.T[0] == mask6.T[1])
+            >>> print(mask5)
+            >>> print(case_pos_list5)
+
 
         Example1:
             >>> # SCRIPT
@@ -1085,9 +1097,9 @@ class TestResult(object):
             >>> print('selcted_tags = %r' % (selcted_tags,))
         """
         from ibeis.expt import cfghelpers
+        print('[testres] case_sample2')
         if verbose is None:
             verbose = ut.NOT_QUIET
-            print('[testres] case_sample2')
 
         if isinstance(filt_cfg, six.string_types):
             filt_cfg = [filt_cfg]
@@ -1181,6 +1193,11 @@ class TestResult(object):
                     print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
                     print('  * num_valid = %r' % (num_valid,))
 
+        # If one config for a row passes the filter then all configs should pass
+        allcfg = filt_cfg.pop('allcfg', None)
+        if allcfg:
+            is_valid = np.logical_or(np.logical_or.reduce(is_valid.T)[:, None], is_valid)
+
         #if False:
         #    # Valid props
         #    gt_ranks = truth2_prop['gt']['rank'][is_valid]
@@ -1228,19 +1245,20 @@ class TestResult(object):
                     order_values = truth2_prop['gt'][orderby[2:]]
                 else:
                     raise NotImplementedError('Unknown orerby=%r' % (orderby,))
-            flat_order = order_values[is_valid]
-            # Flat sorting indeices in a matrix
-            if reverse:
-                sortx = flat_order.argsort()[::-1]
-            else:
-                sortx = flat_order.argsort()
-            qx_list = qx_list.take(sortx, axis=0)
-            cfgx_list = cfgx_list.take(sortx, axis=0)
+        else:
+            order_values = np.arange(is_valid.size).reshape(is_valid.shape)
 
-        #group_rules = [
-        #    ('max_pername', hack),
-        #]
+        flat_order = order_values[is_valid]
+        # Flat sorting indeices in a matrix
+        if reverse:
+            sortx = flat_order.argsort()[::-1]
+        else:
+            sortx = flat_order.argsort()
+        qx_list = qx_list.take(sortx, axis=0)
+        cfgx_list = cfgx_list.take(sortx, axis=0)
+
         max_pername = filt_cfg.pop('max_pername', None)
+        # Return at most ``max_pername`` annotation examples per name
         if max_pername is not None:
             qaids = testres.get_common_qaids()
             # FIXME: multiple configs
@@ -1252,9 +1270,6 @@ class TestResult(object):
                 if seen_[_qnid] < max_pername:
                     seen_[_qnid] += 1
                     _valid_idxs.append(idx)
-                #if _qnid not in seen_:
-                    #seen_.add(_qnid)
-            #_valid_idxs = np.unique(_qnid_list, return_index=True)[1]
             _qx_list = qx_list[_valid_idxs]
             _cfgx_list = cfgx_list[_valid_idxs]
             _valid_index = np.vstack((_qx_list, _cfgx_list)).T
