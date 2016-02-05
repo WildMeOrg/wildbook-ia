@@ -13,6 +13,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis --tf autogen_ipynb --run --db lynx
 
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport
+        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample
 
         python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
@@ -119,7 +120,12 @@ def get_default_cell_template_list(ibs):
 
     cell_template_list += dev_analysis
 
+    cell_template_list += [
+        cells.config_disagree_cases,
+    ]
+
     cell_template_list = ut.filter_Nones(cell_template_list)
+
     return cell_template_list
 
 

@@ -1111,6 +1111,9 @@ class TestResult(object):
         if isinstance(filt_cfg, list):
             _combos = cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False)
             filt_cfg = ut.flatten(_combos)[0]
+        if isinstance(filt_cfg, six.string_types):
+            _combos = cfghelpers.parse_cfgstr_list2([filt_cfg], strict=False)
+            filt_cfg = ut.flatten(_combos)[0]
 
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         # Initialize isvalid flags to all true
@@ -1308,72 +1311,6 @@ class TestResult(object):
 
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
             return case_pos_list
-
-    def case_type_sample(testres, num_per_group=1, with_success=True,
-                         with_failure=True, min_success_diff=0):
-        category_poses = testres.partition_case_types(min_success_diff=min_success_diff)
-        # STRATIFIED SAMPLE OF CASES FROM GROUPS
-        #mode = 'failure'
-        rng = np.random.RandomState(0)
-        ignore_keys = ['total_failure', 'total_success']
-        #ignore_keys = []
-        #sample_keys = []
-        #sample_vals = []
-        flat_sample_dict = ut.ddict(list)
-
-        #num_per_group = 1
-        modes = []
-        if with_success:
-            modes += ['success']
-        if with_failure:
-            modes += ['failure']
-
-        for mode in modes:
-            for truth in ['gt', 'gf']:
-                type2_poses = category_poses[mode + '_' + truth]
-                for key, posses in six.iteritems(type2_poses):
-                    if key not in ignore_keys:
-                        if num_per_group is not None:
-                            sample_posses = ut.random_sample(posses, num_per_group, rng=rng)
-                        else:
-                            sample_posses = posses
-
-                        flat_sample_dict[mode + '_' + truth + '_' + key].append(sample_posses)
-
-        #list(map(np.vstack, flat_sample_dict.values()))
-        sample_keys = flat_sample_dict.keys()
-        sample_vals = list(map(np.vstack, flat_sample_dict.values()))
-
-        has_sample = np.array(list(map(len, sample_vals))) > 0
-        has_sample_idx = np.nonzero(has_sample)[0]
-
-        print('Unsampled categories = %s' % (
-            ut.list_str(ut.compress(sample_keys, ~has_sample))))
-        print('Sampled categories = %s' % (
-            ut.list_str(ut.compress(sample_keys, has_sample))))
-
-        sampled_type_list = ut.take(sample_keys, has_sample_idx)
-        sampled_cases_list = ut.take(sample_vals, has_sample_idx)
-
-        sampled_lbl_list = ut.flatten([[lbl] * len(cases)
-                                       for lbl, cases in zip(sampled_type_list, sampled_cases_list)])
-        if len(sampled_cases_list) == 0:
-            return [], []
-        sampled_case_list = np.vstack(sampled_cases_list)
-
-        # Computes unique test cases and groups them with all case labels
-        caseid_list = vt.compute_unique_data_ids(sampled_case_list)
-        unique_case_ids = ut.unique_keep_order(caseid_list)
-        labels_list = ut.dict_take(ut.group_items(sampled_lbl_list, caseid_list), unique_case_ids)
-        cases_list = np.vstack(ut.get_list_column(ut.dict_take(ut.group_items(sampled_case_list, caseid_list), unique_case_ids), 0))
-
-        #sampled_case_list = np.vstack(ut.flatten(sample_vals))
-        #sampled_case_list = sampled_case_list[vt.unique_row_indexes(case_pos_list)]
-        case_pos_list = cases_list
-        case_labels_list = labels_list
-        #case_pos_list.shape
-        #vt.unique_row_indexes(case_pos_list).shape
-        return case_pos_list, case_labels_list
 
     def get_truth2_prop(testres):
         r"""
@@ -1608,134 +1545,6 @@ class TestResult(object):
 
         #for key, val in key2_gf_is_type.items():
         #    print(val.sum())
-
-    def get_case_positions(testres, mode='failure', disagree_first=True,
-                           samplekw=None):
-        """
-        Helps get failure and success cases
-
-        Args:
-            pass
-
-        Returns:
-            list: new_hard_qx_list
-
-        CommandLine:
-            python -m ibeis --tf TestResult.get_case_positions
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'], t=['default:K=[1,2]'])
-            >>> mode = 'failure'
-            >>> new_hard_qx_list = testres.get_case_positions(mode)
-            >>> result = ('new_hard_qx_list = %s' % (str(new_hard_qx_list),))
-            >>> print(result)
-        """
-        common_qaids = testres.get_common_qaids()
-        # look at scores of the best gt and gf
-        gf_score_mat = testres.get_infoprop_mat('qx2_gf_raw_score', common_qaids)
-        gt_score_mat = testres.get_infoprop_mat('qx2_gt_raw_score', common_qaids)
-        #gf_score_mat[np.isnan(gf_score_mat)]
-        #gt_score_mat[np.isnan(gf_score_mat)]
-        # Nan gf scores are easier, Nan gt scores are harder
-        gf_score_mat[np.isnan(gf_score_mat)] = 0
-        gt_score_mat[np.isnan(gt_score_mat)] = -np.inf
-
-        # Make a degree of hardness
-        # TODO: come up with a better measure of hardness
-        hardness_degree_mat = gf_score_mat - gt_score_mat
-
-        if False:
-            for cfgx in range(len(gt_score_mat.T)):
-                encoder = vt.ScoreNormalizer()
-                tp_scores = gt_score_mat.T[cfgx]
-                tn_scores = gf_score_mat.T[cfgx]
-                encoder.fit_partitioned(tp_scores, tn_scores, finite_only=True)
-                encoder.visualize()
-
-        qx_list, cfgx_list = np.unravel_index(
-            hardness_degree_mat.ravel().argsort()[::-1],
-            hardness_degree_mat.shape)
-        case_pos_list = np.vstack((qx_list, cfgx_list)).T
-
-        ONLY_FINITE = True
-        if ONLY_FINITE:
-            flags = np.isfinite(hardness_degree_mat[tuple(case_pos_list.T)])
-            case_pos_list = case_pos_list.compress(flags, axis=0)
-
-        # Get list sorted by the easiest hard cases, so we can fix the
-        # non-pathological cases first
-        if mode == 'failure':
-            flags = hardness_degree_mat[tuple(case_pos_list.T)] > 0
-            case_pos_list = case_pos_list.compress(flags, axis=0)
-        elif mode == 'success':
-            flags = hardness_degree_mat[tuple(case_pos_list.T)] < 0
-            case_pos_list = case_pos_list.compress(flags, axis=0)
-        else:
-            raise NotImplementedError('Unknown mode')
-
-        #talk about convoluted
-        _qx2_casegroup = ut.group_items(case_pos_list, case_pos_list.T[0], sorted_=False)
-        qx2_casegroup = ut.order_dict_by(
-            _qx2_casegroup, ut.unique_keep_order(case_pos_list.T[0]))
-        grouppos_list = list(qx2_casegroup.values())
-        grouppos_len_list = list(map(len, grouppos_list))
-        _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
-        if samplekw is not None:
-            #samplekw_default = {
-            #    'per_group': 10,
-            #    #'min_intersecting_cfgs': 1,
-            #}
-            per_group = samplekw['per_group']
-            if per_group is not None:
-                _len2_groupedpos_keys = list(_len2_groupedpos.keys())
-                _len2_groupedpos_values = [
-                    groupedpos[::max(1, len(groupedpos) // per_group)]
-                    for groupedpos in six.itervalues(_len2_groupedpos)
-                ]
-                _len2_groupedpos = dict(zip(_len2_groupedpos_keys, _len2_groupedpos_values))
-        len2_groupedpos = ut.map_dict_vals(np.vstack, _len2_groupedpos)
-
-        #ut.print_dict(len2_groupedpos, nl=2)
-        if disagree_first:
-            unflat_pos_list = list(len2_groupedpos.values())
-        else:
-            unflat_pos_list = list(len2_groupedpos.values()[::-1])
-        case_pos_list = vt.safe_vstack(unflat_pos_list, (0, 2), np.int)
-        return case_pos_list
-
-    def get_interesting_ranks(test_results):
-        """ find the rows that vary greatest with the parameter settings """
-        rank_mat = test_results.get_rank_mat()
-        # Find rows which scored differently over the various configs FIXME: duplicated
-        isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-        #diff_aids    = ut.compress(test_results.qaids, isdiff_flags)
-        diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
-        diff_qxs     = np.where(isdiff_flags)[0]
-        if False:
-            rankcategory = np.log(diff_rank + 1)
-        else:
-            rankcategory = diff_rank.copy()
-            rankcategory[diff_rank == 0]  = 0
-            rankcategory[diff_rank > 0]   = 1
-            rankcategory[diff_rank > 2]   = 2
-            rankcategory[diff_rank > 5]   = 3
-            rankcategory[diff_rank > 50]  = 4
-            rankcategory[diff_rank > 100] = 5
-        row_rankcategory_std = np.std(rankcategory, axis=1)
-        row_rankcategory_mean = np.mean(rankcategory, axis=1)
-        import vtool as vt
-        row_sortx = vt.argsort_multiarray(
-            [row_rankcategory_std, row_rankcategory_mean], reverse=True)
-        interesting_qx_list = diff_qxs.take(row_sortx).tolist()
-        #print("INTERSETING MEASURE")
-        #print(interesting_qx_list)
-        #print(row_rankcategory_std)
-        #print(ut.take(qaids, row_sortx))
-        #print(diff_rank.take(row_sortx, axis=0))
-        return interesting_qx_list
 
     def interact_individual_result(testres, qaid, cfgx=0):
         #qaids = testres.get_common_qaids()
@@ -2134,6 +1943,7 @@ class TestResult(object):
 
         CommandLine:
             python -m ibeis --tf TestResult.draw_feat_scoresep --show
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show -t default:sv_on=[True,False]
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift,fg
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttype=L2_sift
@@ -2173,84 +1983,86 @@ class TestResult(object):
         """
         print('[testres] draw_feat_scoresep')
         import plottool as pt
-        assert len(testres.cfgx2_qreq_) == 1, (
-            'can only do this on one qreq_ right now')
-        for qreq_ in testres.cfgx2_qreq_:
-            break
+        #assert len(testres.cfgx2_qreq_) == 1, (
+        #    'can only do this on one qreq_ right now')
+        cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
+        for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
+            lbl = cfgx2_shortlbl[cfgx]
 
-        testres.print_pcfg_info()
+            testres.print_pcfg_info()
 
-        valid_mask = testres.case_sample2(filt_cfg=f, return_mask=True)
-        valid_mask = valid_mask.T[0]
+            valid_mask = testres.case_sample2(filt_cfg=f, return_mask=True)
+            valid_mask = valid_mask.T[0]
 
-        print('Loading cached chipmatches')
-        import ibeis  # NOQA
-        from os.path import dirname, join  # NOQA
+            print('Loading cached chipmatches')
+            import ibeis  # NOQA
+            from os.path import dirname, join  # NOQA
 
-        # HACKY CACHE
-        cfgstr = qreq_.get_cfgstr(with_query=True)
-        cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
-        namemode = ut.get_argval('--namemode', default=True)
-        fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
-                             default=slice(None, None, None))
-        threshx = ut.get_argval('--threshx', type_=int, default=None)
-        thresh = ut.get_argval('--thresh', type_=float, default=.9)
-        num = ut.get_argval('--num', type_=int, default=1)
-        cfg_components = [cfgstr, disttype, namemode, fsvx, threshx, thresh, f, num]
-        cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
-        cache_hashid = ut.hashstr27(cache_cfgstr)
-        cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
-        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
-                        use_cache=False)
-        def get_cfgx_feat_scores(qreq_):
-            from ibeis.algo.hots import scorenorm
-            cm_list = qreq_.load_cached_chipmatch()
-            cm_list = ut.compress(cm_list, valid_mask)
-            print('Done loading cached chipmatches')
-            tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
-                                                    namemode, fsvx, threshx,
-                                                    thresh, num=num)
-            # print(ut.depth_profile(tup))
-            tp_scores, tn_scores, scorecfg = tup
-            return tp_scores, tn_scores, scorecfg
+            # HACKY CACHE
+            cfgstr = qreq_.get_cfgstr(with_query=True)
+            cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
+            namemode = ut.get_argval('--namemode', default=True)
+            fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
+                                 default=slice(None, None, None))
+            threshx = ut.get_argval('--threshx', type_=int, default=None)
+            thresh = ut.get_argval('--thresh', type_=float, default=.9)
+            num = ut.get_argval('--num', type_=int, default=1)
+            cfg_components = [cfgstr, disttype, namemode, fsvx, threshx, thresh, f, num]
+            cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
+            cache_hashid = ut.hashstr27(cache_cfgstr)
+            cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
+            @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
+                            use_cache=False)
+            def get_cfgx_feat_scores(qreq_):
+                from ibeis.algo.hots import scorenorm
+                cm_list = qreq_.load_cached_chipmatch()
+                cm_list = ut.compress(cm_list, valid_mask)
+                print('Done loading cached chipmatches')
+                tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
+                                                        namemode, fsvx, threshx,
+                                                        thresh, num=num)
+                # print(ut.depth_profile(tup))
+                tp_scores, tn_scores, scorecfg = tup
+                return tp_scores, tn_scores, scorecfg
 
-        tp_scores, tn_scores, scorecfg = get_cfgx_feat_scores(qreq_)
-        #fsv_tp = 1 - fsv_tp
-        #fsv_tn = 1 - fsv_tn
+            tp_scores, tn_scores, scorecfg = get_cfgx_feat_scores(qreq_)
+            #fsv_tp = 1 - fsv_tp
+            #fsv_tn = 1 - fsv_tn
 
-        # TODO: learn this score normalizer as a model
-        # encoder = vt.ScoreNormalizer(adjust=4, monotonize=False)
-        encoder = vt.ScoreNormalizer(adjust=2, monotonize=True)
-        encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
-        # if 'lnbnn_norm' not in fsv_col_lbls_:
-        # hack for making encoder
-        # encoder.save(cfgstr=ut.remove_chars(scoretype, ' []><=') + '_test')
-        figtitle = 'Feature Scores: %s, %s' % (scorecfg, testres.get_title_aug())
-        fnum = None
+            # TODO: learn this score normalizer as a model
+            # encoder = vt.ScoreNormalizer(adjust=4, monotonize=False)
+            encoder = vt.ScoreNormalizer(adjust=2, monotonize=True)
+            encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
+            # if 'lnbnn_norm' not in fsv_col_lbls_:
+            # hack for making encoder
+            # encoder.save(cfgstr=ut.remove_chars(scoretype, ' []><=') + '_test')
+            #figtitle = 'Feature Scores: %s, %s' % (scorecfg, testres.get_title_aug())
+            figtitle = 'Feature Scores: %s, %s' % (scorecfg, lbl)
+            fnum = None
 
-        vizkw = {}
-        sephack = ut.get_argflag('--sephack')
-        if not sephack:
-            vizkw['target_tpr'] = .95
-            vizkw['score_range'] = (0, 1.0)
+            vizkw = {}
+            sephack = ut.get_argflag('--sephack')
+            if not sephack:
+                vizkw['target_tpr'] = .95
+                vizkw['score_range'] = (0, 1.0)
 
-        encoder.visualize(
-            figtitle=figtitle, fnum=fnum,
-            with_scores=False,
-            #with_prebayes=True,
-            with_prebayes=False,
-            with_roc=True,
-            with_postbayes=False,
-            #with_postbayes=True,
-            **vizkw
-        )
-        icon = qreq_.ibs.get_database_icon()
-        if icon is not None:
-            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+            encoder.visualize(
+                figtitle=figtitle, fnum=fnum,
+                with_scores=False,
+                #with_prebayes=True,
+                with_prebayes=False,
+                with_roc=True,
+                with_postbayes=False,
+                #with_postbayes=True,
+                **vizkw
+            )
+            icon = qreq_.ibs.get_database_icon()
+            if icon is not None:
+                pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
-        if ut.get_argflag('--contextadjust'):
-            pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-            pt.adjust_subplots2(use_argv=True)
+            if ut.get_argflag('--contextadjust'):
+                pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+                pt.adjust_subplots2(use_argv=True)
         return encoder
 
 

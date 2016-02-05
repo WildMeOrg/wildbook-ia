@@ -429,6 +429,26 @@ config_overlap = ('# Configuration Overlap (Safely Ignored)', ut.codeblock(
 ))
 
 
+config_disagree_cases = ('# Configuration Disagreements (Safely Ignored)', ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # This shows individual examples where the tested configurations disagree.
+    # This only works if more than one configuration was specified.
+    # STARTBLOCK
+    testres = ibeis.run_experiment(
+        e='draw_cases',
+        db=db, a=a[0:1], t=t[0:1],
+        f=[':disagree=False,index=0:3'],
+        figsize=(30, 8),
+        **draw_case_kw)
+
+    _ = testres.draw_func()
+    # ENDBLOCK
+    # ENDBLOCK
+    '''
+))
+
+
 feat_score_sep = ('# Feature Correspondence Score Separation (Safely Ignored)', ut.codeblock(
     r'''
     # STARTBLOCK

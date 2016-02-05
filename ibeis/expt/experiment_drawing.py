@@ -87,153 +87,160 @@ def draw_score_sep(ibs, testres, f=None, verbose=None):
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
     print('filt_cfg = %r' % (filt_cfg,))
 
-    assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
-    cfgx = 0
-    qreq_ = testres.cfgx2_qreq_[cfgx]
-    common_qaids = testres.get_common_qaids()
-    gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
-    gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+    #assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
+    cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
+    for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
+        lbl = cfgx2_shortlbl[cfgx]
+        #cfgx = 0
+        qreq_ = testres.cfgx2_qreq_[cfgx]
+        common_qaids = testres.get_common_qaids()
+        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
+        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
-    gt_daid = testres.get_infoprop_mat('qx2_gt_aid').T[cfgx]
-    gf_daid = testres.get_infoprop_mat('qx2_gf_aid').T[cfgx]
-    #if ut.is_float(gf_daid):
-    #    gf_daid = ut.list_replace(gf_daid, np.nan, None)
+        gt_daid = testres.get_infoprop_mat('qx2_gt_aid').T[cfgx]
+        gf_daid = testres.get_infoprop_mat('qx2_gf_aid').T[cfgx]
+        #if ut.is_float(gf_daid):
+        #    gf_daid = ut.list_replace(gf_daid, np.nan, None)
 
-    # FIXME: may need to specify which cfg is used in the future
-    isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
+        # FIXME: may need to specify which cfg is used in the future
+        isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
-    # HACK:
-    # REMOVE 0 scores because testres only records name scores and
-    # having multiple annotations causes some good scores to be truncated to 0.
-    #isvalid[gt_rawscore == 0] = False
-    #isvalid[gf_rawscore == 0] = False
+        # HACK:
+        # REMOVE 0 scores because testres only records name scores and
+        # having multiple annotations causes some good scores to be truncated to 0.
+        #isvalid[gt_rawscore == 0] = False
+        #isvalid[gf_rawscore == 0] = False
 
-    # hack
-    #tp_nscores = np.nan_to_num(tp_nscores)
-    #tn_nscores = np.nan_to_num(tn_nscores)
-    isvalid[np.isnan(gf_rawscore)] = False
-    isvalid[np.isnan(gt_rawscore)] = False
+        # hack
+        #tp_nscores = np.nan_to_num(tp_nscores)
+        #tn_nscores = np.nan_to_num(tn_nscores)
+        isvalid[np.isnan(gf_rawscore)] = False
+        isvalid[np.isnan(gt_rawscore)] = False
 
-    tp_nscores = gt_rawscore[isvalid]
-    tn_nscores = gf_rawscore[isvalid]
+        tp_nscores = gt_rawscore[isvalid]
+        tn_nscores = gf_rawscore[isvalid]
 
-    # ---
-    tn_qaids = tp_qaids = common_qaids[isvalid]
-    tn_daids = gf_daid[isvalid]
-    tp_daids = gt_daid[isvalid]
-
-    #encoder = vt.ScoreNormalizer(target_tpr=.7)
-    #print(qreq_.get_cfgstr())
-    part_attrs = {1: {'qaid': tp_qaids, 'daid': tn_daids},
-                  0: {'qaid': tn_qaids, 'daid': tp_daids}}
-
-    def attr_callback(qaid):
-        print('callback qaid = %r' % (qaid,))
-        testres.interact_individual_result(qaid)
-        reconstruct_str = ('python -m ibeis.dev -e cases ' +
-                           testres.reconstruct_test_flags() +
-                           ' --qaid ' + str(qaid) + ' --show')
-        print('Independent reconstruct')
-        print(reconstruct_str)
-
-    #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
-    fpr = ut.get_argval('--fpr', type_=float, default=None)
-    tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
-    encoder = vt.ScoreNormalizer(
-        #adjust=8,
-        adjust=1.5,
-        fpr=fpr, tpr=tpr, monotonize=True, verbose=verbose)
-    tp_scores = tp_nscores
-    tn_scores = tn_nscores
-    name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
-
-    encoder.fit(name_scores, labels, attrs, verbose=verbose)
-    #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
-
-    # --- NEW ---
-    # Fit accept and reject thresholds
-
-    def find_auto_decision_thresh(encoder, label):
-        """
-        Uses the extreme of one type of label to get an automatic decision
-        threshold.  Ideally the threshold would be a little bigger than this.
-
-        label = True  # find auto accept accept thresh
-        """
-        import operator
-        other_attrs = part_attrs[not label]
-        op = operator.lt if label else operator.gt
-        if label:
-            other_support = tn_scores
-            decision_support = tp_scores
-            sortx = np.argsort(other_support)[::-1]
-        else:
-            other_support = tp_scores
-            decision_support = tn_scores
-            sortx = np.argsort(other_support)
-        sort_support = other_support[sortx]
-        sort_qaids = other_attrs['qaid'][sortx]
-        flags = np.isfinite(sort_support)
-        sort_support = sort_support[flags]
-        sort_qaids = sort_qaids[flags]
         # ---
-        # HACK: Dont let photobombs contribute here
-        #from ibeis import tag_funcs
-        #other_tags = ibs.get_annot_all_tags(sort_qaids)
-        #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
-        #sort_support = sort_support[flags2]
-        # ---
-        autodecide_thresh = sort_support[0]
-        can_auto_decide = op(autodecide_thresh, decision_support)
+        tn_qaids = tp_qaids = common_qaids[isvalid]
+        tn_daids = gf_daid[isvalid]
+        tp_daids = gt_daid[isvalid]
 
-        autodecide_scores = decision_support[can_auto_decide]
+        #encoder = vt.ScoreNormalizer(target_tpr=.7)
+        #print(qreq_.get_cfgstr())
+        part_attrs = {1: {'qaid': tp_qaids, 'daid': tn_daids},
+                      0: {'qaid': tn_qaids, 'daid': tp_daids}}
 
-        if len(autodecide_scores) == 0:
-            decision_extreme = np.nan
-        else:
+        def attr_callback(qaid):
+            print('callback qaid = %r' % (qaid,))
+            testres.interact_individual_result(qaid)
+            reconstruct_str = ('python -m ibeis.dev -e cases ' +
+                               testres.reconstruct_test_flags() +
+                               ' --qaid ' + str(qaid) + ' --show')
+            print('Independent reconstruct')
+            print(reconstruct_str)
+
+        #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
+        fpr = ut.get_argval('--fpr', type_=float, default=None)
+        tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
+        encoder = vt.ScoreNormalizer(
+            #adjust=8,
+            adjust=1.5,
+            fpr=fpr, tpr=tpr, monotonize=True, verbose=verbose)
+        tp_scores = tp_nscores
+        tn_scores = tn_nscores
+        name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
+
+        encoder.fit(name_scores, labels, attrs, verbose=verbose)
+        #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
+        #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr(), fnum=cfgx)
+        #pt.set_figsize(w=30, h=10, dpi=256)
+
+        # --- NEW ---
+        # Fit accept and reject thresholds
+
+        def find_auto_decision_thresh(encoder, label):
+            """
+            Uses the extreme of one type of label to get an automatic decision
+            threshold.  Ideally the threshold would be a little bigger than this.
+
+            label = True  # find auto accept accept thresh
+            """
+            import operator
+            other_attrs = part_attrs[not label]
+            op = operator.lt if label else operator.gt
             if label:
-                decision_extreme = np.nanmin(autodecide_scores)
+                other_support = tn_scores
+                decision_support = tp_scores
+                sortx = np.argsort(other_support)[::-1]
             else:
-                decision_extreme = np.nanmax(autodecide_scores)
+                other_support = tp_scores
+                decision_support = tn_scores
+                sortx = np.argsort(other_support)
+            sort_support = other_support[sortx]
+            sort_qaids = other_attrs['qaid'][sortx]
+            flags = np.isfinite(sort_support)
+            sort_support = sort_support[flags]
+            sort_qaids = sort_qaids[flags]
+            # ---
+            # HACK: Dont let photobombs contribute here
+            #from ibeis import tag_funcs
+            #other_tags = ibs.get_annot_all_tags(sort_qaids)
+            #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
+            #sort_support = sort_support[flags2]
+            # ---
+            autodecide_thresh = sort_support[0]
+            can_auto_decide = op(autodecide_thresh, decision_support)
 
-        num_auto_decide = can_auto_decide.sum()
-        num_total = len(decision_support)
-        percent_auto_decide = 100 * num_auto_decide / num_total
-        print('Decision type: %r' % (label,))
-        print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
-        print('Automatic decision threshold2 = %r' % (decision_extreme,))
-        print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
+            autodecide_scores = decision_support[can_auto_decide]
 
-    find_auto_decision_thresh(encoder, True)
-    find_auto_decision_thresh(encoder, False)
+            if len(autodecide_scores) == 0:
+                decision_extreme = np.nan
+            else:
+                if label:
+                    decision_extreme = np.nanmin(autodecide_scores)
+                else:
+                    decision_extreme = np.nanmax(autodecide_scores)
 
-    # --- /NEW ---
+            num_auto_decide = can_auto_decide.sum()
+            num_total = len(decision_support)
+            percent_auto_decide = 100 * num_auto_decide / num_total
+            print('Decision type: %r' % (label,))
+            print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
+            print('Automatic decision threshold2 = %r' % (decision_extreme,))
+            print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
 
-    plotname = ''
-    figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
+        find_auto_decision_thresh(encoder, True)
+        find_auto_decision_thresh(encoder, False)
 
-    encoder.visualize(
-        figtitle=figtitle,
-        #
-        with_scores=False,
-        with_prebayes=False,
-        with_postbayes=False,
-        #
-        with_hist=True,
-        with_roc=True,
-        attr_callback=attr_callback,
-        #bin_width=.125,
-        #bin_width=.05,
-        verbose=verbose
-    )
+        # --- /NEW ---
 
-    icon = ibs.get_database_icon()
-    if icon is not None:
-        pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+        plotname = ''
+        figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
 
-    if ut.get_argflag('--contextadjust'):
-        pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-        pt.adjust_subplots2(use_argv=True)
+        encoder.visualize(
+            figtitle=figtitle,
+            #
+            with_scores=False,
+            with_prebayes=False,
+            with_postbayes=False,
+            #
+            with_hist=True,
+            with_roc=True,
+            attr_callback=attr_callback,
+            #bin_width=.125,
+            #bin_width=.05,
+            verbose=verbose
+        )
+
+        icon = ibs.get_database_icon()
+        if icon is not None:
+            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+
+        if ut.get_argflag('--contextadjust'):
+            pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+            pt.adjust_subplots2(use_argv=True)
+        pt.set_figsize(w=30, h=10, dpi=256)
+        pt.set_figtitle(lbl)
 
     locals_ = locals()
     return locals_
@@ -360,7 +367,8 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
 
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
-                          show_in_notebook=False, annot_modes=None, figsize=None):
+                     show_in_notebook=False, annot_modes=None, figsize=None,
+                     verbose=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -368,7 +376,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis --tf -draw_match_cases
+        python -m ibeis --tf draw_match_cases
 
         ibeis -e draw_cases --db humpbacks -a default:has_any=hasnotch,mingt=2,qindex=0:30 -t default:pipeline_root=BC_DTW -f :fail=False,index=0:3,sortdsc=gtscore,max_pername=1 --show
         ibeis -e draw_cases --db humpbacks -a default -t default:pipeline_root=BC_DTW -f :fail=False,index=0:3,sortdsc=gtscore,max_pername=1 --show  --qaid-override=167,166,4616,4617  --daid-override=167,166,4616,4617 --nocache
@@ -427,18 +435,27 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Sel rows index into qx_list
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
-    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f, verbose=True)
+    #sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f, verbose=True)
 
     filt_cfg = f
-    if isinstance(filt_cfg, dict):
-        from ibeis.expt import cfghelpers
-        verbose = True
-        filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False))[0]
-        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+    #if isinstance(filt_cfg, dict):
+    def convert_case_pos_to_cfgx(case_pos_list):
+        # Convert to all cfgx format
+        qx_list = ut.unique_keep_order(np.array(case_pos_list).T[0])
+        ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
+        flat_case_labels = None
+        new_rows = np.array(qx_list).tolist()
+        new_cols = list(range(len(testres.cfg_list)))
+        return new_rows, new_cols, flat_case_labels
+    from ibeis.expt import cfghelpers
+    #verbose = True
+    filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False))[0]
+    case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+    sel_rows, sel_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list)
 
     print('f = %r' % (f,))
-    if flat_case_labels is None:
-        flat_case_labels = [None] * len(sel_rows)
+    #if flat_case_labels is None:
+    flat_case_labels = [None] * len(sel_rows)
     show_kwargs = {
         'N': 3,
         'ori': True,
@@ -794,192 +811,6 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
     #    cmdname = ibs.get_dbname() + 'Results'
     #    latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
     #    ut.print_code(latex_block, 'latex')
-
-
-def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
-    """
-    The selected rows are the query annotation you are interested in viewing
-    The selected cols are the parameter configuration you are interested in viewing
-
-    Args:
-        testres (TestResult):  test result object
-        filt_cfg (dict): config dict
-
-    Kwargs:
-        all, hard, hard2, easy, interesting, hist
-
-    Returns:
-        tuple: (sel_rows, sel_cols, flat_case_labels)
-
-    CommandLine:
-        python -m ibeis --tf -get_individual_result_sample --db PZ_Master1 -a ctrl
-        python -m ibeis --tf -get_individual_result_sample --db PZ_Master1 -a ctrl --filt :fail=True,min_gtrank=5,gtrank_lt=20
-
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
-        >>> filt_cfg = {'fail': True, 'success': True, 'min_gtrank': 5, 'max_gtrank': 40}
-        >>> sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg)
-        >>> result = ('(sel_rows, sel_cols, flat_case_labels) = %s' % (str((sel_rows, sel_cols, flat_case_labels)),))
-        >>> print(result)
-    """
-    #from ibeis.expt import cfghelpers
-    #sample_cfgstr_list = ut.get_argval('--filt', type_=list, default=None)
-    #from ibeis.expt import cfghelpers
-
-    #if sample_cfgstr_list is None:
-    print('filt_cfg = %r' % (filt_cfg,))
-    if filt_cfg is None or isinstance(filt_cfg, list):
-        # Hack to check if specified on command line
-        #if not show_in_notebook:
-        #    from ibeis.init import main_helpers
-        #    filt_cfg = main_helpers.testdata_filtcfg(default=filt_cfg)
-        #else:
-            from ibeis.expt import cfghelpers
-            if filt_cfg is None:
-                filt_cfg = ['']
-            filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False))[0]
-
-    cfg_list = testres.cfg_list
-    #qaids = testres.qaids
-    qaids = testres.get_common_qaids()
-
-    view_all          = kwargs.get('all', ut.get_argflag(('--view-all', '--va')))
-    view_hard         = kwargs.get('hard', ut.get_argflag(('--view-hard', '--vh')))
-    view_hard2        = kwargs.get('hard2', ut.get_argflag(('--view-hard2', '--vh2')))
-    view_easy         = kwargs.get('easy', ut.get_argflag(('--view-easy', '--vz')))
-    view_interesting  = kwargs.get('interesting', ut.get_argflag(('--view-interesting', '--vn')))
-    hist_sample       = kwargs.get('hist', ut.get_argflag(('--hs', '--hist-sample')))
-    view_differ_cases = kwargs.get('differcases', ut.get_argflag(('--diff-cases', '--dc')))
-    view_cases        = kwargs.get('cases', ut.get_argflag(('--view-cases', '--vc')))
-
-    if ut.get_argval('--qaid', type_=str, default=None) is not None:
-        # hack
-        view_all = True
-
-    #sel_cols = params.args.sel_cols  # FIXME
-    #sel_rows = params.args.sel_rows  # FIXME
-    #sel_cols = [] if sel_cols is None else sel_cols
-    #sel_rows = [] if sel_rows is None else sel_rows
-    sel_rows = []
-    sel_cols = []
-    flat_case_labels = None
-    if ut.NOT_QUIET:
-        print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
-        print('other options:')
-        print('   --vf - view figure dir')
-        print('   --va - view all (--filt :)')
-        print('   --vh - view hard (--filt :fail=True)')
-        print('   --ve - view easy (--filt :success=True)')
-        print('   --vn - view iNteresting')
-        print('   --hs - hist sample')
-        print(' --filt - result filtering config (new way to do this func)')
-        print('   --gv, --guiview - gui result inspection')
-    if len(sel_rows) > 0 and len(sel_cols) == 0:
-        sel_cols = list(range(len(cfg_list)))
-    if len(sel_cols) > 0 and len(sel_rows) == 0:
-        sel_rows = list(range(len(qaids)))
-    if view_all:
-        sel_rows = list(range(len(qaids)))
-        sel_cols = list(range(len(cfg_list)))
-    if view_hard:
-        new_hard_qx_list = testres.get_new_hard_qx_list()
-        sel_rows.extend(np.array(new_hard_qx_list).tolist())
-        sel_cols.extend(list(range(len(cfg_list))))
-    # sample-cases
-
-    def convert_case_pos_to_cfgx(case_pos_list, case_labels_list):
-        # Convert to all cfgx format
-        qx_list = ut.unique_keep_order(np.array(case_pos_list).T[0])
-        ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
-        if case_labels_list is not None:
-            grouped_labels = ut.dict_take(
-                ut.group_items(case_labels_list, case_pos_list.T[0]),
-                qx_list)
-            flat_case_labels = list(map(ut.unique_keep_order, map(ut.flatten, grouped_labels)))
-        else:
-            flat_case_labels = None
-        new_rows = np.array(qx_list).tolist()
-        new_cols = list(range(len(cfg_list)))
-        return new_rows, new_cols, flat_case_labels
-
-    if view_differ_cases:
-        # Cases that passed on config but failed another
-        case_pos_list, case_labels_list = testres.case_type_sample(
-            1, with_success=True, min_success_diff=1)
-        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(
-            case_pos_list, case_labels_list)
-        sel_rows.extend(new_rows)
-        sel_cols.extend(new_cols)
-
-    if view_cases:
-        case_pos_list, case_labels_list = testres.case_type_sample(1, with_success=False)
-        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(
-            case_pos_list, case_labels_list)
-        sel_rows.extend(new_rows)
-        sel_cols.extend(new_cols)
-
-    if view_hard2:
-        # TODO handle returning case_pos_list
-        #samplekw = ut.argparse_dict(dict(per_group=5))
-        samplekw = ut.argparse_dict(dict(per_group=None))
-        case_pos_list = testres.get_case_positions(mode='failure', samplekw=samplekw)
-        failure_qx_list = ut.unique_keep_order(case_pos_list.T[0])
-        sel_rows.extend(np.array(failure_qx_list).tolist())
-        sel_cols.extend(list(range(len(cfg_list))))
-
-    if view_easy:
-        new_hard_qx_list = testres.get_new_hard_qx_list()
-        new_easy_qx_list = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
-        sel_rows.extend(new_easy_qx_list)
-        sel_cols.extend(list(range(len(cfg_list))))
-    if view_interesting:
-        interesting_qx_list = testres.get_interesting_ranks()
-        sel_rows.extend(interesting_qx_list)
-        # TODO: grab the best scoring and most interesting configs
-        if len(sel_cols) == 0:
-            sel_cols.extend(list(range(len(cfg_list))))
-    if hist_sample:
-        # Careful if there is more than one config
-        config_rand_bin_qxs = testres.get_rank_histogram_qx_sample(size=10)
-        sel_rows = np.hstack(ut.flatten(config_rand_bin_qxs))
-        # TODO: grab the best scoring and most interesting configs
-        if len(sel_cols) == 0:
-            sel_cols.extend(list(range(len(cfg_list))))
-
-    if filt_cfg is not None:
-        # NEW WAY OF SAMPLING
-        verbose = kwargs.get('verbose', None)
-        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)
-        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, None)
-        sel_rows.extend(new_rows)
-        sel_cols.extend(new_cols)
-        pass
-
-    sel_rows = ut.unique_keep_order(sel_rows)
-    sel_cols = ut.unique_keep_order(sel_cols)
-    sel_cols = list(sel_cols)
-    sel_rows = list(sel_rows)
-
-    sel_rowxs = ut.get_argval('-r', type_=list, default=None)
-    sel_colxs = ut.get_argval('-c', type_=list, default=None)
-
-    if sel_rowxs is not None:
-        sel_rows = ut.take(sel_rows, sel_rowxs)
-        print('sel_rows = %r' % (sel_rows,))
-
-    if sel_colxs is not None:
-        sel_cols = ut.take(sel_cols, sel_colxs)
-
-    if ut.NOT_QUIET:
-        print('Returning Case Selection')
-        print('len(sel_rows) = %r/%r' % (len(sel_rows), len(qaids)))
-        print('len(sel_cols) = %r/%r' % (len(sel_cols), len(cfg_list)))
-
-    return sel_rows, sel_cols, flat_case_labels
 
 
 def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
@@ -1419,7 +1250,6 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
         >>> draw_case_timedeltas(ibs, testres)
         >>> ut.show_if_requested()
     """
-    #category_poses = testres.partition_case_types()
     # TODO: Split up into cfgxs
     #plotkw = FONTKW.copy()
     plotkw = {}
