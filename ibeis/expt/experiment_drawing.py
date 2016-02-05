@@ -458,6 +458,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             annot_modes = [1]
         else:
             annot_modes = [1]
+    annot_modes = [0]
     #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
