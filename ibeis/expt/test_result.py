@@ -1042,6 +1042,7 @@ class TestResult(object):
             >>> # The same results is achievable with different filter config settings
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
+            >>> verbose = True
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
             >>> case_pos_list1 = testres.case_sample2(filt_cfg1)
@@ -1065,6 +1066,9 @@ class TestResult(object):
             >>> assert np.all(mask6.T[0] == mask6.T[1])
             >>> print(mask5)
             >>> print(case_pos_list5)
+            >>> filt_cfg = filt_cfg7 = {'disagree': True}
+            >>> case_pos_list7 = testres.case_sample2(filt_cfg7, verbose=verbose)
+            >>> print(case_pos_list7)
 
 
         Example1:
@@ -1121,7 +1125,20 @@ class TestResult(object):
 
         UTFF = unflat_tag_filterflags
 
+        def cols_disagree(mat, val):
+            """
+            is_success = prop2_mat['is_success']
+            """
+            sums = mat.sum(axis=1)
+            nCols = mat.shape[1]
+            flags1d = np.logical_and(sums  > 0, sums < nCols)
+            flags = np.tile(flags1d[:, None], (1, 2))
+            if not val:
+                flags = np.logical_not(flags)
+            return flags
+
         rule_list = [
+            ('disagree',  lambda val: cols_disagree(prop2_mat['is_failure'], val)),
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
@@ -1172,6 +1189,7 @@ class TestResult(object):
 
         filt_cfg = copy.deepcopy(filt_cfg)
 
+        # Remove test cases that do not meet the criteria
         for key, rule in rule_list:
             val = filt_cfg.pop(key, None)
             if val is not None:
@@ -1182,6 +1200,7 @@ class TestResult(object):
                     flags = rule(val)
                 if verbose:
                     prev_num_valid = is_valid.sum()
+                # TODO: generalize to satisfiablility formula
                 is_valid = np.logical_and(is_valid, flags)
                 if verbose:
                     print('  * is_valid.shape = %r' % (is_valid.shape,))
@@ -1193,21 +1212,15 @@ class TestResult(object):
                     print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
                     print('  * num_valid = %r' % (num_valid,))
 
+        # HACK:
         # If one config for a row passes the filter then all configs should pass
         allcfg = filt_cfg.pop('allcfg', None)
         if allcfg:
             is_valid = np.logical_or(np.logical_or.reduce(is_valid.T)[:, None], is_valid)
 
-        #if False:
-        #    # Valid props
-        #    gt_ranks = truth2_prop['gt']['rank'][is_valid]
-        #    gf_ranks = truth2_prop['gf']['rank'][is_valid]  # NOQA
-        #    gt_aids = truth2_prop['gt']['aid'][is_valid]
-        #    qaids = testres.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
-
         qx_list, cfgx_list = np.nonzero(is_valid)
 
-        #    np.vstack((qaids, gt_aids, gt_ranks)).T
+        # Determine a good ordering of the test cases
         orderby = filt_cfg.pop('orderby', None)
         reverse = filt_cfg.pop('reverse', None)
         sortasc = filt_cfg.pop('sortasc', None)
@@ -1224,7 +1237,6 @@ class TestResult(object):
             reverse = False
         else:
             reverse = False
-        #orderby = filt_cfg.get('orderbydesc', None)
         if orderby is not None:
             if orderby == 'gtscore':
                 order_values = truth2_prop['gt']['score']
@@ -1248,6 +1260,7 @@ class TestResult(object):
         else:
             order_values = np.arange(is_valid.size).reshape(is_valid.shape)
 
+        # Convert mask into indicies
         flat_order = order_values[is_valid]
         # Flat sorting indeices in a matrix
         if reverse:
