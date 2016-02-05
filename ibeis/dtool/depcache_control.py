@@ -243,9 +243,9 @@ class _CoreDependencyCache(object):
             setattr(wobj, 'get_rowids', get_rowids)
 
     def clear_all(depc):
+        print('Clearning all cached data in %r' % (depc,))
         for table in depc.cachetable_dict.values():
-            table.db.drop_table(table.tablename)
-            table.db.add_table(**table.get_addtable_kw())
+            table.clear_table()
 
     # @ut.memoize
     def get_dependencies(depc, tablename):

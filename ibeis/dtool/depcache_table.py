@@ -222,6 +222,7 @@ class DependencyCacheTable(object):
                     raise NotImplementedError('Need to be able to modify tables')
 
     def clear_table(table):
+        print('Clearing data in %r' % (table,))
         table.db.drop_table(table.tablename)
         table.db.add_table(**table.get_addtable_kw())
 
