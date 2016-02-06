@@ -105,14 +105,73 @@ import sys
 import os
 
 
+USAGE = '''
+
+ --- USAGE ---
+
+IBEIS (IMAGE ANALYSIS) SUPER SETUP
+
+This script is meant to help setup, install, and update the developer
+enviroment for IBEIS Image Analysis.
+
+****
+# Step 1 Initial Development Prereqs:
+
+The first thing is to ensure you have a baseline development enviroment (gcc,
+fortran, cmake, blas, git, pip, etc...).  This should work well for apt-get,
+yum, and macports package managers.  It is possible to use Windows MinGW, but
+it is not well supported.
+
+The following command outputs the commands to install these prereq packages.
+
+    python super_setup.py --bootstrap
+
+****
+# Step 2 - utool
+
+Just running the script will download and install utool --- a utility library
+used in all aspects of the system.
+
+    python super_setup.py
+
+****
+# Step 3 - Download / Update Image Analysis Packages
+
+Running the script again once utool is installed will ensure the rest of the
+repositories are cloned and on your machine in the directory above this one, or
+in a custom location set by your $CODE_DIR environment variable.  Running with
+the pull command will update the packages as well.
+
+    python super_setup.py pull
+
+****
+# Step 4 - Build C++ compoments.
+
+Some submodles require C++ libraries. Build them using the following Command.
+
+    python super_setup.py build
+
+****
+# Step 5 - Install the system.
+
+Register these packages with the python enviroment.
+
+    python super_setup.py develop
+
+ --- /USAGE ---
+'''
+
+print(USAGE)
+
+
 print('USER = %r' % os.getenv("USER"))
 
 
 def is_running_as_root():
     """
     References:
-        http://stackoverflow.com/questions/5721529/running-python-script-as-root-with-sudo-what-is-the-username-of-the-effectiv
-        http://stackoverflow.com/questions/2806897/what-is-the-best-practices-for-checking-if-the-user-of-a-python-script-has-root
+        http://stackoverflow.com/questions/5721529/running-python-script-as-root
+        http://stackoverflow.com/questions/2806897/checking-script-has-root
     """
     return os.getenv('USER') == 'root'
 
