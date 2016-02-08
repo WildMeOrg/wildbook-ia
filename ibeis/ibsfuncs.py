@@ -5872,7 +5872,7 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
         dconfig2_ (dict): (default = None)
 
     CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline --exec-get_annot_pair_lazy_dict
+        python -m ibeis.ibsfuncs --exec-get_annot_pair_lazy_dict
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -5885,15 +5885,10 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
         >>> result = get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_, dconfig2_)
         >>> print(result)
     """
-    metadata1 = get_annot_lazy_dict(ibs, qaid, config2_=qconfig2_)
-    metadata2 = get_annot_lazy_dict(ibs, daid, config2_=dconfig2_)
-    metadata1_ = ut.map_dict_keys(lambda x: x + '1',
-                                  metadata1.asdict(is_eager=False))
-    metadata2_ = ut.map_dict_keys(lambda x: x + '2',
-                                  metadata2.asdict(is_eager=False))
-    metadata = ut.LazyDict(ut.merge_dicts(metadata1_, metadata2_))
-    metadata['metadata1'] = lambda: metadata1
-    metadata['metadata2'] = lambda: metadata2
+    metadata = ut.LazyDict({
+        'annot1': get_annot_lazy_dict(ibs, qaid, config2_=qconfig2_),
+        'annot2': get_annot_lazy_dict(ibs, daid, config2_=dconfig2_),
+    })
     return metadata
 
 

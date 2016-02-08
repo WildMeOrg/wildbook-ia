@@ -235,8 +235,8 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
     if qreq_ is None:
         qreq_ = ibs.new_query_request([qaid], [daid])
     matches, metadata = vsone_single(qaid, daid, qreq_)
-    rchip1 = metadata['rchip1']
-    rchip2 = metadata['rchip2']
+    rchip1 = metadata['annot1']['rchip']
+    rchip2 = metadata['annot2']['rchip']
     H1 = metadata['H_RAT']
     import vtool as vt
     wh2 = vt.get_size(rchip2)
@@ -246,13 +246,15 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
     # remove parts of the image that cannot match
     rchip1_crop = rchip1_[rowslice, colslice]
     rchip2_crop = rchip2[rowslice, colslice]
-    metadata['rchip1_crop'] = rchip1_crop
-    metadata['rchip2_crop'] = rchip2_crop
+    metadata['annot1']['rchip_crop'] = rchip1_crop
+    metadata['annot2']['rchip_crop'] = rchip2_crop
     return matches, metadata
 
 
 def unsupervised_similarity(ibs, aids):
     """
+    http://repository.upenn.edu/cgi/viewcontent.cgi?article=1101&context=cis_papers
+
     Ignore:
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
         >>> import ibeis
@@ -276,7 +278,7 @@ def unsupervised_similarity(ibs, aids):
 
     pair_dict = ut.ddict(dict)
 
-    score_mat = np.full((len(aids), len(aids)), np.inf)
+    #score_mat = np.full((len(aids), len(aids)), np.inf)
     idx_list = list(ut.self_prodx(range(len(aids))))
     #idx_list = list(ut.iprod(range(len(aids)), range(len(aids))))
 
@@ -291,33 +293,29 @@ def unsupervised_similarity(ibs, aids):
         metadata = ibs.get_annot_pair_lazy_dict(qaid, daid, qconfig2_, dconfig2_)
         flann_params = {'algorithm': 'kdtree', 'trees': 8}
         # truth = (nids[qx] == nids[dx])
-        metadata['flann1'] = vt.flann_cache(metadata['vecs1'], flann_params=flann_params)
+        metadata['annot1']['flann'] = vt.flann_cache(metadata['annot1']['vecs'], flann_params=flann_params)
         # metadata['flann2'] = vt.flann_cache(metadata['vecs2'], flann_params=flann_params)
         match = vt.vsone_matching2(metadata, cfgdict=cfgdict, verbose=verbose)
         pair_dict[(qx, dx)] = match
 
+    score_mat = np.zeros((len(aids), len(aids)))
+    # Populate weight matrix off-diagonal
     for qx, dx in ut.ProgressIter(idx_list):
         qaid, daid = ut.take(aids, [qx, dx])
         match = pair_dict[(qx, dx)]
         print(match)
         score_mat[qx, dx] = match.matches['TOP+SV'].fs.sum()
         (nids[qx] == nids[dx])
+    # Populate weight matrix on-diagonal
+    W = score_mat
+    D = np.diag(W.sum(axis=0))  # NOQA
+
+    #diag_idx = np.diag_indices_from(score_mat)
+    #score_mat[diag_idx] = score_mat.sum(axis=0)
 
     pos = np.meshgrid(np.arange(len(aids)), np.arange(len(aids)))
     gt_scores = score_mat[nids[pos[1]] == nids[pos[0]]]
-    #gf_scores = score_mat[nids[pos[1]] != nids[pos[0]]]
     min_gt_score = gt_scores.min()
-
-    #nids = np.array(nids)
-    #[np.array(idx_list)]
-    #score_mat[]
-
-    #for qx, dx in ut.ProgressIter(idx_list):
-    #    match = pair_dict[(qx, dx)]
-    #    match.show()
-
-    score_mat[np.diag_indices_from(score_mat)] = score_mat[np.isfinite(score_mat)].max() * 2
-    score_mat[np.diag_indices_from(score_mat)] = 0
 
     from plottool.interactions import ExpandableInteraction
     import plottool as pt
@@ -401,15 +399,23 @@ def unsupervised_similarity(ibs, aids):
     alg.fit_predict((1 / score_mat))
     #import pandas
     #score_mat = pandas.DataFrame(pairs).as_matrix()
-    #[vsone_single(qaid, daid) for qaid, daid in ]
+
+    #nids = np.array(nids)
+    #[np.array(idx_list)]
+    #score_mat[]
+
+    #for qx, dx in ut.ProgressIter(idx_list):
+    #    match = pair_dict[(qx, dx)]
+    #    match.show()
     pass
 
 
 def vsone_single2(ibs, qaid, daid, qconfig2_, dconfig2_, use_ibscache, verbose):
-    metadata_ = ut.LazyDict({
-        'rchip_fpath1': ibs.get_annot_chip_fpath([qaid], config2_=qconfig2_)[0],
-        'rchip_fpath2': ibs.get_annot_chip_fpath([daid], config2_=dconfig2_)[0],
-    })
+    metadata_ = ut.LazyDict()
+    annot1 = metadata_['annot1'] = ut.LazyDict()
+    annot2 = metadata_['annot2'] = ut.LazyDict()
+    annot1['rchip_fpath'] = ibs.get_annot_chip_fpath([qaid], config2_=qconfig2_)[0]
+    annot2['rchip_fpath'] = ibs.get_annot_chip_fpath([daid], config2_=qconfig2_)[0]
     cfgdict = {}
     if use_ibscache:
         hack_multi_config = False
@@ -430,23 +436,17 @@ def vsone_single2(ibs, qaid, daid, qconfig2_, dconfig2_, use_ibscache, verbose):
                                for config2_ in data_config_list])
             dlen_sqrd2 = ibs.get_annot_chip_dlensqrd([daid],
                                                      config2_=dconfig2_)[0]
-            metadata_.update(dict(
-                kpts1=kpts1,
-                kpts2=kpts2,
-                vecs1=vecs1,
-                vecs2=vecs2,
-                dlen_sqrd2=dlen_sqrd2,
-            ))
+            annot1['kpts'] = kpts1
+            annot1['vecs'] = vecs1
+            annot2['kpts'] = kpts2
+            annot2['vecs'] = vecs2
+            annot2['dlen_sqrd'] = dlen_sqrd2
         else:
-            metadata_.update({
-                'kpts1': ibs.get_annot_kpts(qaid, config2_=qconfig2_),
-                'kpts2': ibs.get_annot_kpts(daid, config2_=dconfig2_),
-
-                'vecs1': ibs.get_annot_vecs(qaid, config2_=qconfig2_),
-                'vecs2': ibs.get_annot_vecs(daid, config2_=dconfig2_),
-
-                'dlen_sqrd2': ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0],
-            })
+            annot1['kpts'] = ibs.get_annot_kpts(qaid, config2_=qconfig2_)
+            annot1['vecs'] = ibs.get_annot_vecs(qaid, config2_=qconfig2_)
+            annot2['kpts'] = ibs.get_annot_kpts(daid, config2_=dconfig2_)
+            annot2['vecs'] = ibs.get_annot_vecs(daid, config2_=dconfig2_)
+            annot2['dlen_sqrd'] = ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0]
     matches, metadata = vt.vsone_matching(metadata_, cfgdict=cfgdict, verbose=verbose)
     assert metadata is metadata_
     return matches, metadata
@@ -489,50 +489,6 @@ def vsone_single(qaid, daid, qreq_, use_ibscache=False, verbose=None):
     qconfig2_ = qreq_.get_external_query_config2()
     dconfig2_ = qreq_.get_external_query_config2()
     return vsone_single2(ibs, qaid, daid, qconfig2_, dconfig2_, use_ibscache, verbose)
-    #metadata_ = ut.LazyDict({
-    #    'rchip_fpath1': ibs.get_annot_chip_fpath([qaid], config2_=qconfig2_)[0],
-    #    'rchip_fpath2': ibs.get_annot_chip_fpath([daid], config2_=dconfig2_)[0],
-    #})
-    #cfgdict = {}
-    #if use_ibscache:
-    #    hack_multi_config = True
-    #    if hack_multi_config:
-    #        cfgdict = {'refine_method': 'affine'}
-    #        data_config_list = query_config_list = [
-    #            ibs.new_query_params(affine_invariance=True),
-    #            ibs.new_query_params(affine_invariance=False),
-    #        ]
-    #        kpts1 = np.vstack([ibs.get_annot_kpts(qaid, config2_=config2_)
-    #                           for config2_ in query_config_list])
-    #        vecs1 = np.vstack([ibs.get_annot_vecs(qaid, config2_=config2_)
-    #                           for config2_ in query_config_list])
-
-    #        kpts2 = np.vstack([ibs.get_annot_kpts(daid, config2_=config2_)
-    #                           for config2_ in data_config_list])
-    #        vecs2 = np.vstack([ibs.get_annot_vecs(daid, config2_=config2_)
-    #                           for config2_ in data_config_list])
-    #        dlen_sqrd2 = ibs.get_annot_chip_dlensqrd([daid],
-    #                                                 config2_=dconfig2_)[0]
-    #        metadata_.update(dict(
-    #            kpts1=kpts1,
-    #            kpts2=kpts2,
-    #            vecs1=vecs1,
-    #            vecs2=vecs2,
-    #            dlen_sqrd2=dlen_sqrd2,
-    #        ))
-    #    else:
-    #        metadata_.update({
-    #            'kpts1': ibs.get_annot_kpts(qaid, config2_=qconfig2_),
-    #            'kpts2': ibs.get_annot_kpts(daid, config2_=dconfig2_),
-
-    #            'vecs1': ibs.get_annot_vecs(qaid, config2_=qconfig2_),
-    #            'vecs2': ibs.get_annot_vecs(daid, config2_=dconfig2_),
-
-    #            'dlen_sqrd2': ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0],
-    #        })
-    #matches, metadata = vt.vsone_matching(metadata_, cfgdict=cfgdict, verbose=verbose)
-    #assert metadata is metadata_
-    #return matches, metadata
 
 
 def vsone_name_independant_hack(ibs, nids, qreq_=None):
