@@ -70,6 +70,7 @@ class AbstractInteraction(object):
         self.is_down = {}
         self.is_drag = {}
         self.is_running = False
+        self.fig = getattr(self, 'fig', None)
 
         for button in self.MOUSE_BUTTONS.values():
             self.is_down[button] = None
