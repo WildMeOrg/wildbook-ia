@@ -16,6 +16,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample
 
         python -m ibeis --tf autogen_ipynb --db PZ_MTEST
+        # TODO: Add support for dbdir to be specified
         python -m ibeis --tf autogen_ipynb --db ~/work/PZ_MTEST
 
         python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
@@ -47,6 +48,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         notebook_cells = make_ibeis_cell_list(ibs)
         print('\n# ---- \n'.join(notebook_cells))
         return
+    # TODO: Add support for dbdir to be specified
     notebook_str = make_ibeis_notebook(ibs)
     ut.writeto(nb_fpath, notebook_str)
     run = ut.get_argflag('--run') if run is None else run

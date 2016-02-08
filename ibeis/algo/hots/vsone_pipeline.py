@@ -260,6 +260,7 @@ def unsupervised_similarity(ibs, aids):
         >>> import ibeis
         >>> #ibs, aids = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=1,exclude_reference=True')
         >>> ibs, aids = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
+        >>> ibs, aids = ibeis.testdata_aids('PZ_MTEST', 'timectrl:pername=4,view=left,view_ext=0,exclude_reference=True')
     """
     ut.ensure_pylab_qt4()
 
@@ -273,7 +274,7 @@ def unsupervised_similarity(ibs, aids):
 
     # [0:8]
     aids = aids
-    aids = aids[0:6]
+    #aids = aids[0:6]
     nids = np.array(ibs.get_annot_nids(aids))
 
     pair_dict = ut.ddict(dict)
@@ -298,17 +299,69 @@ def unsupervised_similarity(ibs, aids):
         match = vt.vsone_matching2(metadata, cfgdict=cfgdict, verbose=verbose)
         pair_dict[(qx, dx)] = match
 
+    from skimage.future import graph
+    g = graph.rag.RAG()
     score_mat = np.zeros((len(aids), len(aids)))
     # Populate weight matrix off-diagonal
     for qx, dx in ut.ProgressIter(idx_list):
         qaid, daid = ut.take(aids, [qx, dx])
         match = pair_dict[(qx, dx)]
         print(match)
-        score_mat[qx, dx] = match.matches['TOP+SV'].fs.sum()
+        score = match.matches['TOP+SV'].fs.sum()
+        score_mat[qx, dx] = score
+        g.add_edge(qx, dx, weight=score)
         (nids[qx] == nids[dx])
     # Populate weight matrix on-diagonal
     W = score_mat
     D = np.diag(W.sum(axis=0))  # NOQA
+
+    from plottool.interactions import ExpandableInteraction
+    import plottool as pt
+    import networkx as nx
+    if False:
+        pos = nx.circular_layout(g)
+        pt.figure()
+        nx.draw(g, pos)
+        nx.draw_networkx_edge_labels(g, pos, font_size=10)
+
+    if True:
+        # NORMALIZED CUT STUFF
+        # https://github.com/IAS-ZHAW/machine_learning_scripts/blob/master/mlscripts/ml/normalized_min_cut.py
+
+        #labels = np.arange(len(aids))
+        #graph.cut_normalized(labels, g)
+        m_adjacency = np.array(nx.to_numpy_matrix(g))
+        D = np.diag(np.sum(m_adjacency, 0))
+        D_half_inv = np.diag(1.0 / np.sqrt(np.sum(m_adjacency, 0)))
+        M = np.dot(D_half_inv, np.dot((D - m_adjacency), D_half_inv))
+        (w, v) = np.linalg.eig(M)
+        #find index of second smallest eigenvalue
+        index = np.argsort(w)[1]
+        v_partition = v[:, index]
+        v_partition = np.sign(v_partition)
+
+        import ibeis
+        flags = v_partition > 0
+        cluster_aids = ut.compress(aids, flags)
+        ibeis.viz.viz_chip.show_many_chips(ibs, cluster_aids)
+        remain_aids = ut.compress(aids, ut.not_list(flags))
+
+        for i in range(len(set(nids))):
+            remain_m = m_adjacency.compress(~flags, axis=0).compress(~flags, axis=1)
+            D = np.diag(np.sum(remain_m, 0))
+            D_half_inv = np.diag(1.0 / np.sqrt(np.sum(remain_m, 0)))
+            M = np.dot(D_half_inv, np.dot((D - remain_m), D_half_inv))
+            (w, v) = np.linalg.eig(M)
+            #find index of second smallest eigenvalue
+            index = np.argsort(w)[1]
+            v_partition = v[:, index]
+            v_partition = np.sign(v_partition)
+
+            flags = v_partition > 0
+            cluster_aids = ut.compress(remain_aids, flags)
+            ibeis.viz.viz_chip.show_many_chips(ibs, cluster_aids)
+            remain_aids = ut.compress(remain_aids, ut.not_list(flags))
+            pass
 
     #diag_idx = np.diag_indices_from(score_mat)
     #score_mat[diag_idx] = score_mat.sum(axis=0)
@@ -317,8 +370,6 @@ def unsupervised_similarity(ibs, aids):
     gt_scores = score_mat[nids[pos[1]] == nids[pos[0]]]
     min_gt_score = gt_scores.min()
 
-    from plottool.interactions import ExpandableInteraction
-    import plottool as pt
     fnum = 1
     #_pnumiter = pt.make_pnum_nextgen(nSubplots=score_mat.size)
     nRows, nCols = pt.get_square_row_cols(score_mat.size, fix=True)
@@ -348,7 +399,7 @@ def unsupervised_similarity(ibs, aids):
     #pt.plot_score_histograms([m.matches['TOP+SV'][1]])
 
     sym_score_mat = np.maximum(score_mat, score_mat.T)
-    gt_scores = sym_score_mat[nids[pos[1]] == nids[pos[0]]]
+    #gt_scores = sym_score_mat[nids[pos[1]] == nids[pos[0]]]
     #gf_scores = sym_score_mat[nids[pos[1]] != nids[pos[0]]]
 
     cost_matrix = sym_score_mat - 50
