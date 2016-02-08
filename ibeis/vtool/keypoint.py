@@ -801,13 +801,14 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
 def transform_kpts(kpts, M):
     r"""
     returns M.dot(kpts_mat)
+    Currently, only works if M is affine.
 
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
-        M (ndarray): transform matrix
+        M (ndarray): affine transform matrix
 
     Returns:
-        tuple: (_iv11s, _iv12s, _iv21s, _iv22s)
+        ndarray: kpts_
 
     CommandLine:
         python -m vtool.keypoint --test-transform_kpts

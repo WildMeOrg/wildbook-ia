@@ -42,17 +42,11 @@ def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     fm, fs = matches[type_][0:2]
     H1 = metadata['H_' + type_.split('+')[0]]
     #fm, fs = matches['RAT'][0:2]
-    rchip1 = metadata['rchip1']
-    rchip2 = metadata['rchip2']
-    kpts1 = metadata['kpts1']
-    kpts2 = metadata['kpts2']
-
-    vecs1 = metadata['vecs1']
-    vecs2 = metadata['vecs2']
-
+    annot1 = metadata['annot1']
+    annot2 = metadata['annot2']
+    rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
+    rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
     #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
-
-    vecs1, vecs2 = ut.dict_take(metadata, ['vecs1', 'vecs2'])
     fsv = fs[:, None]
     interact = plottool.interact_matches.MatchInteraction2(
         rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1,
@@ -100,10 +94,12 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_
         >>> ut.show_if_requested()
     """
     metadata = ut.LazyDict()
+    annot1 = metadata['annot1'] = ut.LazyDict()
+    annot2 = metadata['annot2'] = ut.LazyDict()
     if metadata_ is not None:
         metadata.update(metadata_)
-    metadata['rchip_fpath1'] = rchip_fpath1
-    metadata['rchip_fpath2'] = rchip_fpath2
+    annot1['rchip_fpath'] = rchip_fpath1
+    annot2['rchip_fpath'] = rchip_fpath2
     matches, metdata =  vsone_matching(metadata, cfgdict)
     return matches, metdata
 
@@ -124,7 +120,7 @@ def ensure_metadata_feats(metadata, suffix='', cfgdict={}):
         cfgdict (dict): (default = {})
 
     CommandLine:
-        python -m vtool.matching --exec-ensure_metadata_feats --show
+        python -m vtool.matching --exec-ensure_metadata_feats
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -196,24 +192,27 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
     # import vtool as vt
     assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
 
-    ensure_metadata_feats(metadata, suffix='1', cfgdict=cfgdict)
-    ensure_metadata_feats(metadata, suffix='2', cfgdict=cfgdict)
+    annot1 = metadata['annot1']
+    annot2 = metadata['annot2']
 
-    if 'dlen_sqrd2' not in metadata:
-        def eval_dlen_sqrd2():
-            rchip2 = metadata['rchip2']
-            dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
-            return dlen_sqrd2
-        metadata.set_lazy_func('dlen_sqrd2', eval_dlen_sqrd2)
+    ensure_metadata_feats(annot1, cfgdict=cfgdict)
+    ensure_metadata_feats(annot2, cfgdict=cfgdict)
+
+    if 'dlen_sqrd' not in annot2:
+        def eval_dlen_sqrd(annot):
+            rchip = annot['rchip']
+            dlen_sqrd = rchip.shape[0] ** 2 + rchip.shape[1] ** 2
+            return dlen_sqrd
+        annot2.set_lazy_func('dlen_sqrd', lambda: eval_dlen_sqrd(annot2))
 
     # Exceute relevant dependencies
-    kpts1 = metadata['kpts1']
-    vecs1 = metadata['vecs1']
-    kpts2 = metadata['kpts2']
-    vecs2 = metadata['vecs2']
-    dlen_sqrd2 = metadata['dlen_sqrd2']
-    flann1 = metadata.get('flann1', None)
-    flann2 = metadata.get('flann2', None)
+    kpts1 = annot1['kpts']
+    vecs1 = annot1['vecs']
+    kpts2 = annot2['kpts']
+    vecs2 = annot2['vecs']
+    dlen_sqrd2 = annot2['dlen_sqrd']
+    flann1 = annot1.get('flann1', None)
+    flann2 = annot2.get('flann2', None)
 
     matches, output_metdata = vsone_feature_matching(
         kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
