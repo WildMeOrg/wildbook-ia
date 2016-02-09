@@ -265,6 +265,16 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
     clearbackup = False
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
     """
+    def _check_superkeys():
+        all_tablename_list = db.get_table_names()
+        # always ignore the metadata table.
+        ignore_tables_ = ['metadata']
+        tablename_list = [tablename for tablename in all_tablename_list
+                          if tablename not in ignore_tables_]
+        for tablename in tablename_list:
+            superkey_colnames_list = db.get_table_superkey_colnames(tablename)
+            assert len(superkey_colnames_list) > 0, 'ERROR UPDATING DATABASE, SUPERKEYS DROPPED!'
+
     print('[_SQL] update_schema_version')
     db_fpath = db.fpath
     if dobackup:
@@ -307,6 +317,7 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
                 update(db, ibs=ibs)
             if post is not None:
                 post(db, ibs=ibs)
+            _check_superkeys()
     except Exception as ex:
         if dobackup:
             msg = 'The database update failed, rolled back to the original version.'
