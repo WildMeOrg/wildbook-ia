@@ -127,14 +127,14 @@ def REGISTER_SQLITE3_TYPES():
 REGISTER_SQLITE3_TYPES()
 
 
-def connect2(fpath, text_factory=None):
-    """ wrapper around lite.connect """
-    connection = connect(fpath, detect_types=PARSE_DECLTYPES)
-    return connection
-    #timeout=5,
-    # check_same_thread=False)
-    # isolation_level='DEFERRED',
-    # cached_statements=1000
+#def connect2(fpath, text_factory=None):
+#    """ wrapper around lite.connect """
+#    connection = connect(fpath, detect_types=PARSE_DECLTYPES)
+#    return connection
+#    #timeout=5,
+#    # check_same_thread=False)
+#    # isolation_level='DEFERRED',
+#    # cached_statements=1000
 
 TYPE_TO_SQLTYPE = {
     np.ndarray: 'NDARRAY',

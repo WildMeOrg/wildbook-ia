@@ -285,12 +285,54 @@ class SQLDatabaseController(object):
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
-                 text_factory=six.text_type, inmemory=None, simple=False, fpath=None):
-        """ Creates db and opens connection """
+                 text_factory=six.text_type, inmemory=None, simple=False,
+                 fpath=None, readonly=None):
+        """ Creates db and opens connection
+
+        Args:
+            sqldb_dpath (unicode):  directory path string(default = u'.')
+            sqldb_fname (unicode): (default = u'database.sqlite3')
+            text_factory (type): (default = <type 'unicode'>)
+            inmemory (None): (default = None)
+            simple (bool): (default = False)
+            fpath (str):  file path string(default = None)
+            readonly (bool): (default = False)
+
+        CommandLine:
+            python -m dtool.sql_control --exec-__init__ --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.sql_control import *  # NOQA
+            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
+            >>> sqldb_fname = u'test_database.sqlite3'
+            >>> inmemory = None
+            >>> simple = False
+            >>> fpath = None
+            >>> text_factory = six.text_type
+            >>> readonly = False
+            >>> db = SQLDatabaseController(sqldb_dpath, sqldb_fname)
+            >>> db.print_schema()
+            >>> print(db)
+            >>> db2 = SQLDatabaseController(sqldb_dpath, sqldb_fname, readonly=True)
+            >>> db.add_table('temptable', (
+            >>>     ('rowid',               'INTEGER PRIMARY KEY'),
+            >>>     ('key',                 'TEXT'),
+            >>>     ('val',                 'TEXT'),
+            >>> ),
+            >>>     superkeys=[('key',)],
+            >>>     docstr='')
+            >>> db2.print_schema()
+        """
         # standard metadata table keys for each docstr
         # TODO: generalize the places that use this so to add a new cannonical
         # metadata field it is only necessary to append to this list.
+        if readonly is None:
+            # HACK
+            readonly = ut.get_argflag('--readonly-mode')
+
         db._tablenames = None
+        db.readonly = readonly
         db.table_metadata_keys = [
             #'constraint',
             'dependson',
@@ -317,10 +359,34 @@ class SQLDatabaseController(object):
             assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
             if not exists(db.fpath):
                 print('[sql] Initializing new database')
-        # Open the SQL database connection with support for custom types
-        #lite.enable_callback_tracebacks(True)
-        #db.fpath = ':memory:'
-        db.connection = lite.connect2(db.fpath)
+                if db.readonly:
+                    raise AssertionError('Cannot open a new database in readonly mode')
+            # Open the SQL database connection with support for custom types
+            #lite.enable_callback_tracebacks(True)
+            #db.fpath = ':memory:'
+
+            if six.PY3:
+                # References:
+                # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
+                db.uri = 'file:' + db.fpath
+                if db.readonly:
+                    db.uri += '?mode=ro'
+                db.connection = lite.connect(db.uri, uri=True, detect_types=lite.PARSE_DECLTYPES)
+            else:
+                import os
+                if db.readonly:
+                    assert not ut.WIN32, 'cannot open readonly on windows.'
+                    flag = os.O_RDONLY  # if db.readonly else os.O_RDWR
+                    fd = os.open(db.fpath, flag)
+                    db.uri = '/dev/fd/%d' % fd
+                    db.connection = lite.connect(db.uri, detect_types=lite.PARSE_DECLTYPES)
+                    os.close(fd)
+                else:
+                    db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
+        else:
+            db.uri = None
+            db.connection = lite.connect2(db.fpath, detect_types=lite.PARSE_DECLTYPES)
+
         db.connection.text_factory = db.text_factory
         # Get a cursor which will preform sql commands / queries / executions
         db.cur = db.connection.cursor()
@@ -332,7 +398,8 @@ class SQLDatabaseController(object):
             db.connection.text_factory = text_factory
         # Optimize the database (if anything is set)
         db.optimize()
-        db._ensure_metadata_table()
+        if not db.readonly:
+            db._ensure_metadata_table()
 
     def get_fpath(db):
         return db.fpath
