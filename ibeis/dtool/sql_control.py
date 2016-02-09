@@ -302,7 +302,7 @@ class SQLDatabaseController(object):
             python -m dtool.sql_control --exec-__init__ --show
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
