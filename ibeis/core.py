@@ -119,7 +119,7 @@ def compute_chip(depc, aid_list, config=None):
         python -m ibeis.core --exec-compute_chip --show --db humpbacks
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.core import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -483,7 +483,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.core import *  # NOQA
         >>> import plottool as pt
         >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
@@ -647,7 +647,7 @@ def gen_feat_worker(tup):
         python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.core import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid = aid_list[0]
