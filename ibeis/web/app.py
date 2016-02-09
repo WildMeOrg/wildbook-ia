@@ -1552,6 +1552,14 @@ def get_names_with_gids_csv():
         for name, (nid, gid_list) in sorted(list(combined_dict.iteritems()))
     ]
     combined_str = '\n'.join(combined_list)
+    max_length = 0
+    for aid_list in combined_dict.values():
+        max_length = max(max_length, len(aid_list[1]))
+    if max_length == 1:
+        gid_header_str = 'GID'
+    else:
+        gid_header_str = ','.join([ 'GID%d' % (i + 1, ) for i in range(max_length) ])
+    combined_str = 'NID,NAME,%s\n' % (gid_header_str, ) + combined_str
     return ap.send_csv_file(combined_str, filename)
 
 
@@ -1574,6 +1582,14 @@ def get_gid_with_aids_csv():
         for gid, aid_list in sorted(list(combined_dict.iteritems()))
     ]
     combined_str = '\n'.join(combined_list)
+    max_length = 0
+    for aid_list in combined_dict.values():
+        max_length = max(max_length, len(aid_list))
+    if max_length == 1:
+        aid_header_str = 'AID'
+    else:
+        aid_header_str = ','.join([ 'AID%d' % (i + 1, ) for i in range(max_length) ])
+    combined_str = 'GID,%s\n' % (aid_header_str, ) + combined_str
     return ap.send_csv_file(combined_str, filename)
 
 
@@ -1583,6 +1599,7 @@ def get_gid_list_csv():
     ibs = current_app.ibs
     gid_list = ibs.get_valid_gids()
     return_str = '\n'.join( map(str, gid_list) )
+    return_str = 'GID\n' + return_str
     return ap.send_csv_file(return_str, filename)
 
 
@@ -1592,6 +1609,7 @@ def get_aid_list_csv():
     ibs = current_app.ibs
     aid_list = ibs.get_valid_aids()
     return_str = '\n'.join( map(str, aid_list) )
+    return_str = 'AID\n' + return_str
     return ap.send_csv_file(return_str, filename)
 
 
