@@ -49,7 +49,7 @@ CommandLine:
     python -m ibeis.control.IBEISControl --test-show_depc_digraph --show
 
 Setup:
-    >>> from ibeis.core import *  # NOQA
+    >>> from ibeis.core_annots import *  # NOQA
     >>> import ibeis
     >>> import plottool as pt
     >>> ibs = ibeis.opendb('testdb1')
@@ -114,13 +114,13 @@ def compute_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core --exec-compute_chip --show
-        python -m ibeis.core --exec-compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
-        python -m ibeis.core --exec-compute_chip --show --db humpbacks
+        python -m ibeis.core_annots --exec-compute_chip --show
+        python -m ibeis.core_annots --exec-compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
+        python -m ibeis.core_annots --exec-compute_chip --show --db humpbacks
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> depc = ibs.depc
@@ -240,12 +240,12 @@ def compute_annotmask(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core --exec-compute_annotmask --show
-        python -m ibeis.core --exec-compute_annotmask --show --edit
+        python -m ibeis.core_annots --exec-compute_annotmask --show
+        python -m ibeis.core_annots --exec-compute_annotmask --show --edit
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = AnnotMaskConfig(dim_size=None)
         >>> chip_config = config.chip_cfg
@@ -330,13 +330,13 @@ def compute_probchip(depc, aid_list, config=None):
     """ Computes probability chips using pyrf
 
     CommandLine:
-        python -m ibeis.core --test-compute_probchip --nocnn --show --db PZ_MTEST
-        python -m ibeis.core --test-compute_probchip --show --detector=cnn
-        python -m ibeis.core --test-compute_probchip --show --detector=rf --smooth_thresh=None
+        python -m ibeis.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
+        python -m ibeis.core_annots --test-compute_probchip --show --detector=cnn
+        python -m ibeis.core_annots --test-compute_probchip --show --detector=rf --smooth_thresh=None
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
@@ -476,15 +476,16 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         ndarray: mask2
 
     CommandLine:
-        python -m ibeis.core --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
+        python -m ibeis.core_annots --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
 
     SeeAlso:
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
     Example:
+<<<<<<< HEAD:ibeis/core.py
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> import plottool as pt
         >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
@@ -517,7 +518,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
 class FeatureConfig(dtool.TableConfig):
     r"""
     Example:
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> feat_cfg = FeatureConfig()
         >>> result = str(feat_cfg)
         >>> print(result)
@@ -566,12 +567,12 @@ def compute_feats(depc, cid_list, config=None):
         ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
 
     CommandLine:
-        python -m ibeis.core --test-compute_feats:0 --show
-        python -m ibeis.core --test-compute_feats:1
+        python -m ibeis.core_annots --test-compute_feats:0 --show
+        python -m ibeis.core_annots --test-compute_feats:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
         >>> config = FeatureConfig()
@@ -642,13 +643,18 @@ def gen_feat_worker(tup):
         tuple: (None, kpts, vecs)
 
     CommandLine:
-        python -m ibeis.core --exec-gen_feat_worker --show
-        python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
-        python -m ibeis.core --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
+        python -m ibeis.core_annots --exec-gen_feat_worker --show
+        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
+        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Example:
+<<<<<<< HEAD:ibeis/core.py
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core import *  # NOQA
+=======
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+>>>>>>> 1fc94d1603496dca1455ef5f46fa01157d71a037:ibeis/core_annots.py
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid = aid_list[0]
         >>> config = {}
@@ -711,7 +717,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> full_config = {}
         >>> config = FeatureConfig()
@@ -751,13 +757,13 @@ def gen_featweight_worker(tup):
            aid, kpts, probchip_fpath
 
     CommandLine:
-        python -m ibeis.core --test-gen_featweight_worker --show
-        python -m ibeis.core --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
-        python -m ibeis.core --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
+        python -m ibeis.core_annots --test-gen_featweight_worker --show
+        python -m ibeis.core_annots --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
+        python -m ibeis.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
+        >>> from ibeis.core_annots import *  # NOQA
         >>> #test_featweight_worker()
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = aid_list[0:1]
@@ -800,8 +806,8 @@ def gen_featweight_worker(tup):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.core
-        python -m ibeis.core --allexamples
+        python -m ibeis.core_annots
+        python -m ibeis.core_annots --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

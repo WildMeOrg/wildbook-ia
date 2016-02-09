@@ -68,7 +68,8 @@ try:
     from ibeis.templates import generate_notebook
     #from ibeis.control.IBEISControl import register_preproc, register_algo
     from ibeis.control.controller_inject import register_preproc, register_algo
-    from ibeis import core
+    from ibeis import core_annots
+    from ibeis import core_images
     # from dtool.depends_cache import register_preproc, register_algo
     # from dtool.depends_cache import register_preproc, register_algo
 except Exception as ex:
@@ -304,7 +305,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.5.0'
+__version__ = '1.5.1'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

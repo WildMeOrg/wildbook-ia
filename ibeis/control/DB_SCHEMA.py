@@ -1355,6 +1355,18 @@ def update_1_5_0(db, ibs=None):
     )
 
 
+def update_1_5_1(db, ibs=None):
+    # Rename encounters to imagesets
+    db.modify_table(
+        const.IMAGE_TABLE,
+        superkeys=[(IMAGE_UUID,)],
+    )
+    db.modify_table(
+        const.ANNOTMATCH_TABLE,
+        superkeys=[('annot_rowid1', 'annot_rowid2',)],
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1394,6 +1406,7 @@ VALID_VERSIONS = ut.odict([
     ('1.4.8',    (pre_1_4_8,            update_1_4_8,       None                )),
     ('1.4.9',    (pre_1_4_9,            update_1_4_9,       post_1_4_9          )),
     ('1.5.0',    (None,                 update_1_5_0,       None                )),
+    ('1.5.1',    (None,                 update_1_5_1,       None                )),
 ])
 """
 SeeAlso:
