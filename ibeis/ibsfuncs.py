@@ -1984,6 +1984,9 @@ def update_ungrouped_special_imageset(ibs):
 @ut.time_func
 #@profile
 def update_special_imagesets(ibs):
+    if ut.get_argflag('--readonly-mode'):
+        # SUPER HACK
+        return
     # FIXME SLOW
     USE_MORE_SPECIAL_IMAGESETS = ibs.cfg.other_cfg.ensure_attr(
         'use_more_special_imagesets', False)
@@ -6063,6 +6066,9 @@ def _clean_species(ibs):
     if ut.VERBOSE:
         print('[_clean_species] Cleaning...')
     from ibeis.species import species_mapping
+    if ut.get_argflag('--readonly-mode'):
+        # SUPER HACK
+        return
     if ibs is not None:
         flag = '--allow-keyboard-database-update'
         from six.moves import input as raw_input_
