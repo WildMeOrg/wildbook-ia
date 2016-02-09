@@ -150,7 +150,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
     return ret
 
 
-def send_file(string, filename):
+def send_csv_file(string, filename):
     response = flask.make_response(str(string))
     response.headers['Content-Description'] = 'File Transfer'
     response.headers['Cache-Control'] = 'no-cache'

@@ -12,7 +12,7 @@ import six
 import math
 import tornado.wsgi
 import tornado.httpserver
-from flask import request, redirect, url_for, make_response, current_app
+from flask import request, redirect, url_for, make_response, current_app, send_file
 import logging
 import socket
 import simplejson as json
@@ -1472,26 +1472,28 @@ def set_cookie():
 
 
 @register_route('/ajax/image/src/<gid>')
-def image_src(gid=None, fresh=False, **kwargs):
+def image_src(gid=None, thumbnail=True, fresh=False, **kwargs):
     ibs = current_app.ibs
-    # gpath = ibs.get_image_paths(gid)
-    gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
-    fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
-    if fresh:
-        # print('*' * 80)
-        # print('\n\n')
-        # print('RUNNING WITH FRESH')
-        # print('\n\n')
-        # print('*' * 80)
-        # ut.remove_dirs(gpath)
-        import os
-        os.remove(gpath)
+    if thumbnail:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+        fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
+        if fresh:
+            # print('*' * 80)
+            # print('\n\n')
+            # print('RUNNING WITH FRESH')
+            # print('\n\n')
+            # print('*' * 80)
+            # ut.remove_dirs(gpath)
+            import os
+            os.remove(gpath)
+            gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+    else:
+        gpath = ibs.get_image_paths(gid)
     return ap.return_src(gpath)
 
 
 @register_api('/api/image/<gid>/', methods=['GET'])
-def image_src_api(gid=None, fresh=False, **kwargs):
+def image_base64_api(gid=None, thumbnail=True, fresh=False, **kwargs):
     r"""
     Returns the base64 encoded image of image <gid>
 
@@ -1499,11 +1501,102 @@ def image_src_api(gid=None, fresh=False, **kwargs):
         Method: GET
         URL:    /api/image/<gid>/
     """
-    return image_src(gid, fresh=fresh, **kwargs)
+    return image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
+
+
+@register_route('/api/image/src/<gid>/', methods=['GET'])
+def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
+    r"""
+    Returns the image file of image <gid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/src/<gid>/
+    """
+    thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
+    ibs = current_app.ibs
+    if thumbnail:
+        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+        fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
+        if fresh:
+            import os
+            os.remove(gpath)
+            gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+    else:
+        gpath = ibs.get_image_paths(gid)
+    print(gpath)
+    return send_file(gpath, mimetype='application/unknown')
+
+
+@register_api('/api/core/names_with_gids/', methods=['GET'])
+def get_names_with_gids(ibs):
+    nid_list = sorted(ibs.get_valid_nids())
+    name_list = ibs.get_name_texts(nid_list)
+    gids_list = ibs.get_name_gids(nid_list)
+
+    zipped = zip(nid_list, name_list, gids_list)
+    combined_dict = {
+        name : (nid, gid_list)
+        for nid, name, gid_list in zipped
+    }
+    return combined_dict
+
+
+@register_route('/api/csv/names_with_gids/', methods=['GET'])
+def get_names_with_gids_csv():
+    ibs = current_app.ibs
+    filename = 'names_with_gids.csv'
+    combined_dict = get_names_with_gids(ibs)
+    combined_list = [
+        ','.join( map(str, [nid] + [name] + gid_list) )
+        for name, (nid, gid_list) in sorted(list(combined_dict.iteritems()))
+    ]
+    combined_str = '\n'.join(combined_list)
+    return ap.send_csv_file(combined_str, filename)
+
+
+@register_api('/api/core/gids_with_aids/', methods=['GET'])
+def get_gid_with_aids(ibs):
+    gid_list = ibs.get_valid_gids()
+    aids_list = ibs.get_image_aids(gid_list)
+    zipped = zip(gid_list, aids_list)
+    combined_dict = { gid : aid_list for gid, aid_list in zipped }
+    return combined_dict
+
+
+@register_route('/api/csv/gids_with_aids/', methods=['GET'])
+def get_gid_with_aids_csv():
+    ibs = current_app.ibs
+    combined_dict = get_gid_with_aids(ibs)
+    filename = 'gids_with_aids.csv'
+    combined_list = [
+        ','.join( map(str, [gid] + aid_list) )
+        for gid, aid_list in sorted(list(combined_dict.iteritems()))
+    ]
+    combined_str = '\n'.join(combined_list)
+    return ap.send_csv_file(combined_str, filename)
+
+
+@register_route('/api/csv/image/', methods=['GET'])
+def get_gid_list_csv():
+    filename = 'gids.csv'
+    ibs = current_app.ibs
+    gid_list = ibs.get_valid_gids()
+    return_str = '\n'.join( map(str, gid_list) )
+    return ap.send_csv_file(return_str, filename)
+
+
+@register_route('/api/csv/annot/', methods=['GET'])
+def get_aid_list_csv():
+    filename = 'aids.csv'
+    ibs = current_app.ibs
+    aid_list = ibs.get_valid_aids()
+    return_str = '\n'.join( map(str, aid_list) )
+    return ap.send_csv_file(return_str, filename)
 
 
 @register_route('/api/image/view/<gid>/', methods=['GET'])
-def image_view_api(gid=None, fresh=False, **kwargs):
+def image_view_api(gid=None, thumbnail=True, fresh=False, **kwargs):
     r"""
     Returns the base64 encoded image of image <gid>
 
@@ -1511,7 +1604,7 @@ def image_view_api(gid=None, fresh=False, **kwargs):
         Method: GET
         URL:    /api/image/view/<gid>/
     """
-    encoded = image_src(gid, fresh=fresh, **kwargs)
+    encoded = image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
     return ap.template(None, 'single', encoded=encoded)
 
 
@@ -2026,7 +2119,7 @@ def display_sightings(html_encode=True):
 def download_sightings():
     filename = 'sightings.csv'
     sightings = display_sightings(html_encode=False)
-    return ap.send_file(sightings, filename)
+    return ap.send_csv_file(sightings, filename)
 
 
 @register_route('/graph/sightings')
