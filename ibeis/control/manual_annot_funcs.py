@@ -2428,6 +2428,19 @@ def set_annot_names(ibs, aid_list, name_list):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def set_annot_name_texts(ibs, aid_list, name_list):
+    r"""
+    alias
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/names/
+    """
+    return ibs.set_annot_names(aid_list, name_list)
+
+
+@register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/species/', methods=['PUT'])
 def set_annot_species(ibs, aid_list, species_text_list):

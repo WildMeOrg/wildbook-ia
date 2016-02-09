@@ -871,12 +871,27 @@ def turk_viewpoint():
         gpath     = ibs.get_annot_chip_fpath(aid)
         image     = ap.open_oriented_image(gpath)
         image_src = ap.embed_image_html(image)
+        species   = ibs.get_annot_species_texts(aid)
     else:
         gid       = None
         gpath     = None
         image_src = None
+        species   = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+
     return ap.template('turk', 'viewpoint',
                        imgsetid=imgsetid,
                        src_ag=src_ag,
@@ -887,6 +902,7 @@ def turk_viewpoint():
                        image_path=gpath,
                        image_src=image_src,
                        previous=previous,
+                       species_list=species_list,
                        imagesettext=imagesettext,
                        progress=progress,
                        finished=finished,
@@ -1336,7 +1352,9 @@ def submit_viewpoint():
             movegroup_aid(ibs, aid, src_ag, dst_ag)
         value = int(request.form['viewpoint-value'])
         yaw = convert_old_viewpoint_to_yaw(value)
+        species_text = request.form['viewpoint-species']
         ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
+        ibs.set_annot_species([aid], [species_text])
         print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
     # Return HTML
     refer = request.args.get('refer', '')
