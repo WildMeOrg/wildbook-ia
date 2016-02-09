@@ -412,7 +412,7 @@ _repo_list += [
     'https://github.com/bluemellophone/ibeis_cnn',
 ]
 _repo_list += [
-    'http://github.com/zmjjmz/ibeis-flukematch-module.git'
+    'https://github.com/zmjjmz/ibeis-flukematch-module.git'
 ]
 
 if ut.get_argflag('--cnn-deps'):
