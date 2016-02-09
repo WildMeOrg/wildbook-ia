@@ -15,6 +15,10 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample
 
+        python -m ibeis --tf autogen_ipynb --db PZ_MTEST
+        # TODO: Add support for dbdir to be specified
+        python -m ibeis --tf autogen_ipynb --db ~/work/PZ_MTEST
+
         python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
 
@@ -44,6 +48,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         notebook_cells = make_ibeis_cell_list(ibs)
         print('\n# ---- \n'.join(notebook_cells))
         return
+    # TODO: Add support for dbdir to be specified
     notebook_str = make_ibeis_notebook(ibs)
     ut.writeto(nb_fpath, notebook_str)
     run = ut.get_argflag('--run') if run is None else run
@@ -75,7 +80,7 @@ def get_default_cell_template_list(ibs):
     info_cells = [
         cells.pipe_config_info,
         cells.annot_config_info,
-        cells.timedelta_distribution,
+        cells.timestamp_distribution,
     ]
 
     dev_analysis = [
@@ -97,7 +102,6 @@ def get_default_cell_template_list(ibs):
 
     if not noexample:
         cell_template_list += [
-            cells.timestamp_distribution,
             cells.example_annotations,
             cells.example_names,
         ]
@@ -109,6 +113,7 @@ def get_default_cell_template_list(ibs):
         cells.hard_success_cases,
         cells.failure_type1_cases,
         cells.failure_type2_cases,
+        cells.timedelta_distribution,
         #cells.investigate_specific_case,
         #cells.view_intereseting_tags,
     ]
