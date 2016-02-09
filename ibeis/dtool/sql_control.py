@@ -2381,10 +2381,13 @@ class SQLDatabaseController(object):
                     superkey_index = superkey_colnames_list.index(primary_superkey)
                     superkey_paramx = superkey_paramxs_list[superkey_index]
                     superkey_colnames = superkey_colnames_list[superkey_index]
-            else:
-                assert len(superkey_colnames_list) == 1
+            elif len(superkey_colnames) == 1:
                 superkey_paramx = superkey_paramxs_list[0]
                 superkey_colnames = superkey_colnames_list[0]
+            else:
+                print('superkey_paramxs_list = %r' % (superkey_paramxs_list, ))
+                print('superkey_colnames_list = %r' % (superkey_colnames_list, ))
+                raise IOError('Cannot merge %r' % (tablename, ))
 
             params_iter = list(zip(*modified_column_list_))
             def get_rowid_from_superkey(*superkey_column_list):
