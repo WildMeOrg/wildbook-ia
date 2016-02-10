@@ -380,7 +380,7 @@ def get_flann_params(algorithm='kdtree', **kwargs):
         algorithm (str): (default = 'kdtree')
 
     Returns:
-        ?: flann_params
+        dict: flann_params
 
     CommandLine:
         python -m vtool.nearest_neighbors --test-get_flann_params --algo=kdtree
