@@ -3,6 +3,18 @@
 TODO:
     Remove Bloat
 
+External usage of this module:
+----------------------
+Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/query_request.py':
+query_request.py : 1030 |                indexer = neighbor_index.request_ibeis_nnindexer(
+query_request.py : 465 |            qreq_.indexer.remove_ibeis_support(qreq_, remove_daids)
+query_request.py : 483 |            qreq_.indexer.add_ibeis_support(qreq_, new_daids)
+----------------------
+Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/automated_matcher.py':
+automated_matcher.py : 181 |        force = neighbor_index.check_background_process()
+
+multi_index.py as well
+
 module which handles the building and caching of individual flann indexes
 """
 from __future__ import absolute_import, division, print_function
@@ -55,9 +67,6 @@ class UUIDMapHyrbridCache(object):
         self.read_func  = self.read_uuid_map_dict
         self.write_func = self.write_uuid_map_dict
 
-    #def __call__(self):
-    #    return  self.read_func(*self.args, **self.kwargs)
-
     def dump(self, cachedir):
         # TODO: DUMP AND LOAD THIS HYBRID CACHE TO DISK
         #write_uuid_map_cpkl
@@ -72,6 +81,9 @@ class UUIDMapHyrbridCache(object):
         fname = 'uuid_maps_hybrid_cache.cPkl'
         cpkl_fpath = join(cachedir, fname)
         self.uuid_maps = ut.lock_and_load_cPkl(cpkl_fpath)
+
+    #def __call__(self):
+    #    return  self.read_func(*self.args, **self.kwargs)
 
     #def __setitem__(self, daids_hashid, visual_uuid_list):
     #    uuid_map_fpath = self.uuid_map_fpath
@@ -186,7 +198,6 @@ def clear_memcache():
     NEIGHBOR_CACHE.clear()
 
 
-#@profile
 def clear_uuid_cache(qreq_):
     """
     CommandLine:
@@ -236,12 +247,9 @@ def print_uuid_cache(qreq_):
     print(candidate_uuids)
 
 
-#@profile
 def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuild=False):
     """
     CALLED BY QUERYREQUST::LOAD_INDEXER
-
-    FIXME: and use params from qparams instead of ibs.cfg
     IBEIS interface into neighbor_index
 
     Args:
@@ -275,10 +283,9 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuil
     return nnindexer
 
 
-#@profile
 def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                                       use_memcache=True, force_rebuild=False, memtrack=None):
-    """
+    r"""
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT
 
     tries to give you an indexer for the requested daids using the least amount
@@ -349,9 +356,8 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                   (len(covered_aids), len(new_daid_list)))
         # Load the base covered indexer
         # THIS SHOULD LOAD NOT REBUILD IF THE UUIDS ARE COVERED
-        base_nnindexer = request_memcached_ibeis_nnindexer(qreq_, covered_aids,
-                                                           verbose=verbose,
-                                                           use_memcache=use_memcache)
+        base_nnindexer = request_memcached_ibeis_nnindexer(
+            qreq_, covered_aids, verbose=verbose, use_memcache=use_memcache)
         # Remove this indexer from the memcache because we are going to change it
         if NEIGHBOR_CACHE.has_key(base_nnindexer.cfgstr):  # NOQA
             print('Removing key from memcache')
@@ -389,11 +395,10 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         return nnindexer
 
 
-#@profile
 def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
                                       verbose=ut.NOT_QUIET, veryverbose=False,
                                       force_rebuild=False, allow_memfallback=True, memtrack=None):
-    """
+    r"""
     FOR INTERNAL USE ONLY
     takes custom daid list. might not be the same as what is in qreq_
 
@@ -451,9 +456,8 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     return nnindexer
 
 
-#@profile
 def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True, force_rebuild=False, memtrack=None):
-    """
+    r"""
     builds new NeighborIndexer which will try to use a disk cached flann if
     available
 
@@ -519,13 +523,9 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     return nnindexer
 
 
-#@profile
 def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
                                     max_covers=None):
     r"""
-    FIXME: This function is slow due to ibs.get_annot_aids_from_visual_uuid
-    282.253 seconds for 600 queries
-
     CommandLine:
         python -m ibeis.algo.hots.neighbor_index --test-group_daids_by_cached_nnindexer
 
@@ -584,7 +584,6 @@ def get_data_cfgstr(ibs, daid_list):
     return daids_hashid
 
 
-#@profile
 def build_nnindex_cfgstr(qreq_, daid_list):
     """
     builds a string that  uniquely identified an indexer built with parameters
@@ -599,20 +598,16 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         str: nnindex_cfgstr
 
     CommandLine:
-        python -c 'import utool; print(utool.auto_docstr("ibeis.algo.hots.neighbor_index", "build_nnindex_cfgstr"))'
         python -m ibeis.algo.hots.neighbor_index --test-build_nnindex_cfgstr
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> # build test data
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
-        >>> # execute function
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
-        >>> # verify results
         >>> result = str(nnindex_cfgstr)
         >>> print(result)
         _VUUIDS((6)ylydksaqdigdecdd)_FLANN(8_kdtrees)_FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
@@ -624,33 +619,24 @@ def build_nnindex_cfgstr(qreq_, daid_list):
     return nnindex_cfgstr
 
 
-#@profile
-def get_fgweights_hack(qreq_, daid_list):
-    """
-    hack to get  feature weights. returns None if feature weights are turned off
-    in config settings
-    """
+def get_support_data(qreq_, daid_list):
+    # TODO: look into ut.cached_func
+    vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_internal_data_config2())
     # <HACK:featweight>
+    #hack to get  feature weights. returns None if feature weights are turned
+    #off in config settings
     if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, config2_=qreq_.get_internal_data_config2(), ensure=True)
     else:
         fgws_list = None
-    return fgws_list
     # </HACK:featweight>
-
-
-def get_support_data(qreq_, daid_list):
-    # TODO: look into ut.cached_func
-    vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_internal_data_config2())
-    fgws_list = get_fgweights_hack(qreq_, daid_list)
     return vecs_list, fgws_list
 
 
-#@profile
 def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
                        cfgstr, force_rebuild=False, verbose=True, memtrack=None):
-    """
+    r"""
     constructs neighbor index independent of ibeis
 
     Args:
@@ -672,7 +658,6 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> # SLOW_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
@@ -684,12 +669,10 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> flann_params = qreq_.qparams.flann_params
         >>> # Get annot descriptors to index
         >>> vecs_list, fgws_list = get_support_data(qreq_, daid_list)
-        >>> # execute function
         >>> nnindexer = new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
         >>> result = ('nnindexer.ax2_aid = %s' % (str(nnindexer.ax2_aid),))
         >>> print(result)
         nnindexer.ax2_aid = [1 2 3 4 5 6]
-
     """
     nnindexer = NeighborIndex(flann_params, cfgstr)
     #if memtrack is not None:
@@ -705,9 +688,8 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
     return nnindexer
 
 
-#@profile
 def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
-    """
+    r"""
     flattens vecs_list and builds a reverse index from the flattened indices
     (idx) to the original aids and fxs
     """
@@ -737,7 +719,7 @@ def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class NeighborIndex(object):
-    """
+    r"""
     wrapper class around flann
     stores flann index and data it needs to index into
 
@@ -750,14 +732,15 @@ class NeighborIndex(object):
     prefix1 = 'flann'
 
     def __init__(nnindexer, flann_params, cfgstr):
-        """ initialize an empty neighbor indexer """
+        r"""
+        initialize an empty neighbor indexer
+        """
         nnindexer.flann    = None  # Approximate search structure
         nnindexer.ax2_aid  = None  # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = None  # (M x D) Descriptors to index
         nnindexer.idx2_fgw = None  # (M x 1) Descriptor forground weight
         nnindexer.idx2_ax  = None  # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
-        nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
         nnindexer.cfgstr   = cfgstr  # configuration id
         if 'random_seed' not in flann_params:
             # Make flann determenistic for the same data
@@ -767,17 +750,10 @@ class NeighborIndex(object):
         nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
         nnindexer.flann_fpath = None
+        nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
 
-    #def __del__(nnindexer):
-    #    print('+------------')
-    #    print('!!! DELETING NNINDEXER: ' + nnindexer.cfgstr)
-    #    print('L___________')
-    #    if nnindexer.flann is not None:
-    #        nnindexer.flann.delete_index()
-
-    #@profile
     def init_support(nnindexer, aid_list, vecs_list, fgws_list, verbose=True):
-        """
+        r"""
         prepares inverted indicies and FLANN data structure
         """
         assert nnindexer.flann is None, 'already initalized'
@@ -805,7 +781,9 @@ class NeighborIndex(object):
 
     @ut.tracefunc_xml
     def add_ibeis_support(nnindexer, qreq_, new_daid_list, verbose=ut.NOT_QUIET):
+        r"""
         # TODO: ensure that the memcache changes appropriately
+        """
         clear_memcache()
         if verbose:
             print('[nnindex] request add %d annots to single-indexer' % (len(new_daid_list)))
@@ -826,7 +804,9 @@ class NeighborIndex(object):
 
     @ut.tracefunc_xml
     def remove_ibeis_support(nnindexer, qreq_, remove_daid_list, verbose=ut.NOT_QUIET):
+        r"""
         # TODO: ensure that the memcache changes appropriately
+        """
         if verbose:
             print('[nnindex] request remove %d annots from single-indexer' %
                   (len(remove_daid_list)))
@@ -834,7 +814,7 @@ class NeighborIndex(object):
         nnindexer.remove_support(remove_daid_list, verbose=verbose)
 
     def remove_support(nnindexer, remove_daid_list, verbose=ut.NOT_QUIET):
-        """
+        r"""
         CommandLine:
             python -m ibeis.algo.hots.neighbor_index --test-remove_support
 
@@ -892,10 +872,9 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE REMOVE POINTS')
 
-    #@profile
     def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
                     verbose=ut.NOT_QUIET):
-        """
+        r"""
         adds support data (aka data to be indexed)
 
         Args:
@@ -969,7 +948,7 @@ class NeighborIndex(object):
             print('DONE ADD POINTS')
 
     def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False, memtrack=None):
-        """
+        r"""
         Ensures that you get a neighbor indexer. It either loads a chached
         indexer or rebuilds a new one.
         """
@@ -998,7 +977,7 @@ class NeighborIndex(object):
         nnindexer.save(cachedir, verbose=verbose)
 
     def reindex(nnindexer, verbose=True, memtrack=None):
-        """ indexes all vectors with FLANN. """
+        r""" indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
         verbose_ = ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num)
@@ -1021,7 +1000,7 @@ class NeighborIndex(object):
     # ---- <cachable_interface> ---
 
     def save(nnindexer, cachedir, verbose=True):
-        """
+        r"""
         Caches a neighbor indexer to disk
         """
         if NOSAVE_FLANN:
@@ -1035,7 +1014,7 @@ class NeighborIndex(object):
         nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir, verbose=True):
-        """
+        r"""
         Loads a cached neighbor indexer from disk
         """
         load_success = False
@@ -1055,9 +1034,8 @@ class NeighborIndex(object):
     def get_prefix(nnindexer):
         return nnindexer.prefix1
 
-    #@profile
     def get_cfgstr(nnindexer, noquery=False):
-        """ returns string which uniquely identified configuration and support data
+        r""" returns string which uniquely identified configuration and support data
 
         Args:
             noquery (bool): if True cfgstr is only relevant to building the
@@ -1125,7 +1103,6 @@ class NeighborIndex(object):
     def get_dtype(nnindexer):
         return nnindexer.idx2_vec.dtype
 
-    #@profile
     def knn(nnindexer, qfx2_vec, K):
         r"""
         Returns the indices and squared distance to the nearest K neighbors.
@@ -1179,7 +1156,6 @@ class NeighborIndex(object):
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
             >>> print(result)
             (0, 2) (0, 2)
-
         """
         if K == 0:
             (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
@@ -1203,7 +1179,7 @@ class NeighborIndex(object):
             except pyflann.FLANNException as ex:
                 ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (nnindexer.flann_fpath,))
                 #ut.embed()
-                # Uncommend and use if the flan index needs to be deleted
+                # Uncomment and use if the flan index needs to be deleted
                 #ibs = ut.search_stack_for_localvar('ibs')
                 #cachedir = ibs.get_flann_cachedir()
                 #flann_fpath = nnindexer.get_fpath(cachedir)
@@ -1224,7 +1200,7 @@ class NeighborIndex(object):
         return (qfx2_idx, qfx2_dist)
 
     def debug_nnindexer(nnindexer):
-        """
+        r"""
         Makes sure the indexer has valid SIFT descriptors
         """
         # FIXME: they might not agree if data has been added / removed
@@ -1245,15 +1221,11 @@ class NeighborIndex(object):
         return (qfx2_idx, qfx2_dist)
 
     def num_indexed_vecs(nnindexer):
-        #invalid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)
         return nnindexer.idx2_vec.shape[0]
-        #return len(nnindexer.idx2_vec)
 
     def num_indexed_annots(nnindexer):
         #invalid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)
         return (nnindexer.ax2_aid != -1).sum()
-        #nnindexer.ax2_aid.shape[0]
-        #return len(nnindexer.ax2_aid)
 
     def get_indexed_aids(nnindexer):
         return nnindexer.ax2_aid[nnindexer.ax2_aid != -1]
@@ -1264,7 +1236,7 @@ class NeighborIndex(object):
         return valid_idx2_vec
 
     def get_removed_idxs(nnindexer):
-        """
+        r"""
         __removed_ids = nnindexer.flann._FLANN__removed_ids
         invalid_idxs = nnindexer.get_removed_idxs()
         assert len(np.intersect1d(invalid_idxs, __removed_ids)) == len(__removed_ids)
@@ -1273,16 +1245,15 @@ class NeighborIndex(object):
         return invalid_idxs
 
     def get_nn_vecs(nnindexer, qfx2_nnidx):
-        """ gets matching vectors """
+        r""" gets matching vectors """
         return nnindexer.idx2_vec.take(qfx2_nnidx, axis=0)
 
     def get_nn_axs(nnindexer, qfx2_nnidx):
-        """ gets matching internal annotation indices """
+        r""" gets matching internal annotation indices """
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
-    #@profile
     def get_nn_aids(nnindexer, qfx2_nnidx):
-        """
+        r"""
         Args:
             qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
                                   approximate nearest data vector
@@ -1308,14 +1279,12 @@ class NeighborIndex(object):
             >>> print(result)
             qfx2_aid.shape = (1257, 4)
         """
-        #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
-        #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
         qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
         qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
         return qfx2_aid
 
     def get_nn_featxs(nnindexer, qfx2_nnidx):
-        """
+        r"""
         Args:
             qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
                                   approximate nearest data vector
@@ -1324,7 +1293,6 @@ class NeighborIndex(object):
                                source annotation) of the kth approximate
                                nearest data vector
         """
-        #return nnindexer.idx2_fx[qfx2_nnidx]
         qfx2_fx = nnindexer.idx2_fx.take(qfx2_nnidx)
         return qfx2_fx
 
@@ -1348,8 +1316,6 @@ class NeighborIndex(object):
             >>> qfx2_nnidx = np.array([[0, 1, 2], [3, 4, 5]])
             >>> qfx2_fgw = nnindexer.get_nn_fgws(qfx2_nnidx)
         """
-        #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
-        #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
         if nnindexer.idx2_fgw is None:
             qfx2_fgw = np.ones(qfx2_nnidx.shape)
         else:
@@ -1357,7 +1323,6 @@ class NeighborIndex(object):
         return qfx2_fgw
 
 
-#@profile
 def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     r"""
     Aggregates descriptors of input annotations and returns inverted information
@@ -1403,7 +1368,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
 
 
 def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
-    """
+    r"""
 
     Ignore:
         >>> # ENABLE_DOCTEST
@@ -1438,9 +1403,8 @@ def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
 # NEW
 
 
-#@profile
 def check_background_process():
-    """
+    r"""
     checks to see if the process has finished and then
     writes the uuid map to disk
     """
@@ -1464,16 +1428,12 @@ def can_request_background_nnindexer():
     return CURRENT_THREAD is None or not CURRENT_THREAD.is_alive()
 
 
-#@profile
 def request_background_nnindexer(qreq_, daid_list):
-    """ FIXME: Duplicate code
+    r""" FIXME: Duplicate code
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
         daid_list (list):
-
-    Returns:
-        bool:
 
     CommandLine:
         python -m ibeis.algo.hots.neighbor_index --test-request_background_nnindexer
@@ -1527,7 +1487,7 @@ def request_background_nnindexer(qreq_, daid_list):
 def background_flann_func(cachedir, daid_list, vecs_list, fgws_list, flann_params, cfgstr,
                           uuid_map_fpath, daids_hashid,
                           visual_uuid_list, min_reindex_thresh):
-    """ FIXME: Duplicate code """
+    r""" FIXME: Duplicate code """
     print('[BG] Starting Background FLANN')
     # FIXME. dont use flann cache
     nnindexer = NeighborIndex(flann_params, cfgstr)
@@ -1545,8 +1505,6 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.algo.hots.neighbor_index
         python -m ibeis.algo.hots.neighbor_index --allexamples
-        python -m ibeis.algo.hots.neighbor_index --allexamples --noface --nosrc
-
         utprof.sh ibeis/algo/hots/neighbor_index.py --allexamples
     """
     import multiprocessing

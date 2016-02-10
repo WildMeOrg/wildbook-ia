@@ -244,10 +244,6 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
         >>> ut.assert_inbounds(weights1.sum(), 2700, 4000)
-
-    Ignore:
-        #from ibeis.algo.hots import neighbor_index as hsnbrx
-        #nnindexer = hsnbrx.request_ibeis_nnindexer(qreq_)
     """
     Knorm = qreq_.qparams.Knorm
     normalizer_rule  = qreq_.qparams.normalizer_rule

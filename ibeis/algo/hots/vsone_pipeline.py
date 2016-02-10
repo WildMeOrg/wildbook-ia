@@ -59,11 +59,6 @@ from vtool import matching
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 import utool as ut
 from six.moves import zip, range, reduce  # NOQA
-#from ibeis.algo.hots import neighbor_index
-#from ibeis.algo.hots import name_scoring
-#import pyflann
-#from ibeis.algo.hots import coverage_kpts
-#profile = ut.profile
 print, rrr, profile = ut.inject2(__name__, '[vsonepipe]')
 
 #from collections import namedtuple

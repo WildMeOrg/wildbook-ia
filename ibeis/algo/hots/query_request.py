@@ -478,7 +478,7 @@ class QueryRequest(object):
         qreq_.internal_daids_mask = None
         #qreq_.metadata = {}
         qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
-        # TODO: multi-indexer add_support
+        # TODO: multi-indexer add support
         if qreq_.indexer is not None:
             #qreq_.load_indexer(verbose=True)
             qreq_.indexer.add_ibeis_support(qreq_, new_daids)

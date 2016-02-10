@@ -434,8 +434,6 @@ def update_normalizer(ibs, cm, qreq_, chosen_names):
     r"""
     adds new support data to the current normalizer
 
-    FIXME: a miss-save in vim will trigger module unloading
-
     FIXME: broken
 
     Args:
@@ -501,7 +499,7 @@ def update_normalizer(ibs, cm, qreq_, chosen_names):
         qreq_.normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
         qreq_.normalizer.retrain()
         species_text = '_'.join(qreq_.get_unique_species())  # HACK
-        # TODO: figure out where to save and load the normalizer from
+        # TODO: figure out where to store normalizer
         qreq_.normalizer.save(ibs.get_local_species_scorenorm_cachedir(species_text))
     else:
         print('NOUPDATE! cannot update score normalization')
