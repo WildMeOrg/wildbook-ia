@@ -766,10 +766,6 @@ class NeighborIndex(object):
         nnindexer.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
         nnindexer.num_indexed = nnindexer.idx2_vec.shape[0]
-        """
-        arr = np.array([1, 2, 3], dtype=np.uint8)
-        arr.dtype == np.uint8
-        """
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             # these are sift descriptors
             nnindexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE_SQRD
@@ -835,7 +831,6 @@ class NeighborIndex(object):
             >>> nnindexer.remove_support(remove_daid_list)
             >>> # test before data vs after data
             >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
-            >>> #
             >>> ax2_nvecs = ut.dict_take(ut.dict_hist(nnindexer.idx2_ax), range(len(nnindexer.ax2_aid)))
             >>> assert qfx2_idx2.max() < ax2_nvecs[0], 'should only get points from aid 7'
             >>> assert qfx2_idx1.max() > ax2_nvecs[0], 'should get points from everyone'

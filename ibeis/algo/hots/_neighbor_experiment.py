@@ -752,8 +752,7 @@ def pyflann_remove_and_save():
         ~/local/build_scripts/flannscripts/autogen_bindings.py
 
     Greping:
-        fl
-        cd src
+        cd ~/code/flann/src
         grep -ER cleanRemovedPoints *
         grep -ER removed_points_ *
 
