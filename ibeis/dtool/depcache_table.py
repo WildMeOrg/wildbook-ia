@@ -548,6 +548,9 @@ class DependencyCacheTable(ut.NiceRepr):
         """
         Lazy addition
 
+        CommandLine:
+            python -m dtool.depcache_table --exec-add_rows_from_parent --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
@@ -596,7 +599,7 @@ class DependencyCacheTable(ut.NiceRepr):
         return rowid_list
 
     def get_rowid(table, parent_rowids, config=None, ensure=True, eager=True,
-                  nInput=None, recompute=False):
+                  nInput=None, recompute=False, _debug=None):
         r"""
         get feat rowids of chip under the current state configuration
         if ensure is True, this function is equivalent to add_rows_from_parent
@@ -638,7 +641,8 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> rowids = table.get_rowid(parent_rowids)
             >>> print(rowids)
         """
-        if table.depc._debug:
+        _debug = table.depc._debug if _debug is None else _debug
+        if _debug:
             print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parents' % (
                 table.tablename, len(parent_rowids)))
             print('[deptbl.get_rowid] config = %r' % (config,))
@@ -658,13 +662,14 @@ class DependencyCacheTable(ut.NiceRepr):
                 parent_rowids, config=config, eager=eager, nInput=nInput)
         return rowid_list
 
-    def _get_rowid(table, parent_rowids, config=None, eager=True, nInput=None):
+    def _get_rowid(table, parent_rowids, config=None, eager=True, nInput=None, _debug=None):
         """
         equivalent to get_rowid except ensure is constrained to be False.
         """
         colnames = (table.rowid_colname,)
         config_rowid = table.get_config_rowid(config=config)
-        if table.depc._debug:
+        _debug = table.depc._debug if _debug is None else _debug
+        if _debug:
             print('_get_rowid')
             print('_get_rowid table.tablename = %r ' % (table.tablename,))
             print('_get_rowid parent_rowids = %s' % (ut.trunc_repr(parent_rowids)))
@@ -678,7 +683,7 @@ class DependencyCacheTable(ut.NiceRepr):
         rowid_list = table.db.get_where2(table.tablename, colnames, params_iter,
                                          and_where_colnames, eager=eager,
                                          nInput=nInput)
-        if table.depc._debug:
+        if _debug:
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
