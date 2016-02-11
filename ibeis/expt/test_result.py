@@ -128,8 +128,8 @@ class TestResult(object):
     def __str__(testres):
         return testres.reconstruct_test_flags()
 
-    def __repr__(qreq_):
-        return qreq_._custom_str()
+    def __repr__(testres):
+        return testres._custom_str()
 
     def _custom_str(testres):
         typestr = testres.__class__.__name__

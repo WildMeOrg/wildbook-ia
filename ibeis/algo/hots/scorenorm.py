@@ -158,7 +158,7 @@ def compare_featscores():
             pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
     nonvaried_lbl = ut.get_nonvaried_cfg_lbls(nfs_cfg_list)[0]
-    figtitle = qreq_._custom_str() + '\n' + nonvaried_lbl
+    figtitle = qreq_.__str__() + '\n' + nonvaried_lbl
 
     pt.set_figtitle(figtitle)
     pt.adjust_subplots(hspace=.5, top=.92, bottom=.08, left=.1, right=.9)
