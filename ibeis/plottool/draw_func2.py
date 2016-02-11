@@ -3595,6 +3595,7 @@ def plot_func(funcs, start=0, stop=1, num=100):
 
     CommandLine:
         python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=np.exp
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,50 --func="lambda x: np.exp(-x / 50)"
         python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_loss
         python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
 
@@ -3602,7 +3603,8 @@ def plot_func(funcs, start=0, stop=1, num=100):
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> func_list = ut.get_argval('--func', type_=list, default=['np.exp'])
-        >>> funcs = [eval(f) for f in func_list]
+        >>> #funcs = [eval(f) for f in func_list]
+        >>> funcs = func_list
         >>> start, stop = ut.get_argval('--range', type_=list, default=[-1, 1])
         >>> num = 1000
         >>> result = plot_func(funcs, start, stop, num)
@@ -3615,8 +3617,9 @@ def plot_func(funcs, start=0, stop=1, num=100):
     xdata = np.linspace(start, stop, num)
     if not ut.isiterable(funcs):
         funcs = [funcs]
+    labels = [func if isinstance(func, six.string_types) else ut.get_callable_name(func) for func in funcs]
+    funcs  = [eval(func) if isinstance(func, six.string_types) else func for func in funcs]
     ydatas = [func(xdata) for func in funcs]
-    labels = [ut.get_callable_name(func) for func in funcs]
     pt.multi_plot(xdata, ydatas, label_list=labels, marker='')  # yscale='log')
 
 
