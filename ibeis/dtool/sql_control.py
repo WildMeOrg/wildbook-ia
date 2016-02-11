@@ -966,7 +966,8 @@ class SQLDatabaseController(object):
             db.dump_to_file(file_, **kwargs)
 
     def dump_to_string(db, **kwargs):
-        string_file = cStringIO.StringIO()
+        #string_file = cStringIO.StringIO()
+        string_file = cStringIO()
         db.dump_to_file(string_file, **kwargs)
         retstr = string_file.getvalue()
         return retstr
@@ -1687,7 +1688,9 @@ class SQLDatabaseController(object):
         """
         assert tablename in db.get_table_names(), (
             'tablename=%r is not a part of this database' % (tablename,))
-        superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys', default=None)
+        superkey_colnames_list_repr = db.get_metadata_val(tablename +
+                                                          '_superkeys',
+                                                          default=None)
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
         #assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN

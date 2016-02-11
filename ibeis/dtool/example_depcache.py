@@ -122,6 +122,7 @@ class DummyVsOneConfig(dtool.TableConfig):
 
 
 class DummyVsOneRequest(dtool.AlgoRequest):
+    _daids_independent = True
     pass
 
 
@@ -322,7 +323,7 @@ def testdata_depc(fname=None):
                         algo_request_class=DummyVsOneRequest,
                         configclass=DummyVsOneConfig)
     #def vsone_matching(depc, qaid_list, daid_list, config):
-    def dummy_matching_algo(depc, request):
+    def vsone_matching(depc, request):
         daids = request.daids
         qaids = request.qaids
         for qaid, daid in ut.product(qaids, daids):

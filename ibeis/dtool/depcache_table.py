@@ -311,6 +311,10 @@ class DependencyCacheTable(ut.NiceRepr):
         return table.depc.configclass_dict[table.tablename]
 
     @property
+    def requestclass(table):
+        return table.depc.requestclass_dict[table.tablename]
+
+    @property
     def tabletype(table):
         return 'algo' if table.isalgo else 'node'
 
@@ -602,6 +606,9 @@ class DependencyCacheTable(ut.NiceRepr):
         Returns:
             list: rowid_list
 
+        CommandLine:
+            python -m dtool.depcache_table --exec-get_rowid
+
         Example0:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
@@ -631,6 +638,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> config = {}
             >>> table = depc['vsone']
+            >>> request = depc.new_algo_request('vsone', [1, 2], [1, 2])
             >>> rowid_dict = depc.get_all_descendant_rowids('vsone', [1, 2], levels_up=1)
             >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
             >>> rowids = table.get_rowid(parent_rowids)

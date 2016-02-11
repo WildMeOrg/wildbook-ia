@@ -752,6 +752,10 @@ class DependencyCache(_CoreDependencyCache):
     def get_tablenames(depc):
         return list(depc.cachetable_dict.keys())
 
+    @property
+    def tablenames(depc):
+        return depc.get_tablenames()
+
     @ut.apply_docstr(REG_PREPROC_DOC)
     def register_preproc(depc, *args, **kwargs):
         """

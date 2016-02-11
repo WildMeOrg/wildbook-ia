@@ -262,17 +262,23 @@ class AlgoRequest(object):
     Ignore:
         cls = dtool.AlgoRequest
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.base import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
+        >>> request2 = depc.new_algo_request('dumbalgo', [1, 2], [1, 2])
     """
     _isnewreq = True
+    _qaids_independent = True
+    _daids_independent = False
 
     @classmethod
     def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
         self = cls()
         self._qaids = None
         self._daids = None
-
-        self._qaids_independent = True
-        self._daids_independent = False
 
         self.depc = depc
         self.qaids = qaids
