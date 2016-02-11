@@ -3521,7 +3521,52 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
     ax = pt.gca()
-    pos = netx.pydot_layout(graph, prog='dot')
+
+    explicit_graph = graph.__class__()
+    explicit_nodes = graph.nodes(data=True)
+    explicit_edges = [(n1, n2, data) for (n1, n2, data) in graph.edges(data=True) if data.get('implicit', False) is not True]
+    explicit_graph.add_nodes_from(explicit_nodes)
+    explicit_graph.add_edges_from(explicit_edges)
+
+    pos = netx.pydot_layout(explicit_graph, prog='dot')
+
+    #def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
+    #    import pygraphviz
+    #    import networkx as netx
+    #    # Add "invisible" edges to induce an ordering
+    #    # Hack for layout (ordering of top level nodes)
+    #    netx_graph2 = netx_graph.copy()
+    #    if getattr(netx_graph, 'ttype2_cpds', None) is not None:
+    #        grouped_nodes = []
+    #        for ttype in netx_graph.ttype2_cpds.keys():
+    #            ttype_cpds = netx_graph.ttype2_cpds[ttype]
+    #            # use defined ordering
+    #            ttype_nodes = ut.list_getattr(ttype_cpds, 'variable')
+    #            # ttype_nodes = sorted(ttype_nodes)
+    #            invis_edges = list(ut.itertwo(ttype_nodes))
+    #            netx_graph2.add_edges_from(invis_edges)
+    #            grouped_nodes.append(ttype_nodes)
+
+    #        A = netx.to_agraph(netx_graph2)
+    #        for nodes in grouped_nodes:
+    #            A.add_subgraph(nodes, rank='same')
+    #    else:
+    #        A = netx.to_agraph(netx_graph2)
+
+    #    args = ''
+    #    G = netx_graph
+    #    A.layout(prog=prog, args=args)
+    #    #A.draw('example.png', prog='dot')
+    #    node_pos = {}
+    #    for n in G:
+    #        node_ = pygraphviz.Node(A, n)
+    #        try:
+    #            xx, yy = node_.attr["pos"].split(',')
+    #            node_pos[n] = (float(xx), float(yy))
+    #        except:
+    #            print("no position for node", n)
+    #            node_pos[n] = (0.0, 0.0)
+    #    return node_pos
 
     # For fancy arrows
     def draw_network2(graph, pos, ax, sg=None):
@@ -3548,15 +3593,20 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             x, y = pos[n]
             pt.ax_absolute_text(x, y, n, ha='center', va='center')
         seen = {}
-        for (u, v, d) in graph.edges(data=True):
+        for (u, v, data) in graph.edges(data=True):
             n1 = graph.node[u]['patch']
             n2 = graph.node[v]['patch']
             rad = 0.1
             if (u, v) in seen:
                 rad = seen.get((u, v))
                 rad = (rad + np.sign(rad) * 0.1) * -1
-            alpha = 0.5
-            color = 'k'
+
+            if data.get('implicit', False):
+                alpha = .2
+                color = pt.GREEN
+            else:
+                alpha = 0.5
+                color = pt.BLACK
 
             arrowstyle = '-' if not graph.is_directed() else '-|>'
 
