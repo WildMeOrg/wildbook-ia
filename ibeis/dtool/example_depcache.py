@@ -11,6 +11,7 @@ import uuid
 from os.path import join
 from six.moves import zip
 from dtool import depcache_control
+import dtool
 
 
 if False:
@@ -25,6 +26,86 @@ if False:
         print('Requesting global dummy ')
         for rowid in parent_rowids:
             yield 'dummy'
+
+
+class DummyKptsConfig(dtool.TableConfig):
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('adapt_shape', True),
+            ut.ParamInfo('adapt_angle', False),
+        ]
+
+
+class DummyIndexerConfig(dtool.AlgoConfig):
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('index_method', 'single'),
+            ut.ParamInfo('trees', 8),
+            ut.ParamInfo('algorithm', 'kdtree'),
+        ]
+
+
+class DummyNNConfig(dtool.AlgoConfig):
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('K', 4),
+            ut.ParamInfo('Knorm', 1),
+            ut.ParamInfo('checks', 800),
+            ut.ParamInfo('version', 1),
+        ]
+
+
+class DummySVERConfig(dtool.AlgoConfig):
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('sver_on', True),
+            ut.ParamInfo('xy_thresh', .01)
+        ]
+
+
+class DummyChipConfig(dtool.TableConfig):
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('resize_dim', 'width',
+                         valid_values=['area', 'width', 'heigh', 'diag']),
+            ut.ParamInfo('size', 500, 'sz'),
+            ut.ParamInfo('preserve_aspect', True),
+            ut.ParamInfo('histeq', False, hideif=False),
+            ut.ParamInfo('fmt', '.png'),
+            ut.ParamInfo('version', 0),
+        ]
+
+
+class DummyAlgoConfig(dtool.AlgoConfig):
+    def get_sub_config_list(self):
+        # Different pipeline compoments can go here
+        # as well as dependencies that were not
+        # explicitly enumerated in the tree structure
+        return [
+            # I guess different annots might want different configs ...
+            DummyChipConfig,
+            DummyKptsConfig,
+            DummyIndexerConfig,
+            DummyNNConfig,
+            DummySVERConfig
+        ]
+
+    def get_param_info_list(self):
+        return [
+            #ut.ParamInfo('score_method', 'csum'),
+            # should this be the only thing here?
+            #ut.ParamInfo('daids', None),
+            ut.ParamInfo('distinctiveness_model', None),
+            ut.ParamInfo('version', 2),
+        ]
+
+
+class DummyMatchRequest(dtool.AlgoRequest):
+    pass
+
+
+class DummyAnnotMatch(dtool.MatchResult):
+    pass
 
 
 def testdata_depc(fname=None):
@@ -61,17 +142,6 @@ def testdata_depc(fname=None):
             vt.imwrite(mask_fpath, mask)
             w, h = vt.get_size(mask)
             yield (w, h), mask_fpath
-
-    class DummyChipConfig(dtool.TableConfig):
-        def get_param_info_list(self):
-            return [
-                ut.ParamInfo('resize_dim', 'width',
-                             valid_values=['area', 'width', 'heigh', 'diag']),
-                ut.ParamInfo('size', 500, 'sz'),
-                ut.ParamInfo('preserve_aspect', True),
-                ut.ParamInfo('histeq', False, hideif=False),
-                ut.ParamInfo('fmt', '.png'),
-            ]
 
     cfg = DummyChipConfig()
     cfg.size = 700
@@ -120,13 +190,6 @@ def testdata_depc(fname=None):
         print('[preproc] Computing probchip')
         for rowid in parent_rowids:
             yield (rowid, rowid), 'probchip.jpg'
-
-    class DummyKptsConfig(dtool.TableConfig):
-        def get_param_info_list(self):
-            return [
-                ut.ParamInfo('adapt_shape', True),
-                ut.ParamInfo('adapt_angle', False),
-            ]
 
     @depc.register_preproc(
         'keypoint', ['chip'], ['kpts', 'num'], [np.ndarray, int],
@@ -187,59 +250,8 @@ def testdata_depc(fname=None):
             vector = np.ones(3)
             yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
 
-    class DummyIndexerConfig(dtool.AlgoConfig):
-        def get_param_info_list(self):
-            return [
-                ut.ParamInfo('index_method', 'single'),
-                ut.ParamInfo('trees', 8),
-                ut.ParamInfo('algorithm', 'kdtree'),
-            ]
-
-    class DummyNNConfig(dtool.AlgoConfig):
-        def get_param_info_list(self):
-            return [
-                ut.ParamInfo('K', 4),
-                ut.ParamInfo('Knorm', 1),
-                ut.ParamInfo('checks', 800),
-            ]
-
-    class DummySVERConfig(dtool.AlgoConfig):
-        def get_param_info_list(self):
-            return [
-                ut.ParamInfo('sver_on', True),
-                ut.ParamInfo('xy_thresh', .01)
-            ]
-
-    class DummyAlgoConfig(dtool.AlgoConfig):
-        def get_sub_config_list(self):
-            # Different pipeline compoments can go here
-            # as well as dependencies that were not
-            # explicitly enumerated in the tree structure
-            return [
-                # I guess different annots might want different configs ...
-                DummyChipConfig,
-                DummyKptsConfig,
-                DummyIndexerConfig,
-                DummyNNConfig,
-                DummySVERConfig
-            ]
-
-        def get_param_info_list(self):
-            return [
-                #ut.ParamInfo('score_method', 'csum'),
-                # should this be the only thing here?
-                #ut.ParamInfo('daids', None),
-                ut.ParamInfo('distinctiveness_model', None),
-            ]
-
     algo_config = DummyAlgoConfig()
     print(algo_config)
-
-    class DummyMatchRequest(dtool.AlgoRequest):
-        pass
-
-    class DummyAnnotMatch(dtool.MatchResult):
-        pass
 
     @depc.register_algo(algoname='dumbalgo',
                         algo_result_class=DummyAnnotMatch,

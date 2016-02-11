@@ -385,7 +385,7 @@ class SQLDatabaseController(object):
                     db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
         else:
             db.uri = None
-            db.connection = lite.connect2(db.fpath, detect_types=lite.PARSE_DECLTYPES)
+            db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
 
         db.connection.text_factory = db.text_factory
         # Get a cursor which will preform sql commands / queries / executions
@@ -455,7 +455,7 @@ class SQLDatabaseController(object):
         db.connection.close()
         tempfile.seek(0)
         # Create a database in memory and import from tempfile
-        db.connection = lite.connect2(":memory:")
+        db.connection = lite.connect(":memory:", detect_types=lite.PARSE_DECLTYPES)
         db.connection.cursor().executescript(tempfile.read())
         db.connection.commit()
         db.connection.row_factory = lite.Row
@@ -467,7 +467,7 @@ class SQLDatabaseController(object):
         del db.cur
         db.connection.close()
         del db.connection
-        db.connection = lite.connect2(db.fpath)
+        db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
         db.connection.text_factory = db.text_factory
         db.cur = db.connection.cursor()
 
@@ -1847,7 +1847,8 @@ class SQLDatabaseController(object):
             ''' % (_column, _table))
         return column_vals
 
-    def get_table_column_data(db, tablename, exclude_columns=[]):
+    def get_table_column_data(db, tablename, exclude_columns=[],
+                              params_iter=None, andwhere_colnames=None):
         """
         CommandLine:
             python -m dtool.sql_control --test-get_table_column_data
@@ -1868,8 +1869,16 @@ class SQLDatabaseController(object):
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
         column_names = ut.compress(all_column_names, isvalid_list)
-        column_list = [db.get_column(tablename, name)
-                       for name in column_names if name not in exclude_columns]
+        if params_iter is not None:
+            rowids = ut.flatten(db.get_where2(tablename, ('rowid',), params_iter,
+                                              andwhere_colnames, unpack_scalars=False))
+            column_list = [
+                db.get(tablename, (name,), rowids, unpack_scalars=True)
+                for name in column_names if name not in exclude_columns
+            ]
+        else:
+            column_list = [db.get_column(tablename, name)
+                           for name in column_names if name not in exclude_columns]
         return column_list, column_names
 
     def make_json_table_definition(db, tablename):
@@ -2406,7 +2415,7 @@ class SQLDatabaseController(object):
             old_rowids_to_new_roids = dict(zip(valid_old_rowid_list, new_rowid_list))  # NOQA
             #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
-    def get_table_csv(db, tablename, exclude_columns=[]):
+    def get_table_csv(db, tablename, exclude_columns=[], params_iter=None, andwhere_colnames=None):
         """ Conveinience: Converts a tablename to csv format
 
         Args:
@@ -2434,11 +2443,15 @@ class SQLDatabaseController(object):
             >>> print(result)
         """
         #=None, column_list=[], header='', column_type=None
-        column_list, column_names = db.get_table_column_data(tablename, exclude_columns)
+        column_list, column_names = db.get_table_column_data(tablename,
+                                                             exclude_columns,
+                                                             params_iter,
+                                                             andwhere_colnames)
         # remove column prefix for more compact csvs
         column_lbls = [name.replace(tablename[:-1] + '_', '') for name in column_names]
         header = db.get_table_csv_header(tablename)
-        csv_table = ut.make_csv_table(column_list, column_lbls, header)
+        csv_table = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
+        #csv_table = ut.make_csv_table(column_list, column_lbls, header, comma_repl='<comma>')
         return csv_table
 
     def print_table_csv(db, tablename, exclude_columns=[]):

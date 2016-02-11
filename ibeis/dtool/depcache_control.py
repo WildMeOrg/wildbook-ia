@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 implicit version of dependency cache from ibeis/templates/template_generator
-#python -m ibeis.templates.template_generator --key feat --modfname={autogen_modname}
-
-SeeAlso:
-    https://pypi.python.org/pypi/luigi
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -100,7 +96,8 @@ class _CoreDependencyCache(object):
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
                        fname=None, chunksize=None, configclass=None,
-                       version=None, isalgo=False, isinteractive=False,
+                       #version=None,
+                       isalgo=False, isinteractive=False,
                        asobject=False):
         """
         Registers a table with this dependency cache.
@@ -145,7 +142,7 @@ class _CoreDependencyCache(object):
             fname=fname,
             chunksize=chunksize,
             isalgo=isalgo,
-            version=version,
+            #version=version,
             isinteractive=isinteractive,
         )
         depc.cachetable_dict[tablename] = table
@@ -158,7 +155,8 @@ class _CoreDependencyCache(object):
                        algo_request_class=None,
                        configclass=None,
                        algo_func=None,
-                       version=None, docstr=None, fname=None, chunksize=None):
+                       #version=None,
+                       docstr=None, fname=None, chunksize=None):
         """
         Registers an algorithm for the root of this dependency cache
         """
@@ -186,16 +184,16 @@ class _CoreDependencyCache(object):
                             configclass=configclass,
                             preproc_func=algo_func,
                             isalgo=True,
-                            version=version,
+                            #version=version,
                             chunksize=chunksize)
 
     @profile
-    def initialize(depc):
+    def initialize(depc, _debug=None):
         """
         Creates all registered tables
         """
         print('[depc] INITIALIZE %s DEPCACHE' % (depc.root.upper(),))
-
+        _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
             reg_preproc = __PREPROC_REGISTER__[depc.root]
             reg_algos = __ALGO_REGISTER__[depc.root]
@@ -222,7 +220,7 @@ class _CoreDependencyCache(object):
         print('[depc] Finished initialization')
 
         for table in depc.cachetable_dict.values():
-            table.initialize()
+            table.initialize(_debug=_debug)
 
         # HACKS:
         # Define injected functions for autocomplete convinience
@@ -375,6 +373,7 @@ class _CoreDependencyCache(object):
         r"""
         Gets the root_rowids of the root table associated with the
         `native_rowids` of `tablename.
+
         Args:
             tablename (str):
             root_rowids (list):
@@ -409,17 +408,15 @@ class _CoreDependencyCache(object):
         # FIXME: not implemented very efficiently
         # Can do shortest existing path instead
         for level_keys in dependency_levels[::-1]:
-            for key in level_keys:
-                if key == depc.root:
+            for tablekey in level_keys:
+                if tablekey == depc.root:
                     break
-                table = depc[key]
-                child_rowids = rowid_dict[key]
+                table = depc[tablekey]
+                child_rowids = rowid_dict[tablekey]
                 colnames = table.parent_rowid_colnames
-                parent_rowids_listT = table.get_internal_columns(child_rowids,
-                                                                 colnames,
-                                                                 keepwrap=True)
+                parent_rowids_listT = table.get_internal_columns(
+                    child_rowids, colnames, keepwrap=True)
                 parent_rowids_list = list(zip(*parent_rowids_listT))
-
                 for parent_key, parent_rowids in zip(table.parents, parent_rowids_list):
                     rowid_dict[parent_key] = parent_rowids
         return rowid_dict
@@ -427,18 +424,23 @@ class _CoreDependencyCache(object):
     def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
                                   ensure=True, eager=True, nInput=None,
                                   recompute=False, recompute_all=False,
-                                  _debug=False):
+                                  levels_up=None, _debug=False):
         r"""
         Connects `root_rowids` to rowids in `tablename`, and computes all
-        values needed along the way.
+        values needed along the way. This is the main workhorse function for
+        dependency computations.
 
         Args:
-            tablename (str):
-            root_rowids (list):
-            config (None): (default = None)
-            ensure (bool):  eager evaluation if True(default = True)
+            tablename (str): table to compute dependencies to
+            root_rowids (list): rowids for ``tablename``
+            config (dict): config applicable for all tables (default = None)
+            ensure (bool): eager evaluation if True(default = True)
             eager (bool): (default = True)
             nInput (None): (default = None)
+            recompute (bool): (default = False)
+            recompute_all (bool): (default = False)
+            levels_up (int): only partially compute dependencies (default = 0)
+            _debug (bool): (default = False)
 
         CommandLine:
             python -m dtool.depcache_control --exec-get_all_descendant_rowids:0
@@ -540,71 +542,68 @@ class _CoreDependencyCache(object):
         """
         # TODO: Need to have a nice way of ensuring configs dont overlap
         # via namespaces.
-        # if config is None:
-        #configclass = depc.configclass_dict[tablename]
-        #if configclass is not None:
-        #    # TODO: configclass should belong here
-        #    pass
-        # if True:
         _debug = depc._debug if _debug is None else _debug
-        indenter = ut.Indenter('[Descend-%s]' % (tablename,),
-                               enabled=_debug)
+        indenter = ut.Indenter('[Descend-%s]' % (tablename,), enabled=_debug)
         if _debug:
             indenter.start()
             print(' * GET DESCENDANT ROWIDS %s ' % (tablename,))
             print(' * config = %r' % (config,))
         dependency_levels = depc.get_dependencies(tablename)
-        configclass_levels = [[depc.configclass_dict.get(key, None)
-                               for key in keys] for keys in dependency_levels]
+        if levels_up is not None:
+            dependency_levels = dependency_levels[:-levels_up]
+
+        configclass_levels = [[depc.configclass_dict.get(tablekey, None)
+                               for tablekey in keys] for keys in dependency_levels]
         if _debug:
             print('[depc] dependency_levels = %s' %
                   (ut.repr3(dependency_levels, nl=1),))
             print('[depc] dependency_levels = %s' %
                   (ut.repr3(configclass_levels, nl=1),))
         rowid_dict = {depc.root: root_rowids}
+        # Ensure that each level ``tablename``'s dependencies have been computed
         for level_keys in dependency_levels[1:]:
             if _debug:
                 print(' * level_keys %s ' % (level_keys,))
-            #[depc.configclass_dict.get(key, None) for key in level_keys]
-            for key in level_keys:
-                configclass = depc.configclass_dict.get(key, None)
-                requestclass = depc.requestclass_dict.get(key, None)
-                if _debug:
-                    print('   * key = %r' % (key,))
-                    print('   * configclass = %r' % (configclass,))
-                    print('   * requestclass = %r' % (requestclass,))
+            # For each table in the level
+            for tablekey in level_keys:
+                configclass = depc.configclass_dict.get(tablekey, None)
+                requestclass = depc.requestclass_dict.get(tablekey, None)
                 if configclass is None:
                     config_ = config
                 else:
                     # Grab the correct configclass for the current table
+                    config_ = None
                     if config is None:
                         config_ = configclass()
                     elif len(getattr(config, '_subconfig_attrs', [])) > 0:
+                        # Get correct config for implicit dependencies
                         target_name = configclass().get_config_name()
                         if target_name in config._subconfig_names:
                             _index = config._subconfig_names.index(target_name)
                             subcfg_attr = config._subconfig_attrs[_index]
                             config_ = config[subcfg_attr]
-                        else:
-                            config_ = configclass(**config)
-                    else:
+                    if config_ is None:
+                        # Preferable way to get configs with explicit
+                        # configs
                         config_ = configclass(**config)
-                if _debug:
-                    print('   * config_ = %r' % (config_,))
-                table = depc[key]
+                table = depc[tablekey]
                 parent_rowids = list(zip(*ut.dict_take(rowid_dict,
                                                        table.parents)))
                 if _debug:
+                    print('   * tablekey = %r' % (tablekey,))
+                    print('   * configclass = %r' % (configclass,))
+                    print('   * requestclass = %r' % (requestclass,))
+                    print('   * config_ = %r' % (config_,))
                     print('   * parent_rowids = %s' %
                           (ut.trunc_repr(parent_rowids),))
-                _recompute = recompute_all or (key == tablename and recompute)
+                _recompute = recompute_all or (tablekey == tablename and recompute)
                 child_rowids = table.get_rowid(
                     parent_rowids, config=config_, eager=eager, nInput=nInput,
                     ensure=ensure, recompute=_recompute)
                 if _debug:
                     print('   * child_rowids = %s' %
                           (ut.trunc_repr(child_rowids),))
-                rowid_dict[key] = child_rowids
+                rowid_dict[tablekey] = child_rowids
         if _debug:
             print(' GOT DESCENDANT ROWIDS')
             indenter.stop()
@@ -641,6 +640,7 @@ class _CoreDependencyCache(object):
             if _debug:
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
                 print(' * config = %r' % (config,))
+            # Compute everything from the root to the requested table
             rowid_dict = depc.get_all_descendant_rowids(
                 tablename, root_rowids, config=config, ensure=ensure,
                 eager=eager, nInput=nInput, recompute=recompute,
@@ -787,14 +787,14 @@ class DependencyCache(_CoreDependencyCache):
             db.print_table_csv(tablename)
 
     def print_config_tables(depc):
-        for key in depc.fname_to_db:
+        for fname in depc.fname_to_db:
             print('---')
-            print('key = %r' % (key,))
-            depc.fname_to_db[key].print_table_csv('config')
+            print('db_fname = %r' % (fname,))
+            depc.fname_to_db[fname].print_table_csv('config')
 
     def get_edges(depc):
-        edges = [(parent, key)
-                 for key, table in depc.cachetable_dict.items()
+        edges = [(parent, tablekey)
+                 for tablekey, table in depc.cachetable_dict.items()
                  for parent in table.parents]
         return edges
 
@@ -864,8 +864,8 @@ class DependencyCache(_CoreDependencyCache):
     def __str__(depc):
         return depc._custom_str()
 
-    def __getitem__(depc, key):
-        return depc.cachetable_dict[key]
+    def __getitem__(depc, tablekey):
+        return depc.cachetable_dict[tablekey]
 
     @property
     def root(depc):

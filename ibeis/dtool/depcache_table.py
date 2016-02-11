@@ -5,20 +5,24 @@ import six
 from six.moves import zip, range
 from os.path import join, exists
 from math import ceil
-from dtool import base
 from dtool import __SQLITE__ as lite
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
 
 
 EXTERN_SUFFIX = '_extern_uri'
 
-CONFIG_TABLE  = 'config'
-CONFIG_ROWID  = 'config_rowid'
-CONFIG_HASHID = 'config_hashid'
-CONFIG_STRID  = 'config_strid'
+CONFIG_TABLE     = 'config'
+CONFIG_ROWID     = 'config_rowid'
+CONFIG_HASHID    = 'config_hashid'
+CONFIG_TABLENAME = 'config_tablename'  # tablename associated with config
+CONFIG_STRID     = 'config_strid'
 
 
-def predrop_grace_period(tablename, seconds=10):
+GRACE_PERIOD = 10
+
+
+def predrop_grace_period(tablename, seconds=None):
+    global GRACE_PERIOD
     warnmsg_fmt = ut.codeblock(
         '''
         WARNING TABLE={tablename} IS MODIFIED
@@ -31,6 +35,9 @@ def predrop_grace_period(tablename, seconds=10):
         If you really dont want this to happen you have {seconds} seconds to
         kill this process before deletion occurs.
         ''')
+    if seconds is None:
+        seconds = GRACE_PERIOD
+        GRACE_PERIOD = max(1, GRACE_PERIOD // 2)
     warnmsg = warnmsg_fmt.format(tablename=tablename, seconds=seconds)
     return ut.grace_period(warnmsg, seconds)
     #return ut.are_you_sure(warnmsg)
@@ -43,6 +50,7 @@ def ensure_config_table(db):
             ('coldef_list', [
                 (CONFIG_ROWID, 'INTEGER PRIMARY KEY'),
                 (CONFIG_HASHID, 'TEXT'),
+                (CONFIG_TABLENAME, 'TEXT'),
                 (CONFIG_STRID, 'TEXT'),
             ],),
             ('docstr', 'table for algo configurations'),
@@ -64,18 +72,36 @@ def ensure_config_table(db):
                 raise NotImplementedError('Need to be able to modify tables')
 
 
-class DependencyCacheTable(object):
-    """
+class DependencyCacheTable(ut.NiceRepr):
+    r"""
     An individual node in the dependency graph.
+
+    CommandLine:
+        python -m dtool.depcache_table --exec-DependencyCacheTable
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.depcache_table import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> table = depc['dumbalgo']
+        >>> print(table)
+        >>> table = depc['spam']
+        >>> print(table)
     """
 
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 version=None,
+                 #version=None,
                  chunksize=None, isalgo=False, isinteractive=False):
 
-        table.db = None
+        # HACK: jedi type hinting. Need to have non-obvious condition
+        try:
+            table.db = None
+        except Exception:
+            from dtool.sql_control import SQLDatabaseController
+            table.db = SQLDatabaseController()
         table.fpath_to_db = {}
 
         table.parent_tablenames = parent_tablenames
@@ -93,7 +119,7 @@ class DependencyCacheTable(object):
         table._nested_idxs2 = []
         table.isalgo = isalgo
         table.isinteractive = isinteractive
-        table.version = version
+        #table.version = version
 
         table.docstr = docstr
         table.fname = fname
@@ -102,6 +128,9 @@ class DependencyCacheTable(object):
         table._asobject = asobject
         table._update_internals()
         table._assert_self()
+
+    def __nice__(table):
+        return '(%s)' % (table.tablename)
 
     def _assert_self(table):
         if table.preproc_func is not None:
@@ -140,9 +169,11 @@ class DependencyCacheTable(object):
 
         external_to_internal = {}
 
-        for colx, (colname, coltype) in enumerate(zip(table.data_colnames, table.data_coltypes)):
+        for colx, (colname, coltype) in enumerate(zip(table.data_colnames,
+                                                      table.data_coltypes)):
             if isinstance(coltype, tuple) or ut.is_func_or_method(coltype):
-                if ut.is_func_or_method(coltype) or ut.is_func_or_method(coltype[0]) or coltype[0] == 'extern':
+                if (ut.is_func_or_method(coltype) or
+                     ut.is_func_or_method(coltype[0]) or coltype[0] == 'extern'):
                     if isinstance(coltype, tuple):
                         if coltype[0] == 'extern':
                             read_func = coltype[1]
@@ -202,12 +233,13 @@ class DependencyCacheTable(object):
         return add_table_kw
 
     @profile
-    def initialize(table):
+    def initialize(table, _debug=None):
         table.db = table.depc.fname_to_db[table.fname]
         #print('Checking sql for table=%r' % (table.tablename,))
 
         if not table.db.has_table(table.tablename):
-            print('Initializing table=%r' % (table.tablename,))
+            if _debug or ut.VERBOSE:
+                print('Initializing table=%r' % (table.tablename,))
             new_state = table.get_addtable_kw()
             table.db.add_table(**new_state)
         else:
@@ -229,11 +261,54 @@ class DependencyCacheTable(object):
     def print_schemadef(table):
         print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
 
+    def print_configs(table):
+        """
+        CommandLine:
+            python -m dtool.depcache_table --exec-print_configs
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['spam']
+            >>> rowids = depc.get_rowids('spam', [1, 2])
+            >>> table.print_configs()
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['keypoint']
+            >>> config = table.configclass()
+            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
+            >>> config = table.configclass(adapt_shape=False)
+            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
+            >>> table.print_configs()
+        """
+        text = table.db.get_table_csv(CONFIG_TABLE,
+                                      params_iter=[(table.tablename,)],
+                                      andwhere_colnames=(CONFIG_TABLENAME,))
+        print(text)
+
     def print_csv(table):
         print(table.db.get_table_csv(table.tablename))
 
     def _get_all_rowids(table):
         pass
+
+    def new_algo_request(table, qaids, daids, cfgdict=None):
+        assert table.isalgo, 'this table is not an algorithm'
+        request = table.depc.new_algo_request(table.tablename, qaids, daids, cfgdict=cfgdict)
+        return request
+
+    def get_rowids_from_root(table, root_rowids, config=None):
+        return table.depc.get_rowids(table.tablename, root_rowids, config=config)
+
+    @property
+    def configclass(table):
+        return table.depc.configclass_dict[table.tablename]
 
     @property
     def tabletype(table):
@@ -273,17 +348,6 @@ class DependencyCacheTable(object):
     def _table_colnames(table):
         return table.superkey_colnames + table._internal_data_colnames
 
-    def _custom_str(table):
-        typestr = table.__class__.__name__
-        custom_str = '<%s(%s) at %s>' % (typestr, table.tablename, hex(id(table)))
-        return custom_str
-
-    def __repr__(table):
-        return table._custom_str()
-
-    def __str__(table):
-        return table._custom_str()
-
     # ---------------------------
     # --- CONFIGURATION TABLE ---
     # ---------------------------
@@ -297,32 +361,33 @@ class DependencyCacheTable(object):
 
     def get_config_hashid(table, config_rowid_list):
         hashid_list = table.db.get(
-            CONFIG_TABLE, (CONFIG_HASHID,), config_rowid_list,
+            CONFIG_TABLE, colnames=(CONFIG_HASHID,), id_iter=config_rowid_list,
             id_colname=CONFIG_ROWID)
         return hashid_list
 
     def get_config_rowid_from_hashid(table, config_hashid_list):
         config_rowid_list = table.db.get(
-            CONFIG_TABLE, (CONFIG_ROWID,), config_hashid_list,
+            CONFIG_TABLE, colnames=(CONFIG_ROWID,), id_iter=config_hashid_list,
             id_colname=CONFIG_HASHID)
         return config_rowid_list
 
     def add_config(table, config, _debug=None):
-        if isinstance(config, base.TableConfig):
+        try:
+            # assume config is AlgoRequest or TableConfig
             config_strid = config.get_cfgstr()
-        elif isinstance(config, base.AlgoRequest):
-            config_strid = config.get_cfgstr()
-        else:
+        except AttributeError:
             config_strid = ut.to_json(config)
-        if table.version is not None:
-            config_strid += '_version(%s)' % (table.version,)
+        #if table.version is not None:
+        #    config_strid += '_version(%s)' % (table.version,)
         config_hashid = ut.hashstr27(config_strid)
         if table.depc._debug or _debug:
             print('config_strid = %r' % (config_strid,))
             print('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
+        colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID,)
+        param_list = [(config_hashid, table.tablename, config_strid,)]
         config_rowid_list = table.db.add_cleanly(
-            CONFIG_TABLE, (CONFIG_HASHID, CONFIG_STRID,), [(config_hashid, config_strid,)],
+            CONFIG_TABLE, colnames, param_list,
             get_rowid_from_superkey)
         config_rowid = config_rowid_list[0]
         if table.depc._debug:
@@ -368,7 +433,8 @@ class DependencyCacheTable(object):
         extern_dpath = table._get_extern_dpath()
         ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
         fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
-        for parent_rowids, algo_result, extern_fpath in zip(dirty_parent_rowids, proptup_gen, fpath_list):
+        _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
+        for parent_rowids, algo_result, extern_fpath in _iter:
             try:
                 algo_result.save_to_fpath(extern_fpath)
                 yield parent_rowids + (config_rowid,) + (extern_fpath,)
@@ -384,7 +450,8 @@ class DependencyCacheTable(object):
         extern_dpath = table._get_extern_dpath()
         ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
         fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
-        for parent_rowids, algo_result, extern_fpath in zip(dirty_parent_rowids, proptup_gen, fpath_list):
+        _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
+        for parent_rowids, algo_result, extern_fpath in _iter:
             yield parent_rowids, config_rowid, algo_result, extern_fpath
 
     def _save_algo_result(table, dirty_params_chunk):
@@ -413,8 +480,8 @@ class DependencyCacheTable(object):
                       for rowids in parent_rowids]
         return fname_list
 
-    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, isdirty_list, config,
-                        verbose=True):
+    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, isdirty_list,
+                        config, verbose=True):
         """ Does work of adding dirty rowids """
         try:
             # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
@@ -481,8 +548,7 @@ class DependencyCacheTable(object):
         """
         Lazy addition
         """
-        if _debug is None:
-            _debug = table.depc._debug
+        _debug = table.depc._debug if _debug is None else _debug
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
@@ -535,6 +601,28 @@ class DependencyCacheTable(object):
 
         Returns:
             list: rowid_list
+
+        Example0:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['dumbalgo']
+            >>> request = table.new_algo_request([1, 2], [3, 4])
+            >>> results = request.execute()
+            >>> print(results)
+
+        Example1:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> config = {}
+            >>> table = depc['spam']
+            >>> rowid_dict = depc.get_all_descendant_rowids('spam', [1, 2], levels_up=1)
+            >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
+            >>> rowids = table.get_rowid(parent_rowids)
+            >>> print(rowids)
         """
         if table.depc._debug:
             print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parents' % (
@@ -547,10 +635,9 @@ class DependencyCacheTable(object):
         if recompute:
             # get existing rowids, delete them, recompute the request
             rowid_list = table._get_rowid(parent_rowids, config=config,
-                                          eager=eager, nInput=nInput)
+                                          eager=True, nInput=None)
             table.delete_rows(rowid_list)
-            rowid_list = table.add_rows_from_parent(parent_rowids, config=config)
-        elif ensure:
+        if ensure or recompute:
             rowid_list = table.add_rows_from_parent(parent_rowids, config=config)
         else:
             rowid_list = table._get_rowid(
@@ -586,7 +673,11 @@ class DependencyCacheTable(object):
         if table.on_delete is not None:
             table.on_delete()
         if ut.NOT_QUIET:
-            print('deleting %d rows from %s' % (len(rowid_list), table.tablename))
+            print('Requested delete of %d rows from %s' % (
+                len(rowid_list), table.tablename))
+            print('Deleting %d non-None rows from %s' % (
+                len(ut.filter_Nones(rowid_list)), table.tablename))
+
         # Finalize: Delete table
         table.db.delete_rowids(table.tablename, rowid_list)
         num_deleted = len(ut.filter_Nones(rowid_list))
@@ -594,12 +685,28 @@ class DependencyCacheTable(object):
 
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
                      read_extern=True, extra_tries=1):
-        """
+        r"""
         colnames = ('mask', 'size')
-
-        FIXME; unpacking is confusing with sql controller
-
+        FIXME: unpacking is confusing with sql controller
         TODO: Clean up and allow for eager=False
+
+        CommandLine:
+            python -m dtool.depcache_table --exec-get_row_data --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['chip']
+            >>> tbl_rowids = depc.get_rowids('chip', [1, 2, 3])
+            >>> colnames = None
+            >>> _debug = None
+            >>> read_extern = False
+            >>> extra_tries = 1
+            >>> kwargs = dict(read_extern=read_extern, extra_tries=extra_tries,
+            >>>               _debug=_debug)
+            >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
@@ -736,3 +843,15 @@ class DependencyCacheTable(object):
             id_colname=table.rowid_colname, eager=eager, nInput=nInput,
             unpack_scalars=unpack_scalars, keepwrap=keepwrap)
         return prop_list
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m dtool.depcache_table
+        python -m dtool.depcache_table --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

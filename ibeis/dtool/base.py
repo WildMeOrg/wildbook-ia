@@ -7,72 +7,56 @@ from os.path import splitext
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
-def parse_config_items(cfg):
+class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
+    r"""
+    Base class for heirarchical config
+    need to overwrite get_param_info_list
     """
-    Recursively extracts key, val pairs from Config objects
-    into a flat list. (there must not be name conflicts)
-    """
-    param_list = []
-    seen = set([])
-    for item in cfg.items():
-        key, val = item
-        if isinstance(val, TableConfig):
-            child_cfg = val
-            param_list.extend(parse_config_items(child_cfg))
-        elif key.startswith('_'):
-            pass
-        else:
-            if key in seen:
-                print('[Config] WARNING: key=%r appears more than once' %
-                      (key,))
-            seen.add(key)
-            param_list.append(item)
-    return param_list
+    def __init__(self, **kwargs):
+        self.initialize_params(**kwargs)
 
+    def __nice__(self):
+        return self.get_cfgstr(with_name=False)
 
-def make_config_metaclass():
-    """
-    Hacked over from ibeis.Config
-    """
-    from utool._internal.meta_util_six import get_funcname
-    methods_list = ut.get_comparison_methods()
+    def __hash__(cfg):
+        """ Needed for comparison operators """
+        return hash(cfg.get_cfgstr())
 
-    # Decorator for functions that we will inject into our metaclass
-    def _register(func):
-        methods_list.append(func)
-        return func
+    def get_config_name(cfg, **kwargs):
+        """ the user might want to overwrite this function """
+        class_str = str(cfg.__class__)
+        full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
+        config_name = splitext(full_class_str)[1][1:].replace('Config', '')
+        return config_name
 
-    @_register
     def get_varnames(self):
-        return [pi.varname for pi in self.get_param_info_list()] + self._subconfig_attrs
+        return ([pi.varname for pi in self.get_param_info_list()] +
+                self._subconfig_attrs)
 
-    @_register
-    def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
-        """ default get_cfgstr_list, can be overrided by a config object """
-        if ignore_keys is not None:
-            itemstr_list = [pi.get_itemstr(cfg)
-                            for pi in cfg.get_param_info_list()
-                            if pi.varname not in ignore_keys]
-        else:
-            itemstr_list = [pi.get_itemstr(cfg)
-                            for pi in cfg.get_param_info_list()]
-        filtered_itemstr_list = list(filter(len, itemstr_list))
-        if with_name:
-            config_name = cfg.get_config_name()
-        else:
-            config_name = ''
-        body = ','.join(filtered_itemstr_list)
-        cfgstr = ''.join([config_name, '(', body, ')'])
-        return cfgstr
-
-    @_register
     def update(cfg, **kwargs):
+        """
+        Overwrites default DictLike update for only keys that exist.
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> from dtool.example_depcache import DummyAlgoConfig
+            >>> cfg = DummyAlgoConfig()
+            >>> cfg.update(DummyAlgo_version=4)
+            >>> print(cfg)
+        """
+        # FIXME: currently can't update subconfigs based on namespaces
+        # and non-namespaced vars are in the context of the root level.
         self_keys = set(cfg.__dict__.keys())
+        name = cfg.get_config_name()
+        prefix = name + '_'
         for key, val in six.iteritems(kwargs):
+            # update only existing keys or namespace prefixed keys
+            if key.startswith(prefix):
+                key = key[len(prefix):]
             if key in self_keys:
                 setattr(cfg, key, val)
 
-    @_register
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
         for pi in cfg.get_param_info_list():
@@ -100,64 +84,168 @@ def make_config_metaclass():
                 subcfg.update(**kwargs)
         cfg.update(**kwargs)
 
-    @_register
-    def parse_items(cfg, **kwargs):
-        param_list = parse_config_items(cfg)
-        duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
-        assert len(duplicate_keys) == 0, 'Configs have duplicate names: %r' % duplicate_keys
+    def parse_namespace_config_items(cfg):
+        """
+        Recursively extracts key, val pairs from Config objects
+        into a flat list. (there must not be name conflicts)
+        """
+        param_list = []
+        seen = set([])
+        for item in cfg.items():
+            key, val = item
+            if hasattr(val, 'parse_namespace_config_items'):
+                child_cfg = val
+                child_params = child_cfg.parse_namespace_config_items()
+                param_list.extend(child_params)
+            elif key.startswith('_'):
+                pass
+            else:
+                if key in seen:
+                    print('[Config] WARNING: key=%r appears more than once' %
+                          (key,))
+                seen.add(key)
+                # Incorporate namespace
+                name = cfg.get_config_name()
+                param_list.append((name, key, val))
         return param_list
 
-    @_register
-    def get_config_name(cfg, **kwargs):
-        """ the user might want to overwrite this function """
-        class_str = str(cfg.__class__)
-        full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
-        config_name = splitext(full_class_str)[1][1:].replace('Config', '')
-        return config_name
+    def parse_items(cfg):
+        r"""
+        Returns:
+            list: param_list
 
-    @_register
-    def __hash__(cfg):
-        """ Needed for comparison operators """
-        return hash(cfg.get_cfgstr())
+        CommandLine:
+            python -m dtool.base --exec-parse_items
 
-    @_register
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> from dtool.example_depcache import DummyAlgoConfig
+            >>> cfg = DummyAlgoConfig()
+            >>> param_list = cfg.parse_items()
+            >>> result = ('param_list = %s' % (ut.repr2(param_list, nl=1),))
+            >>> print(result)
+        """
+        namespace_param_list = Config.parse_namespace_config_items(cfg)
+        needs_namespace_keys = ut.find_duplicate_items(ut.get_list_column(namespace_param_list, 1))
+        param_list = ut.get_list_column(namespace_param_list, [1, 2])
+        # prepend namespaces to variables that need it
+        for idx in ut.flatten(needs_namespace_keys.values()):
+            name = namespace_param_list[idx][0]
+            param_list[idx][0] = name + '_' + param_list[idx][0]
+        duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
+        # hack to let version through
+        assert len(duplicate_keys) == 0, (
+            'Configs have duplicate names: %r' % duplicate_keys)
+        return param_list
+
+    def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
+        """ default get_cfgstr_list, can be overrided by a config object """
+        if ignore_keys is not None:
+            itemstr_list = [pi.get_itemstr(cfg)
+                            for pi in cfg.get_param_info_list()
+                            if pi.varname not in ignore_keys]
+        else:
+            itemstr_list = [pi.get_itemstr(cfg)
+                            for pi in cfg.get_param_info_list()]
+        filtered_itemstr_list = list(filter(len, itemstr_list))
+        if with_name:
+            config_name = cfg.get_config_name()
+        else:
+            config_name = ''
+        body = ','.join(filtered_itemstr_list)
+        cfgstr = ''.join([config_name, '(', body, ')'])
+        return cfgstr
+
     def get_cfgstr(cfg, **kwargs):
         str_ = ''.join(cfg.get_cfgstr_list(**kwargs))
         return '_'.join([str_] + [cfg[subcfg_attr].get_cfgstr()
                                   for subcfg_attr in cfg._subconfig_attrs])
 
-    @_register
     def get_hashid(cfg):
         return ut.hashstr27(cfg.get_cfgstr())
 
-    class ConfigMetaclass(type):
+    def keys(self):
+        """ Required for DictLike interface """
+        return self.get_varnames()
+
+    def getitem(self, key):
+        """ Required for DictLike interface """
+        try:
+            return getattr(self, key)
+        except AttributeError as ex:
+            raise KeyError(ex)
+
+    def setitem(self, key, value):
+        """ Required for DictLike interface """
+        return getattr(self, key, value)
+
+    def get_param_info_list(self):
+        try:
+            return self._param_info_list
+        except AttributeError:
+            raise NotImplementedError(
+                'Need to define _param_info_list or get_param_info_list')
+
+    @classmethod
+    def from_argv_dict(cls, **kwargs):
         """
-        Defines extra methods for Configs
+        handy command line tool
+        ut.parse_argv_cfg
         """
+        self = cls(**kwargs)
+        new_vals = ut.parse_dict_from_argv(self)
+        self.update(**new_vals)
+        return self
 
-        def __new__(cls, name, bases, dct):
-            """
-            cls - meta
-            name - classname
-            supers - bases
-            dct - class dictionary
-            """
-            #assert 'get_cfgstr_list' in dct, (
-            #  'must have defined get_cfgstr_list.  name=%r' % (name,))
-            # Inject registered function
-            for func in methods_list:
-                if get_funcname(func) not in dct:
-                    funcname = get_funcname(func)
-                    dct[funcname] = func
-                else:
-                    funcname = get_funcname(func)
-                    dct['meta_' + funcname] = func
-                #ut.inject_func_as_method(metaself, func)
-            return type.__new__(cls, name, bases, dct)
+    @classmethod
+    def from_argv_cfgs(cls):
+        """
+        handy command line tool
+        """
+        self = cls()
+        name = self.get_config_name()
+        #name = cls.static_config_name()
+        argname = '--' + name
+        if hasattr(self, '_alias'):
+            argname = (argname, '--' + self._alias)
+        #if hasattr(cls, '_alias'):
+        #    argname = (argname, '--' + cls._alias)
+        new_vals_list = ut.parse_argv_cfg(argname)
+        self_list = [cls(**new_vals) for new_vals in new_vals_list]
+        return self_list
 
-    return ConfigMetaclass
+    def __getstate__(self):
+        return self.asdict()
 
-ConfigMetaclass = make_config_metaclass()
+    def __setstate__(self, state):
+        self.update(**state)
+
+    #@classmethod
+    #def static_config_name(cls):
+    #    class_str = str(cls)
+    #    full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
+    #    config_name = splitext(full_class_str)[1][1:].replace('Config', '')
+    #    return config_name
+
+
+class TableConfig(Config):
+    pass
+
+
+class AlgoConfig(TableConfig):
+    pass
+
+
+def dict_as_config(default_cfgdict, tablename):
+    import dtool
+    class UnnamedConfig(dtool.TableConfig):
+        def get_param_info_list(self):
+            #print('default_cfgdict = %r' % (default_cfgdict,))
+            return [ut.ParamInfo(key, val)
+                    for key, val in default_cfgdict.items()]
+    UnnamedConfig.__name__ = str(tablename + 'Config')
+    return UnnamedConfig
 
 
 class AlgoRequest(object):
@@ -182,6 +270,10 @@ class AlgoRequest(object):
         self = cls()
         self._qaids = None
         self._daids = None
+
+        self._qaids_independent = True
+        self._daids_independent = False
+
         self.depc = depc
         self.qaids = qaids
         self.daids = daids
@@ -199,6 +291,7 @@ class AlgoRequest(object):
 
     @property
     def ibs(self):
+        """ HACK specific to ibeis """
         if self.depc is None:
             return None
         return self.depc.controller
@@ -242,7 +335,8 @@ class AlgoRequest(object):
             if use_cache is None:
                 use_cache = not ut.get_argflag('--nocache')
 
-            rowids = table.get_rowid(list(zip(req.qaids)), req, recompute=not use_cache)
+            rowids = table.get_rowid(list(zip(req.qaids)), req,
+                                     recompute=not use_cache)
 
             result_list = table.get_row_data(rowids)
             return ut.get_list_column(result_list, 0)
@@ -292,7 +386,8 @@ class AlgoRequest(object):
     def _custom_str(req):
         # typestr = ut.type_str(type(ibs)).split('.')[-1]
         typestr = req.__class__.__name__
-        dbname = None if req.depc is None or req.depc.controller is None else req.depc.controller.get_dbname()
+        dbname = (None if req.depc is None or req.depc.controller is None
+                  else req.depc.controller.get_dbname())
         # hashkw = dict(_new=True, pathsafe=False)
         # infostr_ = req.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
         infostr_ = 'nQ=%s, nD=%s %s' % (len(req.qaids), len(req.daids), req.get_pipe_hashid())
@@ -374,7 +469,7 @@ def safeop(op_, xs, *args, **kwargs):
     return None if xs is None else op_(xs, *args, **kwargs)
 
 
-class MatchResult(AlgoResult):
+class MatchResult(AlgoResult, ut.NiceRepr):
     def __init__(self, qaid=None, daids=None, qnid=None, dnid_list=None,
                  annot_score_list=None, unique_nids=None,
                  name_score_list=None):
@@ -396,116 +491,8 @@ class MatchResult(AlgoResult):
     def qaids(cm):
         return cm.qaid
 
-    def __repr__(cm):
-        typestr = cm.__class__.__name__
-        infostr_ = 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
-        return '<%s %s at %s>' % (typestr, infostr_, hex(id(cm)))
-
-    def __str__(cm):
-        typestr = cm.__class__.__name__
-        infostr_ = 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
-        return '<%s %s>' % (typestr, infostr_)
-
-
-@six.add_metaclass(ConfigMetaclass)
-class Config(ut.NiceRepr, ut.DictLike):
-    """ Base class for heirarchical config
-
-    need to overwrite get_param_info_list
-
-    """
-
-    def __init__(self, **kwargs):
-        self.initialize_params(**kwargs)
-
-    def __nice__(self):
-        return self.get_cfgstr(with_name=False)
-
-    def keys(self):
-        return self.get_varnames()
-
-    def getitem(self, key):
-        try:
-            return getattr(self, key)
-        except AttributeError as ex:
-            raise KeyError(ex)
-
-    def setitem(self, key, value):
-        return getattr(self, key, value)
-
-    def get_param_info_list(self):
-        try:
-            return self._param_info_list
-        except AttributeError:
-            raise NotImplementedError(
-                'Need to define _param_info_list or get_param_info_list')
-
-    #@classmethod
-    #def static_config_name(cls):
-    #    class_str = str(cls)
-    #    full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
-    #    config_name = splitext(full_class_str)[1][1:].replace('Config', '')
-    #    return config_name
-
-    @classmethod
-    def from_argv_dict(cls, **kwargs):
-        """
-        ut.parse_argv_cfg
-        """
-        self = cls(**kwargs)
-        new_vals = ut.parse_dict_from_argv(self)
-        self.update(**new_vals)
-        return self
-
-    @classmethod
-    def from_argv_cfgs(cls):
-        """
-        """
-        self = cls()
-        name = self.get_config_name()
-        #name = cls.static_config_name()
-        argname = '--' + name
-        if hasattr(self, '_alias'):
-            argname = (argname, '--' + self._alias)
-        #if hasattr(cls, '_alias'):
-        #    argname = (argname, '--' + cls._alias)
-        new_vals_list = ut.parse_argv_cfg(argname)
-        self_list = [cls(**new_vals) for new_vals in new_vals_list]
-        return self_list
-
-    def __getstate__(self):
-        return self.asdict()
-
-    def __setstate__(self, state):
-        self.update(**state)
-
-    def update(cfg, **kwargs):
-        self_keys = set(cfg.__dict__.keys())
-        for key, val in six.iteritems(kwargs):
-            if key in self_keys:
-                setattr(cfg, key, val)
-
-    # @classmethod
-    # def register_func
-
-
-class TableConfig(Config):
-    pass
-
-
-class AlgoConfig(TableConfig):
-    pass
-
-
-def dict_as_config(default_cfgdict, tablename):
-    import dtool
-    class UnnamedConfig(dtool.TableConfig):
-        def get_param_info_list(self):
-            #print('default_cfgdict = %r' % (default_cfgdict,))
-            return [ut.ParamInfo(key, val)
-                    for key, val in default_cfgdict.items()]
-    UnnamedConfig.__name__ = str(tablename + 'Config')
-    return UnnamedConfig
+    def __nice__(cm):
+        return ' qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
 
 
 if __name__ == '__main__':
