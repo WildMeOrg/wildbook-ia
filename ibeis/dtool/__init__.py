@@ -5,6 +5,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 ut.noinject(__name__, '[dtool]')
 
+from dtool import __SQLITE__ as lite
+from dtool import base
 from dtool import sql_control
 from dtool import depcache_control
 from dtool import depcache_table

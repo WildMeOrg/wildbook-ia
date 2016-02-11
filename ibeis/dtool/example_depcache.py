@@ -137,6 +137,9 @@ class DummyAnnotMatch(dtool.MatchResult):
 class DummyVsOneMatch(dtool.AlgoResult):
     def __init__(self):
         self.score = None
+        self.qaid = None
+        self.daid = None
+        self.fm = None
 
 
 def testdata_depc(fname=None):
@@ -328,6 +331,8 @@ def testdata_depc(fname=None):
         qaids = request.qaids
         for qaid, daid in ut.product(qaids, daids):
             match = DummyVsOneMatch()
+            match.qaid = qaid
+            match.daid = daid
             match.score = qaid + daid
             yield match.score, match
 

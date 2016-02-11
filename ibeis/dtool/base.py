@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
@@ -248,7 +249,7 @@ def dict_as_config(default_cfgdict, tablename):
     return UnnamedConfig
 
 
-class AlgoRequest(object):
+class AlgoRequest(ut.NiceRepr):
     """
     Base class for algo request objects
     Need this for TestResult Integration
@@ -330,18 +331,18 @@ class AlgoRequest(object):
     def daids(self, daids):
         self._daids = safeop(np.array, daids)
 
-    def execute(req, qaids=None, use_cache=None):
+    def execute(self, qaids=None, use_cache=None):
         if qaids is not None:
             qaids = [qaids] if not ut.isiterable(qaids) else qaids
-            subreq = req.shallowcopy(qaids=qaids)
+            subreq = self.shallowcopy(qaids=qaids)
             return subreq.execute(use_cache=True)
         else:
-            tablename = req.algoname
-            table = req.depc[tablename]
+            tablename = self.algoname
+            table = self.depc[tablename]
             if use_cache is None:
                 use_cache = not ut.get_argflag('--nocache')
 
-            rowids = table.get_rowid(list(zip(req.qaids)), req,
+            rowids = table.get_rowid(list(zip(self.qaids)), config=self,
                                      recompute=not use_cache)
 
             result_list = table.get_row_data(rowids)
@@ -367,54 +368,53 @@ class AlgoRequest(object):
     def get_pipe_hashid(self):
         return ut.hashstr27(self.get_pipe_cfgstr())
 
-    def get_cfgstr(req, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
+    def get_cfgstr(self, with_query=None, with_data=None, with_pipe=True,
+                   hash_pipe=False):
         r"""
         main cfgstring used to identify the 'querytype'
         """
+        if with_query is None:
+            with_query = False
+            #with_query = not self._qaids_independent
+
+        if with_data is None:
+            with_query = True
+            #with_data = not self._daids_independent
+
         cfgstr_list = []
         if with_query:
-            cfgstr_list.append(req.get_query_hashid())
+            cfgstr_list.append(self.get_query_hashid())
         if with_data:
-            cfgstr_list.append(req.get_data_hashid())
+            cfgstr_list.append(self.get_data_hashid())
         if with_pipe:
             if hash_pipe:
-                cfgstr_list.append(req.get_pipe_hashid())
+                cfgstr_list.append(self.get_pipe_hashid())
             else:
-                cfgstr_list.append(req.get_pipe_cfgstr())
+                cfgstr_list.append(self.get_pipe_cfgstr())
         cfgstr = '_'.join(cfgstr_list)
         return cfgstr
 
-    def get_full_cfgstr(req):
+    def get_full_cfgstr(self):
         """ main cfgstring used to identify the algo hash id """
-        full_cfgstr = req.get_cfgstr(with_query=True)
+        full_cfgstr = self.get_cfgstr(with_query=True)
         return full_cfgstr
 
-    def _custom_str(req):
-        # typestr = ut.type_str(type(ibs)).split('.')[-1]
-        typestr = req.__class__.__name__
-        dbname = (None if req.depc is None or req.depc.controller is None
-                  else req.depc.controller.get_dbname())
-        # hashkw = dict(_new=True, pathsafe=False)
-        # infostr_ = req.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
-        infostr_ = 'nQ=%s, nD=%s %s' % (len(req.qaids), len(req.daids), req.get_pipe_hashid())
-        custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(req)))
-        return custom_str
+    def __nice__(self):
+        dbname = (None if self.depc is None or self.depc.controller is None
+                  else self.depc.controller.get_dbname())
+        infostr_ = 'nQ=%s, nD=%s %s' % (len(self.qaids), len(self.daids),
+                                        self.get_pipe_hashid())
+        return '(%s) %s' % (dbname, infostr_)
 
-    def __repr__(req):
-        return req._custom_str()
-
-    def __str__(req):
-        return req._custom_str()
-
-    def __getstate__(req):
-        state_dict = req.__dict__.copy()
+    def __getstate__(self):
+        state_dict = self.__dict__.copy()
         # SUPER HACK
-        state_dict['dbdir'] = req.depc.controller.get_dbdir()
+        state_dict['dbdir'] = self.depc.controller.get_dbdir()
         del state_dict['depc']
         del state_dict['config']
         return state_dict
 
-    def __setstate__(req, state_dict):
+    def __setstate__(self, state_dict):
         import ibeis
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
@@ -424,16 +424,16 @@ class AlgoRequest(object):
         config = configclass(**params)
         state_dict['depc'] = depc
         state_dict['config'] = config
-        req.__dict__.update(state_dict)
+        self.__dict__.update(state_dict)
 
-    def shallowcopy(req, qmask=None, qaids=None):
+    def shallowcopy(self, qmask=None, qaids=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the
         qx and dx objects.  used to generate chunks of vsone and vsmany queries
         """
-        #subreq = copy.copy(req)  # copy calls setstate and getstate
-        subreq = req.__class__()
-        subreq.__dict__.update(req.__dict__)
+        #subreq = copy.copy(self)  # copy calls setstate and getstate
+        subreq = self.__class__()
+        subreq.__dict__.update(self.__dict__)
         if qmask is not None:
             assert qaids is None, 'cannot specify both'
             qaid_list  = subreq.qaids

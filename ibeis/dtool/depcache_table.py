@@ -639,6 +639,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> config = {}
             >>> table = depc['vsone']
             >>> request = depc.new_algo_request('vsone', [1, 2], [1, 2])
+            >>> depc._debug = False
             >>> rowid_dict = depc.get_all_descendant_rowids('vsone', [1, 2], levels_up=1)
             >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
             >>> rowids = table.get_rowid(parent_rowids)

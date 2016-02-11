@@ -713,7 +713,7 @@ class _CoreDependencyCache(object):
 
 # Define the class with some "nice extras """
 @six.add_metaclass(ut.ReloadingMetaclass)
-class DependencyCache(_CoreDependencyCache):
+class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     """
     To use this class a user must:
         * on root modification, call depc.on_root_modified
@@ -872,18 +872,9 @@ class DependencyCache(_CoreDependencyCache):
         graph = depc.make_digraph()
         pt.show_netx(graph, **kwargs)
 
-    def _custom_str(depc):
-        typestr = depc.__class__.__name__
+    def __nice__(depc):
         infostr_ = 'nTables=%d' % len(depc.cachetable_dict)
-        custom_str = '<%s(%s) %s at %s>' % (typestr, depc.root_tablename,
-                                            infostr_, hex(id(depc)))
-        return custom_str
-
-    def __repr__(depc):
-        return depc._custom_str()
-
-    def __str__(depc):
-        return depc._custom_str()
+        return '(%s) %s' % (depc.root_tablename, infostr_)
 
     def __getitem__(depc, tablekey):
         return depc.cachetable_dict[tablekey]
