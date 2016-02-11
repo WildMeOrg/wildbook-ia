@@ -290,7 +290,8 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
 
 
 @profile
-def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None, return_acfg=False):
+def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
+                  return_acfg=False, verbose=None):
     r"""
     CommandLine:
         python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
@@ -349,7 +350,7 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None, return_a
         if len(aidcfg_combo) != 1:
             raise AssertionError('Error: combinations not handled for single cfg setting')
         aidcfg = aidcfg_combo[0]
-        aids = filter_annots.expand_single_acfg(ibs, aidcfg)
+        aids = filter_annots.expand_single_acfg(ibs, aidcfg, verbose=verbose)
     if return_ibs:
         return ibs, aids
     if return_acfg:

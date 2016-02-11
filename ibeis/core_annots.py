@@ -12,7 +12,6 @@ TODO:
     * make coltypes take imwrite and return just
      the image and let dtool save it where it wants
 
-     * move version to TableConfig
      * external write functions
      * interactive callback functions
      * detection interface
@@ -99,7 +98,6 @@ class ChipConfig(dtool.TableConfig):
     coltypes=[('extern', vt.imread, vt.imwrite), int, int, np.ndarray],
     configclass=ChipConfig,
     fname='chipcache4',
-    version=0
 )
 def compute_chip(depc, aid_list, config=None):
     r"""
@@ -548,7 +546,6 @@ class FeatureConfig(dtool.TableConfig):
     coltypes=[np.ndarray, np.ndarray, int],
     configclass=FeatureConfig,
     fname='featcache',
-    version=0
 )
 def compute_feats(depc, cid_list, config=None):
     r"""
@@ -706,7 +703,6 @@ class FeatWeightConfig(dtool.TableConfig):
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
     fname='featcache',
-    version=0
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """

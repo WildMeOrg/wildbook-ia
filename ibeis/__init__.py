@@ -69,7 +69,7 @@ try:
     #from ibeis.control.IBEISControl import register_preproc, register_algo
     from ibeis.control.controller_inject import register_preproc, register_algo
     from ibeis import core_annots
-    from ibeis import core_images
+    #from ibeis import core_images
     # from dtool.depends_cache import register_preproc, register_algo
     # from dtool.depends_cache import register_preproc, register_algo
 except Exception as ex:

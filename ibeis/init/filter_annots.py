@@ -279,10 +279,12 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     return acfg_cacheinfo
 
 
-def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
+def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
     for main_helpers """
     from ibeis.expt import annotation_configs
+    if verbose is None:
+        verbose = VERB_TESTDATA
     if verbose:
         print('+=== EXPAND_SINGLE_ACFG ===')
         print(' * acfg = %s' %
@@ -290,9 +292,10 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
                            align=True),))
         print('+---------------------')
     avail_aids = ibs._get_all_aids()
-    avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg)
-    avail_aids = sample_annots(ibs, avail_aids, aidcfg)
-    avail_aids = subindex_annots(ibs, avail_aids, aidcfg)
+    avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg, verbose=verbose)
+    avail_aids = filter_annots_intragroup(ibs, avail_aids, aidcfg, verbose=verbose)
+    avail_aids = sample_annots(ibs, avail_aids, aidcfg, verbose=verbose)
+    avail_aids = subindex_annots(ibs, avail_aids, aidcfg, verbose=verbose)
     aids = avail_aids
     if verbose:
         print('L___ EXPAND_SINGLE_ACFG ___')
@@ -1247,7 +1250,6 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         if sample_size > avail_aids:
             print('Warning sample size too large')
         rng = np.random.RandomState(SEED2)
-
         # Randomly sample names rather than annotations this makes sampling a
         # knapsack problem. Use a random greedy solution
         grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
@@ -1259,7 +1261,6 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
                                                        sample_size)
         group_idx_sample = ut.get_list_column(items_subset, 2)
         subgroup_aids = ut.take(grouped_aids, group_idx_sample)
-
         with VerbosityContext('sample_size'):
             avail_aids = ut.flatten(subgroup_aids)
             #avail_aids = ut.random_sample(avail_aids, sample_size, rng=rng)
