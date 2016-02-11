@@ -273,7 +273,11 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
                           if tablename not in ignore_tables_]
         for tablename in tablename_list:
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
-            assert len(superkey_colnames_list) > 0, 'ERROR UPDATING DATABASE, SUPERKEYS DROPPED!'
+            # some tables seem to only have old constraints and aren't
+            # properly updated to superkeys... weird.
+            old_constraints = db.get_table_constraints(tablename)
+            assert len(superkey_colnames_list) > 0 or len(old_constraints) > 0, (
+                'ERROR UPDATING DATABASE, SUPERKEYS of %s DROPPED!' % (tablename,))
 
     print('[_SQL] update_schema_version')
     db_fpath = db.fpath
@@ -285,7 +289,8 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
         count = 0
         # TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)
         while ut.checkpath(db_backup_fpath, verbose=True):
-            db_backup_fname = ''.join((db_fname_noext, '_backup', '_v', version, '_copy', str(count), ext))
+            db_backup_fname = ''.join((db_fname_noext, '_backup', '_v',
+                                       version, '_copy', str(count), ext))
             db_backup_fpath = join(db_dpath, db_backup_fname)
             count += 1
         ut.copy(db_fpath, db_backup_fpath)
@@ -299,11 +304,13 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
     try:
         start_index = valid_versions.index(version) + 1
     except IndexError:
-        raise AssertionError('[!update_schema_version] The current database version is unknown')
+        raise AssertionError('[!update_schema_version]'
+                             ' The current database version is unknown')
     try:
         end_index = valid_versions.index(version_target) + 1
     except IndexError:
-        raise AssertionError('[!update_schema_version] The target database version is unknown')
+        raise AssertionError('[!update_schema_version]'
+                             ' The target database version is unknown')
 
     try:
         print('Update path: %r ' % (valid_versions[start_index:end_index]))
