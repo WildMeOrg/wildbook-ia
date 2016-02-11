@@ -623,6 +623,18 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
             >>> rowids = table.get_rowid(parent_rowids)
             >>> print(rowids)
+
+        Example1:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> config = {}
+            >>> table = depc['vsone']
+            >>> rowid_dict = depc.get_all_descendant_rowids('vsone', [1, 2], levels_up=1)
+            >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
+            >>> rowids = table.get_rowid(parent_rowids)
+            >>> print(rowids)
         """
         if table.depc._debug:
             print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parents' % (

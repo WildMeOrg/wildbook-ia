@@ -100,12 +100,42 @@ class DummyAlgoConfig(dtool.AlgoConfig):
         ]
 
 
+class DummyVsOneConfig(dtool.TableConfig):
+    def get_sub_config_list(self):
+        # Different pipeline compoments can go here
+        # as well as dependencies that were not
+        # explicitly enumerated in the tree structure
+        return [
+            # I guess different annots might want different configs ...
+            DummyChipConfig,
+            DummyKptsConfig,
+            DummyIndexerConfig,
+            DummyNNConfig,
+            DummySVERConfig
+        ]
+
+    def get_param_info_list(self):
+        return [
+            ut.ParamInfo('distinctiveness_model', None),
+            ut.ParamInfo('ratio_thresh', None),
+        ]
+
+
+class DummyVsOneRequest(dtool.AlgoRequest):
+    pass
+
+
 class DummyMatchRequest(dtool.AlgoRequest):
     pass
 
 
 class DummyAnnotMatch(dtool.MatchResult):
     pass
+
+
+class DummyVsOneMatch(dtool.AlgoResult):
+    def __init__(self):
+        self.score = None
 
 
 def testdata_depc(fname=None):
@@ -281,9 +311,27 @@ def testdata_depc(fname=None):
                                           name_score_list)
             yield annot_match
 
+    #@depc.register_preproc(
+    #    'vsone', ['annotation', 'annotation'],
+    #    ['score', 'match_obj'],
+    #    [float, ('extern', DummyVsOneMatch)],
+    #    configclass=DummyVsOneConfig
+    #)
+    @depc.register_algo(algoname='vsone',
+                        algo_result_class=DummyVsOneMatch,
+                        algo_request_class=DummyVsOneRequest,
+                        configclass=DummyVsOneConfig)
+    #def vsone_matching(depc, qaid_list, daid_list, config):
+    def dummy_matching_algo(depc, request):
+        daids = request.daids
+        qaids = request.qaids
+        for qaid, daid in ut.product(qaids, daids):
+            match = DummyVsOneMatch()
+            match.score = qaid + daid
+            yield match.score, match
+
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))
-
     depc.initialize()
 
     # table.print_schemadef()

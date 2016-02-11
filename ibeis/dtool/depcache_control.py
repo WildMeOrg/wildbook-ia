@@ -383,7 +383,7 @@ class _CoreDependencyCache(object):
             dict: rowid_dict
 
         CommandLine:
-            python -m dtool.depcache_control --exec-get_all_ancestor_rowids --show
+            python -m dtool.depcache_control --exec-get_all_ancestor_rowids
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -798,6 +798,19 @@ class DependencyCache(_CoreDependencyCache):
                  for parent in table.parents]
         return edges
 
+    def get_implicit_edges(depc):
+        # add implicit edges
+        implicit_edges = []
+        _inverted_ccdict = ut.invert_dict(depc.configclass_dict)
+        for tablename2, configclass in depc.configclass_dict.items():
+            if hasattr(configclass, 'get_sub_config_list'):
+                cfg = configclass()
+                subconfigs = cfg.get_sub_config_list()
+                tablename1_list = ut.dict_take(_inverted_ccdict, subconfigs, None)
+                for tablename1 in ut.filter_Nones(tablename1_list):
+                    implicit_edges.append((tablename1, tablename2, {'implicit': True}))
+        return implicit_edges
+
     def make_digraph(depc):
         """
         Helper "fluff" function
@@ -824,6 +837,9 @@ class DependencyCache(_CoreDependencyCache):
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
 
+        implicit_edges = depc.get_implicit_edges()
+        graph.add_edges_from(implicit_edges)
+
         shape_dict = {
             # 'algo': 'star',
             'algo': 'circle',
@@ -831,10 +847,11 @@ class DependencyCache(_CoreDependencyCache):
             # 'root': 'rhombus',
             'root': 'circle',
         }
+        import plottool as pt
         color_dict = {
-            'algo': 'g',
+            'algo': pt.DARK_GREEN,  # 'g',
             'node': None,
-            'root': 'r',
+            'root': pt.RED,  # 'r',
         }
         def _node_attrs(dict_):
             props = {k: dict_[v.tabletype] for k, v in
