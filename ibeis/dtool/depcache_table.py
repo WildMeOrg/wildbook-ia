@@ -236,7 +236,6 @@ class DependencyCacheTable(ut.NiceRepr):
     def initialize(table, _debug=None):
         table.db = table.depc.fname_to_db[table.fname]
         #print('Checking sql for table=%r' % (table.tablename,))
-
         if not table.db.has_table(table.tablename):
             if _debug or ut.VERBOSE:
                 print('Initializing table=%r' % (table.tablename,))
@@ -342,7 +341,18 @@ class DependencyCacheTable(ut.NiceRepr):
     @property
     def parent_rowid_colnames(table):
         #return tuple([table.depc[parent].rowid_colname for parent in table.parents])
-        return tuple([parent + '_rowid' for parent in table.parents])
+        # Hack such that duplicate column names receive a count index
+        colnames = []
+        seen_ = ut.ddict(lambda: 1)
+        colhist = ut.dict_hist(table.parents)
+        for col in table.parents:
+            if col in colhist:
+                colnames.append(col + str(seen_[col]))
+                seen_[col] += 1
+            else:
+                colnames.append(col)
+        return tuple(colnames)
+        #return tuple([parent + '_rowid' for parent in table.parents])
 
     @property
     def superkey_colnames(table):
@@ -430,23 +440,6 @@ class DependencyCacheTable(ut.NiceRepr):
                     'config_rowid', 'data_cols', 'parent_rowids'])
                 raise
 
-    def _concat_rowids_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
-        # TODO: generalize to all external data that needs to be written
-        # explicitly
-        extern_fname_list = table._get_extern_fnames(dirty_parent_rowids, config_rowid)
-        extern_dpath = table._get_extern_dpath()
-        ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
-        fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
-        _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
-        for parent_rowids, algo_result, extern_fpath in _iter:
-            try:
-                algo_result.save_to_fpath(extern_fpath)
-                yield parent_rowids + (config_rowid,) + (extern_fpath,)
-            except Exception as ex:
-                ut.printex(ex, 'cat2 error', keys=[
-                    'config_rowid', 'data_cols', 'parent_rowids'])
-                raise
-
     def _yeild_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
         # TODO: generalize to all external data that needs to be written
         # explicitly
@@ -484,19 +477,21 @@ class DependencyCacheTable(ut.NiceRepr):
                       for rowids in parent_rowids]
         return fname_list
 
-    def _add_dirty_rows(table, dirty_parent_rowids, config_rowid, isdirty_list,
+    def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
                         config, verbose=True):
         """ Does work of adding dirty rowids """
+        dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
         try:
             # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
             if table.isalgo:
                 # HACK: config here is a request
                 request = config
                 #subreq = request.shallow_copy # TODO
+                # FIXME: Need to vsone querys and name-vs-name queries work
+                # here.
                 subreq = request.shallowcopy(qmask=isdirty_list)
+                # CALL REGISTRED ALGO WORKER FUNCTION
                 proptup_gen = table.preproc_func(table.depc, subreq)
-                #dirty_params_iter = table._concat_rowids_algo_result(
-                #    dirty_parent_rowids, proptup_gen, config_rowid)
                 dirty_params_iter = table._yeild_algo_result(
                     dirty_parent_rowids, proptup_gen, config_rowid)
             else:
@@ -505,6 +500,7 @@ class DependencyCacheTable(ut.NiceRepr):
                     # Convinience
                     args = [table.depc.get_obj(parent, rowids)
                             for parent, rowids in zip(table.parents, args)]
+                # CALL REGISTRED TABLE WORKER FUNCTION
                 proptup_gen = table.preproc_func(table.depc, *args,
                                                  config=config)
                 if len(table._nested_idxs) > 0:
@@ -551,6 +547,18 @@ class DependencyCacheTable(ut.NiceRepr):
                              _debug=None):
         """
         Lazy addition
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['vsone']
+            >>> _debug = True
+            >>> config = request = depc.new_algo_request('vsone', [1, 2], [2, 3])
+            >>> parent_rowids = request.get_parent_rowids()
+            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
+            >>> print(rowids)
         """
         _debug = table.depc._debug if _debug is None else _debug
         # Get requested configuration id
@@ -563,8 +571,7 @@ class DependencyCacheTable(ut.NiceRepr):
             print('[deptbl.add] config_rowid = %r' % (config_rowid,))
         # Get corresponding "dirty" parent rowids
         isdirty_list = ut.flag_None_items(initial_rowid_list)
-        dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
-        num_dirty = len(dirty_parent_rowids)
+        num_dirty = sum(isdirty_list)
         num_total = len(parent_rowids)
 
         if num_dirty > 0:
@@ -575,7 +582,7 @@ class DependencyCacheTable(ut.NiceRepr):
                     print(fmtstr % (num_dirty, num_total, table.tablename,
                                     config_rowid))
                 print("ADD DIRTY")
-                table._add_dirty_rows(dirty_parent_rowids, config_rowid,
+                table._add_dirty_rows(parent_rowids, config_rowid,
                                       isdirty_list, config)
                 # Get correct order, now that everything is clean in the database
                 print("GET ROWID")
@@ -627,20 +634,6 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> config = {}
             >>> table = depc['spam']
             >>> rowid_dict = depc.get_all_descendant_rowids('spam', [1, 2], levels_up=1)
-            >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
-            >>> rowids = table.get_rowid(parent_rowids)
-            >>> print(rowids)
-
-        Example1:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> config = {}
-            >>> table = depc['vsone']
-            >>> request = depc.new_algo_request('vsone', [1, 2], [1, 2])
-            >>> depc._debug = False
-            >>> rowid_dict = depc.get_all_descendant_rowids('vsone', [1, 2], levels_up=1)
             >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
             >>> rowids = table.get_rowid(parent_rowids)
             >>> print(rowids)

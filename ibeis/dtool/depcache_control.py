@@ -179,7 +179,15 @@ class _CoreDependencyCache(object):
                             unbound_args=unbound_args)
             raise ValueError(msg)
 
+        parents = [depc.root]
+
+        assert algo_request_class._qaids_independent, 'cant do this yet'
+
+        if algo_request_class._daids_independent:
+            parents.append(depc.root)
+
         depc._register_prop(algoname,
+                            parents=parents,
                             coltypes=[algo_result_class.load_from_fpath],
                             configclass=configclass,
                             preproc_func=algo_func,

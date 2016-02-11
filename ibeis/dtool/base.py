@@ -277,144 +277,156 @@ class AlgoRequest(ut.NiceRepr):
 
     @classmethod
     def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
-        self = cls()
-        self._qaids = None
-        self._daids = None
+        request = cls()
+        request._qaids = None
+        request._daids = None
 
-        self.depc = depc
-        self.qaids = qaids
-        self.daids = daids
+        request.depc = depc
+        request.qaids = qaids
+        request.daids = daids
         if cfgdict is None:
             cfgdict = {}
         configclass = depc.configclass_dict[algoname]
         config = configclass(**cfgdict)
 
-        self.config = config
-        self.algoname = algoname
+        request.config = config
+        request.algoname = algoname
 
         # hack
-        self.params = dict(config.parse_items())
-        return self
+        request.params = dict(config.parse_items())
+        return request
 
     @property
-    def ibs(self):
+    def ibs(request):
         """ HACK specific to ibeis """
-        if self.depc is None:
+        if request.depc is None:
             return None
-        return self.depc.controller
+        return request.depc.controller
 
-    def get_external_data_config2(self):
+    def get_external_data_config2(request):
         # HACK
         #return None
-        #print('[d] self.params = %r' % (self.params,))
-        return self.params
+        #print('[d] request.params = %r' % (request.params,))
+        return request.params
 
-    def get_external_query_config2(self):
+    def get_external_query_config2(request):
         # HACK
         #return None
-        #print('[q] self.params = %r' % (self.params,))
-        return self.params
+        #print('[q] request.params = %r' % (request.params,))
+        return request.params
 
     @property
-    def qaids(self):
-        return self._qaids
+    def qaids(request):
+        return request._qaids
 
     @qaids.setter
-    def qaids(self, qaids):
-        self._qaids = safeop(np.array, qaids)
+    def qaids(request, qaids):
+        request._qaids = safeop(np.array, qaids)
 
     @property
-    def daids(self):
-        return self._daids
+    def daids(request):
+        return request._daids
+
+    @property
+    def cfgstr(request):
+        return request.get_cfgstr()
 
     @daids.setter
-    def daids(self, daids):
-        self._daids = safeop(np.array, daids)
+    def daids(request, daids):
+        request._daids = safeop(np.array, daids)
 
-    def execute(self, qaids=None, use_cache=None):
+    def get_parent_rowids(request):
+        if request._daids_independent:
+            parent_rowids = list(ut.product(request.qaids, request.daids))
+        else:
+            parent_rowids = list(zip(request.qaids))
+        return parent_rowids
+
+    def execute(request, qaids=None, use_cache=None):
         if qaids is not None:
             qaids = [qaids] if not ut.isiterable(qaids) else qaids
-            subreq = self.shallowcopy(qaids=qaids)
+            subreq = request.shallowcopy(qaids=qaids)
             return subreq.execute(use_cache=True)
         else:
-            tablename = self.algoname
-            table = self.depc[tablename]
+            tablename = request.algoname
+            table = request.depc[tablename]
             if use_cache is None:
                 use_cache = not ut.get_argflag('--nocache')
 
-            rowids = table.get_rowid(list(zip(self.qaids)), config=self,
+            parent_rowids = request.get_parent_rowids()
+            rowids = table.get_rowid(parent_rowids, config=request,
                                      recompute=not use_cache)
-
             result_list = table.get_row_data(rowids)
             return ut.get_list_column(result_list, 0)
 
-    def get_query_hashid(self):
-        return self._get_rootset_hashid(self.qaids, 'Q')
+    def get_query_hashid(request):
+        return request._get_rootset_hashid(request.qaids, 'Q')
 
-    def get_data_hashid(self):
-        return self._get_rootset_hashid(self.daids, 'D')
+    def get_data_hashid(request):
+        return request._get_rootset_hashid(request.daids, 'D')
 
-    def _get_rootset_hashid(self, root_rowids, preffix):
+    def _get_rootset_hashid(request, root_rowids, preffix):
         uuid_type = 'V'
         label = ''.join((preffix, uuid_type, 'UUIDS'))
-        uuid_list = self.depc.get_root_uuid(root_rowids)
+        uuid_list = request.depc.get_root_uuid(root_rowids)
         #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
         uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
         return uuid_hashid
 
-    def get_pipe_cfgstr(self):
-        return self.config.get_cfgstr()
+    def get_pipe_cfgstr(request):
+        return request.config.get_cfgstr()
 
-    def get_pipe_hashid(self):
-        return ut.hashstr27(self.get_pipe_cfgstr())
+    def get_pipe_hashid(request):
+        return ut.hashstr27(request.get_pipe_cfgstr())
 
-    def get_cfgstr(self, with_query=None, with_data=None, with_pipe=True,
+    def get_cfgstr(request, with_query=None, with_data=None, with_pipe=True,
                    hash_pipe=False):
         r"""
         main cfgstring used to identify the 'querytype'
         """
         if with_query is None:
-            with_query = False
-            #with_query = not self._qaids_independent
+            #with_query = False
+            with_query = not request._qaids_independent
 
         if with_data is None:
-            with_query = True
-            #with_data = not self._daids_independent
+            #with_data = True
+            # non-independent aids must be in config string
+            with_data = not request._daids_independent
 
         cfgstr_list = []
         if with_query:
-            cfgstr_list.append(self.get_query_hashid())
+            cfgstr_list.append(request.get_query_hashid())
         if with_data:
-            cfgstr_list.append(self.get_data_hashid())
+            cfgstr_list.append(request.get_data_hashid())
         if with_pipe:
             if hash_pipe:
-                cfgstr_list.append(self.get_pipe_hashid())
+                cfgstr_list.append(request.get_pipe_hashid())
             else:
-                cfgstr_list.append(self.get_pipe_cfgstr())
+                cfgstr_list.append(request.get_pipe_cfgstr())
         cfgstr = '_'.join(cfgstr_list)
         return cfgstr
 
-    def get_full_cfgstr(self):
+    def get_full_cfgstr(request):
         """ main cfgstring used to identify the algo hash id """
-        full_cfgstr = self.get_cfgstr(with_query=True)
+        full_cfgstr = request.get_cfgstr(with_query=True)
         return full_cfgstr
 
-    def __nice__(self):
-        dbname = (None if self.depc is None or self.depc.controller is None
-                  else self.depc.controller.get_dbname())
-        infostr_ = 'nQ=%s, nD=%s %s' % (len(self.qaids), len(self.daids),
-                                        self.get_pipe_hashid())
+    def __nice__(request):
+        dbname = (None if request.depc is None or request.depc.controller is None
+                  else request.depc.controller.get_dbname())
+        infostr_ = 'nQ=%s, nD=%s %s' % (len(request.qaids), len(request.daids),
+                                        request.get_pipe_hashid())
         return '(%s) %s' % (dbname, infostr_)
 
-    def __getstate__(self):
-        state_dict = self.__dict__.copy()
+    def __getstate__(request):
+        state_dict = request.__dict__.copy()
         # SUPER HACK
-        state_dict['dbdir'] = self.depc.controller.get_dbdir()
+        state_dict['dbdir'] = request.depc.controller.get_dbdir()
         del state_dict['depc']
         del state_dict['config']
         return state_dict
 
-    def __setstate__(self, state_dict):
+    def __setstate__(request, state_dict):
         import ibeis
         dbdir = state_dict['dbdir']
         del state_dict['dbdir']
@@ -424,16 +436,16 @@ class AlgoRequest(ut.NiceRepr):
         config = configclass(**params)
         state_dict['depc'] = depc
         state_dict['config'] = config
-        self.__dict__.update(state_dict)
+        request.__dict__.update(state_dict)
 
-    def shallowcopy(self, qmask=None, qaids=None):
+    def shallowcopy(request, qmask=None, qaids=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the
         qx and dx objects.  used to generate chunks of vsone and vsmany queries
         """
-        #subreq = copy.copy(self)  # copy calls setstate and getstate
-        subreq = self.__class__()
-        subreq.__dict__.update(self.__dict__)
+        #subreq = copy.copy(request)  # copy calls setstate and getstate
+        subreq = request.__class__()
+        subreq.__dict__.update(request.__dict__)
         if qmask is not None:
             assert qaids is None, 'cannot specify both'
             qaid_list  = subreq.qaids

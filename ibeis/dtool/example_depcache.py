@@ -16,10 +16,12 @@ import dtool
 
 if False:
     DUMMY_ROOT_TABLENAME = 'dummy_annot'
-    register_preproc, register_algo = depcache_control.make_depcache_decors(DUMMY_ROOT_TABLENAME)
+    register_preproc, register_algo = depcache_control.make_depcache_decors(
+        DUMMY_ROOT_TABLENAME)
 
     # Example of global preproc function
-    @register_preproc(tablename='dummy', parents=[DUMMY_ROOT_TABLENAME], colnames=['data'], coltypes=[str])
+    @register_preproc(tablename='dummy', parents=[DUMMY_ROOT_TABLENAME],
+                      colnames=['data'], coltypes=[str])
     def dummy_global_preproc_func(depc, parent_rowids, config=None):
         if config is None:
             config = {}
@@ -327,9 +329,10 @@ def testdata_depc(fname=None):
                         configclass=DummyVsOneConfig)
     #def vsone_matching(depc, qaid_list, daid_list, config):
     def vsone_matching(depc, request):
-        daids = request.daids
-        qaids = request.qaids
-        for qaid, daid in ut.product(qaids, daids):
+        #daids = request.daids
+        #qaids = request.qaids
+        #for qaid, daid in ut.product(qaids, daids):
+        for qaid, daid in request.get_parent_rowids():
             match = DummyVsOneMatch()
             match.qaid = qaid
             match.daid = daid
