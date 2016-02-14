@@ -847,7 +847,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         import networkx as netx
-        graph = netx.DiGraph()
+        # graph = netx.DiGraph()
+        graph = netx.MultiDiGraph()
         nodes = list(depc.cachetable_dict.keys())
         edges = depc.get_edges()
         graph.add_nodes_from(nodes)
