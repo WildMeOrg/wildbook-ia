@@ -120,3 +120,7 @@ regen_*
 DEPCACHE/
 tmp.txt
 test_times.txt.backup
+
+clean_profile.txt
+
+Experiments-*.ipynb
