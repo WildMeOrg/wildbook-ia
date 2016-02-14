@@ -87,13 +87,13 @@ class DependencyCacheTable(ut.NiceRepr):
         >>> table = depc['dumbalgo']
         >>> print(table)
         >>> table = depc['spam']
+        >>> table = depc['vsone']
         >>> print(table)
     """
 
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 #version=None,
                  chunksize=None, isalgo=False, isinteractive=False):
 
         # HACK: jedi type hinting. Need to have non-obvious condition
@@ -116,99 +116,134 @@ class DependencyCacheTable(ut.NiceRepr):
         table._nested_idxs = []
         table.sqldb_fpath = None
         table.extern_read_funcs = {}
-        table._nested_idxs2 = []
         table.isalgo = isalgo
         table.isinteractive = isinteractive
-        #table.version = version
+        # hack for tables that accept pairs of parents of the same type
+        # TODO: come up with better name or structure
+        table.productinput = ut.duplicates_exist(table.parent_tablenames)
 
         table.docstr = docstr
         table.fname = fname
         table.depc = depc
         table.chunksize = chunksize
         table._asobject = asobject
-        table._update_internals()
+        table._update_datacol_internal()
         table._assert_self()
 
     def __nice__(table):
-        return '(%s)' % (table.tablename)
+        num_parents = len(table.parent_tablenames)
+        num_cols = len(table.data_colnames)
+        return '(%s) nP=%d nC=%d' % (table.tablename, num_parents, num_cols)
 
     def _assert_self(table):
         if table.preproc_func is not None:
             argspec = ut.get_func_argspec(table.preproc_func)
             args = argspec.args
             if argspec.varargs and argspec.keywords:
-                assert len(args) == 1, 'varargs and kwargs must have one arg for depcache'
+                assert len(args) == 1, (
+                    'varargs and kwargs must have one arg for depcache')
             else:
                 if not table.isalgo:
                     if len(args) < 3:
                         print('args = %r' % (args,))
-                        msg = ('preproc_func=%r for table=%s must have a depcache arg, at'
-                               ' least one parent rowid arg, and a config'
-                               ' arg') % (table.preproc_func, table.tablename,)
+                        msg = (
+                            'preproc_func=%r for table=%s must have a '
+                            'depcache arg, at least one parent rowid arg, '
+                            'and a config arg') % (
+                                table.preproc_func, table.tablename,)
                         raise AssertionError(msg)
                     rowid_args = args[1:-1]
                     if len(rowid_args) != len(table.parents):
-                        print('table.preproc_func = %r' % (table.preproc_func,))
+                        print('table.preproc_func = %r' %
+                              (table.preproc_func,))
                         print('args = %r' % (args,))
                         print('rowid_args = %r' % (rowid_args,))
                         msg = (
                             ('preproc function for table=%s must have as many '
                              'rowids %d args as parents %d') % (
-                                table.tablename, len(rowid_args), len(table.parents))
+                                table.tablename, len(rowid_args),
+                                 len(table.parents))
                         )
                         raise AssertionError(msg)
 
-    def _update_internals(table):
-        extern_read_funcs = {}
+    def _update_datacol_internal(table):
+        """
+        Infers interal properties about this table given the colnames and
+        datatypes
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> for table in depc.tables:
+            >>>     print('----')
+            >>>     table._update_datacol_internal()
+            >>>     print(table)
+            >>>     print('data_colnames = %r' % (table.data_colnames,))
+            >>>     print('data_coltypes = %r' % (table.data_coltypes,))
+            >>>     print('_internal_data_colnames = %r' % (table._internal_data_colnames,))
+            >>>     print('_internal_data_coltypes = %r' % (table._internal_data_coltypes,))
+            >>>     print('nested_to_flat = %r' % (table.nested_to_flat,))
+            >>>     print('external_to_internal = %r' % (table.external_to_internal,))
+            >>>     print('extern_read_funcs = %r' % (table.extern_read_funcs,))
+            >>> table = depc['probchip']
+            >>> table = depc['spam']
+            >>> table = depc['vsone']
+        """
         # TODO: can rewrite much of this
+        extern_read_funcs = {}
         internal_data_colnames = []
         internal_data_coltypes = []
-        _nested_idxs2 = []
-
         nested_to_flat = {}
-
         external_to_internal = {}
-
-        for colx, (colname, coltype) in enumerate(zip(table.data_colnames,
-                                                      table.data_coltypes)):
-            if isinstance(coltype, tuple) or ut.is_func_or_method(coltype):
-                if (ut.is_func_or_method(coltype) or
-                     ut.is_func_or_method(coltype[0]) or coltype[0] == 'extern'):
-                    if isinstance(coltype, tuple):
-                        if coltype[0] == 'extern':
-                            read_func = coltype[1]
-                        else:
-                            read_func = coltype[0]
-                    else:
-                        read_func = coltype
-                    extern_read_funcs[colname] = read_func
-                    _nested_idxs2.append(len(internal_data_colnames))
-                    intern_colname = colname + EXTERN_SUFFIX
-                    internal_data_colnames.append(intern_colname)
-                    internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[str])
-                    external_to_internal[colname] = intern_colname
-                else:
-                    nest = []
-                    table._nested_idxs.append(colx)
-                    nested_to_flat[colname] = []
-                    for count, dimtype in enumerate(coltype):
-                        nest.append(len(internal_data_colnames))
-                        flat_colname = '%s_%d' % (colname, count)
-                        nested_to_flat[colname].append(flat_colname)
-                        internal_data_colnames.append(flat_colname)
-                        internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[dimtype])
-                    _nested_idxs2.append(nest)
-            else:
-                _nested_idxs2.append(len(internal_data_colnames))
+        # Parse column datatypes
+        _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
+        for colx, (colname, coltype) in _iter:
+            # Check column input subtypes
+            is_tuple     = isinstance(coltype, tuple)
+            is_func      = ut.is_func_or_method(coltype)
+            is_externtup = is_tuple and coltype[0] == 'extern'
+            is_functup   = is_tuple and ut.is_func_or_method(coltype[0])
+            # Check column input main types
+            is_normal   = not (is_tuple or is_func)
+            is_nested   = is_tuple and not (is_func or is_externtup)
+            is_external = (is_func or is_functup or is_externtup)
+            # Switch on input types
+            if is_normal:
+                # Normal non-nested column
                 internal_data_colnames.append(colname)
                 internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[coltype])
-
+            elif is_nested:
+                # Nested non-function normal columns
+                table._nested_idxs.append(colx)
+                nested_to_flat[colname] = []
+                for count, dimtype in enumerate(coltype):
+                    flat_colname = '%s_%d' % (colname, count)
+                    nested_to_flat[colname].append(flat_colname)
+                    internal_data_colnames.append(flat_colname)
+                    internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[dimtype])
+            elif is_external:
+                # Nested external funcs
+                if is_externtup:
+                    read_func = coltype[1]
+                elif is_functup:
+                    read_func = coltype[0]
+                else:
+                    read_func = coltype
+                extern_read_funcs[colname] = read_func
+                intern_colname = colname + EXTERN_SUFFIX
+                external_to_internal[colname] = intern_colname
+                internal_data_colnames.append(intern_colname)
+                internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[str])
+            else:
+                raise AssertionError('impossible state')
+        # Set new internal data properties of the table
         assert len(set(internal_data_colnames)) == len(internal_data_colnames)
         assert len(internal_data_coltypes) == len(internal_data_colnames)
         table.extern_read_funcs = extern_read_funcs
         table.external_to_internal = external_to_internal
         table.nested_to_flat = nested_to_flat
-        table._nested_idxs2 = _nested_idxs2
         table._internal_data_colnames = tuple(internal_data_colnames)
         table._internal_data_coltypes = tuple(internal_data_coltypes)
         table._assert_self()
@@ -391,8 +426,6 @@ class DependencyCacheTable(ut.NiceRepr):
             config_strid = config.get_cfgstr()
         except AttributeError:
             config_strid = ut.to_json(config)
-        #if table.version is not None:
-        #    config_strid += '_version(%s)' % (table.version,)
         config_hashid = ut.hashstr27(config_strid)
         if table.depc._debug or _debug:
             print('config_strid = %r' % (config_strid,))
@@ -413,8 +446,137 @@ class DependencyCacheTable(ut.NiceRepr):
     # --- GETTERS NATIVE ---
     # ----------------------
 
+    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True,
+                             _debug=None):
+        """
+        Lazy addition
+
+        CommandLine:
+            python -m dtool.depcache_table --exec-add_rows_from_parent
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['vsone']
+            >>> _debug = True
+            >>> config = request = depc.new_algo_request('vsone', [1, 2], [2, 3])
+            >>> parent_rowids = request.get_parent_rowids()
+            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
+            >>> match_list = request.execute()
+            >>> print(match_list)
+            >>> print(rowids)
+        """
+        _debug = table.depc._debug if _debug is None else _debug
+        # Get requested configuration id
+        config_rowid = table.get_config_rowid(config)
+        # Find leaf rowids that need to be computed
+        initial_rowid_list = table._get_rowid(parent_rowids, config=config)
+        if table.depc._debug:
+            print('[deptbl.add] initial_rowid_list = %s' %
+                  (ut.trunc_repr(initial_rowid_list),))
+            print('[deptbl.add] config_rowid = %r' % (config_rowid,))
+        # Get corresponding "dirty" parent rowids
+        isdirty_list = ut.flag_None_items(initial_rowid_list)
+        num_dirty = sum(isdirty_list)
+        num_total = len(parent_rowids)
+
+        if num_dirty > 0:
+            with ut.Indenter('[ADD]', enabled=_debug):
+                if verbose or _debug:
+                    fmtstr = ('[deptbl.add] adding %d / %d new props to %r '
+                              'for config_rowid=%r')
+                    print(fmtstr % (num_dirty, num_total, table.tablename,
+                                    config_rowid))
+                print("ADD DIRTY")
+                table._add_dirty_rows(parent_rowids, config_rowid,
+                                      isdirty_list, config)
+                # Get correct order, now that everything is clean in the database
+                print("GET ROWID")
+                rowid_list = table._get_rowid(parent_rowids,
+                                                            config=config)
+        else:
+            rowid_list = initial_rowid_list
+        if _debug:
+            print('[deptbl.add] rowid_list = %s' %
+                  (ut.trunc_repr(rowid_list),))
+        return rowid_list
+
+    def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
+                        config, verbose=True):
+        """ Does work of adding dirty rowids """
+        dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
+        try:
+            # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
+            if table.isalgo:
+                # HACK: config here is a request
+                request = config
+                #subreq = request.shallow_copy # TODO
+                # FIXME: Need to vsone querys and name-vs-name queries work
+                # here.
+                if table.productinput:
+                    # Roundabout way of forcing algo requests into the depcache
+                    # structure Very ugly
+                    subreq_list = list(request.shallowcopy_vsonehack(qmask=isdirty_list))
+                    proptup_gen_list = [table.preproc_func(table.depc, subreq)
+                                        for subreq in subreq_list]
+                    from itertools import chain
+                    proptup_gen = chain(*proptup_gen_list)
+                    dirty_params_iter = table._yeild_algo_result(
+                        dirty_parent_rowids, proptup_gen, config_rowid)
+                    #proptup_gen = list(proptup_gen)
+                else:
+                    subreq = request.shallowcopy(qmask=isdirty_list)
+                    # CALL REGISTRED ALGO WORKER FUNCTION
+                    proptup_gen = table.preproc_func(table.depc, subreq)
+                    dirty_params_iter = table._yeild_algo_result(
+                        dirty_parent_rowids, proptup_gen, config_rowid)
+            else:
+                args = zip(*dirty_parent_rowids)
+                if table._asobject:
+                    # Convinience
+                    args = [table.depc.get_obj(parent, rowids)
+                            for parent, rowids in zip(table.parents, args)]
+                # CALL REGISTRED TABLE WORKER FUNCTION
+                proptup_gen = table.preproc_func(table.depc, *args,
+                                                 config=config)
+                if len(table._nested_idxs) > 0:
+                    assert not table.isalgo
+                    unnest_data = table._make_unnester()
+                    proptup_gen = (unnest_data(data) for data in proptup_gen)
+                dirty_params_iter = table._concat_rowids_data(
+                    dirty_parent_rowids, proptup_gen, config_rowid)
+
+            chunksize = (len(dirty_parent_rowids)
+                         if table.chunksize is None else table.chunksize)
+
+            # TODO: Separate this as a function which can be specified as a
+            # callback.
+            num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
+            chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
+            lbl = 'adding %s chunk' % (table.tablename)
+            prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
+            for dirty_params_chunk in prog_iter:
+                nInput = len(dirty_params_chunk)
+                if table.isalgo:
+                    # HACKS, really this should be for anything that has a
+                    # extern write function
+                    sql_chunks = table._save_algo_result(dirty_params_chunk)
+                    table.db._add(table.tablename, table._table_colnames,
+                                  sql_chunks, nInput=nInput)
+                else:
+                    table.db._add(table.tablename, table._table_colnames,
+                                  dirty_params_chunk, nInput=nInput)
+        except Exception as ex:
+            ut.printex(ex, 'error in add_rowids', keys=[
+                'table', 'table.parents', 'parent_rowids', 'config', 'args',
+                'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
+            raise
+
     def _make_unnester(table):
         # TODO: rewrite
+        # Accepts nested tuples and flattens them to fit into the sql tables
         nested_nCols = len(table.data_colnames)
         idxs1 = table._nested_idxs
         mask1 = ut.index_to_boolmask(idxs1, nested_nCols)
@@ -476,127 +638,6 @@ class DependencyCacheTable(ut.NiceRepr):
                                     config_hashid=config_hashid, ext='.cPkl')
                       for rowids in parent_rowids]
         return fname_list
-
-    def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
-                        config, verbose=True):
-        """ Does work of adding dirty rowids """
-        dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
-        try:
-            # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
-            if table.isalgo:
-                # HACK: config here is a request
-                request = config
-                #subreq = request.shallow_copy # TODO
-                # FIXME: Need to vsone querys and name-vs-name queries work
-                # here.
-                subreq = request.shallowcopy(qmask=isdirty_list)
-                # CALL REGISTRED ALGO WORKER FUNCTION
-                proptup_gen = table.preproc_func(table.depc, subreq)
-                dirty_params_iter = table._yeild_algo_result(
-                    dirty_parent_rowids, proptup_gen, config_rowid)
-            else:
-                args = zip(*dirty_parent_rowids)
-                if table._asobject:
-                    # Convinience
-                    args = [table.depc.get_obj(parent, rowids)
-                            for parent, rowids in zip(table.parents, args)]
-                # CALL REGISTRED TABLE WORKER FUNCTION
-                proptup_gen = table.preproc_func(table.depc, *args,
-                                                 config=config)
-                if len(table._nested_idxs) > 0:
-                    assert not table.isalgo
-                    unnest_data = table._make_unnester()
-                    proptup_gen = (unnest_data(data) for data in proptup_gen)
-                dirty_params_iter = table._concat_rowids_data(
-                    dirty_parent_rowids, proptup_gen, config_rowid)
-
-            chunksize = (len(dirty_parent_rowids)
-                         if table.chunksize is None else table.chunksize)
-
-            # TODO: Separate this as a function which can be specified as a
-            # callback.
-            num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
-            chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
-            lbl = 'adding %s chunk' % (table.tablename)
-            prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
-            for dirty_params_chunk in prog_iter:
-                nInput = len(dirty_params_chunk)
-                if table.isalgo:
-                    # HACKS, really this should be for anything that has a
-                    # extern write function
-                    sql_chunks = table._save_algo_result(dirty_params_chunk)
-                    table.db._add(table.tablename, table._table_colnames,
-                                  sql_chunks, nInput=nInput)
-                else:
-                    table.db._add(table.tablename, table._table_colnames,
-                                  dirty_params_chunk, nInput=nInput)
-        except Exception as ex:
-            ut.printex(ex, 'error in add_rowids', keys=[
-                'table',
-                'table.parents',
-                'parent_rowids',
-                'config',
-                'args',
-                'config_rowid',
-                'dirty_parent_rowids',
-                'table.preproc_func'
-            ])
-            raise
-
-    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True,
-                             _debug=None):
-        """
-        Lazy addition
-
-        CommandLine:
-            python -m dtool.depcache_table --exec-add_rows_from_parent --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['vsone']
-            >>> _debug = True
-            >>> config = request = depc.new_algo_request('vsone', [1, 2], [2, 3])
-            >>> parent_rowids = request.get_parent_rowids()
-            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
-            >>> print(rowids)
-        """
-        _debug = table.depc._debug if _debug is None else _debug
-        # Get requested configuration id
-        config_rowid = table.get_config_rowid(config)
-        # Find leaf rowids that need to be computed
-        initial_rowid_list = table._get_rowid(parent_rowids, config=config)
-        if table.depc._debug:
-            print('[deptbl.add] initial_rowid_list = %s' %
-                  (ut.trunc_repr(initial_rowid_list),))
-            print('[deptbl.add] config_rowid = %r' % (config_rowid,))
-        # Get corresponding "dirty" parent rowids
-        isdirty_list = ut.flag_None_items(initial_rowid_list)
-        num_dirty = sum(isdirty_list)
-        num_total = len(parent_rowids)
-
-        if num_dirty > 0:
-            with ut.Indenter('[ADD]', enabled=_debug):
-                if verbose or _debug:
-                    fmtstr = ('[deptbl.add] adding %d / %d new props to %r '
-                              'for config_rowid=%r')
-                    print(fmtstr % (num_dirty, num_total, table.tablename,
-                                    config_rowid))
-                print("ADD DIRTY")
-                table._add_dirty_rows(parent_rowids, config_rowid,
-                                      isdirty_list, config)
-                # Get correct order, now that everything is clean in the database
-                print("GET ROWID")
-                rowid_list = table._get_rowid(parent_rowids,
-                                                            config=config)
-        else:
-            rowid_list = initial_rowid_list
-        if _debug:
-            print('[deptbl.add] rowid_list = %s' %
-                  (ut.trunc_repr(rowid_list),))
-        return rowid_list
 
     def get_rowid(table, parent_rowids, config=None, ensure=True, eager=True,
                   nInput=None, recompute=False, _debug=None):
@@ -662,7 +703,8 @@ class DependencyCacheTable(ut.NiceRepr):
                 parent_rowids, config=config, eager=eager, nInput=nInput)
         return rowid_list
 
-    def _get_rowid(table, parent_rowids, config=None, eager=True, nInput=None, _debug=None):
+    def _get_rowid(table, parent_rowids, config=None, eager=True, nInput=None,
+                   _debug=None):
         """
         equivalent to get_rowid except ensure is constrained to be False.
         """
@@ -719,140 +761,114 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> table = depc['chip']
             >>> tbl_rowids = depc.get_rowids('chip', [1, 2, 3])
-            >>> colnames = None
-            >>> _debug = None
-            >>> read_extern = False
+            >>> colnames = ('size_1', 'size', 'chip', 'chip' + EXTERN_SUFFIX)
+            >>> _debug = True
+            >>> read_extern = True
             >>> extra_tries = 1
             >>> kwargs = dict(read_extern=read_extern, extra_tries=extra_tries,
             >>>               _debug=_debug)
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
         """
+        eager = True
+        nInput = None
+
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
-            print(('[deptbl.get_row_data] Get col of tablename=%r, colnames=%r '
-                   'with tbl_rowids=%s') %
-                  (table.tablename, colnames, ut.trunc_repr(tbl_rowids)))
-        try:
-            request_unpack = False
-            if colnames is None:
-                resolved_colnames = table.data_colnames
-                #table._internal_data_colnames
+            print(('Get col of tablename=%r, colnames=%r with '
+                   'tbl_rowids=%s') % (table.tablename, colnames,
+                                       ut.trunc_repr(tbl_rowids)))
+        ####
+        # Resolve requested column names
+        unpack_columns = False
+        if colnames is None:
+            requested_colnames = table.data_colnames
+        elif isinstance(colnames, six.string_types):
+            requested_colnames = (colnames,)
+            unpack_columns = True
+        else:
+            requested_colnames = colnames
+
+        if _debug:
+            print('requested_colnames = %r' % (requested_colnames,))
+        ####
+        # Map requested colnames flat to internal colnames
+        total = 0
+        intern_colnames = []
+        extern_resolve_colxs = []
+        nesting_xs = []  # how to resolve unnesting
+        for c in requested_colnames:
+            if c in table.external_to_internal:
+                intern_colnames.append([table.external_to_internal[c]])
+                read_func = table.extern_read_funcs[c]
+                extern_resolve_colxs.append((total, read_func))
+                nesting_xs.append(total)
+                total += 1
+            elif c in table.nested_to_flat:
+                nest = table.nested_to_flat[c]
+                nesting_xs.append(list(range(total, total + len(nest))))
+                intern_colnames.append(nest)
+                total += len(nest)
             else:
-                if isinstance(colnames, six.string_types):
-                    request_unpack = True
-                    resolved_colnames = (colnames,)
-                else:
-                    resolved_colnames = colnames
+                nesting_xs.append(total)
+                intern_colnames.append([c])
+                total += 1
+        flat_intern_colnames = tuple(ut.flatten(intern_colnames))
+        if _debug:
+            print('[deptbl.get_row_data] flat_intern_colnames = %r' %
+                  (flat_intern_colnames,))
+        ####
+        # Read data stored in SQL
+        # FIXME: understand unpack_scalars and keepwrap
+        raw_prop_list = table.get_internal_columns(
+            tbl_rowids, flat_intern_colnames, eager, nInput,
+            unpack_scalars=True, keepwrap=True)
+        ####
+        # Read data specified by any external columns
+        prop_listT = list(zip(*raw_prop_list))
+        for extern_colx, read_func in extern_resolve_colxs:
             if _debug:
-                print('[deptbl.get_row_data] resolved_colnames = %r' %
-                      (resolved_colnames,))
-
-            eager = True
-            nInput = None
-
-            total = 0
-            intern_colnames = []
-            extern_resolve_colxs = []
-            nesting_xs = []
-
-            for c in resolved_colnames:
-                if c in table.external_to_internal:
-                    intern_colnames.append([table.external_to_internal[c]])
-                    read_func = table.extern_read_funcs[c]
-                    extern_resolve_colxs.append((total, read_func))
-                    nesting_xs.append(total)
-                    total += 1
-                elif c in table.nested_to_flat:
-                    nest = table.nested_to_flat[c]
-                    nesting_xs.append(list(range(total, total + len(nest))))
-                    intern_colnames.append(nest)
-                    total += len(nest)
-                else:
-                    nesting_xs.append(total)
-                    intern_colnames.append([c])
-                    total += 1
-
-            flat_intern_colnames = tuple(ut.flatten(intern_colnames))
-            if _debug:
-                print('[deptbl.get_row_data] flat_intern_colnames = %r' %
-                      (flat_intern_colnames,))
-
-            # do sql read
-            # FIXME: understand unpack_scalars and keepwrap
-            raw_prop_list = table.get_internal_columns(
-                tbl_rowids, flat_intern_colnames, eager, nInput,
-                unpack_scalars=True, keepwrap=True)
-            # unpack_scalars=not
-            # request_unpack)
-            # print('depth(raw_prop_list) = %r' % (ut.depth_profile(raw_prop_list),))
-            #import utool
-            #utool.embed()
-
-            prop_listT = list(zip(*raw_prop_list))
-            for extern_colx, read_func in extern_resolve_colxs:
-                data_list = []
-                failed_list = []
-                if _debug:
-                    print('[deptbl.get_row_data] read_func = %r' % (read_func,))
-                for uri in prop_listT[extern_colx]:
-                    try:
-                        # FIXME: only do this for a localpath
-                        uri_full = join(table.depc.cache_dpath, uri)
-                        if read_extern:
-                            data = read_func(uri_full)
-                        else:
-                            ut.assertpath(uri_full)
-                            data = uri_full
-                    except Exception as ex:
-                        ut.printex(ex, 'failed to load external data',
-                                   iswarning=False,
-                                   keys=[
-                                       'extra_tries',
-                                       'uri',
-                                       'uri_full',
-                                       (exists, 'uri_full'),
-                                       'read_func'])
-                        #raise
-                        if extra_tries == 0:
-                            raise
-                        failed_list.append(True)
-                        data = None
+                print('[deptbl.get_row_data] read_func = %r' % (read_func,))
+            data_list = []
+            failed_list = []
+            for uri in prop_listT[extern_colx]:
+                # FIXME: only do this for a localpath
+                uri_full = join(table.depc.cache_dpath, uri)
+                try:
+                    if read_extern:
+                        data = read_func(uri_full)
                     else:
-                        failed_list.append(False)
-                    data_list.append(data)
-                if any(failed_list):
-                    # FIXME: should directly recompute the data in the rows
-                    # rather than deleting the rowids.  Need the parent ids and
-                    # config to do that.
-                    failed_rowids = ut.compress(tbl_rowids, failed_list)
-                    table.delete_rows(failed_rowids)
-                    raise Exception('Non existant data on disk. Need to recompute rows')
-                prop_listT[extern_colx] = data_list
-
-            nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
-
-            for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
-                nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
-
-            prop_list = list(zip(*nested_proplistT))
-
-            if request_unpack:
-                prop_list = [None if p is None else p[0] for p in prop_list]
-        except Exception as ex:
-            ut.printex(ex, 'failed in get col', keys=[
-                'table.tablename',
-                'request_unpack',
-                'tbl_rowids',
-                'colnames',
-                'resolved_colnames',
-                'raw_prop_list',
-                (ut.depth_profile, 'raw_prop_list'),
-                'prop_listT',
-                (ut.depth_profile, 'prop_listT'),
-                'nesting_xs',
-                'nested_proplistT',
-                'prop_list'])
-            raise
+                        ut.assertpath(uri_full)
+                        data = uri_full
+                except Exception as ex:
+                    ut.printex(ex, 'failed to load external data',
+                               iswarning=False,
+                               keys=['extra_tries', 'uri', 'uri_full',
+                                     (exists, 'uri_full'), 'read_func'])
+                    if extra_tries == 0:
+                        raise
+                    failed_list.append(True)
+                    data = None
+                else:
+                    failed_list.append(False)
+                data_list.append(data)
+            if any(failed_list):
+                # FIXME: should directly recompute the data in the rows
+                # rather than deleting the rowids.  Need the parent ids and
+                # config to do that.
+                failed_rowids = ut.compress(tbl_rowids, failed_list)
+                table.delete_rows(failed_rowids)
+                raise Exception('Non existant data on disk. Need to recompute rows')
+            prop_listT[extern_colx] = data_list
+        ####
+        # Unflatten data into any given nested structure
+        nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
+        for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
+            nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
+        prop_list = list(zip(*nested_proplistT))
+        ####
+        # Unpack single column datas if requested
+        if unpack_columns:
+            prop_list = [None if p is None else p[0] for p in prop_list]
         return prop_list
 
     def get_internal_columns(table, tbl_rowids, colnames=None, eager=True,

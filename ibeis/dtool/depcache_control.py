@@ -761,6 +761,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         return list(depc.cachetable_dict.keys())
 
     @property
+    def tables(depc):
+        return list(depc.cachetable_dict.values())
+
+    @property
     def tablenames(depc):
         return depc.get_tablenames()
 

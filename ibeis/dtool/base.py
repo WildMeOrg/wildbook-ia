@@ -359,6 +359,40 @@ class AlgoRequest(ut.NiceRepr):
             result_list = table.get_row_data(rowids)
             return ut.get_list_column(result_list, 0)
 
+    def shallowcopy_vsonehack(request, qmask=None, qaids=None):
+        # Roundabout way of forcing algo requests into the depcache structure
+        # Very ugly
+        parent_rowids = request.get_parent_rowids()
+        dirty_parents = ut.compress(parent_rowids, qmask)
+        dirty_qaids = ut.take_column(dirty_parents, 0)
+        dirty_daids = ut.take_column(dirty_parents, 1)
+        groupxs = ut.group_indices(dirty_qaids)[1]
+        daids_list = ut.apply_grouping(dirty_daids, groupxs)
+        qaids_list = ut.apply_grouping(dirty_qaids, groupxs)
+        for qaids, daids in zip(qaids_list, daids_list):
+            #subreq = copy.copy(request)  # copy calls setstate and getstate
+            subreq = request.__class__()
+            subreq.__dict__.update(request.__dict__)
+            subreq.qaids = qaids
+            subreq.qaids = daids
+            yield subreq
+
+    def shallowcopy(request, qmask=None, qaids=None):
+        """
+        Creates a copy of qreq with the same qparams object and a subset of the
+        qx and dx objects.  used to generate chunks of vsone and vsmany queries
+        """
+        #subreq = copy.copy(request)  # copy calls setstate and getstate
+        subreq = request.__class__()
+        subreq.__dict__.update(request.__dict__)
+        if qmask is not None:
+            assert qaids is None, 'cannot specify both'
+            qaid_list  = subreq.qaids
+            subreq.qaids = ut.compress(qaid_list, qmask)
+        elif qaids is not None:
+            subreq.qaids = qaids
+        return subreq
+
     def get_query_hashid(request):
         return request._get_rootset_hashid(request.qaids, 'Q')
 
@@ -437,22 +471,6 @@ class AlgoRequest(ut.NiceRepr):
         state_dict['depc'] = depc
         state_dict['config'] = config
         request.__dict__.update(state_dict)
-
-    def shallowcopy(request, qmask=None, qaids=None):
-        """
-        Creates a copy of qreq with the same qparams object and a subset of the
-        qx and dx objects.  used to generate chunks of vsone and vsmany queries
-        """
-        #subreq = copy.copy(request)  # copy calls setstate and getstate
-        subreq = request.__class__()
-        subreq.__dict__.update(request.__dict__)
-        if qmask is not None:
-            assert qaids is None, 'cannot specify both'
-            qaid_list  = subreq.qaids
-            subreq.qaids = ut.compress(qaid_list, qmask)
-        elif qaids is not None:
-            subreq.qaids = qaids
-        return subreq
 
 
 class AlgoResult(object):

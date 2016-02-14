@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import numpy as np
 import uuid
-from os.path import join
+from os.path import join, dirname
 from six.moves import zip
 from dtool import depcache_control
 import dtool
@@ -136,26 +136,35 @@ class DummyAnnotMatch(dtool.MatchResult):
     pass
 
 
-class DummyVsOneMatch(dtool.AlgoResult):
+class DummyVsOneMatch(dtool.AlgoResult, ut.NiceRepr):
     def __init__(self):
         self.score = None
         self.qaid = None
         self.daid = None
         self.fm = None
 
+    def __nice__(self):
+        return ('(%d-vs-%d) %.2f' % (self.qaid, self.daid, self.score))
+
 
 def testdata_depc(fname=None):
     import dtool
     import vtool as vt
-    gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(), verbose=False)
+    gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(),
+                         verbose=False)
 
     dummy_root = 'dummy_annot'
 
     def get_root_uuid(aid_list):
         return ut.lmap(ut.hashable_to_uuid, aid_list)
 
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
+    cache_dpath = join(dtool_repo, 'DEPCACHE')
+
     depc = dtool.DependencyCache(
         root_tablename=dummy_root, default_fname=fname,
+        cache_dpath=cache_dpath,
         get_root_uuid=get_root_uuid,
         #root_asobject=root_asobject,
         use_globals=False)
@@ -337,7 +346,8 @@ def testdata_depc(fname=None):
             match.qaid = qaid
             match.daid = daid
             match.score = qaid + daid
-            yield match.score, match
+            #yield match.score, match
+            yield match
 
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))
