@@ -3501,6 +3501,8 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             --install-option="--library-path=/usr/lib/graphviz/"
         python -c "import pygraphviz; print(pygraphviz.__file__)"
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
+        python -m dtool --tf DependencyCache.make_digraph --show
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -3593,13 +3595,20 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             x, y = pos[n]
             pt.ax_absolute_text(x, y, n, ha='center', va='center')
         seen = {}
-        for (u, v, data) in graph.edges(data=True):
+        edge_list = graph.edges(data=True)
+        for (u, v, data) in edge_list:
+            edge = (u, v)
             n1 = graph.node[u]['patch']
             n2 = graph.node[v]['patch']
-            rad = 0.1
-            if (u, v) in seen:
-                rad = seen.get((u, v))
-                rad = (rad + np.sign(rad) * 0.1) * -1
+
+            # Bend left / right depending on node positions
+            dir_ = np.sign(n1.center[0] - n2.center[0])
+            inc = dir_ * 0.1
+            rad = dir_ * 0.2
+            # Make duplicate edges more bendy to see them
+            if edge in seen:
+                rad = seen[edge] + inc
+            seen[edge] = rad
 
             if data.get('implicit', False):
                 alpha = .2
@@ -3614,7 +3623,6 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
                 n1.center, n2.center, patchA=n1, patchB=n2,
                 arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
                 mutation_scale=10.0, lw=2, alpha=alpha, color=color)
-            seen[(u, v)] = rad
             ax.add_patch(e)
         return e
 
