@@ -3486,7 +3486,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
 
     CommandLine:
         python -m plottool.draw_func2 --exec-show_netx --show
-        python -m dtool --tf DependencyCache.make_digraph --show
+        python -m dtool --tf DependencyCache.make_graph --show
 
     Ignore:
         http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
@@ -3525,12 +3525,12 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     ax = pt.gca()
 
     explicit_graph = graph.__class__()
-    explicit_nodes = graph.nodes(data=True)
-    explicit_edges = [(n1, n2, data) for (n1, n2, data) in graph.edges(data=True) if data.get('implicit', False) is not True]
+    explicit_nodes = graph.nodes(data=False)
+    explicit_edges = [(n1, n2, data) for (n1, n2, data) in graph.edges(data=True)
+                      if data.get('implicit', False) is not True]
     explicit_graph.add_nodes_from(explicit_nodes)
     explicit_graph.add_edges_from(explicit_edges)
-
-    pos = netx.pydot_layout(explicit_graph, prog='dot')
+    pos = netx.nx_pydot.pydot_layout(explicit_graph, prog='dot')
 
     def draw_network2(graph, pos, ax, sg=None):
         """ fancy way to draw networkx graphs without using networkx """
@@ -3542,6 +3542,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             node_color = nattrs.get('color', None)
             if node_color is None:
                 node_color = pt.NEUTRAL_BLUE
+            #node_color = pt.color_funcs.to_base255(node_color)
             xy = pos[n]
             patch_kw = dict(alpha=alpha, color=node_color)
             # if shape == 'circle':
