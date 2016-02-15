@@ -182,6 +182,30 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
     return out
 
 
+def closest_point_on_line_segment(p, e1, e2):
+    de = (dx, dy) = e2 - e1  # shift e1 to origin
+    pv = p - e1  # make point vector wrt orgin
+    mag = np.linalg.norm(de)
+    t = pv.dot(de) / mag
+    # line segment bounds
+    if t < 0:
+        new_pt = e1
+    elif t > 1:
+        new_pt = e2
+    else:
+        new_pt = e1 + t * de
+    return new_pt
+
+
+def closest_point_on_bbox(p, bbox):
+    import vtool as vt
+    bbox_verts = np.array(vt.verts_from_bbox(bbox, close=True))
+    candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(bbox_verts)]
+    dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
+    new_pts = candidates[dists.argmin()]
+    return new_pts
+
+
 if __name__ == '__main__':
     """
     CommandLine:
