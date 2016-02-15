@@ -465,7 +465,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> table = depc['vsone']
             >>> _debug = True
             >>> config = request = depc.new_request('vsone', [1, 2], [2, 3])
-            >>> parent_rowids = request.get_parent_rowids()
+            >>> parent_rowids = request.parent_rowids
             >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
             >>> match_list = request.execute()
             >>> print(match_list)

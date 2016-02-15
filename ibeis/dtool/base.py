@@ -446,7 +446,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         >>> from dtool.base import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
-        >>> request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
+        >>> #request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
         >>> request2 = depc.new_algo_request('dumbalgo', [1, 2], [1, 2])
     """
     _isnewreq = True

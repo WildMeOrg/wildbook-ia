@@ -588,10 +588,9 @@ class _CoreDependencyCache(object):
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
             >>> exec(ut.execstr_funckw(depc.get_all_descendant_rowids), globals())
             >>> _debug = True
-            >>> # Make sure algo config can correctly get properites
-            >>> depc = testdata_depc()
             >>> qaids, daids = [1, 2, 4], [2, 3, 4]
             >>> root_rowids = list(zip(*ut.product(qaids, daids)))
             >>> #qaids = daids = list(range(1, 1000))
