@@ -190,7 +190,7 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
         tuple: (matches, metadata)
     """
     # import vtool as vt
-    assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
+    #assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
 
     annot1 = metadata['annot1']
     annot2 = metadata['annot2']
@@ -211,8 +211,8 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
     kpts2 = annot2['kpts']
     vecs2 = annot2['vecs']
     dlen_sqrd2 = annot2['dlen_sqrd']
-    flann1 = annot1.get('flann1', None)
-    flann2 = annot2.get('flann2', None)
+    flann1 = annot1.get('flann', None)
+    flann2 = annot2.get('flann', None)
 
     matches, output_metdata = vsone_feature_matching(
         kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
@@ -246,11 +246,11 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     from vtool import spatial_verification as sver
     #import vtool as vt
     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
-    ratio_thresh =  cfgdict.get('ratio_thresh', .625)
-    refine_method =  cfgdict.get('refine_method', 'homog')
-    symmetric =  cfgdict.get('symmetric', False)
-    K =  cfgdict.get('K', 1)
-    Knorm =  cfgdict.get('Knorm', 1)
+    ratio_thresh   = cfgdict.get('ratio_thresh', .625)
+    refine_method  = cfgdict.get('refine_method', 'homog')
+    symmetric      = cfgdict.get('symmetric', False)
+    K              = cfgdict.get('K', 1)
+    Knorm          = cfgdict.get('Knorm', 1)
     #ratio_thresh =  .99
     # GET NEAREST NEIGHBORS
     checks = 800
@@ -263,7 +263,7 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
     if flann1 is None:
         flann1 = vt.flann_cache(vecs1, flann_params=flann_params, verbose=verbose)
 
-    print('symmetric = %r' % (symmetric,))
+    #print('symmetric = %r' % (symmetric,))
     if symmetric:
         if flann2 is None:
             flann2 = vt.flann_cache(vecs2, flann_params=flann_params, verbose=verbose)
