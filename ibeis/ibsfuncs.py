@@ -5935,6 +5935,47 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
 
 
 @register_ibs_method
+def get_annot_lazy_dict2(ibs, aid, config=None):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aid (int):  annotation id
+        config (dict): (default = None)
+
+    Returns:
+        ut.LazyDict: metadata
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_annot_lazy_dict2 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid = 1
+        >>> config = {'dim_size': 450}
+        >>> metadata = get_annot_lazy_dict2(ibs, aid, config)
+        >>> result = ('metadata = %s' % (ut.repr3(metadata),))
+        >>> print(result)
+    """
+    from ibeis.viz.interact import interact_chip
+    metadata = ut.LazyDict({
+        'aid': aid,
+        'name': lambda: ibs.get_annot_names(aid),
+        'rchip_fpath': lambda: ibs.depc.get('chips', aid, 'img', config, read_extern=False),
+        'rchip': lambda: ibs.depc.get('chips', aid, 'img', config),
+        'vecs': lambda:  ibs.depc.get('feat', aid, 'vecs', config),
+        'kpts': lambda:  ibs.depc.get('feat', aid, 'kpts', config),
+        'dlen_sqrd': lambda: ibs.depc['chips'].subproperties['dlen_sqrd'](
+            ibs.depc, [aid], config)[0],
+        #get_annot_chip_dlensqrd([aid], config=config)[0],
+        'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
+    })
+    return metadata
+
+
+@register_ibs_method
 def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
     from ibeis.expt import experiment_harness, experiment_helpers
     experiment_helpers

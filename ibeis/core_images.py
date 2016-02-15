@@ -46,7 +46,7 @@ Needed Tables:
 
 
 CommandLine:
-    python -m ibeis.control.IBEISControl --test-show_depc_digraph --show
+    python -m ibeis.control.IBEISControl --test-show_depc_graph --show
 
 Setup:
     >>> from ibeis.core_images import *  # NOQA

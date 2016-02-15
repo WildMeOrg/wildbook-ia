@@ -45,7 +45,7 @@ Needed Tables:
 
 
 CommandLine:
-    python -m ibeis.control.IBEISControl --test-show_depc_digraph --show
+    python -m ibeis.control.IBEISControl --test-show_depc_graph --show
 
 Setup:
     >>> from ibeis.core_annots import *  # NOQA
@@ -62,19 +62,19 @@ import utool as ut
 import vtool as vt
 import numpy as np
 import cv2
-from ibeis.control.controller_inject import register_preproc
+from ibeis.control.controller_inject import register_preproc, register_subprop
 (print, rrr, profile) = ut.inject2(__name__, '[core]')
 
 
 # dtool.TableConfig.register_func = register_preproc
 
 
-def testdata_core():
+def testdata_core(size=2):
     import ibeis
     # import plottool as pt
     ibs = ibeis.opendb(defaultdb='testdb1')
     depc = ibs.depc
-    aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=ibs.get_valid_aids()[0:2])
+    aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=ibs.get_valid_aids()[0:size])
     return ibs, depc, aid_list
 
 
@@ -207,6 +207,13 @@ def compute_chip(depc, aid_list, config=None):
         # Write chip to disk
         vt.imwrite(cfpath, chipBGR)
         yield (cfpath, width, height, M)
+
+
+@register_subprop('chips', 'dlen_sqrd')
+def compute_dlen_sqrd(depc, aid_list, config=None):
+    size_list = np.array(depc.get('chips', aid_list, ('width', 'height'), config))
+    dlen_sqrt_list = (size_list ** 2).sum(axis=1).tolist()
+    return dlen_sqrt_list
 
 
 class AnnotMaskConfig(dtool.TableConfig):
@@ -482,7 +489,6 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
     Example:
-<<<<<<< HEAD:ibeis/core.py
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> import plottool as pt
@@ -514,14 +520,14 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
     return mask2
 
 
-class FeatureConfig(dtool.TableConfig):
+class FeatConfig(dtool.TableConfig):
     r"""
     Example:
         >>> from ibeis.core_annots import *  # NOQA
-        >>> feat_cfg = FeatureConfig()
+        >>> feat_cfg = FeatConfig()
         >>> result = str(feat_cfg)
         >>> print(result)
-        <FeatureConfig(hesaff+sift,scale_max=40)>
+        <FeatConfig(hesaff+sift,scale_max=40)>
     """
 
     def get_param_info_list(self):
@@ -544,8 +550,8 @@ class FeatureConfig(dtool.TableConfig):
 @register_preproc(
     tablename='feat', parents=['chips'],
     colnames=['num_feats', 'kpts', 'vecs'],
-    coltypes=[np.ndarray, np.ndarray, int],
-    configclass=FeatureConfig,
+    coltypes=[int, np.ndarray, np.ndarray],
+    configclass=FeatConfig,
     fname='featcache',
 )
 def compute_feats(depc, cid_list, config=None):
@@ -573,7 +579,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> chip_config = {}
-        >>> config = FeatureConfig()
+        >>> config = FeatConfig()
         >>> cid_list = depc.get_rowids('chips', aid_list, config=chip_config)
         >>> featgen = compute_feats(depc, cid_list, config)
         >>> feat_list = list(featgen)
@@ -646,17 +652,12 @@ def gen_feat_worker(tup):
         python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Example:
-<<<<<<< HEAD:ibeis/core.py
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.core import *  # NOQA
-=======
-        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
->>>>>>> 1fc94d1603496dca1455ef5f46fa01157d71a037:ibeis/core_annots.py
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid = aid_list[0]
         >>> config = {}
-        >>> feat_config = FeatureConfig.from_argv_dict()
+        >>> feat_config = FeatConfig.from_argv_dict()
         >>> chip_fpath = ibs.depc.get('chips', aid_list[0], 'img', config=config, read_extern=False)
         >>> maskmethod = ut.get_argval('--maskmethod', type_=str, default='cnn')
         >>> probchip_fpath = ibs.depc.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['maskmethod'] == 'cnn' else None
@@ -717,7 +718,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> full_config = {}
-        >>> config = FeatureConfig()
+        >>> config = FeatConfig()
         >>> fid_list = depc.get_rowids('feat', aid_list, config=full_config)
         >>> pcid_list = depc.get_rowids('probchip', aid_list, config=full_config)
         >>> prop_list = list(compute_fgweights(depc, fid_list, pcid_list))
@@ -799,6 +800,97 @@ def gen_featweight_worker(tup):
         #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         weights = np.array(weight_list, dtype=np.float32)
     return weights
+
+
+class VsOneConfig(dtool.TableConfig):
+    """
+    Example:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> cfg = VsOneConfig()
+        >>> result = str(cfg)
+        >>> print(result)
+
+    ancestors = netx.dag.ancestors(depc.graph, 'feat')
+    subconfigs_ = ut.dict_take(depc.configclass_dict, ancestors, None)
+    subconfigs = ut.filter_Nones(subconfigs_)
+    """
+    _param_info_list = [
+        ut.ParamInfo('sver_xy_thresh', .01),
+        ut.ParamInfo('ratio_thresh', .625),
+        ut.ParamInfo('refine_method', 'homog'),
+        ut.ParamInfo('symmetric', False),
+        ut.ParamInfo('K', 1),
+        ut.ParamInfo('Knorm', 1),
+        ut.ParamInfo('version', 0),
+    ]
+    _sub_config_list = [
+        FeatConfig,
+        ChipConfig,  # TODO: infer chip config from feat config
+    ]
+
+
+class VsOneRequest(dtool.base.OneVsOneSimilarityRequest):
+    _tablename = 'vsone'
+
+
+@register_preproc(
+    tablename='vsone', parents=['annotations', 'annotations'],
+    colnames=['score'], coltypes=[float],
+    requestclass=VsOneRequest,
+    configclass=VsOneConfig,
+    chunksize=128, fname='vsone',
+)
+def compute_one_vs_one(depc, qaids, daids, config):
+    """
+    CommandLine:
+        python -m ibeis.core_annots --test-compute_one_vs_one --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core(size=4)
+        >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
+        >>> config = request.config
+        >>> qaids, daids = request.parent_rowids_T
+        >>> # Compute using function
+        >>> score_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
+        >>> # Compute using request
+        >>> score_list2 = request.execute()
+        >>> assert np.all(score_list1 == score_list2)
+    """
+    ibs = depc.controller
+    qconfig2_ = config
+    dconfig2_ = config
+    unique_qaids = np.unique(qaids)
+    unique_daids = np.unique(daids)
+
+    # TODO: use new dependencies
+    annot1_list = [ibs.get_annot_lazy_dict2(qaid, config=qconfig2_)
+                   for qaid in unique_qaids]
+    annot2_list = [ibs.get_annot_lazy_dict2(daid, config=dconfig2_)
+                   for daid in unique_daids]
+
+    flann_params = {'algorithm': 'kdtree', 'trees': 8}
+    for annot1 in annot1_list:
+        if 'flann' not in annot1:
+            annot1['flann'] = lambda: vt.flann_cache(
+                annot1['vecs'], flann_params=flann_params, verbose=False)
+
+    qaid_to_annot = dict(zip(unique_qaids, annot1_list))
+    daid_to_annot = dict(zip(unique_qaids, annot2_list))
+
+    #all_aids = np.unique(ut.flatten([qaids, daids]))
+    verbose = False
+    for qaid, daid  in ut.ProgressIter(zip(qaids, daids), nTotal=len(qaids), lbl='vsone'):
+        annot1 = qaid_to_annot[qaid]
+        annot2 = daid_to_annot[daid]
+        metadata = {
+            'annot1': annot1,
+            'annot2': annot2,
+        }
+        match = vt.vsone_matching2(metadata, cfgdict=config, verbose=verbose)
+        score = match.matches['TOP+SV'].fs.sum()
+        yield (score,)
 
 
 if __name__ == '__main__':

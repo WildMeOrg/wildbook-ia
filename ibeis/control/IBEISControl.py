@@ -287,20 +287,20 @@ class IBEISController(BASE_CLASS):
             except KeyError:
                 pass
 
-    def show_depc_digraph(ibs):
+    def show_depc_graph(ibs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_digraph --show
+            python -m ibeis.control.IBEISControl --test-show_depc_graph --show
 
         Example:
             >>> # SCRIPT
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
-            >>> ibs.show_depc_digraph()
+            >>> ibs.show_depc_graph()
             >>> ut.show_if_requested()
         """
-        ibs.depc.show_digraph()
+        ibs.depc.show_graph()
 
     def get_cachestats_str(ibs):
         """

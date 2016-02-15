@@ -716,7 +716,7 @@ def draw_tree_model(model, **kwargs):
         #pos = netx.pygraphviz_layout(netx_graph)
         #pos = netx.graphviz_layout(netx_graph)
         #pos = get_hacked_pos(netx_graph, name_nodes, prog='neato')
-        pos = netx.pydot_layout(netx_graph)
+        pos = netx.nx_pydot.pydot_layout(netx_graph)
         node_color = [pt.WHITE] * len(pos)
         drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
                       node_size=1100)
@@ -744,7 +744,7 @@ def draw_tree_model(model, **kwargs):
         #netx_graph = model.to_markov_model()
         #pos = netx.pygraphviz_layout(netx_graph)
         #pos = netx.graphviz_layout(netx_graph)
-        pos = netx.pydot_layout(netx_graph)
+        pos = netx.nx_pydot.pydot_layout(netx_graph)
         node_color = [pt.WHITE] * len(pos)
         drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
                       node_size=2000)
@@ -846,7 +846,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
     pos_dict = get_hacked_pos(netx_graph)
     #pos_dict = netx.pygraphviz_layout(netx_graph)
-    #pos = netx.pydot_layout(netx_graph, prog='dot')
+    #pos = netx.nx_pydot.pydot_layout(netx_graph, prog='dot')
     #pos_dict = netx.graphviz_layout(netx_graph)
 
     textprops = {

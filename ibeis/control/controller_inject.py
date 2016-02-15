@@ -774,7 +774,10 @@ class ExternalStorageException(Exception):
         super(ExternalStorageException, self).__init__(*args, **kwargs)
 
 
-register_preproc, register_algo = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
+_decors = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
+register_preproc = _decors['preproc']
+register_algo = _decors['algo']
+register_subprop = _decors['subprop']
 
 
 if __name__ == '__main__':
