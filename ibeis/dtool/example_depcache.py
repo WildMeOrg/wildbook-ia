@@ -334,7 +334,7 @@ def testdata_depc(fname=None):
             yield annot_match
 
     @depc.register_preproc(
-        'vsone', ['annotation', 'annotation'],
+        'vsone', [dummy_root, dummy_root],
         ['score', 'match_obj'],
         #[float, ('extern', DummyVsOneMatch)],
         [float, str],

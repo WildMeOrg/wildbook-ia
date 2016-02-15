@@ -384,7 +384,7 @@ class DependencyCacheTable(ut.NiceRepr):
         seen_ = ut.ddict(lambda: 1)
         colhist = ut.dict_hist(table.parents)
         for col in table.parents:
-            if col in colhist:
+            if colhist[col] > 1:
                 colnames.append(col + str(seen_[col]))
                 seen_[col] += 1
             else:
@@ -464,7 +464,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> table = depc['vsone']
             >>> _debug = True
-            >>> config = request = depc.new_algo_request('vsone', [1, 2], [2, 3])
+            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3])
             >>> parent_rowids = request.get_parent_rowids()
             >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
             >>> match_list = request.execute()

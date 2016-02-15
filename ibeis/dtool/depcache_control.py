@@ -314,6 +314,20 @@ class _CoreDependencyCache(object):
                 ['spam'],
             ]
 
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'vsone'
+            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
+            >>> print(result)
+            [
+                ['dummy_annot'],
+                ['vsone'],
+            ]
+
+
         Ignore:
             # TODO: use networkx implementations of graph algorithms
             # whereever applicable
@@ -574,12 +588,18 @@ class _CoreDependencyCache(object):
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
+            >>> exec(ut.execstr_funckw(depc.get_all_descendant_rowids), globals())
+            >>> _debug = True
             >>> # Make sure algo config can correctly get properites
             >>> depc = testdata_depc()
-            >>> qaids, daids = [1, 2], [2, 3, 4]
-            >>> qaids = daids = list(range(1, 1000))
+            >>> qaids, daids = [1, 2, 4], [2, 3, 4]
+            >>> root_rowids = list(zip(*ut.product(qaids, daids)))
+            >>> #qaids = daids = list(range(1, 1000))
             >>> request = depc.new_request('vsone', qaids, daids)
             >>> results = request.execute()
+            >>> tablename = 'vsone'
+            >>> rowid_dict = depc.get_all_descendant_rowids(
+            >>>     tablename, root_rowids, config=None, _debug=_debug)
         """
         # TODO: Need to have a nice way of ensuring configs dont overlap
         # via namespaces.
@@ -600,7 +620,14 @@ class _CoreDependencyCache(object):
                   (ut.repr3(dependency_levels, nl=1),))
             print('[depc] dependency_levels = %s' %
                   (ut.repr3(configclass_levels, nl=1),))
-        rowid_dict = {depc.root: root_rowids}
+        # TODO: better support for multi-edges
+        if len(root_rowids) > 0 and ut.isiterable(root_rowids[0]):
+            rowid_dict = {}
+            for colx, col in enumerate(root_rowids):
+                rowid_dict[depc.root + '%d' % (colx + 1,)] = col
+            rowid_dict[depc.root] = ut.unique_keep_order(ut.flatten(root_rowids))
+        else:
+            rowid_dict = {depc.root: root_rowids}
         # Ensure that each level ``tablename``'s dependencies have been computed
         for level_keys in dependency_levels[1:]:
             if _debug:
@@ -628,8 +655,15 @@ class _CoreDependencyCache(object):
                         # configs
                         config_ = configclass(**config)
                 table = depc[tablekey]
-                parent_rowids = list(zip(*ut.dict_take(rowid_dict,
-                                                       table.parents)))
+                if False:
+                    parent_rowids = list(zip(*ut.dict_take(rowid_dict,
+                                                           table.parents)))
+                else:
+                    # Hack for multi-edges
+                    parent_rowids = ut.list_transpose(
+                        ut.dict_take(rowid_dict, table.parent_rowid_colnames))
+                    #parent_rowids = list(zip(*))
+
                 if _debug:
                     print('   * tablekey = %r' % (tablekey,))
                     print('   * configclass = %r' % (configclass,))
@@ -652,7 +686,8 @@ class _CoreDependencyCache(object):
 
     def new_algo_request(depc, algoname, qaids, daids, cfgdict=None):
         requestclass = depc.requestclass_dict[algoname]
-        request = requestclass.new_algo_request(depc, algoname, qaids, daids, cfgdict)
+        request = requestclass.new_algo_request(depc, algoname, qaids, daids,
+                                                cfgdict)
         return request
 
     def new_request(depc, tablename, qaids, daids, cfgdict=None):
