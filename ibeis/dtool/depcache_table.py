@@ -126,6 +126,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.docstr = docstr
         table.fname = fname
         table.depc = depc
+        table.subproperties = {}
         table.chunksize = chunksize
         table._asobject = asobject
         table._update_datacol_internal()

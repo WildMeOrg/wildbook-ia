@@ -2,7 +2,7 @@
 """
 CommandLine:
     python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
-    python -m dtool.depcache_control --exec-make_digraph --show
+    python -m dtool.depcache_control --exec-make_graph --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -16,8 +16,10 @@ import dtool
 
 if False:
     DUMMY_ROOT_TABLENAME = 'dummy_annot'
-    register_preproc, register_algo = depcache_control.make_depcache_decors(
-        DUMMY_ROOT_TABLENAME)
+    _decors = depcache_control.make_depcache_decors(DUMMY_ROOT_TABLENAME)
+    register_preproc = _decors['preproc']
+    register_algo = _decors['algo']
+    register_subprop = _decors['subprop']
 
     # Example of global preproc function
     @register_preproc(tablename='dummy', parents=[DUMMY_ROOT_TABLENAME],
@@ -495,7 +497,7 @@ def dummy_example_depcacahe():
     #import plottool as pt
     # pt.ensure_pylab_qt4()
 
-    graph = depc.make_digraph()  # NOQA
+    graph = depc.make_graph()  # NOQA
     #pt.show_netx(graph)
 
     print('---------- 111 -----------')

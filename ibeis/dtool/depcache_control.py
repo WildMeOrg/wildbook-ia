@@ -15,7 +15,8 @@ from dtool import base
 
 # global function registry
 __PREPROC_REGISTER__ = ut.ddict(list)
-__ALGO_REGISTER__ = ut.ddict(list)
+__ALGO_REGISTER__ = ut.ddict(list)  # DEPRICATE
+__SUBPROP_REGISTER__ = ut.ddict(list)
 
 
 REG_PREPROC_DOC = """
@@ -82,7 +83,19 @@ def make_depcache_decors(root_tablename):
             return func
         return _wrapper
 
-    return register_preproc, register_algo
+    def register_subprop(*args, **kwargs):
+        def _wrapper(func):
+            kwargs['preproc_func'] = func
+            __SUBPROP_REGISTER__[root_tablename].append((args, kwargs))
+            return func
+        return _wrapper
+
+    _decors = ut.odict({
+        'preproc': register_preproc,
+        'algo': register_algo,
+        'subprop': register_subprop,
+    })
+    return _decors
 
 
 def check_register(args, kwargs):
@@ -157,6 +170,12 @@ class _CoreDependencyCache(object):
         depc.configclass_dict[tablename] = configclass
         return table
 
+    #@ut.apply_docstr(REG_PREPROC_DOC)
+    def _register_subprop(depc, tablename, propname=None, preproc_func=None):
+        # subproperties are always recomputeed on the fly
+        table = depc.cachetable_dict[tablename]
+        table.subproperties[propname] = preproc_func
+
     #@ut.apply_docstr(REG_ALGO_DOC)
     def _register_algo(depc, algoname,
                        algo_result_class=None,
@@ -212,13 +231,17 @@ class _CoreDependencyCache(object):
         _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
             reg_preproc = __PREPROC_REGISTER__[depc.root]
-            reg_algos = __ALGO_REGISTER__[depc.root]
+            reg_algos   = __ALGO_REGISTER__[depc.root]
+            reg_subprop = __SUBPROP_REGISTER__[depc.root]
             print('[depc.init] Regsitering %d global preproc funcs' % len(reg_preproc))
             for args_, kwargs_ in reg_preproc:
                 depc._register_prop(*args_, **kwargs_)
             print('[depc.init] Regsitering %d global algos ' % len(reg_algos))
             for args_, kwargs_ in reg_algos:
                 depc._register_algo(*args_, **kwargs_)
+            print('[depc.init] Regsitering %d global subprops ' % len(reg_subprop))
+            for args_, kwargs_ in reg_subprop:
+                depc._register_subprop(*args_, **kwargs_)
 
         ut.ensuredir(depc.cache_dpath)
 
@@ -333,7 +356,7 @@ class _CoreDependencyCache(object):
             # whereever applicable
             tablename = 'Block_Curvature'
             import networkx as netx
-            graph = depc.make_digraph()
+            graph = depc.make_graph()
             netx.dag.ancestors(graph, tablename)
             netx.dag_longest_path(graph, tablename, depc.root)
             netx.algorithms.dag.topological_sort(graph)
@@ -897,27 +920,27 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         implicit_edges = []
         _inverted_ccdict = ut.invert_dict(depc.configclass_dict)
         for tablename2, configclass in depc.configclass_dict.items():
-            if hasattr(configclass, 'get_sub_config_list'):
-                cfg = configclass()
-                subconfigs = cfg.get_sub_config_list()
+            cfg = configclass()
+            subconfigs = cfg.get_sub_config_list()
+            if subconfigs is not None:
                 tablename1_list = ut.dict_take(_inverted_ccdict, subconfigs, None)
                 for tablename1 in ut.filter_Nones(tablename1_list):
                     implicit_edges.append((tablename1, tablename2, {'implicit': True}))
         return implicit_edges
 
-    def make_digraph(depc):
+    def make_graph(depc):
         """
         Helper "fluff" function
 
         CommandLine:
-            python -m dtool --tf DependencyCache.make_digraph --show
+            python -m dtool --tf DependencyCache.make_graph --show
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> graph = depc.make_digraph()
+            >>> graph = depc.make_graph()
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
@@ -957,10 +980,14 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         netx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
         return graph
 
-    def show_digraph(depc, **kwargs):
+    @property
+    def graph(depc):
+        return depc.make_graph()
+
+    def show_graph(depc, **kwargs):
         """ Helper "fluff" function """
         import plottool as pt
-        graph = depc.make_digraph()
+        graph = depc.make_graph()
         if ut.is_developer():
             ut.ensure_pylab_qt4()
         pt.show_netx(graph, **kwargs)

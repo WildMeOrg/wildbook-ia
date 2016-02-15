@@ -72,11 +72,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         # using their subconfigurations
         cfg._subconfig_attrs = []
         cfg._subconfig_names = []
-        _sub_config_list = None
-        if hasattr(cfg, 'get_sub_config_list'):
-            _sub_config_list = cfg.get_sub_config_list()
-        if hasattr(cfg, '_sub_config_list'):
-            _sub_config_list = cfg._sub_config_list
+        _sub_config_list = cfg.get_sub_config_list()
         if _sub_config_list:
             for subclass in _sub_config_list:
                 #subclass.static_config_name()
@@ -88,6 +84,12 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
                 cfg._subconfig_attrs.append(subcfg_attr)
                 subcfg.update(**kwargs)
         cfg.update(**kwargs)
+
+    def get_sub_config_list(cfg):
+        if hasattr(cfg, '_sub_config_list'):
+            return cfg._sub_config_list
+        else:
+            return None
 
     def parse_namespace_config_items(cfg):
         """
@@ -181,6 +183,14 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             return getattr(cfg, key)
         except AttributeError as ex:
             raise KeyError(ex)
+
+    def get(qparams, key, *d):
+        """ get a paramater value by string """
+        ERROR_ON_DEFAULT = True
+        if ERROR_ON_DEFAULT:
+            return getattr(qparams, key)
+        else:
+            return getattr(qparams, key, *d)
 
     def setitem(cfg, key, value):
         """ Required for DictLike interface """
@@ -407,6 +417,10 @@ class OneVsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         request.qaids = safeop(np.array, qaid_list)
         request.daids = safeop(np.array, daid_list)
         return request
+
+    @property
+    def parent_rowids_T(request):
+        return ut.list_transpose(request.parent_rowids)
 
     def get_input_hashid(request):
         return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
