@@ -4,7 +4,7 @@ import utool as ut
 import numpy as np
 import copy
 import six
-from os.path import splitext
+from itertools import product
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
@@ -13,11 +13,11 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     Base class for heirarchical config
     need to overwrite get_param_info_list
     """
-    def __init__(self, **kwargs):
-        self.initialize_params(**kwargs)
+    def __init__(cfg, **kwargs):
+        cfg.initialize_params(**kwargs)
 
-    def __nice__(self):
-        return self.get_cfgstr(with_name=False)
+    def __nice__(cfg):
+        return cfg.get_cfgstr(with_name=False)
 
     def __hash__(cfg):
         """ Needed for comparison operators """
@@ -25,14 +25,18 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        class_str = str(cfg.__class__)
-        full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
-        config_name = splitext(full_class_str)[1][1:].replace('Config', '')
+        #class_str = str(cfg.__class__)
+        #full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
+        #config_name = splitext(full_class_str)[1][1:].replace('Config', '')
+        config_name = cfg.__class__.__name__.replace('Config', '')
+        # VERY HACKY
+        import re
+        config_name = re.sub('_$', '', config_name)
         return config_name
 
-    def get_varnames(self):
-        return ([pi.varname for pi in self.get_param_info_list()] +
-                self._subconfig_attrs)
+    def get_varnames(cfg):
+        return ([pi.varname for pi in cfg.get_param_info_list()] +
+                cfg._subconfig_attrs)
 
     def update(cfg, **kwargs):
         """
@@ -127,8 +131,9 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             >>> result = ('param_list = %s' % (ut.repr2(param_list, nl=1),))
             >>> print(result)
         """
-        namespace_param_list = Config.parse_namespace_config_items(cfg)
-        needs_namespace_keys = ut.find_duplicate_items(ut.get_list_column(namespace_param_list, 1))
+        namespace_param_list = cfg.parse_namespace_config_items()
+        param_names = ut.get_list_column(namespace_param_list, 1)
+        needs_namespace_keys = ut.find_duplicate_items(param_names)
         param_list = ut.get_list_column(namespace_param_list, [1, 2])
         # prepend namespaces to variables that need it
         for idx in ut.flatten(needs_namespace_keys.values()):
@@ -166,24 +171,24 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     def get_hashid(cfg):
         return ut.hashstr27(cfg.get_cfgstr())
 
-    def keys(self):
+    def keys(cfg):
         """ Required for DictLike interface """
-        return self.get_varnames()
+        return cfg.get_varnames()
 
-    def getitem(self, key):
+    def getitem(cfg, key):
         """ Required for DictLike interface """
         try:
-            return getattr(self, key)
+            return getattr(cfg, key)
         except AttributeError as ex:
             raise KeyError(ex)
 
-    def setitem(self, key, value):
+    def setitem(cfg, key, value):
         """ Required for DictLike interface """
-        return getattr(self, key, value)
+        return getattr(cfg, key, value)
 
-    def get_param_info_list(self):
+    def get_param_info_list(cfg):
         try:
-            return self._param_info_list
+            return cfg._param_info_list
         except AttributeError:
             raise NotImplementedError(
                 'Need to define _param_info_list or get_param_info_list')
@@ -194,33 +199,33 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         handy command line tool
         ut.parse_argv_cfg
         """
-        self = cls(**kwargs)
-        new_vals = ut.parse_dict_from_argv(self)
-        self.update(**new_vals)
-        return self
+        cfg = cls(**kwargs)
+        new_vals = ut.parse_dict_from_argv(cfg)
+        cfg.update(**new_vals)
+        return cfg
 
     @classmethod
     def from_argv_cfgs(cls):
         """
         handy command line tool
         """
-        self = cls()
-        name = self.get_config_name()
+        cfg = cls()
+        name = cfg.get_config_name()
         #name = cls.static_config_name()
         argname = '--' + name
-        if hasattr(self, '_alias'):
-            argname = (argname, '--' + self._alias)
+        if hasattr(cfg, '_alias'):
+            argname = (argname, '--' + cfg._alias)
         #if hasattr(cls, '_alias'):
         #    argname = (argname, '--' + cls._alias)
         new_vals_list = ut.parse_argv_cfg(argname)
         self_list = [cls(**new_vals) for new_vals in new_vals_list]
         return self_list
 
-    def __getstate__(self):
-        return self.asdict()
+    def __getstate__(cfg):
+        return cfg.asdict()
 
-    def __setstate__(self, state):
-        self.update(**state)
+    def __setstate__(cfg, state):
+        cfg.update(**state)
 
     #@classmethod
     #def static_config_name(cls):
@@ -241,7 +246,7 @@ class AlgoConfig(TableConfig):
 def dict_as_config(default_cfgdict, tablename):
     import dtool
     class UnnamedConfig(dtool.TableConfig):
-        def get_param_info_list(self):
+        def get_param_info_list(cfg):
             #print('default_cfgdict = %r' % (default_cfgdict,))
             return [ut.ParamInfo(key, val)
                     for key, val in default_cfgdict.items()]
@@ -249,7 +254,176 @@ def dict_as_config(default_cfgdict, tablename):
     return UnnamedConfig
 
 
-class AlgoRequest(ut.NiceRepr):
+class IBEISRequestHacks(object):
+    _isnewreq = True
+
+    @property
+    def ibs(request):
+        """ HACK specific to ibeis """
+        if request.depc is None:
+            return None
+        return request.depc.controller
+
+    def get_external_data_config2(request):
+        # HACK
+        #return None
+        #print('[d] request.params = %r' % (request.params,))
+        return request.params
+
+    def get_external_query_config2(request):
+        # HACK
+        #return None
+        #print('[q] request.params = %r' % (request.params,))
+        return request.params
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class BaseRequest(IBEISRequestHacks):
+    """
+    Class that maintains both an algorithm, inputs, and a config.
+    """
+    @staticmethod
+    def static_new(cls, depc, parent_rowids, cfgdict=None, tablename=None):
+        """ hack for autoreload """
+        request = cls()
+        if tablename is None:
+            try:
+                if hasattr(cls, '_tablename'):
+                    tablename = cls._tablename
+                else:
+                    tablename = ut.invert_dict(depc.requestclass_dict)[cls]
+            except Exception as ex:
+                ut.printex(ex, 'tablename must be given')
+                raise
+        request.tablename = tablename
+        request.parent_rowids = parent_rowids
+        request.depc = depc
+        if cfgdict is None:
+            cfgdict = {}
+        configclass = depc.configclass_dict[tablename]
+        config = configclass(**cfgdict)
+        request.config = config
+        # hack
+        request.params = dict(config.parse_items())
+        return request
+
+    @classmethod
+    def new(cls, depc, parent_rowids, cfgdict=None, tablename=None):
+        return cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
+
+    def _get_rootset_hashid(request, root_rowids, prefix):
+        uuid_type = 'V'
+        label = ''.join((prefix, uuid_type, 'UUIDS'))
+        # Hack: allow general specification of uuid types
+        uuid_list = request.depc.get_root_uuid(root_rowids)
+        #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
+        uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
+        return uuid_hashid
+
+    def get_cfgstr(request, with_input=None, with_pipe=None, **kwargs):
+        r"""
+        main cfgstring used to identify the 'querytype'
+        """
+        if with_input is None:
+            with_input = True
+        if with_pipe is None:
+            with_pipe = True
+        cfgstr_list = []
+        if with_input:
+            cfgstr_list.append(request.get_input_hashid())
+        if with_pipe:
+            cfgstr_list.append(request.get_pipe_cfgstr())
+        cfgstr = '_'.join(cfgstr_list)
+        return cfgstr
+
+    def get_input_hashid(request):
+        raise NotImplementedError('abstract class method')
+
+    def get_pipe_cfgstr(request):
+        return request.config.get_cfgstr()
+
+    def get_pipe_hashid(request):
+        return ut.hashstr27(request.get_pipe_cfgstr())
+
+    def execute(request, use_cache=None):
+        table = request.depc[request.tablename]
+        if use_cache is None:
+            use_cache = not ut.get_argflag('--nocache')
+        parent_rowids = request.parent_rowids
+        # Compute and cache any uncomputed results
+        rowids = table.get_rowid(parent_rowids, config=request,
+                                 recompute=not use_cache)
+        # Load all results
+        result_list = table.get_row_data(rowids)
+        return result_list
+
+    def __getstate__(request):
+        state_dict = request.__dict__.copy()
+        # SUPER HACK
+        state_dict['dbdir'] = request.depc.controller.get_dbdir()
+        del state_dict['depc']
+        del state_dict['config']
+        return state_dict
+
+    def __setstate__(request, state_dict):
+        import ibeis
+        dbdir = state_dict['dbdir']
+        del state_dict['dbdir']
+        params = state_dict['params']
+        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
+        configclass = depc.configclass_dict[state_dict['algoname'] ]
+        config = configclass(**params)
+        state_dict['depc'] = depc
+        state_dict['config'] = config
+        request.__dict__.update(state_dict)
+
+
+class AnnotSimiliarity(object):
+
+    def get_query_hashid(request):
+        return request._get_rootset_hashid(request.qaids, 'Q')
+
+    def get_data_hashid(request):
+        return request._get_rootset_hashid(request.daids, 'D')
+
+
+class OneVsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
+    """
+    qaid_list = [1, 2]
+    daid_list = [2, 3, 4]
+
+    References:
+        https://thingspython.wordpress.com/2010/09/27/
+        another-super-wrinkle-raising-typeerror/
+    """
+    @classmethod
+    def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
+        parent_rowids = list(ut.product_nonsame(qaid_list, daid_list))
+        request = cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
+        request.qaids = qaid_list
+        request.daids = daid_list
+        return request
+
+    def get_input_hashid(request):
+        return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
+
+
+class OneVsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
+    @classmethod
+    def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
+        parent_rowids = list(zip(qaid_list))
+        request = cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
+        return request
+
+    def get_input_hashid(request):
+        return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
+
+
+class ClassVsClassSimilarityRequest(BaseRequest):
+    pass
+
+
+class AlgoRequest(BaseRequest, ut.NiceRepr):
     """
     Base class for algo request objects
     Need this for TestResult Integration
@@ -337,7 +511,7 @@ class AlgoRequest(ut.NiceRepr):
 
     def get_parent_rowids(request):
         if request._daids_independent:
-            parent_rowids = list(ut.product(request.qaids, request.daids))
+            parent_rowids = list(product(request.qaids, request.daids))
         else:
             parent_rowids = list(zip(request.qaids))
         return parent_rowids
@@ -399,28 +573,20 @@ class AlgoRequest(ut.NiceRepr):
     def get_data_hashid(request):
         return request._get_rootset_hashid(request.daids, 'D')
 
-    def _get_rootset_hashid(request, root_rowids, preffix):
-        uuid_type = 'V'
-        label = ''.join((preffix, uuid_type, 'UUIDS'))
-        uuid_list = request.depc.get_root_uuid(root_rowids)
-        #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
-        uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
-        return uuid_hashid
-
     def get_pipe_cfgstr(request):
         return request.config.get_cfgstr()
 
     def get_pipe_hashid(request):
         return ut.hashstr27(request.get_pipe_cfgstr())
 
-    def get_cfgstr(request, with_query=None, with_data=None, with_pipe=True,
+    def get_cfgstr(request, with_input=None, with_data=None, with_pipe=True,
                    hash_pipe=False):
         r"""
         main cfgstring used to identify the 'querytype'
         """
-        if with_query is None:
-            #with_query = False
-            with_query = not request._qaids_independent
+        if with_input is None:
+            #with_input = False
+            with_input = not request._qaids_independent
 
         if with_data is None:
             #with_data = True
@@ -428,7 +594,7 @@ class AlgoRequest(ut.NiceRepr):
             with_data = not request._daids_independent
 
         cfgstr_list = []
-        if with_query:
+        if with_input:
             cfgstr_list.append(request.get_query_hashid())
         if with_data:
             cfgstr_list.append(request.get_data_hashid())
@@ -442,7 +608,7 @@ class AlgoRequest(ut.NiceRepr):
 
     def get_full_cfgstr(request):
         """ main cfgstring used to identify the algo hash id """
-        full_cfgstr = request.get_cfgstr(with_query=True)
+        full_cfgstr = request.get_cfgstr(with_input=True)
         return full_cfgstr
 
     def __nice__(request):
@@ -452,25 +618,33 @@ class AlgoRequest(ut.NiceRepr):
                                         request.get_pipe_hashid())
         return '(%s) %s' % (dbname, infostr_)
 
-    def __getstate__(request):
-        state_dict = request.__dict__.copy()
-        # SUPER HACK
-        state_dict['dbdir'] = request.depc.controller.get_dbdir()
-        del state_dict['depc']
-        del state_dict['config']
-        return state_dict
+    #def _get_rootset_hashid(request, root_rowids, prefix):
+    #    uuid_type = 'V'
+    #    label = ''.join((prefix, uuid_type, 'UUIDS'))
+    #    uuid_list = request.depc.get_root_uuid(root_rowids)
+    #    #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
+    #    uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
+    #    return uuid_hashid
 
-    def __setstate__(request, state_dict):
-        import ibeis
-        dbdir = state_dict['dbdir']
-        del state_dict['dbdir']
-        params = state_dict['params']
-        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
-        configclass = depc.configclass_dict[state_dict['algoname'] ]
-        config = configclass(**params)
-        state_dict['depc'] = depc
-        state_dict['config'] = config
-        request.__dict__.update(state_dict)
+    #def __getstate__(request):
+    #    state_dict = request.__dict__.copy()
+    #    # SUPER HACK
+    #    state_dict['dbdir'] = request.depc.controller.get_dbdir()
+    #    del state_dict['depc']
+    #    del state_dict['config']
+    #    return state_dict
+
+    #def __setstate__(request, state_dict):
+    #    import ibeis
+    #    dbdir = state_dict['dbdir']
+    #    del state_dict['dbdir']
+    #    params = state_dict['params']
+    #    depc = ibeis.opendb(dbdir=dbdir, web=False).depc
+    #    configclass = depc.configclass_dict[state_dict['algoname'] ]
+    #    config = configclass(**params)
+    #    state_dict['depc'] = depc
+    #    state_dict['config'] = config
+    #    request.__dict__.update(state_dict)
 
 
 class AlgoResult(object):

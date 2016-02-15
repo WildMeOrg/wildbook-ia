@@ -511,6 +511,7 @@ class DependencyCacheTable(ut.NiceRepr):
         try:
             # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
             if table.isalgo:
+                # TODO: DEPRICATE OLD ALGO REQUST STRUCTURE
                 # HACK: config here is a request
                 request = config
                 #subreq = request.shallow_copy # TODO
@@ -519,7 +520,8 @@ class DependencyCacheTable(ut.NiceRepr):
                 if table.productinput:
                     # Roundabout way of forcing algo requests into the depcache
                     # structure Very ugly
-                    subreq_list = list(request.shallowcopy_vsonehack(qmask=isdirty_list))
+                    subreq_list = list(request.shallowcopy_vsonehack(
+                        qmask=isdirty_list))
                     proptup_gen_list = [table.preproc_func(table.depc, subreq)
                                         for subreq in subreq_list]
                     from itertools import chain
@@ -539,9 +541,11 @@ class DependencyCacheTable(ut.NiceRepr):
                     # Convinience
                     args = [table.depc.get_obj(parent, rowids)
                             for parent, rowids in zip(table.parents, args)]
+                # hack config out of request
+                config_ = config.config if hasattr(config, 'config') else config
                 # CALL REGISTRED TABLE WORKER FUNCTION
                 proptup_gen = table.preproc_func(table.depc, *args,
-                                                 config=config)
+                                                 config=config_)
                 if len(table._nested_idxs) > 0:
                     assert not table.isalgo
                     unnest_data = table._make_unnester()

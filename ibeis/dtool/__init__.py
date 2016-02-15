@@ -13,7 +13,8 @@ from dtool import depcache_table
 
 from dtool.depcache_control import DependencyCache, make_depcache_decors
 from dtool.base import (AlgoResult, AlgoRequest, MatchResult, Config,
-                        AlgoConfig, TableConfig,)
+                        AlgoConfig, TableConfig, OneVsManySimilarityRequest,
+                        OneVsOneSimilarityRequest)
 from dtool.sql_control import SQLDatabaseController
 
 __version__ = '0.0.0'

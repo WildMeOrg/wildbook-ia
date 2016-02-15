@@ -63,8 +63,9 @@ def make_depcache_decors(root_tablename):
         """
         Global regsiter proproc function that will define a table for all
         dependency caches containing the parents. See
-        DependencyCache._register_prop for additional information.
+        dtool.DependencyCache._register_prop for additional information.
 
+        See dtool.depcache_control.REG_PREPROC_DOC if docstr is not autogened
         """
         def register_preproc_wrapper(func):
             check_register(args, kwargs)
@@ -96,6 +97,7 @@ class _CoreDependencyCache(object):
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, docstr=None,
                        fname=None, chunksize=None, configclass=None,
+                       requestclass=None,
                        #version=None,
                        isalgo=False, isinteractive=False,
                        ismulti=False,
@@ -129,6 +131,10 @@ class _CoreDependencyCache(object):
             # Dynamically make config class
             default_cfgdict = configclass
             configclass = base.dict_as_config(default_cfgdict, tablename)
+        if requestclass is not None:
+            # requestclass supercedes algo_request_class
+            # and replaces regsiter_algo
+            depc.requestclass_dict[tablename] = requestclass
 
         depc.fname_to_db[fname] = None
         table = depcache_table.DependencyCacheTable(
@@ -307,6 +313,19 @@ class _CoreDependencyCache(object):
                 ['fgweight'],
                 ['spam'],
             ]
+
+        Ignore:
+            # TODO: use networkx implementations of graph algorithms
+            # whereever applicable
+            tablename = 'Block_Curvature'
+            import networkx as netx
+            graph = depc.make_digraph()
+            netx.dag.ancestors(graph, tablename)
+            netx.dag_longest_path(graph, tablename, depc.root)
+            netx.algorithms.dag.topological_sort(graph)
+            netx.algorithms.dag.topological_sort_recursive(graph)
+            list(netx.all_simple_paths(graph, depc.root, tablename))
+            list(netx.all_shortest_paths(graph, depc.root, tablename))
         """
         try:
             assert tablename in depc.cachetable_dict, (
@@ -327,6 +346,7 @@ class _CoreDependencyCache(object):
         except Exception as ex:
             ut.printex(ex, 'error getting dependencies',
                        keys=[
+                           'tablename',
                            'root',
                            'children_to_parents',
                            'to_root',
@@ -577,7 +597,7 @@ class _CoreDependencyCache(object):
             # For each table in the level
             for tablekey in level_keys:
                 configclass = depc.configclass_dict.get(tablekey, None)
-                requestclass = depc.requestclass_dict.get(tablekey, None)
+                #requestclass = depc.requestclass_dict.get(tablekey, None)
                 if configclass is None:
                     config_ = config
                 else:
@@ -602,7 +622,7 @@ class _CoreDependencyCache(object):
                 if _debug:
                     print('   * tablekey = %r' % (tablekey,))
                     print('   * configclass = %r' % (configclass,))
-                    print('   * requestclass = %r' % (requestclass,))
+                    #print('   * requestclass = %r' % (requestclass,))
                     print('   * config_ = %r' % (config_,))
                     print('   * parent_rowids = %s' %
                           (ut.trunc_repr(parent_rowids),))
@@ -810,10 +830,15 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             print('db_fname = %r' % (fname,))
             depc.fname_to_db[fname].print_table_csv('config')
 
-    def get_edges(depc):
-        edges = [(parent, tablekey, {'ismulti': table.ismulti})
-                 for tablekey, table in depc.cachetable_dict.items()
-                 for parent in table.parents]
+    def get_edges(depc, data=False):
+        gen_ = ((table, parent, tablekey)
+                for tablekey, table in depc.cachetable_dict.items()
+                for parent in table.parents)
+        if data:
+            edges = [(parent, tablekey, {'ismulti': table.ismulti})
+                     for (table, parent, tablekey) in gen_]
+        else:
+            edges = [(parent, tablekey) for (table, parent, tablekey) in gen_]
         return edges
 
     def get_implicit_edges(depc):
@@ -852,7 +877,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         # graph = netx.DiGraph()
         graph = netx.MultiDiGraph()
         nodes = list(depc.cachetable_dict.keys())
-        edges = depc.get_edges()
+        edges = depc.get_edges(data=True)
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
 
@@ -885,6 +910,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         """ Helper "fluff" function """
         import plottool as pt
         graph = depc.make_digraph()
+        if ut.is_developer():
+            ut.ensure_pylab_qt4()
         pt.show_netx(graph, **kwargs)
 
     def __nice__(depc):

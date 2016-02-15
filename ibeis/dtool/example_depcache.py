@@ -123,8 +123,7 @@ class DummyVsOneConfig(dtool.TableConfig):
         ]
 
 
-class DummyVsOneRequest(dtool.AlgoRequest):
-    _daids_independent = True
+class DummyVsOneRequest(dtool.OneVsOneSimilarityRequest):
     pass
 
 
@@ -334,28 +333,30 @@ def testdata_depc(fname=None):
                                           name_score_list)
             yield annot_match
 
-    #@depc.register_preproc(
-    #    'vsone', ['annotation', 'annotation'],
-    #    ['score', 'match_obj'],
-    #    [float, ('extern', DummyVsOneMatch)],
-    #    configclass=DummyVsOneConfig
-    #)
+    @depc.register_preproc(
+        'vsone', ['annotation', 'annotation'],
+        ['score', 'match_obj'],
+        [float, ('extern', DummyVsOneMatch)],
+        requestclass=DummyVsOneRequest,
+        configclass=DummyVsOneConfig
+    )
     @depc.register_algo(algoname='vsone',
                         algo_result_class=DummyVsOneMatch,
                         algo_request_class=DummyVsOneRequest,
                         configclass=DummyVsOneConfig)
     #def vsone_matching(depc, qaid_list, daid_list, config):
-    def vsone_matching(depc, request):
+    def vsone_matching(depc, qaids, daids, config):
         #daids = request.daids
         #qaids = request.qaids
         #for qaid, daid in ut.product(qaids, daids):
-        for qaid, daid in request.get_parent_rowids():
+        #for qaid, daid in request.get_parent_rowids():
+        for qaid, daid in zip(qaids, daids):
             match = DummyVsOneMatch()
             match.qaid = qaid
             match.daid = daid
-            match.score = qaid + daid
+            score = match.score = qaid + daid
             #yield match.score, match
-            yield match
+            yield score, match
 
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))
