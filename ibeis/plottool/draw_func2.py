@@ -3572,8 +3572,11 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             dir_ = np.sign(n1.center[0] - n2.center[0])
             inc = dir_ * 0.1
             rad = dir_ * 0.2
+            posA = list(n1.center)
+            posB = list(n2.center)
             # Make duplicate edges more bendy to see them
             if edge in seen:
+                posB[0] += 10
                 rad = seen[edge] + inc
             seen[edge] = rad
 
@@ -3587,7 +3590,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             arrowstyle = '-' if not graph.is_directed() else '-|>'
 
             edge_artist = mpl.patches.FancyArrowPatch(
-                n1.center, n2.center, patchA=n1, patchB=n2,
+                posA, posB, patchA=n1, patchB=n2,
                 arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
                 mutation_scale=10.0, lw=2, alpha=alpha, color=color)
 
