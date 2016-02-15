@@ -434,7 +434,7 @@ def get_query_result_info(qreq_):
     unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
 
     unique_qnids, groupxs = vt.group_indices(qnids)
-    cm_group_list = vt.apply_grouping_(cm_list, groupxs)
+    cm_group_list = ut.apply_grouping(cm_list, groupxs)
     qnid2_aggnamescores = {}
 
     qnx2_nameres_info = []
