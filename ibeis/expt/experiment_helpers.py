@@ -76,7 +76,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='humpbacks')
-        >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average', 'default:K=[1,4]']
+        >>> test_cfg_name_list = ['default:pipeline_root=[BC_DTW,BC_DTW_NEW],decision=average', 'default:K=[1,4]']
         >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
         >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))
@@ -136,18 +136,18 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         # Get varied params (there may be duplicates)
         _pcfgdict_list.extend(ut.flatten(dict_comb_list))
 
-    # TODO: respsect different algorithm parameters
-    # like flukes
-
     # Expand cfgdicts into PipelineConfig config objects
+    # TODO: respsect different algorithm parameters like flukes
     if ibs is None:
         configclass_list = [Config.QueryConfig] * len(_pcfgdict_list)
     else:
         root_to_config = ibs.depc.configclass_dict
         configclass_list = [
-            root_to_config.get(_cfgdict.get('pipeline_root', 'vsmany'), Config.QueryConfig)
+            root_to_config.get(_cfgdict.get('pipeline_root', 'vsmany'),
+                               Config.QueryConfig)
             for _cfgdict in _pcfgdict_list]
-    _pipecfg_list = [cls(**_cfgdict) for cls, _cfgdict in zip(configclass_list, _pcfgdict_list)]
+    _pipecfg_list = [cls(**_cfgdict)
+                     for cls, _cfgdict in zip(configclass_list, _pcfgdict_list)]
 
     # Enforce rule that removes duplicate configs
     # by using feasiblity from ibeis.algo.Config

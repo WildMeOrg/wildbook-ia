@@ -2340,8 +2340,7 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
         qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
     if cfgstr is None:
         print('[chipmatch] Warning cfgstr should be passed given')
-        cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True,
-                                  with_pipe=True)
+        cfgstr = qreq_.get_cfgstr(with_input=True)
     #print('cfgstr = %r' % (cfgstr,))
     fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}'
     text_type = six.text_type

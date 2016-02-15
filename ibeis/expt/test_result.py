@@ -135,7 +135,6 @@ class TestResult(object):
         typestr = testres.__class__.__name__
         dbname = None if testres.ibs is None else testres.ibs.get_dbname()
         # hashkw = dict(_new=True, pathsafe=False)
-        # infostr_ = qreq_.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
         infostr_ = 'nCfg=%s'  % testres.nConfig
         if testres.nConfig ==  1:
             qreq_ = testres.cfgx2_qreq_[0]
@@ -1999,7 +1998,7 @@ class TestResult(object):
             from os.path import dirname, join  # NOQA
 
             # HACKY CACHE
-            cfgstr = qreq_.get_cfgstr(with_query=True)
+            cfgstr = qreq_.get_cfgstr(with_input=True)
             cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
             namemode = ut.get_argval('--namemode', default=True)
             fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',

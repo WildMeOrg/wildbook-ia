@@ -536,7 +536,19 @@ class IBEISController(BASE_CLASS):
             controller=ibs,
             get_root_uuid=ibs.get_annot_visual_uuids,
         )
+        # TODO: root_uuids should be specified as the
+        # base_root_uuid plus a hash of the attributes that matter for the
+        # requested computation.
         ibs.depc.initialize()
+        if False:
+
+            ibs.image_depc = dtool.DependencyCache(
+                root_tablename=const.IMAGE_TABLE,
+                default_fname=const.IMAGE_TABLE + '_depcache',
+                cache_dpath=ibs.get_cachedir(),
+                controller=ibs,
+                get_root_uuid=ibs.get_image_uuids,
+            )
 
     def _close_sqldbcache(ibs):
         ibs.dbcache.close()

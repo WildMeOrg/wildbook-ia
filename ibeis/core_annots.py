@@ -98,6 +98,7 @@ class ChipConfig(dtool.TableConfig):
     coltypes=[('extern', vt.imread, vt.imwrite), int, int, np.ndarray],
     configclass=ChipConfig,
     fname='chipcache4',
+    chunksize=256,
 )
 def compute_chip(depc, aid_list, config=None):
     r"""

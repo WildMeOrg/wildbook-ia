@@ -140,13 +140,18 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
 
-    # HACK FOR DEPC REQUESTS:
-    algoname = cfg.get_config_name()
+    # HACK FOR DEPC REQUESTS including flukes
     if isinstance(cfg, dtool.AlgoConfig):
-        requestclass = ibs.depc.requestclass_dict[algoname]
+        tablename = cfg.get_config_name()
+        requestclass = ibs.depc.requestclass_dict[tablename]
         cfgdict = dict(cfg.parse_items())
-        qreq_ = request = requestclass.new_algo_request(  # NOQA
-            ibs.depc, algoname, qaid_list, daid_list, cfgdict)
+        if hasattr(requestclass, 'new_algo_request'):
+            # OLD WAY DEPRICATE
+            qreq_ = request = requestclass.new_algo_request(  # NOQA
+                ibs.depc, tablename, qaid_list, daid_list, cfgdict)
+        else:
+            qreq_ = request = requestclass.new(  # NOQA
+                ibs.depc, qaid_list, daid_list, cfgdict, tablename=tablename)
     else:
         #if cfgdict.get('pipeline_root', None)
         DYNAMIC_K = False
@@ -790,7 +795,8 @@ class QueryRequest(object):
         return pipe_hashstr
 
     @profile
-    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False):
+    def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
+                   hash_pipe=False):
         r"""
         main cfgstring used to identify the 'querytype'
         FIXME: name params + data
@@ -799,7 +805,7 @@ class QueryRequest(object):
             rename query_cfgstr to pipe_cfgstr or pipeline_cfgstr EVERYWHERE
 
         Args:
-            with_query (bool): (default = False)
+            with_input (bool): (default = False)
 
         Returns:
             str: cfgstr
@@ -816,13 +822,13 @@ class QueryRequest(object):
             >>> daids = ibs.get_valid_aids(species=species)
             >>> qaids = ibs.get_valid_aids(species=species)
             >>> qreq_ = ibs.new_query_request(qaids, daids)
-            >>> with_query = True
-            >>> cfgstr = qreq_.get_cfgstr(with_query)
+            >>> with_input = True
+            >>> cfgstr = qreq_.get_cfgstr(with_input)
             >>> result = ('cfgstr = %s' % (str(cfgstr),))
             >>> print(result)
         """
         cfgstr_list = []
-        if with_query:
+        if with_input:
             cfgstr_list.append(qreq_.get_query_hashid())
         if with_data:
             cfgstr_list.append(qreq_.get_data_hashid())
@@ -839,7 +845,7 @@ class QueryRequest(object):
         FIXME: name
         params + data + query
         """
-        full_cfgstr = qreq_.get_cfgstr(with_query=True)
+        full_cfgstr = qreq_.get_cfgstr(with_input=True)
         return full_cfgstr
 
     def get_qresdir(qreq_):
@@ -1155,7 +1161,7 @@ class QueryRequest(object):
         """
         Efficient function to get a list of chipmatch paths
         """
-        cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
+        cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
         qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
         fname_list = [
             chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,

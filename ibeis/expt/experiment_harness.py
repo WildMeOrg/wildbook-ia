@@ -145,7 +145,7 @@ def get_big_test_cache_info(ibs, cfgx2_qreq_):
         bt_cachedir = './localdata/BIG_TEST_CACHE2'
     ut.ensuredir(bt_cachedir)
     bt_cachestr = ut.hashstr_arr27([
-        qreq_.get_cfgstr(with_query=True)
+        qreq_.get_cfgstr(with_input=True)
         for qreq_ in cfgx2_qreq_],
         ibs.get_dbname() + '_cfgs')
     bt_cachename = 'BIGTESTCACHE2'
@@ -212,7 +212,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         ut.colorprint('testnameid=%r' % (
             testnameid,), 'green')
         ut.colorprint('annot_cfgstr = %s' % (
-            qreq_.get_cfgstr(with_query=True, with_pipe=False),), 'yellow')
+            qreq_.get_cfgstr(with_input=True, with_pipe=False),), 'yellow')
         ut.colorprint('pipe_cfgstr= %s' % (
             qreq_.get_cfgstr(with_data=False),), 'turquoise')
         ut.colorprint('pipe_hashstr = %s' % (
@@ -232,7 +232,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             _need_compute = True
             if use_cache:
                 # smaller cache for individual configuration runs
-                st_cfgstr = qreq_.get_cfgstr(with_query=True)
+                st_cfgstr = qreq_.get_cfgstr(with_input=True)
                 bt_cachedir = cachetup[0]
                 st_cachedir = ut.unixjoin(bt_cachedir, 'small_tests')
                 st_cachename = 'smalltest'
