@@ -295,6 +295,14 @@ def testdata_depc(fname=None):
             vector = np.ones(3)
             yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
 
+    @depc.register_preproc(
+        'nnindexer', [dummy_root], ['flann'], [('extern', ut.load_data)],
+        configclass=DummyIndexerConfig,
+        ismulti=True
+    )
+    def dummy_preproc_indexer(depc, parent_rowids, config=None):
+        yield None
+
     algo_config = DummyAlgoConfig()
     print(algo_config)
 

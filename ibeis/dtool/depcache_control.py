@@ -98,6 +98,7 @@ class _CoreDependencyCache(object):
                        fname=None, chunksize=None, configclass=None,
                        #version=None,
                        isalgo=False, isinteractive=False,
+                       ismulti=False,
                        asobject=False):
         """
         Registers a table with this dependency cache.
@@ -142,6 +143,7 @@ class _CoreDependencyCache(object):
             fname=fname,
             chunksize=chunksize,
             isalgo=isalgo,
+            ismulti=ismulti,
             #version=version,
             isinteractive=isinteractive,
         )
@@ -809,7 +811,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             depc.fname_to_db[fname].print_table_csv('config')
 
     def get_edges(depc):
-        edges = [(parent, tablekey)
+        edges = [(parent, tablekey, {'ismulti': table.ismulti})
                  for tablekey, table in depc.cachetable_dict.items()
                  for parent in table.parents]
         return edges

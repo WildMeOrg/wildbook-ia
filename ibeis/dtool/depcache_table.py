@@ -94,7 +94,7 @@ class DependencyCacheTable(ut.NiceRepr):
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 chunksize=None, isalgo=False, isinteractive=False):
+                 chunksize=None, isalgo=False, ismulti=False, isinteractive=False):
 
         # HACK: jedi type hinting. Need to have non-obvious condition
         try:
@@ -117,6 +117,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.sqldb_fpath = None
         table.extern_read_funcs = {}
         table.isalgo = isalgo
+        table.ismulti = ismulti
         table.isinteractive = isinteractive
         # hack for tables that accept pairs of parents of the same type
         # TODO: come up with better name or structure
