@@ -29,32 +29,6 @@ SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 
-def _results_gen(cur, get_last_id=False, keepwrap=False):
-    """ HELPER - Returns as many results as there are.
-    Careful. Overwrites the results once you call it.
-    Basically: Dont call this twice.
-    """
-    if get_last_id:
-        # The sqlite3_last_insert_rowid(D) interface returns the
-        # <b> rowid of the most recent successful INSERT </b>
-        # into a rowid table in D
-        cur.execute('SELECT last_insert_rowid()', ())
-    # Wraping fetchone in a generator for some pretty tight calls.
-    while True:
-        result = cur.fetchone()
-        if not result:
-            raise StopIteration()
-        else:
-            # Results are always returned wraped in a tuple
-            if keepwrap:
-                result_ = result
-            else:
-                result_ = result[0] if len(result) == 1 else result
-            #if get_last_id and result == 0:
-            #    result = None
-            yield result_
-
-
 def _unpacker(results_):
     """ HELPER: Unpacks results if unpack_scalars is True.
     FIXME: hacky function
@@ -76,18 +50,17 @@ class SQLExecutionContext(object):
     knows what is going on here. So much for fine grained control.
 
     Referencs:
-        http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
+        http://stackoverflow.com/questions/9573768/understand-sqlite-multi-module-envs
 
     """
     def __init__(context, db, operation, nInput=None, auto_commit=True,
                  start_transaction=False, keepwrap=False, verbose=VERBOSE_SQL):
         context.auto_commit = auto_commit
-        context.db = db  # Reference to sqldb
+        context.db = db
         context.operation = operation
         context.nInput = nInput
         context.start_transaction = start_transaction
-        #context.__dict__.update(locals())  # Too mystic?
-        context.operation_type = get_operation_type(operation)  # Parse the optype
+        context.operation_type = get_operation_type(operation)
         context.verbose = verbose
         context.is_insert = context.operation_type.startswith('INSERT')
         context.keepwrap = keepwrap
@@ -118,49 +91,60 @@ class SQLExecutionContext(object):
 
     # --- with SQLExecutionContext: statment code happens here ---
 
+    @profile
     def execute_and_generate_results(context, params):
         """ helper for context statment """
         try:
-            #print(context.cur.rowcount)
-            #print(id(context.cur))
             context.cur.execute(context.operation, params)
-            #print(context.cur.rowcount)
         except lite.Error as ex:
             print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
-            #print('[sql.Error] %r' % (type(ex),))
-            #print('[sql.Error] params=<%r>' % (params,))
             raise
-        return _results_gen(context.cur, get_last_id=context.is_insert,
-                            keepwrap=context.keepwrap)
+        return context._results_gen()
+
+    @profile
+    def _results_gen(context):
+        """ HELPER - Returns as many results as there are.
+        Careful. Overwrites the results once you call it.
+        Basically: Dont call this twice.
+        """
+        if context.is_insert:
+            # The sqlite3_last_insert_rowid(D) interface returns the
+            # <b> rowid of the most recent successful INSERT </b>
+            # into a rowid table in D
+            context.cur.execute('SELECT last_insert_rowid()', ())
+        # Wraping fetchone in a generator for some pretty tight calls.
+        while True:
+            result = context.cur.fetchone()
+            if not result:
+                raise StopIteration()
+            if context.keepwrap:
+                # Results are always returned wraped in a tuple
+                yield result
+            else:
+                # Here unpacking is conditional
+                # FIXME: can this if be removed?
+                yield result[0] if len(result) == 1 else result
 
     def __exit__(context, type_, value, trace):
         """ Finalization of an SQLController call """
-        #print('exit context')
-        #if __debug__:
-        #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-        #        ut.toc(context.tt)
         if trace is not None:
             # An SQLError is a serious offence.
             print('[sql] FATAL ERROR IN QUERY CONTEXT')
             print('[sql] operation=\n' + context.operation)
             DUMP_ON_EXCEPTION = False
             if DUMP_ON_EXCEPTION:
-                context.db.dump()  # Dump on error
+                # Dump on error
+                context.db.dump()
             print('[sql] Error in context manager!: ' + str(value))
-            return False  # return a falsey value on error
+            # return a falsey value on error
+            return False
         else:
             # Commit the transaction
             if context.auto_commit:
-                #print('commit %r' % context.operation_lbl)
                 context.db.connection.commit()
-                #if context.start_transaction:
-                #    context.cur.execute('COMMIT')
             else:
                 print('no commit %r' % context.operation_lbl)
-                #context.db.commit(verbose=False)
-                #context.cur.commit()
-            #context.cur.close()
 
 
 def get_operation_type(operation):
@@ -279,6 +263,7 @@ def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname,
     return version_current, sqldb_fname
 
 
+@six.add_metaclass(ut.ReloadingMetaclass)
 class SQLDatabaseController(object):
     """
     SQLDatabaseController an efficientish interface into SQL
@@ -706,6 +691,29 @@ class SQLDatabaseController(object):
                 unpack_scalars=unpack_scalars, eager=eager, **kwargs)
         return val_list
 
+    def exists_where2(db, tblname, params_iter, andwhere_colnames,
+                      orwhere_colnames=[], unpack_scalars=True, eager=True,
+                      **kwargs):
+        """ hacked in function for nicer templates
+
+        """
+        andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
+        where_clause = ' AND '.join(andwhere_clauses)
+        fmtdict = { 'tblname'     : tblname,
+                    'where_clauses' :  where_clause, }
+        operation_fmt = ut.codeblock(
+            '''
+            SELECT EXISTS(
+            SELECT 1
+            FROM {tblname}
+            WHERE {where_clauses}
+            LIMIT 1)
+            ''')
+        val_list = db._executemany_operation_fmt(
+            operation_fmt, fmtdict, params_iter=params_iter,
+            unpack_scalars=unpack_scalars, eager=eager, **kwargs)
+        return val_list
+
     def get_rowid_from_superkey(db, tblname, params_iter=None,
                                 superkey_colnames=None, **kwargs):
         """ getter which uses the constrained superkeys instead of rowids """
@@ -840,19 +848,19 @@ class SQLDatabaseController(object):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, params, auto_commit=True, eager=eager, **kwargs)
+        return db.executeone(operation, params, eager=eager, **kwargs)
 
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
                                    unpack_scalars=True, eager=True, **kwargs):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
-                              auto_commit=True, eager=eager, **kwargs)
+                              eager=eager, **kwargs)
 
     #=========
     # SQLDB CORE
     #=========
 
-    def executeone(db, operation, params=(), auto_commit=True, eager=True,
+    def executeone(db, operation, params=(), eager=True,
                    verbose=VERBOSE_SQL):
         contextkw = dict(
             nInput=1, verbose=verbose
@@ -868,7 +876,8 @@ class SQLDatabaseController(object):
         return result_list
 
     #@ut.memprof
-    def executemany(db, operation, params_iter, auto_commit=True,
+    @profile
+    def executemany(db, operation, params_iter,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
                     eager=True, keepwrap=False):
         # --- ARGS PREPROC ---
@@ -898,41 +907,17 @@ class SQLDatabaseController(object):
             'verbose': verbose,
             'keepwrap': keepwrap,
         }
-
         with SQLExecutionContext(db, operation, **contextkw) as context:
-            #try:
             if eager:
-                #if ut.DEBUG2:
-                #    print('--------------')
-                #    print('+++ eager eval')
-                #    print(operation)
-                #    print('+++ eager eval')
-                #results_iter = list(
-                    #map(
-                    #    list,
-                    #    (context.execute_and_generate_results(params) for params in params_iter)
-                    #)
-                #)  # list of iterators
                 results_iter = [list(context.execute_and_generate_results(params))
                                 for params in params_iter]
                 if unpack_scalars:
-                    results_iter = list(map(_unpacker, results_iter))  # list of iterators
-                    #try:
-                    #    results_iter = [_unpacker(results_) for resultx,
-                    #    results_ in enumerate(results_iter)]
-                    #except AssertionError:
-                    #    print('resultx = %r' % (resultx,))
-                    #    if isinstance(params_iter, list):
-                    #        print('params = %r' % (params_iter[resultx]))
-                    #    raise
-                results_list = list(results_iter)  # Eager evaluation
+                    # list of iterators
+                    results_iter = list(map(_unpacker, results_iter))
+                # Eager evaluation
+                results_list = list(results_iter)
             else:
-                #if ut.DEBUG2:
-                #    print('--------------')
-                #    print(' +++ lazy eval')
-                #    print(operation)
-                #    print(' +++ lazy eval')
-                def tmpgen(context):
+                def _tmpgen(context):
                     # Temporary hack to turn off eager_evaluation
                     for params in params_iter:
                         # Eval results per query yeild per iter
@@ -941,10 +926,7 @@ class SQLDatabaseController(object):
                             yield _unpacker(results)
                         else:
                             yield results
-                results_list = tmpgen(context)
-            #except Exception as ex:
-            #    ut.printex(ex)
-            #    raise
+                results_list = _tmpgen(context)
         return results_list
 
     #def commit(db):

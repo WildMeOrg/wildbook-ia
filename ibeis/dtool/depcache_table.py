@@ -137,6 +137,8 @@ class DependencyCacheTable(ut.NiceRepr):
         return '(%s) nP=%d nC=%d' % (table.tablename, num_parents, num_cols)
 
     def _assert_self(table):
+        assert len(table.data_colnames) == len(table.data_coltypes), (
+            'specify same number of colnames and coltypes')
         if table.preproc_func is not None:
             argspec = ut.get_func_argspec(table.preproc_func)
             args = argspec.args
@@ -473,7 +475,12 @@ class DependencyCacheTable(ut.NiceRepr):
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
+        #print('Caller = ' + ut.get_caller_name(N=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+        #if verbose:
+        #    print('[deptbl.add] Checking %d rowids in %s' %
+        #          (len(parent_rowids), table.tablename))
         initial_rowid_list = table._get_rowid(parent_rowids, config=config)
+
         if table.depc._debug:
             print('[deptbl.add] initial_rowid_list = %s' %
                   (ut.trunc_repr(initial_rowid_list),))
@@ -723,16 +730,28 @@ class DependencyCacheTable(ut.NiceRepr):
             print('_get_rowid config = %s' % (config))
             print('_get_rowid table.rowid_colname = %s' % (table.rowid_colname))
             print('_get_rowid config_rowid = %s' % (config_rowid))
-        and_where_colnames = table.superkey_colnames
+        andwhere_colnames = table.superkey_colnames
         params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
         params_iter = list(params_iter)
         #print('**params_iter = %r' % (params_iter,))
         rowid_list = table.db.get_where2(table.tablename, colnames, params_iter,
-                                         and_where_colnames, eager=eager,
+                                         andwhere_colnames, eager=eager,
                                          nInput=nInput)
         if _debug:
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
+
+    #def _row_exists(table, parent_rowids, config=None, eager=True, nInput=None,
+    #                _debug=None):
+    #    config_rowid = table.get_config_rowid(config=config)
+    #    andwhere_colnames = table.superkey_colnames
+    #    params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
+    #    params_iter = list(params_iter)
+    #    tblname = table.tablename
+    #    flag_list = table.db.exists_where2(tblname, params_iter,
+    #                                       andwhere_colnames, eager=eager,
+    #                                       nInput=nInput)
+    #    return flag_list
 
     def delete_rows(table, rowid_list, verbose=None):
         #from dtool.algo.preproc import preproc_feat

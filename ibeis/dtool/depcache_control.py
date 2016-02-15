@@ -569,6 +569,17 @@ class _CoreDependencyCache(object):
             >>> print(prop_dicts2)
             >>> print(prop_dicts1)
             >>> assert prop_dicts1 != prop_dicts2
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> # Make sure algo config can correctly get properites
+            >>> depc = testdata_depc()
+            >>> qaids, daids = [1, 2], [2, 3, 4]
+            >>> qaids = daids = list(range(1, 1000))
+            >>> request = depc.new_request('vsone', qaids, daids)
+            >>> results = request.execute()
         """
         # TODO: Need to have a nice way of ensuring configs dont overlap
         # via namespaces.
@@ -642,6 +653,12 @@ class _CoreDependencyCache(object):
     def new_algo_request(depc, algoname, qaids, daids, cfgdict=None):
         requestclass = depc.requestclass_dict[algoname]
         request = requestclass.new_algo_request(depc, algoname, qaids, daids, cfgdict)
+        return request
+
+    def new_request(depc, tablename, qaids, daids, cfgdict=None):
+        requestclass = depc.requestclass_dict[tablename]
+        request = requestclass.new(depc, qaids, daids, cfgdict,
+                                   tablename=tablename)
         return request
 
     def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename):

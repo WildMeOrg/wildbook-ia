@@ -336,14 +336,15 @@ def testdata_depc(fname=None):
     @depc.register_preproc(
         'vsone', ['annotation', 'annotation'],
         ['score', 'match_obj'],
-        [float, ('extern', DummyVsOneMatch)],
+        #[float, ('extern', DummyVsOneMatch)],
+        [float, str],
         requestclass=DummyVsOneRequest,
         configclass=DummyVsOneConfig
     )
-    @depc.register_algo(algoname='vsone',
-                        algo_result_class=DummyVsOneMatch,
-                        algo_request_class=DummyVsOneRequest,
-                        configclass=DummyVsOneConfig)
+    #@depc.register_algo(algoname='vsone',
+    #                    algo_result_class=DummyVsOneMatch,
+    #                    algo_request_class=DummyVsOneRequest,
+    #                    configclass=DummyVsOneConfig)
     #def vsone_matching(depc, qaid_list, daid_list, config):
     def vsone_matching(depc, qaids, daids, config):
         #daids = request.daids
@@ -356,7 +357,7 @@ def testdata_depc(fname=None):
             match.daid = daid
             score = match.score = qaid + daid
             #yield match.score, match
-            yield score, match
+            yield (score, 'match_%d_%d' % (qaid, daid))
 
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))

@@ -355,6 +355,10 @@ class BaseRequest(IBEISRequestHacks):
                                  recompute=not use_cache)
         # Load all results
         result_list = table.get_row_data(rowids)
+        if hasattr(request, 'postprocess_execute'):
+            print('Converting results')
+            result_list = request.postprocess_execute(parent_rowids, result_list)
+            pass
         return result_list
 
     def __getstate__(request):
@@ -371,7 +375,7 @@ class BaseRequest(IBEISRequestHacks):
         del state_dict['dbdir']
         params = state_dict['params']
         depc = ibeis.opendb(dbdir=dbdir, web=False).depc
-        configclass = depc.configclass_dict[state_dict['algoname'] ]
+        configclass = depc.configclass_dict[state_dict['tablename'] ]
         config = configclass(**params)
         state_dict['depc'] = depc
         state_dict['config'] = config
@@ -400,8 +404,8 @@ class OneVsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
     def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
         parent_rowids = list(ut.product_nonsame(qaid_list, daid_list))
         request = cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
-        request.qaids = qaid_list
-        request.daids = daid_list
+        request.qaids = safeop(np.array, qaid_list)
+        request.daids = safeop(np.array, daid_list)
         return request
 
     def get_input_hashid(request):
@@ -634,17 +638,17 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     #    del state_dict['config']
     #    return state_dict
 
-    #def __setstate__(request, state_dict):
-    #    import ibeis
-    #    dbdir = state_dict['dbdir']
-    #    del state_dict['dbdir']
-    #    params = state_dict['params']
-    #    depc = ibeis.opendb(dbdir=dbdir, web=False).depc
-    #    configclass = depc.configclass_dict[state_dict['algoname'] ]
-    #    config = configclass(**params)
-    #    state_dict['depc'] = depc
-    #    state_dict['config'] = config
-    #    request.__dict__.update(state_dict)
+    def __setstate__(request, state_dict):
+        import ibeis
+        dbdir = state_dict['dbdir']
+        del state_dict['dbdir']
+        params = state_dict['params']
+        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
+        configclass = depc.configclass_dict[state_dict['algoname'] ]
+        config = configclass(**params)
+        state_dict['depc'] = depc
+        state_dict['config'] = config
+        request.__dict__.update(state_dict)
 
 
 class AlgoResult(object):
