@@ -3486,6 +3486,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
 
     CommandLine:
         python -m plottool.draw_func2 --exec-show_netx --show
+        python -m dtool --tf DependencyCache.make_digraph --show
 
     Ignore:
         http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
@@ -3501,7 +3502,6 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             --install-option="--library-path=/usr/lib/graphviz/"
         python -c "import pygraphviz; print(pygraphviz.__file__)"
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
-        python -m dtool --tf DependencyCache.make_digraph --show
 
 
     Example:
@@ -3531,6 +3531,91 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     explicit_graph.add_edges_from(explicit_edges)
 
     pos = netx.pydot_layout(explicit_graph, prog='dot')
+
+    def draw_network2(graph, pos, ax, sg=None):
+        """ fancy way to draw networkx graphs without using networkx """
+        ###
+        # Draw nodes
+        for n, nattrs in graph.nodes(data=True):
+            # shape = nattrs.get('shape', 'circle')
+            alpha = nattrs.get('alpha', .5)
+            node_color = nattrs.get('color', None)
+            if node_color is None:
+                node_color = pt.NEUTRAL_BLUE
+            xy = pos[n]
+            patch_kw = dict(alpha=alpha, color=node_color)
+            # if shape == 'circle':
+            # radius = node_size / 100
+            radius = node_size / 50
+            patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
+            # elif shape == 'rhombus':
+            #     height = width = node_size / 10
+            #     patch = mpl.patches.Rectangle(xy, width, height, angle=45,
+            #                                   **patch_kw)
+            #     patch.center = (xy[0] + width // 2, xy[1] + height // 2)
+            # elif shape == 'star':
+            #     pass
+            ax.add_patch(patch)
+            graph.node[n]['patch'] = patch
+            x, y = pos[n]
+            pt.ax_absolute_text(x, y, n, ha='center', va='center')
+        ###
+        # Draw Edges
+        seen = {}
+        edge_list = graph.edges(data=True)
+        for (u, v, data) in edge_list:
+            edge = (u, v)
+            n1 = graph.node[u]['patch']
+            n2 = graph.node[v]['patch']
+
+            # Bend left / right depending on node positions
+            dir_ = np.sign(n1.center[0] - n2.center[0])
+            inc = dir_ * 0.1
+            rad = dir_ * 0.2
+            # Make duplicate edges more bendy to see them
+            if edge in seen:
+                rad = seen[edge] + inc
+            seen[edge] = rad
+
+            if data.get('implicit', False):
+                alpha = .2
+                color = pt.GREEN
+            else:
+                alpha = 0.5
+                color = pt.BLACK
+
+            arrowstyle = '-' if not graph.is_directed() else '-|>'
+
+            edge_artist = mpl.patches.FancyArrowPatch(
+                n1.center, n2.center, patchA=n1, patchB=n2,
+                arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
+                mutation_scale=10.0, lw=2, alpha=alpha, color=color)
+
+            # endpoint1 = edge_verts[0]
+            # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
+            if data.get('ismulti', False):
+                pt1 = np.array(edge_artist.patchA.center)
+                pt2 = np.array(edge_artist.patchB.center)
+                frac_thru = 4
+                edge_verts = edge_artist.get_verts()
+                edge_verts = vt.unique_rows(edge_verts)
+                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+                if len(sorted_verts) <= 4:
+                    mpl_bbox = edge_artist.get_extents()
+                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                    print('sorted_verts = %r' % (sorted_verts,))
+                    beta = (1 / frac_thru)
+                    alpha = 1 - beta
+                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+                else:
+                    text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                ax.annotate("*", xy=text_point1, xycoords="data",
+                                  va="center", ha="center",
+                                  bbox=dict(boxstyle="round", fc="w"))
+            ax.add_patch(edge_artist)
+        # return e
 
     #def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     #    import pygraphviz
@@ -3569,62 +3654,6 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     #            print("no position for node", n)
     #            node_pos[n] = (0.0, 0.0)
     #    return node_pos
-
-    # For fancy arrows
-    def draw_network2(graph, pos, ax, sg=None):
-        for n, nattrs in graph.nodes(data=True):
-            # shape = nattrs.get('shape', 'circle')
-            alpha = nattrs.get('alpha', .5)
-            node_color = nattrs.get('color', None)
-            if node_color is None:
-                node_color = pt.NEUTRAL_BLUE
-            xy = pos[n]
-            patch_kw = dict(alpha=alpha, color=node_color)
-            # if shape == 'circle':
-            radius = node_size / 100
-            patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
-            # elif shape == 'rhombus':
-            #     height = width = node_size / 10
-            #     patch = mpl.patches.Rectangle(xy, width, height, angle=45,
-            #                                   **patch_kw)
-            #     patch.center = (xy[0] + width // 2, xy[1] + height // 2)
-            # elif shape == 'star':
-            #     pass
-            ax.add_patch(patch)
-            graph.node[n]['patch'] = patch
-            x, y = pos[n]
-            pt.ax_absolute_text(x, y, n, ha='center', va='center')
-        seen = {}
-        edge_list = graph.edges(data=True)
-        for (u, v, data) in edge_list:
-            edge = (u, v)
-            n1 = graph.node[u]['patch']
-            n2 = graph.node[v]['patch']
-
-            # Bend left / right depending on node positions
-            dir_ = np.sign(n1.center[0] - n2.center[0])
-            inc = dir_ * 0.1
-            rad = dir_ * 0.2
-            # Make duplicate edges more bendy to see them
-            if edge in seen:
-                rad = seen[edge] + inc
-            seen[edge] = rad
-
-            if data.get('implicit', False):
-                alpha = .2
-                color = pt.GREEN
-            else:
-                alpha = 0.5
-                color = pt.BLACK
-
-            arrowstyle = '-' if not graph.is_directed() else '-|>'
-
-            e = mpl.patches.FancyArrowPatch(
-                n1.center, n2.center, patchA=n1, patchB=n2,
-                arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
-                mutation_scale=10.0, lw=2, alpha=alpha, color=color)
-            ax.add_patch(e)
-        return e
 
     if False:
         netx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
