@@ -719,7 +719,8 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         >>> config = FeatureConfig()
         >>> fid_list = depc.get_rowids('feat', aid_list, config=full_config)
         >>> pcid_list = depc.get_rowids('probchip', aid_list, config=full_config)
-        >>> featweight_list = list(compute_fgweights(depc, fid_list, pcid_list))
+        >>> prop_list = list(compute_fgweights(depc, fid_list, pcid_list))
+        >>> featweight_list = ut.take_column(prop_list, 0)
         >>> result = np.array_str(featweight_list[0][0:3], precision=3)
         >>> print(result)
         [ 0.125  0.061  0.053]
