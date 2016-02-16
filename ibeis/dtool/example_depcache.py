@@ -15,13 +15,13 @@ import dtool
 
 
 if False:
-    DUMMY_ROOT_TABLENAME = 'dummy_annot'
-    _decors = depcache_control.make_depcache_decors(DUMMY_ROOT_TABLENAME)
-    register_preproc = _decors['preproc']
-    register_algo = _decors['algo']
-    register_subprop = _decors['subprop']
+    # Example of global registration
 
-    # Example of global preproc function
+    DUMMY_ROOT_TABLENAME = 'dummy_annot'
+    _depcdecors = depcache_control.make_depcache_decors(DUMMY_ROOT_TABLENAME)
+    register_preproc = _depcdecors['preproc']
+    register_subprop = _depcdecors['subprop']
+
     @register_preproc(tablename='dummy', parents=[DUMMY_ROOT_TABLENAME],
                       colnames=['data'], coltypes=[str])
     def dummy_global_preproc_func(depc, parent_rowids, config=None):
@@ -68,6 +68,17 @@ class DummySVERConfig(dtool.AlgoConfig):
 
 
 class DummyChipConfig(dtool.TableConfig):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.example_depcache import *  # NOQA
+        >>> cfg = DummyChipConfig()
+        >>> cfg.size = 700
+        >>> cfg.histeq = True
+        >>> print(cfg)
+        >>> cfg.histeq = False
+        >>> print(cfg)
+    """
     def get_param_info_list(self):
         return [
             ut.ParamInfo('resize_dim', 'width',
@@ -80,7 +91,7 @@ class DummyChipConfig(dtool.TableConfig):
         ]
 
 
-class DummyAlgoConfig(dtool.AlgoConfig):
+class DummyVsManyConfig(dtool.AlgoConfig):
     def get_sub_config_list(self):
         # Different pipeline compoments can go here
         # as well as dependencies that were not
@@ -125,11 +136,18 @@ class DummyVsOneConfig(dtool.TableConfig):
         ]
 
 
-class DummyVsOneRequest(dtool.OneVsOneSimilarityRequest):
+class DummyVsOneRequest(dtool.VsOneSimilarityRequest):
     pass
 
 
-class DummyMatchRequest(dtool.AlgoRequest):
+class DummyVsManyRequest(dtool.VsManySimilarityRequest):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.example_depcache import *  # NOQA
+        >>> algo_config = DummyVsManyConfig()
+        >>> print(algo_config)
+    """
     pass
 
 
@@ -149,6 +167,10 @@ class DummyVsOneMatch(dtool.AlgoResult, ut.NiceRepr):
 
 
 def testdata_depc(fname=None):
+    """
+    Example of local registration
+    """
+
     import dtool
     import vtool as vt
     gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(),
@@ -189,20 +211,13 @@ def testdata_depc(fname=None):
             w, h = vt.get_size(mask)
             yield (w, h), mask_fpath
 
-    cfg = DummyChipConfig()
-    cfg.size = 700
-    cfg.histeq = True
-    print(cfg)
-    cfg.histeq = False
-    print(cfg)
-
     @depc.register_preproc(tablename='chip', parents=[dummy_root],
                            colnames=['size', 'chip'],
                            coltypes=[(int, int), vt.imread],
                            configclass=DummyChipConfig)
     def dummy_preproc_chip(depc, annot_rowid_list, config=None):
         """
-        TODO: Infer properties from docstr
+        TODO: Infer properties from docstr?
 
         Args:
             annot_list (list): list of annot objects
@@ -216,15 +231,16 @@ def testdata_depc(fname=None):
         # Demonstates using asobject to get input to function as a dictionary
         # of properties
         #for annot in annot_list:
+        #print('[preproc] Computing chips of aid=%r' % (aid,))
+        print('[preproc] Computing chips')
         for aid in annot_rowid_list:
             #aid = annot['aid']
             #chip_fpath = annot['gpath']
-            print('[preproc] Computing chips of aid=%r' % (aid,))
             chip_fpath = gpath_list[aid]
             w, h = vt.image.open_image_size(chip_fpath)
             size = (w, h)
-            print('* chip_fpath = %r' % (chip_fpath,))
-            print('* size = %r' % (size,))
+            #print('* chip_fpath = %r' % (chip_fpath,))
+            #print('* size = %r' % (size,))
             yield size, chip_fpath
 
     @depc.register_preproc(
@@ -271,7 +287,7 @@ def testdata_depc(fname=None):
         for rowid1, rowid2 in zip(kpts_rowid, probchip_rowid):
             yield np.ones(7 + rowid1),
 
-    @depc.register_preproc('notch', [dummy_root], ['notchdata'],)
+    @depc.register_preproc('notch', [dummy_root], ['notchdata'], [np.ndarray],)
     def dummy_preproc_notch(depc, parent_rowids, config=None):
         if config is None:
             config = {}
@@ -304,21 +320,21 @@ def testdata_depc(fname=None):
     def dummy_preproc_indexer(depc, parent_rowids, config=None):
         yield None
 
-    algo_config = DummyAlgoConfig()
-    print(algo_config)
+    # REGISTER MATCHING ALGORITHMS
 
-    @depc.register_algo(algoname='dumbalgo',
-                        algo_result_class=DummyAnnotMatch,
-                        algo_request_class=DummyMatchRequest,
-                        configclass=DummyAlgoConfig)
-    #def dummy_matching_algo(depc, aids, config=None):
-    def dummy_matching_algo(depc, request):
-        print('RUNNING DUMMY ALGO')
-        daids = request.daids
-        qaids = request.qaids
-        print('request.config = %r' % (request.config,))
-        print('request.params = %r' % (request.params,))
-        sver_on = request.params['sver_on']
+    @depc.register_preproc(
+        tablename='vsmany', colnames='annotmatch', coltypes=DummyAnnotMatch,
+        requestclass=DummyVsManyRequest, configclass=DummyVsManyConfig)
+    def vsmany_matching(depc, qaids, config=None):
+        """
+        CommandLine:
+            python -m dtool.base --exec-VsManySimilarityRequest
+        """
+        print('RUNNING DUMMY VSMANY ALGO')
+        daids = config.daids
+        qaids = qaids
+
+        sver_on = config.dummy_sver_cfg['sver_on']
         kpts_list = depc.get_property('keypoint', qaids)  # NOQA
         #dummy_preproc_kpts
         for qaid in qaids:
@@ -337,34 +353,28 @@ def testdata_depc(fname=None):
 
     @depc.register_preproc(
         'vsone', [dummy_root, dummy_root],
-        ['score', 'match_obj'],
-        #[float, ('extern', DummyVsOneMatch)],
-        [float, str],
+        ['score', 'match_obj', 'fm'],
+        [float, DummyVsOneMatch, np.ndarray],
         requestclass=DummyVsOneRequest,
         configclass=DummyVsOneConfig
     )
-    #@depc.register_algo(algoname='vsone',
-    #                    algo_result_class=DummyVsOneMatch,
-    #                    algo_request_class=DummyVsOneRequest,
-    #                    configclass=DummyVsOneConfig)
-    #def vsone_matching(depc, qaid_list, daid_list, config):
     def vsone_matching(depc, qaids, daids, config):
-        #daids = request.daids
-        #qaids = request.qaids
-        #for qaid, daid in ut.product(qaids, daids):
-        #for qaid, daid in request.get_parent_rowids():
+        """
+        CommandLine:
+            python -m dtool.base --exec-VsOneSimilarityRequest
+        """
+        print('RUNNING DUMMY VSONE ALGO')
         for qaid, daid in zip(qaids, daids):
             match = DummyVsOneMatch()
             match.qaid = qaid
             match.daid = daid
+            match.fm = np.array([[1, 2], [3, 4]])
             score = match.score = qaid + daid
-            #yield match.score, match
-            yield (score, 'match_%d_%d' % (qaid, daid))
+            yield (score, match, match.fm)
 
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))
     depc.initialize()
-
     # table.print_schemadef()
     # print(table.db.get_schema_current_autogeneration_str())
     return depc
@@ -486,8 +496,7 @@ def dummy_example_depcacahe():
 
     table = depc[tablename]  # NOQA
 
-    #example_getter_methods(depc, 'dumbalgo', root_rowids)
-
+    #example_getter_methods(depc, 'vsmany', root_rowids)
     # example_getter_methods(depc, 'chipmask', root_rowids)
     # example_getter_methods(depc, 'keypoint', root_rowids)
     # example_getter_methods(depc, 'chip', root_rowids)
@@ -503,23 +512,25 @@ def dummy_example_depcacahe():
     print('---------- 111 -----------')
 
     # Try testing the algorithm
-    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {})
+    req = depc.new_request('vsmany', root_rowids, root_rowids, {})
     print('req = %r' % (req,))
     req.execute()
 
     print('---------- 222 -----------')
 
-    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {'sver_on': False})
+    cfgdict = {'sver_on': False}
+    req = depc.new_request('vsmany', root_rowids, root_rowids, cfgdict)
     req.execute()
 
     print('---------- 333 -----------')
 
-    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {'sver_on': False, 'adapt_shape': False})
+    cfgdict = {'sver_on': False, 'adapt_shape': False}
+    req = depc.new_request('vsmany', root_rowids, root_rowids, cfgdict)
     req.execute()
 
     print('---------- 444 -----------')
 
-    req = depc.new_algo_request('dumbalgo', root_rowids, root_rowids, {})
+    req = depc.new_request('vsmany', root_rowids, root_rowids, {})
     req.execute()
 
     return depc

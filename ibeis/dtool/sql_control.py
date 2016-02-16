@@ -1107,7 +1107,7 @@ class SQLDatabaseController(object):
                     colnames_str = ','.join(superkey_colnames)
                     unique_constraint = constraint_fmtstr.format(colnames_str=colnames_str)
                     constraint_list.append(unique_constraint)
-                constraint_list = ut.unique_keep_order(constraint_list)
+                constraint_list = ut.unique_ordered(constraint_list)
         except Exception as ex:
             ut.printex(ex, keys=locals().keys())
             raise

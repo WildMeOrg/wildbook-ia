@@ -37,7 +37,7 @@ def predrop_grace_period(tablename, seconds=None):
         ''')
     if seconds is None:
         seconds = GRACE_PERIOD
-        GRACE_PERIOD = max(1, GRACE_PERIOD // 2)
+        GRACE_PERIOD = max(0, GRACE_PERIOD // 2)
     warnmsg = warnmsg_fmt.format(tablename=tablename, seconds=seconds)
     return ut.grace_period(warnmsg, seconds)
     #return ut.are_you_sure(warnmsg)
@@ -72,6 +72,7 @@ def ensure_config_table(db):
                 raise NotImplementedError('Need to be able to modify tables')
 
 
+@ut.reloadable_class
 class DependencyCacheTable(ut.NiceRepr):
     r"""
     An individual node in the dependency graph.
@@ -84,7 +85,7 @@ class DependencyCacheTable(ut.NiceRepr):
         >>> from dtool.depcache_table import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
-        >>> table = depc['dumbalgo']
+        >>> table = depc['vsmany']
         >>> print(table)
         >>> table = depc['spam']
         >>> table = depc['vsone']
@@ -94,7 +95,8 @@ class DependencyCacheTable(ut.NiceRepr):
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 chunksize=None, isalgo=False, ismulti=False, isinteractive=False):
+                 chunksize=None, ismulti=False,
+                 isinteractive=False, default_to_unpack=False):
 
         # HACK: jedi type hinting. Need to have non-obvious condition
         try:
@@ -116,12 +118,14 @@ class DependencyCacheTable(ut.NiceRepr):
         table._nested_idxs = []
         table.sqldb_fpath = None
         table.extern_read_funcs = {}
-        table.isalgo = isalgo
+        table.extern_write_funcs = {}
+        table.extern_io_classes = {}
         table.ismulti = ismulti
         table.isinteractive = isinteractive
         # hack for tables that accept pairs of parents of the same type
         # TODO: come up with better name or structure
         table.productinput = ut.duplicates_exist(table.parent_tablenames)
+        table.default_to_unpack = default_to_unpack
 
         table.docstr = docstr
         table.fname = fname
@@ -141,34 +145,49 @@ class DependencyCacheTable(ut.NiceRepr):
         assert len(table.data_colnames) == len(table.data_coltypes), (
             'specify same number of colnames and coltypes')
         if table.preproc_func is not None:
+            # Check that preproc_func has a valid signature
+            # ie (depc, parent_rowids, config)
             argspec = ut.get_func_argspec(table.preproc_func)
             args = argspec.args
             if argspec.varargs and argspec.keywords:
                 assert len(args) == 1, (
                     'varargs and kwargs must have one arg for depcache')
             else:
-                if not table.isalgo:
-                    if len(args) < 3:
-                        print('args = %r' % (args,))
-                        msg = (
-                            'preproc_func=%r for table=%s must have a '
-                            'depcache arg, at least one parent rowid arg, '
-                            'and a config arg') % (
-                                table.preproc_func, table.tablename,)
-                        raise AssertionError(msg)
-                    rowid_args = args[1:-1]
-                    if len(rowid_args) != len(table.parents):
-                        print('table.preproc_func = %r' %
-                              (table.preproc_func,))
-                        print('args = %r' % (args,))
-                        print('rowid_args = %r' % (rowid_args,))
-                        msg = (
-                            ('preproc function for table=%s must have as many '
-                             'rowids %d args as parents %d') % (
-                                table.tablename, len(rowid_args),
-                                 len(table.parents))
-                        )
-                        raise AssertionError(msg)
+                if len(args) < 3:
+                    print('args = %r' % (args,))
+                    msg = (
+                        'preproc_func=%r for table=%s must have a '
+                        'depcache arg, at least one parent rowid arg, '
+                        'and a config arg') % (
+                            table.preproc_func, table.tablename,)
+                    raise AssertionError(msg)
+                rowid_args = args[1:-1]
+                if len(rowid_args) != len(table.parents):
+                    print('table.preproc_func = %r' %
+                          (table.preproc_func,))
+                    print('args = %r' % (args,))
+                    print('rowid_args = %r' % (rowid_args,))
+                    msg = (
+                        ('preproc function for table=%s must have as many '
+                         'rowids %d args as parents %d') % (
+                            table.tablename, len(rowid_args),
+                             len(table.parents))
+                    )
+                    raise AssertionError(msg)
+        for colname, cls in table.extern_io_classes.items():
+            # Check external column class funcs
+            argspec = ut.get_func_argspec(cls.__init__)
+            if argspec.defaults is not None:
+                num_nondefault = len(argspec.args) - len(argspec.defaults)
+            else:
+                num_nondefault = len(argspec.args)
+            if num_nondefault > 1:
+                msg = ut.codeblock(
+                    '''
+                    External args must be able to be constructed without any
+                    args. IE: You need a default __init__(self) method
+                    ''')
+                raise AssertionError(msg)
 
     def _update_datacol_internal(table):
         """
@@ -197,10 +216,24 @@ class DependencyCacheTable(ut.NiceRepr):
         """
         # TODO: can rewrite much of this
         extern_read_funcs = {}
+        extern_write_funcs = {}
+        extern_io_classes = {}
         internal_data_colnames = []
         internal_data_coltypes = []
         nested_to_flat = {}
         external_to_internal = {}
+
+        def make_extern_io_funcs(cls):
+            def load_from_fpath(fpath, verbose=ut.VERBOSE):
+                state_dict = ut.load_cPkl(fpath, verbose=verbose)
+                self = cls()
+                self.__setstate__(state_dict)
+                return self
+
+            def save_to_fpath(self, fpath, verbose=ut.VERBOSE):
+                ut.save_cPkl(fpath, self.__getstate__(), verbose=verbose, n=4)
+            return load_from_fpath, save_to_fpath
+
         # Parse column datatypes
         _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
         for colx, (colname, coltype) in _iter:
@@ -210,7 +243,8 @@ class DependencyCacheTable(ut.NiceRepr):
             is_externtup = is_tuple and coltype[0] == 'extern'
             is_functup   = is_tuple and ut.is_func_or_method(coltype[0])
             # Check column input main types
-            is_normal   = not (is_tuple or is_func)
+            is_normal   = coltype in lite.TYPE_TO_SQLTYPE
+            #is_normal   = not (is_tuple or is_func)
             is_nested   = is_tuple and not (is_func or is_externtup)
             is_external = (is_func or is_functup or is_externtup)
             # Switch on input types
@@ -222,11 +256,11 @@ class DependencyCacheTable(ut.NiceRepr):
                 # Nested non-function normal columns
                 table._nested_idxs.append(colx)
                 nested_to_flat[colname] = []
-                for count, dimtype in enumerate(coltype):
+                for count, subtype in enumerate(coltype):
                     flat_colname = '%s_%d' % (colname, count)
                     nested_to_flat[colname].append(flat_colname)
                     internal_data_colnames.append(flat_colname)
-                    internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[dimtype])
+                    internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[subtype])
             elif is_external:
                 # Nested external funcs
                 if is_externtup:
@@ -236,16 +270,32 @@ class DependencyCacheTable(ut.NiceRepr):
                 else:
                     read_func = coltype
                 extern_read_funcs[colname] = read_func
+                # TODO: extern_write_funcs
                 intern_colname = colname + EXTERN_SUFFIX
                 external_to_internal[colname] = intern_colname
                 internal_data_colnames.append(intern_colname)
                 internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[str])
             else:
-                raise AssertionError('impossible state')
+                # External class column
+                assert (hasattr(coltype, '__getstate__') and
+                        hasattr(coltype, '__setstate__')), (
+                        'External classes must have __getstate__ and '
+                        '__setstate__ methods')
+                read_func, write_func = make_extern_io_funcs(coltype)
+                extern_io_classes[colname]  = coltype
+                extern_read_funcs[colname]  = read_func
+                extern_write_funcs[colname] = write_func
+                intern_colname = colname + EXTERN_SUFFIX
+                external_to_internal[colname] = intern_colname
+                internal_data_colnames.append(intern_colname)
+                internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[str])
+                #raise AssertionError('external class columns')
         # Set new internal data properties of the table
         assert len(set(internal_data_colnames)) == len(internal_data_colnames)
         assert len(internal_data_coltypes) == len(internal_data_colnames)
         table.extern_read_funcs = extern_read_funcs
+        table.extern_write_funcs = extern_write_funcs
+        table.extern_io_classes = extern_io_classes
         table.external_to_internal = external_to_internal
         table.nested_to_flat = nested_to_flat
         table._internal_data_colnames = tuple(internal_data_colnames)
@@ -336,9 +386,8 @@ class DependencyCacheTable(ut.NiceRepr):
     def _get_all_rowids(table):
         pass
 
-    def new_algo_request(table, qaids, daids, cfgdict=None):
-        assert table.isalgo, 'this table is not an algorithm'
-        request = table.depc.new_algo_request(table.tablename, qaids, daids, cfgdict=cfgdict)
+    def new_request(table, qaids, daids, cfgdict=None):
+        request = table.depc.new_request(table.tablename, qaids, daids, cfgdict=cfgdict)
         return request
 
     def get_rowids_from_root(table, root_rowids, config=None):
@@ -354,7 +403,7 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def tabletype(table):
-        return 'algo' if table.isalgo else 'node'
+        return 'node'
 
     @property
     def parents(table):
@@ -476,10 +525,6 @@ class DependencyCacheTable(ut.NiceRepr):
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
-        #print('Caller = ' + ut.get_caller_name(N=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
-        #if verbose:
-        #    print('[deptbl.add] Checking %d rowids in %s' %
-        #          (len(parent_rowids), table.tablename))
         initial_rowid_list = table._get_rowid(parent_rowids, config=config)
 
         if table.depc._debug:
@@ -498,13 +543,14 @@ class DependencyCacheTable(ut.NiceRepr):
                               'for config_rowid=%r')
                     print(fmtstr % (num_dirty, num_total, table.tablename,
                                     config_rowid))
-                print("ADD DIRTY")
-                table._add_dirty_rows(parent_rowids, config_rowid,
-                                      isdirty_list, config)
+                if _debug:
+                    print("ADD DIRTY")
+                table._compute_dirty_rows(parent_rowids, config_rowid,
+                                          isdirty_list, config)
                 # Get correct order, now that everything is clean in the database
-                print("GET ROWID")
-                rowid_list = table._get_rowid(parent_rowids,
-                                                            config=config)
+                if _debug:
+                    print("GET ROWID")
+                rowid_list = table._get_rowid(parent_rowids, config=config)
         else:
             rowid_list = initial_rowid_list
         if _debug:
@@ -512,127 +558,127 @@ class DependencyCacheTable(ut.NiceRepr):
                   (ut.trunc_repr(rowid_list),))
         return rowid_list
 
-    def _add_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
-                        config, verbose=True):
-        """ Does work of adding dirty rowids """
+    def _compute_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
+                            config, verbose=True):
+        """
+        Does work of computing and caching dirty rowids
+        """
         dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
+        # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
-            # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
-            if table.isalgo:
-                # TODO: DEPRICATE OLD ALGO REQUST STRUCTURE
-                # HACK: config here is a request
-                request = config
-                #subreq = request.shallow_copy # TODO
-                # FIXME: Need to vsone querys and name-vs-name queries work
-                # here.
-                if table.productinput:
-                    # Roundabout way of forcing algo requests into the depcache
-                    # structure Very ugly
-                    subreq_list = list(request.shallowcopy_vsonehack(
-                        qmask=isdirty_list))
-                    proptup_gen_list = [table.preproc_func(table.depc, subreq)
-                                        for subreq in subreq_list]
-                    from itertools import chain
-                    proptup_gen = chain(*proptup_gen_list)
-                    dirty_params_iter = table._yeild_algo_result(
-                        dirty_parent_rowids, proptup_gen, config_rowid)
-                    #proptup_gen = list(proptup_gen)
-                else:
-                    subreq = request.shallowcopy(qmask=isdirty_list)
-                    # CALL REGISTRED ALGO WORKER FUNCTION
-                    proptup_gen = table.preproc_func(table.depc, subreq)
-                    dirty_params_iter = table._yeild_algo_result(
-                        dirty_parent_rowids, proptup_gen, config_rowid)
-            else:
-                args = zip(*dirty_parent_rowids)
-                if table._asobject:
-                    # Convinience
-                    args = [table.depc.get_obj(parent, rowids)
-                            for parent, rowids in zip(table.parents, args)]
-                # hack config out of request
-                config_ = config.config if hasattr(config, 'config') else config
-                # CALL REGISTRED TABLE WORKER FUNCTION
-                proptup_gen = table.preproc_func(table.depc, *args,
-                                                 config=config_)
-                if len(table._nested_idxs) > 0:
-                    assert not table.isalgo
-                    unnest_data = table._make_unnester()
-                    proptup_gen = (unnest_data(data) for data in proptup_gen)
-                dirty_params_iter = table._concat_rowids_data(
-                    dirty_parent_rowids, proptup_gen, config_rowid)
-
-            chunksize = (len(dirty_parent_rowids)
-                         if table.chunksize is None else table.chunksize)
-
-            # TODO: Separate this as a function which can be specified as a
-            # callback.
+            # Pack arguments into column-wise order to send to the func
+            args = zip(*dirty_parent_rowids)
+            if table._asobject:
+                # Convinience
+                args = [table.depc.get_obj(parent, rowids)
+                        for parent, rowids in zip(table.parents, args)]
+            # hack out config if given a request
+            config_ = config.config if hasattr(config, 'config') else config
+            # call registered worker function
+            proptup_gen = table.preproc_func(table.depc, *args, config=config_)
+            # Append rowids and rectify nested and external columns
+            dirty_params_iter = table.prepare_storage(
+                dirty_parent_rowids, proptup_gen, config_rowid)
+            # Break iterator into chunks
+            chunksize = ut.ifnone(len(dirty_parent_rowids), table.chunksize)
             num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
             chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
-            lbl = 'adding %s chunk' % (table.tablename)
+            # Report computation progress
+            lbl = 'add %s chunk' % (table.tablename)
             prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
+            # TODO: Separate into func which can be specified as a callback.
             for dirty_params_chunk in prog_iter:
                 nInput = len(dirty_params_chunk)
-                if table.isalgo:
-                    # HACKS, really this should be for anything that has a
-                    # extern write function
-                    sql_chunks = table._save_algo_result(dirty_params_chunk)
-                    table.db._add(table.tablename, table._table_colnames,
-                                  sql_chunks, nInput=nInput)
-                else:
-                    table.db._add(table.tablename, table._table_colnames,
-                                  dirty_params_chunk, nInput=nInput)
+                table.db._add(table.tablename, table._table_colnames,
+                              dirty_params_chunk, nInput=nInput)
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table', 'table.parents', 'parent_rowids', 'config', 'args',
                 'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
             raise
 
-    def _make_unnester(table):
-        # TODO: rewrite
-        # Accepts nested tuples and flattens them to fit into the sql tables
-        nested_nCols = len(table.data_colnames)
+    def _prepare_storage_nested(table, proptup_gen):
+        """
+        Hack for when a sql schema has tuples defined in it.
+        Accepts nested tuples and flattens them to fit into the sql tables
+        """
+        nCols = len(table.data_colnames)
         idxs1 = table._nested_idxs
-        mask1 = ut.index_to_boolmask(idxs1, nested_nCols)
-        mask2 = ut.not_list(mask1)
-        idxs2 = ut.where(mask2)
-        def unnest_data(data):
+        idxs2 = ut.index_complement(idxs1, nCols)
+        for data in proptup_gen:
+            # Split data into nested and unnested columns
             unnested_cols = list(zip(ut.take(data, idxs2)))
             nested_cols = ut.take(data, idxs1)
             grouped_items = [nested_cols, unnested_cols]
             groupxs = [idxs1, idxs2]
-            unflat = ut.ungroup(grouped_items, groupxs,
-                                nested_nCols - 1)
-            return tuple(ut.flatten(unflat))
-        # Hack when a sql schema has tuples defined in it
-        return unnest_data
+            # Flatten nested columns
+            unflat = ut.ungroup(grouped_items, groupxs, nCols - 1)
+            # Recombine the data
+            data_new = tuple(ut.flatten(unflat))
+            yield data_new
 
-    def _concat_rowids_data(table, dirty_parent_rowids, proptup_gen, config_rowid):
+    def _prepare_storage_extern(table, dirty_parent_rowids, config_rowid,
+                                proptup_gen):
+        """
+        Writes external data to disk if write function is specified.
+        """
+        extern_colnames = list(table.extern_io_classes.keys())
+        nCols = len(table._internal_data_colnames)
+        idxs1 = [
+            ut.listfind(table._internal_data_colnames, col + EXTERN_SUFFIX)
+            for col in extern_colnames
+        ]
+        idxs2 = ut.index_complement(idxs1, nCols)
+        extern_fnames_list = list(zip(*[
+            table._get_extern_fnames(dirty_parent_rowids, config_rowid, col)
+            for col in extern_colnames
+        ]))
+
+        extern_dpath = table._get_extern_dpath()
+        ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
+        extern_fpaths_list = [[join(extern_dpath, fname) for fname in fnames]
+                              for fnames in extern_fnames_list]
+
+        for data, extern_fpaths in zip(proptup_gen, extern_fpaths_list):
+            normal_data = ut.take(data, idxs2)
+            extern_data = ut.take(data, idxs1)
+            # Write external data to disk
+            try:
+                for obj, fpath, col in zip(extern_data, extern_fpaths, extern_colnames):
+                    write_func = table.extern_write_funcs[col]
+                    write_func(obj, fpath, True)
+            except Exception as ex:
+                ut.printex(ex, 'write extern col error', keys=[
+                    'config_rowid', 'data'])
+                raise
+            # Return path instead of data
+            grouped_items = [extern_fpaths, normal_data]
+            groupxs = [idxs1, idxs2]
+            data_new = tuple(ut.ungroup(grouped_items, groupxs, nCols - 1))
+            yield data_new
+
+    def prepare_storage(table, dirty_parent_rowids, proptup_gen, config_rowid):
+        """
+        Converts output from ``preproc_func`` to data that can be stored in SQL
+        """
+        if table.default_to_unpack:
+            # Hack for tables explicilty specified with a single column
+            proptup_gen = (None if data is None else (data,)
+                           for data in proptup_gen)
+        # Flatten nested columns
+        if len(table._nested_idxs) > 0:
+            proptup_gen = table._prepare_storage_nested(proptup_gen)
+        # Write external columns
+        if len(table.extern_write_funcs) > 0:
+            proptup_gen = table._prepare_storage_extern(dirty_parent_rowids,
+                                                        config_rowid,
+                                                        proptup_gen)
+        # Concatenate data with internal rowids / config-id
         for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
             try:
                 yield parent_rowids + (config_rowid,) + data_cols
             except Exception as ex:
                 ut.printex(ex, 'cat error', keys=[
-                    'config_rowid', 'data_cols', 'parent_rowids'])
-                raise
-
-    def _yeild_algo_result(table, dirty_parent_rowids, proptup_gen, config_rowid):
-        # TODO: generalize to all external data that needs to be written
-        # explicitly
-        extern_fname_list = table._get_extern_fnames(dirty_parent_rowids, config_rowid)
-        extern_dpath = table._get_extern_dpath()
-        ut.ensuredir(extern_dpath, verbose=True or table.depc._debug)
-        fpath_list = [join(extern_dpath, fname) for fname in extern_fname_list]
-        _iter = zip(dirty_parent_rowids, proptup_gen, fpath_list)
-        for parent_rowids, algo_result, extern_fpath in _iter:
-            yield parent_rowids, config_rowid, algo_result, extern_fpath
-
-    def _save_algo_result(table, dirty_params_chunk):
-        for parent_rowids, config_rowid, algo_result, extern_fpath in dirty_params_chunk:
-            try:
-                algo_result.save_to_fpath(extern_fpath, True)
-                yield parent_rowids + (config_rowid,) + (extern_fpath,)
-            except Exception as ex:
-                ut.printex(ex, 'cat2 error', keys=[
                     'config_rowid', 'data_cols', 'parent_rowids'])
                 raise
 
@@ -642,14 +688,20 @@ class DependencyCacheTable(ut.NiceRepr):
         extern_dpath = join(cache_dpath, extern_dname)
         return extern_dpath
 
-    def _get_extern_fnames(table, parent_rowids, config_rowid):
+    def _get_extern_fnames(table, parent_rowids, config_rowid, colname=None):
         # TODO: respect request objects
         # Only applies to algorithm tables
         config_hashid = table.get_config_hashid([config_rowid])[0]
-        fmtstr = table.tablename + '_id={rowids}_{config_hashid}{ext}'
-        fname_list = [fmtstr.format(rowids='_'.join(list(map(str, rowids))),
-                                    config_hashid=config_hashid, ext='.cPkl')
-                      for rowids in parent_rowids]
+        prefix = table.tablename
+        if colname is not None:
+            prefix += '_' + colname
+        fmtstr = '{prefix}_id={rowids}_{config_hashid}{ext}'
+        fname_list = [
+            fmtstr.format(prefix=prefix,
+                          rowids='_'.join(list(map(str, rowids))),
+                          config_hashid=config_hashid, ext='.cPkl')
+            for rowids in parent_rowids
+        ]
         return fname_list
 
     def get_rowid(table, parent_rowids, config=None, ensure=True, eager=True,
@@ -678,8 +730,8 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> table = depc['dumbalgo']
-            >>> request = table.new_algo_request([1, 2], [3, 4])
+            >>> table = depc['vsmany']
+            >>> request = table.new_request([1, 2], [3, 4])
             >>> results = request.execute()
             >>> print(results)
 
@@ -804,7 +856,7 @@ class DependencyCacheTable(ut.NiceRepr):
                                        ut.trunc_repr(tbl_rowids)))
         ####
         # Resolve requested column names
-        unpack_columns = False
+        unpack_columns = table.default_to_unpack
         if colnames is None:
             requested_colnames = table.data_colnames
         elif isinstance(colnames, six.string_types):
@@ -869,6 +921,9 @@ class DependencyCacheTable(ut.NiceRepr):
                                iswarning=False,
                                keys=['extra_tries', 'uri', 'uri_full',
                                      (exists, 'uri_full'), 'read_func'])
+                    import utool
+                    utool.embed()
+
                     if extra_tries == 0:
                         raise
                     failed_list.append(True)

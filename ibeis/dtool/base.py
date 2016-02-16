@@ -4,7 +4,6 @@ import utool as ut
 import numpy as np
 import copy
 import six
-from itertools import product
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
@@ -45,8 +44,8 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyAlgoConfig
-            >>> cfg = DummyAlgoConfig()
+            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> cfg = DummyVsManyConfig()
             >>> cfg.update(DummyAlgo_version=4)
             >>> print(cfg)
         """
@@ -127,8 +126,8 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyAlgoConfig
-            >>> cfg = DummyAlgoConfig()
+            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> cfg = DummyVsManyConfig()
             >>> param_list = cfg.parse_items()
             >>> result = ('param_list = %s' % (ut.repr2(param_list, nl=1),))
             >>> print(result)
@@ -287,8 +286,8 @@ class IBEISRequestHacks(object):
         return request.params
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class BaseRequest(IBEISRequestHacks):
+@ut.reloadable_class
+class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
     """
     Class that maintains both an algorithm, inputs, and a config.
     """
@@ -330,14 +329,10 @@ class BaseRequest(IBEISRequestHacks):
         uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
         return uuid_hashid
 
-    def get_cfgstr(request, with_input=None, with_pipe=None, **kwargs):
+    def get_cfgstr(request, with_input=False, with_pipe=True, **kwargs):
         r"""
         main cfgstring used to identify the 'querytype'
         """
-        if with_input is None:
-            with_input = True
-        if with_pipe is None:
-            with_pipe = True
         cfgstr_list = []
         if with_input:
             cfgstr_list.append(request.get_input_hashid())
@@ -355,7 +350,68 @@ class BaseRequest(IBEISRequestHacks):
     def get_pipe_hashid(request):
         return ut.hashstr27(request.get_pipe_cfgstr())
 
+    def ensure_dependencies(request):
+        """
+        CommandLine:
+            python -m dtool.base --exec-BaseRequest.ensure_dependencies
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> request = depc.new_request('vsmany', [1, 2], [2, 3, 4])
+            >>> request.ensure_dependencies()
+        """
+        import networkx as nx
+        depc = request.depc
+        if False:
+            dependencies = nx.ancestors(depc.graph, request.tablename)
+            subgraph = depc.graph.subgraph(set.union(dependencies, {request.tablename}))
+            dependency_order = nx.topological_sort(subgraph)
+            root = dependency_order[0]
+            [nx.algorithms.dijkstra_path(subgraph, root, start)[:-1] +
+             nx.algorithms.dijkstra_path(subgraph, start, request.tablename)
+             for start in dependency_order]
+        graph = depc.graph
+        root = nx.topological_sort(graph)[0]
+        edges = graph.edges()
+        #parent_to_children = ut.edges_to_adjacency_list(edges)
+        child_to_parents = ut.edges_to_adjacency_list([t[::-1] for t in edges])
+        to_root = {request.tablename:
+                   ut.paths_to_root(request.tablename, root, child_to_parents)}
+        from_root = ut.reverse_path(to_root, root, child_to_parents)
+        dependency_levels_ = ut.get_levels(from_root)
+        dependency_levels = ut.longest_levels(dependency_levels_)
+
+        true_order = ut.flatten(dependency_levels)[1:-1]
+        #print('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
+        ut.colorprint(
+            '[req] Ensuring request %s dependencies: %r' % (request, true_order,), 'yellow')
+        for tablename in true_order:
+            table = depc[tablename]
+            if table.ismulti:
+                pass
+            else:
+                # HACK FOR IBEIS
+                all_aids = ut.flat_unique(request.qaids, request.daids)
+                depc.get_rowids(tablename, all_aids)
+                pass
+            pass
+
+        #zip(depc.get_implicit_edges())
+        #zip(depc.get_implicit_edges())
+
+        #raise NotImplementedError('todo')
+        #depc = request.depc
+        #parent_rowids = request.parent_rowids
+        #config = request.config
+        #rowid_dict = depc.get_all_descendant_rowids(
+        #    request.tablename, root_rowids, config=config)
+        pass
+
     def execute(request, use_cache=None):
+        ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
         table = request.depc[request.tablename]
         if use_cache is None:
             use_cache = not ut.get_argflag('--nocache')
@@ -401,14 +457,34 @@ class AnnotSimiliarity(object):
         return request._get_rootset_hashid(request.daids, 'D')
 
 
-class OneVsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
+@ut.reloadable_class
+class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
     """
-    qaid_list = [1, 2]
-    daid_list = [2, 3, 4]
+    Similarity request for pairwise scores
 
     References:
         https://thingspython.wordpress.com/2010/09/27/
         another-super-wrinkle-raising-typeerror/
+
+    CommandLine:
+        python -m dtool.base --exec-VsOneSimilarityRequest
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.base import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> qaid_list = [1, 2]
+        >>> daid_list = [2, 3, 4]
+        >>> depc = testdata_depc()
+        >>> request = depc.new_request('vsone', qaid_list, daid_list)
+        >>> results = request.execute()
+        >>> # Test that adding a query / data id only recomputes necessary items
+        >>> request2 = depc.new_request('vsone', qaid_list + [3], daid_list + [5])
+        >>> results2 = request2.execute()
+        >>> print('results = %r' % (results,))
+        >>> print('results2 = %r' % (results2,))
+        >>> assert len(results) == 5, 'incorrect num output'
+        >>> assert len(results2) == 10, 'incorrect num output'
     """
     @classmethod
     def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
@@ -425,192 +501,62 @@ class OneVsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
     def get_input_hashid(request):
         return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
 
-
-class OneVsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
-    @classmethod
-    def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
-        parent_rowids = list(zip(qaid_list))
-        request = cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
-        return request
-
-    def get_input_hashid(request):
-        return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
+    def __nice__(request):
+        dbname = (None if request.depc is None or request.depc.controller is None
+                  else request.depc.controller.get_dbname())
+        infostr_ = 'nQ=%s, nD=%s, nP=%d %s' % (len(request.qaids),
+                                               len(request.daids),
+                                               len(request.parent_rowids),
+                                               request.get_pipe_hashid())
+        return '(%s) %s' % (dbname, infostr_)
 
 
-class ClassVsClassSimilarityRequest(BaseRequest):
-    pass
-
-
-class AlgoRequest(BaseRequest, ut.NiceRepr):
+@ut.reloadable_class
+class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
     """
-    Base class for algo request objects
-    Need this for TestResult Integration
+    Request for one-vs-many simlarity
 
-    This class might not be need, and is being added for
-    compatibility support.
-    The problem it solve is having daids as part of a config.  A config should
-    be used to specify algorithm parameters, but a referense set of matchable
-    annotations seems to go beyond that.  Therefore, AlgoRequest.
-
-    Ignore:
-        cls = dtool.AlgoRequest
+    CommandLine:
+        python -m dtool.base --exec-VsManySimilarityRequest
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from dtool.base import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
+        >>> qaid_list = [1, 2]
+        >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
-        >>> #request1 = depc.new_algo_request('vsone', [1, 2], [1, 2])
-        >>> request2 = depc.new_algo_request('dumbalgo', [1, 2], [1, 2])
+        >>> request = depc.new_request('vsmany', qaid_list, daid_list)
+        >>> request.ensure_dependencies()
+        >>> results = request.execute()
+        >>> # Test dependence on data
+        >>> request2 = depc.new_request('vsmany', qaid_list + [3], daid_list + [5])
+        >>> results2 = request2.execute()
+        >>> print('results = %r' % (results,))
+        >>> print('results2 = %r' % (results2,))
+        >>> assert len(results) == 2, 'incorrect num output'
+        >>> assert len(results2) == 3, 'incorrect num output'
     """
-    _isnewreq = True
-    _qaids_independent = True
-    _daids_independent = False
 
     @classmethod
-    def new_algo_request(cls, depc, algoname, qaids, daids, cfgdict=None):
-        request = cls()
-        request._qaids = None
-        request._daids = None
-
-        request.depc = depc
-        request.qaids = qaids
-        request.daids = daids
-        if cfgdict is None:
-            cfgdict = {}
-        configclass = depc.configclass_dict[algoname]
-        config = configclass(**cfgdict)
-
-        request.config = config
-        request.algoname = algoname
-
-        # hack
-        request.params = dict(config.parse_items())
+    def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
+        parent_rowids = list(zip(qaid_list))
+        request = cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
+        request.qaids = safeop(np.array, qaid_list)
+        request.daids = safeop(np.array, daid_list)
+        # HACK
+        request.config.daids = request.daids
         return request
 
-    @property
-    def ibs(request):
-        """ HACK specific to ibeis """
-        if request.depc is None:
-            return None
-        return request.depc.controller
+    def get_input_hashid(request):
+        #return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
+        return '_'.join([request.get_query_hashid()])
 
-    def get_external_data_config2(request):
-        # HACK
-        #return None
-        #print('[d] request.params = %r' % (request.params,))
-        return request.params
-
-    def get_external_query_config2(request):
-        # HACK
-        #return None
-        #print('[q] request.params = %r' % (request.params,))
-        return request.params
-
-    @property
-    def qaids(request):
-        return request._qaids
-
-    @qaids.setter
-    def qaids(request, qaids):
-        request._qaids = safeop(np.array, qaids)
-
-    @property
-    def daids(request):
-        return request._daids
-
-    @property
-    def cfgstr(request):
-        return request.get_cfgstr()
-
-    @daids.setter
-    def daids(request, daids):
-        request._daids = safeop(np.array, daids)
-
-    def get_parent_rowids(request):
-        if request._daids_independent:
-            parent_rowids = list(product(request.qaids, request.daids))
-        else:
-            parent_rowids = list(zip(request.qaids))
-        return parent_rowids
-
-    def execute(request, qaids=None, use_cache=None):
-        if qaids is not None:
-            qaids = [qaids] if not ut.isiterable(qaids) else qaids
-            subreq = request.shallowcopy(qaids=qaids)
-            return subreq.execute(use_cache=True)
-        else:
-            tablename = request.algoname
-            table = request.depc[tablename]
-            if use_cache is None:
-                use_cache = not ut.get_argflag('--nocache')
-
-            parent_rowids = request.get_parent_rowids()
-            rowids = table.get_rowid(parent_rowids, config=request,
-                                     recompute=not use_cache)
-            result_list = table.get_row_data(rowids)
-            return ut.get_list_column(result_list, 0)
-
-    def shallowcopy_vsonehack(request, qmask=None, qaids=None):
-        # Roundabout way of forcing algo requests into the depcache structure
-        # Very ugly
-        parent_rowids = request.get_parent_rowids()
-        dirty_parents = ut.compress(parent_rowids, qmask)
-        dirty_qaids = ut.take_column(dirty_parents, 0)
-        dirty_daids = ut.take_column(dirty_parents, 1)
-        groupxs = ut.group_indices(dirty_qaids)[1]
-        daids_list = ut.apply_grouping(dirty_daids, groupxs)
-        qaids_list = ut.apply_grouping(dirty_qaids, groupxs)
-        for qaids, daids in zip(qaids_list, daids_list):
-            #subreq = copy.copy(request)  # copy calls setstate and getstate
-            subreq = request.__class__()
-            subreq.__dict__.update(request.__dict__)
-            subreq.qaids = qaids
-            subreq.qaids = daids
-            yield subreq
-
-    def shallowcopy(request, qmask=None, qaids=None):
-        """
-        Creates a copy of qreq with the same qparams object and a subset of the
-        qx and dx objects.  used to generate chunks of vsone and vsmany queries
-        """
-        #subreq = copy.copy(request)  # copy calls setstate and getstate
-        subreq = request.__class__()
-        subreq.__dict__.update(request.__dict__)
-        if qmask is not None:
-            assert qaids is None, 'cannot specify both'
-            qaid_list  = subreq.qaids
-            subreq.qaids = ut.compress(qaid_list, qmask)
-        elif qaids is not None:
-            subreq.qaids = qaids
-        return subreq
-
-    def get_query_hashid(request):
-        return request._get_rootset_hashid(request.qaids, 'Q')
-
-    def get_data_hashid(request):
-        return request._get_rootset_hashid(request.daids, 'D')
-
-    def get_pipe_cfgstr(request):
-        return request.config.get_cfgstr()
-
-    def get_pipe_hashid(request):
-        return ut.hashstr27(request.get_pipe_cfgstr())
-
-    def get_cfgstr(request, with_input=None, with_data=None, with_pipe=True,
+    def get_cfgstr(request, with_input=False, with_data=True, with_pipe=True,
                    hash_pipe=False):
         r"""
-        main cfgstring used to identify the 'querytype'
+        Override default get_cfgstr to show reliance on data
         """
-        if with_input is None:
-            #with_input = False
-            with_input = not request._qaids_independent
-
-        if with_data is None:
-            #with_data = True
-            # non-independent aids must be in config string
-            with_data = not request._daids_independent
-
         cfgstr_list = []
         if with_input:
             cfgstr_list.append(request.get_query_hashid())
@@ -624,11 +570,6 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         cfgstr = '_'.join(cfgstr_list)
         return cfgstr
 
-    def get_full_cfgstr(request):
-        """ main cfgstring used to identify the algo hash id """
-        full_cfgstr = request.get_cfgstr(with_input=True)
-        return full_cfgstr
-
     def __nice__(request):
         dbname = (None if request.depc is None or request.depc.controller is None
                   else request.depc.controller.get_dbname())
@@ -636,33 +577,9 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
                                         request.get_pipe_hashid())
         return '(%s) %s' % (dbname, infostr_)
 
-    #def _get_rootset_hashid(request, root_rowids, prefix):
-    #    uuid_type = 'V'
-    #    label = ''.join((prefix, uuid_type, 'UUIDS'))
-    #    uuid_list = request.depc.get_root_uuid(root_rowids)
-    #    #uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)
-    #    uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=False)
-    #    return uuid_hashid
 
-    #def __getstate__(request):
-    #    state_dict = request.__dict__.copy()
-    #    # SUPER HACK
-    #    state_dict['dbdir'] = request.depc.controller.get_dbdir()
-    #    del state_dict['depc']
-    #    del state_dict['config']
-    #    return state_dict
-
-    def __setstate__(request, state_dict):
-        import ibeis
-        dbdir = state_dict['dbdir']
-        del state_dict['dbdir']
-        params = state_dict['params']
-        depc = ibeis.opendb(dbdir=dbdir, web=False).depc
-        configclass = depc.configclass_dict[state_dict['algoname'] ]
-        config = configclass(**params)
-        state_dict['depc'] = depc
-        state_dict['config'] = config
-        request.__dict__.update(state_dict)
+class ClassVsClassSimilarityRequest(BaseRequest):
+    pass
 
 
 class AlgoResult(object):

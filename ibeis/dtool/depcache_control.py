@@ -15,7 +15,6 @@ from dtool import base
 
 # global function registry
 __PREPROC_REGISTER__ = ut.ddict(list)
-__ALGO_REGISTER__ = ut.ddict(list)  # DEPRICATE
 __SUBPROP_REGISTER__ = ut.ddict(list)
 
 
@@ -34,19 +33,6 @@ Args:
 
 SeeAlso
     dtool.DependencyCache._register_prop
-"""
-
-REG_ALGO_DOC = """
-Args:
-    algoname (str):
-    algo_result_class (class):
-    configclass (dtool.AlgoConfig): derivative of dtool.AlgoConfig (default = None)
-    docstr (None): (default = None)
-    fname (str):  file name (default = None)
-    chunksize (None): (default = None)
-
-SeeAlso
-    dtool.DependencyCache._register_algo
 """
 
 
@@ -75,14 +61,6 @@ def make_depcache_decors(root_tablename):
             return func
         return register_preproc_wrapper
 
-    @ut.apply_docstr(REG_ALGO_DOC)
-    def register_algo(*args, **kwargs):
-        def _wrapper(func):
-            kwargs['algo_func'] = func
-            __ALGO_REGISTER__[root_tablename].append((args, kwargs))
-            return func
-        return _wrapper
-
     def register_subprop(*args, **kwargs):
         def _wrapper(func):
             kwargs['preproc_func'] = func
@@ -90,12 +68,11 @@ def make_depcache_decors(root_tablename):
             return func
         return _wrapper
 
-    _decors = ut.odict({
+    _depcdecors = ut.odict({
         'preproc': register_preproc,
-        'algo': register_algo,
         'subprop': register_subprop,
     })
-    return _decors
+    return _depcdecors
 
 
 def check_register(args, kwargs):
@@ -112,13 +89,12 @@ class _CoreDependencyCache(object):
                        fname=None, chunksize=None, configclass=None,
                        requestclass=None,
                        #version=None,
-                       isalgo=False, isinteractive=False,
+                       isinteractive=False,
                        ismulti=False,
                        asobject=False):
         """
         Registers a table with this dependency cache.
         """
-
         if depc._debug:
             print('[depc] Registering tablename=%r' % (tablename,))
             print('[depc]  * preproc_func=%r' % (preproc_func,))
@@ -127,10 +103,21 @@ class _CoreDependencyCache(object):
         if parents is None:
             parents = [depc.root]
         if colnames is None:
-            colnames = ['data']
+            colnames = 'data'
+            if coltypes is None:
+                coltypes = np.ndarray
+
+        # Check if just a single column is given
+        if not ut.isiterable(colnames):
+            colnames = [colnames]
+            coltypes = [coltypes]
+            default_to_unpack = True
         else:
+            default_to_unpack = False
+
             colnames = ut.lmap(six.text_type, colnames)
         if coltypes is None:
+            raise ValueError('must specify coltypes of %s' % (tablename,))
             coltypes = [np.ndarray] * len(colnames)
         if fname is None:
             fname = depc.default_fname
@@ -145,8 +132,6 @@ class _CoreDependencyCache(object):
             default_cfgdict = configclass
             configclass = base.dict_as_config(default_cfgdict, tablename)
         if requestclass is not None:
-            # requestclass supercedes algo_request_class
-            # and replaces regsiter_algo
             depc.requestclass_dict[tablename] = requestclass
 
         depc.fname_to_db[fname] = None
@@ -161,10 +146,10 @@ class _CoreDependencyCache(object):
             asobject=asobject,
             fname=fname,
             chunksize=chunksize,
-            isalgo=isalgo,
             ismulti=ismulti,
             #version=version,
             isinteractive=isinteractive,
+            default_to_unpack=default_to_unpack,
         )
         depc.cachetable_dict[tablename] = table
         depc.configclass_dict[tablename] = configclass
@@ -176,52 +161,6 @@ class _CoreDependencyCache(object):
         table = depc.cachetable_dict[tablename]
         table.subproperties[propname] = preproc_func
 
-    #@ut.apply_docstr(REG_ALGO_DOC)
-    def _register_algo(depc, algoname,
-                       algo_result_class=None,
-                       algo_request_class=None,
-                       configclass=None,
-                       algo_func=None,
-                       #version=None,
-                       docstr=None, fname=None, chunksize=None):
-        """
-        Registers an algorithm for the root of this dependency cache
-        """
-        import dtool
-        if algo_result_class is None:
-            algo_result_class = dtool.AlgoResult
-        if algo_request_class is None:
-            algo_request_class = dtool.AlgoRequest
-
-        depc.requestclass_dict[algoname] = algo_request_class
-        depc.resultclass_dict[algoname] = algo_result_class
-
-        unbound_args = ut.get_unbound_args(algo_result_class.__init__)
-        if len(unbound_args) > 1:
-            msg = ut.codeblock(
-                '''
-                {classname} __init__ should not have any (non-self) unbound args.
-                Detected len({unbound_args}) > 1 unbound args
-                ''').format(classname=ut.get_classname(algo_result_class),
-                            unbound_args=unbound_args)
-            raise ValueError(msg)
-
-        parents = [depc.root]
-
-        assert algo_request_class._qaids_independent, 'cant do this yet'
-
-        if algo_request_class._daids_independent:
-            parents.append(depc.root)
-
-        depc._register_prop(algoname,
-                            parents=parents,
-                            coltypes=[algo_result_class.load_from_fpath],
-                            configclass=configclass,
-                            preproc_func=algo_func,
-                            isalgo=True,
-                            #version=version,
-                            chunksize=chunksize)
-
     @profile
     def initialize(depc, _debug=None):
         """
@@ -231,14 +170,10 @@ class _CoreDependencyCache(object):
         _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
             reg_preproc = __PREPROC_REGISTER__[depc.root]
-            reg_algos   = __ALGO_REGISTER__[depc.root]
             reg_subprop = __SUBPROP_REGISTER__[depc.root]
             print('[depc.init] Regsitering %d global preproc funcs' % len(reg_preproc))
             for args_, kwargs_ in reg_preproc:
                 depc._register_prop(*args_, **kwargs_)
-            print('[depc.init] Regsitering %d global algos ' % len(reg_algos))
-            for args_, kwargs_ in reg_algos:
-                depc._register_algo(*args_, **kwargs_)
             print('[depc.init] Regsitering %d global subprops ' % len(reg_subprop))
             for args_, kwargs_ in reg_subprop:
                 depc._register_subprop(*args_, **kwargs_)
@@ -355,14 +290,14 @@ class _CoreDependencyCache(object):
             # TODO: use networkx implementations of graph algorithms
             # whereever applicable
             tablename = 'Block_Curvature'
-            import networkx as netx
+            import networkx as nx
             graph = depc.make_graph()
-            netx.dag.ancestors(graph, tablename)
-            netx.dag_longest_path(graph, tablename, depc.root)
-            netx.algorithms.dag.topological_sort(graph)
-            netx.algorithms.dag.topological_sort_recursive(graph)
-            list(netx.all_simple_paths(graph, depc.root, tablename))
-            list(netx.all_shortest_paths(graph, depc.root, tablename))
+            nx.dag.ancestors(graph, tablename)
+            nx.dag_longest_path(graph, tablename, depc.root)
+            nx.algorithms.dag.topological_sort(graph)
+            nx.algorithms.dag.topological_sort_recursive(graph)
+            list(nx.all_simple_paths(graph, depc.root, tablename))
+            list(nx.all_shortest_paths(graph, depc.root, tablename))
         """
         try:
             assert tablename in depc.cachetable_dict, (
@@ -429,7 +364,8 @@ class _CoreDependencyCache(object):
             ]
 
         """
-        children_, parents_ = list(zip(*depc.get_edges()))
+        edges = depc.get_edges()
+        children_, parents_ = list(zip(*edges))
         parent_to_children = ut.group_items(parents_, children_)
         to_leafs = {tablename: ut.path_to_leafs(tablename, parent_to_children)}
         dependency_levels_ = ut.get_levels(to_leafs)
@@ -568,8 +504,8 @@ class _CoreDependencyCache(object):
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> _debug = True
-            >>> tablename = 'dumbalgo'
-            >>> config = depc.configclass_dict['dumbalgo']()
+            >>> tablename = 'vsmany'
+            >>> config = depc.configclass_dict['vsmany']()
             >>> root_rowids = [1, 2, 3]
             >>> ensure, eager, nInput = False, True, None
             >>> # Get rowids of algo ( should be None )
@@ -579,8 +515,8 @@ class _CoreDependencyCache(object):
             >>> result = ut.repr3(rowid_dict, nl=1)
             >>> print(result)
             {
-                'dumbalgo': [None, None, None],
                 'dummy_annot': [1, 2, 3],
+                'vsmany': [None, None, None],
             }
 
         Example:
@@ -596,8 +532,8 @@ class _CoreDependencyCache(object):
             >>> root_rowids = [1, 2]
             >>> configclass = depc.configclass_dict['chip']
             >>> config_ = configclass()
-            >>> config1 = depc.configclass_dict['dumbalgo'](size=500)
-            >>> config2 = depc.configclass_dict['dumbalgo'](size=100)
+            >>> config1 = depc.configclass_dict['vsmany'](size=500)
+            >>> config2 = depc.configclass_dict['vsmany'](size=100)
             >>> config = config2
             >>> prop_dicts1 = depc.get_all_descendant_rowids(
             >>>     tablename, root_rowids, config=config1, _debug=_debug)
@@ -647,7 +583,7 @@ class _CoreDependencyCache(object):
             rowid_dict = {}
             for colx, col in enumerate(root_rowids):
                 rowid_dict[depc.root + '%d' % (colx + 1,)] = col
-            rowid_dict[depc.root] = ut.unique_keep_order(ut.flatten(root_rowids))
+            rowid_dict[depc.root] = ut.unique_ordered(ut.flatten(root_rowids))
         else:
             rowid_dict = {depc.root: root_rowids}
         # Ensure that each level ``tablename``'s dependencies have been computed
@@ -706,13 +642,8 @@ class _CoreDependencyCache(object):
             indenter.stop()
         return rowid_dict
 
-    def new_algo_request(depc, algoname, qaids, daids, cfgdict=None):
-        requestclass = depc.requestclass_dict[algoname]
-        request = requestclass.new_algo_request(depc, algoname, qaids, daids,
-                                                cfgdict)
-        return request
-
     def new_request(depc, tablename, qaids, daids, cfgdict=None):
+        print('[depc] NEW %s request' % (tablename,))
         requestclass = depc.requestclass_dict[tablename]
         request = requestclass.new(depc, qaids, daids, cfgdict,
                                    tablename=tablename)
@@ -822,8 +753,6 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     To use this class a user must:
         * on root modification, call depc.on_root_modified
         * use decorators to register relevant functions
-        * write an algorithm that accepts an AlgoRequest
-          object, containing root ids and a configuration object.
     """
     def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
                  controller=None, default_fname=None,
@@ -851,6 +780,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         depc.default_fname = default_fname
         depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
         depc.get_root_uuid = get_root_uuid
+        depc._graph = None
         # depc._debug = True
 
     def get_tablenames(depc):
@@ -875,15 +805,6 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             depc._register_prop(*args, **kwargs)
             return func
         return register_preproc_wrapper
-
-    @ut.apply_docstr(REG_ALGO_DOC)
-    def register_algo(depc, *args, **kwargs):
-        def reg_algo_wrapper(func):
-            check_register(args, kwargs)
-            kwargs['algo_func'] = func
-            depc._register_algo(*args, **kwargs)
-            return func
-        return reg_algo_wrapper
 
     def print_schemas(depc):
         for fname, db in depc.fname_to_db.items():
@@ -915,9 +836,13 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             edges = [(parent, tablekey) for (table, parent, tablekey) in gen_]
         return edges
 
-    def get_implicit_edges(depc):
+    def get_implicit_edges(depc, data=False):
+        """
+        Edges defined by subconfigurations
+        """
         # add implicit edges
         implicit_edges = []
+        # Map config classes to tablenames
         _inverted_ccdict = ut.invert_dict(depc.configclass_dict)
         for tablename2, configclass in depc.configclass_dict.items():
             cfg = configclass()
@@ -925,7 +850,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             if subconfigs is not None:
                 tablename1_list = ut.dict_take(_inverted_ccdict, subconfigs, None)
                 for tablename1 in ut.filter_Nones(tablename1_list):
-                    implicit_edges.append((tablename1, tablename2, {'implicit': True}))
+                    implicit_edges.append((tablename1, tablename2))
+        if data:
+            implicit_edges = [(e1, e2, {'implicit': True})
+                              for e1, e2 in implicit_edges]
         return implicit_edges
 
     def make_graph(depc):
@@ -947,27 +875,27 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> pt.show_netx(graph)
             >>> ut.show_if_requested()
         """
-        import networkx as netx
-        # graph = netx.DiGraph()
-        graph = netx.MultiDiGraph()
+        import networkx as nx
+        if depc._graph is not None:
+            return depc._graph
+        # graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         nodes = list(depc.cachetable_dict.keys())
         edges = depc.get_edges(data=True)
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
 
-        implicit_edges = depc.get_implicit_edges()
+        implicit_edges = depc.get_implicit_edges(data=True)
         graph.add_edges_from(implicit_edges)
 
         shape_dict = {
-            # 'algo': 'star',
-            'algo': 'circle',
             'node': 'circle',
             # 'root': 'rhombus',
             'root': 'circle',
         }
         import plottool as pt
         color_dict = {
-            'algo': pt.DARK_GREEN,  # 'g',
+            #'algo': pt.DARK_GREEN,  # 'g',
             'node': None,
             'root': pt.RED,  # 'r',
         }
@@ -976,8 +904,9 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                      depc.cachetable_dict.items()}
             props[depc.root] = dict_['root']
             return props
-        netx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
-        netx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
+        nx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
+        nx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
+        depc._graph = graph
         return graph
 
     @property
