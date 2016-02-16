@@ -142,8 +142,10 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             param_list[idx][0] = name + '_' + param_list[idx][0]
         duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
         # hack to let version through
-        assert len(duplicate_keys) == 0, (
-            'Configs have duplicate names: %r' % duplicate_keys)
+        import utool
+        with utool.embed_on_exception_context:
+            assert len(duplicate_keys) == 0, (
+                'Configs have duplicate names: %r' % duplicate_keys)
         return param_list
 
     def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
@@ -244,17 +246,9 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     #    return config_name
 
 
-class TableConfig(Config):
-    pass
-
-
-class AlgoConfig(TableConfig):
-    pass
-
-
 def dict_as_config(default_cfgdict, tablename):
     import dtool
-    class UnnamedConfig(dtool.TableConfig):
+    class UnnamedConfig(dtool.Config):
         def get_param_info_list(cfg):
             #print('default_cfgdict = %r' % (default_cfgdict,))
             return [ut.ParamInfo(key, val)

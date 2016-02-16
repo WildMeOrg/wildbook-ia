@@ -12,9 +12,8 @@ from dtool import depcache_control
 from dtool import depcache_table
 
 from dtool.depcache_control import DependencyCache, make_depcache_decors
-#from dtool.base import (AlgoResult, MatchResult, Config, AlgoConfig,
-#                        TableConfig, VsManySimilarityRequest,
-#                        VsOneSimilarityRequest)
+from dtool.base import (AlgoResult, MatchResult, Config,
+                        VsManySimilarityRequest, VsOneSimilarityRequest)
 from dtool.base import *  # NOQA
 from dtool.sql_control import SQLDatabaseController
 

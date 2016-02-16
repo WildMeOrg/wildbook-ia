@@ -16,7 +16,6 @@ import dtool
 
 if False:
     # Example of global registration
-
     DUMMY_ROOT_TABLENAME = 'dummy_annot'
     _depcdecors = depcache_control.make_depcache_decors(DUMMY_ROOT_TABLENAME)
     register_preproc = _depcdecors['preproc']
@@ -32,7 +31,7 @@ if False:
             yield 'dummy'
 
 
-class DummyKptsConfig(dtool.TableConfig):
+class DummyKptsConfig(dtool.Config):
     def get_param_info_list(self):
         return [
             ut.ParamInfo('adapt_shape', True),
@@ -40,16 +39,19 @@ class DummyKptsConfig(dtool.TableConfig):
         ]
 
 
-class DummyIndexerConfig(dtool.AlgoConfig):
-    def get_param_info_list(self):
-        return [
-            ut.ParamInfo('index_method', 'single'),
-            ut.ParamInfo('trees', 8),
-            ut.ParamInfo('algorithm', 'kdtree'),
-        ]
+class DummyIndexerConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('index_method', 'single'),
+        ut.ParamInfo('trees', 8),
+        ut.ParamInfo('algorithm', 'kdtree'),
+    ]
+    # FIXME: triggers duplicate error
+    #_sub_config_list = [
+    #    DummyKptsConfig
+    #]
 
 
-class DummyNNConfig(dtool.AlgoConfig):
+class DummyNNConfig(dtool.Config):
     def get_param_info_list(self):
         return [
             ut.ParamInfo('K', 4),
@@ -59,15 +61,14 @@ class DummyNNConfig(dtool.AlgoConfig):
         ]
 
 
-class DummySVERConfig(dtool.AlgoConfig):
-    def get_param_info_list(self):
-        return [
-            ut.ParamInfo('sver_on', True),
-            ut.ParamInfo('xy_thresh', .01)
-        ]
+class DummySVERConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('sver_on', True),
+        ut.ParamInfo('xy_thresh', .01)
+    ]
 
 
-class DummyChipConfig(dtool.TableConfig):
+class DummyChipConfig(dtool.Config):
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -79,43 +80,75 @@ class DummyChipConfig(dtool.TableConfig):
         >>> cfg.histeq = False
         >>> print(cfg)
     """
-    def get_param_info_list(self):
-        return [
-            ut.ParamInfo('resize_dim', 'width',
-                         valid_values=['area', 'width', 'heigh', 'diag']),
-            ut.ParamInfo('size', 500, 'sz'),
-            ut.ParamInfo('preserve_aspect', True),
-            ut.ParamInfo('histeq', False, hideif=False),
-            ut.ParamInfo('fmt', '.png'),
-            ut.ParamInfo('version', 0),
-        ]
+    _param_info_list = [
+        ut.ParamInfo('resize_dim', 'width',
+                     valid_values=['area', 'width', 'heigh', 'diag']),
+        ut.ParamInfo('size', 500, 'sz'),
+        ut.ParamInfo('preserve_aspect', True),
+        ut.ParamInfo('histeq', False, hideif=False),
+        ut.ParamInfo('fmt', '.png'),
+        ut.ParamInfo('version', 0),
+    ]
 
 
-class DummyVsManyConfig(dtool.AlgoConfig):
-    def get_sub_config_list(self):
-        # Different pipeline compoments can go here
-        # as well as dependencies that were not
-        # explicitly enumerated in the tree structure
-        return [
-            # I guess different annots might want different configs ...
-            DummyChipConfig,
-            DummyKptsConfig,
-            DummyIndexerConfig,
-            DummyNNConfig,
-            DummySVERConfig
-        ]
+class ProbchipConfig(dtool.Config):
+    """
+    CommandLine:
+        python -m dtool.example_depcache --exec-ProbchipConfig --show
 
-    def get_param_info_list(self):
-        return [
-            #ut.ParamInfo('score_method', 'csum'),
-            # should this be the only thing here?
-            #ut.ParamInfo('daids', None),
-            ut.ParamInfo('distinctiveness_model', None),
-            ut.ParamInfo('version', 2),
-        ]
+    Example:
+        >>> from dtool.depcache_control import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> table = depc['probchip']
+        >>> exec(ut.execstr_funckw(table.get_rowid), globals())
+        >>> config = table.configclass(testerror=True)
+        >>> root_rowids = [1, 2, 3]
+        >>> parent_rowids = list(zip(root_rowids))
+        >>> proptup_gen = list(table.preproc_func(depc, root_rowids, config))
+        >>> pc_rowids = depc.get_rowids('probchip', root_rowids, config)
+        >>> prop_list2 = depc.get('probchip', root_rowids, config=config, read_extern=False)
+        >>> print(prop_list2)
+        >>> #depc.new_request('probchip', [1, 2, 3])
+        >>> fg_rowids = depc.get_rowids('fgweight', root_rowids, config)
+        >>> fg = depc.get('fgweight', root_rowids, config=config)
+        >>> #############
+        >>> config = table.configclass(testerror=False)
+        >>> root_rowids = [1, 2, 3]
+        >>> parent_rowids = list(zip(root_rowids))
+        >>> proptup_gen = list(table.preproc_func(depc, root_rowids, config))
+        >>> pc_rowids2 = depc.get_rowids('probchip', root_rowids, config)
+        >>> prop_list2 = depc.get('probchip', root_rowids, config=config, read_extern=False)
+        >>> print(prop_list2)
+        >>> #depc.new_request('probchip', [1, 2, 3])
+        >>> fg_rowids2 = depc.get_rowids('fgweight', root_rowids, config)
+    """
+    _param_info_list = [
+        ut.ParamInfo('testerror', False, hideif=False),
+    ]
 
 
-class DummyVsOneConfig(dtool.TableConfig):
+class DummyVsManyConfig(dtool.Config):
+    # Different pipeline compoments can go here as well as dependencies
+    # that were not explicitly enumerated in the tree structure
+    _param_info_list = [
+        #ut.ParamInfo('score_method', 'csum'),
+        # should this be the only thing here?
+        #ut.ParamInfo('daids', None),
+        ut.ParamInfo('distinctiveness_model', None),
+        ut.ParamInfo('version', 2),
+    ]
+    _sub_config_list = [
+        # I guess different annots might want different configs ...
+        DummyChipConfig,
+        DummyKptsConfig,
+        DummyIndexerConfig,
+        DummyNNConfig,
+        DummySVERConfig
+    ]
+
+
+class DummyVsOneConfig(dtool.Config):
     def get_sub_config_list(self):
         # Different pipeline compoments can go here
         # as well as dependencies that were not
@@ -220,7 +253,8 @@ def testdata_depc(fname=None):
         TODO: Infer properties from docstr?
 
         Args:
-            annot_list (list): list of annot objects
+            depc (dtool.DependencyCache):
+            annot_rowid_list (list): list of annot rowids
             config (dict): config dictionary
 
         Returns:
@@ -245,25 +279,34 @@ def testdata_depc(fname=None):
 
     @depc.register_preproc(
         'probchip', [dummy_root], ['size', 'probchip'],
-        coltypes=[(int, int), ('extern', vt.imread)])
-    def dummy_preproc_probchip(depc, parent_rowids, config=None):
-        if config is None:
-            config = {}
+        coltypes=[(int, int), ('extern', vt.imread, vt.imwrite, '.png')],
+        configclass=ProbchipConfig,
+    )
+    def dummy_preproc_probchip(depc, root_rowids, config):
         print('[preproc] Computing probchip')
-        for rowid in parent_rowids:
-            yield (rowid, rowid), 'probchip.jpg'
+        for rowid in root_rowids:
+            if config['testerror']:
+                if rowid % 2 == 0:
+                    # Test error yeilds None on even rowids
+                    yield None
+                    continue
+            rng = np.random.RandomState(rowid)
+            probchip = rng.randint(0, 255, size=(64, 64))
+            #probchip = np.zeros((64, 64))
+            size = (rowid, rowid)
+            yield size, probchip
 
     @depc.register_preproc(
         'keypoint', ['chip'], ['kpts', 'num'], [np.ndarray, int],
         configclass=DummyKptsConfig,
         docstr='Used to store individual chip features (ellipses)',)
-    def dummy_preproc_kpts(depc, parent_rowids, config=None):
+    def dummy_preproc_kpts(depc, chip_rowids, config=None):
         if config is None:
             config = {}
         print('config = %r' % (config,))
         adapt_shape = config['adapt_shape']
         print('[preproc] Computing kpts')
-        for rowid in parent_rowids:
+        for rowid in chip_rowids:
             if adapt_shape:
                 kpts = np.zeros((7 + rowid, 6)) + rowid
             else:
@@ -272,11 +315,11 @@ def testdata_depc(fname=None):
             yield kpts, num
 
     @depc.register_preproc('descriptor', ['keypoint'], ['vecs'], [np.ndarray],)
-    def dummy_preproc_vecs(depc, parent_rowids, config=None):
+    def dummy_preproc_vecs(depc, kp_rowid, config=None):
         if config is None:
             config = {}
         print('[preproc] Computing vecs')
-        for rowid in parent_rowids:
+        for rowid in kp_rowid:
             yield np.ones((7 + rowid, 8), dtype=np.uint8) + rowid,
 
     @depc.register_preproc('fgweight', ['keypoint', 'probchip'], ['fgweight'], [np.ndarray],)

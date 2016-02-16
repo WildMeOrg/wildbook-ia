@@ -19,6 +19,8 @@ CONFIG_STRID     = 'config_strid'
 
 
 GRACE_PERIOD = 10
+#ALLOW_ERRORS = True
+ALLOW_ERRORS = False
 
 
 def predrop_grace_period(tablename, seconds=None):
@@ -119,6 +121,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.sqldb_fpath = None
         table.extern_read_funcs = {}
         table.extern_write_funcs = {}
+        table.extern_extensions = {}
         table.extern_io_classes = {}
         table.ismulti = ismulti
         table.isinteractive = isinteractive
@@ -217,6 +220,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # TODO: can rewrite much of this
         extern_read_funcs = {}
         extern_write_funcs = {}
+        extern_extensions = {}
         extern_io_classes = {}
         internal_data_colnames = []
         internal_data_coltypes = []
@@ -230,7 +234,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 self.__setstate__(state_dict)
                 return self
 
-            def save_to_fpath(self, fpath, verbose=ut.VERBOSE):
+            def save_to_fpath(fpath, self, verbose=ut.VERBOSE):
                 ut.save_cPkl(fpath, self.__getstate__(), verbose=verbose, n=4)
             return load_from_fpath, save_to_fpath
 
@@ -263,13 +267,20 @@ class DependencyCacheTable(ut.NiceRepr):
                     internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[subtype])
             elif is_external:
                 # Nested external funcs
+                write_func = None
                 if is_externtup:
                     read_func = coltype[1]
+                    if len(coltype) > 2:
+                        write_func = coltype[2]
+                    if len(coltype) > 3:
+                        extern_extensions[colname] = coltype[3]
                 elif is_functup:
                     read_func = coltype[0]
                 else:
                     read_func = coltype
                 extern_read_funcs[colname] = read_func
+                if write_func:
+                    extern_write_funcs[colname] = write_func
                 # TODO: extern_write_funcs
                 intern_colname = colname + EXTERN_SUFFIX
                 external_to_internal[colname] = intern_colname
@@ -295,6 +306,7 @@ class DependencyCacheTable(ut.NiceRepr):
         assert len(internal_data_coltypes) == len(internal_data_colnames)
         table.extern_read_funcs = extern_read_funcs
         table.extern_write_funcs = extern_write_funcs
+        table.extern_extensions = extern_extensions
         table.extern_io_classes = extern_io_classes
         table.external_to_internal = external_to_internal
         table.nested_to_flat = nested_to_flat
@@ -525,7 +537,16 @@ class DependencyCacheTable(ut.NiceRepr):
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
-        initial_rowid_list = table._get_rowid(parent_rowids, config=config)
+        if ALLOW_ERRORS:
+            # Force entire row to be none if any are none
+            anyNone_flags = [any(ut.flag_None_items(x)) for x in parent_rowids]
+            idxs2 = ut.where(anyNone_flags)
+            idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
+            #error_parent_rowids =  ut.take(parent_rowids, idxs2)
+            parent_rowids_ = ut.take(parent_rowids, idxs1)
+        else:
+            parent_rowids_ = parent_rowids
+        initial_rowid_list = table._get_rowid(parent_rowids_, config=config)
 
         if table.depc._debug:
             print('[deptbl.add] initial_rowid_list = %s' %
@@ -534,7 +555,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # Get corresponding "dirty" parent rowids
         isdirty_list = ut.flag_None_items(initial_rowid_list)
         num_dirty = sum(isdirty_list)
-        num_total = len(parent_rowids)
+        num_total = len(parent_rowids_)
 
         if num_dirty > 0:
             with ut.Indenter('[ADD]', enabled=_debug):
@@ -545,23 +566,26 @@ class DependencyCacheTable(ut.NiceRepr):
                                     config_rowid))
                 if _debug:
                     print("ADD DIRTY")
-                table._compute_dirty_rows(parent_rowids, config_rowid,
+                table._compute_dirty_rows(parent_rowids_, config_rowid,
                                           isdirty_list, config)
                 # Get correct order, now that everything is clean in the database
                 if _debug:
                     print("GET ROWID")
-                rowid_list = table._get_rowid(parent_rowids, config=config)
+                rowid_list = table._get_rowid(parent_rowids_, config=config)
         else:
             rowid_list = initial_rowid_list
         if _debug:
             print('[deptbl.add] rowid_list = %s' %
                   (ut.trunc_repr(rowid_list),))
+        if ALLOW_ERRORS:
+            rowid_list = ut.ungroup([rowid_list], [idxs1], len(parent_rowids) - 1)
         return rowid_list
 
     def _compute_dirty_rows(table, parent_rowids, config_rowid, isdirty_list,
                             config, verbose=True):
         """
         Does work of computing and caching dirty rowids
+        >>> from dtool.depcache_table import *  # NOQA
         """
         dirty_parent_rowids = ut.compress(parent_rowids, isdirty_list)
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
@@ -588,6 +612,9 @@ class DependencyCacheTable(ut.NiceRepr):
             prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
             # TODO: Separate into func which can be specified as a callback.
             for dirty_params_chunk in prog_iter:
+                # None data means that there was an error for a specific row
+                if ALLOW_ERRORS:
+                    dirty_params_chunk = ut.filter_Nones(dirty_params_chunk)
                 nInput = len(dirty_params_chunk)
                 table.db._add(table.tablename, table._table_colnames,
                               dirty_params_chunk, nInput=nInput)
@@ -606,6 +633,9 @@ class DependencyCacheTable(ut.NiceRepr):
         idxs1 = table._nested_idxs
         idxs2 = ut.index_complement(idxs1, nCols)
         for data in proptup_gen:
+            if ALLOW_ERRORS and data is None:
+                yield None
+                continue
             # Split data into nested and unnested columns
             unnested_cols = list(zip(ut.take(data, idxs2)))
             nested_cols = ut.take(data, idxs1)
@@ -622,7 +652,8 @@ class DependencyCacheTable(ut.NiceRepr):
         """
         Writes external data to disk if write function is specified.
         """
-        extern_colnames = list(table.extern_io_classes.keys())
+        #extern_colnames = list(table.extern_io_classes.keys())
+        extern_colnames = list(table.extern_write_funcs.keys())
         nCols = len(table._internal_data_colnames)
         idxs1 = [
             ut.listfind(table._internal_data_colnames, col + EXTERN_SUFFIX)
@@ -640,13 +671,20 @@ class DependencyCacheTable(ut.NiceRepr):
                               for fnames in extern_fnames_list]
 
         for data, extern_fpaths in zip(proptup_gen, extern_fpaths_list):
+            if ALLOW_ERRORS and data is None:
+                yield None
+                continue
             normal_data = ut.take(data, idxs2)
             extern_data = ut.take(data, idxs1)
             # Write external data to disk
             try:
                 for obj, fpath, col in zip(extern_data, extern_fpaths, extern_colnames):
+                    print('WRITING %r' % (col,))
                     write_func = table.extern_write_funcs[col]
-                    write_func(obj, fpath, True)
+                    #write_func(obj, fpath, True)
+                    print('fpath = %r' % (fpath,))
+                    write_func(fpath, obj)
+                    #verbose=True)
             except Exception as ex:
                 ut.printex(ex, 'write extern col error', keys=[
                     'config_rowid', 'data'])
@@ -676,6 +714,9 @@ class DependencyCacheTable(ut.NiceRepr):
         # Concatenate data with internal rowids / config-id
         for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
             try:
+                if ALLOW_ERRORS and data_cols is None:
+                    yield None
+                    continue
                 yield parent_rowids + (config_rowid,) + data_cols
             except Exception as ex:
                 ut.printex(ex, 'cat error', keys=[
@@ -696,10 +737,11 @@ class DependencyCacheTable(ut.NiceRepr):
         if colname is not None:
             prefix += '_' + colname
         fmtstr = '{prefix}_id={rowids}_{config_hashid}{ext}'
+        ext = table.extern_extensions.get(colname, '.cPkl')
         fname_list = [
             fmtstr.format(prefix=prefix,
                           rowids='_'.join(list(map(str, rowids))),
-                          config_hashid=config_hashid, ext='.cPkl')
+                          config_hashid=config_hashid, ext=ext)
             for rowids in parent_rowids
         ]
         return fname_list
@@ -838,16 +880,17 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> table = depc['chip']
             >>> tbl_rowids = depc.get_rowids('chip', [1, 2, 3])
-            >>> colnames = ('size_1', 'size', 'chip', 'chip' + EXTERN_SUFFIX)
+            >>> #tbl_rowids += [None]
+            >>> #colnames = ('size_1', 'size', 'chip', 'chip' + EXTERN_SUFFIX)
+            >>> colnames = ('size_1', 'size', 'chip' + EXTERN_SUFFIX)
             >>> _debug = True
             >>> read_extern = True
             >>> extra_tries = 1
             >>> kwargs = dict(read_extern=read_extern, extra_tries=extra_tries,
             >>>               _debug=_debug)
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
+            >>> print(ut.repr2(prop_list, nl=1))
         """
-        eager = True
-        nInput = None
 
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
@@ -893,11 +936,23 @@ class DependencyCacheTable(ut.NiceRepr):
         if _debug:
             print('[deptbl.get_row_data] flat_intern_colnames = %r' %
                   (flat_intern_colnames,))
+
+        if ALLOW_ERRORS:
+            nonNone_flags = ut.flag_not_None_items(tbl_rowids)
+            nonNone_tbl_rowids = ut.compress(tbl_rowids, nonNone_flags)
+            idxs1 = ut.where(nonNone_flags)
+        else:
+            nonNone_tbl_rowids = tbl_rowids
+            idxs1 = []
+        idxs2 = ut.index_complement(idxs1, len(tbl_rowids))
+
         ####
         # Read data stored in SQL
         # FIXME: understand unpack_scalars and keepwrap
+        eager = True
+        nInput = None
         raw_prop_list = table.get_internal_columns(
-            tbl_rowids, flat_intern_colnames, eager, nInput,
+            nonNone_tbl_rowids, flat_intern_colnames, eager, nInput,
             unpack_scalars=True, keepwrap=True)
         ####
         # Read data specified by any external columns
@@ -921,8 +976,6 @@ class DependencyCacheTable(ut.NiceRepr):
                                iswarning=False,
                                keys=['extra_tries', 'uri', 'uri_full',
                                      (exists, 'uri_full'), 'read_func'])
-                    import utool
-                    utool.embed()
 
                     if extra_tries == 0:
                         raise
@@ -935,7 +988,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 # FIXME: should directly recompute the data in the rows
                 # rather than deleting the rowids.  Need the parent ids and
                 # config to do that.
-                failed_rowids = ut.compress(tbl_rowids, failed_list)
+                failed_rowids = ut.compress(nonNone_tbl_rowids, failed_list)
                 table.delete_rows(failed_rowids)
                 raise Exception('Non existant data on disk. Need to recompute rows')
             prop_listT[extern_colx] = data_list
@@ -949,6 +1002,11 @@ class DependencyCacheTable(ut.NiceRepr):
         # Unpack single column datas if requested
         if unpack_columns:
             prop_list = [None if p is None else p[0] for p in prop_list]
+
+        if ALLOW_ERRORS:
+            prop_list = ut.ungroup(
+                [prop_list, [None] * len(idxs2)],
+                [idxs1, idxs2], len(tbl_rowids) - 1)
         return prop_list
 
     def get_internal_columns(table, tbl_rowids, colnames=None, eager=True,

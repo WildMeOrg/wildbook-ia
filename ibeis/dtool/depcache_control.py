@@ -649,6 +649,14 @@ class _CoreDependencyCache(object):
                                    tablename=tablename)
         return request
 
+    #def new_request(depc, tablename, *args, **kwargs):
+    #    print('[depc] NEW %s request' % (tablename,))
+    #    requestclass = depc.requestclass_dict[tablename]
+    #    cfgdict = kwargs.get('cfgdict', None)
+    #    requestkw = dict(cfgdict=cfgdict, tablename=tablename)
+    #    request = requestclass.new(depc, *args, **requestkw)
+    #    return request
+
     def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename):
         """
         anscestor_tablename = depc.root
