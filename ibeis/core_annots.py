@@ -95,7 +95,7 @@ class ChipConfig(dtool.Config):
 @register_preproc(
     tablename='chips', parents=['annotations'],
     colnames=['img', 'width', 'height', 'M'],
-    coltypes=[('extern', vt.imread, vt.imwrite), int, int, np.ndarray],
+    coltypes=[('extern', vt.imread), int, int, np.ndarray],
     configclass=ChipConfig,
     fname='chipcache4',
     chunksize=256,
@@ -204,6 +204,7 @@ def compute_chip(depc, aid_list, config=None):
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
         width, height = vt.get_size(chipBGR)
+        #yield (chipBGR, width, height, M)
         # Write chip to disk
         vt.imwrite(cfpath, chipBGR)
         yield (cfpath, width, height, M)
@@ -228,7 +229,7 @@ class AnnotMaskConfig(dtool.Config):
 @register_preproc(
     tablename='annotmask', parents=['annotations'],
     colnames=['img', 'width', 'height'],
-    coltypes=[('extern', vt.imread, vt.imwrite), int, int],
+    coltypes=[('extern', vt.imread), int, int],
     configclass=AnnotMaskConfig,
     fname='../maskcache2',
     # isinteractive=True,
@@ -327,7 +328,7 @@ class ProbchipConfig(dtool.Config):
 @register_preproc(
     tablename='probchip', parents=['annotations'],
     colnames=['img'],
-    coltypes=[('extern', vt.imread, vt.imwrite)],
+    coltypes=[('extern', vt.imread)],
     configclass=ProbchipConfig,
     fname='chipcache4',
     # isinteractive=True,
