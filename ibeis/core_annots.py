@@ -66,7 +66,7 @@ from ibeis.control.controller_inject import register_preproc, register_subprop
 (print, rrr, profile) = ut.inject2(__name__, '[core]')
 
 
-# dtool.TableConfig.register_func = register_preproc
+# dtool.Config.register_func = register_preproc
 
 
 def testdata_core(size=2):
@@ -78,7 +78,7 @@ def testdata_core(size=2):
     return ibs, depc, aid_list
 
 
-class ChipConfig(dtool.TableConfig):
+class ChipConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('resize_dim', 'width',
                      valid_values=['area', 'width', 'height', 'diag', 'maxwh'],
@@ -216,7 +216,7 @@ def compute_dlen_sqrd(depc, aid_list, config=None):
     return dlen_sqrt_list
 
 
-class AnnotMaskConfig(dtool.TableConfig):
+class AnnotMaskConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('manual', True)
     ]
@@ -302,7 +302,7 @@ def compute_annotmask(depc, aid_list, config=None):
         #ibs.delete_annot_chip_thumbs([aid])
 
 
-class ProbchipConfig(dtool.TableConfig):
+class ProbchipConfig(dtool.Config):
     # TODO: incorporate into base
     _named_defaults = {
         'rf': {
@@ -520,7 +520,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
     return mask2
 
 
-class FeatConfig(dtool.TableConfig):
+class FeatConfig(dtool.Config):
     r"""
     Example:
         >>> from ibeis.core_annots import *  # NOQA
@@ -695,7 +695,7 @@ def gen_feat_worker(tup):
     return (num_kpts, kpts, vecs)
 
 
-class FeatWeightConfig(dtool.TableConfig):
+class FeatWeightConfig(dtool.Config):
     _param_info_list = []
 
 
@@ -802,7 +802,7 @@ def gen_featweight_worker(tup):
     return weights
 
 
-class VsOneConfig(dtool.TableConfig):
+class VsOneConfig(dtool.Config):
     """
     Example:
         >>> from ibeis.core_annots import *  # NOQA
