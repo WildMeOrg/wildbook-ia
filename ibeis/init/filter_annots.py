@@ -260,7 +260,8 @@ def get_acfg_cacheinfo(ibs, aidcfg):
         repodir = dirname(ut.get_module_dir(ibeis))
         acfg_cachedir = join(repodir, 'ACFG_CACHE')
     else:
-        acfg_cachedir = './localdata/ACFG_CACHE'
+        #acfg_cachedir = './localdata/ACFG_CACHE'
+        acfg_cachedir = join(ibs.get_cachedir(), 'ACFG_CACHE')
         ut.ensuredir(acfg_cachedir)
     acfg_cachename = 'ACFG_CACHE'
 

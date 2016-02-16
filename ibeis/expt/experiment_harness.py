@@ -25,6 +25,7 @@ NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'), False)
 USE_BIG_TEST_CACHE = (not ut.get_argflag(('--no-use-testcache',
                                           '--nocache-test')) and ut.USE_CACHE and
                       not NOCACHE_TESTRES)
+USE_BIG_TEST_CACHE = False
 TEST_INFO = True
 
 DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))  # dont actually query. Just print labels and stuff
@@ -136,13 +137,19 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
 
 
 def get_big_test_cache_info(ibs, cfgx2_qreq_):
+    """
+    Args:
+        ibs (ibeis.IBEISController):
+        cfgx2_qreq_ (dict):
+    """
     if ut.is_developer():
         import ibeis
         from os.path import dirname, join
         repodir = dirname(ut.get_module_dir(ibeis))
         bt_cachedir = join(repodir, 'BIG_TEST_CACHE2')
     else:
-        bt_cachedir = './localdata/BIG_TEST_CACHE2'
+        bt_cachedir = join(ibs.get_cachedir(), 'BIG_TEST_CACHE2')
+        #bt_cachedir = './localdata/BIG_TEST_CACHE2'
     ut.ensuredir(bt_cachedir)
     bt_cachestr = ut.hashstr_arr27([
         qreq_.get_cfgstr(with_input=True)
