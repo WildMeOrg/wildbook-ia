@@ -30,10 +30,18 @@ class SingleMatch(ut.NiceRepr):
         return make_match_interaction(self.matches, self.metadata, *args, **kwargs)
 
     def __nice__(self):
-        return ' ' + ', '.join([key + '=%d' % (len(m.fm)) for key, m in self.matches.items()])
+        parts = [key + '=%d' % (len(m.fm)) for key, m in self.matches.items()]
+        return ' ' + ', '.join(parts)
         #tup = (len(self.matches['ORIG'][0]), len(self.matches['RAT'][0]),
         #       len(self.matches['RAT+SV'][0]), )
         #return ' %d, %d, %d' % tup
+
+    def __getstate__(self):
+        state_dict = self.__dict__
+        return state_dict
+
+    def __setstate__(self, state_dict):
+        self.__dict__.update(state_dict)
 
 
 def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):

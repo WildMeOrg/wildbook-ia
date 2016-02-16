@@ -195,7 +195,8 @@ def get_flann_params_cfgstr(flann_params):
     return flann_valsig
 
 
-def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
+def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True,
+                     use_data_hash=True):
     """
 
     CommandLine:
@@ -231,7 +232,8 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
                     verbose=True):
     """ returns filepath for flann index """
     if cache_dir == 'default':
-        print('[flann] using default cache dir')
+        if verbose:
+            print('[flann] using default cache dir')
         cache_dir = utool.get_app_resource_dir(appname)
         utool.ensuredir(cache_dir)
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
