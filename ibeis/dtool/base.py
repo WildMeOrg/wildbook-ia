@@ -404,12 +404,13 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         #    request.tablename, root_rowids, config=config)
         pass
 
-    def execute(request, use_cache=None):
+    def execute(request, parent_rowids=None, use_cache=None):
         ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
         table = request.depc[request.tablename]
         if use_cache is None:
             use_cache = not ut.get_argflag('--nocache')
-        parent_rowids = request.parent_rowids
+        if parent_rowids is None:
+            parent_rowids = request.parent_rowids
         # Compute and cache any uncomputed results
         rowids = table.get_rowid(parent_rowids, config=request,
                                  recompute=not use_cache)
@@ -492,6 +493,11 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
     def parent_rowids_T(request):
         return ut.list_transpose(request.parent_rowids)
 
+    def execute_subset(request, qaids, use_cache=None):
+        subparent_rowids = list(ut.product_nonsame(qaids, request.daids))
+        results = request.execute(subparent_rowids, use_cache)
+        return results
+
     def get_input_hashid(request):
         return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
 
@@ -541,6 +547,10 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
         # HACK
         request.config.daids = request.daids
         return request
+
+    def execute_subset(request, qaids, use_cache=None):
+        subparent_rowids = qaids
+        return request.execute(subparent_rowids, use_cache)
 
     def get_input_hashid(request):
         #return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
