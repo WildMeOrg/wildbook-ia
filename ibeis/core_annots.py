@@ -829,13 +829,28 @@ class VsOneConfig(dtool.TableConfig):
     ]
 
 
-class VsOneRequest(dtool.base.OneVsOneSimilarityRequest):
+class VsOneRequest(dtool.base.VsOneSimilarityRequest):
     _tablename = 'vsone'
+
+
+class SingleMatch_IBEIS(object):
+    def __init__(self, qaid=None, daid=None, score=None, fm=None):
+        self.qaid = qaid
+        self.daid = daid
+        self.score = score
+        self.fm = fm
+
+    def __getstate__(self):
+        state_dict = self.__dict__
+        return state_dict
+
+    def __setstate__(self, state_dict):
+        self.__dict__.update(state_dict)
 
 
 @register_preproc(
     tablename='vsone', parents=['annotations', 'annotations'],
-    colnames=['score'], coltypes=[float],
+    colnames=['score', 'match'], coltypes=[float, SingleMatch_IBEIS],
     requestclass=VsOneRequest,
     configclass=VsOneConfig,
     chunksize=128, fname='vsone',
@@ -848,14 +863,18 @@ def compute_one_vs_one(depc, qaids, daids, config):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core(size=4)
+        >>> ibs, depc, aid_list = testdata_core(size=2)
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
         >>> config = request.config
         >>> qaids, daids = request.parent_rowids_T
         >>> # Compute using function
-        >>> score_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
+        >>> print('...Test vsone function')
+        >>> res_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
         >>> # Compute using request
-        >>> score_list2 = request.execute()
+        >>> print('...Test vsone cache')
+        >>> res_list2 = request.execute()
+        >>> score_list1 = ut.take_column(res_list1, 0)
+        >>> score_list2 = ut.take_column(res_list2, 0)
         >>> assert np.all(score_list1 == score_list2)
     """
     ibs = depc.controller
@@ -864,33 +883,39 @@ def compute_one_vs_one(depc, qaids, daids, config):
     unique_qaids = np.unique(qaids)
     unique_daids = np.unique(daids)
 
-    # TODO: use new dependencies
+    # use new dependencies
     annot1_list = [ibs.get_annot_lazy_dict2(qaid, config=qconfig2_)
                    for qaid in unique_qaids]
     annot2_list = [ibs.get_annot_lazy_dict2(daid, config=dconfig2_)
                    for daid in unique_daids]
 
+    # precache flann structures
+    # TODO: Make depcache node
     flann_params = {'algorithm': 'kdtree', 'trees': 8}
     for annot1 in annot1_list:
         if 'flann' not in annot1:
             annot1['flann'] = lambda: vt.flann_cache(
-                annot1['vecs'], flann_params=flann_params, verbose=False)
+                annot1['vecs'], flann_params=flann_params, quiet=True,
+                verbose=False)
 
     qaid_to_annot = dict(zip(unique_qaids, annot1_list))
     daid_to_annot = dict(zip(unique_qaids, annot2_list))
 
     #all_aids = np.unique(ut.flatten([qaids, daids]))
     verbose = False
-    for qaid, daid  in ut.ProgressIter(zip(qaids, daids), nTotal=len(qaids), lbl='vsone'):
+    for qaid, daid  in ut.ProgressIter(zip(qaids, daids), nTotal=len(qaids),
+                                       lbl='compute vsone'):
         annot1 = qaid_to_annot[qaid]
         annot2 = daid_to_annot[daid]
         metadata = {
             'annot1': annot1,
             'annot2': annot2,
         }
-        match = vt.vsone_matching2(metadata, cfgdict=config, verbose=verbose)
-        score = match.matches['TOP+SV'].fs.sum()
-        yield (score,)
+        vt_match = vt.vsone_matching2(metadata, cfgdict=config, verbose=verbose)
+        score = vt_match.matches['TOP+SV'].fs.sum()
+        fm = vt_match.matches['TOP+SV'].fm
+        match = SingleMatch_IBEIS(qaid, daid, score, fm)
+        yield (score, match)
 
 
 if __name__ == '__main__':

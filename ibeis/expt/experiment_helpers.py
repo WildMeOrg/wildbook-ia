@@ -76,7 +76,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='humpbacks')
-        >>> test_cfg_name_list = ['default:pipeline_root=[BC_DTW,BC_DTW_NEW],decision=average', 'default:K=[1,4]']
+        >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average', 'default:K=[1,4]']
         >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
         >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))

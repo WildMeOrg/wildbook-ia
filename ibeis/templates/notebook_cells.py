@@ -246,8 +246,8 @@ timestamp_distribution = (
         # STARTBLOCK
         # Get images of those used in the tests
         ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
-        aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
-        gids = ut.unique_keep_order(ibs.get_annot_gids(aids))
+        aids = ut.unique_ordered(ut.flatten([qaids, daids]))
+        gids = ut.unique_ordered(ibs.get_annot_gids(aids))
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
 
@@ -275,8 +275,8 @@ example_annotations = (
         # Get a sample of images
         #gids = ibs.get_valid_gids()
         ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
-        aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
-        gids = ut.unique_keep_order(ibs.get_annot_gids(aids))
+        aids = ut.unique_ordered(ut.flatten([qaids, daids]))
+        gids = ut.unique_ordered(ibs.get_annot_gids(aids))
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
 
@@ -319,7 +319,7 @@ example_names = (
         # STARTBLOCK
         from ibeis.viz import viz_graph
         ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
-        aids = ut.unique_keep_order(ut.flatten([qaids, daids]))
+        aids = ut.unique_ordered(ut.flatten([qaids, daids]))
         # Sample some annotations
         aids = ibs.sample_annots_general(aids, filter_kw=dict(sample_size=20, min_pername=2), verbose=False)
         # Visualize name graph

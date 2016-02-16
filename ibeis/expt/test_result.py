@@ -732,14 +732,14 @@ class TestResult(object):
                 else:
                     cfgname_list = [cfg['dcfg__cfgname']
                                     for cfg in testres.varied_acfg_list]
-                    cfgname_list = ut.unique_keep_order(cfgname_list)
+                    cfgname_list = ut.unique_ordered(cfgname_list)
                     annot_cfgname = '[' + ','.join(cfgname_list) + ']'
                 try:
                     pipeline_cfgname = testres.common_cfgdict['_cfgstr']
                 except KeyError:
                     #pipeline_cfgname = testres.common_cfgdict['_cfgname']
                     cfgstr_list = [cfg['_cfgstr'] for cfg in testres.varied_cfg_list]
-                    uniuqe_cfgstrs = ut.unique_keep_order(cfgstr_list)
+                    uniuqe_cfgstrs = ut.unique_ordered(cfgstr_list)
                     pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
 
                 annot_cfgname = testres._shorten_lbls(annot_cfgname)
@@ -1506,7 +1506,7 @@ class TestResult(object):
                     for type_, pos_list in pos_dict.items():
                         #if False:
                         #    _qx2_casegroup = ut.group_items(pos_list, pos_list.T[0], sorted_=False)
-                        #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order(pos_list.T[0]))
+                        #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_ordered(pos_list.T[0]))
                         #    grouppos_list = list(qx2_casegroup.values())
                         #    grouppos_len_list = list(map(len, grouppos_list))
                         #    _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
@@ -1575,7 +1575,7 @@ class TestResult(object):
         if '_cfgstr' in testres.common_cfgdict:
             pipecfg_args = [testres.common_cfgdict['_cfgstr']]
         else:
-            pipecfg_args = ut.unique_keep_order(
+            pipecfg_args = ut.unique_ordered(
                 [cfg['_cfgstr'] for cfg in testres.varied_cfg_list])
         return ' ' .join(pipecfg_args)
 
@@ -1583,7 +1583,7 @@ class TestResult(object):
         if '_cfgstr' in testres.common_acfg['common']:
             annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
         else:
-            annotcfg_args = ut.unique_keep_order([
+            annotcfg_args = ut.unique_ordered([
                 acfg['common']['_cfgstr']
                 for acfg in testres.varied_acfg_list])
         return ' ' .join(annotcfg_args)

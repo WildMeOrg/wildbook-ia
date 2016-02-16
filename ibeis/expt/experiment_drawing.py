@@ -321,7 +321,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
     #filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)
     case_pos_list = testres.case_sample2(filt_cfg)
-    case_qx_list = ut.unique_keep_order(case_pos_list.T[0])
+    case_qx_list = ut.unique_ordered(case_pos_list.T[0])
     selected_tags = ut.take(all_tags, case_qx_list)
     flat_tags_list = list(map(ut.flatten, selected_tags))
     WITH_NOTAGS = False
@@ -441,7 +441,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     #if isinstance(filt_cfg, dict):
     def convert_case_pos_to_cfgx(case_pos_list):
         # Convert to all cfgx format
-        qx_list = ut.unique_keep_order(np.array(case_pos_list).T[0])
+        qx_list = ut.unique_ordered(np.array(case_pos_list).T[0])
         ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
         flat_case_labels = None
         new_rows = np.array(qx_list).tolist()
@@ -513,7 +513,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     ibs.get_annot_semantic_uuids(ut.take(qaids, sel_rows))
     #samplekw = dict(per_group=5)
     #case_pos_list = testres.get_case_positions('failure', samplekw=samplekw)
-    #failure_qx_list = ut.unique_keep_order(case_pos_list.T[0])
+    #failure_qx_list = ut.unique_ordered(case_pos_list.T[0])
     #sel_rows = (np.array(failure_qx_list).tolist())
     #sel_cols = (list(range(testres.nConfig)))
 

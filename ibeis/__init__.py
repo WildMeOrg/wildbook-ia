@@ -66,12 +66,9 @@ try:
     from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
-    #from ibeis.control.IBEISControl import register_preproc, register_algo
-    from ibeis.control.controller_inject import register_preproc, register_algo
+    from ibeis.control.controller_inject import register_preproc
     from ibeis import core_annots
     #from ibeis import core_images
-    # from dtool.depends_cache import register_preproc, register_algo
-    # from dtool.depends_cache import register_preproc, register_algo
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise

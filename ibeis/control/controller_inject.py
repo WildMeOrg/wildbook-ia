@@ -776,7 +776,6 @@ class ExternalStorageException(Exception):
 
 _decors = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
 register_preproc = _decors['preproc']
-register_algo = _decors['algo']
 register_subprop = _decors['subprop']
 
 

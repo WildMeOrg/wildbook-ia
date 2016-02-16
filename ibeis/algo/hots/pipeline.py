@@ -309,7 +309,8 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             _impossible_daid_lists.append([[qaid] for qaid in internal_qaids])
     if not can_match_sameimg:
         # slow way of getting contact_aids (now incorporates faster way)
-        contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids, daid_list=internal_daids)
+        contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids,
+                                                             daid_list=internal_daids)
         _impossible_daid_lists.append(contact_aids_list)
         EXTEND_TO_OTHER_CONTACT_GT = False
         # TODO: flag overlapping keypoints with another annot as likely to

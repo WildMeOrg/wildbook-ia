@@ -359,9 +359,9 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=ZOOM)
         # Use name edge to make pos (very bad)
         aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
         netx_graph_hack = make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=aid_list)
-        pos = netx.graphviz_layout(netx_graph_hack)
+        pos = netx.nx_agraph.graphviz_layout(netx_graph_hack)
     else:
-        pos = netx.graphviz_layout(netx_graph)
+        pos = netx.nx_agraph.graphviz_layout(netx_graph)
 
     #pos = netx.fruchterman_reingold_layout(netx_graph)
     #pos = netx.spring_layout(netx_graph)

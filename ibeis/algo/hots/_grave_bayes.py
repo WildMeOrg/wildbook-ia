@@ -180,7 +180,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         sort_reduced_row_lbls_[0]
 
         # hack into a new joint factor
-        var_states = ut.lmap(ut.unique_keep_order, zip(*sort_reduced_row_lbls_))
+        var_states = ut.lmap(ut.unique_ordered, zip(*sort_reduced_row_lbls_))
         statename_dict = dict(zip(new_vars, var_states))
         cardinality = ut.lmap(len, var_states)
         val_lookup = dict(zip(ut.lmap(tuple, sort_reduced_row_lbls_), sort_reduced_values))
@@ -659,9 +659,9 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     #netx_graph.graph.setdefault('graph', {})['rankdir'] = 'LR'
 
     pos = get_hacked_pos(netx_graph)
-    #netx.pygraphviz_layout(netx_graph)
-    #pos = netx.pydot_layout(netx_graph, prog='dot')
-    #pos = netx.graphviz_layout(netx_graph)
+    #netx.nx_agraph.pygraphviz_layout(netx_graph)
+    #pos = netx.nx_agraph.pydot_layout(netx_graph, prog='dot')
+    #pos = netx.nx_agraph.graphviz_layout(netx_graph)
 
     drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1500)
     if evidence is not None:

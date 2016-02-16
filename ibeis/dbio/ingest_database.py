@@ -329,12 +329,12 @@ def resolve_name_conflicts(gid_list, name_list):
     conflict_gid_to_names = ut.build_conflict_dict(gid_list, name_list)
 
     # Check to see which gid has more than one name
-    unique_gids = ut.unique_keep_order(gid_list)
+    unique_gids = ut.unique_ordered(gid_list)
     unique_names = []
     unique_notes = []
 
     for gid in unique_gids:
-        names = ut.unique_keep_order(conflict_gid_to_names[gid])
+        names = ut.unique_ordered(conflict_gid_to_names[gid])
         unique_name = names[0]
         unique_note = ''
         if len(names) > 1:

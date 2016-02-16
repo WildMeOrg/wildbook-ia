@@ -845,9 +845,9 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     #netx_graph.graph.setdefault('graph', {})['rankdir'] = 'LR'
 
     pos_dict = get_hacked_pos(netx_graph)
-    #pos_dict = netx.pygraphviz_layout(netx_graph)
-    #pos = netx.nx_pydot.pydot_layout(netx_graph, prog='dot')
-    #pos_dict = netx.graphviz_layout(netx_graph)
+    #pos_dict = netx.nx_agraph.pygraphviz_layout(netx_graph)
+    #pos = netx.nx_agraph.nx_pydot.pydot_layout(netx_graph, prog='dot')
+    #pos_dict = netx.nx_agraph.graphviz_layout(netx_graph)
 
     textprops = {
         'family': 'monospace',

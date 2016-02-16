@@ -157,7 +157,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid_list)
     if not ut.get_argflag('--show'):  # False:
         tags_list = tag_funcs.consolodate_annotmatch_tags(tags_list)
-    tag_list = ut.unique_keep_order(ut.flatten(tags_list))
+    tag_list = ut.unique_ordered(ut.flatten(tags_list))
 
     name_rank = kwargs.get('name_rank', None)
     truth = get_multitruth(ibs, aid_list)

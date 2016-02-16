@@ -27,5 +27,5 @@
             (found_fpath_list, found_lines_list, found_lxs_list) = used_in
 
         print('Calling modules: \n' +
-              ut.repr2(ut.unique_keep_order(ut.flatten([used_in[0] for used_in in  external_usage_map.values()])), nl=True))
+              ut.repr2(ut.unique_ordered(ut.flatten([used_in[0] for used_in in  external_usage_map.values()])), nl=True))
 

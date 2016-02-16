@@ -67,7 +67,7 @@ class ResultMetadata(object):
             [cols.keys() for cols in qaid2_cols.values()]
             for qaid2_cols in six.itervalues(metadata.dictstore)
         ]
-        colname_list = ut.unique_keep_order(ut.flatten(ut.flatten(unflat_colname_list)))
+        colname_list = ut.unique_ordered(ut.flatten(ut.flatten(unflat_colname_list)))
         return colname_list
 
     def get_square_data(metadata, cfgstr=None):
@@ -76,7 +76,7 @@ class ResultMetadata(object):
             cfgstr = metadata.get_cfgstr_list()[0]
         qaid2_cols = metadata.dictstore[cfgstr]
         qaids = list(qaid2_cols.keys())
-        col_name_list = ut.unique_keep_order(ut.flatten([cols.keys() for cols in qaid2_cols.values()]))
+        col_name_list = ut.unique_ordered(ut.flatten([cols.keys() for cols in qaid2_cols.values()]))
         #col_name_list = ['qx2_scoreexpdiff', 'qx2_gt_aid']
         #colname2_colvals = [None for colname in col_name_list]
         column_list = [

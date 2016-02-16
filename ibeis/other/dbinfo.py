@@ -820,7 +820,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:
-                extra_collbls[key] = ut.unique_keep_order(extra_collbls[key] + list(dbinfo_locals[key].keys()))
+                extra_collbls[key] = ut.unique_ordered(extra_collbls[key] + list(dbinfo_locals[key].keys()))
 
         extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
         #extra_collbls['yawtext2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]

@@ -480,8 +480,8 @@ def draw_markov_model(model, fnum=None, **kwargs):
         markovmodel = model
     else:
         markovmodel = model.to_markov_model()
-    # pos = netx.pydot_layout(markovmodel)
-    pos = netx.pygraphviz_layout(markovmodel)
+    # pos = netx.nx_agraph.pydot_layout(markovmodel)
+    pos = netx.nx_agraph.pygraphviz_layout(markovmodel)
     # Referenecs:
     # https://groups.google.com/forum/#!topic/networkx-discuss/FwYk0ixLDuY
 
@@ -562,8 +562,8 @@ def draw_junction_tree(model, fnum=None, **kwargs):
     netx_graph.edge = e
     netx_graph.adj = a
     #netx_graph = model.to_markov_model()
-    #pos = netx.pygraphviz_layout(netx_graph)
-    #pos = netx.graphviz_layout(netx_graph)
+    #pos = netx.nx_agraph.pygraphviz_layout(netx_graph)
+    #pos = netx.nx_agraph.graphviz_layout(netx_graph)
     pos = netx.pydot_layout(netx_graph)
     node_color = [pt.NEUTRAL] * len(pos)
     drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
