@@ -18,9 +18,9 @@ CONFIG_TABLENAME = 'config_tablename'  # tablename associated with config
 CONFIG_STRID     = 'config_strid'
 
 
-GRACE_PERIOD = 10
-#ALLOW_ERRORS = True
-ALLOW_ERRORS = False
+GRACE_PERIOD = 5
+#ALLOW_NONE_YIELD = False
+ALLOW_NONE_YIELD = True
 
 
 def predrop_grace_period(tablename, seconds=None):
@@ -537,7 +537,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
-        if ALLOW_ERRORS:
+        if ALLOW_NONE_YIELD:
             # Force entire row to be none if any are none
             anyNone_flags = [any(ut.flag_None_items(x)) for x in parent_rowids]
             idxs2 = ut.where(anyNone_flags)
@@ -577,7 +577,7 @@ class DependencyCacheTable(ut.NiceRepr):
         if _debug:
             print('[deptbl.add] rowid_list = %s' %
                   (ut.trunc_repr(rowid_list),))
-        if ALLOW_ERRORS:
+        if ALLOW_NONE_YIELD:
             rowid_list = ut.ungroup([rowid_list], [idxs1], len(parent_rowids) - 1)
         return rowid_list
 
@@ -613,7 +613,7 @@ class DependencyCacheTable(ut.NiceRepr):
             # TODO: Separate into func which can be specified as a callback.
             for dirty_params_chunk in prog_iter:
                 # None data means that there was an error for a specific row
-                if ALLOW_ERRORS:
+                if ALLOW_NONE_YIELD:
                     dirty_params_chunk = ut.filter_Nones(dirty_params_chunk)
                 nInput = len(dirty_params_chunk)
                 table.db._add(table.tablename, table._table_colnames,
@@ -633,7 +633,7 @@ class DependencyCacheTable(ut.NiceRepr):
         idxs1 = table._nested_idxs
         idxs2 = ut.index_complement(idxs1, nCols)
         for data in proptup_gen:
-            if ALLOW_ERRORS and data is None:
+            if ALLOW_NONE_YIELD and data is None:
                 yield None
                 continue
             # Split data into nested and unnested columns
@@ -671,7 +671,7 @@ class DependencyCacheTable(ut.NiceRepr):
                               for fnames in extern_fnames_list]
 
         for data, extern_fpaths in zip(proptup_gen, extern_fpaths_list):
-            if ALLOW_ERRORS and data is None:
+            if ALLOW_NONE_YIELD and data is None:
                 yield None
                 continue
             normal_data = ut.take(data, idxs2)
@@ -714,7 +714,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # Concatenate data with internal rowids / config-id
         for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
             try:
-                if ALLOW_ERRORS and data_cols is None:
+                if ALLOW_NONE_YIELD and data_cols is None:
                     yield None
                     continue
                 yield parent_rowids + (config_rowid,) + data_cols
@@ -937,7 +937,7 @@ class DependencyCacheTable(ut.NiceRepr):
             print('[deptbl.get_row_data] flat_intern_colnames = %r' %
                   (flat_intern_colnames,))
 
-        if ALLOW_ERRORS:
+        if ALLOW_NONE_YIELD:
             nonNone_flags = ut.flag_not_None_items(tbl_rowids)
             nonNone_tbl_rowids = ut.compress(tbl_rowids, nonNone_flags)
             idxs1 = ut.where(nonNone_flags)
@@ -1003,7 +1003,7 @@ class DependencyCacheTable(ut.NiceRepr):
         if unpack_columns:
             prop_list = [None if p is None else p[0] for p in prop_list]
 
-        if ALLOW_ERRORS:
+        if ALLOW_NONE_YIELD:
             prop_list = ut.ungroup(
                 [prop_list, [None] * len(idxs2)],
                 [idxs1, idxs2], len(tbl_rowids) - 1)
