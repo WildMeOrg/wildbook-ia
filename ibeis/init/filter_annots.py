@@ -253,10 +253,10 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     Returns location and name of the ~~annot~~ data cache
     """
     from ibeis.expt import cfghelpers
+    from os.path import dirname, join
     # Make loading aids a big faster for experiments
     if ut.is_developer():
         import ibeis
-        from os.path import dirname, join
         repodir = dirname(ut.get_module_dir(ibeis))
         acfg_cachedir = join(repodir, 'ACFG_CACHE')
     else:

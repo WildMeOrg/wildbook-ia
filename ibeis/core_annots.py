@@ -803,6 +803,10 @@ def gen_featweight_worker(tup):
     return weights
 
 
+class VsOneRequest(dtool.base.VsOneSimilarityRequest):
+    _tablename = 'vsone'
+
+
 class VsOneConfig(dtool.Config):
     """
     Example:
@@ -828,10 +832,6 @@ class VsOneConfig(dtool.Config):
         FeatConfig,
         ChipConfig,  # TODO: infer chip config from feat config
     ]
-
-
-class VsOneRequest(dtool.base.VsOneSimilarityRequest):
-    _tablename = 'vsone'
 
 
 class SingleMatch_IBEIS(object):
@@ -876,6 +876,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> res_list2 = request.execute()
         >>> score_list1 = ut.take_column(res_list1, 0)
         >>> score_list2 = ut.take_column(res_list2, 0)
+        >>> print(score_list1)
         >>> assert np.all(score_list1 == score_list2)
     """
     ibs = depc.controller
