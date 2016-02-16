@@ -1680,9 +1680,9 @@ def get_demographic_info():
             continue
         # Bins
         if (min_age is None or min_age < 12) and max_age < 12:
-            age_list.append('YEARLING')
+            age_list.append('FOAL')
         elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
-            age_list.append('1 YEARS')
+            age_list.append('YEARLING')
         elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
             age_list.append('2 YEARS')
         elif 36 <= min_age and (36 <= max_age or max_age is None):
