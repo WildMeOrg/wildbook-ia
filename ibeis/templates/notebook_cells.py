@@ -437,8 +437,8 @@ config_disagree_cases = ('# Configuration Disagreements (Safely Ignored)', ut.co
     # STARTBLOCK
     testres = ibeis.run_experiment(
         e='draw_cases',
-        db=db, a=a[0:1], t=t[0:1],
-        f=[':disagree=False,index=0:3'],
+        db=db, a=a, t=t,
+        f=[':disagree=True,index=0:3'],
         figsize=(30, 8),
         **draw_case_kw)
 
@@ -473,7 +473,7 @@ success_annot_scoresep = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_annot_scoresep',
-            db=db, a=a[0:1], t=t[0:1],
+            db=db, a=a, t=t,
             f=[':fail=False,min_gf_timedelta=None'],
         )
         _ = testres.draw_func()
@@ -488,7 +488,7 @@ all_annot_scoresep = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='scores',
-            db=db, a=a[0:1], t=t[0:1],
+            db=db, a=a, t=t,
             qaid_override=qaid_override, daid_override=daid_override,
             f=[':fail=None,min_gf_timedelta=None']
         )
@@ -556,7 +556,7 @@ easy_success_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a[0:1], t=t[0:1],
+            db=db, a=a, t=t,
             f=[':fail=False,index=0:3,sortdsc=gtscore,max_pername=1'],
             # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
             # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
@@ -583,7 +583,7 @@ hard_success_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a[0:1], t=t[0:1],
+            db=db, a=a, t=t,
             f=[':fail=False,index=0:3,sortasc=gtscore,max_pername=1,min_gtscore=.00001'],  # hack min_gtscore for 0 scores marked as success
             # REM f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
             # REM f=[':fail=False,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
@@ -620,7 +620,7 @@ failure_type2_cases =  (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a[0:1], t=t[0:1],
+            db=db, a=a, t=t,
             f=[':fail=True,index=0:3,sortdsc=gtscore,max_pername=1'],
             figsize=(30, 8),
             **draw_case_kw)
@@ -649,7 +649,7 @@ failure_type1_cases = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='draw_cases',
-            db=db, a=a[0:1], t=t[0:1],
+            db=db, a=a, t=t,
             f=[':fail=True,index=0:3,sortdsc=gfscore,max_pername=1'],
             figsize=(30, 8),
             **draw_case_kw)

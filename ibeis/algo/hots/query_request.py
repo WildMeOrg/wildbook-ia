@@ -1195,6 +1195,15 @@ class QueryRequest(object):
             cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
         return cm_list
 
+    def execute_subset(qreq_, qaids=None):
+        if qaids is not None:
+            shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
+            cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,
+                                            use_bigcache=False)
+        else:
+            cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+        return cm_list
+
 
 def test_cfg_deepcopy():
     """
