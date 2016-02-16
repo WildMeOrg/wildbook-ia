@@ -568,7 +568,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
         # TODO: use chip_match
-        cm_list = [qreq_.execute(qaids=qaids[qx])[0] for qreq_ in qreq_list]
+        #cm_list = [qreq_.execute(qaids=qaids[qx])[0] for qreq_ in qreq_list]
+        cm_list = [qreq_.execute_subset(qaids=[qaids[qx]])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
 
         if show_in_notebook:
@@ -1449,7 +1450,6 @@ def draw_results(ibs, testres):
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
-        >>> # execute function
         >>> result = draw_results(ibs, testres)
         >>> # verify results
         >>> print(result)
