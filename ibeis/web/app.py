@@ -789,6 +789,49 @@ def turk_detection():
                        review=review)
 
 
+@register_route('/turk/detection/dynamic')
+def turk_detection_dynamic():
+    ibs = current_app.ibs
+    gid = request.args.get('gid', None)
+
+    gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
+    image = ap.open_oriented_image(gpath)
+    image_src = ap.embed_image_html(image, filter_width=False)
+    # Get annotations
+    width, height = ibs.get_image_sizes(gid)
+    aid_list = ibs.get_image_aids(gid)
+    annot_bbox_list = ibs.get_annot_bboxes(aid_list)
+    annot_thetas_list = ibs.get_annot_thetas(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+    # Get annotation bounding boxes
+    annotation_list = []
+    for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
+        temp = {}
+        temp['left']   = 100.0 * (annot_bbox[0] / width)
+        temp['top']    = 100.0 * (annot_bbox[1] / height)
+        temp['width']  = 100.0 * (annot_bbox[2] / width)
+        temp['height'] = 100.0 * (annot_bbox[3] / height)
+        temp['label']  = species
+        temp['id']     = aid
+        temp['angle']  = float(annot_theta)
+        annotation_list.append(temp)
+    if len(species_list) > 0:
+        species = max(set(species_list), key=species_list.count)  # Get most common species
+    elif default_species(ibs) is not None:
+        species = default_species(ibs)
+    else:
+        species = KEY_DEFAULTS[SPECIES_KEY]
+
+    return ap.template('turk', 'detection_dynamic',
+                       gid=gid,
+                       refer_aid=None,
+                       species=species,
+                       image_path=gpath,
+                       image_src=image_src,
+                       annotation_list=annotation_list,
+                       __wrapper__=False)
+
+
 def get_turk_annot_args(is_reviewed_func):
     """
     Helper to return aids in an imageset or a group review
@@ -1560,6 +1603,100 @@ def get_names_with_gids_csv():
     else:
         gid_header_str = ','.join([ 'GID%d' % (i + 1, ) for i in range(max_length) ])
     combined_str = 'NID,NAME,%s\n' % (gid_header_str, ) + combined_str
+    return ap.send_csv_file(combined_str, filename)
+
+
+@register_route('/api/csv/image_info/', methods=['GET'])
+def get_image_info():
+    import datetime
+    ibs = current_app.ibs
+    filename = 'image_info.csv'
+    gid_list = sorted(ibs.get_valid_gids())
+    gname_list = ibs.get_image_gnames(gid_list)
+    datetime_list = ibs.get_image_unixtime(gid_list)
+    datetime_list_ = [
+        datetime.datetime.fromtimestamp(datetime_).strftime('%Y-%m-%d %H:%M:%S')
+        for datetime_ in datetime_list
+    ]
+    lat_list = ibs.get_image_lat(gid_list)
+    lon_list = ibs.get_image_lon(gid_list)
+    note_list = ibs.get_image_notes(gid_list)
+    party_list = []
+    contributor_list = []
+    for note in note_list:
+        try:
+            note = note.split(',')
+            party, contributor = note[:2]
+            party_list.append(party)
+            contributor_list.append(contributor)
+        except:
+            party_list.append('UNKNOWN')
+            contributor_list.append('UNKNOWN')
+
+    zipped_list = zip(gid_list, gname_list, datetime_list_, lat_list, lon_list,
+                      party_list, contributor_list)
+    aids_list = ibs.get_image_aids(gid_list)
+    names_list = [ ibs.get_annot_name_texts(aid_list) for aid_list in aids_list ]
+    combined_list = [
+        ','.join( map(str, list(zipped) + name_list) )
+        for zipped, name_list in zip(zipped_list, names_list)
+    ]
+    max_length = 0
+    for name_list in names_list:
+        max_length = max(max_length, len(name_list))
+    if max_length == 1:
+        name_header_str = 'NAME'
+    else:
+        name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
+    combined_str = '\n'.join(combined_list)
+    combined_str = 'GID,FILENAME,TIMESTAMP,GPSLAT,GPSLON,PARTY,CONTRIBUTOR,%s\n' % (name_header_str, ) + combined_str
+    return ap.send_csv_file(combined_str, filename)
+
+
+@register_route('/api/csv/demographics/', methods=['GET'])
+def get_demographic_info():
+    ibs = current_app.ibs
+    filename = 'demographics.csv'
+    nid_list = sorted(ibs.get_valid_nids())
+    name_list = ibs.get_name_texts(nid_list)
+    sex_list = ibs.get_name_sex_text(nid_list)
+    min_ages_list = ibs.get_name_age_months_est_min(nid_list)
+    max_ages_list = ibs.get_name_age_months_est_max(nid_list)
+
+    age_list = []
+    for min_ages, max_ages in zip(min_ages_list, max_ages_list):
+        if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
+            age_list.append('AMBIGUOUS')
+            continue
+        min_age = None
+        max_age = None
+        if len(min_ages) > 0:
+            min_age = min_ages[0]
+        if len(max_ages) > 0:
+            max_age = max_ages[0]
+        # Histogram
+        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+            age_list.append('UNREVIEWED')
+            continue
+        # Bins
+        if (min_age is None or min_age < 12) and max_age < 12:
+            age_list.append('FOAL')
+        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
+            age_list.append('YEARLING')
+        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
+            age_list.append('2 YEARS')
+        elif 36 <= min_age and (36 <= max_age or max_age is None):
+            age_list.append('3+ YEARS')
+        else:
+            age_list.append('UNKNOWN')
+
+    zipped_list = zip(nid_list, name_list, sex_list, age_list)
+    combined_list = [
+        ','.join( map(str, list(zipped)) )
+        for zipped in zipped_list
+    ]
+    combined_str = '\n'.join(combined_list)
+    combined_str = 'NID,NAME,SEX,AGE\n' + combined_str
     return ap.send_csv_file(combined_str, filename)
 
 
