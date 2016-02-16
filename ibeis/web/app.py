@@ -1659,16 +1659,44 @@ def get_demographic_info():
     filename = 'demographics.csv'
     nid_list = sorted(ibs.get_valid_nids())
     name_list = ibs.get_name_texts(nid_list)
-    sex_list = ibs.get_name_sex(nid_list)
-    age_min_list = ibs.get_name_age_months_est_min(nid_list)
-    age_max_list = ibs.get_name_age_months_est_max(nid_list)
-    zipped_list = zip(nid_list, name_list, sex_list, age_min_list, age_max_list)
+    sex_list = ibs.get_name_sex_text(nid_list)
+    min_ages_list = ibs.get_name_age_months_est_min(nid_list)
+    max_ages_list = ibs.get_name_age_months_est_max(nid_list)
+
+    age_list = []
+    for min_ages, max_ages in zip(min_ages_list, max_ages_list):
+        if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
+            age_list.append('AMBIGUOUS')
+            continue
+        min_age = None
+        max_age = None
+        if len(min_ages) > 0:
+            min_age = min_ages[0]
+        if len(max_ages) > 0:
+            max_age = max_ages[0]
+        # Histogram
+        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+            age_list.append('UNREVIEWED')
+            continue
+        # Bins
+        if (min_age is None or min_age < 12) and max_age < 12:
+            age_list.append('YEARLING')
+        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
+            age_list.append('1 YEARS')
+        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
+            age_list.append('2 YEARS')
+        elif 36 <= min_age and (36 <= max_age or max_age is None):
+            age_list.append('3+ YEARS')
+        else:
+            age_list.append('UNKNOWN')
+
+    zipped_list = zip(nid_list, name_list, sex_list, age_list)
     combined_list = [
         ','.join( map(str, list(zipped)) )
         for zipped in zipped_list
     ]
     combined_str = '\n'.join(combined_list)
-    combined_str = 'NID,NAME,SEX,AGEMIN,AGEMAX\n' + combined_str
+    combined_str = 'NID,NAME,SEX,AGE\n' + combined_str
     return ap.send_csv_file(combined_str, filename)
 
 
