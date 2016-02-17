@@ -325,11 +325,14 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
             #params.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
             # TODO: if this hack is fully completed need a way of getting the
             # full config belonging to both chip + feat
-            request.params['chip_cfgstr']       = config.chip_cfg.get_cfgstr()
-            request.params['chip_cfg_dict']     = config.chip_cfg.asdict()
-            request.params['feat_cfgstr']       = config.feat_cfg.get_cfgstr()
-            request.params['hesaff_params']     = config.feat_cfg.get_hesaff_params()
-            request.params['featweight_cfgstr'] = config.feat_weight_cfg.get_cfgstr()
+            try:
+                request.params['chip_cfgstr']       = config.chip_cfg.get_cfgstr()
+                request.params['chip_cfg_dict']     = config.chip_cfg.asdict()
+                request.params['feat_cfgstr']       = config.feat_cfg.get_cfgstr()
+                request.params['hesaff_params']     = config.feat_cfg.get_hesaff_params()
+                request.params['featweight_cfgstr'] = config.feat_weight_cfg.get_cfgstr()
+            except AttributeError:
+                pass
         request.qparams = ut.DynStruct()
         for key, val in request.params.items():
             setattr(request.qparams, key, val)

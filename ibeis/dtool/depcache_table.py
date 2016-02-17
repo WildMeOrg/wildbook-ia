@@ -122,7 +122,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.sqldb_fpath = None
         table.extern_read_funcs = {}
         table.extern_write_funcs = {}
-        table.extern_extensions = {}
+        table.extern_ext_config_keys = {}
         table.extern_io_classes = {}
         table.ismulti = ismulti
         table.isinteractive = isinteractive
@@ -221,7 +221,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # TODO: can rewrite much of this
         extern_read_funcs = {}
         extern_write_funcs = {}
-        extern_extensions = {}
+        extern_ext_config_keys = {}
         extern_io_classes = {}
         internal_data_colnames = []
         internal_data_coltypes = []
@@ -231,13 +231,13 @@ class DependencyCacheTable(ut.NiceRepr):
         def make_extern_io_funcs(cls):
             # Hack in read/write defaults for pickleable classes
             def _read_func(fpath, verbose=ut.VERBOSE):
-                state_dict = ut.load_cPkl(fpath, verbose=verbose)
+                state_dict = ut.load_data(fpath, verbose=verbose)
                 self = cls()
                 self.__setstate__(state_dict)
                 return self
 
             def _write_func(fpath, self, verbose=ut.VERBOSE):
-                ut.save_cPkl(fpath, self.__getstate__(), verbose=verbose, n=4)
+                ut.save_data(fpath, self.__getstate__(), verbose=verbose, n=4)
             return _read_func, _write_func
 
         # Parse column datatypes
@@ -274,8 +274,9 @@ class DependencyCacheTable(ut.NiceRepr):
                     read_func = coltype[1]
                     if len(coltype) > 2:
                         write_func = coltype[2]
-                    if len(coltype) > 3:
-                        extern_extensions[colname] = coltype[3]
+                    #if len(coltype) > 3:
+                    #    # specify key in config that determines extension
+                    #    extern_ext_config_keys[colname] = coltype[3]
                 elif is_functup:
                     read_func = coltype[0]
                 else:
@@ -307,7 +308,7 @@ class DependencyCacheTable(ut.NiceRepr):
         assert len(internal_data_coltypes) == len(internal_data_colnames)
         table.extern_read_funcs = extern_read_funcs
         table.extern_write_funcs = extern_write_funcs
-        table.extern_extensions = extern_extensions
+        table.extern_ext_config_keys = extern_ext_config_keys
         table.extern_io_classes = extern_io_classes
         table.external_to_internal = external_to_internal
         table.nested_to_flat = nested_to_flat
@@ -604,7 +605,7 @@ class DependencyCacheTable(ut.NiceRepr):
             proptup_gen = table.preproc_func(table.depc, *args, config=config_)
             # Append rowids and rectify nested and external columns
             dirty_params_iter = table.prepare_storage(
-                dirty_parent_rowids, proptup_gen, config_rowid)
+                dirty_parent_rowids, proptup_gen, config_rowid, config)
             # Break iterator into chunks
             chunksize = ut.ifnone(len(dirty_parent_rowids), table.chunksize)
             nInput = len(dirty_parent_rowids)
@@ -626,7 +627,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
             raise
 
-    def prepare_storage(table, dirty_parent_rowids, proptup_gen, config_rowid):
+    def prepare_storage(table, dirty_parent_rowids, proptup_gen, config_rowid, config):
         """
         Converts output from ``preproc_func`` to data that can be stored in SQL
         """
@@ -640,7 +641,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # Write external columns
         if len(table.extern_write_funcs) > 0:
             proptup_gen = table._prepare_storage_extern(dirty_parent_rowids,
-                                                        config_rowid,
+                                                        config_rowid, config,
                                                         proptup_gen)
         # Concatenate data with internal rowids / config-id
         for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
@@ -678,7 +679,7 @@ class DependencyCacheTable(ut.NiceRepr):
             yield data_new
 
     def _prepare_storage_extern(table, dirty_parent_rowids, config_rowid,
-                                proptup_gen):
+                                config, proptup_gen):
         """
         Writes external data to disk if write function is specified.
         """
@@ -691,7 +692,8 @@ class DependencyCacheTable(ut.NiceRepr):
         ]
         idxs2 = ut.index_complement(idxs1, nCols)
         extern_fnames_list = list(zip(*[
-            table._get_extern_fnames(dirty_parent_rowids, config_rowid, col)
+            table._get_extern_fnames(dirty_parent_rowids, config_rowid, config,
+                                     col)
             for col in extern_colnames
         ]))
 
@@ -731,13 +733,16 @@ class DependencyCacheTable(ut.NiceRepr):
         extern_dpath = join(cache_dpath, extern_dname)
         return extern_dpath
 
-    def _get_extern_fnames(table, parent_rowids, config_rowid, colname=None):
+    def _get_extern_fnames(table, parent_rowids, config_rowid, config,
+                           colname=None):
         config_hashid = table.get_config_hashid([config_rowid])[0]
         prefix = table.tablename
         if colname is not None:
             prefix += '_' + colname
         fmtstr = '{prefix}_id={rowids}_{config_hashid}{ext}'
-        ext = table.extern_extensions.get(colname, '.cPkl')
+        # HACK: check if the config specifies the extension type
+        key = table.extern_ext_config_keys.get(colname, 'ext')
+        ext = config.get(key, '.cPkl')
         fname_list = [
             fmtstr.format(prefix=prefix,
                           rowids='_'.join(list(map(str, rowids))),
@@ -838,16 +843,93 @@ class DependencyCacheTable(ut.NiceRepr):
         return rowid_list
 
     def delete_rows(table, rowid_list, verbose=None):
+        """
+        CommandLine:
+            python -m dtool.depcache_table --exec-delete_rows --show
+
+        Example:
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> #table = depc['keypoint']
+            >>> table = depc['chip']
+            >>> tablename = table.tablename
+            >>> graph = depc.make_graph(with_implicit=False)
+            >>> config1 = None
+            >>> config2 = table.configclass(version=-1)
+            >>> config3 = table.configclass(version=-1, ext='.jpg')
+            >>> config4 = table.configclass(ext='.jpg')
+            >>> # Create several configs of rowid
+            >>> aids = [1, 2, 3]
+            >>> depc.get_rowids('spam', aids, config=config1)
+            >>> depc.get_rowids('spam', aids, config=config2)
+            >>> depc.get_rowids('spam', aids, config=config3)
+            >>> depc.get_rowids('spam', aids, config=config4)
+            >>> # Delete the png configs
+            >>> rowid_list1 = depc.get_rowids(table.tablename, aids,
+            >>>                               config=config2)
+            >>> rowid_list2 = depc.get_rowids(table.tablename, aids,
+            >>>                               config=config1)
+            >>> rowid_list = rowid_list1 + rowid_list2
+            >>> assert len(ut.setintersect_ordered(rowid_list1, rowid_list2)) == 0
+            >>> table.delete_rows(rowid_list)
+
+        Ignore:
+        """
+        #import networkx as nx
         #from dtool.algo.preproc import preproc_feat
         if table.on_delete is not None:
             table.on_delete()
         if ut.NOT_QUIET:
             print('Requested delete of %d rows from %s' % (
                 len(rowid_list), table.tablename))
+
+        # TODO:
+        # REMOVE EXTERNAL FILES
+        # if len(table.extern_write_funcs):
+        if 1:
+            if len(table.extern_columns) > 0:
+                extern_colnames = tuple(table.external_to_internal.values())
+                uri_list = table.get_internal_columns(rowid_list, extern_colnames,
+                                                      unpack_scalars=False,
+                                                      keepwrap=False)
+                fpath_list = ut.flatten(uri_list)
+                print('fpath_list = %r' % (fpath_list,))
+                print('deleting internal files')
+                ut.remove_file_list(fpath_list)
+
+        # DELETE EXPLICITLY DEFINED CHILDREN
+        # (TODO: handle implicit definitions)
+        if True:
+            import networkx as nx
+            graph = table.depc.make_graph(with_implicit=False)
+            children = nx.neighbors(graph, table.tablename)
+            parent_colnames = (table.tablename,)
+
+            def get_child_partial_rowids(child_table, rowid_list, parent_colnames):
+                colnames = (child_table.rowid_colname,)
+                andwhere_colnames = parent_colnames
+                params_iter = ((rowid,) for rowid in rowid_list)
+                params_iter = list(params_iter)
+                child_rowids = table.db.get_where2(child_table.tablename,
+                                                   colnames, params_iter,
+                                                   andwhere_colnames)
+                return child_rowids
+
+            for child in children:
+                child_table = table.depc[child]
+                if not child_table.ismulti:
+                    child_rowids = get_child_partial_rowids(child_table,
+                                                            rowid_list,
+                                                            parent_colnames)
+                    child_table.delete_rows(child_rowids)
+        pass
+
+        if ut.NOT_QUIET:
             print('Deleting %d non-None rows from %s' % (
                 len(ut.filter_Nones(rowid_list)), table.tablename))
 
-        # Finalize: Delete table
+        # Finalize: Delete rows from this table
         table.db.delete_rowids(table.tablename, rowid_list)
         num_deleted = len(ut.filter_Nones(rowid_list))
         return num_deleted

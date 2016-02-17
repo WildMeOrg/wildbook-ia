@@ -300,6 +300,7 @@ class _CoreDependencyCache(object):
             list(nx.all_shortest_paths(graph, depc.root, tablename))
         """
         try:
+            # get_ancestor_levels
             assert tablename in depc.cachetable_dict, (
                 'tablename=%r does not exist' % (tablename,))
             root = depc.root_tablename
@@ -364,6 +365,7 @@ class _CoreDependencyCache(object):
             ]
 
         """
+        # get_descendant_levels
         edges = depc.get_edges()
         children_, parents_ = list(zip(*edges))
         parent_to_children = ut.group_items(parents_, children_)
@@ -864,7 +866,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                               for e1, e2 in implicit_edges]
         return implicit_edges
 
-    def make_graph(depc):
+    @ut.memoize
+    def make_graph(depc, **kwargs):
         """
         Helper "fluff" function
 
@@ -884,8 +887,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         import networkx as nx
-        if depc._graph is not None:
-            return depc._graph
+        #if depc._graph is not None:
+        #    return depc._graph
         # graph = nx.DiGraph()
         graph = nx.MultiDiGraph()
         nodes = list(depc.cachetable_dict.keys())
@@ -893,8 +896,9 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
 
-        implicit_edges = depc.get_implicit_edges(data=True)
-        graph.add_edges_from(implicit_edges)
+        if kwargs.get('with_implicit', True):
+            implicit_edges = depc.get_implicit_edges(data=True)
+            graph.add_edges_from(implicit_edges)
 
         shape_dict = {
             'node': 'circle',

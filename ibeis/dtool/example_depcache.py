@@ -74,7 +74,7 @@ class DummyChipConfig(dtool.Config):
         >>> # ENABLE_DOCTEST
         >>> from dtool.example_depcache import *  # NOQA
         >>> cfg = DummyChipConfig()
-        >>> cfg.size = 700
+        >>> cfg.dim_size = 700
         >>> cfg.histeq = True
         >>> print(cfg)
         >>> cfg.histeq = False
@@ -83,10 +83,10 @@ class DummyChipConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('resize_dim', 'width',
                      valid_values=['area', 'width', 'heigh', 'diag']),
-        ut.ParamInfo('size', 500, 'sz'),
+        ut.ParamInfo('dim_size', 500, 'sz'),
         ut.ParamInfo('preserve_aspect', True),
         ut.ParamInfo('histeq', False, hideif=False),
-        ut.ParamInfo('fmt', '.png'),
+        ut.ParamInfo('ext', '.png'),
         ut.ParamInfo('version', 0),
     ]
 
@@ -125,6 +125,7 @@ class ProbchipConfig(dtool.Config):
     """
     _param_info_list = [
         ut.ParamInfo('testerror', False, hideif=False),
+        ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
 
 
@@ -246,7 +247,7 @@ def testdata_depc(fname=None):
 
     @depc.register_preproc(tablename='chip', parents=[dummy_root],
                            colnames=['size', 'chip'],
-                           coltypes=[(int, int), vt.imread],
+                           coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
                            configclass=DummyChipConfig)
     def dummy_preproc_chip(depc, annot_rowid_list, config=None):
         """
@@ -271,11 +272,14 @@ def testdata_depc(fname=None):
             #aid = annot['aid']
             #chip_fpath = annot['gpath']
             chip_fpath = gpath_list[aid]
-            w, h = vt.image.open_image_size(chip_fpath)
-            size = (w, h)
+            #w, h = vt.image.open_image_size(chip_fpath)
+            chip = vt.imread(chip_fpath)
+            size = vt.get_size(chip)
+            #size = (w, h)
             #print('* chip_fpath = %r' % (chip_fpath,))
             #print('* size = %r' % (size,))
-            yield size, chip_fpath
+            #yield size, chip_fpath
+            yield size, chip
 
     @depc.register_preproc(
         'probchip', [dummy_root], ['size', 'probchip'],
