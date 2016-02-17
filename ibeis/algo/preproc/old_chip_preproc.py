@@ -352,9 +352,9 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
         newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)
         gfpath = gfpath_list[0]
         img = vt.imread(gfpath)
-        chip_sqrt_area = 450
-        chip_sqrt_area = 500
-        target_area = chip_sqrt_area ** 2
+        dim_size = 450
+        dim_size = 500
+        target_area = dim_size ** 2
         bbox = bbox_list[0]
         theta = theta_list[0]
         new_size = newsize_list[0]
@@ -374,12 +374,12 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     # Get chip configuration information
     if config2_ is not None:
         chip_cfg_dict  = config2_.get('chip_cfg_dict')
-        chip_sqrt_area = config2_.get('chip_sqrt_area')
-        assert chip_sqrt_area is not None
+        dim_size = config2_.get('dim_size')
+        assert dim_size is not None
         assert chip_cfg_dict is not None
     else:
         # use ibs if config2_ is None
-        chip_sqrt_area = ibs.cfg.chip_cfg.chip_sqrt_area
+        dim_size = ibs.cfg.chip_cfg.dim_size
         chip_cfg_dict = ibs.cfg.chip_cfg.to_dict()
     # Get chip dest information (output path),
     # source information (image, annotation_bbox, theta)
@@ -390,7 +390,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
-    target_area = chip_sqrt_area ** 2
+    target_area = dim_size ** 2
     bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
     newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)
     invalid_aids = [aid for aid, (w, h) in zip(aid_list, bbox_size_list) if w == 0 or h == 0]

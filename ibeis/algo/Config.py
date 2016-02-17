@@ -1095,15 +1095,16 @@ class ChipConfig(ConfigBase):
     """ ChipConfig """
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
-        cc_cfg.chip_sqrt_area = 450
-        cc_cfg.grabcut         = False
-        cc_cfg.histeq          = False
-        cc_cfg.adapteq         = False
-        cc_cfg.region_norm     = False
-        cc_cfg.rank_eq         = False
-        cc_cfg.local_eq        = False
-        cc_cfg.maxcontrast     = False
-        cc_cfg.chipfmt         = '.png'
+        cc_cfg.dim_size    = 450
+        cc_cfg.resize_dim  = 'area'
+        cc_cfg.grabcut     = False
+        cc_cfg.histeq      = False
+        cc_cfg.adapteq     = False
+        cc_cfg.region_norm = False
+        cc_cfg.rank_eq     = False
+        cc_cfg.local_eq    = False
+        cc_cfg.maxcontrast = False
+        cc_cfg.chipfmt     = '.png'
         cc_cfg.update(**kwargs)
 
     def get_cfgstr_list(cc_cfg, **kwargs):
@@ -1119,10 +1120,10 @@ class ChipConfig(ConfigBase):
             chip_cfgstr += ['rankeq']  * cc_cfg.rank_eq
             chip_cfgstr += ['localeq'] * cc_cfg.local_eq
             chip_cfgstr += ['maxcont'] * cc_cfg.maxcontrast
-            isOrig = (cc_cfg.chip_sqrt_area is None or
-                      cc_cfg.chip_sqrt_area <= 0)
+            isOrig = (cc_cfg.dim_size is None or
+                      cc_cfg.dim_size <= 0)
             chip_cfgstr += (['szorig'] if isOrig else
-                            ['sz%r' % cc_cfg.chip_sqrt_area])
+                            ['sz%r' % cc_cfg.dim_size])
             chip_cfgstr_list = ['_CHIP(', (','.join(chip_cfgstr)), ')']
         else:
             chip_cfgstr_list = []

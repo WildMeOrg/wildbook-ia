@@ -278,7 +278,7 @@ small_best = {
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'prescore_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
-    'chip_sqrt_area':  [450],
+    'dim_size':  [450],
     'fg_on'   : [True],
 }
 
@@ -788,7 +788,7 @@ vsmany_best = {
     'prescore_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'score_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'max_alts':        [1000],
-    'chip_sqrt_area':  [450],
+    'dim_size':  [450],
 }
 #best = vsmany_best
 
@@ -803,7 +803,7 @@ gv_test.update({
 # 450 works the best on GZ
 chipsize_test = vsmany_best.copy()
 chipsize_test.update({
-    'chip_sqrt_area':  [400, 450, 500, 600, 750],
+    'dim_size':  [400, 450, 500, 600, 750],
 })
 
 

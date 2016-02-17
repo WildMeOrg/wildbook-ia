@@ -612,11 +612,11 @@ def get_chip_aids(ibs, cid_list):
         >>> import ibeis
         >>> from ibeis.algo import Config
         >>> from ibeis.algo.hots import query_params
-        >>> #chip_config2_ = Config.ChipConfig(chip_sqrt_area=450)
-        >>> #chip_config3_ = Config.ChipConfig(chip_sqrt_area=200)
+        >>> #chip_config2_ = Config.ChipConfig(dim_size=450)
+        >>> #chip_config3_ = Config.ChipConfig(dim_size=200)
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> config2_ = query_params.QueryParams(cfgdict=dict(chip_sqrt_area=450))
-        >>> config3_ = query_params.QueryParams(cfgdict=dict(chip_sqrt_area=200))
+        >>> config2_ = query_params.QueryParams(cfgdict=dict(dim_size=450))
+        >>> config3_ = query_params.QueryParams(cfgdict=dict(dim_size=200))
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)
         >>> cid_list3 = ibs.get_annot_chip_rowids(aid_list, config2_=config3_)
