@@ -939,6 +939,14 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = qaid_list
         avail_aids = sorted(avail_aids)
 
+    # TODO:
+    # Filter via GPS distance
+    if aidcfg['min_spacedelta'] is not None:
+        pass
+
+    if aidcfg['min_spacetimedelta'] is not None:
+        pass
+
     # FIXME: This is NOT an independent filter because it depends on pairwise
     # interactions
     if aidcfg['view_pername'] is not None:

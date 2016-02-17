@@ -2,10 +2,8 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 import plottool as pt  # NOQA
-#from six.moves import zip
 import utool as ut
-#from ibeis import constants as const
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[interact_annot2]')
+print, rrr, profile = ut.inject2(__name__, '[interact_annot2]')
 
 
 #DESTROY_OLD_WINDOW = True

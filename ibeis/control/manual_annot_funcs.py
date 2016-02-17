@@ -1596,6 +1596,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     val_iter = ((yaw, ) for yaw in yaw_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_YAW,), val_iter, id_iter)
     ibs.update_annot_visual_uuids(aid_list)
+    ibs.depc.notify_root_changed(aid_list, 'yaws')
 
 
 @register_ibs_method
@@ -2386,6 +2387,8 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
     # TODO: flag name rowid update
+    # TODO: flag when the actual name changes as well?
+    ibs.depc.notify_root_changed(aid_list, 'name')
 
 
 @register_ibs_method
@@ -2458,8 +2461,6 @@ def set_annot_species(ibs, aid_list, species_text_list):
     #ibs.get_nids_from_text
     species_rowid_list = ibs.get_species_rowids_from_text(species_text_list)
     ibs.set_annot_species_rowids(aid_list, species_rowid_list)
-    #ibs.set_annot_lblannot_from_value(aid_list, species_text_list, const.SPECIES_KEY)
-    ibs.update_annot_semantic_uuids(aid_list)
 
 
 @register_ibs_method
@@ -2492,6 +2493,8 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
+    ibs.update_annot_semantic_uuids(aid_list)
+    ibs.depc.notify_root_changed(aid_list, 'species')
 
 
 @register_ibs_method
@@ -2544,6 +2547,7 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
     ibs.update_annot_visual_uuids(aid_list)
+    ibs.depc.notify_root_changed(aid_list, 'theta')
 
 
 @register_ibs_method
@@ -2580,6 +2584,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
     ibs.update_annot_visual_uuids(aid_list)
+    ibs.depc.notify_root_changed(aid_list, 'verts')
 
 
 # PROBCHIP
