@@ -10,7 +10,6 @@ import numpy as np
 from plottool import abstract_interaction
 
 BASE_CLASS = abstract_interaction.AbstractInteraction
-#BASE_CLASS = object
 
 
 # TODO: move to plottool and decouple with IBEIS
@@ -145,7 +144,6 @@ class MatchInteraction2(BASE_CLASS):
         ph.set_plotdat(ax, 'viztype', 'matches')
 
         if self.truth is not None and self.truth:
-            # HACK, rectify with ibeis/viz_matches
             truth_color = pt.TRUE_BLUE  # if  else pt.FALSE_RED
             pt.draw_border(ax, color=truth_color, lw=4)
 
@@ -171,8 +169,8 @@ class MatchInteraction2(BASE_CLASS):
         self.mx    = mx
         print('+--- SELECT --- ')
         print('... selecting mx-th=%r feature match' % mx)
-        fsv = self.fsv  # qres.aid2_fsv[aid]
-        fs  = self.fs  # qres.aid2_fs[aid]
+        fsv = self.fsv
+        fs  = self.fs
         print('score stats:')
         print(ut.get_stats_str(fsv, axis=0, newlines=True))
         print('fsv[mx] = %r' % (fsv[mx],))
@@ -185,7 +183,7 @@ class MatchInteraction2(BASE_CLASS):
 
         # Older info
         fscore2  = self.fs[mx]
-        fk2      = None  # qres.aid2_fk[aid2][mx]
+        fk2      = None
         kp1, kp2     = self.kpts1[fx1], self.kpts2[fx2]
         vecs1, vecs2 = self.vecs1[fx1], self.vecs2[fx2]
         info1 = '\nquery'
@@ -197,8 +195,8 @@ class MatchInteraction2(BASE_CLASS):
         extracted_list = [(rchip1, kp1, vecs1, fx1, 'aid1', info1),
                           (rchip2, kp2, vecs2, fx2, 'aid2', info2)]
         # Normalizng Keypoint
-        #if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
-        #    qfx2_norm = qres.filt2_meta['lnbnn']
+        #if hasattr(cm, 'filt2_meta') and 'lnbnn' in cm.filt2_meta:
+        #    qfx2_norm = cm.filt2_meta['lnbnn']
         #    # Normalizing chip and feature
         #    (aid3, fx3, normk) = qfx2_norm[fx1]
         #    rchip3 = ibs.get_annot_chips(aid3)
