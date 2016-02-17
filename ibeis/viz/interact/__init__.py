@@ -20,14 +20,12 @@ from ibeis.viz.interact import interact_sver
 from ibeis.viz.interact.interact_image import ishow_image
 from ibeis.viz.interact.interact_chip import ishow_chip
 from ibeis.viz.interact.interact_name import ishow_name
-from ibeis.viz.interact.interact_qres import ishow_qres
-#from ibeis.viz.interact.interact_matches import ishow_matches
 from ibeis.viz.interact.interact_bbox import iselect_bbox
 from ibeis.viz.interact.interact_sver import ishow_sver
 
 import utool
 
-print, print_, printDBG, rrr, profile = utool.inject(
+print, rrr, profile = utool.inject2(
     __name__, '[ibeis.viz.interact]')
 
 

@@ -548,6 +548,13 @@ class FeatConfig(dtool.Config):
         param_info_list += ut.dict_take(param_info_dict, default_keys)
         return param_info_list
 
+    def get_hesaff_params(self):
+        # Get subset of these params that correspond to hesaff
+        import pyhesaff
+        default_keys = list(pyhesaff.get_hesaff_default_params().keys())
+        hesaff_param_dict = ut.dict_subset(self, default_keys)
+        return hesaff_param_dict
+
 
 @register_preproc(
     tablename='feat', parents=['chips'],
@@ -730,7 +737,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         [ 0.125  0.061  0.053]
     """
     nTasks = len(fid_list)
-    print('[preproc_featweight.compute_fgweights] Preparing to compute %d fgweights' % (nTasks,))
+    print('[compute_fgweights] Computing %d fgweights' % (nTasks,))
     #aid_list = depc.get_ancestor_rowids('feat', fid_list, 'annotations')
     #probchip_fpath_list = depc.get(aid_list, 'img', config={}, read_extern=False)
     probchip_list = depc.get_native('probchip', pcid_list, 'img')
@@ -738,12 +745,14 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     chipsize_list = depc.get_native('chips', cid_list, ('width', 'height'))
     kpts_list = depc.get_native('feat', fid_list, 'kpts')
     # Force grayscale reading of chips
-    print('[preproc_featweight.compute_fgweights] Computing %d fgweights' % (nTasks,))
     arg_iter = zip(kpts_list, probchip_list, chipsize_list)
-    #featweight_gen = ut.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10)
-    featweight_gen = ut.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10, force_serial=True)
+    #featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
+    #nTasks=nTasks, ordered=True, freq=10)
+    featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
+                                 nTasks=nTasks, ordered=True, freq=10,
+                                 force_serial=True)
     featweight_list = list(featweight_gen)
-    print('[preproc_featweight.compute_fgweights] Done computing %d fgweights' % (nTasks,))
+    print('[compute_fgweights] Done computing %d fgweights' % (nTasks,))
     for fw in featweight_list:
         yield (fw,)
 
@@ -754,8 +763,8 @@ def gen_featweight_worker(tup):
     Must take in one argument to be used by multiprocessing.map_async
 
     Args:
-        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and probability chip file path
-           aid, kpts, probchip_fpath
+        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and
+            probability chip file path aid, kpts, probchip_fpath
 
     CommandLine:
         python -m ibeis.core_annots --test-gen_featweight_worker --show
@@ -797,7 +806,8 @@ def gen_featweight_worker(tup):
         kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
         #vtpatch.get_warped_patches()
         # VERY SLOW
-        patch_list  = [vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts_]
+        patch_list  = [vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
+                       for kp in kpts_]
         weight_list = [vt.gaussian_average_patch(patch) for patch in patch_list]
         #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         weights = np.array(weight_list, dtype=np.float32)
@@ -810,25 +820,13 @@ class VsOneRequest(dtool.base.VsOneSimilarityRequest):
     def postprocess_execute(request, parent_rowids, result_list):
         import ibeis
         qaid_list, daid_list = list(zip(*parent_rowids))
-        #score_list = ut.take_column(result_list, 0)
         depc = request.depc
-        #config = request.config
-        #cm_list = list(get_match_results(depc, qaid_list, daid_list,
-        #                                 score_list, config))
-
         cm_list = []
         unique_qaids, groupxs = ut.group_indices(qaid_list)
-        #grouped_qaids_list = ut.apply_grouping(qaid_list, groupxs)
         grouped_daids = ut.apply_grouping(daid_list, groupxs)
-        #grouped_scores = ut.apply_grouping(score_list, groupxs)
 
         ibs = depc.controller
         unique_qnids = ibs.get_annot_nids(unique_qaids)
-        # FIXME: decision should not be part of the config for the one-vs-one
-        # scores
-        #decision_func = getattr(np, config['decision'])
-        #decision_func = np.max
-
         single_cm_list = ut.take_column(result_list, 1)
         grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
 
@@ -839,6 +837,12 @@ class VsOneRequest(dtool.base.VsOneSimilarityRequest):
             match = ibeis.ChipMatch.combine_cms(cms)
             match.score_nsum(request)
             cm_list.append(match)
+
+        #import utool
+        #utool.embed()
+        #cm = cm_list[0]
+        #cm.print_inspect_str(request)
+        #cm.assert_self(request, assert_feats=False)
         return cm_list
 
 
@@ -849,10 +853,6 @@ class VsOneConfig(dtool.Config):
         >>> cfg = VsOneConfig()
         >>> result = str(cfg)
         >>> print(result)
-
-    ancestors = netx.dag.ancestors(depc.graph, 'feat')
-    subconfigs_ = ut.dict_take(depc.configclass_dict, ancestors, None)
-    subconfigs = ut.filter_Nones(subconfigs_)
     """
     _param_info_list = [
         ut.ParamInfo('sver_xy_thresh', .01),
@@ -867,22 +867,8 @@ class VsOneConfig(dtool.Config):
     _sub_config_list = [
         FeatConfig,
         ChipConfig,  # TODO: infer chip config from feat config
+        FeatWeightConfig,
     ]
-
-
-#class SingleMatch_IBEIS(object):
-#    def __init__(self, qaid=None, daid=None, score=None, fm=None):
-#        self.qaid = qaid
-#        self.daid = daid
-#        self.score = score
-#        self.fm = fm
-
-#    def __getstate__(self):
-#        state_dict = self.__dict__
-#        return state_dict
-
-#    def __setstate__(self, state_dict):
-#        self.__dict__.update(state_dict)
 
 
 @register_preproc(
@@ -900,24 +886,27 @@ def compute_one_vs_one(depc, qaids, daids, config):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core(size=3)
+        >>> ibs, depc, aid_list = testdata_core(size=5)
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
         >>> config = request.config
         >>> qaids, daids = request.parent_rowids_T
-        >>> # Compute using function
-        >>> print('...Test vsone function')
-        >>> rawres_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
         >>> # Compute using request
         >>> print('...Test vsone cache')
         >>> rawres_list2 = request.execute(postprocess=False)
-        >>> score_list1 = ut.take_column(rawres_list1, 0)
         >>> score_list2 = ut.take_column(rawres_list2, 0)
-        >>> print(score_list1)
         >>> res_list2 = request.execute()
         >>> print(res_list2)
-        >>> assert np.all(score_list1 == score_list2)
+        >>> # Compute using function
+        >>> #print('...Test vsone function')
+        >>> #rawres_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
+        >>> #score_list1 = ut.take_column(rawres_list1, 0)
+        >>> #print(score_list1)
+        >>> #assert np.all(score_list1 == score_list2)
         >>> ut.quit_if_noshow()
+        >>> ut.ensure_pylab_qt4()
         >>> match = res_list2[0]
+        >>> match.print_inspect_str(request)
+        >>> #match.show_analysis(qreq_=request)
         >>> match.ishow_analysis(qreq_=request)
         >>> ut.show_if_requested()
     """
@@ -935,8 +924,8 @@ def compute_one_vs_one(depc, qaids, daids, config):
         annot2_list = [ibs.get_annot_lazy_dict2(daid, config=dconfig2_)
                        for daid in unique_daids]
     else:
-        config.chip_cfgstr = config.chip_cfg.get_cfgstr()
-        config.chip_cfg_dict = config.chip_cfg.asdict()
+        #config.chip_cfgstr = config.chip_cfg.get_cfgstr()
+        #config.chip_cfg_dict = config.chip_cfg.asdict()
         annot1_list = [ibs.get_annot_lazy_dict(qaid, config2_=qconfig2_)
                        for qaid in unique_qaids]
         annot2_list = [ibs.get_annot_lazy_dict(daid, config2_=dconfig2_)
@@ -956,8 +945,8 @@ def compute_one_vs_one(depc, qaids, daids, config):
 
     #all_aids = np.unique(ut.flatten([qaids, daids]))
     verbose = False
-    for qaid, daid  in ut.ProgressIter(zip(qaids, daids), nTotal=len(qaids),
-                                       lbl='compute vsone'):
+    for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
+                                   lbl='compute vsone'):
         annot1 = qaid_to_annot[qaid]
         annot2 = daid_to_annot[daid]
         metadata = {

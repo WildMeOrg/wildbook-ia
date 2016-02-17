@@ -330,7 +330,7 @@ class _ChipMatchVisualization(object):
     def ishow_analysis(cm, qreq_, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ChipMatch.ishow_analysis --show
+            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1893,7 +1893,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> result = ('varinfo = %s' % (str(varinfo),))
             >>> print(result)
         """
-        cm.assert_self(qreq_)
+        #cm.assert_self(qreq_)
 
         top_lbls = [' top aids', ' scores', ' ranks']
 
@@ -2130,8 +2130,8 @@ class ChipMatch(_ChipMatchVisualization,
     # Testing Functions
     #------------------
 
-    def assert_self(cm, qreq_=None, strict=False, verbose=ut.NOT_QUIET):
-
+    def assert_self(cm, qreq_=None, strict=False, assert_feats=True,
+                    verbose=ut.NOT_QUIET):
         def _assert_eq_len(list1_, list2_):
             if list1_ is not None:
                 ut.assert_eq_len(list1_, list2_)
@@ -2163,7 +2163,8 @@ class ChipMatch(_ChipMatchVisualization,
 
         with testlog.context('dnid_list = name(daid_list)'):
             if strict or qreq_ is not None and cm.dnid_list is not None:
-                if not np.all(cm.dnid_list == qreq_.ibs.get_annot_name_rowids(cm.daid_list)):
+                nid_list = qreq_.ibs.get_annot_name_rowids(cm.daid_list)
+                if not np.all(cm.dnid_list == nid_list):
                     testlog.log_failed('annot aligned nids are NOT ok')
             else:
                 testlog.skip_test()
@@ -2187,10 +2188,12 @@ class ChipMatch(_ChipMatchVisualization,
                 else:
                     # this might fail if this result is old and the names have changed
                     grouped_aids = vt.apply_grouping(cm.daid_list, cm.name_groupxs)
-                    grouped_mapped_nids = qreq_.ibs.unflat_map(qreq_.ibs.get_annot_name_rowids, grouped_aids)
+                    grouped_mapped_nids = qreq_.ibs.unflat_map(
+                        qreq_.ibs.get_annot_name_rowids, grouped_aids)
                     for nids in grouped_mapped_nids:
                         if not ut.list_allsame(nids):
-                            testlog.log_failed('internal daid name grouping is NOT consistent')
+                            testlog.log_failed(
+                                'internal daid name grouping is NOT consistent')
 
             with testlog.context('dnid_list - unique_nid alignment'):
                 grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
@@ -2223,21 +2226,25 @@ class ChipMatch(_ChipMatchVisualization,
                 if cm.fm_list is None:
                     testlog.skip_test()
                 else:
-                    assert ut.list_all_eq_to([fm.shape[1] for fm in cm.fm_list], 2), 'fm arrs must be Nx2 dimensions'
+                    assert ut.list_all_eq_to([fm.shape[1] for fm in cm.fm_list], 2), (
+                        'fm arrs must be Nx2 dimensions')
 
             with testlog.context('fsv_col_lbls agree with fsv shape'):
                 if cm.fsv_list is None:
                     testlog.skip_test()
                 else:
                     if cm.fsv_col_lbls is not None or strict:
-                        assert cm.fsv_col_lbls is not None, 'need to specify the names of the columns'
+                        assert cm.fsv_col_lbls is not None, (
+                            'need to specify the names of the columns')
                         num_col_lbls = len(cm.fsv_col_lbls)
                     else:
                         if len(cm.fsv_list) == 0:
                             num_col_lbls = 0
                         else:
                             num_col_lbls = cm.fsv_list[0].shape[1]
-                    assert ut.list_all_eq_to([fsv.shape[1] for fsv in cm.fsv_list], num_col_lbls), 'num_col_lbls=%r' % (num_col_lbls,)
+                    assert ut.list_all_eq_to(
+                        [fsv.shape[1] for fsv in cm.fsv_list], num_col_lbls), (
+                            'num_col_lbls=%r' % (num_col_lbls,))
 
             with testlog.context('filtnorm checks'):
                 if cm.filtnorm_aids is None and cm.filtnorm_fxs is None:
@@ -2250,12 +2257,14 @@ class ChipMatch(_ChipMatchVisualization,
                     with testlog.context('len(fsvs) agree with filtnorm_arrs'):
                         assert all([
                             aids_list is None or
-                            all([len(fsv) == len(aids) for aids, fsv in zip(aids_list, cm.fsv_list)])
+                            all([len(fsv) == len(aids)
+                                 for aids, fsv in zip(aids_list, cm.fsv_list)])
                             for aids_list in cm.filtnorm_aids
                         ]), 'norm aid indicies do not agree with featscores'
                         assert all([
                             fxs_list is None or
-                            all([len(fsv) == len(fxs) for fxs, fsv in zip(fxs_list, cm.fsv_list)])
+                            all([len(fsv) == len(fxs)
+                                 for fxs, fsv in zip(fxs_list, cm.fsv_list)])
                             for fxs_list in cm.filtnorm_fxs
                         ]), 'norm fx indicies do not agree with featscores'
         except Exception as ex:
@@ -2264,10 +2273,11 @@ class ChipMatch(_ChipMatchVisualization,
 
         # testlog.log_passed('filtkey and fsv shapes are ok')
 
-        if strict or qreq_ is not None:
+        if assert_feats and (strict or qreq_ is not None):
             external_qaids = qreq_.qaids.tolist()
             external_daids = qreq_.daids.tolist()
-            if qreq_.qparams.pipeline_root == 'vsone':
+            proot = getattr(qreq_.qparams, 'pipeline_root', None)
+            if proot == 'vsone':
                 assert len(external_qaids) == 1, 'only one external qaid for vsone'
                 if strict or qreq_.indexer is not None:
                     nExternalQVecs = qreq_.ibs.get_annot_vecs(

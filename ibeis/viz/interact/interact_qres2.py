@@ -16,8 +16,7 @@ from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_matches
 from ibeis.viz.interact.interact_sver import ishow_sver
 
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[interact_qres2]')
+(print, rrr, profile) = ut.inject2(__name__, '[interact_qres2]')
 
 
 BREAK_MATCH_PREF = 'break match'
@@ -109,7 +108,8 @@ class Interact_QueryResult(object):
         self.current_match_aids = (self.qaids[index], self.aids[index])
         self.current_qres       = self.qaid2_qres[qaid]
 
-    def append_button(self, text, divider=None, rect=None, callback=None, size='9%', **kwargs):
+    def append_button(self, text, divider=None, rect=None, callback=None,
+                      size='9%', **kwargs):
         """ Adds a button to the current page """
         if divider is not None:
             new_ax = divider.append_axes('bottom', size='9%', pad=.05)
@@ -142,7 +142,6 @@ class Interact_QueryResult(object):
         nRows, nCols = ph.get_square_row_cols(self.nDisplay)
         # Create a grid to hold nPerPage
         self.pnum_ = df2.get_pnum_func(nRows, nCols)
-        printDBG('[iqr2*] r=%r, c=%r' % (nRows, nCols))
         # Adjust stop index
         self.stop_index = self.start_index + self.nDisplay
         # Clear current figure
@@ -150,7 +149,6 @@ class Interact_QueryResult(object):
         self.fig = df2.figure(fnum=self.fnum, pnum=self.pnum_(0), doclf=True, docla=True)
         ih.disconnect_callback(self.fig, 'button_press_event')
         ih.connect_callback(self.fig, 'button_press_event', self.on_figure_clicked)
-        printDBG(self.fig)
 
     def show_page(self, pagenum=None):
         """ Displays a page of matches """
@@ -167,17 +165,14 @@ class Interact_QueryResult(object):
         self.draw()
 
     def plot_annotationmatch(self, index, draw=True, make_buttons=True):
-        printDBG('[ishow_qres] starting interaction')
         self.select_candidate_match(index)
         # Get index relative to the page
         px = index - self.start_index
         pnum = self.pnum_(px)
-        #printDBG('[inter] starting %s interaction' % type_)
         # Setup figure
         fnum = self.fnum
-        printDBG('\n<<<<  BEGIN %s INTERACTION >>>>' % (str('qres').upper()))
         fig = df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=False)
-        printDBG(fig)
+        fig
         #self.ax = ax = df2.gca()
         # Get viz params
         qres = self.current_qres
@@ -299,8 +294,6 @@ class Interact_QueryResult(object):
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', '')
-            #printDBG(str(event.__dict__))
-            printDBG('viztype=%r' % viztype)
             # Clicked a specific matches
             if viztype == 'matches':
                 aid1 = ph.get_plotdat(ax, 'aid1', None)
@@ -318,7 +311,6 @@ class Interact_QueryResult(object):
 
     def on_ctrl_clicked_match(self, aid1, aid2):
         """ HELPER:  Executed when a result ANNOTATION is control-clicked """
-        printDBG('ctrl+clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
         ishow_sver(self.ibs, aid1, aid2, fnum=fnum_)
         fig = df2.gcf()
@@ -327,7 +319,6 @@ class Interact_QueryResult(object):
 
     def on_clicked_match(self, aid1, aid2):
         """ HELPER: Executed when a result ANNOTATION is clicked """
-        printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
         qres = self.qaid2_qres[aid1]
         qres.ishow_matches(self.ibs, aid2, fnum=fnum_)

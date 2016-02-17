@@ -15,7 +15,7 @@ from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
-from ibeis.algo.hots import chip_match
+#from ibeis.algo.hots import chip_match
 from plottool import fig_presenter
 #from plottool import interact_helpers as ih
 #import functools
@@ -928,15 +928,9 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     else:
         # TODO: just draw the image at the correct thumbnail size
         # TODO: draw without matplotlib?
-        if isinstance(cm, chip_match.ChipMatch):
-            fpath = cm.imwrite_single_annotmatch(
-                qreq_, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
-                notitle=True, verbose=False)
-        else:
-            print('WARNING: using old qres instead of cm')
-            fpath = cm.dump_match_img(
-                ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
-                notitle=True, verbose=False, qreq_=qreq_)
+        fpath = cm.imwrite_single_annotmatch(
+            qreq_, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
+            notitle=True, verbose=False)
         match_thumbtup_cache[match_thumb_fpath_] = fpath
     return fpath
 
@@ -960,7 +954,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         >>> import guitool
         >>> from ibeis.gui import inspect_gui
         >>> cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()
-        >>> tblname = 'qres'
+        >>> tblname = 'chipmatch'
         >>> name_scoring = False
         >>> ranks_lt = 5
         >>> qres_api = make_qres_api(qreq_.ibs, cm_list, ranks_lt, name_scoring, qreq_=qreq_)

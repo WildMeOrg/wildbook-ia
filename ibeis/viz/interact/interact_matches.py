@@ -25,7 +25,6 @@ from plottool import plot_helpers as ph
 from ibeis import viz
 from ibeis.algo.hots import scoring
 from ibeis.algo.hots import hstypes
-from ibeis.algo.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
@@ -44,6 +43,7 @@ def testdata_match_interact(**kwargs):
         python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
 
     Example:
+        >>> # VIZ_DOCTEST
         >>> from ibeis.viz.interact.interact_matches import *  # NOQA
         >>> import plottool as pt
         >>> kwargs = {}
@@ -51,58 +51,30 @@ def testdata_match_interact(**kwargs):
         >>> pt.show_if_requested()
     """
     import ibeis
-    #ibs = ibeis.opendb('testdb1')
-    #cfgdict = {}
     qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', t=['default:Knorm=3'])
     ibs = qreq_.ibs
-    #ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict,
-    #                                       defaultdb='testdb1',
-    #                                       cmdline_ok=True)
     cm = ibs.query_chips(qreq_=qreq_)[0]
-    #cm = chip_match.ChipMatch.from_qres(qres)
-    #cm.score_nsum(qreq_)
     cm.sortself()
     aid2 = None
-    #self = MatchInteraction(ibs, qres, aid2, mode=1, dodraw=False, **kwargs)
     self = MatchInteraction(ibs, cm, aid2, mode=1, dodraw=False, qreq_=qreq_, **kwargs)
     return self
 
 
+# TODO inherit from AbstractInteraction
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class MatchInteraction(object):
     """
-    TODO: replace functional version with this class
+    Plots a chip result and sets up callbacks for interaction.
 
     SeeAlso:
         plottool.interact_matches.MatchInteraction2
-
-    Plots a chip result and sets up callbacks for interaction.
-
     """
-    def __init__(self, *args, **kwargs):
-        self.init_old(*args, **kwargs)
-        if not kwargs.get('nobegin', False):
-            dodraw = kwargs.get('dodraw', True)
-            self.begin(dodraw=dodraw)
+    def __init__(self, ibs, cm, aid2=None, fnum=None,
+                 figtitle='Match Interaction', same_fig=True,
+                 qreq_=None, **kwargs):
+        self.qres = cm
 
-    def init_old(self, ibs, qres, *args, **kwargs):
-        """
-        old begin function for working with qres objects
-        """
-        if not isinstance(qres, chip_match.ChipMatch):
-            self.qres = qres
-            cm = chip_match.ChipMatch.from_qres(self.qres)
-        else:
-            cm = qres
-            self.qres = qres
-        self.init_new(ibs, cm, *args, **kwargs)
-
-    def init_new(self, ibs, cm, aid2=None, fnum=None,
-                 figtitle='Match Interaction',
-                 same_fig=True, qreq_=None, **kwargs):
-        r"""
-        new init function for use with ChipMatch class
-        """
         self.ibs = ibs
         self.cm = cm
         self.qreq_ = qreq_
@@ -148,7 +120,8 @@ class MatchInteraction(object):
         self.rchip1 = vh.get_chips(ibs, [self.qaid], config2_=self.query_config2_)[0]
         self.rchip2 = vh.get_chips(ibs, [self.daid], config2_=self.data_config2_)[0]
         # Begin Interaction
-        self.fig = ih.begin_interaction('matches', self.fnum)  # call doclf docla and make figure
+        # call doclf docla and make figure
+        self.fig = ih.begin_interaction('matches', self.fnum)
         self.xywh2_ptr  = [None]
         self.mode = kwargs.pop('mode', 0)
         # New state vars
@@ -165,6 +138,10 @@ class MatchInteraction(object):
         ut.inject_func_as_method(self, AbstractInteraction.append_button.im_func)
         ut.inject_func_as_method(self, AbstractInteraction.show_popup_menu.im_func)
         self.scope = []
+
+        if not kwargs.get('nobegin', False):
+            dodraw = kwargs.get('dodraw', True)
+            self.begin(dodraw=dodraw)
 
     def begin(self, dodraw=True):
         r"""
@@ -191,7 +168,6 @@ class MatchInteraction(object):
 
     def set_callbacks(self):
         # TODO: view probchip
-
         #guitool.connect_context_menu(self.fig.canvas, options)
         ih.connect_callback(self.fig, 'button_press_event', self.on_click)
 
@@ -229,7 +205,6 @@ class MatchInteraction(object):
 
         if is_right_click:
             from ibeis.gui import inspect_gui
-
             options = []
 
             if is_match_type:
@@ -319,9 +294,6 @@ class MatchInteraction(object):
                 print('...Unknown viztype: %r' % viztype)
             viz.draw()
 
-    #def plot()
-    # define for expandable interaction
-
     def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
         """
         just visualizes the matches using some type of lines
@@ -351,30 +323,21 @@ class MatchInteraction(object):
         df2.figure(fnum=fnum, docla=True, doclf=True)
         show_matches_kw = self.kwargs.copy()
         show_matches_kw.update(
-            dict(fnum=fnum, pnum=pnum, draw_lines=draw_lines, draw_ell=draw_ell,
-                 colorbar_=True, vert=self.vert))
+            dict(fnum=fnum, pnum=pnum, draw_lines=draw_lines,
+                 draw_ell=draw_ell, colorbar_=True, vert=self.vert))
         show_matches_kw.update(kwargs_)
 
         if self.use_homog:
             show_matches_kw['H1'] = self.H1
 
-        # TODO RENAME This to remove qres and rectify with show_matches
-        OLD = False
-        if OLD:
-            qres = self.qres
-            tup = viz.viz_matches.show_matches(ibs, qres, aid,
-                                               qreq_=self.qreq_,
-                                               **show_matches_kw)
-        else:
-            #show_matches_kw['score'] = self.score
-            show_matches_kw['rawscore'] = self.score
-            #ut.embed()
-            show_matches_kw['aid2_raw_rank'] = self.rank
-            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
-                                                self.fm, self.fs,
-                                                qreq_=self.qreq_,
-                                                **show_matches_kw)
-
+        #show_matches_kw['score'] = self.score
+        show_matches_kw['rawscore'] = self.score
+        #ut.embed()
+        show_matches_kw['aid2_raw_rank'] = self.rank
+        tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
+                                            self.fm, self.fs,
+                                            qreq_=self.qreq_,
+                                            **show_matches_kw)
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
@@ -401,7 +364,6 @@ class MatchInteraction(object):
             >>> pt.show_if_requested()
         """
         ibs        = self.ibs
-        #qres       = self.qres
         qaid       = self.qaid
         aid        = self.daid
         fnum       = self.fnum
@@ -414,9 +376,6 @@ class MatchInteraction(object):
         print('+--- SELECT --- ')
         print('qaid=%r, daid=%r' % (qaid, aid))
         print('... selecting mx-th=%r feature match' % mx)
-        #print('qres.filtkey_list = %r' % (qres.filtkey_list,))
-        #fsv = qres.aid2_fsv[aid]
-        #fs  = qres.aid2_fs[aid]
         if False:
             print('score stats:')
             print(ut.get_stats_str(self.fsv, axis=0, newlines=True))
@@ -450,8 +409,8 @@ class MatchInteraction(object):
         extracted_list = [(rchip1, kp1, sift1, fx1, self.qaid, info1),
                           (rchip2, kp2, sift2, fx2, self.daid, info2)]
         # Normalizng Keypoint
-        #if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
-        #    qfx2_norm = qres.filt2_meta['lnbnn']
+        #if hasattr(cm, 'filt2_meta') and 'lnbnn' in cm.filt2_meta:
+        #    qfx2_norm = cm.filt2_meta['lnbnn']
         #    # Normalizing chip and feature
         #    (aid3, fx3, normk) = qfx2_norm[fx1]
         #    rchip3 = ibs.get_annot_chips(aid3)
@@ -571,11 +530,6 @@ class MatchInteraction(object):
     def dev_embed(self):
         ut.embed()
 
-    #def name_interaction(self):
-    #    aid1 = self.qaid  # 14
-    #    aid2 = self.daid  # 5546
-    #    #ut.embed()
-
     def toggle_vert(self):
         self.vert = not self.vert
         if self.mx is not None:
@@ -595,7 +549,8 @@ class MatchInteraction(object):
     def query_last_feature(self):
         ibs      = self.ibs
         qaid     = self.qaid
-        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum(), qreq_=self.qreq_, draw_chip=True)
+        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum(),
+                                     qreq_=self.qreq_, draw_chip=True)
         fig3 = df2.gcf()
         ih.connect_callback(fig3, 'button_press_event', self.on_click)
         viz.draw()

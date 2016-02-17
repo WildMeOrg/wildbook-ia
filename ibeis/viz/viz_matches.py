@@ -24,8 +24,9 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
     #print('!!! qqreq_ = %r' % (qreq_,))
     query_config2_ = (None if qreq_ is None
                       else qreq_.get_external_query_config2())
+    tblhack = getattr(qreq_, 'tablename', None)
     #print('!!! query_config2_ = %r' % (query_config2_,))
-    if qreq_._isnewreq:
+    if not tblhack and qreq_._isnewreq:
         if hasattr(qreq_, 'get_fmatch_overlayed_chip')  and draw_fmatches and draw_fmatches != 'hackoff':
             rchip1 = qreq_.get_fmatch_overlayed_chip(qaid, config=query_config2_)
             draw_fmatches = False
@@ -48,7 +49,8 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
                      qreq_.get_external_data_config2())
     #print('!!! data_config2_ = %r' % (data_config2_,))
     #print('!!! dqreq_ = %r' % (qreq_,))
-    if qreq_._isnewreq:
+    tblhack = getattr(qreq_, 'tablename', None)
+    if not tblhack and qreq_._isnewreq:
         if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
             rchip2_list = qreq_.get_fmatch_overlayed_chip(aid_list, config=data_config2_)
             #rchip2_list = ibs.depc.get_property('chips', aid_list, 'img', config=data_config2_)
@@ -107,7 +109,8 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
         >>> func = chip_match.ChipMatch.show_single_namematch
-        >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True, strip_docstr=True)
+        >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True,
+        >>>                                     strip_docstr=True)
         >>> setup = ut.regex_replace('viz_matches.show_name_matches', '#', sourcecode)
         >>> homog = False
         >>> print(ut.indent(setup, '>>> '))
@@ -117,11 +120,15 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> dnid = ibs.get_annot_nids(cm.qaid)
         >>> # +--- COPIED SECTION
         >>> locals_ = locals()
-        >>> var_list = ut.exec_func_src(func, locals_=locals_, sentinal='name_annot_scores = cm.annot_score_list.take(sorted_groupxs')
+        >>> var_list = ut.exec_func_src(
+        >>>     func, locals_=locals_,
+        >>>     sentinal='name_annot_scores = cm.annot_score_list.take(sorted_groupxs')
         >>> exec(ut.execstr_dict(var_list))
         >>> # L___ COPIED SECTION
         >>> kwargs = {}
-        >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)
+        >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list,
+        >>>                   name_fs_list, name_h1_list, name_featflag_list,
+        >>>                   qreq_=qreq_, **kwargs)
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
@@ -161,6 +168,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     name_rank = kwargs.get('name_rank', None)
     truth = get_multitruth(ibs, aid_list)
+
     if name_rank is None:
         xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
         #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
@@ -171,6 +179,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         else:
             xlabel = {
                 1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
+
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)
 
@@ -180,6 +189,8 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
 def get_multitruth(ibs, aid_list):
     import numpy as np
+    if ibs.is_aid_unknown(aid_list[0]):
+        return 2
     name_equality = (ibs.get_annot_nids(aid_list[0]) ==
                      np.array(ibs.get_annot_nids(aid_list[1:])))
     truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)

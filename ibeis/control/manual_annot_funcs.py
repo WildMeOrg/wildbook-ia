@@ -693,7 +693,8 @@ def get_annot_aids_from_uuid(ibs, uuid_list):
         URL:    /api/annot/aids_from_uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), uuid_list, id_colname=ANNOT_UUID)
+    aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), uuid_list,
+                           id_colname=ANNOT_UUID)
     return aids_list
 
 
@@ -2379,7 +2380,8 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     if any(will_be_unknown_flag_list):
         # remove exemplar status from any annotations that will become unknown
         will_be_unknown_aids = ut.compress(aid_list, will_be_unknown_flag_list)
-        ibs.set_annot_exemplar_flags(will_be_unknown_aids, [False] * len(will_be_unknown_aids))
+        ibs.set_annot_exemplar_flags(will_be_unknown_aids, [False] *
+                                     len(will_be_unknown_aids))
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
@@ -2422,7 +2424,8 @@ def set_annot_names(ibs, aid_list, name_list):
     assert len(aid_list) == len(name_list)
     assert not isinstance(name_list, six.string_types)
     #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
-    assert not any([name == '' for name in name_list]), 'cannot change name to empty string use ____ for unknown.'
+    assert not any([name == '' for name in name_list]), (
+        'cannot change name to empty string use ____ for unknown.')
     name_rowid_list = ibs.add_names(name_list)
     ibs.set_annot_name_rowids(aid_list, name_rowid_list)
 
@@ -2462,6 +2465,7 @@ def set_annot_species(ibs, aid_list, species_text_list):
 @register_ibs_method
 @accessor_decors.setter
 def set_annot_species_and_notify(ibs, *args, **kwargs):
+    # for gui
     ibs.set_annot_species(*args, **kwargs)
     ibs.notify_observers()
 
@@ -2485,9 +2489,6 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
         Method: PUT
         URL:    /api/annot/species_rowids/
     """
-    #ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, const.SPECIES_KEY)
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, species_rowid_list,
-    #ibs.lbltype_ids[const.SPECIES_KEY])
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
@@ -2624,9 +2625,8 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     # FIXME: this is implemented very poorly. Caches not robust. IE they are
     # never invalidated. Not all config information is passed through
     from ibeis.algo.preproc import preproc_probchip
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs,
-                                                                      aid_list,
-                                                                      config2_=config2_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(
+        ibs, aid_list, config2_=config2_)
     return probchip_fpath_list
 
 
@@ -2695,11 +2695,6 @@ def set_annot_qualities(ibs, aid_list, annot_quality_list):
 
     SeeAlso:
         ibeis.const.QUALITY_INT_TO_TEXT
-
-    TemplateInfo:
-        Tsetter_native_column
-        tbl = annot
-        col = annot_quality
 
     RESTful:
         Method: PUT
@@ -2873,11 +2868,6 @@ def get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None):
     Returns:
         list: annot_age_months_est_min_list
 
-    TemplateInfo:
-        Tgetter_table_column
-        col = annot_age_months_est_min
-        tbl = annot
-
     RESTful:
         Method: GET
         URL:    /api/annot/age_months_est_min/
@@ -2911,11 +2901,6 @@ def get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None):
 
     Returns:
         list: annot_age_months_est_max_list
-
-    TemplateInfo:
-        Tgetter_table_column
-        col = annot_age_months_est_max
-        tbl = annot
 
     RESTful:
         Method: GET
@@ -3199,11 +3184,6 @@ def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
     Returns:
         list: annot_tags_list
 
-    TemplateInfo:
-        Tgetter_table_column
-        col = annot_tags
-        tbl = annot
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
@@ -3229,10 +3209,6 @@ def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error
         aid_list
         annot_tags_list
 
-    TemplateInfo:
-        Tsetter_native_column
-        tbl = annot
-        col = annot_tags
     """
     id_iter = aid_list
     colnames = (ANNOT_TAG_TEXT,)

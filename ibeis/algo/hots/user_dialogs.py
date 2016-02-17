@@ -68,7 +68,7 @@ def wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, inc
     """
     import plottool as pt
     if cm is None:
-        print('WARNING: qres is None')
+        print('WARNING: chipmatch is None')
 
     new_mplshow = True and cm is not None
     mplshowtop = False and cm is not None

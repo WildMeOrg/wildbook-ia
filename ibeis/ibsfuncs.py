@@ -3603,26 +3603,6 @@ def inspect_nonzero_yaws(ibs):
         pt.show_if_requested()
 
 
-def detect_false_positives(ibs):
-    """
-    TODO: this function should detect problems in the database
-    It should execute queries for annotations with groundtruth
-
-    then if the groundtruth is no in the top results it is given to the user who
-    should try and rectify the problem.
-
-    If the top ranked match is not a groundtruth then it is a true error or hard
-    case for the system. To prevent having to review this "hard case" again an
-    explicit negative link should be made between the offending annotation pair.
-
-    """
-    pass
-    #qaid_list = ibs.get_valid_aids(minqual='poor', isknown=True)
-    #qres_list = ibs.query_annots(qaid_list)
-    #for qres in qres_list:
-    #    top_aids = qres.get_top_aids(num=2)
-
-
 @register_ibs_method
 def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
                                              exemplars_per_view=None, imgsetid=None,

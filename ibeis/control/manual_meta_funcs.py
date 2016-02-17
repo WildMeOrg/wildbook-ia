@@ -1202,13 +1202,6 @@ def get_valid_configids(ibs):
     config_rowid_list = ibs.db.get_all_rowids(const.CONFIG_TABLE)
     return config_rowid_list
 
-#@accessor_decors.default_decorator
-#def get_qreq_rowid(ibs):
-#    """ # FIXME: Configs are still handled poorly
-#    assert ibs.qres is not None
-#    qreq_rowid = ibs.qreq.get_cfgstr()
-#    return qreq_rowid
-
 
 if __name__ == '__main__':
     r"""

@@ -44,17 +44,16 @@ TODO:
     been computed?
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip, range, map, filter  # NOQA
+from six.moves import zip, range, map
 import numpy as np
 import vtool as vt
-from ibeis.algo.hots import hstypes  # NOQA
+from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import nn_weights
 from ibeis.algo.hots import scoring
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 import utool as ut
-#profile = ut.profile
 print, rrr, profile = ut.inject2(__name__, '[pipeline]')
 
 
@@ -245,10 +244,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # CAUSES TOO MUCH DATA TO BE SAVED
         for cm, nns in zip(cm_list, nns_list):
             cm.qfx2_dist = nns[1]
-            #msg_list = [
-            #    'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist),
-            #]
-            #print('\n'.join(msg_list))
     # </HACK>
 
     if VERB_PIPELINE:

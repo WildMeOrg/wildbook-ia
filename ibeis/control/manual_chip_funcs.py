@@ -553,7 +553,8 @@ def get_valid_cids(ibs, config2_=None):
     # FIXME: configids need reworking
     chip_config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
     #cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))  # big big I belive
-    cid_list = ibs.dbcache.get_all_rowids_where(const.CHIP_TABLE, 'config_rowid=?', (chip_config_rowid,))
+    cid_list = ibs.dbcache.get_all_rowids_where(
+        const.CHIP_TABLE, 'config_rowid=?', (chip_config_rowid,))
     return cid_list
 
 
@@ -575,7 +576,8 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
     # Delete sql-external (on-disk) information
     preproc_chip.on_delete(ibs, cid_list)
     # Delete sql-dependencies
-    fid_list = ut.filter_Nones(ibs.get_chip_feat_rowid(cid_list, config2_=config2_, ensure=False))
+    fid_list = ut.filter_Nones(ibs.get_chip_feat_rowid(
+        cid_list, config2_=config2_, ensure=False))
     aid_list = ibs.get_chip_aids(cid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     ibs.delete_image_thumbs(gid_list)
@@ -672,8 +674,10 @@ def get_chip_config_rowid(ibs, config2_=None):
         # TODO store config_rowid in qparams
         # Or find better way to do this in general
         #chip_cfg_suffix = config2_.qparams.chip_cfgstr
-        chip_cfg_suffix = config2_.get('chip_cfgstr')
-        assert chip_cfg_suffix is not None
+        chip_cfg_suffix = config2_.get('chip_cfgstr', None)
+        #import utool
+        #with utool.embed_on_exception_context:
+        assert chip_cfg_suffix is not None, 'chip_cfg_suffix=%r' % (chip_cfg_suffix,)
     else:
         chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
     chip_cfg_rowid = ibs.ensure_config_rowid_from_suffix(chip_cfg_suffix)

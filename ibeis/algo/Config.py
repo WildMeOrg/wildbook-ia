@@ -1096,7 +1096,7 @@ class ChipConfig(ConfigBase):
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
         cc_cfg.dim_size    = 450
-        cc_cfg.resize_dim  = 'area'
+        cc_cfg.resize_dim  = 'root_area'
         cc_cfg.grabcut     = False
         cc_cfg.histeq      = False
         cc_cfg.adapteq     = False

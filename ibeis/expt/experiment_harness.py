@@ -293,15 +293,14 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
 
 @profile
-def get_qres_name_result_info(ibs, qres, qreq_):
+def get_qres_name_result_info(ibs, cm, qreq_):
     """
     these are results per query we care about
      * gt (best correct match) and gf (best incorrect match) rank, their score
        and the difference
 
     """
-    from ibeis.algo.hots import chip_match
-    cm = qres
+    #from ibeis.algo.hots import chip_match
     qnid = cm.qnid
     nscoretup = cm.get_ranked_nids_and_aids()
     sorted_nids, sorted_nscores, sorted_aids, sorted_scores = nscoretup
@@ -312,13 +311,10 @@ def get_qres_name_result_info(ibs, qres, qreq_):
     gf_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
 
     if gt_rank is None or gf_rank is None:
-        if isinstance(qres, chip_match.ChipMatch):
-            gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.daids)
-            #gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
-        else:
-            gt_aids = cm.get_groundtruth_daids()
-            #gf_aids = ibs.get_annot_groundfalse(qres.qaid, daid_list=qres.get_daids())
-        #gt_aids = qres.get_groundtruth_aids(ibs)
+        #if isinstance(qres, chip_match.ChipMatch):
+        gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.daids)
+        #else:
+        #    gt_aids = cm.get_groundtruth_daids()
         cm.get_groundtruth_daids()
         gt_aid = gt_aids[0] if len(gt_aids) > 0 else None
         gf_aid = None
@@ -420,11 +416,6 @@ def get_query_result_info(qreq_):
         --show --debug-depc
         ibeis -e rank_cdf --db humpbacks -a default:is_known=True -t default:pipeline_root=BC_DTW --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 --show --debug-depc
         --clear-all-depcache
-
-        for qaid, qres in six.iteritems(qaid2_qres):
-            break
-        for qaid, qres in six.iteritems(qaid2_qres):
-            qres.ishow_top(ibs)
     """
     try:
         ibs = qreq_.ibs
@@ -434,7 +425,6 @@ def get_query_result_info(qreq_):
     #cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     cm_list = qreq_.execute()
     qx2_cm = cm_list
-    #cm_list = [qres.as_chipmatch() for qres in qx2_cm]
     qaids = qreq_.qaids
     qnids = ibs.get_annot_name_rowids(qaids)
 
@@ -492,7 +482,7 @@ def get_query_result_info(qreq_):
     daids = qreq_.daids
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
-    qx2_qresinfo = [get_qres_name_result_info(ibs, qres, qreq_) for qres in qx2_cm]
+    qx2_qresinfo = [get_qres_name_result_info(ibs, cm, qreq_) for cm in qx2_cm]
 
     cfgres_info = ut.dict_stack(qx2_qresinfo, 'qx2_')
     #for key in qx2_qresinfo[0].keys():
@@ -501,8 +491,8 @@ def get_query_result_info(qreq_):
 
     if False:
         qx2_avepercision = np.array(
-            [qres.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
-             (qres, gt_aids) in zip(qx2_cm, qx2_gtaids)])
+            [cm.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
+             (cm, gt_aids) in zip(qx2_cm, qx2_gtaids)])
         cfgres_info['qx2_avepercision'] = qx2_avepercision
     # Compute mAP score  # TODO: use mAP score
     # (Actually map score doesn't make much sense if using name scoring

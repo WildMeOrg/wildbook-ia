@@ -44,7 +44,6 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
 def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
-    CONVERTING FROM QRES TO CM
 
     KWARGS:
         aid_list - show matches against aid_list (default top 3)
@@ -56,9 +55,6 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 
     Kwargs:
         N, show_gt, show_query, aid_list, figtitle, viz_name_score, viz_name_score
-
-    Returns:
-        ?:
 
     CommandLine:
         python -m ibeis.viz.viz_qres --exec-show_qres_analysis --show
@@ -91,7 +87,8 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     aid_list   = kwargs.pop('aid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
     #viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
-    viz_name_score  = kwargs.get('viz_name_score', False)
+    #viz_name_score  = kwargs.get('viz_name_score', False)
+    viz_name_score  = kwargs.get('viz_name_score', True)
 
     # Debug printing
     #print('[analysis] noshow_gt  = %r' % noshow_gt)
@@ -208,24 +205,18 @@ def testdata_show_qres():
 def show_qres(ibs, cm, qreq_=None, **kwargs):
     """
     Display Query Result Logic
-
     Defaults to: query chip, groundtruth matches, and top matches
-    python -c "import ut, ibeis; print(ut.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
-    cm.ishow calls down into this
 
     Args:
-        ibs (IBEISController):  ibeis controller object
-        cm (QueryResult):  object of feature correspondences and scores
+        ibs (ibeis.IBEISController):  ibeis controller object
+        cm (ibeis.ChipMatch):  object of feature correspondences and scores
 
     Kwargs:
-
         in_image (bool) show result  in image view if True else chip view
-
         annot_mode (int):
             if annot_mode == 0, then draw lines and ellipse
             elif annot_mode == 1, then dont draw lines or ellipse
             elif annot_mode == 2, then draw only lines
-
         See: viz_matches.show_name_matches, viz_helpers.get_query_text
 
     Returns:
@@ -250,7 +241,6 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         >>> # verify results
         >>> #fig.show()
         >>> pt.show_if_requested()
-
     """
     #ut.print_dict(kwargs)
     annot_mode     = kwargs.get('annot_mode', 1) % 3  # this is toggled
@@ -333,7 +323,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     # Total number of rows
     nRows         = nTopNRows + nGtRows
 
-    DEBUG_SHOW_QRES = False
+    DEBUG_SHOW_QRES = True
 
     if DEBUG_SHOW_QRES:
         allgt_aids = ibs.get_annot_groundtruth(cm.qaid)
@@ -360,8 +350,6 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     # HACK:
     _color_list = pt.distinct_colors(nTop)
     aid2_color = {aid: _color_list[ox] for ox, aid in enumerate(top_aids)}
-
-    #assert isinstance(cm, chip_match.ChipMatch), 'qres is no longer supported'
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
@@ -433,10 +421,14 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         # Do lazy load before show
         data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
 
-        if qreq_ is not None and not qreq_._isnewreq:
-            # HACK FOR HUMPBACKS
+        tblhack = getattr(qreq_, 'tablename', None)
+        # HACK FOR HUMPBACKS
+        # (Also in viz_matches)
+        if tblhack == 'vsone' or (qreq_ is not None and not qreq_._isnewreq):
+            # precompute
             ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)
             ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)
+
         for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)

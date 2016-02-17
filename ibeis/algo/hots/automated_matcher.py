@@ -84,7 +84,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
     incinfo['interactive'] = False
     # Begin incremental iteration
     chunksize = 1
-    aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
+    aids_chunk1_iter = ut.ProgChunks(aid_list1, chunksize, lbl='TEST QUERY')
     for count, aids_chunk1 in enumerate(aids_chunk1_iter):
         with ut.Timer('teststep'):
             #sys.stdout.write('\n')
@@ -129,7 +129,7 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
     # Execute each query as a test
     chunksize = 1
     #aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)
-    qaid_chunk_iter = ut.progress_chunks(qaid_list, chunksize, lbl='TEST QUERY')
+    qaid_chunk_iter = ut.ProgChunks(qaid_list, chunksize, lbl='TEST QUERY')
 
     ibs = ibs
     for count, qaid_chunk in enumerate(qaid_chunk_iter):

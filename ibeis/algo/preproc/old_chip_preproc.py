@@ -311,7 +311,6 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     CommandLine:
         python -m ibeis.algo.preproc.preproc_chip --test-compute_and_write_chips
 
-
     FIXME: THERE IS A FREEZE THAT HAPPENS HERE
         ./reset_dbs.py
         python -m ibeis.expt.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload
@@ -390,9 +389,22 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
-    target_area = dim_size ** 2
+    #target_area = dim_size ** 2
     bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
-    newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)
+
+    scale_func_dict = {
+        'width': vt.get_scaled_size_with_width,
+        'root_area': vt.get_scaled_size_with_area,
+    }
+    resize_dim = chip_cfg_dict['resize_dim']
+    scale_func = scale_func_dict[resize_dim]
+    if resize_dim == 'root_area':
+        target_dim_size = dim_size ** 2
+    else:
+        target_dim_size = dim_size
+    newsize_list = [scale_func(target_dim_size, w, h) for (w, h) in bbox_size_list]
+
+    #newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)
     invalid_aids = [aid for aid, (w, h) in zip(aid_list, bbox_size_list) if w == 0 or h == 0]
     filtlist_iter = (filter_list for _ in range(nChips))
     # Check for invalid chips
