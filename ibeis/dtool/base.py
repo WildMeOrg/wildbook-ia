@@ -404,7 +404,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         #    request.tablename, root_rowids, config=config)
         pass
 
-    def execute(request, parent_rowids=None, use_cache=None):
+    def execute(request, parent_rowids=None, use_cache=None, postprocess=True):
         ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
         table = request.depc[request.tablename]
         if use_cache is None:
@@ -416,7 +416,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
                                  recompute=not use_cache)
         # Load all results
         result_list = table.get_row_data(rowids)
-        if hasattr(request, 'postprocess_execute'):
+        if postprocess and hasattr(request, 'postprocess_execute'):
             print('Converting results')
             result_list = request.postprocess_execute(parent_rowids, result_list)
             pass
