@@ -1586,26 +1586,24 @@ class TestResult(object):
             # To reproduce the error
             ibeis -e rank_cdf --db humpbacks_fb -a default:mingt=2,qsize=10,dsize=100 default:qmingt=2,qsize=10,dsize=100 -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_score_weight=0.5 --show
         """
-        import utool
-        with utool.embed_on_exception_context:
-            if '_cfgstr' in testres.common_acfg['common']:
-                annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
-            else:
+        if '_cfgstr' in testres.common_acfg['common']:
+            annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
+        else:
+            try:
+                annotcfg_args = ut.unique_ordered([
+                    acfg['common']['_cfgstr']
+                    for acfg in testres.varied_acfg_list])
+            except KeyError:
+                # HACK FIX
                 try:
                     annotcfg_args = ut.unique_ordered([
-                        acfg['common']['_cfgstr']
+                        acfg['_cfgstr']
                         for acfg in testres.varied_acfg_list])
                 except KeyError:
-                    # HACK FIX
-                    try:
-                        annotcfg_args = ut.unique_ordered([
-                            acfg['_cfgstr']
-                            for acfg in testres.varied_acfg_list])
-                    except KeyError:
-                        annotcfg_args = ut.unique_ordered([
-                            acfg['qcfg__cfgstr']
-                            for acfg in testres.varied_acfg_list])
-            return ' ' .join(annotcfg_args)
+                    annotcfg_args = ut.unique_ordered([
+                        acfg['qcfg__cfgstr']
+                        for acfg in testres.varied_acfg_list])
+        return ' ' .join(annotcfg_args)
 
     def reconstruct_test_flags(testres):
         flagstr =  ' '.join([
