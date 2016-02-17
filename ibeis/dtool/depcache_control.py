@@ -155,6 +155,13 @@ class _CoreDependencyCache(object):
         depc.configclass_dict[tablename] = configclass
         return table
 
+    def notify_root_changed(depc, root_rowids, prop):
+        # this is where we are notified that a "registered" root property has
+        # changed.
+        print('[depc] notified that columns (%s) for (%d) row(s) were modified' %
+              (prop, len(root_rowids),))
+        pass
+
     #@ut.apply_docstr(REG_PREPROC_DOC)
     def _register_subprop(depc, tablename, propname=None, preproc_func=None):
         # subproperties are always recomputeed on the fly
