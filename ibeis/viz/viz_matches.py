@@ -135,6 +135,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     #print("SHOW NAME MATCHES")
     #print(ut.repr2(kwargs, nl=True))
     #from ibeis import constants as const
+    from ibeis import tag_funcs
     draw_fmatches = kwargs.pop('draw_fmatches', True)
     rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
     rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list,
@@ -160,7 +161,6 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(
         [qaid] * len(name_daid_list), name_daid_list)
     annotmatch_rowid_list = ut.filter_Nones(annotmatch_rowid_list)
-    from ibeis import tag_funcs
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid_list)
     if not ut.get_argflag('--show'):  # False:
         tags_list = tag_funcs.consolodate_annotmatch_tags(tags_list)

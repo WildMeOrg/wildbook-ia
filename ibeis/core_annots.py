@@ -75,7 +75,8 @@ def testdata_core(size=2):
     # import plottool as pt
     ibs = ibeis.opendb(defaultdb='testdb1')
     depc = ibs.depc
-    aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=ibs.get_valid_aids()[0:size])
+    aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
+                             default=ibs.get_valid_aids()[0:size])
     return ibs, depc, aid_list
 
 
@@ -604,7 +605,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> ut.show_if_requested()
     """
     nInput = len(cid_list)
-    hesaff_params  = config.asdict()
+    hesaff_params  = config.get_hesaff_params()
     feat_type      = config['feat_type']
     maskmethod       = config['maskmethod']
 
@@ -855,7 +856,8 @@ class VsOneConfig(dtool.Config):
         >>> print(result)
     """
     _param_info_list = [
-        ut.ParamInfo('sver_xy_thresh', .01),
+        #ut.ParamInfo('sver_xy_thresh', .01),
+        ut.ParamInfo('sver_xy_thresh', .001),
         ut.ParamInfo('ratio_thresh', .625),
         ut.ParamInfo('refine_method', 'homog'),
         ut.ParamInfo('symmetric', False),
@@ -886,7 +888,10 @@ def compute_one_vs_one(depc, qaids, daids, config):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core(size=5)
+        >>> #ibs, depc, aid_list = testdata_core(size=5)
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
+        >>> depc = ibs.depc
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
         >>> config = request.config
         >>> qaids, daids = request.parent_rowids_T

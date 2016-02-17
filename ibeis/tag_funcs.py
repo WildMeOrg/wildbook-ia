@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool as ut
 import six
-import vtool as vt
 from six.moves import zip, map
 import numpy as np
+import vtool as vt
+import utool as ut
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__, '[tag_funcs]')
 

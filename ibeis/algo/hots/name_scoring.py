@@ -257,7 +257,8 @@ def compute_nsum_score2(cm, qreq_=None):
     #--
     valid_fs_list2 = vt.zipcompress(fs_list, featflag_list2)
     name_grouped_valid_fs_list2 = vt.apply_grouping_(valid_fs_list2,  name_groupxs2)
-    nsum_score_list2 = np.array([sum(list(map(np.sum, valid_fs_group))) for valid_fs_group in name_grouped_valid_fs_list2])
+    nsum_score_list2 = np.array([sum(list(map(np.sum, valid_fs_group)))
+                                 for valid_fs_group in name_grouped_valid_fs_list2])
     if False:
         nsum_score_list3 = np.array([  # NOQA
             np.sum([fs_group.sum() for fs_group in valid_fs_group])
