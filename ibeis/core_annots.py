@@ -63,6 +63,7 @@ import vtool as vt
 import numpy as np
 import cv2
 from ibeis.control.controller_inject import register_preproc, register_subprop
+from ibeis.algo.hots.chip_match import ChipMatch
 (print, rrr, profile) = ut.inject2(__name__, '[core]')
 
 
@@ -806,6 +807,40 @@ def gen_featweight_worker(tup):
 class VsOneRequest(dtool.base.VsOneSimilarityRequest):
     _tablename = 'vsone'
 
+    def postprocess_execute(request, parent_rowids, result_list):
+        import ibeis
+        qaid_list, daid_list = list(zip(*parent_rowids))
+        #score_list = ut.take_column(result_list, 0)
+        depc = request.depc
+        #config = request.config
+        #cm_list = list(get_match_results(depc, qaid_list, daid_list,
+        #                                 score_list, config))
+
+        cm_list = []
+        unique_qaids, groupxs = ut.group_indices(qaid_list)
+        #grouped_qaids_list = ut.apply_grouping(qaid_list, groupxs)
+        grouped_daids = ut.apply_grouping(daid_list, groupxs)
+        #grouped_scores = ut.apply_grouping(score_list, groupxs)
+
+        ibs = depc.controller
+        unique_qnids = ibs.get_annot_nids(unique_qaids)
+        # FIXME: decision should not be part of the config for the one-vs-one
+        # scores
+        #decision_func = getattr(np, config['decision'])
+        #decision_func = np.max
+
+        single_cm_list = ut.take_column(result_list, 1)
+        grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
+
+        _iter = zip(unique_qaids, unique_qnids, grouped_daids, grouped_cms)
+
+        for qaid, qnid, daids, cms in _iter:
+            # Hacked in version of creating an annot match object
+            match = ibeis.ChipMatch.combine_cms(cms)
+            match.score_nsum(request)
+            cm_list.append(match)
+        return cm_list
+
 
 class VsOneConfig(dtool.Config):
     """
@@ -827,6 +862,7 @@ class VsOneConfig(dtool.Config):
         ut.ParamInfo('K', 1),
         ut.ParamInfo('Knorm', 1),
         ut.ParamInfo('version', 0),
+        ut.ParamInfo('augment_queryside_hack', False),
     ]
     _sub_config_list = [
         FeatConfig,
@@ -834,24 +870,24 @@ class VsOneConfig(dtool.Config):
     ]
 
 
-class SingleMatch_IBEIS(object):
-    def __init__(self, qaid=None, daid=None, score=None, fm=None):
-        self.qaid = qaid
-        self.daid = daid
-        self.score = score
-        self.fm = fm
+#class SingleMatch_IBEIS(object):
+#    def __init__(self, qaid=None, daid=None, score=None, fm=None):
+#        self.qaid = qaid
+#        self.daid = daid
+#        self.score = score
+#        self.fm = fm
 
-    def __getstate__(self):
-        state_dict = self.__dict__
-        return state_dict
+#    def __getstate__(self):
+#        state_dict = self.__dict__
+#        return state_dict
 
-    def __setstate__(self, state_dict):
-        self.__dict__.update(state_dict)
+#    def __setstate__(self, state_dict):
+#        self.__dict__.update(state_dict)
 
 
 @register_preproc(
     tablename='vsone', parents=['annotations', 'annotations'],
-    colnames=['score', 'match'], coltypes=[float, SingleMatch_IBEIS],
+    colnames=['score', 'match'], coltypes=[float, ChipMatch],
     requestclass=VsOneRequest,
     configclass=VsOneConfig,
     chunksize=128, fname='vsone',
@@ -864,32 +900,47 @@ def compute_one_vs_one(depc, qaids, daids, config):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core(size=2)
+        >>> ibs, depc, aid_list = testdata_core(size=3)
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
         >>> config = request.config
         >>> qaids, daids = request.parent_rowids_T
         >>> # Compute using function
         >>> print('...Test vsone function')
-        >>> res_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
+        >>> rawres_list1 = list(compute_one_vs_one(depc, qaids, daids, config))
         >>> # Compute using request
         >>> print('...Test vsone cache')
-        >>> res_list2 = request.execute()
-        >>> score_list1 = ut.take_column(res_list1, 0)
-        >>> score_list2 = ut.take_column(res_list2, 0)
+        >>> rawres_list2 = request.execute(postprocess=False)
+        >>> score_list1 = ut.take_column(rawres_list1, 0)
+        >>> score_list2 = ut.take_column(rawres_list2, 0)
         >>> print(score_list1)
+        >>> res_list2 = request.execute()
+        >>> print(res_list2)
         >>> assert np.all(score_list1 == score_list2)
+        >>> ut.quit_if_noshow()
+        >>> match = res_list2[0]
+        >>> match.ishow_analysis(qreq_=request)
+        >>> ut.show_if_requested()
     """
+    import ibeis
     ibs = depc.controller
     qconfig2_ = config
     dconfig2_ = config
     unique_qaids = np.unique(qaids)
     unique_daids = np.unique(daids)
 
-    # use new dependencies
-    annot1_list = [ibs.get_annot_lazy_dict2(qaid, config=qconfig2_)
-                   for qaid in unique_qaids]
-    annot2_list = [ibs.get_annot_lazy_dict2(daid, config=dconfig2_)
-                   for daid in unique_daids]
+    # TODO: Ensure entire pipeline can use new dependencies
+    if True:
+        annot1_list = [ibs.get_annot_lazy_dict2(qaid, config=qconfig2_)
+                       for qaid in unique_qaids]
+        annot2_list = [ibs.get_annot_lazy_dict2(daid, config=dconfig2_)
+                       for daid in unique_daids]
+    else:
+        config.chip_cfgstr = config.chip_cfg.get_cfgstr()
+        config.chip_cfg_dict = config.chip_cfg.asdict()
+        annot1_list = [ibs.get_annot_lazy_dict(qaid, config2_=qconfig2_)
+                       for qaid in unique_qaids]
+        annot2_list = [ibs.get_annot_lazy_dict(daid, config2_=dconfig2_)
+                       for daid in unique_daids]
 
     # precache flann structures
     # TODO: Make depcache node
@@ -901,7 +952,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
                 verbose=False)
 
     qaid_to_annot = dict(zip(unique_qaids, annot1_list))
-    daid_to_annot = dict(zip(unique_qaids, annot2_list))
+    daid_to_annot = dict(zip(unique_daids, annot2_list))
 
     #all_aids = np.unique(ut.flatten([qaids, daids]))
     verbose = False
@@ -914,9 +965,32 @@ def compute_one_vs_one(depc, qaids, daids, config):
             'annot2': annot2,
         }
         vt_match = vt.vsone_matching2(metadata, cfgdict=config, verbose=verbose)
-        score = vt_match.matches['TOP+SV'].fs.sum()
-        fm = vt_match.matches['TOP+SV'].fm
-        match = SingleMatch_IBEIS(qaid, daid, score, fm)
+        matchtup = vt_match.matches['TOP+SV']
+        H = vt_match.metadata['H_TOP']
+        score = matchtup.fs.sum()
+        fm = matchtup.fm
+        fs = matchtup.fs
+
+        match = ibeis.ChipMatch(
+            qaid=qaid,
+            daid_list=[daid],
+            fm_list=[fm],
+            fsv_list=[vt.atleast_nd(fs, 2)],
+            H_list=[H],
+            fsv_col_lbls=['L2_SIFT'])
+        match._update_daid_index()
+        match.evaluate_dnids(ibs)
+        match._update_daid_index()
+        match.set_cannonical_name_score([score], [score])
+
+        #import utool
+        #utool.embed()
+        if False:
+            ut.ensure_pylab_qt4()
+            ibs, depc, aid_list = testdata_core(size=3)
+            request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
+            match.ishow_analysis(request)
+        #match = SingleMatch_IBEIS(qaid, daid, score, fm)
         yield (score, match)
 
 

@@ -118,7 +118,8 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         dict: acfg
 
     CommandLine:
-        python -m ibeis --tf compress_aidcfg
+        #python -m ibeis --tf compress_aidcfg
+        python -m ibeis.expt.annotation_configs --exec-compress_aidcfg --show
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -174,7 +174,11 @@ def compute_nsum_score(cm, qreq_=None):
 
     """
     #assert qreq_ is not None
-    HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+    try:
+        HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+    except AttributeError:
+        HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.config.augment_queryside_hack or qreq_.config.feat_cfg.rotation_invariance)
+        pass
     # The core for each feature match
     #
     # The query feature index for each feature match
@@ -283,7 +287,11 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
         >>> featflat_list = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)
         >>> assert all(list(map(np.all, featflat_list))), 'all features should be able to vote in K=1, per_name=1 case'
     """
-    HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+    try:
+        HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+    except AttributeError:
+        HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.config.augment_queryside_hack or qreq_.config.feat_cfg.rotation_invariance)
+        pass
     # The core for each feature match
     fs_list = cm.get_fsv_prod_list()
     # The query feature index for each feature match
