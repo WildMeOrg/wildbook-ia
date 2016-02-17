@@ -399,7 +399,8 @@ def testdata_depc(fname=None):
         ['score', 'match_obj', 'fm'],
         [float, DummyVsOneMatch, np.ndarray],
         requestclass=DummyVsOneRequest,
-        configclass=DummyVsOneConfig
+        configclass=DummyVsOneConfig,
+        chunksize=2
     )
     def vsone_matching(depc, qaids, daids, config):
         """

@@ -330,3 +330,17 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
         state_dict['depc'] = depc
         state_dict['config'] = config
         request.__dict__.update(state_dict)
+
+
+
+    #def _row_exists(table, parent_rowids, config=None, eager=True, nInput=None,
+    #                _debug=None):
+    #    config_rowid = table.get_config_rowid(config=config)
+    #    andwhere_colnames = table.superkey_colnames
+    #    params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
+    #    params_iter = list(params_iter)
+    #    tblname = table.tablename
+    #    flag_list = table.db.exists_where2(tblname, params_iter,
+    #                                       andwhere_colnames, eager=eager,
+    #                                       nInput=nInput)
+    #    return flag_list

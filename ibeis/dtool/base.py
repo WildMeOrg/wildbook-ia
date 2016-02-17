@@ -280,9 +280,21 @@ class IBEISRequestHacks(object):
         return request.params
 
 
+def config_graph_subattrs(cfg, depc):
+    # TODO: if this hack is fully completed need a way of getting the
+    # full config belonging to both chip + feat
+    # cfg = request.config.feat_cfg
+    import networkx as netx
+    tablename = ut.invert_dict(depc.configclass_dict)[cfg.__class__]
+    #tablename = cfg.get_config_name()
+    ancestors = netx.dag.ancestors(depc.graph, tablename)
+    subconfigs_ = ut.dict_take(depc.configclass_dict, ancestors, None)
+    subconfigs = ut.filter_Nones(subconfigs_)  # NOQA
+
+
 @ut.reloadable_class
 class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
-    """
+    r"""
     Class that maintains both an algorithm, inputs, and a config.
     """
     @staticmethod
@@ -306,8 +318,22 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         configclass = depc.configclass_dict[tablename]
         config = configclass(**cfgdict)
         request.config = config
-        # hack
+        # HACK FOR IBEIS
         request.params = dict(config.parse_items())
+        # HACK-ier FOR BACKWARDS COMPATABILITY
+        if True:
+            #params.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
+            # TODO: if this hack is fully completed need a way of getting the
+            # full config belonging to both chip + feat
+            request.params['chip_cfgstr']       = config.chip_cfg.get_cfgstr()
+            request.params['chip_cfg_dict']     = config.chip_cfg.asdict()
+            request.params['feat_cfgstr']       = config.feat_cfg.get_cfgstr()
+            request.params['hesaff_params']     = config.feat_cfg.get_hesaff_params()
+            request.params['featweight_cfgstr'] = config.feat_weight_cfg.get_cfgstr()
+        request.qparams = ut.DynStruct()
+        for key, val in request.params.items():
+            setattr(request.qparams, key, val)
+
         return request
 
     @classmethod
@@ -345,7 +371,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         return ut.hashstr27(request.get_pipe_cfgstr())
 
     def ensure_dependencies(request):
-        """
+        r"""
         CommandLine:
             python -m dtool.base --exec-BaseRequest.ensure_dependencies
 
@@ -454,7 +480,7 @@ class AnnotSimiliarity(object):
 
 @ut.reloadable_class
 class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
-    """
+    r"""
     Similarity request for pairwise scores
 
     References:
@@ -513,7 +539,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
 
 @ut.reloadable_class
 class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
-    """
+    r"""
     Request for one-vs-many simlarity
 
     CommandLine:

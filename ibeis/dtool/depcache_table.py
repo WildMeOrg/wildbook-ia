@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Module contining DependencyCacheTable
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 from six.moves import zip, range
 from os.path import join, exists
-from math import ceil
 from dtool import __SQLITE__ as lite
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
 
@@ -99,7 +101,6 @@ class DependencyCacheTable(ut.NiceRepr):
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, ismulti=False,
                  isinteractive=False, default_to_unpack=False):
-
         # HACK: jedi type hinting. Need to have non-obvious condition
         try:
             table.db = None
@@ -228,15 +229,16 @@ class DependencyCacheTable(ut.NiceRepr):
         external_to_internal = {}
 
         def make_extern_io_funcs(cls):
-            def load_from_fpath(fpath, verbose=ut.VERBOSE):
+            # Hack in read/write defaults for pickleable classes
+            def _read_func(fpath, verbose=ut.VERBOSE):
                 state_dict = ut.load_cPkl(fpath, verbose=verbose)
                 self = cls()
                 self.__setstate__(state_dict)
                 return self
 
-            def save_to_fpath(fpath, self, verbose=ut.VERBOSE):
+            def _write_func(fpath, self, verbose=ut.VERBOSE):
                 ut.save_cPkl(fpath, self.__getstate__(), verbose=verbose, n=4)
-            return load_from_fpath, save_to_fpath
+            return _read_func, _write_func
 
         # Parse column datatypes
         _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
@@ -281,7 +283,6 @@ class DependencyCacheTable(ut.NiceRepr):
                 extern_read_funcs[colname] = read_func
                 if write_func:
                     extern_write_funcs[colname] = write_func
-                # TODO: extern_write_funcs
                 intern_colname = colname + EXTERN_SUFFIX
                 external_to_internal[colname] = intern_colname
                 internal_data_colnames.append(intern_colname)
@@ -526,8 +527,9 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> table = depc['vsone']
             >>> _debug = True
-            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3])
+            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3, 4])
             >>> parent_rowids = request.parent_rowids
+            >>> ut.colorprint('Testing add_rows via getters', 'blue')
             >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
             >>> match_list = request.execute()
             >>> print(match_list)
@@ -605,11 +607,11 @@ class DependencyCacheTable(ut.NiceRepr):
                 dirty_parent_rowids, proptup_gen, config_rowid)
             # Break iterator into chunks
             chunksize = ut.ifnone(len(dirty_parent_rowids), table.chunksize)
-            num_chunks = int(ceil(len(dirty_parent_rowids) / chunksize))
-            chunk_iter = ut.ichunks(dirty_params_iter, chunksize=chunksize)
+            nInput = len(dirty_parent_rowids)
             # Report computation progress
             lbl = 'add %s chunk' % (table.tablename)
-            prog_iter = ut.ProgIter(chunk_iter, nTotal=num_chunks, lbl=lbl)
+            prog_iter = ut.ProgChunks(dirty_params_iter, chunksize, nInput,
+                                      lbl=lbl)
             # TODO: Separate into func which can be specified as a callback.
             for dirty_params_chunk in prog_iter:
                 # None data means that there was an error for a specific row
@@ -623,6 +625,34 @@ class DependencyCacheTable(ut.NiceRepr):
                 'table', 'table.parents', 'parent_rowids', 'config', 'args',
                 'config_rowid', 'dirty_parent_rowids', 'table.preproc_func'])
             raise
+
+    def prepare_storage(table, dirty_parent_rowids, proptup_gen, config_rowid):
+        """
+        Converts output from ``preproc_func`` to data that can be stored in SQL
+        """
+        if table.default_to_unpack:
+            # Hack for tables explicilty specified with a single column
+            proptup_gen = (None if data is None else (data,)
+                           for data in proptup_gen)
+        # Flatten nested columns
+        if len(table._nested_idxs) > 0:
+            proptup_gen = table._prepare_storage_nested(proptup_gen)
+        # Write external columns
+        if len(table.extern_write_funcs) > 0:
+            proptup_gen = table._prepare_storage_extern(dirty_parent_rowids,
+                                                        config_rowid,
+                                                        proptup_gen)
+        # Concatenate data with internal rowids / config-id
+        for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
+            try:
+                if ALLOW_NONE_YIELD and data_cols is None:
+                    yield None
+                    continue
+                yield parent_rowids + (config_rowid,) + data_cols
+            except Exception as ex:
+                ut.printex(ex, 'cat error', keys=[
+                    'config_rowid', 'data_cols', 'parent_rowids'])
+                raise
 
     def _prepare_storage_nested(table, proptup_gen):
         """
@@ -679,10 +709,10 @@ class DependencyCacheTable(ut.NiceRepr):
             # Write external data to disk
             try:
                 for obj, fpath, col in zip(extern_data, extern_fpaths, extern_colnames):
-                    print('WRITING %r' % (col,))
+                    #print('WRITING %r' % (col,))
                     write_func = table.extern_write_funcs[col]
                     #write_func(obj, fpath, True)
-                    print('fpath = %r' % (fpath,))
+                    #print('fpath = %r' % (fpath,))
                     write_func(fpath, obj)
                     #verbose=True)
             except Exception as ex:
@@ -695,34 +725,6 @@ class DependencyCacheTable(ut.NiceRepr):
             data_new = tuple(ut.ungroup(grouped_items, groupxs, nCols - 1))
             yield data_new
 
-    def prepare_storage(table, dirty_parent_rowids, proptup_gen, config_rowid):
-        """
-        Converts output from ``preproc_func`` to data that can be stored in SQL
-        """
-        if table.default_to_unpack:
-            # Hack for tables explicilty specified with a single column
-            proptup_gen = (None if data is None else (data,)
-                           for data in proptup_gen)
-        # Flatten nested columns
-        if len(table._nested_idxs) > 0:
-            proptup_gen = table._prepare_storage_nested(proptup_gen)
-        # Write external columns
-        if len(table.extern_write_funcs) > 0:
-            proptup_gen = table._prepare_storage_extern(dirty_parent_rowids,
-                                                        config_rowid,
-                                                        proptup_gen)
-        # Concatenate data with internal rowids / config-id
-        for parent_rowids, data_cols in zip(dirty_parent_rowids, proptup_gen):
-            try:
-                if ALLOW_NONE_YIELD and data_cols is None:
-                    yield None
-                    continue
-                yield parent_rowids + (config_rowid,) + data_cols
-            except Exception as ex:
-                ut.printex(ex, 'cat error', keys=[
-                    'config_rowid', 'data_cols', 'parent_rowids'])
-                raise
-
     def _get_extern_dpath(table):
         cache_dpath = table.depc.cache_dpath
         extern_dname = 'extern_' + table.tablename
@@ -730,8 +732,6 @@ class DependencyCacheTable(ut.NiceRepr):
         return extern_dpath
 
     def _get_extern_fnames(table, parent_rowids, config_rowid, colname=None):
-        # TODO: respect request objects
-        # Only applies to algorithm tables
         config_hashid = table.get_config_hashid([config_rowid])[0]
         prefix = table.tablename
         if colname is not None:
@@ -754,12 +754,13 @@ class DependencyCacheTable(ut.NiceRepr):
 
         Args:
             parent_rowids (list): list of tuples with the parent rowids as the
-                value of each tuple
+                    value of each tuple
             config (None): (default = None)
-            ensure (bool):  eager evaluation if True (default = True)
+            ensure (bool): eager evaluation if True (default = True)
             eager (bool): (default = True)
             nInput (int): (default = None)
             recompute (bool): (default = False)
+            _debug (None): (default = None)
 
         Returns:
             list: rowid_list
@@ -835,18 +836,6 @@ class DependencyCacheTable(ut.NiceRepr):
         if _debug:
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
-
-    #def _row_exists(table, parent_rowids, config=None, eager=True, nInput=None,
-    #                _debug=None):
-    #    config_rowid = table.get_config_rowid(config=config)
-    #    andwhere_colnames = table.superkey_colnames
-    #    params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
-    #    params_iter = list(params_iter)
-    #    tblname = table.tablename
-    #    flag_list = table.db.exists_where2(tblname, params_iter,
-    #                                       andwhere_colnames, eager=eager,
-    #                                       nInput=nInput)
-    #    return flag_list
 
     def delete_rows(table, rowid_list, verbose=None):
         #from dtool.algo.preproc import preproc_feat
