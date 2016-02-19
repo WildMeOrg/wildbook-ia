@@ -120,7 +120,10 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'atlas',
         'libgeos-dev',  # for shapely
         'python-qt4',
-        'python-tk'  # for %paste in IPython
+        'python-tk',  # for %paste in IPython
+        'pkg-config',  # recommended for Matplotlib
+        'libffi-dev',  # requests secure dependencies
+        'libssl-dev',  # requests secure dependencies
         #'jasper',  # hyrule cannot handle this
         #'zmq',
         #libgeos-dev
@@ -159,10 +162,13 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     PREREQ_PYPKG_LIST = [
         'pip',
         'setuptools',
+        'requests',
+        'pyopenssl',  # needed for secure requests
+        'ndg-httpsclient',  # needed for secure requests
+        'pyasn1',  # needed for secure requests
         'Pygments',
         'Cython',
         # 'requests==2.5.1',
-        'requests',
         'colorama',
         'psutil',
         'functools32',
