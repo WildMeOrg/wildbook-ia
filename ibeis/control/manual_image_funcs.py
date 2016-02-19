@@ -324,8 +324,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
 
     if as_annots:
         # Add succesfull imports as annotations
-        isnone_list = [gid is None for gid in gid_list]
-        gid_list_ = ut.filterfalse_items(gid_list, isnone_list)
+        notnone_list = [gid is None for gid in gid_list]
+        gid_list_ = ut.compress(gid_list, notnone_list)
         aid_list = ibs.use_images_as_annotations(gid_list)
         print('[ibs] added %d annotations' % (len(aid_list),))
     return gid_list
