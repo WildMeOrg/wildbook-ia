@@ -295,6 +295,9 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
     gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
                                   ibs.get_image_gids_from_uuid)
 
+    none_idxs = ut.where(ut.flag_None_items(gid_list))
+    ut.take(params_list, none_idxs)
+
     if ut.duplicates_exist(gid_list):
         gpath_list = ibs.get_image_paths(gid_list)
         guuid_list = ibs.get_image_uuids(gid_list)
@@ -981,13 +984,13 @@ def get_image_paths(ibs, gid_list):
         >>> # ibs.delete_images(new_gids)
         >>> print(result)
         """
-    ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
+    #ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
     # Images should never have null uris
     # If the uri is not absolute then it is infered to be relative to ibs.imgdir
-    ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
+    #ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
     # Note: join does not prepend anything if the uri is absolute
-    gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
+    gpath_list = [None if uri is None else join(ibs.imgdir, uri) for uri in uri_list]
     return gpath_list
 
 # TODO make this actually return a uri format
