@@ -111,6 +111,9 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'ffmpeg',  # need -dev / -devel versions of all these as well / libav
         'libpng',
         'libjpg',
+        'libhdf5-dev',
+        'libeigen2-dev',
+        'libeigen3-dev',
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
         'openjpeg',
@@ -181,6 +184,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'Pillow',
         'numpy',
         'scipy',
+        'h5py',
         'ipython',
         'tornado',
         'flask',
