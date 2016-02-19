@@ -114,6 +114,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'libhdf5-dev',
         'libeigen2-dev',
         'libeigen3-dev',
+        'graphviz',
+        'libgraphviz-dev',
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
         'openjpeg',
@@ -200,6 +202,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'zmq',
         'networkx',
         'pyfiglet',
+        'pygraphviz',
     ]
 
     OPTIONAL_PYPKG_LIST = [
