@@ -45,7 +45,7 @@ python _ibeis_setup.py -y --gg "git branch"
 
 #python _ibeis_setup.py -y --gg "git checkout ^HEAD"
 #python _ibeis_setup.py -y --gg "git checkout master"
-#python _ibeis_setup.py -y --gg "git checkout nesxt"
+#python _ibeis_setup.py -y --gg "git checkout next"
 
 
 # -- MERGE topic -> next
@@ -245,7 +245,7 @@ def userid_prompt():
 
 
 #################
-## ENSURING UTOOL
+#  ENSURING UTOOL
 #################
 
 
@@ -559,7 +559,10 @@ if GET_ARGFLAG('--clean'):
 # Change Branch
 branch_name = GET_ARGVAL('--checkout', type_=str, default=None)
 if branch_name is not None:
-    ut.gg_command('git checkout "{branch_name}"'.format(**locals()))
+    try:
+        ut.gg_command('git checkout "{branch_name}"'.format(**locals()))
+    except Exception:
+        print('ERROR: Could not checkout branch: %r' % (branch_name, ))
 
 # Creates new branches
 newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
