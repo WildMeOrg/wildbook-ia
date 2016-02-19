@@ -1,43 +1,29 @@
-# IBEIS TODO
- 
-Standardize Config
-- Write QT / Web Interface for modifying configs
+# TODO
+
+* Migrate vsmany / vsone algorithm to dependency cache
+* Incorporate image level algorithms into the dependency cache.
+* Encounter/occurrence annotation configuration
+* vsmany should accpet multiple annotations as input
+* Cross-validataion in annot configurations. 
 
 
 
+* Migrate all hotspotter features to dependency cache
+   - Replace manual chip functions with calls to the depcache
 
+   REQUIRES:
+   - depcache needs better deleter support
 
-* TO DEPRICATE
-```
-params.py in favor of ut.get_argflag and ut.get_argval
-```
+   Need to integrate depcache with 
+   * manual_annot_funcs.delete_annots
+   * preproc_annot.on_delete
+   * preproc_chip.on_delete
+   * ibs.delete_annot_chips(aid_list)
+   * ibs.delete_chips
+   * ibs.delete_image_thumbs
+   * ibs.delete_annot_chip_thumbs(aid_list)
+   * ibs.delete_features(fid_list, config2_=config2_)
 
-
-
-TO MOVE 
-```
-
-cd ~/code/ibeis
-
-
-def depricate_module(pattern):
-    fpaths = ut.glob('.', pattern)
-    broken_dpath = join(repo_dpath, '_broken')
-    modname_list = ut.lmap(ut.get_modname_from_modpath, fpaths)
-    # check_usage(modname_list)
-    ut.gg_move(fpaths, broken_dpath)
-
-
-depricate_module ibeis/algo/hots/automatch_*.py
-depricate_module ibeis/algo/hots/user_dialogs.py
-depricate_module ibeis/algo/hots/special_query.py
-depricate_module ibeis/algo/hots/qt_inc_automatch.py
-depricate_module ibeis/algo/hots/_grave*.py
-
-move_module ibeis/algo/hots/user_dialogs.py
-```
-
-TO CREATE:
-```
-init_module hots/ibeis_workflow.py
-```
+   ALSO:
+   * need to specify properties of annots. 
+   When annots are changed depcache needs to be updated. 
