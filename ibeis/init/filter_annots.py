@@ -944,7 +944,6 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
     try:
         if aidcfg['min_spacedelta'] is not None:
             pass
-
         if aidcfg['min_spacetimedelta'] is not None:
             pass
     except KeyError:
