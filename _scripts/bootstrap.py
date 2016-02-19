@@ -173,7 +173,6 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'pyasn1',  # needed for secure requests
         'Cython',
         'numpy',
-        'h5py',
         'scipy',
         'Pygments',
         'colorama',
@@ -199,6 +198,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'lru-dict',
         'shapely',
         'zmq',
+        'networkx',
+        'pyfiglet',
     ]
 
     OPTIONAL_PYPKG_LIST = [
