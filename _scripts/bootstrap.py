@@ -111,6 +111,9 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'ffmpeg',  # need -dev / -devel versions of all these as well / libav
         'libpng',
         'libjpg',
+        'libhdf5-dev',
+        'libeigen2-dev',
+        'libeigen3-dev',
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
         'openjpeg',
@@ -162,16 +165,18 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     PREREQ_PYPKG_LIST = [
         'pip',
         'setuptools',
+        'psutil',
+        'functools32',
         'requests',
         'pyopenssl',  # needed for secure requests
         'ndg-httpsclient',  # needed for secure requests
         'pyasn1',  # needed for secure requests
-        'Pygments',
         'Cython',
-        # 'requests==2.5.1',
+        'numpy',
+        'h5py',
+        'scipy',
+        'Pygments',
         'colorama',
-        'psutil',
-        'functools32',
         'six',
         'dateutils',
         'pyreadline',
@@ -179,8 +184,6 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         #'sip',
         #'PyQt4',
         'Pillow',
-        'numpy',
-        'scipy',
         'ipython',
         'tornado',
         'flask',
