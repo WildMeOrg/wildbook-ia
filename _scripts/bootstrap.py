@@ -122,7 +122,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'python-qt4',
         'python-tk',  # for %paste in IPython
         'pkg-config',  # recommended for Matplotlib
-        'libfreetype6-dev',  # required for Matplotlib
+        'libffi-dev',  # requests secure dependencies
+        'libssl-dev',  # requests secure dependencies
         #'jasper',  # hyrule cannot handle this
         #'zmq',
         #libgeos-dev
@@ -161,10 +162,11 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     PREREQ_PYPKG_LIST = [
         'pip',
         'setuptools',
+        'requests',
+        'requests[security]',
         'Pygments',
         'Cython',
         # 'requests==2.5.1',
-        'requests',
         'colorama',
         'psutil',
         'functools32',
