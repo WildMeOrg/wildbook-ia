@@ -138,8 +138,6 @@ if __name__ == '__main__':
 
         python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks_fb --user joncrall --remote lev:/home/zach/data/IBEIS/
 
-        #python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote drewami:/home/ubuntu/turtles/
-
         /home/zach/data/IBEIS/humpbacks_fb
 
     Fix Patchy

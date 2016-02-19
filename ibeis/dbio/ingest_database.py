@@ -4,7 +4,8 @@
 This module lists known raw databases and how to ingest them.
 
 Specify arguments and run the following command to ingest a database
-python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=<fmt> --species=<species>
+
+python -m ibeis --tf ingest_rawdata --db turtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
 
 Feasibility Testing Example:
 
@@ -183,8 +184,11 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
     # Parse structure for image names
     if ingest_type == 'named_folders':
-        name_list1 = get_name_texts_from_parent_folder(gpath_list1, img_dir, fmtkey)
-        name_list2 = get_name_texts_from_parent_folder(gpath_list2, unzipped_file_base_dir, fmtkey)
+        name_list1 = get_name_texts_from_parent_folder(gpath_list1, img_dir,
+                                                       fmtkey)
+        name_list2 = get_name_texts_from_parent_folder(gpath_list2,
+                                                       unzipped_file_base_dir,
+                                                       fmtkey)
         name_list = name_list1 + name_list2
         pass
     elif ingest_type == 'named_images':
@@ -209,14 +213,18 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
         groupids = [multisplit(n1, splitchars)[0] for n1 in names]
         grouped_names = ut.group_items(names, groupids)
-        fixed_names = {newkey: key for key, val in grouped_names.items() if len(val) > 1 for newkey in val}
+        fixed_names = {
+            newkey: key
+            for key, val in grouped_names.items()
+            if len(val) > 1 for newkey in val
+        }
         name_list = [fixed_names.get(name, name) for name in name_list]
 
     # Add Images
-    import utool
-    with utool.embed_on_exception_context:
-        gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
-        gid_list_ = ibs.add_images(gpath_list)
+
+    gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+    gid_list_ = ibs.add_images(gpath_list)
+
     # <DEBUG>
     #print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
     unique_gids = list(set(gid_list_))
@@ -240,6 +248,30 @@ def ingest_rawdata(ibs, ingestable, localize=False):
             ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
     if localize:
         ibs.localize_images()
+
+    TURTLE_HURISTIC = 'turtles' in img_dir
+    if TURTLE_HURISTIC:
+        aid_list = ibs.get_valid_aids()
+        parent_gids = ibs.get_annot_gids(aid_list)
+        annot_orig_uris = ibs.get_image_uris_original(parent_gids)
+        def parse_turtle_uri(uri):
+            from os.path import splitext, dirname, basename
+            tags = []
+            uril = uri.lower()
+            def findany(text, possible):
+                return any([x in text for x in possible])
+            if findany(uril, ['right']) or splitext(uril)[0].endswith('rs'):
+                tags.append('right')
+            if findany(uril, ['left']) or splitext(uril)[0].endswith('ls'):
+                tags.append('left')
+            if findany(uril, ['carapace', 'whole', 'carpace']) or splitext(uril)[0].endswith('wb'):
+                tags.append('top')
+            encounter_id = basename(dirname(uri))
+            tags.append('encounter' + encounter_id)
+            return tags
+        turtle_tag_list = [parse_turtle_uri(uri) for uri in annot_orig_uris]
+        ibs.append_annot_case_tags(aid_list, turtle_tag_list)
+
     if postingest_func is not None:
         postingest_func(ibs)
     # Print to show success
@@ -725,6 +757,7 @@ class Ingestable(object):
         #from os.path import isabs
         #if not isabs(self.img_dir):
         #    self.img_dir = join(dbdir, self.img_dir)
+        self.img_dir = ut.truepath(self.img_dir)
         assert exists(self.img_dir), msg
         #if self.ingest_type == 'named_folders':
         #    assert self.fmtkey == 'name'
