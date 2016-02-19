@@ -6,6 +6,67 @@ This module lists known raw databases and how to ingest them.
 Specify arguments and run the following command to ingest a database
 python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=<fmt> --species=<species>
 
+Feasibility Testing Example:
+
+    # --- GET DATA ---
+    ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
+    rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+
+WildDog Example:
+
+    # --- GET DATA ---
+    # make sure group read bits are set
+    ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:ibeis /home/ibeis-repos/"
+    ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
+    rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+    # --- GET DATA ---
+    # Get the data via rsync, pydio. (I always have issues doing this with
+    # rsync on pachy, so I usually just do it manually)
+
+    rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
+
+    # --- RUN INGEST SCRIPT ---
+    # May have to massage folder names things to make everything work. Can
+    # also specify fmtkey to use the python parse module to find the name
+    # within the folder names.
+    python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
+
+    # --- OPEN DATABASE / FIX PROBLEMS ---
+    ibeis --db <new-ibeis-db-name>
+
+    # You will probably need to fix some bounding boxes.
+
+    # --- LAUNCH IPYTHON NOTEBOOK ---
+    # Then click Dev -> Launch IPython Notebook and run it
+    # OR RUN
+    ibeis --tf autogen_ipynb --db <new-ibeis-db-name> --ipynb
+
+
+    Here is what I did for wild dogs
+    # --- GET DATA ---
+    # Download raw data to /raid/raw_rsync/african-dogs
+    rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+    # --- RUN INGEST SCRIPT ---
+    python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}'
+
+    # --- OPEN DATABASE / FIX PROBLEMS ---
+    ibeis --db wd_peter2
+    # Fixed some bounding boxes
+
+    # --- LAUNCH IPYTHON NOTEBOOK ---
+    # I actually made two notebooks for this species to account for timedeltas
+
+    # The first is the default notebook
+    ibeis --tf autogen_ipynb --db wd_peter --ipynb
+
+    # The second removes images without timestamps and annotations that are too close together in time
+    ibeis --tf autogen_ipynb --db wd_peter --ipynb -t default:is_known=True,min_timedelta=3600,require_timestamp=True,min_pername=2
+
+    # I then click download as html in the notebook. Although I'm sure there is a way to automate this
+
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -152,8 +213,10 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         name_list = [fixed_names.get(name, name) for name in name_list]
 
     # Add Images
-    gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
-    gid_list_ = ibs.add_images(gpath_list)
+    import utool
+    with utool.embed_on_exception_context:
+        gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+        gid_list_ = ibs.add_images(gpath_list)
     # <DEBUG>
     #print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
     unique_gids = list(set(gid_list_))
