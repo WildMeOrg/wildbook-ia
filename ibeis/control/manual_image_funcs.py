@@ -320,7 +320,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         auto_localize = ibs.cfg.other_cfg.auto_localize
     if auto_localize:
         # Move to ibeis database local cache
-        ibs.localize_images(gid_list)
+        ibs.localize_images(ut.filter_Nones(gid_list))
 
     if as_annots:
         # Add succesfull imports as annotations
