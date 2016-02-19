@@ -941,10 +941,12 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
 
     # TODO:
     # Filter via GPS distance
-    if aidcfg['min_spacedelta'] is not None:
-        pass
-
-    if aidcfg['min_spacetimedelta'] is not None:
+    try:
+        if aidcfg['min_spacedelta'] is not None:
+            pass
+        if aidcfg['min_spacetimedelta'] is not None:
+            pass
+    except KeyError:
         pass
 
     # FIXME: This is NOT an independent filter because it depends on pairwise

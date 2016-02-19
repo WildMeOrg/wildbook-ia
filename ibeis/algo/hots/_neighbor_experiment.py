@@ -6,7 +6,7 @@ import utool as ut
 import pyflann
 from os.path import basename, exists  # NOQA
 from six.moves import range
-from ibeis.algo.hots import neighbor_index
+from ibeis.algo.hots import neighbor_index_cache
 #import mem_top
 
 #import vtool.nearest_neighbors as nntool
@@ -17,10 +17,8 @@ from ibeis.algo.hots import neighbor_index
 def augment_nnindexer_experiment():
     """
 
-    python -c "import utool; print(utool.auto_docstr('ibeis.algo.hots._neighbor_experiment', 'augment_nnindexer_experiment'))"
-
     References:
-        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/
+        http://answers.opencv.org/question/44592/flann-index-training-fails-with-segfault/
 
     CommandLine:
         utprof.py -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
@@ -79,8 +77,8 @@ def augment_nnindexer_experiment():
 
     # Clear Caches
     ibs.delete_flann_cachedir()
-    neighbor_index.clear_memcache()
-    neighbor_index.clear_uuid_cache(qreq_)
+    neighbor_index_cache.clear_memcache()
+    neighbor_index_cache.clear_uuid_cache(qreq_)
 
     # Setup
     all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
@@ -107,7 +105,7 @@ def augment_nnindexer_experiment():
             # Request an indexer which could be an augmented version of an existing indexer.
             with ut.Timer(verbose=False) as t:
                 memtrack.report('BEFORE AUGMENT')
-                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
+                nnindexer_ = neighbor_index_cache.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
                 memtrack.report('AFTER AUGMENT')
             nnindexer_list.append(nnindexer_)
             addition_count_list.append(count)
@@ -141,18 +139,18 @@ def augment_nnindexer_experiment():
             # Call the same code, but force rebuilds
             memtrack.report('BEFORE REINDEX')
             with ut.Timer(verbose=False) as t:
-                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(
+                nnindexer_ = neighbor_index_cache.request_augmented_ibeis_nnindexer(
                     qreq_, aid_list_, force_rebuild=True, memtrack=memtrack)
             memtrack.report('AFTER REINDEX')
             ibs.print_cachestats_str()
             print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (
-                ut.get_object_size_str(neighbor_index.NEIGHBOR_CACHE.items()),))
+                ut.get_object_size_str(neighbor_index_cache.NEIGHBOR_CACHE.items()),))
             print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s' % (
-                len(neighbor_index.NEIGHBOR_CACHE.items()),))
+                len(neighbor_index_cache.NEIGHBOR_CACHE.items()),))
             print('[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s' % (
-                ut.get_object_size_str(neighbor_index.UUID_MAP_CACHE),))
+                ut.get_object_size_str(neighbor_index_cache.UUID_MAP_CACHE),))
             print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
-            memtrack.report_type(neighbor_index.NeighborIndex)
+            memtrack.report_type(neighbor_index_cache.NeighborIndex)
             ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
             if IS_SMALL:
                 nnindexer_list.append(nnindexer_)
@@ -375,7 +373,7 @@ def test_incremental_add(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> result = test_incremental_add(ibs)
@@ -387,14 +385,14 @@ def test_incremental_add(ibs):
     aids3 = sample_aids[:-1]  # NOQA
     daid_list = aids1  # NOQA
     qreq_ = ibs.new_query_request(aids1, aids1)
-    nnindexer1 = neighbor_index.request_ibeis_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
-    nnindexer2 = neighbor_index.request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
+    nnindexer1 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
+    nnindexer2 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
 
     # TODO: SYSTEM use visual uuids
     #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     items = ibs.get_annot_visual_uuids(aids3)
-    uuid_map_fpath = neighbor_index.get_nnindexer_uuid_map_fpath(qreq_)
-    candidate_uuids = neighbor_index.read_uuid_map(uuid_map_fpath, 0)
+    uuid_map_fpath = neighbor_index_cache.get_nnindexer_uuid_map_fpath(qreq_)
+    candidate_uuids = neighbor_index_cache.read_uuid_map(uuid_map_fpath, 0)
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
     uncovered_items, covered_items_list, accepted_keys = covertup
@@ -403,14 +401,14 @@ def test_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    nnindexer3 = neighbor_index.request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
+    nnindexer3 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
 
     # TODO: SYSTEM use visual uuids
     #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     items = ibs.get_annot_visual_uuids(sample_aids)
-    uuid_map_fpath = neighbor_index.get_nnindexer_uuid_map_fpath(qreq_)
+    uuid_map_fpath = neighbor_index_cache.get_nnindexer_uuid_map_fpath(qreq_)
     #contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:
-    candidate_uuids = neighbor_index.read_uuid_map(uuid_map_fpath, 0)
+    candidate_uuids = neighbor_index_cache.read_uuid_map(uuid_map_fpath, 0)
     candidate_sets = candidate_uuids
     covertup = ut.greedy_max_inden_setcover(candidate_sets, items)
     uncovered_items, covered_items_list, accepted_keys = covertup
@@ -424,8 +422,8 @@ def test_incremental_add(ibs):
     #uuid_map[daids_hashid] = visual_uuid_list
     #visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
     #visual_uuid_list
-    #%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=False)
-    #%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=True)
+    #%timeit neighbor_index_cache.request_ibeis_nnindexer(qreq_, use_memcache=False)
+    #%timeit neighbor_index_cache.request_ibeis_nnindexer(qreq_, use_memcache=True)
 
     #for uuids in uuid_set
     #    if
@@ -442,7 +440,7 @@ def test_multiple_add_removes():
         >>> result = test_multiple_add_removes()
         >>> print(result)
     """
-    from ibeis.algo.hots.neighbor_index import test_nnindexer
+    from ibeis.algo.hots.neighbor_index_cache import test_nnindexer
     K = 4
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
 

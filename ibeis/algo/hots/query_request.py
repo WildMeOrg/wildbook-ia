@@ -5,7 +5,7 @@ TODO:
     Rename to IdentifyRequest
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.algo.hots import neighbor_index
+from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import multi_index
 from ibeis.algo.hots import scorenorm
 from ibeis.algo.hots import distinctiveness_normalizer
@@ -1029,7 +1029,7 @@ class QueryRequest(object):
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading single indexer normalizer')
-                indexer = neighbor_index.request_ibeis_nnindexer(
+                indexer = neighbor_index_cache.request_ibeis_nnindexer(
                     qreq_, verbose=verbose, **qreq_._indexer_request_params)
             elif index_method == 'multi':
                 if ut.VERYVERBOSE or verbose:

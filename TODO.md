@@ -27,3 +27,12 @@
    ALSO:
    * need to specify properties of annots. 
    When annots are changed depcache needs to be updated. 
+
+
+* Turtle viewpoint 
+ - ignore initial theta orientatino normalization 
+ - Euler angles ordered by roll pitch yaw. 
+ - Can add some error pertibation whenever pitch (middle gimble) approaches 90
+   degrees to account for gimble lock.
+
+
