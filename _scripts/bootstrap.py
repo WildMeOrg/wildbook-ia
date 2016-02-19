@@ -163,7 +163,9 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'pip',
         'setuptools',
         'requests',
-        'requests[security]',
+        'pyopenssl',  # needed for secure requests
+        'ndg-httpsclient',  # needed for secure requests
+        'pyasn1',  # needed for secure requests
         'Pygments',
         'Cython',
         # 'requests==2.5.1',
