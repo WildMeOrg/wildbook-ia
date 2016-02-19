@@ -179,6 +179,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'tornado',
         'flask',
         'flask-cors',
+        'flask-cas',
         'matplotlib',
         'scikit-learn',
         'parse',
@@ -188,6 +189,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'lockfile',  # Need to do upgrade on this
         'lru-dict',
         'shapely',
+        'zmq',
     ]
 
     OPTIONAL_PYPKG_LIST = [
@@ -206,7 +208,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'pyfiglet',
         'pyflakes',
         'pyreadline',
-        'pyzmq',
+        # 'pyzmq',
         'scikit-image',
         'sphinxcontrib-napoleon',
         'virtualenv',
