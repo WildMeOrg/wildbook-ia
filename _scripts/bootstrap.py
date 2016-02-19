@@ -165,16 +165,18 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     PREREQ_PYPKG_LIST = [
         'pip',
         'setuptools',
+        'psutil',
+        'functools32',
         'requests',
         'pyopenssl',  # needed for secure requests
         'ndg-httpsclient',  # needed for secure requests
         'pyasn1',  # needed for secure requests
-        'Pygments',
         'Cython',
-        # 'requests==2.5.1',
+        'numpy',
+        'h5py',
+        'scipy',
+        'Pygments',
         'colorama',
-        'psutil',
-        'functools32',
         'six',
         'dateutils',
         'pyreadline',
@@ -182,9 +184,6 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         #'sip',
         #'PyQt4',
         'Pillow',
-        'numpy',
-        'scipy',
-        'h5py',
         'ipython',
         'tornado',
         'flask',
