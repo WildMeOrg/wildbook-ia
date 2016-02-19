@@ -308,7 +308,7 @@ EOL'
         sudo ln -s /usr/local/bin/pip2.7 /usr/bin/pip27
         sudo ln -s /usr/local/bin/python2.7 /usr/bin/python27
 
-        sudo pip2.7 install virtualenv
+        sudo -H pip2.7 install virtualenv
         virtualenv-2.7 ~/ibeis27
         source ibeis27/bin/activate
         python --version
@@ -598,7 +598,7 @@ def __install_command_pip(pkg, upgrade=None):
     fmtstr_install_pip = pipcmd + ' install %s'
     WITH_SUDO = not WIN32 and '--nosudo' not in sys.argv
     if WITH_SUDO:
-        fmtstr_install_pip = 'sudo ' + fmtstr_install_pip
+        fmtstr_install_pip = 'sudo -H ' + fmtstr_install_pip
     # First check if we already have this package
     if upgrade is None:
         upgrade = UPGRADE_PIP
@@ -661,11 +661,11 @@ def apply_preinstall_fixes():
 def apply_postinstall_fixes():
     if MACPORTS:
         return [
-            'sudo port select --set python python27',
-            'sudo port select --set ipython ipython27',
-            'sudo port select --set cython cython27',
-            'sudo port select --set pip pip27',
-            'echo "NEED TO INSTALL CLANG2: http://stackoverflow.com/questions/20321988/error-enabling-openmp-ld-library-not-found-for-lgomp-and-clang-errors/21789869#21789869"'
+            'sudo port select --set python python27\n',
+            'sudo port select --set ipython ipython27\n',
+            'sudo port select --set cython cython27\n',
+            'sudo port select --set pip pip27\n',
+            'echo "NEED TO INSTALL CLANG2: http://stackoverflow.com/questions/20321988/error-enabling-openmp-ld-library-not-found-for-lgomp-and-clang-errors/21789869#21789869"\n'
         ]
     else:
         return []

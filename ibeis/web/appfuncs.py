@@ -108,6 +108,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
         'YEAR':   date.today().year,
         'URL':    flask.request.url,
         'REFER_SRC_STR':  flask.request.url.replace(flask.request.url_root, ''),
+        '__wrapper__' : True,
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():

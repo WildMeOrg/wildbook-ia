@@ -7,59 +7,33 @@
     <a href="{{ url_for('turk_viewpoint') }}?gsid={{ gsid }}">Continue by turking viewpoints</a>
   </div>
   {% else %}
-  <div class="row">
-    <div class="col-lg-1"></div>
+    <div class="row">
+      <div class="col-lg-1"></div>
 
-    <div class="col-lg-10">
-      {% if gsid %}
-        <div class="alert alert-info" role="alert">
-          Filtering for gsid: <a href="{{ url_for('view_imagesets') }}?gsid={{ gsid }}">{{ imagesettext }} ({{ gsid }})</a>
-          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
-        </div>
-      {% endif %}
+      <div class="col-lg-10">
+        {% if gsid %}
+          <div class="alert alert-info" role="alert">
+            Filtering for gsid: <a href="{{ url_for('view_imagesets') }}?gsid={{ gsid }}">{{ imagesettext }} ({{ gsid }})</a>
+            <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+          </div>
+        {% endif %}
 
-      {% if not REFER_DST_ENCODED %}
-        <div class="progress">
-          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
-            {{ progress }}%
+        {% if not REFER_DST_ENCODED %}
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+              {{ progress }}%
+            </div>
           </div>
-        </div>
-      {% endif %}
+        {% endif %}
 
-      Gid: {{ gid }}
-      <br/>
-      Species: {{ species }} <span data-toggle="modal" data-target="#turk-species-examples" style="margin-left: 50px; cursor: pointer; color: #428bca;">(What does this species look like?)</span>
-      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
-      <br/>
-      Path: {{ image_path }}
-      <div id="bbox_annotator"></div>
-      <div style="text-align: center; color: #aaa;">
-        <span>hover to highlight and press <b>b</b> to send an annotation to the back, <b>Esc</b> or <b>k</b> to delete</a></span>
-      </div>
-      <br/>
-      <form method="post" action="{{ url_for('submit_detection') }}?gsid={{ gsid }}&refer={{ REFER_DST_ENCODED }}" id="detection-form">
-        <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
-        <div class="row">
-          <div class="col-lg-2"></div>
-          <div class="col-lg-8" style="text-align:center;">
-            {% if REFER_DST_STR and refer_aid %}
-              <a href="/{{ REFER_DST_STR }}&aid={{ refer_aid }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
-            {% endif %}
-          </div>
-          <div class="col-lg-2"></div>
-        </div>
-        <div class="row">
-          <div class="col-lg-12">
-            {% if previous %}
-              <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_detection') }}?gsid={{ gsid }}&gid={{ previous }}">Previous {{ previous }}</a>
-            {% endif %}
-            <!-- <input type="submit" name="detection-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this image?')"> -->
-            <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
-            <input type="submit" name="detection-submit" id="turk-submit-clear"  class="btn btn-warning pull-right" value="Clear">
-          </div>
-        </div>
-        <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="detection-form"></textarea>
-      </form>
+        Gid: {{ gid }}
+        <br/>
+        Species: {{ species }} <span data-toggle="modal" data-target="#turk-species-examples" style="margin-left: 50px; cursor: pointer; color: #428bca;">(What does this species look like?)</span>
+        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
+        <br/>
+        Path: {{ image_path }}
+
+      {% include 'turk/detection_insert.html' %}
     </div>
 
     <div class="col-lg-1"></div>
@@ -323,43 +297,4 @@
   </style>
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-detection.js') }}"></script>
-<script src="{{ url_for('static', filename='include/bbox_annotator.js') }}"></script>
-<script type="text/javascript">
-  $(document).ready(function() {
-    // Initialize the bounding-box annotator.
-    var annotator = new BBoxAnnotator({
-      url: "{{ image_src }}",
-      input_method: 'fixed',
-      default_color: 'rgb(127, 255, 127)', // Green
-      show_label: true,
-      labels: ['{{ species }}'],
-      onchange: function(entries) {
-        $('#detection_data').text(JSON.stringify(entries, null, "  "));
-      }
-    });
-
-    {% if display_instructions %}
-      // $('#turk-instructions').modal('show');
-    {% endif %}
-
-    {% if display_species_examples %}
-      // $('#turk-species-examples').modal('show');
-    {% endif %}
-
-    {% for annot in annotation_list %}
-      annotator.add_entry({
-        left:   {{ annot['left'] }},
-        top:    {{ annot['top'] }},
-        width:  {{ annot['width'] }},
-        height: {{ annot['height'] }},
-        label:  '{{ annot['label'] }}',
-        id:     '{{ annot['id'] }}',
-        angle:  {{ annot['angle'] }},
-      });
-    {% endfor %}
-
-    annotator.refresh();
-  });
-</script>
 {% endblock %}
