@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 This module lists known raw databases and how to ingest them.
-# TODO: ADD COPYRIGHT TAG
+
+Specify arguments and run the following command to ingest a database
+python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=<fmt> --species=<species>
+
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -215,7 +218,7 @@ def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey=None):
     return name_list
 
 
-class FMT_KEYS:
+class FMT_KEYS(object):
     name_fmt = '{name:*}[id:d].{ext}'
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
     giraffe1_fmt = '{name:*}_{id:d}.{ext}'

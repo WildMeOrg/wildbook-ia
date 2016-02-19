@@ -3,11 +3,7 @@
 """
 Exports subset of an IBEIS database to a new IBEIS database
 
-TODO:
-    NEED TO UPDATE FILE TO USE THE NEW NAME AND SPECIES TABLE NOW THAT THEY
-    ARE NO LONGER LBLANNOTS
 """
-# TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 from collections import namedtuple
@@ -24,8 +20,7 @@ from ibeis import constants as const
 # from vtool import geometry
 
 # Transfer data structures could become classes.
-# TODO: Infer transfer data properties from SQLController
-# TODO: REmove the nesting of transfer datas
+# TODO: Remove the nesting of transfer datas
 # it should be a flat list
 TransferData = namedtuple(
     'TransferData', (
