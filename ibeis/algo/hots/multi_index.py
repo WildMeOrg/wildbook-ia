@@ -9,7 +9,7 @@ from six.moves import zip, map, range
 import numpy as np
 import utool as ut
 import vtool as vt
-from ibeis.algo.hots import neighbor_index
+from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import hstypes
 (print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
@@ -148,9 +148,9 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         num_indexers = 8
         aids_list, overflow_aids, num_bins = group_daids_for_indexing_by_name(ibs, daid_list, num_indexers, verbose)
     elif index_method == 'multi':
-        neighbor_index.check_background_process()
+        neighbor_index_cache.check_background_process()
         # Use greedy set cover to get a list of nnindxers that are already built
-        tup = neighbor_index.group_daids_by_cached_nnindexer(
+        tup = neighbor_index_cache.group_daids_by_cached_nnindexer(
             qreq_, daid_list, min_reindex_thresh)
         uncovered_aids, covered_aids_list = tup
         # If the number of bins gets too big do a reindex
@@ -162,7 +162,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
                 aids_list = [sorted(ut.flatten(covered_aids_list))]
                 #ut.embed()
             else:
-                neighbor_index.request_background_nnindexer(qreq_, daid_list)
+                neighbor_index_cache.request_background_nnindexer(qreq_, daid_list)
                 aids_list = covered_aids_list
         else:
             aids_list = covered_aids_list
@@ -181,7 +181,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
             # just passing aids is enough
-            nnindexer = neighbor_index.request_memcached_ibeis_nnindexer(qreq_, aids)
+            nnindexer = neighbor_index_cache.request_memcached_ibeis_nnindexer(qreq_, aids)
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
@@ -430,12 +430,12 @@ class MultiNeighborIndex(object):
         prev_aids = nnindexer_old.get_indexed_aids()
         new_aid_list_ = np.append(prev_aids, new_aid_list)
         # Reindexed combined aids
-        nnindexer_new = neighbor_index.request_memcached_ibeis_nnindexer(qreq_, new_aid_list_)
+        nnindexer_new = neighbor_index_cache.request_memcached_ibeis_nnindexer(qreq_, new_aid_list_)
         # Replace the old nnindexer with the new nnindexer
         mxer.nn_indexer_list[min_argx] = nnindexer_new
         mxer.min_reindex_thresh = qreq_.qparams.min_reindex_thresh
 
-        if neighbor_index.can_request_background_nnindexer():
+        if neighbor_index_cache.can_request_background_nnindexer():
             # Check if background process needs to be spawned
             # FIXME: this does not belong in method code
             num_indexed_list_new = mxer.get_multi_num_indexed_annots()
@@ -448,7 +448,7 @@ class MultiNeighborIndex(object):
                 else:
                     # Reindex the multi-indexed trees in the background
                     aid_list = mxer.get_indexed_aids()
-                    neighbor_index.request_background_nnindexer(qreq_, aid_list)
+                    neighbor_index_cache.request_background_nnindexer(qreq_, aid_list)
 
     def num_indexed_vecs(mxer):
         """

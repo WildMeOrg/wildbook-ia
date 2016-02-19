@@ -19,7 +19,7 @@ from ibeis.algo.hots import automated_oracle as ao
 from ibeis.algo.hots import automated_helpers as ah
 from ibeis.algo.hots import automated_params
 from ibeis.algo.hots import special_query
-from ibeis.algo.hots import neighbor_index
+from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import automatch_suggestor
 from ibeis.algo.hots import user_dialogs
 from collections import namedtuple
@@ -179,7 +179,7 @@ def load_or_make_qreq(ibs, qreq_vsmany_, qaid_chunk):
         # VALID FOR MULTI_INDEXER ONLY
         # Force indexer reloading if background process is completed.
         # we might get a shiny new indexer.
-        force = neighbor_index.check_background_process()
+        force = neighbor_index_cache.check_background_process()
         qreq_vsmany_.load_indexer(force=force)
     return qreq_vsmany_
 

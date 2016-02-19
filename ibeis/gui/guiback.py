@@ -1307,7 +1307,6 @@ class MainWindowBackend(GUIBACK_BASE):
         if imgsetid is None:
             print('[back] invalid imgsetid')
             return
-        #back.compute_feats(refresh=False, **kwargs)
         # Get the query annotation ids to search and
         # the database annotation ids to be searched
         query_title = ''
@@ -1317,7 +1316,6 @@ class MainWindowBackend(GUIBACK_BASE):
                 # old style Actions->Query execution
                 qaid_list = back.get_selected_aids()
                 query_title += 'selection'
-                #qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
             else:
                 # if not visual selection, then qaids are selected by imageset
                 qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
@@ -1337,8 +1335,6 @@ class MainWindowBackend(GUIBACK_BASE):
             else:
                 qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
             query_title += ' priority_subset'
-            #qaid_list = ut.compress(
-            #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
         if daids_mode == const.VS_EXEMPLARS_KEY:
             query_title += ' vs exemplars'
