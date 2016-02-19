@@ -946,6 +946,8 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
             pass
         if aidcfg['min_spacetimedelta'] is not None:
             pass
+        if aidcfg['needs_sametag'] is not None:
+            pass
     except KeyError:
         pass
 
