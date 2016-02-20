@@ -20,7 +20,10 @@ CONFIG_TABLENAME = 'config_tablename'  # tablename associated with config
 CONFIG_STRID     = 'config_strid'
 
 
-GRACE_PERIOD = 5
+if ut.is_developer():
+    GRACE_PERIOD = 0
+else:
+    GRACE_PERIOD = 5
 #ALLOW_NONE_YIELD = False
 ALLOW_NONE_YIELD = True
 
