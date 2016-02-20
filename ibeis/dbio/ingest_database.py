@@ -7,67 +7,10 @@ Specify arguments and run the following command to ingest a database
 
 python -m ibeis --tf ingest_rawdata --db turtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
 
-Feasibility Testing Example:
-
-    # --- GET DATA ---
-    ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
-    rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
-
-
-WildDog Example:
-
-    # --- GET DATA ---
-    # make sure group read bits are set
-    ssh -t jonc@pachy.cs.uic.edu "sudo chown -R apache:ibeis /home/ibeis-repos/"
-    ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
-    rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
-
-    # --- GET DATA ---
-    # Get the data via rsync, pydio. (I always have issues doing this with
-    # rsync on pachy, so I usually just do it manually)
-
-    rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
-
-    # --- RUN INGEST SCRIPT ---
-    # May have to massage folder names things to make everything work. Can
-    # also specify fmtkey to use the python parse module to find the name
-    # within the folder names.
-    python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
-
-    # --- OPEN DATABASE / FIX PROBLEMS ---
-    ibeis --db <new-ibeis-db-name>
-
-    # You will probably need to fix some bounding boxes.
-
-    # --- LAUNCH IPYTHON NOTEBOOK ---
-    # Then click Dev -> Launch IPython Notebook and run it
-    # OR RUN
-    ibeis --tf autogen_ipynb --db <new-ibeis-db-name> --ipynb
-
-
-    Here is what I did for wild dogs
-    # --- GET DATA ---
-    # Download raw data to /raid/raw_rsync/african-dogs
-    rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
-
-    # --- RUN INGEST SCRIPT ---
-    python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}'
-
-    # --- OPEN DATABASE / FIX PROBLEMS ---
-    ibeis --db wd_peter2
-    # Fixed some bounding boxes
-
-    # --- LAUNCH IPYTHON NOTEBOOK ---
-    # I actually made two notebooks for this species to account for timedeltas
-
-    # The first is the default notebook
-    ibeis --tf autogen_ipynb --db wd_peter --ipynb
-
-    # The second removes images without timestamps and annotations that are too close together in time
-    ibeis --tf autogen_ipynb --db wd_peter --ipynb -t default:is_known=True,min_timedelta=3600,require_timestamp=True,min_pername=2
-
-    # I then click download as html in the notebook. Although I'm sure there is a way to automate this
-
+# --- GET DATA ---
+rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
+# --- RUN INGEST SCRIPT ---
+python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -251,26 +194,35 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
     TURTLE_HURISTIC = 'turtles' in img_dir
     if TURTLE_HURISTIC:
+        """
+        python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
+        """
         aid_list = ibs.get_valid_aids()
         parent_gids = ibs.get_annot_gids(aid_list)
         annot_orig_uris = ibs.get_image_uris_original(parent_gids)
         def parse_turtle_uri(uri):
             from os.path import splitext, dirname, basename
-            tags = []
+            info = {}
             uril = uri.lower()
             def findany(text, possible):
                 return any([x in text for x in possible])
             if findany(uril, ['right']) or splitext(uril)[0].endswith('rs'):
-                tags.append('right')
+                info['view'] = 'right'
             if findany(uril, ['left']) or splitext(uril)[0].endswith('ls'):
-                tags.append('left')
+                info['view'] = 'left'
             if findany(uril, ['carapace', 'whole', 'carpace']) or splitext(uril)[0].endswith('wb'):
-                tags.append('top')
-            encounter_id = basename(dirname(uri))
-            tags.append('encounter' + encounter_id)
-            return tags
-        turtle_tag_list = [parse_turtle_uri(uri) for uri in annot_orig_uris]
-        ibs.append_annot_case_tags(aid_list, turtle_tag_list)
+                info['view'] = 'top'
+            occurrence_id = basename(dirname(uri))
+            info['occurrence'] = 'occurrence' + occurrence_id
+            return info
+        turtle_info_list = [parse_turtle_uri(uri) for uri in annot_orig_uris]
+        view_text_list = ut.take_column(turtle_info_list, 'view')
+        occur_text_list = ut.take_column(turtle_info_list, 'occurrence')
+        turtle_tag_list = list(zip(occur_text_list, view_text_list))
+
+        # TODO: mark viewpoints using euler angles / quaternions
+        ibs.set_image_imagesettext(parent_gids, occur_text_list)
+        ibs.append_annot_case_tags(aid_list, ut.lmap(list, turtle_tag_list))
 
     if postingest_func is not None:
         postingest_func(ibs)
