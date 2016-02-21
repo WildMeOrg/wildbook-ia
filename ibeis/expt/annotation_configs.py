@@ -74,6 +74,8 @@ INTRAGROUP_DEFAULTS = {
     'min_timedelta'       : None,
     # minimum number of aids for each name in sample
     'min_pername'         : None,
+    'min_spacedelta'      : None,
+    'min_spacetimedelta'  : None,
 }
 INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
@@ -90,6 +92,7 @@ SAMPLE_DEFAULTS = {
     'sample_per_name'     : None,  # Choos num_annots to sample from each name.
     'sample_rule'         : 'random',
     'sample_offset'       : None,  # UNUSED
+    'sample_occur'        : None,
 }
 
 SAMPLE_REF_DEFAULTS = {
@@ -328,9 +331,9 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
             if key not in seen_:
                 if ibs is not None:
                     seen_[key].append(acfgx)
-                    annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(
-                        qaids, daids, verbose=True, combined=combined,
-                        **annotstats_kw)
+                    ibs.print_annotconfig_stats(qaids, daids,
+                                                combined=combined,
+                                                **annotstats_kw)
             else:
                 dupindex = seen_[key]
                 print('DUPLICATE of index %r' % (dupindex,))

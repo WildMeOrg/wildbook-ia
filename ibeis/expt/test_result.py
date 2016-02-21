@@ -887,7 +887,7 @@ class TestResult(object):
                 print('+---')
                 print('acfgx = %r/%r' % (count, len(unique_daids)))
                 if testres.has_constant_qaids():
-                    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(testres.qaids, daids)
+                    ibs.print_annotconfig_stats(testres.qaids, daids)
                 else:
                     ibs.print_annot_stats(daids, prefix='d')
                 print('L___')
@@ -2080,6 +2080,8 @@ class TestResult(object):
                 pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
                 pt.adjust_subplots2(use_argv=True)
         return encoder
+
+
 
 
 if __name__ == '__main__':

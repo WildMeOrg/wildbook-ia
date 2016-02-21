@@ -538,6 +538,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
             --acfginfo --veryverbtd
 
         python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd --nocache-aid
+        python -m ibeis --tf get_annotcfg_list  --db seaturtles -a default:qhas_any=\(left,\),sample_occur=True,exclude_reference=True,sample_offset=[0,1,7] --acfginfo
 
     CommandLine:
         python -m ibeis.init.filter_annots --exec-expand_acfgs --show
@@ -565,8 +566,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
     aidcfg = copy.deepcopy(aidcfg)
 
     # Check if this filter has been cached
-    # TODO: keep a database state config that augments the cachestr
-
+    # TODO: keep a database state config that augments the cachestr?
     if use_cache is None:
         use_cache = USE_ACFG_CACHE
 
@@ -616,90 +616,83 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
     for key in dpredone_iden_keys:
         dcfg[key] = None
 
+    #if aidcfg['qcfg']['hack_imageset'] is True:
+    #    return ibs.get_imageset_expanded_aids()
+    # Hack: Make hierarchical filters to supersede this
+    if initial_aids is None:
+        initial_aids = ibs._get_all_aids()
+
+    verbflags  = dict(verbose=verbose)
+    qfiltflags = dict(prefix='q', **verbflags)
+    dfiltflags = dict(prefix='d', **verbflags)
+
+    default_aids = initial_aids
+
+    # A chain of filters on all of the aids
+    global_filter_chain = [
+        (filter_annots_independent, idenfilt_cfg_common),
+        (filter_annots_intragroup, idenfilt_cfg_common),
+    ]
+
+    # Chains of filters individually for each partition
+    partition_chains = [
+        [
+            # Query partition chain
+            (filter_annots_independent, qcfg),
+            (filter_annots_intragroup, qcfg),
+            (sample_annots, qcfg),
+        ],
+        [
+            # Database partition chain
+            (filter_annots_independent, dcfg),
+            (filter_annots_intragroup, dcfg),
+            (sample_annots_wrt_ref, dcfg, 0),
+        ]
+    ]
     try:
-        #if aidcfg['qcfg']['hack_imageset'] is True:
-        #    return ibs.get_imageset_expanded_aids()
-        # Hack: Make hierarchical filters to supersede this
-        if initial_aids is None:
-            initial_aids = ibs._get_all_aids()
-
-        verbflags  = dict(verbose=verbose)
-        qfiltflags = dict(prefix='q', **verbflags)
-        dfiltflags = dict(prefix='d', **verbflags)
-
-        default_aids = initial_aids
-
-        # A chain of filters on all of the aids
-        global_filter_chain = [
-            (filter_annots_independent, idenfilt_cfg_common),
-            (filter_annots_intragroup, idenfilt_cfg_common),
-        ]
-
-        # Chains of filters individually for each partition
-        partition_chains = [
-            [
-                (filter_annots_independent, qcfg),
-                (filter_annots_intragroup, qcfg),
-                (sample_annots, qcfg),
-            ],
-            [
-                (filter_annots_independent, dcfg),
-                (filter_annots_intragroup, dcfg),
-                #(sample_annots_wrt_ref, dcfg),
-            ]
-        ]
-
-        # TODO: GENERALIZE GLOBAL FILTER CHAIN
+        # GLOBAL FILTER CHAIN
+        # applies filtering to all available aids
         for filtfn, filtcfg in global_filter_chain:
             default_aids = filtfn(ibs, default_aids, filtcfg, prefix='',
                                   withpre=True, **verbflags)
 
-        # TODO: GENERALIZE PARTITION FILTER
+        # PARTITION FILTER CHAIN
+        # chain of filters for query / database annots
         default_qaids = default_daids = default_aids
         partition_avail_aids = [default_qaids, default_daids]
-        partition_verbflags  = [qfiltflags, dfiltflags]
-
-        # TODO: PARITION FILTER CHAINS
+        partion_kwargs  = [qfiltflags, dfiltflags]
         for index in range(len(partition_chains)):
             filter_chain = partition_chains[index]
             avail_aids = partition_avail_aids[index]
-            _verbflags = partition_verbflags[index]
-            for filtfn, filtcfg in filter_chain:
-                avail_aids = filtfn(
-                    ibs, avail_aids, filtcfg, **_verbflags)
+            _partkw = partion_kwargs[index].copy()
+            for filter_tup in filter_chain:
+                filtfn, filtcfg = filter_tup[0:2]
+                if len(filter_tup) == 3:
+                    # handle filters that take reference sets
+                    refindex = filter_tup[2]
+                    ref_aids = partition_avail_aids[refindex]
+                    _partkw['ref_aids'] = ref_aids
+                # Execute filtering
+                avail_aids = filtfn(ibs, avail_aids, filtcfg, **_partkw)
             partition_avail_aids[index] = avail_aids
 
-        # TODO: GENERALIZE PARITION REFERENCE SAMPLE?
-        # HACK:
-        assert len(partition_avail_aids) == 2
-        avail_aids = partition_avail_aids[1]
-        _verbflags = partition_verbflags[1]
-        ref_aids = partition_avail_aids[0]
-        avail_aids = sample_annots_wrt_ref(
-            ibs, avail_aids, dcfg, ref_aids=ref_aids,
-            **_verbflags)
-        partition_avail_aids[1] = avail_aids
-
-        # TODO: GENERALIZE SUBINDEX
-        # Subindex if requested (typically not done)
+        # SUBINDEX EACH PARTITIONED CHAIN
         subindex_cfgs = [qcfg, dcfg]
         for index in range(len(partition_avail_aids)):
             avail_aids = partition_avail_aids[index]
-            _verbflags = partition_verbflags[index]
+            _partkw = partion_kwargs[index]
             filtcfg = subindex_cfgs[index]
             avail_aids = subindex_annots(
-                ibs, avail_aids, filtcfg, **_verbflags)
+                ibs, avail_aids, filtcfg, **_partkw)
             partition_avail_aids[index] = avail_aids
-        avail_qaids, avail_daids = partition_avail_aids
 
-        # Comment out?
-        avail_qaids = subindex_annots(ibs, avail_qaids, qcfg, **qfiltflags)
-        avail_daids = subindex_annots(ibs, avail_daids, dcfg, **dfiltflags)
+        # UNPACK FILTER RESULTS
+        avail_qaids, avail_daids = partition_avail_aids
 
     except Exception as ex:
         print('PRINTING ERROR INFO')
         print(' * acfg = %s' % (ut.dict_str(comp_acfg, align=True),))
-        ut.printex(ex, 'Error expanding acfgs')
+        ut.printex(ex, 'Error executing filter chains')
         raise
 
     qaid_list = sorted(avail_qaids)
@@ -731,7 +724,8 @@ def expand_species(ibs, species, avail_aids=None):
 @register_ibs_method
 def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                               verbose=VERB_TESTDATA, withpre=False):
-    r""" Filtering that doesn't have to do with a reference set of aids
+    r"""
+    Filtering that doesn't have to do with a reference set of aids
 
     TODO make filterflags version
 
@@ -769,8 +763,8 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     Ignore:
         # Testing tag features
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
-                -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
-                ---acfginfo --veryverbtd
+            -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
+            ---acfginfo --veryverbtd
     """
     from ibeis import ibsfuncs
     if aidcfg is None:
@@ -778,17 +772,16 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             print('No annot filter returning')
         return avail_aids
 
-    VerbosityContext = verbose_context_factory(
-        'FILTER_INDEPENDENT', aidcfg, verbose)
+    VerbosityContext = verb_context('FILTER_INDEPENDENT', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
 
-    if aidcfg['is_known'] is True:
+    if aidcfg.get('is_known') is True:
         with VerbosityContext('is_known'):
             avail_aids = ibs.filter_aids_without_name(
                 avail_aids, invert=not aidcfg['is_known'])
         avail_aids = sorted(avail_aids)
 
-    if aidcfg['require_timestamp'] is True:
+    if aidcfg.get('require_timestamp') is True:
         with VerbosityContext('require_timestamp'):
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
         avail_aids = sorted(avail_aids)
@@ -796,7 +789,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     metadata = ut.LazyDict(
         species=lambda: expand_species(ibs, aidcfg['species'], None))
 
-    if aidcfg['species'] is not None:
+    if aidcfg.get('species') is not None:
         species = metadata['species']
         with VerbosityContext('species', species=species):
             avail_aids = ibs.filter_aids_to_species(avail_aids, species)
@@ -817,7 +810,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         with VerbosityContext('contrib_contains'):
             avail_aids = ut.compress(avail_aids, flag_list)
 
-    if aidcfg['minqual'] is not None or aidcfg['require_quality']:
+    if aidcfg.get('minqual') is not None or aidcfg.get('require_quality'):
         minqual = 'junk' if aidcfg['minqual'] is None else aidcfg['minqual']
         with VerbosityContext('minqual', 'require_quality'):
             # Filter quality
@@ -825,7 +818,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, minqual, unknown_ok=not aidcfg['require_quality'])
         avail_aids = sorted(avail_aids)
 
-    if aidcfg['max_numfeat'] is not None or aidcfg['min_numfeat'] is not None:
+    if aidcfg.get('max_numfeat') is not None or aidcfg.get('min_numfeat') is not None:
         max_numfeat = aidcfg['max_numfeat']
         min_numfeat = aidcfg['min_numfeat']
         if max_numfeat is None:
@@ -839,7 +832,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         with VerbosityContext('max_numfeat', 'min_numfeat'):
             avail_aids = ut.compress(avail_aids, flags_list)
 
-    if aidcfg['view'] is not None or aidcfg['require_viewpoint']:
+    if aidcfg.get('view') is not None or aidcfg.get('require_viewpoint'):
         # Resolve base viewpoint
         if aidcfg['view'] == 'primary':
             view = ibsfuncs.get_primary_species_viewpoint(metadata['species'])
@@ -897,6 +890,11 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
     independent and a second consecutive call may yield new results.
     Thus, the order in which this filter is applied matters.
 
+    CommandLine:
+        ibeis --tf get_annotcfg_list \
+                -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
+                --db lynx --veryverbtd --nocache-aid
+
     Example:
         >>> aidcfg['min_timedelta'] = 60 * 60 * 24
         >>> aidcfg['min_pername'] = 3
@@ -908,18 +906,12 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
             print('No annot filter returning')
         return avail_aids
 
-    VerbosityContext = verbose_context_factory(
-        'FILTER_INTRAGROUP', aidcfg, verbose)
+    VerbosityContext = verb_context('FILTER_INTRAGROUP', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
 
     metadata = ut.LazyDict(species=lambda: expand_species(ibs, aidcfg['species'], avail_aids))
 
     if aidcfg['same_imageset'] is not None:
-        """
-        ibeis --tf get_annotcfg_list \
-                -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \
-                --db lynx --veryverbtd --nocache-aid
-        """
         same_imageset = aidcfg['same_imageset']
         assert same_imageset is True
         imgsetid_list = ibs.get_annot_primary_imageset(avail_aids)
@@ -945,8 +937,6 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         if aidcfg['min_spacedelta'] is not None:
             pass
         if aidcfg['min_spacetimedelta'] is not None:
-            pass
-        if aidcfg['needs_sametag'] is not None:
             pass
     except KeyError:
         pass
@@ -1031,19 +1021,19 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
     """
     Sampling when a reference set is given
     """
-    sample_per_name     = aidcfg['sample_per_name']
-    sample_per_ref_name = aidcfg['sample_per_ref_name']
-    exclude_reference   = aidcfg['exclude_reference']
-    sample_size         = aidcfg['sample_size']
-    offset              = aidcfg['sample_offset']
-    sample_rule_ref     = aidcfg['sample_rule_ref']
-    sample_rule         = aidcfg['sample_rule']
+    sample_per_name     = aidcfg.get('sample_per_name')
+    sample_per_ref_name = aidcfg.get('sample_per_ref_name')
+    exclude_reference   = aidcfg.get('exclude_reference')
+    sample_size         = aidcfg.get('sample_size')
+    offset              = aidcfg.get('sample_offset')
+    sample_rule_ref     = aidcfg.get('sample_rule_ref')
+    sample_rule         = aidcfg.get('sample_rule')
+    sample_occur        = aidcfg.get('sample_occur')
 
     avail_aids = sorted(avail_aids)
     ref_aids = sorted(ref_aids)
 
-    VerbosityContext = verbose_context_factory(
-        'SAMPLE (REF)', aidcfg, verbose)
+    VerbosityContext = verb_context('SAMPLE (REF)', aidcfg, verbose)
     VerbosityContext.startfilter()
 
     if sample_per_ref_name is None:
@@ -1075,6 +1065,16 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
 
             #contact_aids = ut.flatten(contact_aids_list)
             avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
+
+        with VerbosityContext('sample_occurr',
+                              num_ref_aids=len(ref_aids)):
+            also_exclude_ref_encounters = sample_occur is True
+            if also_exclude_ref_encounters:
+                # Get other aids from the references' encounters
+                ref_enc_texts = ibs.get_annot_encounter_text(ref_aids)
+                avail_enc_texts = ibs.get_annot_encounter_text(avail_aids)
+                flags = ut.setdiff_flags(avail_enc_texts, ref_enc_texts)
+                avail_aids = ut.compress(avail_aids, flags)
 
     if not (sample_per_ref_name is not None or sample_size is not None):
         VerbosityContext.endfilter()
@@ -1210,11 +1210,30 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>>                            prefix, avail_aids)
         >>> result = ('avail_aids = %s' % (str(avail_aids),))
         >>> print(result)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.expt import annotation_configs
+        >>> db = 'seaturtles'  # 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=db)
+        >>> aidcfg = copy.deepcopy(annotation_configs.default)['qcfg']
+        >>> aidcfg['sample_occur'] = True
+        >>> initial_aids = ibs.get_valid_aids()
+        >>> withpre, verbose, prefix = True, 2, ''
+        >>> avail_aids = filter_annots_independent(ibs, initial_aids, {'has_any': ['left', 'right']},
+        >>>                                        prefix, verbose)
+        >>> qaids = sample_annots(ibs, avail_aids, aidcfg, prefix, verbose)
+        >>> avail_aids = initial_aids
+        >>> ref_aids = qaids
+        >>> dcfg = dict(exclude_reference=True, sample_occur=True)
+        >>> daids = sample_annots_wrt_ref(ibs, initial_aids, dcfg, qaids, prefix, verbose)
+        >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
     import vtool as vt
 
-    VerbosityContext = verbose_context_factory(
-        'SAMPLE (NOREF)', aidcfg, verbose)
+    VerbosityContext = verb_context('SAMPLE (NOREF)', aidcfg, verbose)
     VerbosityContext.startfilter()
 
     sample_rule     = aidcfg['sample_rule']
@@ -1227,6 +1246,21 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
     if offset is None:
         offset = 0
+
+    if aidcfg['sample_occur'] is True:
+        # Occurrence / Encounter sampling
+        occur_texts = ibs.get_annot_occurrence_text(avail_aids)
+        names = ibs.get_annot_names(avail_aids)
+        grouped_ = ut.hierarchical_group_items(avail_aids, [names, occur_texts])
+        # ensure dictionary ordering for offset consistency
+        sgrouped_ = ut.sort_dict(ut.hmap_vals(ut.sort_dict, grouped_, max_depth=0))
+        chosen = [ut.flatten(sub.values()[offset:(offset + 1)]) for sub in sgrouped_.values()]
+
+        with VerbosityContext('sample_offset'):
+            # TODO: num ocurrences to sample
+            # TODO: num annots per encounter to sample
+            avail_aids = ut.flatten(chosen)
+        # now find which groups of annotations share those tags
 
     if sample_per_name is not None:
         # For the query we just choose a single annot per name
@@ -1249,8 +1283,8 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         else:
             raise ValueError('Unknown sample_rule=%r' % (sample_rule,))
         # L ___
-        sample_idxs_list = ut.get_list_column_slice(
-            preference_idxs_list, offset, offset + sample_per_name)
+        sample_idxs_list = list(ut.iget_list_column_slice(
+            preference_idxs_list, offset, offset + sample_per_name))
         sample_aids = ut.list_ziptake(grouped_aids, sample_idxs_list)
 
         with VerbosityContext('sample_per_name', 'sample_rule',
@@ -1291,8 +1325,7 @@ def subindex_annots(ibs, avail_aids, aidcfg, ref_aids=None,
     """
     Returns exact subindex of annotations
     """
-    VerbosityContext = verbose_context_factory(
-        'SUBINDEX', aidcfg, verbose)
+    VerbosityContext = verb_context('SUBINDEX', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=False)
 
     if aidcfg['shuffle']:
@@ -1389,13 +1422,46 @@ class CountstrParser(object):
         return expr_nid2_result
 
 
-def verbose_context_factory(filtertype, aidcfg, verbose):
+def verb_context(filtertype, aidcfg, verbose):
     """ closure helper """
-    class VerbosityContext():
+    class VerbosityContext(object):
         """
-        very hacky way of printing info so we dont pollute the actual function
-        too much
+        Printing filter info in a way that avoids polluting the function
+        namespace. This is a hack.
+
+        This is a with_statement context class that expect a variable avail_aids
+        to be modified inside the context. It prints the state of the variable
+        before and after filtering. Several static methods can be used
+        at the start and end of larger filtering functions.
         """
+
+        def __init__(self, *keys, **filterextra):
+            self.prefix = ut.get_var_from_stack('prefix', verbose=False)
+            if verbose:
+                dictkw = dict(nl=False, explicit=True, nobraces=True)
+                infostr = ''
+                if len(keys) > 0:
+                    subdict = ut.dict_subset(aidcfg, keys, None)
+                    infostr += '' + ut.dict_str(subdict, **dictkw)
+                print('[%s] * Filter by %s' % (
+                    self.prefix.upper(), infostr.strip()))
+                if verbose > 1 and len(filterextra) > 0:
+                    infostr2 = ut.dict_str(filterextra, nl=False, explicit=False)
+                    print('[%s]      %s' % (
+                        self.prefix.upper(), infostr2))
+
+        def __enter__(self):
+            aids = ut.get_var_from_stack('avail_aids', verbose=False)
+            self.num_before = len(aids)
+
+        def __exit__(self, exc_type, exc_value, exc_traceback):
+            if verbose:
+                aids = ut.get_var_from_stack('avail_aids', verbose=False)
+                num_after = len(aids)
+                num_removed = self.num_before - num_after
+                if num_removed > 0 or verbose > 1:
+                    print('[%s]   ... removed %d annots. %d remain' %
+                          (self.prefix.upper(), num_removed, num_after))
 
         @staticmethod
         def report_annot_stats(ibs, aids, prefix, name_suffix, statskw={}):
@@ -1415,6 +1481,10 @@ def verbose_context_factory(filtertype, aidcfg, verbose):
 
         @staticmethod
         def startfilter(withpre=True):
+            """
+            Args:
+                withpre (bool): if True reports stats before filtering
+            """
             if verbose:
                 prefix = ut.get_var_from_stack('prefix', verbose=False)
                 print('[%s] * [%s] %sAIDS' % (prefix.upper(), filtertype,
@@ -1440,34 +1510,6 @@ def verbose_context_factory(filtertype, aidcfg, verbose):
                 print('[%s] * HAHID: %s' % (prefix.upper(), hashid))
                 print('[%s] * [%s]: len(avail_%saids) = %r\n' % (
                     prefix.upper(), filtertype, prefix, len(aids)))
-
-        def __init__(self, *keys, **filterextra):
-            self.prefix = ut.get_var_from_stack('prefix', verbose=False)
-            if verbose:
-                dictkw = dict(nl=False, explicit=True, nobraces=True)
-                infostr = ''
-                if len(keys) > 0:
-                    subdict = ut.dict_subset(aidcfg, keys)
-                    infostr += '' + ut.dict_str(subdict, **dictkw)
-                print('[%s] * Filter by %s' % (
-                    self.prefix.upper(), infostr.strip()))
-                if verbose > 1 and len(filterextra) > 0:
-                    infostr2 = ut.dict_str(filterextra, nl=False, explicit=False)
-                    print('[%s]      %s' % (
-                        self.prefix.upper(), infostr2))
-
-        def __enter__(self):
-            aids = ut.get_var_from_stack('avail_aids', verbose=False)
-            self.num_before = len(aids)
-
-        def __exit__(self, exc_type, exc_value, exc_traceback):
-            if verbose:
-                aids = ut.get_var_from_stack('avail_aids', verbose=False)
-                num_after = len(aids)
-                num_removed = self.num_before - num_after
-                if num_removed > 0 or verbose > 1:
-                    print('[%s]   ... removed %d annots. %d remain' %
-                          (self.prefix.upper(), num_removed, num_after))
     return VerbosityContext
 
 

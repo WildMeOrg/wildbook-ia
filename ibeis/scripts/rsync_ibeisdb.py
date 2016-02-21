@@ -151,6 +151,7 @@ if __name__ == '__main__':
         # --- GET DATA ---
         ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
         rsync -avhzP jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+        rsync -avhzP drewami:turtles .
 
 
     WildDog Example:

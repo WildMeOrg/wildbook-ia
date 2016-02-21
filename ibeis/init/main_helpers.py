@@ -233,7 +233,7 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
         >>> annotation_configs.print_acfg(aidcfg)
         >>> print('Printing annotconfig stats')
         >>> #print('qaid_list = %r' % (np.array(qaid_list),))
-        >>> ibs.get_annotconfig_stats(qaid_list, daid_list)
+        >>> ibs.print_annotconfig_stats(qaid_list, daid_list)
         >>> print('Combined annotconfig stats')
         >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
         >>> print('qaid_list = %r' % (qaid_list,))
@@ -277,8 +277,6 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
     if not (_specified or _specified2) and default_qaids is not None:
         # hack
         qaid_list = default_qaids
-
-    #ibs.get_annotconfig_stats(qaid_list, daid_list)
 
     if ut.VERYVERBOSE:
         ibs.print_annotconfig_stats(qaid_list, daid_list)

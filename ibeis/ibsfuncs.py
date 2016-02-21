@@ -5336,11 +5336,11 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
 
 # Indepdentent query / database stats
 @register_ibs_method
-def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, **kwargs):
+def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwargs):
     """ stats for a set of annots
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.IBEISController):  ibeis controller object
         aids (list):  list of annotation rowids
         prefix (str): (default = '')
 
@@ -5376,10 +5376,24 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, **kwargs):
     """
     kwargs = kwargs.copy()
 
+    statwrap = _stat_str if old else ut.identity
+
     def get_per_prop_stats(ibs, aids, getter_func):
         prop2_aids = ibs.group_annots_by_prop(aids, getter_func=getter_func)
+        num_None = 0
+        if None in prop2_aids:
+            # Dont count invalid properties
+            num_None += len(prop2_aids[None])
+            del prop2_aids[None]
+        if '____' in prop2_aids:
+            num_None += len(prop2_aids['____'])
+            del prop2_aids['____']
         num_aids_list = list(map(len, prop2_aids.values()))
         num_aids_stats = ut.get_stats(num_aids_list, use_nan=True, use_median=True)
+        # represent that Nones were removed
+        # num_aids_list += ([np.nan] * num_None)
+        # if num_None:
+        num_aids_stats['num_None'] = num_None
         return num_aids_stats
 
     keyval_list = [
@@ -5400,28 +5414,43 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, **kwargs):
     if kwargs.pop('per_name', True or forceall):
         keyval_list += [
             (prefix + 'per_name',
-             _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
+             statwrap(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
                                     use_nan=True, use_median=True)))]
 
     if kwargs.pop('per_qual', False or forceall):
         keyval_list += [(prefix + 'per_qual',
-                         _stat_str(ibs.get_annot_qual_stats(aids)))]
+                         statwrap(ibs.get_annot_qual_stats(aids)))]
 
     #if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True or forceall):
         keyval_list += [(prefix + 'per_vp',
-                         _stat_str(ibs.get_annot_yaw_stats(aids)))]
+                         statwrap(ibs.get_annot_yaw_stats(aids)))]
 
     # information about overlapping viewpoints
     if kwargs.pop('per_name_vpedge', False or forceall):
         keyval_list += [
             (prefix + 'per_name_vpedge',
-             _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
+             statwrap(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
+
+    if kwargs.pop('enc_per_name', True or forceall):
+        # Does not handle None encounters. They show up as just another encounter
+        name2_enctexts = ut.group_items(ibs.get_annot_encounter_text(aids), ibs.get_annot_names(aids))
+        encsets = ut.lmap(set, name2_enctexts.values())
+        nEncs_per_name = list(map(len, encsets))
+        keyval_list += [
+            (prefix + 'enc_per_name',
+             statwrap(ut.get_stats(nEncs_per_name, use_nan=True, use_median=True))
+             )]
+
+    if kwargs.pop('per_enc', True or forceall):
+        keyval_list += [
+            (prefix + 'per_enc',
+             statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_encounter_text)))]
 
     if kwargs.pop('per_image', False or forceall):
         keyval_list += [
             (prefix + 'aid_per_image',
-             _stat_str(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+             statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
 
     if kwargs.pop('case_tag_hist', False or forceall):
         keyval_list += [
@@ -5539,14 +5568,22 @@ def get_annot_per_name_stats(ibs, aid_list):
 
 @register_ibs_method
 def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
+    """
+    SeeAlso:
+        ibs.get_annotconfig_stats
+    """
     ibs.get_annotconfig_stats(qaids, daids, verbose=True, **kwargs)
 
 
 @register_ibs_method
 def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwargs):
     r"""
+    Gets statistics about a query / database set of annotations
 
     USEFUL DEVELOPER FUNCTION
+
+    TODO: this function should return non-string values in dictionaries.
+    The print function should do string conversions
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -5569,8 +5606,9 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids()
-        >>> get_annotconfig_stats(ibs, qaids, daids)
+        >>> kwargs = {'per_enc': True, 'enc_per_name': True}
+        >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(defaultdb='testdb1')
+        >>> _ = get_annotconfig_stats(ibs, qaids, daids, **kwargs)
     """
     kwargs = kwargs.copy()
     import numpy as np
@@ -5592,6 +5630,16 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         unmatchable_queries = ut.compress(qaids, ut.not_list(hasgt_list))
         # The query aids that should not have a match
         matchable_queries = ut.compress(qaids, hasgt_list)
+
+        # Find the daids that are in the same occurrence as the qaids
+        # if False:
+        query_encs = set(ibs.get_annot_encounter_text(qaids))
+        data_encs = set(ibs.get_annot_encounter_text(daids))
+        enc_intersect = query_encs.intersection(data_encs)
+        enc_intersect.difference_update({None})
+        # import operator as op
+        # compare_nested_props(
+        #     ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_encounter_text, op.eq)
 
         # Intersection on a per name basis
         imposter_daid_per_name_stats = ibs.get_annot_per_name_stats(nonquery_daids)
@@ -5674,6 +5722,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
             ('num_matchable_queries', len(matchable_queries)),
             #('num_qnids', (len(qnids))),
             #('num_dnids', (len(dnids))),
+            ('num_enc_intersect', (len(enc_intersect))),
             ('num_name_intersect', (len(common_nids))),
         ]
 
@@ -6117,6 +6166,29 @@ def _clean_species(ibs):
                 continue
             ibs._set_species_nice([rowid], [species_nice])
             ibs._set_species_code([rowid], [species_code])
+
+
+@register_ibs_method
+def get_annot_encounter_text(ibs, aids):
+    """ Encounter identifier for annotations """
+    occur_texts = ibs.get_annot_occurrence_text(aids)
+    name_texts = ibs.get_annot_names(aids)
+    enc_texts = [ot + '_' + nt if ot is not None and nt is not None else None for ot, nt in zip(occur_texts, name_texts)]
+    return enc_texts
+
+
+@register_ibs_method
+def get_annot_occurrence_text(ibs, aids):
+    """ Occurrence identifier for annotations """
+    imgset_ids = ibs.get_annot_imgsetids(aids)
+    imgset_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
+    flags = [[text.startswith('occurrence') for text in texts]
+             for texts in imgset_texts]
+    _occur_texts = ut.zipcompress(imgset_texts, flags)
+    _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
+    assert all([len(t) == 1 for t in _occur_texts]), 'annot must be in exactly one occurrence'
+    occur_texts = ut.take_column(_occur_texts, 0)
+    return occur_texts
 
 
 if __name__ == '__main__':
