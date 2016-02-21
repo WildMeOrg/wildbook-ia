@@ -56,32 +56,25 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     print('filt_cfg = %r' % (filt_cfg,))
 
     #assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
+    test_qaids = testres.get_test_qaids()
     cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
+
+    # TODO: option to group configs with same pcfg and different acfg
+
     for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
         lbl = cfgx2_shortlbl[cfgx]
         #cfgx = 0
         qreq_ = testres.cfgx2_qreq_[cfgx]
-        common_qaids = testres.get_test_qaids()
-        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
-        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+        qaids = testres.cfgx2_qaids[cfgx]
+        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score', qaids).T[cfgx]
+        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score', qaids).T[cfgx]
 
-        gt_daid = testres.get_infoprop_mat('qx2_gt_aid').T[cfgx]
-        gf_daid = testres.get_infoprop_mat('qx2_gf_aid').T[cfgx]
-        #if ut.is_float(gf_daid):
-        #    gf_daid = ut.list_replace(gf_daid, np.nan, None)
+        gt_daid = testres.get_infoprop_mat('qx2_gt_aid', qaids).T[cfgx]
+        gf_daid = testres.get_infoprop_mat('qx2_gf_aid', qaids).T[cfgx]
 
         # FIXME: may need to specify which cfg is used in the future
-        isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
+        isvalid = testres.case_sample2(filt_cfg, qaids=qaids, return_mask=True).T[cfgx]
 
-        # HACK:
-        # REMOVE 0 scores because testres only records name scores and
-        # having multiple annotations causes some good scores to be truncated to 0.
-        #isvalid[gt_rawscore == 0] = False
-        #isvalid[gf_rawscore == 0] = False
-
-        # hack
-        #tp_nscores = np.nan_to_num(tp_nscores)
-        #tn_nscores = np.nan_to_num(tn_nscores)
         isvalid[np.isnan(gf_rawscore)] = False
         isvalid[np.isnan(gt_rawscore)] = False
 
@@ -89,7 +82,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         tn_nscores = gf_rawscore[isvalid]
 
         # ---
-        tn_qaids = tp_qaids = common_qaids[isvalid]
+        tn_qaids = tp_qaids = test_qaids[isvalid]
         tn_daids = gf_daid[isvalid]
         tp_daids = gt_daid[isvalid]
 

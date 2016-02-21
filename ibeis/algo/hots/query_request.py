@@ -1165,27 +1165,6 @@ class QueryRequest(object):
         ]
         return fname_list
 
-    @profile
-    def load_cached_chipmatch(qreq_, qaid=None):
-        """
-        DEPRICATE in favor of chipmatch
-
-        convinience function for loading a query that has already been
-        cached """
-        if qaid is None:
-            qaid = qreq_.get_external_qaids()
-        shallow_qreq_ = qreq_.shallowcopy()
-        is_scalar = not ut.isiterable(qaid)
-        qaid_list = [qaid] if is_scalar else qaid
-        shallow_qreq_.set_external_qaids(qaid_list)
-        cm_list = shallow_qreq_.ibs.query_chips(
-            qaid_list, qreq_.get_external_daids(), use_cache=True,
-            use_bigcache=False, qreq_=shallow_qreq_)
-        if is_scalar:
-            return cm_list[0]
-        else:
-            return cm_list
-
     def execute(qreq_, qaids=None):
         if qaids is not None:
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)

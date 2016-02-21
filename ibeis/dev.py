@@ -87,7 +87,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_printres', 'print_results', ['printres', 'print']),
     ('ibeis.expt.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.expt.experiment_drawing', 'draw_annot_score_sep', ['scores', 'scores_good', 'scores_all']),
+    ('ibeis.expt.experiment_drawing', 'draw_annot_scoresep', ['scores', 'scores_good', 'scores_all']),
 ]
 
 

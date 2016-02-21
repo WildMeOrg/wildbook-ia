@@ -195,7 +195,9 @@ class TestResult(object):
             _tmp2_cfgx2_infoprop = list(map(
                 np.array,
                 ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
-            if qaids is not None:
+            if qaids is None:
+                cfgx2_infoprop = _tmp2_cfgx2_infoprop
+            else:
                 old = False
                 if old:
                     # Old way forcing common qaids
@@ -207,8 +209,6 @@ class TestResult(object):
                     qxs_list = [ut.dict_take(qaid2_qx , qaids, None) for qaid2_qx  in cfgx2_qaid2_qx]
                     cfgx2_infoprop = [[np.nan if x is None else props[x] for x in qxs]
                                       for props, qxs in zip(_tmp2_cfgx2_infoprop, qxs_list)]
-            else:
-                cfgx2_infoprop = _tmp2_cfgx2_infoprop
             if key == 'qx2_bestranks' or key.endswith('_rank'):
                 # hack
                 wpr = testres.get_worst_possible_rank()
@@ -934,36 +934,6 @@ class TestResult(object):
         # all_qaids = ut.unique(ut.flatten(testres.cfgx2_qaids))
         # return all_qaids
 
-    def get_gt_tags(testres):
-        ibs = testres.ibs
-        truth2_prop, prop2_mat = testres.get_truth2_prop()
-        gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
-        gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
-        return gt_tags
-
-    def get_gf_tags(testres):
-        r"""
-        Returns:
-            list: case_pos_list
-
-        CommandLine:
-            python -m ibeis --tf TestResult.get_gf_tags --db PZ_Master1 --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.init import main_helpers
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
-            >>> filt_cfg = main_helpers.testdata_filtcfg()
-            >>> case_pos_list = testres.case_sample2(filt_cfg)
-            >>> gf_tags = testres.get_gf_tags()
-        """
-        ibs = testres.ibs
-        truth2_prop, prop2_mat = testres.get_truth2_prop()
-        gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
-        gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
-        return gf_tags
-
     def get_all_tags(testres):
         r"""
         CommandLine:
@@ -991,16 +961,38 @@ class TestResult(object):
         """
         gt_tags = testres.get_gt_tags()
         gf_tags = testres.get_gf_tags()
-        #gt_tags = [[['gt_' + t for t in tag] for tag in tags] for tags in gt_tags]
-        #gf_tags = [[['gf_' + t for t in tag] for tag in tags] for tags in gf_tags]
-        #all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
         all_tags = [ut.list_zipflatten(*item) for item in zip(gf_tags, gt_tags)]
-        #from ibeis import tag_funcs
-        #ibs.get_annot_case_tags()
-        #truth2_prop, prop2_mat = testres.get_truth2_prop()
-        #gt_annotmatch_rowids = truth2_prop['gt']['aid']
-        #all_tags = [tag_funcs.consolodate_annotmatch_tags(_) for _ in all_tags]
         return all_tags
+
+    def get_gf_tags(testres):
+        r"""
+        Returns:
+            list: case_pos_list
+
+        CommandLine:
+            python -m ibeis --tf TestResult.get_gf_tags --db PZ_Master1 --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
+            >>> filt_cfg = main_helpers.testdata_filtcfg()
+            >>> case_pos_list = testres.case_sample2(filt_cfg)
+            >>> gf_tags = testres.get_gf_tags()
+        """
+        ibs = testres.ibs
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
+        gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
+        gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
+        return gf_tags
+
+    def get_gt_tags(testres):
+        ibs = testres.ibs
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
+        gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
+        gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
+        return gt_tags
 
     def get_gt_annot_tags(testres):
         ibs = testres.ibs
@@ -1009,9 +1001,9 @@ class TestResult(object):
         return gt_annot_tags
 
     def get_query_annot_tags(testres):
+        # FIXME: will break with new config structure
         ibs = testres.ibs
         truth2_prop, prop2_mat = testres.get_truth2_prop()
-        #len(testres.cfgx2_qaids)
         unflat_qids = np.tile(testres.qaids[:, None], (len(testres.cfgx2_qaids)))
         query_annot_tags = ibs.unflat_map(ibs.get_annot_case_tags, unflat_qids)
         return query_annot_tags
@@ -1023,7 +1015,7 @@ class TestResult(object):
                      for item in zip(query_annot_tags, gt_annot_tags)]
         return both_tags
 
-    def case_sample2(testres, filt_cfg, return_mask=False, verbose=None):
+    def case_sample2(testres, filt_cfg, qaids=None, return_mask=False, verbose=None):
         r"""
         Filters individual test result cases based on how they performed, what
         tags they had, and various other things.
@@ -1119,7 +1111,10 @@ class TestResult(object):
             _combos = cfghelpers.parse_cfgstr_list2([filt_cfg], strict=False)
             filt_cfg = ut.flatten(_combos)[0]
 
-        truth2_prop, prop2_mat = testres.get_truth2_prop()
+        qaids = testres.get_test_qaids() if qaids is None else qaids
+        truth2_prop, prop2_mat = testres.get_truth2_prop(qaids)
+        ibs = testres.ibs
+
         # Initialize isvalid flags to all true
         # np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
         participates = prop2_mat['participates']
@@ -1158,6 +1153,7 @@ class TestResult(object):
             ('max_gf_timedelta', partial(operator.le, truth2_prop['gf']['timedelta'])),
 
             # Tag filtering
+            # FIXME: will break with new config structure
             ('min_tags', lambda val: UTFF(testres.get_all_tags(), min_num=val)),
             ('max_tags', lambda val: UTFF(testres.get_all_tags(), max_num=val)),
             ('min_gf_tags', lambda val: UTFF(testres.get_gf_tags(), min_num=val)),
@@ -1287,11 +1283,9 @@ class TestResult(object):
         max_pername = filt_cfg.pop('max_pername', None)
         # Return at most ``max_pername`` annotation examples per name
         if max_pername is not None:
-
-            qaids = testres.get_test_qaids()
             # FIXME: multiple configs
             _qaid_list = np.take(qaids, qx_list)
-            _qnid_list = testres.ibs.get_annot_nids(_qaid_list)
+            _qnid_list = ibs.get_annot_nids(_qaid_list)
             _valid_idxs = []
             seen_ = ut.ddict(lambda: 0)
             for idx, _qnid in enumerate(_qnid_list):
@@ -1324,7 +1318,7 @@ class TestResult(object):
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
             return case_pos_list
 
-    def get_truth2_prop(testres):
+    def get_truth2_prop(testres, qaids=None):
         r"""
         Returns:
             tuple: (truth2_prop, prop2_mat)
@@ -1345,9 +1339,7 @@ class TestResult(object):
             >>> ut.show_if_requested()
         """
         ibs = testres.ibs
-        test_qaids = testres.get_test_qaids()
-
-        # test_qaids = qaids = testres.cfgx2_qaids[-2]
+        test_qaids = testres.get_test_qaids() if qaids is None else qaids
 
         #test_qaids = ut.random_sample(test_qaids, 20)
         truth2_prop = ut.ddict(ut.odict)
@@ -1862,13 +1854,16 @@ class TestResult(object):
         #assert len(testres.cfgx2_qreq_) == 1, (
         #    'can only do this on one qreq_ right now')
         cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
+        valid_case_pos = testres.case_sample2(filt_cfg=f, return_mask=False)
+        cfgx2_valid_qxs = ut.group_items(valid_case_pos.T[0], valid_case_pos.T[1])
+        test_qaids = testres.get_test_qaids()
+        cfgx2_valid_qaids = ut.map_dict_vals(ut.partial(ut.take, test_qaids), cfgx2_valid_qxs)
+
+        # TODO: option to average over pipeline configurations
+
+        testres.print_pcfg_info()
         for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
             lbl = cfgx2_shortlbl[cfgx]
-
-            testres.print_pcfg_info()
-
-            valid_mask = testres.case_sample2(filt_cfg=f, return_mask=True)
-            valid_mask = valid_mask.T[0]
 
             print('Loading cached chipmatches')
             import ibeis  # NOQA
@@ -1885,14 +1880,15 @@ class TestResult(object):
             num = ut.get_argval('--num', type_=int, default=1)
             cfg_components = [cfgstr, disttype, namemode, fsvx, threshx, thresh, f, num]
             cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
-            cache_hashid = ut.hashstr27(cache_cfgstr)
+            cache_hashid = ut.hashstr27(cache_cfgstr + '_v1')
             cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
             @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
                             use_cache=False)
             def get_cfgx_feat_scores(qreq_):
                 from ibeis.algo.hots import scorenorm
-                cm_list = qreq_.load_cached_chipmatch()
-                cm_list = ut.compress(cm_list, valid_mask)
+                # qxs = cfgx2_qxs[cfgx]
+                qaids = cfgx2_valid_qaids[cfgx]
+                cm_list = qreq_.execute_subset(qaids)
                 print('Done loading cached chipmatches')
                 tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
                                                         namemode, fsvx, threshx,
