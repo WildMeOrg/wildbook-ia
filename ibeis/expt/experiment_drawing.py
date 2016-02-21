@@ -885,9 +885,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
 
-    # import utool
-    # utool.embed()
-
     verbose = True
     filt_cfg = f
     case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
@@ -995,11 +992,35 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
         # TODO: use chip_match
-        import utool
-        with utool.embed_on_exception_context:
-            qaid = qaids[qx]
-            cm_list = [qreq_.execute_subset(qaids=[qaid])[0] for qreq_ in qreq_list]
+        qaid = qaids[qx]
+        cm_list = [qreq_.execute_subset(qaids=[qaid])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
+
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
+
+        if True:
+            print('qaid = %r' % (qaid,))
+            print('qx = %r' % (qx,))
+            print('cfgxs = %r' % (cfgxs,))
+            # print testres info about this item
+            print('truth2_prop[item] = ' + ut.repr3(
+                ut.hmap_vals(
+                    ut.partial(ut.take, index_list=cfgxs),
+                    ut.hmap_vals(
+                        ut.partial(ut.take, index_list=qx),
+                        truth2_prop),
+                    max_depth=1),
+                nl=2)
+            )
+            print('prop2_mat[item] = ' + ut.repr3(
+                ut.hmap_vals(
+                    ut.partial(ut.take, index_list=cfgxs),
+                    ut.hmap_vals(
+                        ut.partial(ut.take, index_list=qx),
+                        prop2_mat),
+                    max_depth=0),
+                nl=1)
+            )
 
         if show_in_notebook:
             # hack to show vertical line in notebook separate configs

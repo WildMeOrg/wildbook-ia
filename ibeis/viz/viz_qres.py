@@ -323,7 +323,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     # Total number of rows
     nRows         = nTopNRows + nGtRows
 
-    DEBUG_SHOW_QRES = True
+    DEBUG_SHOW_QRES = 0
 
     if DEBUG_SHOW_QRES:
         allgt_aids = ibs.get_annot_groundtruth(cm.qaid)

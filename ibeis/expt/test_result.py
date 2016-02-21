@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-TODO:
-    save and load TestResult classes
-"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
-from six.moves import zip, range, map  # NOQA
+from six.moves import zip, range, map
 import vtool as vt
 import copy
 import utool as ut
@@ -14,10 +10,6 @@ from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
 import operator
 from functools import partial
-#print, rrr, profile = ut.inject2(
-#    __name__, '[expt_harn]')
-
-from ibeis.expt.old_storage import ResultMetadata  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[testres]')
 
 
@@ -39,11 +31,6 @@ def combine_testres_list(ibs, testres_list):
     >>> ibs, testres_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
     >>> combine_testres_list(ibs, testres_list)
     """
-    #try:
-    #    assert ut.list_allsame([testres.qaids for testres in testres_list]), ' cannot handle non-same qaids right now'
-    #except AssertionError as ex:
-    #    ut.printex(ex)
-    #    raise
     import copy
     from ibeis.expt import annotation_configs
 
@@ -60,7 +47,6 @@ def combine_testres_list(ibs, testres_list):
             return lbl
         return lbl + '+' + acfg_lbl
 
-    #qaids = testres.qaids
     agg_cfg_list        = ut.flatten(
         [testres.cfg_list for testres in testres_list])
     agg_cfgx2_cfgreinfo = ut.flatten(
@@ -116,8 +102,6 @@ class TestResult(object):
             'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl)))
         assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), (
             'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl)))
-        #testres._qaids = qaids
-        #testres.daids = daids
         testres.cfg_list         = cfg_list
         testres.cfgx2_lbl        = cfgx2_lbl
         testres.cfgx2_cfgresinfo = cfgx2_cfgresinfo
@@ -198,31 +182,39 @@ class TestResult(object):
         return ut.list_allsame(list(map(len, testres.cfgx2_qaids)))
 
     def get_infoprop_list(testres, key, qaids=None):
+        """
+        key = 'qx2_bestranks'
+        key = 'qx2_gt_rank'
+        qaids = testres.get_test_qaids()
+        """
         if key == 'participant':
-            cfg2_flags = [np.in1d(qaids, aids_) for aids_ in testres.cfgx2_qaids]
-            return cfg2_flags
             # Get if qaids are part of the config
-        _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cfgresinfo, key)
-        _tmp2_cfgx2_infoprop = list(map(
-            np.array,
-            ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
-        if qaids is not None:
-            old = False
-            if old:
-                # Old way forcing common qaids
-                flags_list = [np.in1d(aids_, qaids) for aids_ in testres.cfgx2_qaids]
-                cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
-            else:
-                # New way with nans
-                cfgx2_qaid2_qx = [dict(zip(aids_, range(len(aids_)))) for aids_ in testres.cfgx2_qaids]
-                qxs_list = [ut.dict_take(qaid2_qx , qaids, None) for qaid2_qx  in cfgx2_qaid2_qx]
-                cfgx2_infoprop = [[np.nan if x is None else props[x] for x in qxs]for props, qxs in zip(_tmp2_cfgx2_infoprop, qxs_list)]
+            cfgx2_infoprop = [np.in1d(qaids, aids_) for aids_ in testres.cfgx2_qaids]
         else:
-            cfgx2_infoprop = _tmp2_cfgx2_infoprop
-        if key == 'qx2_bestranks' or key.endswith('_rank'):
-            # hack
-            for infoprop in cfgx2_infoprop:
-                infoprop[infoprop == -1] = testres.get_worst_possible_rank()
+            _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cfgresinfo, key)
+            _tmp2_cfgx2_infoprop = list(map(
+                np.array,
+                ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
+            if qaids is not None:
+                old = False
+                if old:
+                    # Old way forcing common qaids
+                    flags_list = [np.in1d(aids_, qaids) for aids_ in testres.cfgx2_qaids]
+                    cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
+                else:
+                    # New way with nans
+                    cfgx2_qaid2_qx = [dict(zip(aids_, range(len(aids_)))) for aids_ in testres.cfgx2_qaids]
+                    qxs_list = [ut.dict_take(qaid2_qx , qaids, None) for qaid2_qx  in cfgx2_qaid2_qx]
+                    cfgx2_infoprop = [[np.nan if x is None else props[x] for x in qxs]
+                                      for props, qxs in zip(_tmp2_cfgx2_infoprop, qxs_list)]
+            else:
+                cfgx2_infoprop = _tmp2_cfgx2_infoprop
+            if key == 'qx2_bestranks' or key.endswith('_rank'):
+                # hack
+                wpr = testres.get_worst_possible_rank()
+                cfgx2_infoprop = [np.array([wpr if rank == -1 else rank
+                                            for rank in infoprop])
+                                  for infoprop in cfgx2_infoprop]
         return cfgx2_infoprop
 
     def get_infoprop_mat(testres, key, qaids=None):
@@ -238,13 +230,7 @@ class TestResult(object):
     @ut.memoize
     def get_rank_mat(testres, qaids=None):
         # Ranks of Best Results
-        #get_infoprop_mat(testres, 'qx2_bestranks')
         rank_mat = testres.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
-        #cfgx2_bestranks = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_bestranks')
-        #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
-        # Set invalid ranks to the worse possible rank
-        #worst_possible_rank = testres.get_worst_possible_rank()
-        #rank_mat[rank_mat == -1] =  worst_possible_rank
         return rank_mat
 
     def get_worst_possible_rank(testres):
@@ -976,9 +962,6 @@ class TestResult(object):
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
         gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
-        #ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gf']['aid'])
-        #ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
-        #ibs.get_annot_case_tags(testres.qaids)
         return gf_tags
 
     def get_all_tags(testres):
@@ -1139,7 +1122,8 @@ class TestResult(object):
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         # Initialize isvalid flags to all true
         # np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
-        is_valid = prop2_mat['participates']
+        participates = prop2_mat['participates']
+        is_valid = participates.copy()
 
         def unflat_tag_filterflags(tags_list, **kwargs):
             from ibeis import tag_funcs
@@ -1211,6 +1195,8 @@ class TestResult(object):
             print('[testres] Sampling from is_valid.size=%r with filt=%r' %
                   (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
             print('  * is_valid.shape = %r' % (is_valid.shape,))
+            num_valid = is_valid.sum()
+            print('  * num_valid = %r' % (num_valid,))
 
         filt_cfg = copy.deepcopy(filt_cfg)
 
@@ -1223,6 +1209,8 @@ class TestResult(object):
                     flags = rule == val
                 else:
                     flags = rule(val)
+                # HACK: flags are force to be false for non-participating cases
+                flags = np.logical_and(flags, participates)
                 if verbose:
                     prev_num_valid = is_valid.sum()
                 # TODO: generalize to satisfiablility formula
@@ -1242,6 +1230,7 @@ class TestResult(object):
         allcfg = filt_cfg.pop('allcfg', None)
         if allcfg:
             is_valid = np.logical_or(np.logical_or.reduce(is_valid.T)[:, None], is_valid)
+            is_valid = np.logical_and(is_valid, participates)
 
         qx_list, cfgx_list = np.nonzero(is_valid)
 
@@ -1298,6 +1287,7 @@ class TestResult(object):
         max_pername = filt_cfg.pop('max_pername', None)
         # Return at most ``max_pername`` annotation examples per name
         if max_pername is not None:
+
             qaids = testres.get_test_qaids()
             # FIXME: multiple configs
             _qaid_list = np.take(qaids, qx_list)
@@ -1355,30 +1345,30 @@ class TestResult(object):
             >>> ut.show_if_requested()
         """
         ibs = testres.ibs
-        common_qaids = testres.get_test_qaids()
+        test_qaids = testres.get_test_qaids()
 
-        # common_qaids = qaids = testres.cfgx2_qaids[-2]
+        # test_qaids = qaids = testres.cfgx2_qaids[-2]
 
-        #common_qaids = ut.random_sample(common_qaids, 20)
+        #test_qaids = ut.random_sample(test_qaids, 20)
         truth2_prop = ut.ddict(ut.odict)
 
         # TODO: have this function take in a case_pos_list as input instead
-        participates = testres.get_infoprop_mat('participant', common_qaids)
+        participates = testres.get_infoprop_mat('participant', test_qaids)
 
-        truth2_prop['gt']['aid'] = testres.get_infoprop_mat('qx2_gt_aid', common_qaids)
-        truth2_prop['gf']['aid'] = testres.get_infoprop_mat('qx2_gf_aid', common_qaids)
-        truth2_prop['gt']['rank'] = testres.get_infoprop_mat('qx2_gt_rank', common_qaids)
-        truth2_prop['gf']['rank'] = testres.get_infoprop_mat('qx2_gf_rank', common_qaids)
+        truth2_prop['gt']['aid'] = testres.get_infoprop_mat('qx2_gt_aid', test_qaids)
+        truth2_prop['gf']['aid'] = testres.get_infoprop_mat('qx2_gf_aid', test_qaids)
+        truth2_prop['gt']['rank'] = testres.get_infoprop_mat('qx2_gt_rank', test_qaids)
+        truth2_prop['gf']['rank'] = testres.get_infoprop_mat('qx2_gf_rank', test_qaids)
 
-        truth2_prop['gt']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gt_raw_score', common_qaids))
-        truth2_prop['gf']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gf_raw_score', common_qaids))
+        truth2_prop['gt']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gt_raw_score', test_qaids))
+        truth2_prop['gf']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gf_raw_score', test_qaids))
 
-        # Cast nans to ints
-        if False:
-            for truth in ['gt', 'gf']:
-                rank_mat = truth2_prop[truth]['rank']
-                rank_mat[np.isnan(rank_mat)] = testres.get_worst_possible_rank()
-                truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
+        # Cast nans to ints (that are participants)
+        # if False:
+        for truth in ['gt', 'gf']:
+            rank_mat = truth2_prop[truth]['rank']
+            rank_mat[np.logical_and(np.isnan(rank_mat), participates)] = testres.get_worst_possible_rank()
+            # truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
 
         # Rank difference
         #hardness_degree_rank = truth2_prop['gt']['rank'] - truth2_prop['gf']['rank']
@@ -1398,16 +1388,17 @@ class TestResult(object):
         for truth in ['gt', 'gf']:
             aid_mat = truth2_prop[truth]['aid']
             timedelta_mat = np.vstack([
-                ibs.get_annot_pair_timdelta(common_qaids, aids)
+                ibs.get_annot_pair_timdelta(test_qaids, aids)
                 for aids in aid_mat.T
             ]).T
             annotmatch_rowid_mat = np.vstack([
-                ibs.get_annotmatch_rowid_from_superkey(common_qaids, aids)
+                ibs.get_annotmatch_rowid_from_superkey(test_qaids, aids)
                 for aids in aid_mat.T
             ]).T
             truth2_prop[truth]['annotmatch_rowid']  = annotmatch_rowid_mat
             truth2_prop[truth]['timedelta'] = timedelta_mat
         prop2_mat = {}
+
         prop2_mat['is_success'] = is_success
         prop2_mat['is_failure'] = is_failure
         prop2_mat['participates'] = participates
@@ -1660,7 +1651,7 @@ class TestResult(object):
         assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
         cfgx = 0
         #qreq_ = testres.cfgx2_qreq_[cfgx]
-        common_qaids = testres.get_test_qaids()
+        test_qaids = testres.get_test_qaids()
         gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
         gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
@@ -1669,7 +1660,7 @@ class TestResult(object):
 
         tp_nscores = gt_rawscore
         tn_nscores = gf_rawscore
-        tn_qaids = tp_qaids = common_qaids
+        tn_qaids = tp_qaids = test_qaids
         #encoder = vt.ScoreNormalizer(target_tpr=.7)
         #print(qreq_.get_cfgstr())
         part_attrs = {1: {'qaid': tp_qaids},
