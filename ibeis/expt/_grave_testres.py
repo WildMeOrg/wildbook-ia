@@ -381,3 +381,164 @@ def case_type_sample(testres, num_per_group=1, with_success=True,
     #vt.unique_row_indexes(case_pos_list).shape
     return case_pos_list, case_labels_list
 
+
+def partition_case_types(testres, min_success_diff=0):
+    """
+    Category Definitions
+       * Potential nondistinct cases: (probably more a failure to match query keypoints)
+           false negatives with rank < 5 with false positives  that have medium score
+    """
+    # TODO: Make this function divide the failure cases into several types
+    # * scenery failure, photobomb failure, matching failure.
+    # TODO: Make this function divide success cases into several types
+    # * easy success, difficult success, incidental success
+
+    # Matching labels from annotmatch rowid
+    truth2_prop, prop2_mat = testres.get_truth2_prop()
+    is_success = prop2_mat['is_success']
+    is_failure = prop2_mat['is_failure']
+
+    # Which queries differ in success
+    min_success_ratio = min_success_diff / (testres.nConfig)
+    #qx2_cfgdiffratio = np.array([np.sum(flags) / len(flags) for flags in is_success])
+    #qx2_isvalid = np.logical_and((1 - qx2_cfgdiffratio) >= min_success_ratio, min_success_ratio <= min_success_ratio)
+    qx2_cfgdiffratio = np.array([
+        min(np.sum(flags), len(flags) - np.sum(flags)) / len(flags)
+        for flags in is_success])
+    qx2_isvalid = qx2_cfgdiffratio >= min_success_ratio
+    #qx2_configs_differed = np.array([len(np.unique(flags)) > min_success_diff for flags in is_success])
+    #qx2_isvalid = qx2_configs_differed
+
+    ibs = testres.ibs
+    type_getters = [
+        ibs.get_annotmatch_is_photobomb,
+        ibs.get_annotmatch_is_scenerymatch,
+        ibs.get_annotmatch_is_hard,
+        ibs.get_annotmatch_is_nondistinct,
+    ]
+    ignore_gt_flags = set(['nondistinct'])
+    truth2_is_type = ut.ddict(ut.odict)
+    for truth in ['gt', 'gf']:
+        annotmatch_rowid_mat = truth2_prop[truth]['annotmatch_rowid']
+        # Check which annotmatch rowids are None, they have not been labeled with matching type
+        is_unreviewed = np.isnan(annotmatch_rowid_mat.astype(np.float))
+        truth2_is_type[truth]['unreviewed'] = is_unreviewed
+        for getter_method in type_getters:
+            funcname = ut.get_funcname(getter_method)
+            key = funcname.replace('get_annotmatch_is_', '')
+            if not (truth == 'gt' and key in ignore_gt_flags):
+                is_type = ut.accepts_numpy(getter_method.im_func)(
+                    ibs, annotmatch_rowid_mat).astype(np.bool)
+                truth2_is_type[truth][key] = is_type
+
+    truth2_is_type['gt']['cfgxdiffers'] = np.tile(
+        (qx2_cfgdiffratio > 0), (testres.nConfig, 1)).T
+    truth2_is_type['gt']['cfgxsame']    = ~truth2_is_type['gt']['cfgxdiffers']
+
+    # Make other category information
+    gt_rank_ranges = [(5, 50), (50, None), (None, 5)]
+    gt_rank_range_keys = []
+    for low, high in gt_rank_ranges:
+        if low is None:
+            rank_range_key = 'rank_under_' + str(high)
+            truth2_is_type['gt'][rank_range_key] = truth2_prop['gt']['rank'] < high
+        elif high is None:
+            rank_range_key = 'rank_above_' + str(low)
+            truth2_is_type['gt'][rank_range_key] = truth2_prop['gt']['rank'] >= low
+        else:
+            rank_range_key = 'rank_between_' + str(low) + '_' + str(high)
+            truth2_is_type['gt'][rank_range_key] = np.logical_and(
+                truth2_prop['gt']['rank'] >= low,
+                truth2_prop['gt']['rank'] < high)
+        gt_rank_range_keys.append(rank_range_key)
+
+    # Large timedelta ground false cases
+    for truth in ['gt', 'gf']:
+        truth2_is_type[truth]['large_timedelta'] = truth2_prop[truth]['timedelta'] > 60 * 60
+        truth2_is_type[truth]['small_timedelta'] = truth2_prop[truth]['timedelta'] <= 60 * 60
+
+    # Group the positions of the cases into the appropriate categories
+    # Success always means that the groundtruth was rank 0
+    category_poses = ut.odict()
+    for truth in ['gt', 'gf']:
+        success_poses = ut.odict()
+        failure_poses = ut.odict()
+        for key, is_type_ in truth2_is_type[truth].items():
+            success_pos_flags = np.logical_and(is_type_, is_success)
+            failure_pos_flags = np.logical_and(is_type_, is_failure)
+            success_pos_flags = np.logical_and(success_pos_flags, qx2_isvalid[:, None])
+            failure_pos_flags = np.logical_and(failure_pos_flags, qx2_isvalid[:, None])
+            is_success_pos = np.vstack(np.nonzero(success_pos_flags)).T
+            is_failure_pos = np.vstack(np.nonzero(failure_pos_flags)).T
+            success_poses[key] = is_success_pos
+            failure_poses[key] = is_failure_pos
+        # Record totals
+        success_poses['total_success'] = np.vstack(np.nonzero(is_success)).T
+        failure_poses['total_failure'] = np.vstack(np.nonzero(is_failure)).T
+        # Append to parent dict
+        category_poses['success_' + truth] = success_poses
+        category_poses['failure_' + truth] = failure_poses
+
+    # Remove categories that dont matter
+    for rank_range_key in gt_rank_range_keys:
+        if not rank_range_key.startswith('rank_under'):
+            assert len(category_poses['success_gt'][rank_range_key]) == 0, (
+                'category_poses[\'success_gt\'][%s] = %r' % (
+                    rank_range_key,
+                    category_poses['success_gt'][rank_range_key],))
+        del (category_poses['success_gt'][rank_range_key])
+
+    # Convert to histogram
+    #category_hists = ut.odict()
+    #for key, pos_dict in category_poses.items():
+        #category_hists[key] = ut.map_dict_vals(len, pos_dict)
+    #ut.print_dict(category_hists)
+
+    # Split up between different configurations
+    if False:
+        cfgx2_category_poses = ut.odict()
+        for cfgx in range(testres.nConfig):
+            cfg_category_poses = ut.odict()
+            for key, pos_dict in category_poses.items():
+                cfg_pos_dict = ut.odict()
+                for type_, pos_list in pos_dict.items():
+                    #if False:
+                    #    _qx2_casegroup = ut.group_items(pos_list, pos_list.T[0], sorted_=False)
+                    #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_ordered(pos_list.T[0]))
+                    #    grouppos_list = list(qx2_casegroup.values())
+                    #    grouppos_len_list = list(map(len, grouppos_list))
+                    #    _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
+                    cfg_pos_list = pos_list[pos_list.T[1] == cfgx]
+                    cfg_pos_dict[type_] = cfg_pos_list
+                cfg_category_poses[key] = cfg_pos_dict
+            cfgx2_category_poses[cfgx] = cfg_category_poses
+        cfgx2_category_hist = ut.hmap_vals(len, cfgx2_category_poses)
+        ut.print_dict(cfgx2_category_hist)
+
+    # Print histogram
+    # Split up between different configurations
+    category_hists = ut.hmap_vals(len, category_poses)
+    if ut.NOT_QUIET:
+        ut.print_dict(category_hists)
+
+    return category_poses
+    #return cfgx2_category_poses
+    #% pylab qt4
+    #X = gf_timedelta_list[is_failure]
+    ##ut.get_stats(X, use_nan=True)
+    #X = X[X < 60 * 60 * 24]
+    #encoder = vt.ScoreNormalizerUnsupervised(X)
+    #encoder.visualize()
+
+    #X = gf_timedelta_list
+    #X = X[X < 60 * 60 * 24]
+    #encoder = vt.ScoreNormalizerUnsupervised(X)
+    #encoder.visualize()
+
+    #X = gt_timedelta_list
+    #X = X[X < 60 * 60 * 24]
+    #encoder = vt.ScoreNormalizerUnsupervised(X)
+    #encoder.visualize()
+
+    #for key, val in key2_gf_is_type.items():
+    #    print(val.sum())

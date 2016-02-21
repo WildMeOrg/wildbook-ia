@@ -3,6 +3,8 @@
 TODO:
     Remove Bloat
 multi_index.py as well
+
+https://github.com/spotify/annoy
 """
 from __future__ import absolute_import, division, print_function
 import six

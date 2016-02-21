@@ -190,8 +190,10 @@ def testdata_acfg_names(default_acfg_name_list=['default']):
 
 def parse_acfg_combo_list(acfg_name_list):
     r"""
+    Parses the name list into a list of config dicts
+
     Args:
-        acfg_name_list (list):
+        acfg_name_list (list): a list of annotation config strings
 
     Returns:
         list: acfg_combo_list
@@ -201,7 +203,7 @@ def parse_acfg_combo_list(acfg_name_list):
         python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list:1
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTET
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
@@ -210,6 +212,9 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> acfg_list = ut.flatten(acfg_combo_list)
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
+        >>> result = list(acfg_list[0].keys())
+        >>> print(result)
+        [u'qcfg', u'dcfg']
 
     Example:
         >>> # DISABLE_DOCTEST

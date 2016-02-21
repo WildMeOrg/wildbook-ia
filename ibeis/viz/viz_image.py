@@ -70,7 +70,8 @@ def drive_test_script(ibs):
         >>> ibs = ibeis.opendb()
         >>> drive_test_script(ibs)
     """
-    aid_list = ibs.get_one_annot_per_name()
+    import ibeis
+    aid_list = ibeis.testdata_aids(a='default:pername=1')
     print('Running with (annot) aid_list = %r' % (aid_list))
     gid_list = ibs.get_annot_gids(aid_list)
     print('Running with (image) gid_list = %r' % (gid_list))
@@ -173,8 +174,6 @@ def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
         python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL
         python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL --gid 100
         python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 10
-
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
 
         python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 91 --no-annot --rich-title
         python -m ibeis.viz.viz_image --test-show_image --show --db GIR_Tanya --aid 1 --no-annot --rich-title

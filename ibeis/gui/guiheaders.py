@@ -286,6 +286,7 @@ def make_table_declarations(ibs):
         ('percent_names_with_exemplar_str', (str, '%Names with Exemplar')),
         ('max_speed', (float, 'Max Speed km/h')),
         ('max_hourdiff', (float, 'Max Hour Diff')),
+        ('tag_text',    (str,      'Tags')),
     ])
 
     declare_tup = TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF

@@ -2508,37 +2508,6 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         return next_name_list
 
 
-def hack(ibs):
-    #ibs.get_imageset_text(imgsetid_list)
-    #imgsetid = ibs.get_imageset_imgsetids_from_text("NNP GZC Car '1PURPLE'")
-
-    def get_name_linked_imagesets_by_imgsetid(ibs, imgsetid):
-        import utool as ut
-        #gid_list = ibs.get_imageset_gids(imgsetid)
-        aid_list_ = ibs.get_imageset_aids(imgsetid)
-        aid_list = ut.filterfalse_items(aid_list_, ibs.is_aid_unknown(aid_list_))
-
-        #all(ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid_list))
-        #aids_list2 = ibs.get_image_aids(gid_list)
-        #assert ut.flatten(aids_list2) == aids_list1
-        nid_list = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)))
-        # remove unknown annots
-        name_imgsetids = ibs.get_name_imgsetids(nid_list)
-        name_imagesettexts = ibs.get_imageset_text(name_imgsetids)
-        return name_imagesettexts
-
-    imgsetid_list = ibs.get_valid_imgsetids()
-    linked_imagesettexts = [get_name_linked_imagesets_by_imgsetid(ibs, imgsetid) for imgsetid in imgsetid_list]
-    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
-    print(ut.dict_str(dict(zip(imgsetid_list, linked_imagesettexts))))
-    print(ut.align(ut.dict_str(dict(zip(imagesettext_list, linked_imagesettexts))), ':'))
-    print(ut.align(ut.dict_str(dict(zip(imagesettext_list, imgsetid_list)), sorted_=True), ':'))
-
-    #if False:
-    #    imgsetids_with_bad_names = [6, 7, 16]
-    #    bad_nids = ut.unique_ordered(ut.flatten(ibs.get_imageset_nids(imgsetids_with_bad_names)))
-
-
 def draw_thumb_helper(tup):
     thumb_path, thumbsize, gpath, bbox_list, theta_list = tup
     img = vt.imread(gpath)  # time consuming
@@ -2729,240 +2698,6 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     return known_aids_list, unknown_aids
 
 
-@register_ibs_method
-def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
-    """
-    get_annot_groundfalse_sample
-
-    FIXME
-    DEPRICATE
-
-    Args:
-        ibs (IBEISController):
-        aid_list (list):
-        per_name (int): number of groundfalse per name
-        seed (bool or int): if False no seed, otherwise seeds numpy randgen
-
-    Returns:
-        list: gf_aids_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[::4]
-        >>> per_name = 1
-        >>> seed = 42
-        >>> sample_trues_list = get_annot_groundfalse_sample(ibs, aid_list, per_name, seed)
-        >>> #result = str(sample_trues_list)
-        >>> #print(result)
-
-    [[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
-    [[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
-    [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]
-    """
-    if seed is not False:
-        # Determanism
-        np.random.seed(seed)
-    # Get valid names
-    valid_aids = ibs.get_valid_aids()
-    valid_nids = ibs.get_annot_name_rowids(valid_aids)
-    nid2_aids = ut.group_items(valid_aids, valid_nids)
-    for nid in list(nid2_aids.keys()):
-        if ibs.is_nid_unknown(nid):
-            # Remove unknown
-            del nid2_aids[nid]
-            continue
-        # Cast into numpy arrays
-        aids =  np.array(nid2_aids[nid])
-        if len(aids) == 0:
-            # Remove empties
-            print('[ibsfuncs] name with 0 aids. need to clean database')
-            del nid2_aids[nid]
-            continue
-        nid2_aids[nid] = aids
-        # Shuffle known annotations in each name
-        #np.random.shuffle(aids)
-    # Get not beloning to input names
-    nid_list = ibs.get_annot_name_rowids(aid_list)
-    def _sample(nid_):
-        aids_iter = (aids for nid, aids in six.iteritems(nid2_aids) if nid != nid_)
-        sample_gf_aids = np.hstack([np.random.choice(aids, per_name,
-                                                     replace=False) for aids in
-                                    aids_iter])
-        return sample_gf_aids.tolist()
-    gf_aids_list = [_sample(nid_) for nid_ in nid_list]
-    return gf_aids_list
-
-
-@register_ibs_method
-def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
-    r"""
-    get_annot_groundtruth_sample
-
-    DEPRICATE
-
-    Args:
-        ibs (IBEISController):
-        aid_list (list):
-        per_name (int):
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_annot_groundtruth_sample --verbose-class
-        python -m ibeis.ibsfuncs --test-get_annot_groundtruth_sample:1
-
-    Example0:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> per_name = 1
-        >>> result = get_annot_groundtruth_sample(ibs, aid_list, per_name)
-        >>> print(result)
-        [[], [2], [6], [], [], [], []]
-
-    Example2:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
-        >>> aid_list = ibs.get_valid_aids()
-        >>> per_name = 1
-        >>> result = get_annot_groundtruth_sample(ibs, aid_list, per_name)
-        >>> print(result)
-    """
-    all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=isexemplar)
-    def random_choice(aids):
-        size = min(len(aids), per_name)
-        return np.random.choice(aids, size, replace=False).tolist()
-    sample_trues_list = [random_choice(aids) if len(aids) > 0 else [] for aids in all_trues_list]
-    return sample_trues_list
-
-
-@register_ibs_method
-def get_one_annot_per_name(ibs, col='rand'):
-    r"""
-
-    DEPRICATE
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_Master0
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --dbdir /raid/work2/Turk/GIR_Master
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> result = get_one_annot_per_name(ibs)
-        >>> # verify results
-        >>> print(result)
-    """
-    #nid_list = ibs.get_valid_nids()
-    #aids_list = ibs.get_name_aids(nid_list)
-    #num_annots_list = list(map(len, aids_list))
-    #aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
-    #aid_list = ut.get_list_column(aids_list, 0)
-    # Keep only a certain number of annots for distinctiveness mapping
-    #aid_list_ = ut.listclip(aid_list, max_annots)
-    aid_list_ = ibs.get_valid_aids()
-    aids_list, nid_list = ibs.group_annots_by_name(aid_list_, distinguish_unknowns=True)
-    if col == 'rand':
-        def random_choice(aids):
-            size = min(len(aids), 1)
-            return np.random.choice(aids, size, replace=False).tolist()
-        aid_list = [random_choice(aids)[0] if len(aids) > 0 else [] for aids in aids_list]
-    else:
-        aid_list = ut.get_list_column(aids_list, 0)
-    allow_unnamed = True
-    if not allow_unnamed:
-        raise NotImplementedError('fixme')
-    if col == 'rand':
-        import random
-        random.shuffle(aid_list)
-    return aid_list
-
-
-@register_ibs_method
-def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
-                           method='random', seed=0, offset=0,
-                           stagger_names=False, distinguish_unknowns=True,
-                           grouped_aids=None):
-    r"""
-    Gets a sampling of annotations
-
-    DEPRICATE
-
-    Args:
-        per_name (int): number of annotations per name
-        min_ngt (int): filters any name with less than this number of annotations
-        seed (int): random seed
-        aid_list (list): base aid_list to start with. If None
-        get_valid_aids(minqual='poor') is used stagger_names (bool): if True
-        staggers the order of the returned sample
-
-    Returns:
-        list: sample_aids
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> per_name = 3
-        >>> min_gt = 1
-        >>> seed = 0
-        >>> # execute function
-        >>> sample_aid_list = ibs.get_annot_rowid_sample(None, per_name=per_name, min_gt=min_gt, seed=seed)
-        >>> result = ut.hashstr_arr(sample_aid_list)
-        arr((66)crj9l5jde@@hdmlp)
-    """
-    #qaids = ibs.get_easy_annot_rowids()
-    if grouped_aids is None:
-        if aid_list is None:
-            aid_list = np.array(ibs.get_valid_aids(minqual='poor'))
-        grouped_aids_, unique_nids = ibs.group_annots_by_name(
-            aid_list, distinguish_unknowns=distinguish_unknowns)
-        if min_gt is None:
-            grouped_aids = grouped_aids_
-        else:
-            grouped_aids = list(filter(lambda x: len(x) >= min_gt, grouped_aids_))
-    else:
-        # grouped aids was precomputed
-        pass
-    if method == 'random2':
-        # always returns per_name when available
-        sample_aids_list = ut.sample_lists(grouped_aids, num=per_name, seed=seed)
-    elif method == 'random':
-        # Random that allows for offset.
-        # may return less than per_name when available if offset > 0
-        rng = np.random.RandomState(seed)
-        for aids in grouped_aids:
-            rng.shuffle(aids)
-        sample_aids_list = ut.get_list_column_slice(grouped_aids, offset, offset + per_name)
-    elif method == 'simple':
-        sample_aids_list = ut.get_list_column_slice(grouped_aids, offset, offset + per_name)
-    else:
-        raise NotImplementedError('method = %r' % (method,))
-    if stagger_names:
-        from six.moves import zip_longest
-        sample_aid_list = ut.filter_Nones(ut.iflatten(zip_longest(*sample_aids_list)))
-    else:
-        sample_aid_list = ut.flatten(sample_aids_list)
-
-    return sample_aid_list
-
-
 def get_primary_species_viewpoint(species, plus=0):
     r"""
     Args:
@@ -2999,7 +2734,8 @@ def get_primary_species_viewpoint(species, plus=0):
     return primary_viewpoint
 
 
-def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None, include_base=True):
+def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
+                            num2=None, include_base=True):
     """
     Given a viewpoint returns the acceptable viewpoints around it
 
@@ -3050,6 +2786,8 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None, i
 def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     """
     makes controlled subset of data
+
+    DEPRICATE
 
     CONTROLLED TEST DATA
 
@@ -3114,28 +2852,6 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     else:
         aid_subset = np.hstack([best_multitons.flatten(), np.array(singletons).flatten()])
     aid_subset.sort()
-
-    """
-    if False:
-        qaids = aid_subset
-        daids = aid_list
-        def get_close_groundfalse_pairs(qaids, daids):
-            valid_daids_list = [ibs.get_annot_groundfalse(qaid, daid_list=daids) for qaid in qaids]
-            for qaid, valid_daids in zip(qaids, valid_daids_list):
-                query_unixtime = ibs.get_annot_image_unixtimes(qaid)
-                valid_data_unixtimes = np.array(ibs.get_annot_image_unixtimes(valid_daids))
-                hourdiffs = ut.unixtime_hourdiff(query_unixtime, valid_data_unixtimes)
-                valid_daids[hourdiffs.argmin()]
-    """
-
-    #best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
-    #assert len(best_hourdists_list) == len(best_multitons)
-    #best_multitons_sortx = np.array(best_hourdists_list).argsort()[::-1]
-    #best_pairs = ut.take(best_multitons, best_multitons_sortx)
-    #best_multis = ut.flatten(best_pairs)
-
-    # process singletons
-    #[aids for aids in zip(aids, hour_dists_list]
     return aid_subset
 
 
@@ -3427,7 +3143,7 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         aid2_list (list):
 
     Returns:
-        ?: truth
+        list[bool]: truth
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_aidpair_truths
@@ -4342,7 +4058,7 @@ def flag_aids_count(ibs, aid_list):
         pre_unixtime_sort (bool):
 
     Returns:
-        ?:
+        list:
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-flag_aids_count
@@ -4587,6 +4303,7 @@ def get_name_hourdiffs(ibs, nid_list):
     """
     aids_list_ = ibs.get_name_aids(nid_list)
     #ibs.check_name_mapping_consistency(aids_list_)
+    # HACK FILTERING SHOULD NOT OCCUR HERE
     aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
     hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
     return hourdiffs_list
@@ -4596,7 +4313,8 @@ def get_name_hourdiffs(ibs, nid_list):
 @accessor_decors.getter
 def get_name_max_hourdiff(ibs, nid_list):
     hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-    maxhourdiff_list = np.array(list(map(vt.safe_max, hourdiffs_list)))
+    maxhourdiff_list_ = list(map(vt.safe_max, hourdiffs_list))
+    maxhourdiff_list = np.array(maxhourdiff_list_)
     return maxhourdiff_list
 
 

@@ -77,7 +77,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_drawing', 'draw_match_cases', ['draw_cases', 'cases']),
     ('ibeis.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
 
-    ('ibeis.expt.experiment_drawing', 'draw_results'),
+    ('ibeis.expt.old_storage', 'draw_results'),
     ('ibeis.expt.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
     ('ibeis.other.dbinfo', 'latex_dbstats'),
@@ -87,7 +87,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_printres', 'print_results', ['printres', 'print']),
     ('ibeis.expt.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.expt.experiment_drawing', 'draw_score_sep', ['scores', 'scores_good', 'scores_all']),
+    ('ibeis.expt.experiment_drawing', 'draw_annot_score_sep', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -203,7 +203,7 @@ def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
     print('[dev] compgrav_draw_score_sep')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
-        draw_score_sep(ibs_, qaid_list)
+        draw_annot_scoresep(ibs_, qaid_list)
 
 #--------------------
 # RUN DEV EXPERIMENTS
@@ -569,7 +569,6 @@ def devfunc(ibs, qaid_list):
             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
     pt.present()
     locals_ = locals()
-    #locals_.update(draw_score_sep(ibs, qaid_list))
     return locals_
 
 

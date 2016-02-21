@@ -87,11 +87,14 @@ SUBINDEX_DEFAULTS = {
 
 SAMPLE_DEFAULTS = {
     'sample_size'         : None,
+    'num_names'           : None,
     # Gets as close to sample size without removing other props
     # Per Name / Exemplar Params
     'sample_per_name'     : None,  # Choos num_annots to sample from each name.
     'sample_rule'         : 'random',
     'sample_offset'       : None,  # UNUSED
+    'occur_offset'        : None,  # UNUSED
+    'name_offset'         : None,  # UNUSED
     'sample_occur'        : None,
 }
 
@@ -314,6 +317,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         annotstats_kw.update(ut.argparse_dict(
             dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True))
 
+    hashid_list = []
     for acfgx in range(len(acfg_list)):
         acfg = acfg_list[acfgx]
         title = ('q_cfgname=' + acfg['qcfg']['_cfgname'] +
@@ -331,14 +335,22 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
             if key not in seen_:
                 if ibs is not None:
                     seen_[key].append(acfgx)
-                    ibs.print_annotconfig_stats(qaids, daids,
-                                                combined=combined,
-                                                **annotstats_kw)
+                    stats_, locals_ = ibs.get_annotconfig_stats(
+                        qaids, daids, verbose=False, combined=combined,
+                        **annotstats_kw)
+                    hashids = (stats_['qaid_stats']['qhashid'],
+                               stats_['daid_stats']['dhashid'])
+                    hashid_list.append(hashids)
+                    stats_str2 = ut.dict_str(stats_, strvals=True,
+                                             newlines=True, explicit=False,
+                                             nobraces=False)
+                    print('annot_config_stats = ' + stats_str2)
             else:
                 dupindex = seen_[key]
                 print('DUPLICATE of index %r' % (dupindex,))
                 dupdict = varied_compressed_dict_list[dupindex[0]]
                 print('DUP OF acfg = ' + ut.dict_str(dupdict, strvals=True))
+    print('hashid summary = ' + ut.list_str(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
 
@@ -416,6 +428,21 @@ default = {
 
     'dcfg': ut.augdict(
         single_default, {
+        }),
+}
+
+
+default2 = {
+    'qcfg': ut.augdict(
+        default['qcfg'], {
+            'exclude_reference': True,
+            'is_known': True,
+        }),
+
+    'dcfg': ut.augdict(
+        default['dcfg'], {
+            'exclude_reference': True,
+            'is_known': True,
         }),
 }
 

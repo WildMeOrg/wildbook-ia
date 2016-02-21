@@ -515,7 +515,7 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
         >>> import ibeis
         >>> from ibeis.init import main_helpers
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = main_helpers.get_test_qaids(ibs)
+        >>> aid_list = ibeis.testdata_aids(ibs=ibs, a='default')
         >>> arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list)
         >>> ut.quit_if_noshow()
         >>> testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_cs_list)

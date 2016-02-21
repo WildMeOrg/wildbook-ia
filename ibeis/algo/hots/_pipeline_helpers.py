@@ -210,9 +210,13 @@ def get_pipeline_testdata(dbname=None,
     # Use commmand line parsing for custom values
 
     if cmdline_ok:
-        from ibeis.init import main_helpers
-        qaid_list_ = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
-        daid_list_ = main_helpers.get_test_daids(ibs, default_daids=default_daid_list, qaid_list=qaid_list_)
+        import ibeis
+        qaid_list_, daid_list_ = ibeis.testdata_expanded_aids(ibs=ibs, a='default',
+                                                              default_qaids=default_qaid_list,
+                                                              default_daids=default_daid_list)
+        # from ibeis.init import main_helpers
+        # qaid_list_ = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
+        # daid_list_ = main_helpers.get_test_daids(ibs, default_daids=default_daid_list, qaid_list=qaid_list_)
         #
         # Allow commond line specification of all query params
         default_cfgdict = dict(Config.parse_config_items(Config.QueryConfig()))

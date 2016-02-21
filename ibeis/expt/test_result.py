@@ -198,13 +198,25 @@ class TestResult(object):
         return ut.list_allsame(list(map(len, testres.cfgx2_qaids)))
 
     def get_infoprop_list(testres, key, qaids=None):
+        if key == 'participant':
+            cfg2_flags = [np.in1d(qaids, aids_) for aids_ in testres.cfgx2_qaids]
+            return cfg2_flags
+            # Get if qaids are part of the config
         _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cfgresinfo, key)
         _tmp2_cfgx2_infoprop = list(map(
             np.array,
             ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
         if qaids is not None:
-            flags_list = [np.in1d(aids_, qaids) for aids_ in testres.cfgx2_qaids]
-            cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
+            old = False
+            if old:
+                # Old way forcing common qaids
+                flags_list = [np.in1d(aids_, qaids) for aids_ in testres.cfgx2_qaids]
+                cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
+            else:
+                # New way with nans
+                cfgx2_qaid2_qx = [dict(zip(aids_, range(len(aids_)))) for aids_ in testres.cfgx2_qaids]
+                qxs_list = [ut.dict_take(qaid2_qx , qaids, None) for qaid2_qx  in cfgx2_qaid2_qx]
+                cfgx2_infoprop = [[np.nan if x is None else props[x] for x in qxs]for props, qxs in zip(_tmp2_cfgx2_infoprop, qxs_list)]
         else:
             cfgx2_infoprop = _tmp2_cfgx2_infoprop
         if key == 'qx2_bestranks' or key.endswith('_rank'):
@@ -925,6 +937,17 @@ class TestResult(object):
         else:
             return testres.qaids
 
+    def get_all_qaids(testres):
+        all_qaids = np.array(ut.unique(ut.flatten(testres.cfgx2_qaids)))
+        return all_qaids
+
+    def get_test_qaids(testres):
+        # Transition fucntion
+        return testres.get_all_qaids()
+        # return testres.get_common_qaids()
+        # all_qaids = ut.unique(ut.flatten(testres.cfgx2_qaids))
+        # return all_qaids
+
     def get_gt_tags(testres):
         ibs = testres.ibs
         truth2_prop, prop2_mat = testres.get_truth2_prop()
@@ -1106,7 +1129,6 @@ class TestResult(object):
 
         if isinstance(filt_cfg, six.string_types):
             filt_cfg = [filt_cfg]
-
         if isinstance(filt_cfg, list):
             _combos = cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False)
             filt_cfg = ut.flatten(_combos)[0]
@@ -1116,7 +1138,8 @@ class TestResult(object):
 
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         # Initialize isvalid flags to all true
-        is_valid = np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
+        # np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
+        is_valid = prop2_mat['participates']
 
         def unflat_tag_filterflags(tags_list, **kwargs):
             from ibeis import tag_funcs
@@ -1275,9 +1298,9 @@ class TestResult(object):
         max_pername = filt_cfg.pop('max_pername', None)
         # Return at most ``max_pername`` annotation examples per name
         if max_pername is not None:
-            qaids = testres.get_common_qaids()
+            qaids = testres.get_test_qaids()
             # FIXME: multiple configs
-            _qaid_list = qaids[qx_list]
+            _qaid_list = np.take(qaids, qx_list)
             _qnid_list = testres.ibs.get_annot_nids(_qaid_list)
             _valid_idxs = []
             seen_ = ut.ddict(lambda: 0)
@@ -1332,11 +1355,15 @@ class TestResult(object):
             >>> ut.show_if_requested()
         """
         ibs = testres.ibs
-        common_qaids = testres.get_common_qaids()
+        common_qaids = testres.get_test_qaids()
+
+        # common_qaids = qaids = testres.cfgx2_qaids[-2]
+
         #common_qaids = ut.random_sample(common_qaids, 20)
         truth2_prop = ut.ddict(ut.odict)
 
         # TODO: have this function take in a case_pos_list as input instead
+        participates = testres.get_infoprop_mat('participant', common_qaids)
 
         truth2_prop['gt']['aid'] = testres.get_infoprop_mat('qx2_gt_aid', common_qaids)
         truth2_prop['gf']['aid'] = testres.get_infoprop_mat('qx2_gf_aid', common_qaids)
@@ -1347,10 +1374,11 @@ class TestResult(object):
         truth2_prop['gf']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gf_raw_score', common_qaids))
 
         # Cast nans to ints
-        for truth in ['gt', 'gf']:
-            rank_mat = truth2_prop[truth]['rank']
-            rank_mat[np.isnan(rank_mat)] = testres.get_worst_possible_rank()
-            truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
+        if False:
+            for truth in ['gt', 'gf']:
+                rank_mat = truth2_prop[truth]['rank']
+                rank_mat[np.isnan(rank_mat)] = testres.get_worst_possible_rank()
+                truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
 
         # Rank difference
         #hardness_degree_rank = truth2_prop['gt']['rank'] - truth2_prop['gf']['rank']
@@ -1382,171 +1410,10 @@ class TestResult(object):
         prop2_mat = {}
         prop2_mat['is_success'] = is_success
         prop2_mat['is_failure'] = is_failure
+        prop2_mat['participates'] = participates
         return truth2_prop, prop2_mat
 
-    def partition_case_types(testres, min_success_diff=0):
-        """
-        Category Definitions
-           * Potential nondistinct cases: (probably more a failure to match query keypoints)
-               false negatives with rank < 5 with false positives  that have medium score
-        """
-        # TODO: Make this function divide the failure cases into several types
-        # * scenery failure, photobomb failure, matching failure.
-        # TODO: Make this function divide success cases into several types
-        # * easy success, difficult success, incidental success
-
-        # Matching labels from annotmatch rowid
-        truth2_prop, prop2_mat = testres.get_truth2_prop()
-        is_success = prop2_mat['is_success']
-        is_failure = prop2_mat['is_failure']
-
-        # Which queries differ in success
-        min_success_ratio = min_success_diff / (testres.nConfig)
-        #qx2_cfgdiffratio = np.array([np.sum(flags) / len(flags) for flags in is_success])
-        #qx2_isvalid = np.logical_and((1 - qx2_cfgdiffratio) >= min_success_ratio, min_success_ratio <= min_success_ratio)
-        qx2_cfgdiffratio = np.array([
-            min(np.sum(flags), len(flags) - np.sum(flags)) / len(flags)
-            for flags in is_success])
-        qx2_isvalid = qx2_cfgdiffratio >= min_success_ratio
-        #qx2_configs_differed = np.array([len(np.unique(flags)) > min_success_diff for flags in is_success])
-        #qx2_isvalid = qx2_configs_differed
-
-        ibs = testres.ibs
-        type_getters = [
-            ibs.get_annotmatch_is_photobomb,
-            ibs.get_annotmatch_is_scenerymatch,
-            ibs.get_annotmatch_is_hard,
-            ibs.get_annotmatch_is_nondistinct,
-        ]
-        ignore_gt_flags = set(['nondistinct'])
-        truth2_is_type = ut.ddict(ut.odict)
-        for truth in ['gt', 'gf']:
-            annotmatch_rowid_mat = truth2_prop[truth]['annotmatch_rowid']
-            # Check which annotmatch rowids are None, they have not been labeled with matching type
-            is_unreviewed = np.isnan(annotmatch_rowid_mat.astype(np.float))
-            truth2_is_type[truth]['unreviewed'] = is_unreviewed
-            for getter_method in type_getters:
-                funcname = ut.get_funcname(getter_method)
-                key = funcname.replace('get_annotmatch_is_', '')
-                if not (truth == 'gt' and key in ignore_gt_flags):
-                    is_type = ut.accepts_numpy(getter_method.im_func)(
-                        ibs, annotmatch_rowid_mat).astype(np.bool)
-                    truth2_is_type[truth][key] = is_type
-
-        truth2_is_type['gt']['cfgxdiffers'] = np.tile(
-            (qx2_cfgdiffratio > 0), (testres.nConfig, 1)).T
-        truth2_is_type['gt']['cfgxsame']    = ~truth2_is_type['gt']['cfgxdiffers']
-
-        # Make other category information
-        gt_rank_ranges = [(5, 50), (50, None), (None, 5)]
-        gt_rank_range_keys = []
-        for low, high in gt_rank_ranges:
-            if low is None:
-                rank_range_key = 'rank_under_' + str(high)
-                truth2_is_type['gt'][rank_range_key] = truth2_prop['gt']['rank'] < high
-            elif high is None:
-                rank_range_key = 'rank_above_' + str(low)
-                truth2_is_type['gt'][rank_range_key] = truth2_prop['gt']['rank'] >= low
-            else:
-                rank_range_key = 'rank_between_' + str(low) + '_' + str(high)
-                truth2_is_type['gt'][rank_range_key] = np.logical_and(
-                    truth2_prop['gt']['rank'] >= low,
-                    truth2_prop['gt']['rank'] < high)
-            gt_rank_range_keys.append(rank_range_key)
-
-        # Large timedelta ground false cases
-        for truth in ['gt', 'gf']:
-            truth2_is_type[truth]['large_timedelta'] = truth2_prop[truth]['timedelta'] > 60 * 60
-            truth2_is_type[truth]['small_timedelta'] = truth2_prop[truth]['timedelta'] <= 60 * 60
-
-        # Group the positions of the cases into the appropriate categories
-        # Success always means that the groundtruth was rank 0
-        category_poses = ut.odict()
-        for truth in ['gt', 'gf']:
-            success_poses = ut.odict()
-            failure_poses = ut.odict()
-            for key, is_type_ in truth2_is_type[truth].items():
-                success_pos_flags = np.logical_and(is_type_, is_success)
-                failure_pos_flags = np.logical_and(is_type_, is_failure)
-                success_pos_flags = np.logical_and(success_pos_flags, qx2_isvalid[:, None])
-                failure_pos_flags = np.logical_and(failure_pos_flags, qx2_isvalid[:, None])
-                is_success_pos = np.vstack(np.nonzero(success_pos_flags)).T
-                is_failure_pos = np.vstack(np.nonzero(failure_pos_flags)).T
-                success_poses[key] = is_success_pos
-                failure_poses[key] = is_failure_pos
-            # Record totals
-            success_poses['total_success'] = np.vstack(np.nonzero(is_success)).T
-            failure_poses['total_failure'] = np.vstack(np.nonzero(is_failure)).T
-            # Append to parent dict
-            category_poses['success_' + truth] = success_poses
-            category_poses['failure_' + truth] = failure_poses
-
-        # Remove categories that dont matter
-        for rank_range_key in gt_rank_range_keys:
-            if not rank_range_key.startswith('rank_under'):
-                assert len(category_poses['success_gt'][rank_range_key]) == 0, (
-                    'category_poses[\'success_gt\'][%s] = %r' % (
-                        rank_range_key,
-                        category_poses['success_gt'][rank_range_key],))
-            del (category_poses['success_gt'][rank_range_key])
-
-        # Convert to histogram
-        #category_hists = ut.odict()
-        #for key, pos_dict in category_poses.items():
-            #category_hists[key] = ut.map_dict_vals(len, pos_dict)
-        #ut.print_dict(category_hists)
-
-        # Split up between different configurations
-        if False:
-            cfgx2_category_poses = ut.odict()
-            for cfgx in range(testres.nConfig):
-                cfg_category_poses = ut.odict()
-                for key, pos_dict in category_poses.items():
-                    cfg_pos_dict = ut.odict()
-                    for type_, pos_list in pos_dict.items():
-                        #if False:
-                        #    _qx2_casegroup = ut.group_items(pos_list, pos_list.T[0], sorted_=False)
-                        #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_ordered(pos_list.T[0]))
-                        #    grouppos_list = list(qx2_casegroup.values())
-                        #    grouppos_len_list = list(map(len, grouppos_list))
-                        #    _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
-                        cfg_pos_list = pos_list[pos_list.T[1] == cfgx]
-                        cfg_pos_dict[type_] = cfg_pos_list
-                    cfg_category_poses[key] = cfg_pos_dict
-                cfgx2_category_poses[cfgx] = cfg_category_poses
-            cfgx2_category_hist = ut.hmap_vals(len, cfgx2_category_poses)
-            ut.print_dict(cfgx2_category_hist)
-
-        # Print histogram
-        # Split up between different configurations
-        category_hists = ut.hmap_vals(len, category_poses)
-        if ut.NOT_QUIET:
-            ut.print_dict(category_hists)
-
-        return category_poses
-        #return cfgx2_category_poses
-        #% pylab qt4
-        #X = gf_timedelta_list[is_failure]
-        ##ut.get_stats(X, use_nan=True)
-        #X = X[X < 60 * 60 * 24]
-        #encoder = vt.ScoreNormalizerUnsupervised(X)
-        #encoder.visualize()
-
-        #X = gf_timedelta_list
-        #X = X[X < 60 * 60 * 24]
-        #encoder = vt.ScoreNormalizerUnsupervised(X)
-        #encoder.visualize()
-
-        #X = gt_timedelta_list
-        #X = X[X < 60 * 60 * 24]
-        #encoder = vt.ScoreNormalizerUnsupervised(X)
-        #encoder.visualize()
-
-        #for key, val in key2_gf_is_type.items():
-        #    print(val.sum())
-
     def interact_individual_result(testres, qaid, cfgx=0):
-        #qaids = testres.get_common_qaids()
         ibs = testres.ibs
         cfgx_list = ut.ensure_iterable(cfgx)
         qreq_list = ut.take(testres.cfgx2_qreq_, cfgx_list)
@@ -1642,7 +1509,7 @@ class TestResult(object):
 
         # dont look at filtered cases
         ibs = testres.ibs
-        qaids = testres.get_common_qaids()
+        qaids = testres.get_test_qaids()
         qaids = ibs.get_annot_tag_filterflags(qaids, {'has_none': 'timedeltaerror'})
 
         gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score')
@@ -1787,13 +1654,13 @@ class TestResult(object):
         #import plottool as pt
         import vtool as vt
         if ut.VERBOSE:
-            print('[dev] draw_score_sep')
+            print('[dev] FIX DUPLICATE CODE find_thresh_cutoff')
         #from ibeis.expt import cfghelpers
 
         assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
         cfgx = 0
         #qreq_ = testres.cfgx2_qreq_[cfgx]
-        common_qaids = testres.get_common_qaids()
+        common_qaids = testres.get_test_qaids()
         gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
         gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
@@ -1832,12 +1699,14 @@ class TestResult(object):
         This combines results over multiple queries of a particular name using
         max
 
+        OLD, MAYBE DEPRIATE
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
         """
         ibs = testres.ibs
-        qaids = testres.get_common_qaids()
+        qaids = testres.get_test_qaids()
         unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(qaids))
 
         qx2_gt_raw_score = testres.get_infoprop_mat('qx2_gt_raw_score')
@@ -1950,7 +1819,7 @@ class TestResult(object):
 
     def draw_annot_scoresep(testres, f=None):
         from ibeis.expt import experiment_drawing
-        experiment_drawing.draw_score_sep(testres.ibs, testres, f=f)
+        experiment_drawing.draw_annot_scoresep(testres.ibs, testres, f=f)
 
     def draw_feat_scoresep(testres, f=None, disttype=None):
         r"""
@@ -2080,8 +1949,6 @@ class TestResult(object):
                 pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
                 pt.adjust_subplots2(use_argv=True)
         return encoder
-
-
 
 
 if __name__ == '__main__':

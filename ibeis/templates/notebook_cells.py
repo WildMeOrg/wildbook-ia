@@ -233,20 +233,26 @@ timestamp_distribution = (
         r'''
         # Timestamp Distribution
 
-        IBEIS will be successful if it the identification process works well
-        when the photos of the animals are taken weeks, months or years apart.
+        We can be confident that IBEIS will be successful if the
+          identification process works well on photos animals that were taken
+          weeks, months or years apart.
         We’d like to be able to identify an animal even if we haven’t seen it
-        for a few years. (Of course, even better is seeing it often.) Therefore,
-        the very first analysis we run on the data is to study the time
-        distribution of the images. The plot below shows the distribution of
-        “Timestamps” for the images we are testing on.
+          for a few years.
+        Therefore, our first analysis studies the time distribution of the
+          images.
+        The plot below shows the distribution of “Timestamps” for the images
+          we are testing on.
         '''),
     ut.codeblock(
         r'''
         # STARTBLOCK
         # Get images of those used in the tests
-        ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
-        aids = ut.unique_ordered(ut.flatten([qaids, daids]))
+        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+            ibs, acfg_name_list=a, qaid_override=qaid_override,
+            daid_override=daid_override, verbose=0)
+
+        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
+        # aids = ut.unique_ordered(ut.flatten([qaids, daids]))
         gids = ut.unique_ordered(ibs.get_annot_gids(aids))
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
@@ -274,8 +280,10 @@ example_annotations = (
         # STARTBLOCK
         # Get a sample of images
         #gids = ibs.get_valid_gids()
-        ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
-        aids = ut.unique_ordered(ut.flatten([qaids, daids]))
+        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+                    ibs, acfg_name_list=a, qaid_override=qaid_override,
+                    daid_override=daid_override, verbose=0)
+        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
         gids = ut.unique_ordered(ibs.get_annot_gids(aids))
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
@@ -318,8 +326,11 @@ example_names = (
         r'''
         # STARTBLOCK
         from ibeis.viz import viz_graph
-        ibs, qaids, daids = ibeis.testdata_expanded_aids(a=a[0], ibs=ibs)
-        aids = ut.unique_ordered(ut.flatten([qaids, daids]))
+        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+                    ibs, acfg_name_list=a, qaid_override=qaid_override,
+                    daid_override=daid_override, verbose=0)
+        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
+
         # Sample some annotations
         aids = ibs.sample_annots_general(aids, filter_kw=dict(sample_size=20, min_pername=2), verbose=False)
         # Visualize name graph

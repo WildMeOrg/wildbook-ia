@@ -471,7 +471,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
 
 @profile
 def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
-                 hack_exclude_keys=None, initial_aids=None):
+                 hack_exclude_keys=None, initial_aids=None, save_cache=True):
     r"""
     Main multi-expansion function. Expands an annot config dict into qaids and
     daids.  New version of this function based on a configuration dictionary
@@ -538,7 +538,6 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
             --acfginfo --veryverbtd
 
         python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd --nocache-aid
-        python -m ibeis --tf get_annotcfg_list  --db seaturtles -a default:qhas_any=\(left,\),sample_occur=True,exclude_reference=True,sample_offset=[0,1,7] --acfginfo
 
     CommandLine:
         python -m ibeis.init.filter_annots --exec-expand_acfgs --show
@@ -570,7 +569,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
     if use_cache is None:
         use_cache = USE_ACFG_CACHE
 
-    save_cache = True
+    # save_cache = True
     if use_cache or save_cache:
         acfg_cacheinfo = get_acfg_cacheinfo(ibs, aidcfg)
         acfg_cachedir, acfg_cachename, aid_cachestr = acfg_cacheinfo
@@ -1049,22 +1048,24 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
         # VerbosityContext.report_annot_stats(ibs, ref_aids, prefix, '')
         with VerbosityContext('exclude_reference',
                               num_ref_aids=len(ref_aids)):
-            avail_aids = ut.setdiff_ordered(avail_aids, ref_aids)
-            avail_aids = sorted(avail_aids)
-            # HACK:
-            #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
-            also_exclude_overlaps = True
-            if also_exclude_overlaps:
-                contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids)
-                # Disallow the same name in the same image
-                x = ibs.unflat_map(ibs.get_annot_nids, contact_aids_list)
-                y = ibs.get_annot_nids(ref_aids)
-                sameimg_samename_aids = ut.flatten(
-                    [ut.compress(aids, np.array(x0) == y0)
-                     for aids, x0, y0 in zip(contact_aids_list, x, y)])
+            import utool
+            with utool.embed_on_exception_context:
+                avail_aids = ut.setdiff_ordered(avail_aids, ref_aids)
+                avail_aids = sorted(avail_aids)
+                # HACK:
+                #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
+                also_exclude_overlaps = True
+                if also_exclude_overlaps:
+                    contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids)
+                    # Disallow the same name in the same image
+                    x = ibs.unflat_map(ibs.get_annot_nids, contact_aids_list)
+                    y = ibs.get_annot_nids(ref_aids)
+                    sameimg_samename_aids = ut.flatten(
+                        [ut.compress(aids, np.array(x0) == y0)
+                         for aids, x0, y0 in zip(contact_aids_list, x, y)])
 
-            #contact_aids = ut.flatten(contact_aids_list)
-            avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
+                #contact_aids = ut.flatten(contact_aids_list)
+                avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
 
         with VerbosityContext('sample_occurr',
                               num_ref_aids=len(ref_aids)):
@@ -1182,6 +1183,64 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
     return avail_aids
 
 
+def multi_sampled_seaturtle_queries():
+    import ibeis
+    from ibeis.expt import annotation_configs
+    from ibeis.expt import experiment_helpers
+    from ibeis.init.filter_annots import expand_acfgs
+    import copy
+    aidcfg = copy.deepcopy(annotation_configs.default)
+    db = 'seaturtles'  # 'testdb1'
+    ibs = ibeis.opendb(defaultdb=db)
+    a = ['default:sample_occur=True,occur_offset=0,exclude_reference=True,qhas_any=(left,right),num_names=1']
+    acfg_combo_list = experiment_helpers.parse_acfg_combo_list(a)
+    aidcfg = acfg_combo_list[0][0]
+
+    if False:
+        # Do each name individually. A bit slower, but more correct
+        qaids_list = []
+        daids_list = []
+        aidcfg['qcfg']['name_offset'] = 0
+        aidcfg['qcfg']['occur_offset'] = 0
+        prev = -1
+        while True:
+            aidcfg['qcfg']['occur_offset'] = 0
+            while True:
+                qaids, daids = expand_acfgs(ibs, aidcfg, use_cache=False, save_cache=False)
+                aidcfg['qcfg']['occur_offset'] += 1
+                if len(qaids) == 0:
+                    break
+                qaids_list.append(qaids)
+                daids_list.append(daids)
+                print(qaids)
+            if len(qaids_list) == prev:
+                break
+            prev = len(qaids_list)
+            aidcfg['qcfg']['name_offset'] += 1
+
+        for qaids, daids in zip(qaids_list, daids_list):
+            ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
+    else:
+        # A bit faster because we can do multiple names at the same time
+        qaids_list = []
+        daids_list = []
+        aidcfg['qcfg']['num_names'] = None
+        aidcfg['dcfg']['num_names'] = None
+        aidcfg['qcfg']['name_offset'] = 0
+        aidcfg['qcfg']['occur_offset'] = 0
+        while True:
+            qaids, daids = expand_acfgs(ibs, aidcfg, use_cache=False, save_cache=False)
+            aidcfg['qcfg']['occur_offset'] += 1
+            if len(qaids) == 0:
+                break
+            qaids_list.append(qaids)
+            daids_list.append(daids)
+            print(qaids)
+
+        for qaids, daids in zip(qaids_list, daids_list):
+            ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
+
+
 @profile
 def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     """
@@ -1190,6 +1249,9 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
     CommandLine:
         python -m ibeis --tf sample_annots --veryverbtd
+
+        python -m ibeis --tf get_annotcfg_list --db seaturtles \
+            -a default:qhas_any=\(left,right\),sample_occur=True,exclude_reference=True,sample_offset=0,num_names=1 --acfginfo
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1222,8 +1284,8 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> aidcfg['sample_occur'] = True
         >>> initial_aids = ibs.get_valid_aids()
         >>> withpre, verbose, prefix = True, 2, ''
-        >>> avail_aids = filter_annots_independent(ibs, initial_aids, {'has_any': ['left', 'right']},
-        >>>                                        prefix, verbose)
+        >>> avail_aids = filter_annots_independent(
+        >>>     ibs, initial_aids, {'has_any': ['left', 'right']}, prefix, verbose)
         >>> qaids = sample_annots(ibs, avail_aids, aidcfg, prefix, verbose)
         >>> avail_aids = initial_aids
         >>> ref_aids = qaids
@@ -1232,29 +1294,50 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
     import vtool as vt
+    from ibeis.expt import annotation_configs
+
+    def get_cfg(key):
+        default_dict = annotation_configs.SAMPLE_DEFAULTS
+        return aidcfg.get(key, default_dict[key])
 
     VerbosityContext = verb_context('SAMPLE (NOREF)', aidcfg, verbose)
     VerbosityContext.startfilter()
 
-    sample_rule     = aidcfg['sample_rule']
-    sample_per_name = aidcfg['sample_per_name']
-    sample_size     = aidcfg['sample_size']
-    offset          = aidcfg['sample_offset']
+    sample_rule     = get_cfg('sample_rule')
+    sample_per_name = get_cfg('sample_per_name')
+    sample_size     = get_cfg('sample_size')
+    offset          = get_cfg('sample_offset')
+    occur_offset    = get_cfg('occur_offset')
+    name_offset     = get_cfg('name_offset')
+    num_names       = get_cfg('num_names')
+    sample_occur    = get_cfg('sample_occur')
 
     unflat_get_annot_unixtimes = functools.partial(
         ibs.unflat_map, ibs.get_annot_image_unixtimes_asfloat)
 
     if offset is None:
         offset = 0
+    if occur_offset is None:
+        occur_offset = 0
+    if name_offset is None:
+        name_offset = 0
 
-    if aidcfg['sample_occur'] is True:
+    if num_names is not None:
+        grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
+        with VerbosityContext('sample_per_name', 'sample_rule',
+                              'sample_offset'):
+            name_slice = slice(name_offset, name_offset + 1)
+            avail_aids = ut.flatten(grouped_aids[name_slice])
+
+    if sample_occur is True:
         # Occurrence / Encounter sampling
         occur_texts = ibs.get_annot_occurrence_text(avail_aids)
         names = ibs.get_annot_names(avail_aids)
         grouped_ = ut.hierarchical_group_items(avail_aids, [names, occur_texts])
         # ensure dictionary ordering for offset consistency
         sgrouped_ = ut.sort_dict(ut.hmap_vals(ut.sort_dict, grouped_, max_depth=0))
-        chosen = [ut.flatten(sub.values()[offset:(offset + 1)]) for sub in sgrouped_.values()]
+        occur_slice = slice(occur_offset, occur_offset + 1)
+        chosen = [ut.flatten(list(sub.values())[occur_slice]) for sub in sgrouped_.values()]
 
         with VerbosityContext('sample_offset'):
             # TODO: num ocurrences to sample

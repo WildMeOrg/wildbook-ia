@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+CommandLine:
+    # Generate and start an IPython notebook
+    python -m ibeis --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
+
+    python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from ibeis.templates import notebook_cells

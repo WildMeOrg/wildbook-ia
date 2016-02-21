@@ -28,11 +28,24 @@ def collect_ibeis_training_annotations(ibs, nDaids_basis, verbose=True):
     # determanism
     np.random.seed(0)
     random.seed(0)
-
-    qaids_all = ibs.filter_junk_annotations(ibs.get_annot_rowid_sample(per_name=1, min_ngt=2, distinguish_unknowns=True))
+    # TODO: USE ANOT FILTERINGS
+    import ibeis
+    qaids_all = ibeis.testdata_aids(a='default:pername=1,mingt=2,is_known=True')
     qaids = qaids_all[::2]
     print('nQaids = %r' % len(qaids))
-    daids_gt_sample = ut.flatten(ibs.get_annot_groundtruth_sample(qaids, isexemplar=None))
+
+    def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
+        r"""
+        DEPRICATE
+        """
+        all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=isexemplar)
+        def random_choice(aids):
+            size = min(len(aids), per_name)
+            return np.random.choice(aids, size, replace=False).tolist()
+        sample_trues_list = [random_choice(aids) if len(aids) > 0 else [] for aids in all_trues_list]
+        return sample_trues_list
+
+    daids_gt_sample = ut.flatten(ibs.get_annot_groundtruth_sample(ibs, qaids, isexemplar=None))
     daids_gf_all = get_set_groundfalse(ibs, qaids)
     ut.assert_eq(len(daids_gt_sample), len(qaids), 'missing gt')
     daids_list = []

@@ -379,7 +379,8 @@ def test_incremental_add(ibs):
         >>> result = test_incremental_add(ibs)
         >>> print(result)
     """
-    sample_aids = ibs.get_annot_rowid_sample()
+    import ibeis
+    sample_aids = ibeis.testdata_aids(a='default:pername=1,mingt=2')
     aids1 = sample_aids[::2]
     aids2 = sample_aids[0:5]
     aids3 = sample_aids[:-1]  # NOQA

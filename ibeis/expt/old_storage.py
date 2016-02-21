@@ -99,7 +99,7 @@ def make_metadata_custom_api(metadata):
         >>> import guitool
         >>> guitool.ensure_qapp()
         >>> metadata_fpath = '/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf'
-        >>> metadata = test_result.ResultMetadata(metadata_fpath, autoconnect=True)
+        >>> metadata = ResultMetadata(metadata_fpath, autoconnect=True)
         >>> wgt = make_metadata_custom_api(metadata)
         >>> ut.quit_if_noshow()
         >>> wgt.show()
@@ -225,3 +225,104 @@ def make_test_result_custom_api(ibs, testres):
     wgt = guitool.APIItemWidget()
     wgt.connect_api(custom_api)
     return wgt
+
+
+@profile
+def draw_results(ibs, testres):
+    r"""
+    Draws results from an experiment harness run.
+    Rows store different qaids (query annotation ids)
+    Cols store different configurations (algorithm parameters)
+
+    Args:
+        testres (TestResult):
+
+    CommandLine:
+        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
+        python dev.py -t custom:rrvsone_on=True,constrained_coeff=.3 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+        python dev.py -t custom:rrvsone_on=True custom --qaid 4 --db PZ_MTEST --show --va --noqcache
+        python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+        python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1,grid_steps=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+
+    CommandLine:
+        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy --show
+        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard --show
+
+        python dev.py -t pyrscale --db PZ_MTEST --allgt --vn --fig-dname query_analysis_interesting --show
+        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf
+        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
+
+        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn
+        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
+        python -m ibeis.expt.old_storage --test-draw_results --show --db PZ_MTEST --gv
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.expt.old_storage import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> result = draw_results(ibs, testres)
+        >>> # verify results
+        >>> print(result)
+    """
+    print(' --- DRAW RESULTS ---')
+
+    # It is very inefficient to turn off caching when view_all is true
+
+    figdir = ibs.get_fig_dir()
+    ut.ensuredir(figdir)
+
+    if ut.get_argflag(('--view-fig-directory', '--vf')):
+        ut.view_directory(figdir)
+
+    figdir_suffix = ut.get_argval('--fig-dname', type_=str, default=None)
+    from os.path import join
+    if figdir_suffix is not None:
+        figdir = join(figdir, figdir_suffix)
+        ut.ensuredir(figdir)
+    #gx2_gt_timedelta
+    #    cfgres_info['qx2_gf_timedelta'] = qx2_gf_timedelta
+
+    metadata_fpath = join(figdir, 'result_metadata.shelf')
+    metadata = ResultMetadata(metadata_fpath)
+    #metadata.rrr()
+    metadata.connect()
+    metadata.sync_test_results(testres)
+    #cfgstr = qreq_.get_cfgstr()
+    #cfg_metadata = ensure_item(metadata, cfgstr, {})
+    #avuuids = ibs.get_annot_visual_uuids(qaids)
+    #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
+    #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
+    #import guitool
+
+    # ut.argv_flag_dec(draw_rank_cdf)(ibs, testres)
+
+    # VIZ_INDIVIDUAL_RESULTS = True
+    # if VIZ_INDIVIDUAL_RESULTS:
+    #     draw_match_cases(ibs, testres, metadata=metadata)
+
+    metadata.write()
+    if ut.get_argflag(('--guiview', '--gv')):
+        import guitool
+        guitool.ensure_qapp()
+        #wgt = make_test_result_custom_api(ibs, testres)
+        wgt = make_metadata_custom_api(metadata)
+        wgt.show()
+        wgt.raise_()
+        guitool.qtapp_loop(wgt, frequency=100)
+    metadata.close()
+
+    if ut.NOT_QUIET:
+        print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.expt.old_storage
+        python -m ibeis.expt.old_storage --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
