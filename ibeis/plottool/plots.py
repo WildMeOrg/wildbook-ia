@@ -818,7 +818,7 @@ def plot_score_histograms(scores_list,
             title = 'Histogram of ' + score_label + 's'
     title += kwargs.get('titlesuf', '')
     if scores_lbls is None:
-        scores_lbls = [lblx for lblx in range(len(scores_list))]
+        scores_lbls = [six.text_type(lblx) for lblx in range(len(scores_list))]
     if score_markers is None:
         score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
@@ -827,6 +827,9 @@ def plot_score_histograms(scores_list,
         markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
     #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
     agg_scores  = np.hstack(scores_list)
+
+    # append amount of support
+    scores_lbls = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in zip(scores_lbls, scores_list)]
 
     dmin = agg_scores.min()
     dmax = agg_scores.max()
