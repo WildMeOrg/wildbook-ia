@@ -173,15 +173,17 @@ class _CoreDependencyCache(object):
         """
         Creates all registered tables
         """
-        print('[depc] INITIALIZE %s DEPCACHE' % (depc.root.upper(),))
+        print('[depc] Initialize %s depcache' % (depc.root.upper(),))
         _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
             reg_preproc = __PREPROC_REGISTER__[depc.root]
             reg_subprop = __SUBPROP_REGISTER__[depc.root]
-            print('[depc.init] Regsitering %d global preproc funcs' % len(reg_preproc))
+            if ut.VERBOSE:
+                print('[depc.init] Registering %d global preproc funcs' % len(reg_preproc))
             for args_, kwargs_ in reg_preproc:
                 depc._register_prop(*args_, **kwargs_)
-            print('[depc.init] Regsitering %d global subprops ' % len(reg_subprop))
+            if ut.VERBOSE:
+                print('[depc.init] Registering %d global subprops ' % len(reg_subprop))
             for args_, kwargs_ in reg_subprop:
                 depc._register_subprop(*args_, **kwargs_)
 
@@ -198,7 +200,8 @@ class _CoreDependencyCache(object):
             db = sql_control.SQLDatabaseController(fpath=fpath, simple=True)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db
-        print('[depc] Finished initialization')
+        if ut.VERBOSE:
+            print('[depc] Finished initialization')
 
         for table in depc.cachetable_dict.values():
             table.initialize(_debug=_debug)
