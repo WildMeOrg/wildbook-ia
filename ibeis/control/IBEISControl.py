@@ -1657,6 +1657,8 @@ class IBEISController(BASE_CLASS):
         #    pass
         #else:
         import vtool as vt
+        if hasattr(ibs, 'force_icon_aid'):
+            aid = ibs.force_icon_aid
         if aid is None:
             species = ibs.get_primary_database_species()
             # Use a url to get the icon

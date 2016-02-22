@@ -344,7 +344,8 @@ class TestResult(object):
             >>> #ibs, testres = main_helpers.testdata_expts('testdb1')
             >>> ibs, testres = main_helpers.testdata_expts(
             >>>    'seaturtles',
-            >>>     a=['default:num_names=1,name_offset=[0,1,2],joinme=1,dpername=1', 'default:num_names=2,dpername=[1,2,3],'])
+            >>>     a=['default:num_names=1,name_offset=[0,1,2],joinme=1,dpername=1', 'default:dpername=[1,2,3]'])
+            >>> testres.get_pcfg_groupxs()
         """
         group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.acfg_list]
         import itertools
