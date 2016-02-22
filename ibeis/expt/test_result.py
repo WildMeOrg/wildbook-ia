@@ -335,9 +335,24 @@ class TestResult(object):
         return cfgx2_cumhist_percent, edges
 
     def get_pcfg_groupxs(testres):
-        """ Groups by common pipe configs """
-        phashid_list = [qreq_.get_pipe_hashid() for qreq_ in testres.cfgx2_qreq_]
-        groupxs = ut.group_indices(phashid_list)[1]
+        """ Groups by common pipe configs
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> #ibs, testres = main_helpers.testdata_expts('testdb1')
+            >>> ibs, testres = main_helpers.testdata_expts(
+            >>>    'seaturtles',
+            >>>     a=['default:num_names=1,name_offset=[0,1,2],joinme=1,dpername=1', 'default:num_names=2,dpername=[1,2,3],'])
+        """
+        group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.acfg_list]
+        import itertools
+        gen_groupid = itertools.count(1)
+        group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
+                     for groupid in group_ids_]
+        #phashid_list = [qreq_.get_pipe_hashid() for qreq_ in testres.cfgx2_qreq_]
+        groupxs = ut.group_indices(group_ids)[1]
         return groupxs
 
     def get_rank_cumhist(testres, bins='dense'):

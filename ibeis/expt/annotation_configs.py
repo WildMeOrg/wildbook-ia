@@ -30,6 +30,7 @@ OTHER_DEFAULTS = {
     #'hack_imageset': None,
     # Hack out errors in test data
     'hackerrors'    : True,
+    'joinme'    : None,
 }
 
 # Defaults for the independent filter
