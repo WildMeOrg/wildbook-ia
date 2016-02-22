@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 from ibeis.expt import experiment_configs
 from ibeis.expt import experiment_drawing
 from ibeis.expt import test_result
-from ibeis.expt import experiment_harness
+from ibeis.expt import harness
 from ibeis.expt import experiment_helpers
 from ibeis.expt import experiment_printres
 import utool as ut
@@ -48,7 +48,7 @@ def reload_subs(verbose=True):
         """ fallback reload """
         pass
     getattr(experiment_configs, 'rrr', fbrrr)(verbose=verbose)
-    getattr(experiment_harness, 'rrr', fbrrr)(verbose=verbose)
+    getattr(harness, 'rrr', fbrrr)(verbose=verbose)
     getattr(experiment_helpers, 'rrr', fbrrr)(verbose=verbose)
     getattr(experiment_printres, 'rrr', fbrrr)(verbose=verbose)
     getattr(results_all, 'rrr', fbrrr)(verbose=verbose)
@@ -64,7 +64,7 @@ rrrr = reload_subs
 
 IMPORT_TUPLES = [
     ('experiment_configs', None),
-    ('experiment_harness', None),
+    ('harness', None),
     ('experiment_helpers', None),
     ('experiment_printres', None),
     ('results_all', None),

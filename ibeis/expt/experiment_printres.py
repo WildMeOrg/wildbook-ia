@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-displays results from experiment_harness
+displays results from harness
 
 TODO: save a testres variable so reloading and regenration becomes easier.
 """

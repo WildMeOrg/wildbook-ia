@@ -5724,7 +5724,7 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
 
 @register_ibs_method
 def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
-    from ibeis.expt import experiment_harness, experiment_helpers
+    from ibeis.expt import harness, experiment_helpers
     experiment_helpers
     testnameid = ibs.get_dbname() + ' ' + str(pipecfg_name_list)
     lbl = '[harn] TEST_CFG ' + str(pipecfg_name_list)
@@ -5734,7 +5734,7 @@ def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
         pipecfg_name_list, ibs=ibs)
 
     cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
-    testres = experiment_harness.run_test_configurations(
+    testres = harness.run_test_configurations(
         ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_list, lbl,
         testnameid, use_cache=False)
     return testres

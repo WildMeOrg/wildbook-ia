@@ -542,3 +542,35 @@ def partition_case_types(testres, min_success_diff=0):
 
     #for key, val in key2_gf_is_type.items():
     #    print(val.sum())
+
+
+shortcfglbl
+        # if False and friendly :
+        #     acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in testres.cfgx2_acfg]
+        #     pcfg_names = [pcfg['_cfgstr'] for pcfg in testres.cfgx2_pcfg]
+
+        #     # Only vary the label settings within the cfgname
+        #     acfg_hashes = np.array(list(map(hash, acfg_names)))
+        #     unique_hashes, a_groupxs = vt.group_indices(acfg_hashes)
+        #     a_label_groups = []
+        #     from ibeis.expt import annotation_configs
+        #     for groupx in a_groupxs:
+        #         acfg_list = ut.take(testres.cfgx2_acfg, groupx)
+        #         #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
+        #         varied_lbls = annotation_configs.get_varied_acfg_labels(
+        #             acfg_list, mainkey='_cfgstr')
+        #         a_label_groups.append(varied_lbls)
+        #     acfg_lbls = vt.invert_apply_grouping(a_label_groups, a_groupxs)
+
+        #     pcfg_hashes = np.array(list(map(hash, pcfg_names)))
+        #     unique_hashes, p_groupxs = vt.group_indices(pcfg_hashes)
+        #     p_label_groups = []
+        #     for groupx in p_groupxs:
+        #         pcfg_list = ut.take(testres.cfgx2_pcfg, groupx)
+        #         varied_lbls = cfghelpers.get_varied_cfg_lbls(pcfg_list, mainkey='_cfgstr')
+        #         p_label_groups.append(varied_lbls)
+        #     pcfg_lbls = vt.invert_apply_grouping(p_label_groups, p_groupxs)
+
+        #     cfg_lbls = [albl + '+' + plbl for albl, plbl in zip(acfg_lbls, pcfg_lbls)]
+        # else:
+

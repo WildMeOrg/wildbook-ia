@@ -27,8 +27,8 @@ def combine_testres_list(ibs, testres_list):
 
     >>> # DISABLE_DOCTEST
     >>> from ibeis.expt.test_result import *  # NOQA
-    >>> from ibeis.expt import experiment_harness
-    >>> ibs, testres_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
+    >>> from ibeis.expt import harness
+    >>> ibs, testres_list = harness.testdata_expts('PZ_MTEST', ['varysize'])
     >>> combine_testres_list(ibs, testres_list)
     """
     import copy
@@ -295,7 +295,7 @@ class TestResult(object):
         else:
             return config_hists
 
-    def get_rank_percentage_cumhist(testres, bins='dense', key=None):
+    def get_rank_percentage_cumhist(testres, bins='dense', key=None, join_acfgs=False):
         r"""
         Args:
             bins (unicode): (default = u'dense')
@@ -316,8 +316,10 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+            >>> #ibs, testres = main_helpers.testdata_expts('testdb1')
+            >>> ibs, testres = main_helpers.testdata_expts('testdb1', a=['default:num_names=1,name_offset=[0,1]'])
             >>> bins = u'dense'
+            >>> key = None
             >>> (config_cdfs, edges) = testres.get_rank_percentage_cumhist(bins)
             >>> result = ('(config_cdfs, edges) = %s' % (str((config_cdfs, edges)),))
             >>> print(result)
@@ -325,8 +327,18 @@ class TestResult(object):
         #testres.rrr()
         cfgx2_hist, edges = testres.get_rank_histograms(bins, asdict=False, jagged=True, key=key)
         cfgx2_cumhist = np.cumsum(cfgx2_hist, axis=1)
+        if join_acfgs:
+            # Hack for turtles
+            groupxs = testres.get_pcfg_groupxs()
+            cfgx2_cumhist = np.array([np.sum(group, axis=0) for group in ut.apply_grouping(cfgx2_cumhist, groupxs)])
         cfgx2_cumhist_percent = 100 * cfgx2_cumhist / cfgx2_cumhist.T[-1].T[:, None]
         return cfgx2_cumhist_percent, edges
+
+    def get_pcfg_groupxs(testres):
+        """ Groups by common pipe configs """
+        phashid_list = [qreq_.get_pipe_hashid() for qreq_ in testres.cfgx2_qreq_]
+        groupxs = ut.group_indices(phashid_list)[1]
+        return groupxs
 
     def get_rank_cumhist(testres, bins='dense'):
         #testres.rrr()
@@ -578,7 +590,7 @@ class TestResult(object):
     #        lbl = re.sub(ser, rep, lbl)
     #    return lbl
 
-    def get_short_cfglbls(testres, friendly=False):
+    def get_short_cfglbls(testres, join_acfgs=False):
         """
         Labels for published tables
 
@@ -592,20 +604,19 @@ class TestResult(object):
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
-            >>> cfg_lbls = testres.get_short_cfglbls(friendly=True)
+            >>> cfg_lbls = testres.get_short_cfglbls()
             >>> result = ('cfg_lbls = %s' % (ut.list_str(cfg_lbls),))
             >>> print(result)
         """
-
-        if False and friendly :
+        from ibeis.expt import cfghelpers
+        from ibeis.expt import annotation_configs
+        if False:
             acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in testres.cfgx2_acfg]
             pcfg_names = [pcfg['_cfgstr'] for pcfg in testres.cfgx2_pcfg]
-
             # Only vary the label settings within the cfgname
             acfg_hashes = np.array(list(map(hash, acfg_names)))
             unique_hashes, a_groupxs = vt.group_indices(acfg_hashes)
             a_label_groups = []
-            from ibeis.expt import annotation_configs
             for groupx in a_groupxs:
                 acfg_list = ut.take(testres.cfgx2_acfg, groupx)
                 #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
@@ -625,38 +636,44 @@ class TestResult(object):
 
             cfg_lbls = [albl + '+' + plbl for albl, plbl in zip(acfg_lbls, pcfg_lbls)]
         else:
-            cfg_lbls = testres.cfgx2_lbl[:]
-        cfg_lbls = [testres._shorten_lbls(lbl) for lbl in cfg_lbls]
-        # split configs up by param and annots
-        pa_tups = [lbl.split('+') for lbl in cfg_lbls]
-        cfg_lbls2 = []
-        for pa in pa_tups:
-            new_parts = []
-            for part in pa:
-                _tup = part.split(cfghelpers.NAMEVARSEP)
-                if len(_tup) > 1:
-                    name, settings = _tup
+            cfg_lbls_ = testres.cfgx2_lbl[:]
+            cfg_lbls_ = [testres._shorten_lbls(lbl) for lbl in cfg_lbls_]
+            # split configs up by param and annots
+            pa_tups = [lbl.split('+') for lbl in cfg_lbls_]
+            cfg_lbls = []
+            for pa in pa_tups:
+                new_parts = []
+                for part in pa:
+                    _tup = part.split(cfghelpers.NAMEVARSEP)
+                    name, settings = _tup if len(_tup) > 1 else (_tup[0], '')
+                    new_parts.append(part if settings else name)
+                if len(new_parts) == 2 and new_parts[1] == 'default':
+                    newlbl = new_parts[0]
                 else:
-                    name = _tup[0]
-                    settings = ''
-                if len(settings) == 0:
-                    new_parts.append(name)
-                else:
-                    new_parts.append(part)
-            if len(new_parts) == 2 and new_parts[1] == 'default':
-                newlbl = new_parts[0]
-            else:
-                newlbl = '+'.join(new_parts)
-            cfg_lbls2.append(newlbl)
-        #cfgtups = [lbl.split(cfghelpers.NAMEVARSEP) for lbl in cfg_lbls]
-        #cfg_lbls = [cfghelpers.NAMEVARSEP.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
-        cfg_lbls = cfg_lbls2
-
-        #from ibeis.expt import annotation_configs
-        #lblaug = annotation_configs.compress_aidcfg(testres.acfg)['common']['_cfgstr']
-
-        #cfg_lbls = [lbl + cfghelpers.NAMEVARSEP + lblaug for lbl in cfg_lbls]
-
+                    newlbl = '+'.join(new_parts)
+                cfg_lbls.append(newlbl)
+        if join_acfgs:
+            groupxs = testres.get_pcfg_groupxs()
+            group_lbls = []
+            for group in ut.apply_grouping(cfg_lbls, groupxs):
+                num_parts = 0
+                part_dicts = []
+                for lbl in group:
+                    parts = []
+                    for count, pa in enumerate(lbl.split('+')):
+                        num_parts = max(num_parts, count + 1)
+                        cfgdict = cfghelpers.parse_cfgstr_list2([pa], strict=False)[0][0]
+                        parts.append(cfgdict)
+                    part_dicts.append(parts)
+                group_lbl_parts = []
+                for px in range(num_parts):
+                    cfgs = ut.take_column(part_dicts, px)
+                    nonvaried_cfg = cfghelpers.partition_varied_cfg_list(cfgs)[0]
+                    group_lbl_parts.append(cfghelpers.get_cfg_lbl(nonvaried_cfg))
+                    # print('nonvaried_lbl = %r' % (nonvaried_lbl,))
+                group_lbl = '+'.join(group_lbl_parts)
+                group_lbls.append(group_lbl)
+            cfg_lbls = group_lbls
         return cfg_lbls
 
     def make_figtitle(testres, plotname='', filt_cfg=None):
@@ -898,8 +915,8 @@ class TestResult(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
-            >>> from ibeis.expt import experiment_harness
-            >>> ibs, testres = experiment_harness.testdata_expts('PZ_MTEST')
+            >>> from ibeis.expt import harness
+            >>> ibs, testres = harness.testdata_expts('PZ_MTEST')
             >>> result = testres.print_results()
             >>> print(result)
         """
@@ -1098,9 +1115,10 @@ class TestResult(object):
             >>> print('selcted_tags = %r' % (selcted_tags,))
         """
         from ibeis.expt import cfghelpers
-        print('[testres] case_sample2')
         if verbose is None:
             verbose = ut.NOT_QUIET
+        if verbose:
+            print('[testres] case_sample2')
 
         if isinstance(filt_cfg, six.string_types):
             filt_cfg = [filt_cfg]
@@ -1304,7 +1322,8 @@ class TestResult(object):
         else:
             index = filt_cfg.pop('index', None)
             if index is not None:
-                print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
+                if verbose:
+                    print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
                 if isinstance(index, six.string_types):
                     index = ut.smart_cast(index, slice)
                 qx_list = ut.take(qx_list, index)
@@ -1618,7 +1637,7 @@ class TestResult(object):
         """
         key = 'qx2_bestranks'
         cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
-        label_list = testres.get_short_cfglbls(friendly=True)
+        label_list = testres.get_short_cfglbls()
         label_list = [
             ('%6.2f%%' % (percent,)) +
             #ut.scalar_str(percent, precision=2)
@@ -1851,24 +1870,10 @@ class TestResult(object):
         """
         print('[testres] draw_feat_scoresep')
         import plottool as pt
-        #assert len(testres.cfgx2_qreq_) == 1, (
-        #    'can only do this on one qreq_ right now')
-        cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
-        valid_case_pos = testres.case_sample2(filt_cfg=f, return_mask=False)
-        cfgx2_valid_qxs = ut.group_items(valid_case_pos.T[0], valid_case_pos.T[1])
-        test_qaids = testres.get_test_qaids()
-        cfgx2_valid_qaids = ut.map_dict_vals(ut.partial(ut.take, test_qaids), cfgx2_valid_qxs)
 
-        # TODO: option to average over pipeline configurations
-
-        testres.print_pcfg_info()
-        for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
-            lbl = cfgx2_shortlbl[cfgx]
-
-            print('Loading cached chipmatches')
+        def load_feat_scores(qreq_, qaids):
             import ibeis  # NOQA
             from os.path import dirname, join  # NOQA
-
             # HACKY CACHE
             cfgstr = qreq_.get_cfgstr(with_input=True)
             cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
@@ -1883,13 +1888,11 @@ class TestResult(object):
             cache_hashid = ut.hashstr27(cache_cfgstr + '_v1')
             cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
             @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
-                            use_cache=False)
-            def get_cfgx_feat_scores(qreq_):
+                            use_cache=True)
+            def get_cfgx_feat_scores(qreq_, qaids):
                 from ibeis.algo.hots import scorenorm
-                # qxs = cfgx2_qxs[cfgx]
-                qaids = cfgx2_valid_qaids[cfgx]
                 cm_list = qreq_.execute_subset(qaids)
-                print('Done loading cached chipmatches')
+                # print('Done loading cached chipmatches')
                 tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
                                                         namemode, fsvx, threshx,
                                                         thresh, num=num)
@@ -1897,18 +1900,44 @@ class TestResult(object):
                 tp_scores, tn_scores, scorecfg = tup
                 return tp_scores, tn_scores, scorecfg
 
-            tp_scores, tn_scores, scorecfg = get_cfgx_feat_scores(qreq_)
-            #fsv_tp = 1 - fsv_tp
-            #fsv_tn = 1 - fsv_tn
+            tp_scores, tn_scores, scorecfg = get_cfgx_feat_scores(qreq_, qaids)
+            return tp_scores, tn_scores, scorecfg
 
+        valid_case_pos = testres.case_sample2(filt_cfg=f, return_mask=False)
+        cfgx2_valid_qxs = ut.group_items(valid_case_pos.T[0], valid_case_pos.T[1])
+        test_qaids = testres.get_test_qaids()
+        cfgx2_valid_qaids = ut.map_dict_vals(ut.partial(ut.take, test_qaids), cfgx2_valid_qxs)
+
+        join_acfgs = True
+
+        # TODO: option to average over pipeline configurations
+        if join_acfgs:
+            groupxs = testres.get_pcfg_groupxs()
+        else:
+            groupxs = list(zip(range(len(testres.cfgx2_qreq_))))
+        grouped_qreqs = ut.apply_grouping(testres.cfgx2_qreq_, groupxs)
+
+        grouped_scores = []
+        for cfgxs, qreq_group in zip(groupxs, grouped_qreqs):
+            # testres.print_pcfg_info()
+            score_group = []
+            for cfgx, qreq_ in zip(cfgxs, testres.cfgx2_qreq_):
+                print('Loading cached chipmatches')
+                qaids = cfgx2_valid_qaids[cfgx]
+                tp_scores, tn_scores, scorecfg = load_feat_scores(qreq_, qaids)
+                score_group.append((tp_scores, tn_scores, scorecfg))
+            grouped_scores.append(score_group)
+
+        cfgx2_shortlbl = testres.get_short_cfglbls(join_acfgs=join_acfgs)
+        for score_group, lbl in zip(grouped_scores, cfgx2_shortlbl):
+            tp_scores = np.hstack(ut.take_column(score_group, 0))
+            tn_scores = np.hstack(ut.take_column(score_group, 1))
+            scorecfg = '+++'.join(ut.unique(ut.take_column(score_group, 2)))
+            score_group
             # TODO: learn this score normalizer as a model
             # encoder = vt.ScoreNormalizer(adjust=4, monotonize=False)
             encoder = vt.ScoreNormalizer(adjust=2, monotonize=True)
             encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
-            # if 'lnbnn_norm' not in fsv_col_lbls_:
-            # hack for making encoder
-            # encoder.save(cfgstr=ut.remove_chars(scoretype, ' []><=') + '_test')
-            #figtitle = 'Feature Scores: %s, %s' % (scorecfg, testres.get_title_aug())
             figtitle = 'Feature Scores: %s, %s' % (scorecfg, lbl)
             fnum = None
 
@@ -1928,7 +1957,7 @@ class TestResult(object):
                 #with_postbayes=True,
                 **vizkw
             )
-            icon = qreq_.ibs.get_database_icon()
+            icon = testres.ibs.get_database_icon()
             if icon is not None:
                 pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 

@@ -41,11 +41,11 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
     The code is getting too untenable.
 
     CommandLine:
-        python -m ibeis.expt.experiment_harness --exec-run_test_configurations2
+        python -m ibeis.expt.harness --exec-run_test_configurations2
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> default_acfgstrs = ['controlled:qsize=20,dpername=1,dsize=10', 'controlled:qsize=20,dpername=10,dsize=100']
@@ -75,7 +75,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
         ut.colorprint(textwrap.dedent("""
 
         [harn]================
-        [harn] experiment_harness.test_configurations2()""").strip(), 'white')
+        [harn] harness.test_configurations2()""").strip(), 'white')
         msg = '[harn] Running %s using %s and %s' % (
             ut.quantity_str('test', len(acfg_list) * len(pipecfg_list)),
             ut.quantity_str('pipeline config', len(pipecfg_list)),
@@ -167,7 +167,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     """
 
     CommandLine:
-        python -m ibeis.expt.experiment_harness --exec-run_test_configurations2
+        python -m ibeis.expt.harness --exec-run_test_configurations2
 
     """
     cfgslice = None
@@ -377,15 +377,15 @@ def get_query_result_info(qreq_):
         qx2_bestranks
 
     CommandLine:
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info:1
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1
-        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd
+        python -m ibeis.expt.harness --test-get_query_result_info
+        python -m ibeis.expt.harness --test-get_query_result_info:0
+        python -m ibeis.expt.harness --test-get_query_result_info:1
+        python -m ibeis.expt.harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1
+        python -m ibeis.expt.harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=['default:qindex=0:3,dindex=0:5'])
         >>> #ibs = ibeis.opendb('PZ_MTEST')
@@ -397,7 +397,7 @@ def get_query_result_info(qreq_):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> #cfgdict = dict(codename='vsone')
@@ -505,8 +505,8 @@ def get_query_result_info(qreq_):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.experiment_harness
-        python -m ibeis.expt.experiment_harness --allexamples
+        python -m ibeis.expt.harness
+        python -m ibeis.expt.harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

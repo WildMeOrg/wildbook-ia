@@ -126,7 +126,7 @@
 #        #print(scores)
 
 #    # TODO: Should be separate function. Previous code should be intergrated
-#    # into the experiment_harness
+#    # into the harness
 #    locals_ = locals()
 #    return locals_  # return in dict format for execstr_dict
 

@@ -51,7 +51,7 @@ from ibeis._devcmds_ibeis import *  # NOQA
 from ibeis.init import main_helpers  # NOQA
 from ibeis.other import dbinfo  # NOQA
 from ibeis.expt import experiment_configs  # NOQA
-from ibeis.expt import experiment_harness  # NOQA
+from ibeis.expt import harness  # NOQA
 from ibeis import params  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
@@ -357,7 +357,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
         acfgstr_name_list = {'OVERRIDE_HACK': (qaid_list, daid_list)}
         assert False, 'This way of running tests no longer works. It may be fixed in the future'
         #acfg
-        experiment_harness.test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
+        harness.test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 

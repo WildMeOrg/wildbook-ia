@@ -57,14 +57,11 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
     #assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
     test_qaids = testres.get_test_qaids()
-    cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
 
     # TODO: option to group configs with same pcfg and different acfg
 
-    for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
-        lbl = cfgx2_shortlbl[cfgx]
+    def load_annot_scores(testres, cfgx, filt_cfg):
         #cfgx = 0
-        qreq_ = testres.cfgx2_qreq_[cfgx]
         qaids = testres.cfgx2_qaids[cfgx]
         gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score', qaids).T[cfgx]
         gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score', qaids).T[cfgx]
@@ -90,19 +87,109 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         #print(qreq_.get_cfgstr())
         part_attrs = {1: {'qaid': tp_qaids, 'daid': tn_daids},
                       0: {'qaid': tn_qaids, 'daid': tp_daids}}
+        return tp_nscores, tn_nscores, part_attrs
 
-        def attr_callback(qaid):
-            print('callback qaid = %r' % (qaid,))
-            testres.interact_individual_result(qaid)
-            reconstruct_str = ('python -m ibeis.dev -e cases ' +
-                               testres.reconstruct_test_flags() +
-                               ' --qaid ' + str(qaid) + ' --show')
-            print('Independent reconstruct')
-            print(reconstruct_str)
+    join_acfgs = True
 
+    # TODO: option to average over pipeline configurations
+    if join_acfgs:
+        groupxs = testres.get_pcfg_groupxs()
+    else:
+        groupxs = list(zip(range(len(testres.cfgx2_qreq_))))
+    grouped_qreqs = ut.apply_grouping(testres.cfgx2_qreq_, groupxs)
+    cfgx2_shortlbl = testres.get_short_cfglbls(join_acfgs=join_acfgs)
+
+    grouped_scores = []
+    for cfgxs in groupxs:
+        # testres.print_pcfg_info()
+        score_group = []
+        for cfgx in cfgxs:
+            print('Loading cached chipmatches')
+            tp_scores, tn_scores, part_attrs = load_annot_scores(testres, cfgx, filt_cfg)
+            score_group.append((tp_scores, tn_scores, part_attrs))
+        grouped_scores.append(score_group)
+
+    def attr_callback(qaid):
+        print('callback qaid = %r' % (qaid,))
+        testres.interact_individual_result(qaid)
+        reconstruct_str = ('python -m ibeis.dev -e cases ' +
+                           testres.reconstruct_test_flags() +
+                           ' --qaid ' + str(qaid) + ' --show')
+        print('Independent reconstruct')
+        print(reconstruct_str)
+    fpr = ut.get_argval('--fpr', type_=float, default=None)
+    tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
+
+    def find_auto_decision_thresh(encoder, label, part_attrs):
+        """
+        Uses the extreme of one type of label to get an automatic decision
+        threshold.  Ideally the threshold would be a little bigger than this.
+
+        label = True  # find auto accept accept thresh
+        """
+        import operator
+        other_attrs = part_attrs[not label]
+        op = operator.lt if label else operator.gt
+        if label:
+            other_support = tn_scores
+            decision_support = tp_scores
+            sortx = np.argsort(other_support)[::-1]
+        else:
+            other_support = tp_scores
+            decision_support = tn_scores
+            sortx = np.argsort(other_support)
+        sort_support = other_support[sortx]
+        sort_qaids = other_attrs['qaid'][sortx]
+        flags = np.isfinite(sort_support)
+        sort_support = sort_support[flags]
+        sort_qaids = sort_qaids[flags]
+        # ---
+        # HACK: Dont let photobombs contribute here
+        #from ibeis import tag_funcs
+        #other_tags = ibs.get_annot_all_tags(sort_qaids)
+        #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
+        #sort_support = sort_support[flags2]
+        # ---
+        autodecide_thresh = sort_support[0]
+        can_auto_decide = op(autodecide_thresh, decision_support)
+
+        autodecide_scores = decision_support[can_auto_decide]
+
+        if len(autodecide_scores) == 0:
+            decision_extreme = np.nan
+        else:
+            if label:
+                decision_extreme = np.nanmin(autodecide_scores)
+            else:
+                decision_extreme = np.nanmax(autodecide_scores)
+
+        num_auto_decide = can_auto_decide.sum()
+        num_total = len(decision_support)
+        percent_auto_decide = 100 * num_auto_decide / num_total
+        print('Decision type: %r' % (label,))
+        print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
+        print('Automatic decision threshold2 = %r' % (decision_extreme,))
+        print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
+
+    for score_group, lbl in zip(grouped_scores, cfgx2_shortlbl):
+        tp_nscores = np.hstack(ut.take_column(score_group, 0))
+        tn_nscores = np.hstack(ut.take_column(score_group, 1))
+        combine_attrs = ut.partial(ut.dict_union_combine, combine_op=ut.partial(ut.dict_union_combine, combine_op=np.append))
+        part_attrs = reduce(combine_attrs, ut.take_column(score_group, 2))
+        # def context_combine(val1, val2):
+        #     import operator as op
+        #     if isinstance(val1, dict):
+        #         return ut.partial(ut.dict_union_combine, combine_op=context_combine)
+        #     elif isinstance(val1, list):
+        #         return ut.partial(ut.dict_union_combine, combine_op=op.add)
+        #     elif isinstance(val1, np.ndarray):
+        #         return ut.partial(ut.dict_union_combine, combine_op=np.append)
+        #     else:
+        #         raise TypeError()
+        # combine_func = ut.partial(ut.dict_union_combine, combine_op=context_combine)
+        # part_attrs = reduce(combine_func, ut.take_column(score_group, 2))
+        # for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
         #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
-        fpr = ut.get_argval('--fpr', type_=float, default=None)
-        tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
         encoder = vt.ScoreNormalizer(
             #adjust=8,
             adjust=1.5,
@@ -119,59 +206,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         # --- NEW ---
         # Fit accept and reject thresholds
 
-        def find_auto_decision_thresh(encoder, label):
-            """
-            Uses the extreme of one type of label to get an automatic decision
-            threshold.  Ideally the threshold would be a little bigger than this.
-
-            label = True  # find auto accept accept thresh
-            """
-            import operator
-            other_attrs = part_attrs[not label]
-            op = operator.lt if label else operator.gt
-            if label:
-                other_support = tn_scores
-                decision_support = tp_scores
-                sortx = np.argsort(other_support)[::-1]
-            else:
-                other_support = tp_scores
-                decision_support = tn_scores
-                sortx = np.argsort(other_support)
-            sort_support = other_support[sortx]
-            sort_qaids = other_attrs['qaid'][sortx]
-            flags = np.isfinite(sort_support)
-            sort_support = sort_support[flags]
-            sort_qaids = sort_qaids[flags]
-            # ---
-            # HACK: Dont let photobombs contribute here
-            #from ibeis import tag_funcs
-            #other_tags = ibs.get_annot_all_tags(sort_qaids)
-            #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
-            #sort_support = sort_support[flags2]
-            # ---
-            autodecide_thresh = sort_support[0]
-            can_auto_decide = op(autodecide_thresh, decision_support)
-
-            autodecide_scores = decision_support[can_auto_decide]
-
-            if len(autodecide_scores) == 0:
-                decision_extreme = np.nan
-            else:
-                if label:
-                    decision_extreme = np.nanmin(autodecide_scores)
-                else:
-                    decision_extreme = np.nanmax(autodecide_scores)
-
-            num_auto_decide = can_auto_decide.sum()
-            num_total = len(decision_support)
-            percent_auto_decide = 100 * num_auto_decide / num_total
-            print('Decision type: %r' % (label,))
-            print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
-            print('Automatic decision threshold2 = %r' % (decision_extreme,))
-            print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
-
-        find_auto_decision_thresh(encoder, True)
-        find_auto_decision_thresh(encoder, False)
+        find_auto_decision_thresh(encoder, True, part_attrs)
+        find_auto_decision_thresh(encoder, False, part_attrs)
 
         # --- /NEW ---
 
@@ -582,7 +618,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
         >>> result = draw_rank_cdf(ibs, testres)
         >>> ut.show_if_requested()
         >>> print(result)
@@ -595,8 +631,10 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
     else:
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
-    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
-    label_list = testres.get_short_cfglbls(friendly=True)
+
+    join_acfgs = True
+    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key, join_acfgs=join_acfgs)
+    label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
     label_list = [
         ('%6.2f%%' % (percent,)) +
         #ut.scalar_str(percent, precision=2)
@@ -721,7 +759,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
     is_success = prop2_mat['is_success']
     X_data_list = []
     X_label_list = []
-    cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
+    cfgx2_shortlbl = testres.get_short_cfglbls()
     if falsepos is None:
         falsepos = ut.get_argflag('--falsepos')
     if truepos is None:
@@ -878,7 +916,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
 
-    verbose = True
+    # verbose = True
     filt_cfg = f
     case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
 
@@ -886,7 +924,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Get configs needed for each query
     qx2_cfgxs = ut.group_items(cfgx_list, qx_list)
 
-    print('f = %r' % (f,))
     show_kwargs = {
         'N': 3,
         'ori': True,
@@ -962,7 +999,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     #overwrite = False
     #overwrite = ut.get_argflag('--overwrite')
 
-    cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
+    cfgx2_shortlbl = testres.get_short_cfglbls()
 
     if ut.NOT_QUIET:
         print('case_figdir = %r' % (case_figdir,))
@@ -970,7 +1007,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
     fnum_start = None
     fnum = pt.ensure_fnum(fnum_start)
-    print('show_in_notebook = %r' % (show_in_notebook,))
+    # print('show_in_notebook = %r' % (show_in_notebook,))
 
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
@@ -991,7 +1028,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
         truth2_prop, prop2_mat = testres.get_truth2_prop()
 
-        if True:
+        if ut.VERBOSE:
             print('qaid = %r' % (qaid,))
             print('qx = %r' % (qx,))
             print('cfgxs = %r' % (cfgxs,))

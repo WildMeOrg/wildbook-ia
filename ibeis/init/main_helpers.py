@@ -156,9 +156,10 @@ def testdata_expts(defaultdb='testdb1',
     override, daid override (and maybe initial aids).
 
     """
-    print('[main_helpers] testdata_expts')
+    if ut.VERBOSE:
+        print('[main_helpers] testdata_expts')
     import ibeis
-    from ibeis.expt import experiment_harness
+    from ibeis.expt import harness
     from ibeis.expt import test_result
     if a is not None:
         default_acfgstr_name_list = a
@@ -187,16 +188,16 @@ def testdata_expts(defaultdb='testdb1',
     if use_bigtest_cache3:
         from os.path import dirname, join
         cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))
-        load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(experiment_harness.run_test_configurations2)
+        load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(harness.run_test_configurations2)
     else:
-        load_testres = experiment_harness.run_test_configurations2
+        load_testres = harness.run_test_configurations2
     testres_list = load_testres(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
         daid_override=daid_override, initial_aids=initial_aids)
     testres = test_result.combine_testres_list(ibs, testres_list)
 
-    print(testres)
-
+    if ut.VERBOSE:
+        print(testres)
     return ibs, testres
     #return ibs, testres_list
 

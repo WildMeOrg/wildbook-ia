@@ -313,7 +313,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
 
     FIXME: THERE IS A FREEZE THAT HAPPENS HERE
         ./reset_dbs.py
-        python -m ibeis.expt.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload
+        python -m ibeis.expt.harness --exec-precompute_test_configuration_features -t custom --expt-preload
 
     Example:
         >>> # SLOW_DOCTEST

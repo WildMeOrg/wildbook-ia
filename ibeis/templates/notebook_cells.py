@@ -123,6 +123,7 @@ initialize = ('# Initialization (Code)', ut.codeblock(
 
     # Load database for this test run
     import ibeis
+    ibeis.expt.harness.USE_BIG_TEST_CACHE = True
     ibs = ibeis.opendb(db=db)
 
     # Make notebook cells wider
