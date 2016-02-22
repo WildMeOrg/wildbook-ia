@@ -3475,7 +3475,7 @@ def draw_text_annotations(text_list,
     return hack_fix_centeralign
 
 
-def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
+def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layout='pydot'):
     r"""
     Args:
         graph (networkx.Graph):
@@ -3507,8 +3507,8 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
-        >>> import networkx as netx
-        >>> graph = netx.DiGraph()
+        >>> import networkx as nx
+        >>> graph = nx.DiGraph()
         >>> graph.add_nodes_from(['a', 'b', 'c', 'd'])
         >>> graph.add_edges_from({'a': 'b', 'b': 'c', 'b': 'd', 'c': 'd'}.items())
         >>> with_labels = True
@@ -3519,7 +3519,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
         >>> ut.show_if_requested()
     """
     import plottool as pt
-    import networkx as netx
+    import networkx as nx
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
     ax = pt.gca()
@@ -3530,7 +3530,16 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
                       if data.get('implicit', False) is not True]
     explicit_graph.add_nodes_from(explicit_nodes)
     explicit_graph.add_edges_from(explicit_edges)
-    pos = netx.nx_pydot.pydot_layout(explicit_graph, prog='dot')
+    if layout == 'pydot':
+        pos = nx.nx_pydot.pydot_layout(explicit_graph, prog='dot')
+    elif layout == 'graphviz':
+        pos = nx.nx_agraph.graphviz_layout(explicit_graph, prog='dot')
+    elif layout == 'graphviz':
+        pos = nx.nx_agraph.graphviz_layout(explicit_graph)
+    elif layout == 'pygraphviz':
+        pos = nx.nx_agraph.pygraphviz_layout(explicit_graph)
+    else:
+        raise ValueError('layout = %r' % (layout,))
 
     def draw_network2(graph, pos, ax, sg=None):
         """ fancy way to draw networkx graphs without using networkx """
@@ -3538,6 +3547,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
         # Draw nodes
         for n, nattrs in graph.nodes(data=True):
             # shape = nattrs.get('shape', 'circle')
+            label = nattrs.get('label', None)
             alpha = nattrs.get('alpha', .5)
             node_color = nattrs.get('color', None)
             if node_color is None:
@@ -3559,7 +3569,10 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
             ax.add_patch(patch)
             graph.node[n]['patch'] = patch
             x, y = pos[n]
-            pt.ax_absolute_text(x, y, n, ha='center', va='center')
+            text = n
+            if label is not None:
+                text += ': ' + str(label)
+            pt.ax_absolute_text(x, y, text, ha='center', va='center')
         ###
         # Draw Edges
         seen = {}
@@ -3580,6 +3593,9 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
                 posB[0] += 10
                 rad = seen[edge] + inc
             seen[edge] = rad
+
+            if (v, u) in seen:
+                rad = seen[edge] * -1
 
             if data.get('implicit', False):
                 alpha = .2
@@ -3618,12 +3634,34 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
                 ax.annotate("*", xy=text_point1, xycoords="data",
                                   va="center", ha="center",
                                   bbox=dict(boxstyle="round", fc="w"))
+            if data.get('label', False):
+                pt1 = np.array(edge_artist.patchA.center)
+                pt2 = np.array(edge_artist.patchB.center)
+                frac_thru = 2
+                edge_verts = edge_artist.get_verts()
+                edge_verts = vt.unique_rows(edge_verts)
+                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+                if len(sorted_verts) <= 4:
+                    mpl_bbox = edge_artist.get_extents()
+                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                    print('sorted_verts = %r' % (sorted_verts,))
+                    beta = (1 / frac_thru)
+                    alpha = 1 - beta
+                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+                else:
+                    text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                ax.annotate(data['label'], xy=text_point1, xycoords="data",
+                                  va="center", ha="center",
+                                  bbox=dict(boxstyle="round", fc="w"))
+                pass
             ax.add_patch(edge_artist)
         # return e
 
     #def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     #    import pygraphviz
-    #    import networkx as netx
+    #    import networkx as nx
     #    # Add "invisible" edges to induce an ordering
     #    # Hack for layout (ordering of top level nodes)
     #    netx_graph2 = netx_graph.copy()
@@ -3638,11 +3676,11 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     #            netx_graph2.add_edges_from(invis_edges)
     #            grouped_nodes.append(ttype_nodes)
 
-    #        A = netx.to_agraph(netx_graph2)
+    #        A = nx.to_agraph(netx_graph2)
     #        for nodes in grouped_nodes:
     #            A.add_subgraph(nodes, rank='same')
     #    else:
-    #        A = netx.to_agraph(netx_graph2)
+    #        A = nx.to_agraph(netx_graph2)
 
     #    args = ''
     #    G = netx_graph
@@ -3660,7 +3698,9 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None):
     #    return node_pos
 
     if False:
-        netx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+        nx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+        #edge_labels = {(v1, v2): data['label'] for v1, v2, data in graph.edges(data=True) if 'label' in data}
+        #nx.draw_networkx_edge_labels(graph, pos, edge_labels)
     else:
         draw_network2(graph, pos, ax)
         ax.autoscale()
