@@ -148,8 +148,8 @@ def get_nnindexer_uuid_map_fpath(qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> # build test data
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
@@ -182,12 +182,8 @@ def clear_uuid_cache(qreq_):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import ibeis
-        >>> # build test data
-        >>> cfgdict = dict(fg_on=False)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False, cfgdict=cfgdict)
-        >>> # execute function
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=True')
         >>> fgws_list = clear_uuid_cache(qreq_)
-        >>> # verify results
         >>> result = str(fgws_list)
         >>> print(result)
     """
@@ -207,12 +203,8 @@ def print_uuid_cache(qreq_):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import ibeis
-        >>> # build test data
-        >>> cfgdict = dict(fg_on=False)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_Master0', preload=False, cfgdict=cfgdict)
-        >>> # execute function
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_Master0', p='default:fg_on=False')
         >>> print_uuid_cache(qreq_)
-        >>> # verify results
         >>> result = str(nnindexer)
         >>> print(result)
     """

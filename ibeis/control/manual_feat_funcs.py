@@ -123,14 +123,14 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import vtool as vt
         >>> import numpy as np
         >>> import ibeis
         >>> import ibeis.viz.interact
         >>> # build test data
-        >>> ibs, qreq1_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False, cfgdict=dict(rotation_invariance=True))
-        >>> ibs, qreq2_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False, cfgdict=dict(rotation_invariance=False))
+        >>> qreq1_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=['default:RI=True'])
+        >>> qreq2_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=['default:RI=False'])
+        >>> ibs = qreq1_.ibs
         >>> aid_list = qreq1_.get_external_qaids()
         >>> with ut.Indenter('[TEST_GET_ANNOT_KPTS]'):
         ...     print('qreq1 params: ' + qreq1_.qparams.feat_cfgstr)

@@ -1339,7 +1339,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('pz_mtest',
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:sv=false')
             >>> idx_list = list(range(cm.num_daids))
@@ -2409,7 +2409,7 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
         >>>                             TRUNCATE_UUIDS=False, MAX_FNAME_LEN=200)
         >>> result = fname
         >>> print(result)
-        qaid=18_cm_ehrflaqssbmixdqx_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
+        qaid=18_cm_cvgrsbnffsgifyom_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
     """
     if qauuid is None:
         print('[chipmatch] Warning qasuuid should be given')

@@ -581,9 +581,10 @@ def show_annot_weights(qreq_, aid, config={}):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.scoring import *  # NOQA
-        >>> from ibeis.algo.hots import _pipeline_helpers as plh
         >>> import plottool as pt
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(qaid_list=[1], defaultdb='testdb1', cmdline_ok=True)
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_()
+        >>> ibs = qreq_.ibs
         >>> aid = qreq_.get_external_qaids()[0]
         >>> config = qreq_.qparams
         >>> show_annot_weights(qreq_, aid, config)

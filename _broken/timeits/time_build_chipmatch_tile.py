@@ -11,8 +11,6 @@
     np.all(qfx2_k == qfx2_k_)
 
 
-
-
 def build_match_iterator(qfx2_idx, qfx2_score_agg, qfx2_valid_agg, qreq_):
     """
     builds sparse iterator that generates feature match pairs, scores, and ranks
@@ -30,12 +28,13 @@ def build_match_iterator(qfx2_idx, qfx2_score_agg, qfx2_valid_agg, qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> from ibeis.algo.hots import pipeline
+        >>> import ibeis
         >>> verbose = True
-        >>> cfgdict = dict(codename='vsmany')
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)
-        >>> locals_ = pipeline.testrun_pipeline_upto(qreq_, 'build_chipmatches')
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(defaultdb='testdb1', p=['default:codename=vsmany'])
+        >>> ibs = qreq_.ibs
+        >>> locals_ = pipeline.plh.testrun_pipeline_upto(qreq_, 'build_chipmatches')
         >>> qaid2_nns, qaid2_nnfilts, qaid2_nnfiltagg = [
-        ...     locals_[key] for key in ['qaid2_nns', 'qaid2_nnfilts', 'qaid2_nnfiltagg']]
+        ...     locals_[key] for key in ['qaid2_nns', 'filtkey_list', 'qaid2_nnfiltagg']]
         >>> qaid = qreq_.get_internal_qaids()[0]
         >>> qfx2_idx = qaid2_nns[qaid][0]
         >>> (qfx2_score_agg, qfx2_valid_agg) = qaid2_nnfiltagg[qaid]

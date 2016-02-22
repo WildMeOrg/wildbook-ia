@@ -22,13 +22,9 @@ def test_featweight_worker():
 
     python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show --cnn
     """
-
-    from ibeis.algo.hots import _pipeline_helpers as plh
-    ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_MTEST',
-                                           qaid_list=[1],
-                                           #qaid_list='all',
-                                           preload=False,
-                                           cfgdict={'featweight_detector': 'cnn'})
+    import ibeis
+    qreq_ = ibeis.main_helpers.testdata_qreq_(defaultdb='PZ_MTEST', p=['default:featweight_detector=cnn'], qaid_override=[1])
+    ibs = qreq_.ibs
     config2_ = qreq_.qparams
     lazy = True
     aid_list            = qreq_.get_external_qaids()

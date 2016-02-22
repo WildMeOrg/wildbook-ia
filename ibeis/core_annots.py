@@ -735,7 +735,6 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         >>> featweight_list = ut.take_column(prop_list, 0)
         >>> result = np.array_str(featweight_list[0][0:3], precision=3)
         >>> print(result)
-        [ 0.125  0.061  0.053]
     """
     nTasks = len(fid_list)
     print('[compute_fgweights] Computing %d fgweights' % (nTasks,))

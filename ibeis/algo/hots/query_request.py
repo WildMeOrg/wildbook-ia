@@ -553,12 +553,10 @@ class QueryRequest(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import utool as ut
-            >>> from ibeis.algo.hots import pipeline
-            >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+            >>> import ibeis
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,
-            ...     qaid_list=qaid_list, daid_list=daid_list)
+            >>> qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p='default:codename=vsone,sv_on=True')
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
             >>> masked_qaid_list = [1, 2, 3,]
@@ -588,12 +586,10 @@ class QueryRequest(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import utool as ut
-            >>> from ibeis.algo.hots import pipeline
-            >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+            >>> import ibeis
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,
-            ...     qaid_list=qaid_list, daid_list=daid_list)
+            >>> qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p='default:codename=vsone,sv_on=True')
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
             >>> unmasked_qaid_list = [1, 2, 3,]

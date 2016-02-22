@@ -129,133 +129,22 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
     return qreq_, args
 
 
-def get_pipeline_testdata(dbname=None,
-                          cfgdict=None,
-                          qaid_list=None,
-                          daid_list=None,
-                          defaultdb='testdb1',
-                          cmdline_ok=True,
-                          preload=True):
-    r"""
-    Gets testdata for pipeline defined by tests / and or command line
-
-    DEPRICATE in favor of ibeis.init.main_helpers.testdata_qreq
-
-    Args:
-        cmdline_ok : if false does not check command line
-
-    Returns:
-        tuple: ibs, qreq_
-
-    CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --daids 39 --qaid 41 --db PZ_MTEST
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --qaid 41 --db PZ_MTEST
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --controlled_daids --qaids=41 --db PZ_MTEST --verb-testdata
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots._pipeline_helpers import *
-        >>> import ibeis  # NOQA
-        >>> from ibeis.algo.hots import _pipeline_helpers as plh
-        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
-        >>> result = ''
-        >>> result += ('daids = %r\n' % (qreq_.get_external_daids(),))
-        >>> result += ('qaids = %r' % (qreq_.get_external_qaids(),))
-        >>> print('cfgstr %s'  % (qreq_.qparams.query_cfgstr,))
-        >>> print(result)
-
-        daids = array([1, 2, 3, 4, 5])
-        qaids = array([1])
-    """
-    import ibeis
-    from ibeis.algo.hots import query_request
-    # Allow commandline specification if paramaters are not specified in tests
-    if cfgdict is None:
-        cfgdict = {}
-
-    assert cmdline_ok is True, 'cmdline_ok should always be True'
-
-    if cmdline_ok:
-        from ibeis.algo import Config
-        # Allow specification of db and qaids/daids
-        if dbname is not None:
-            defaultdb = dbname
-        dbname = ut.get_argval('--db', type_=str, default=defaultdb)
-
-    ibs = ibeis.opendb(defaultdb=dbname)
-
-    default_qaid_list = qaid_list
-    default_daid_list = daid_list
-
-    # setup special defautls
-
-    if default_qaid_list is None:
-        default_qaid_list = {
-            'testdb1' : [1],
-            'GZ_ALL'  : [1032],
-            'PZ_ALL'  : [1, 3, 5, 9],
-        }.get(dbname, [1])
-
-    default_daid_list = ut.get_argval(('--daids', '--daid-list'), type_=list, default=default_daid_list)
-
-    if default_daid_list is None:
-        if dbname == 'testdb1':
-            default_daid_list = ibs.get_valid_aids()[0:5]
-        else:
-            default_daid_list = 'all'
-
-    # Use commmand line parsing for custom values
-
-    if cmdline_ok:
-        import ibeis
-        qaid_list_, daid_list_ = ibeis.testdata_expanded_aids(ibs=ibs, a='default',
-                                                              default_qaids=default_qaid_list,
-                                                              default_daids=default_daid_list)
-        # from ibeis.init import main_helpers
-        # qaid_list_ = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
-        # daid_list_ = main_helpers.get_test_daids(ibs, default_daids=default_daid_list, qaid_list=qaid_list_)
-        #
-        # Allow commond line specification of all query params
-        default_cfgdict = dict(Config.parse_config_items(Config.QueryConfig()))
-        default_cfgdict.update(cfgdict)
-        _orig_cfgdict = cfgdict
-        force_keys = set(list(_orig_cfgdict.keys()))
-        cfgdict_ = ut.util_arg.argparse_dict(
-            default_cfgdict, verbose=not ut.QUIET, only_specified=True,
-            force_keys=force_keys)
-        #ut.embed()
-        if VERB_PIPELINE or VERB_TESTDATA:
-            print('[plh] cfgdict_ = ' + ut.dict_str(cfgdict_))
-    else:
-        qaid_list_ = qaid_list
-        daid_list_ = daid_list
-        cfgdict_ = cfgdict
-
-    #ibs = ibeis.test_main(db=dbname)
-
-    if VERB_TESTDATA:
-        #ibeis.other.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=True)
-        ibeis.other.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=False)
-
-    if 'with_metadata' not in cfgdict:
-        cfgdict_['with_metadata'] = True
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list_, daid_list_, cfgdict=cfgdict_)
-    if preload:
-        qreq_.lazy_load()
-    return ibs, qreq_
-
-
 #+--- OTHER TESTDATA FUNCS ---
 
 
 def testdata_pre_weight_neighbors(defaultdb='testdb1', qaid_list=[1, 2], daid_list=None, codename='vsmany', cfgdict=None):
+    """
+    TODO: replace testdata_pre_weight_neighbors with
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
+        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+    """
     if cfgdict is None:
         cfgdict = dict(codename=codename)
-    ibs, qreq_ = get_pipeline_testdata(
-        qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
+    import ibeis
+    p = 'default' + ut.get_cfg_lbl(cfgdict)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    ibs = qreq_.ibs
     locals_ = testrun_pipeline_upto(qreq_, 'weight_neighbors')
     nns_list, nnvalid0_list = ut.dict_take(locals_, ['nns_list', 'nnvalid0_list'])
 
@@ -282,8 +171,9 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
 
 def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=None, codename='vsmany'):
     cfgdict = dict(codename=codename)
-    ibs, qreq_ = get_pipeline_testdata(
-        qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
+    import ibeis
+    p = 'default' + ut.get_cfg_lbl(cfgdict)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
     locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
     nns_list, impossible_daids_list = ut.dict_take(locals_, ['nns_list', 'impossible_daids_list'])
     return qreq_, nns_list, impossible_daids_list
@@ -295,8 +185,10 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     """
     #from ibeis.algo import Config
     cfgdict = dict()
-    ibs, qreq_ = get_pipeline_testdata(
-        qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
+    import ibeis
+    p = 'default' + ut.get_cfg_lbl(cfgdict)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    ibs = qreq_.ibs
     locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
     cm_list = locals_['cm_list_FILT']
     #nnfilts_list   = locals_['nnfilts_list']
@@ -310,8 +202,10 @@ def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, cod
     #from ibeis.algo import Config
     if cfgdict is None:
         cfgdict = dict(codename=codename)
-    ibs, qreq_ = get_pipeline_testdata(
-        qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
+    import ibeis
+    p = 'default' + ut.get_cfg_lbl(cfgdict)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    ibs = qreq_.ibs
     locals_ = testrun_pipeline_upto(qreq_, 'vsone_reranking')
     cm_list = locals_['cm_list_SVER']
     #nnfilts_list   = locals_['nnfilts_list']
@@ -323,9 +217,10 @@ def testdata_pre_vsonerr(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
         >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
     """
     cfgdict = dict(sver_output_weighting=True, codename='vsmany', rrvsone_on=True)
-    # Get pipeline testdata for this configuration
-    ibs, qreq_ = get_pipeline_testdata(
-        cfgdict=cfgdict, qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cmdline_ok=True)
+    import ibeis
+    p = 'default' + ut.get_cfg_lbl(cfgdict)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    ibs = qreq_.ibs
     qaid_list = qreq_.get_external_qaids().tolist()
     qaid = qaid_list[0]
     #daid_list = qreq_.get_external_daids().tolist()
@@ -361,8 +256,6 @@ def testdata_matching(*args, **kwargs):
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortlist, nAnnotPerName)
     prior_cm      = cm_shortlist[0]
     return ibs, qreq_, prior_cm
-
-
 #L_______
 
 

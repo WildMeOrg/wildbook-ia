@@ -677,7 +677,8 @@ def vsone_independant(qreq_):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots import _pipeline_helpers as plh
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone', fg_on=False)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, qaid_list=[1], daid_list=[2, 5])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
+        >>> ibs, qreq_ = ibeis.testdata_qreq_(p=p, qaid_override=[1], qaid_override=[2, 5])
         >>> result = vsone_independant(qreq_)
         >>> print(result)
     """
@@ -1195,9 +1196,11 @@ def gridsearch_single_vsone_rerank():
     cfgdict_['rrvsone_on'] = True
     # HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION
     # Get pipeline testdata for this configuration
-    ibs, qreq_ = plh.get_pipeline_testdata(
-        cfgdict=cfgdict_, qaid_list=[1], daid_list='all', defaultdb='PZ_MTEST',
-        cmdline_ok=True, preload=False)
+
+    p = 'default' + ut.get_cfg_lbl(cfgdict_)
+    import ibeis
+    ibs, qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=p, a=['default:qsize=1,mingt=2'])
+
     qaid_list = qreq_.get_external_qaids().tolist()
     qaid = qaid_list[0]
     daid_list = qreq_.ibs.get_annot_groundtruth(qaid)[0:1]
@@ -1315,6 +1318,7 @@ def gridsearch_unconstrained_matches():
         >>> gridsearch_unconstrained_matches()
         >>> pt.show_if_requested()
     """
+    import ibeis
     import plottool as pt
     fnum = pt.ensure_fnum(None)
     # Make configuration for every parameter setting
@@ -1322,9 +1326,8 @@ def gridsearch_unconstrained_matches():
     cfgdict_['rrvsone_on'] = True
     # HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION
     # Get pipeline testdata for this configuration
-    ibs, qreq_ = plh.get_pipeline_testdata(
-        cfgdict=cfgdict_, qaid_list=[1], daid_list='gt', defaultdb='PZ_MTEST',
-        cmdline_ok=True, preload=False)
+    p = 'default' + ut.get_cfg_lbl(cfgdict_)
+    ibs, qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=p, a=['default:qsize=1,mingt=2,dsize=1'])
     qaid_list = qreq_.get_external_qaids().tolist()
     qaid = qaid_list[0]
     daid_list = qreq_.get_external_query_groundtruth(qaid)[0:1]

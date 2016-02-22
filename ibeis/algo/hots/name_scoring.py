@@ -416,12 +416,10 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> # Execute Function
         >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)
 
-
     Ignore:
         dict(zip(cm.dnid_list, cm.score_list))
         dict(zip(cm.unique_nids, cm.nsum_score_list))
         np.all(nid_list == cm.unique_nids)
-
     """
     if len(name_groupxs) == 0:
         score_list = np.empty(0, dtype=name_score_list.dtype)

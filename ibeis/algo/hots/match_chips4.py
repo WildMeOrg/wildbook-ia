@@ -188,7 +188,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> # SLOW_DOCTEST
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, False, True
         >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -197,7 +199,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> # SLOW_DOCTEST
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, False, True
         >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -206,8 +210,11 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> # SLOW_DOCTEST
         >>> # TEST SAVE
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+        >>> import ibeis
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, True, True
         >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -216,8 +223,11 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> # SLOW_DOCTEST
         >>> # TEST LOAD
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+        >>> import ibeis
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = True, True, True
         >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -226,9 +236,11 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> # ENABLE_DOCTEST
         >>> # TEST PARTIAL HIT
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+        >>> import ibeis
         >>> cfgdict1 = dict(codename='vsmany', sv_on=False, prescore_method='csum')
-        >>> #ibs.cfg.other_cfg.hots_batch_size = 2
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, True, False
         >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose, batch_size=3)
         >>> cm = qaid2_cm[1]

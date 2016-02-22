@@ -442,14 +442,16 @@ class NeighborIndex(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> import ibeis
             >>> cfgdict = dict(fg_on=False)
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=True, cfgdict=cfgdict)
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False')
+            >>> qreq_.load_indexer()
             >>> nnindexer = qreq_.indexer
             >>> noquery = True
             >>> flann_cfgstr = nnindexer.get_cfgstr(noquery)
             >>> result = ('flann_cfgstr = %s' % (str(flann_cfgstr),))
             >>> print(result)
-            flann_cfgstr = _FLANN((algo=kdtree,seed=42,t=8,))_VECS((5232,128)4mu3cl+!se1x13je)
+            flann_cfgstr = _FLANN((algo=kdtree,seed=42,t=8,))_VECS((11260,128)gj5nea@ni0%f3aja)
         """
         flann_cfgstr_list = []
         use_params_hash = True
@@ -662,10 +664,10 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> import ibeis
             >>> cfgdict = dict(fg_on=False)
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1',
-            >>>                                        cfgdict=cfgdict,
-            >>>                                        preload=True)
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False')
+            >>> qreq_.load_indexer()
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(
             >>>     qreq_.get_internal_qaids()[0],

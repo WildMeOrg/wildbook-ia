@@ -128,8 +128,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.init.main_helpers.testdata_qreq_(a=['default:qindex=0:2,dindex=0:10'])
-        >>> #cfgdict = dict(codename='vsmany')
-        >>> #ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
         >>> ibs = qreq_.ibs
         >>> print(qreq_.qparams.query_cfgstr)
         >>> verbose = True
@@ -145,7 +143,9 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis  # NOQA
         >>> cfgdict1 = dict(codename='vsone', sv_on=False)
-        >>> ibs1, qreq_1 = plh.get_pipeline_testdata(cfgdict=cfgdict1)
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+        >>> qreq_1 = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p])
+        >>> ibs1 = qreq_1.ibs
         >>> print(qreq_1.qparams.query_cfgstr)
         >>> cm_list1 = request_ibeis_query_L0(ibs1, qreq_1)
         >>> cm1 = cm_list1[0]
@@ -377,10 +377,11 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> import ibeis
         >>> verbose = True
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(
-        >>>     dbname='testdb1', qaid_list=[1, 2],
-        >>>     cfgdict=dict(K=4, Knorm=1, use_k_padding=False))
+        >>> cfgdict = dict(K=4, Knorm=1, use_k_padding=False)
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p], qaid_override=[1, 2])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
@@ -400,10 +401,12 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> import ibeis
         >>> verbose = True
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(
-        >>>     dbname='testdb1', qaid_list=[1, 2],
-        >>>     cfgdict=dict(K=2, Knorm=3, use_k_padding=True))
+        >>> cfgdict = dict(K=2, Knorm=3, use_k_padding=True)
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p], qaid_override=[1, 2])
+        >>> ibs = qreq_.ibs
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
@@ -533,9 +536,10 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> import ibeis
         >>> verbose = True
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1',
-        >>>                                        qaid_list=[1, 2, 3])
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1, 2, 3])
+        >>> ibs = qreq_.ibs
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> # execute function
@@ -597,6 +601,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *   # NOQA
+        >>> import ibeis
         >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
         >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_qaids()))
@@ -606,11 +611,12 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         ...    'first col should be all invalid because of self match')
         >>> assert not np.all(nnvalid0_list[0][:, 1]), (
         ...    'second col should have some good matches')
-        >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 3000)
+        >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 3500)
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *   # NOQA
+        >>> import ibeis
         >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(codename='vsone')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
         >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_daids()))
@@ -1479,13 +1485,16 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=VERB_PIPELINE):
     Example2:
         >>> # SLOW_DOCTEST (IMPORTANT)
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> import ibeis
         >>> cfgdict = dict(prescore_method='nsum', score_method='nsum', vsone_reranking=True)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=[2])
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=[p], qaid_override=[2])
+        >>> ibs = qreq_.ibs
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'vsone_reranking')
         >>> cm_list = locals_['cm_list_SVER']
         >>> verbose = True
         >>> cm_list_VSONE = vsone_reranking(qreq_, cm_list, verbose=verbose)
-        >>> ut.quit_if_noshosw()
+        >>> ut.quit_if_noshow()
         >>> from ibeis.algo.hots import vsone_pipeline
         >>> import plottool as pt
         >>> # NOTE: the aid2_score field must have been hacked

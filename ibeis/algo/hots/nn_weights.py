@@ -312,7 +312,7 @@ def apply_normweight(normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm):
         >>> qfx2_normk = get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule)
         >>> qfx2_normweight = nn_weights.apply_normweight(
         >>>   normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm)
-        >>> ut.assert_inbounds(qfx2_normweight.sum(), 800, 950)
+        >>> ut.assert_inbounds(qfx2_normweight.sum(), 600, 950)
     """
     K = len(qfx2_idx.T) - Knorm
     qfx2_normdist = np.array(
@@ -667,7 +667,13 @@ def test_all_normalized_weights():
     """
     from ibeis.algo.hots import nn_weights
     import six
-    ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()
+    #ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()
+
+    qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+                                    a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
+                                    p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+    nns_list = args.nns_list
+    nnvalid0_list = args.nnvalid0_list
     qaid = qreq_.get_external_qaids()[0]
 
     def test_weight_fn(nn_weight, nns_list, qreq_, qaid):

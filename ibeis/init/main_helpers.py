@@ -83,6 +83,7 @@ def testdata_qreq_(p=None, a=None, t=None, **kwargs):
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> kwargs = {}
         >>> p = None
+        >>> a = None
         >>> qreq_ = testdata_qreq_(p)
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
@@ -202,10 +203,10 @@ def testdata_expts(defaultdb='testdb1',
     #return ibs, testres_list
 
 
-def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
-                           ibs=None, verbose=False, return_annot_info=False,
-                           qaid_override=None,
-                           daid_override=None):
+def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
+                           default_qaids=None, default_daids=None,
+                           qaid_override=None, daid_override=None,
+                           return_annot_info=False, verbose=False,):
     r"""
     Args:
         default_qaids (list): (default = [1])
@@ -240,7 +241,6 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
         >>> print('qaid_list = %r' % (qaid_list,))
     """
     print('[main_helpers] testdata_expanded_aids')
-    # print('[testdata_expanded_aids] Getting test annot configs')
     if default_qaids is None:
         # Hack to aggree with experiment-helpers
         default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=[1])
@@ -264,7 +264,7 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
 
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
         ibs, aidcfg_name_list, qaid_override=qaid_override,
-        daid_override=daid_override)
+        daid_override=daid_override, verbose=verbose)
 
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
     assert len(acfg_list) == 1, (
@@ -275,9 +275,12 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
 
     qaid_list, daid_list = expanded_aids_list[0]
 
-    if not (_specified or _specified2) and default_qaids is not None:
+    if not (_specified or _specified2):
         # hack
-        qaid_list = default_qaids
+        if default_qaids is not None and qaid_override is None:
+            qaid_list = default_qaids
+        if default_daids is not None and daid_override is None:
+            daid_list = default_daids
 
     if ut.VERYVERBOSE:
         ibs.print_annotconfig_stats(qaid_list, daid_list)
