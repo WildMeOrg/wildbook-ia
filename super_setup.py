@@ -285,7 +285,8 @@ except Exception:
     print(' '.join(sys.argv))
     if '--check-utool-error-code-0' in sys.argv:
         sys.exit(0)
-    sys.exit(1)
+    else:
+        sys.exit(1)
 
 
 import utool as ut  # NOQA
