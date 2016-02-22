@@ -381,7 +381,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> verbose = True
         >>> cfgdict = dict(K=4, Knorm=1, use_k_padding=False)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p], qaid_override=[1, 2])
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
@@ -405,7 +405,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> verbose = True
         >>> cfgdict = dict(K=2, Knorm=3, use_k_padding=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p], qaid_override=[1, 2])
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])
         >>> ibs = qreq_.ibs
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
@@ -676,6 +676,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> cm_list = build_chipmatches(
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
         >>>     filtvalids_list, filtnormks_list, verbose=verbose)
+        >>> ut.quit_if_noshow()
         >>> cm = cm_list[0]
         >>> cm.score_nsum(qreq_)
         >>> cm.ishow_analysis(qreq_)
@@ -723,8 +724,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ibs = qreq_.ibs
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)
         >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
-        >>> print('filtkey_list = %r' % (filtkey_list,))
-        >>> print('filtvalids_list = %r' % (filtvalids_list,))
         >>> nFiltKeys = len(filtkey_list)
         >>> nInternAids = len(qreq_.get_internal_qaids())
         >>> filtweight_depth = ut.depth_profile(filtweights_list)
