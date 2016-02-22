@@ -1631,10 +1631,11 @@ def ensure_rng(seed=None):
 def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False):
     if finite:
         arr = arr.compress(np.isfinite(arr))
-    if len(arr) == 0:
-        return fill
+    if arr is None or len(arr) == 0:
+        extreme =  fill
     else:
-        return op(arr)
+        extreme = op(arr)
+    return extreme
 
 
 def safe_max(arr, fill=np.nan):
@@ -1946,17 +1947,17 @@ def bow_test():
     c1 /= c1.sum()
     c2 /= c2.sum()
 
-    fred_query = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    sue_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    tom_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # columns that are distinctive per name
-    #                      f1  f2  s1  s2  s3  t1  z1  z2  z3  z4, z5, z6
-    fred1      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    fred2      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    sue1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    sue2       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    sue3       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    tom1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # fred_query = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # tom_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # # columns that are distinctive per name
+    # #                      f1  f2  s1  s2  s3  t1  z1  z2  z3  z4, z5, z6
+    # fred1      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # fred2      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue2       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue3       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # tom1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
 
     names         = ['fred', 'sue', 'tom']
     num_exemplars = [     3,     2,     1]
