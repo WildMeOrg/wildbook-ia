@@ -166,7 +166,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         ut.colorprint('Requested PcfgInfo for tests... ', 'red')
         print_pipe_configs(cfgdict_list, pipecfg_list)
         ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
-        sys.exit(1)
+        sys.exit(0)
     return (cfgdict_list, pipecfg_list)
 
 
@@ -435,7 +435,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         print('acfg_slice = %r' % (acfg_slice,))
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
         ut.colorprint('[experiment_helpers] exiting due to AcfgInfo info request', 'red')
-        sys.exit(1)
+        sys.exit(0)
 
     return acfg_list, expanded_aids_list
 

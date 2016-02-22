@@ -19,7 +19,7 @@ def vdq(dbdir):
     """view directory and quit"""
     _ibsdb = const.PATH_NAMES._ibsdb
     ut.util_cplat.view_directory(join(dbdir, _ibsdb))
-    sys.exit(1)
+    sys.exit(0)
 
 
 def vdd(ibs):
@@ -66,7 +66,7 @@ def preload_commands(dbdir, **kwargs):
         preload_convert_hsdb(dbdir)
     if params.args.preload_exit:
         print('[main_cmd] preload exit')
-        sys.exit(1)
+        sys.exit(0)
 
 
 def postload_commands(ibs, back):
@@ -212,4 +212,4 @@ def postload_commands(ibs, back):
     #    pass
     if params.args.postload_exit:
         print('[main_cmd] postload exit')
-        sys.exit(1)
+        sys.exit(0)

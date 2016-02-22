@@ -744,7 +744,6 @@ def turk_detection():
         image_src = ap.embed_image_html(image, filter_width=False)
         # Get annotations
         width, height = ibs.get_image_sizes(gid)
-        scale_factor = float(ap.TARGET_WIDTH) / float(width)
         aid_list = ibs.get_image_aids(gid)
         annot_bbox_list = ibs.get_annot_bboxes(aid_list)
         annot_thetas_list = ibs.get_annot_thetas(aid_list)
@@ -753,10 +752,10 @@ def turk_detection():
         annotation_list = []
         for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
             temp = {}
-            temp['left']   = int(scale_factor * annot_bbox[0])
-            temp['top']    = int(scale_factor * annot_bbox[1])
-            temp['width']  = int(scale_factor * (annot_bbox[2]))
-            temp['height'] = int(scale_factor * (annot_bbox[3]))
+            temp['left']   = 100.0 * (annot_bbox[0] / width)
+            temp['top']    = 100.0 * (annot_bbox[1] / height)
+            temp['width']  = 100.0 * (annot_bbox[2] / width)
+            temp['height'] = 100.0 * (annot_bbox[3] / height)
             temp['label']  = species
             temp['id']     = aid
             temp['angle']  = float(annot_theta)
@@ -1270,15 +1269,14 @@ def submit_detection():
         current_aid_list = ibs.get_image_aids(gid)
         # Make new annotations
         width, height = ibs.get_image_sizes(gid)
-        scale_factor = float(width) / float(ap.TARGET_WIDTH)
         # Get aids
         annotation_list = json.loads(request.form['detection-annotations'])
         bbox_list = [
             (
-                int(scale_factor * annot['left']),
-                int(scale_factor * annot['top']),
-                int(scale_factor * annot['width']),
-                int(scale_factor * annot['height']),
+                int( width  * (annot['left']   / 100.0) ),
+                int( height * (annot['top']    / 100.0) ),
+                int( width  * (annot['width']  / 100.0) ),
+                int( height * (annot['height'] / 100.0) ),
             )
             for annot in annotation_list
         ]

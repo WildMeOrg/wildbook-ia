@@ -297,7 +297,7 @@ def main():
         opts, args = getopt.getopt(sys.argv[1:], 'f:u:n:h')
     except getopt.GetoptError:
         usage()
-        sys.exit(2)
+        sys.exit(1)
 
     filename = None
     url = 'www.whaleshark.org/listImages.jsp'

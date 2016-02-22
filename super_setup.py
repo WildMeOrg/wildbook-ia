@@ -234,7 +234,7 @@ if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
         bootstrap = import_module_from_fpath(bootstrap_fpath)
         #sys.path.append(os.path.abspath('_scripts'))
         bootstrap.bootstrap_sysreq()
-    sys.exit(1)
+    sys.exit(0)
 
 
 # TODO: Make this prompt for the userid
@@ -263,8 +263,9 @@ except Exception:
     UTOOL_BRANCH = 'next'
     UTOOL_REPO = 'https://github.com/Erotemic/utool.git'
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
-    #os.chdir(os.path.expanduser(CODE_DIR))
+    cwdpath = os.path.realpath(os.getcwd())
     usr_code_dir = os.path.expanduser(CODE_DIR)
+    os.chdir(usr_code_dir)
     print("user code dir = %r" % usr_code_dir)
     print('cloning utool')
     if not os.path.exists('utool'):
@@ -278,10 +279,12 @@ except Exception:
     if not WIN32 and not in_virtual_env:
         cmdstr = 'sudo ' + cmdstr
     syscmd(cmdstr)
-    cwdpath = os.path.realpath(os.getcwd())
-    sys.path.append(cwdpath)
+    os.chdir(cwdpath)
+    sys.path.append(usr_code_dir)
     print('Please rerun super_setup.py')
     print(' '.join(sys.argv))
+    if '--check-utool-error-code-0' in sys.argv:
+        sys.exit(0)
     sys.exit(1)
 
 
