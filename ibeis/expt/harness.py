@@ -13,6 +13,7 @@ from ibeis.expt import experiment_helpers
 #from ibeis.expt import experiment_configs
 #from ibeis.expt import experiment_printres
 #from ibeis.expt import experiment_drawing
+from os.path import dirname, join
 from ibeis.expt import test_result
 #from ibeis.expt import annotation_configs
 #from ibeis.expt import cfghelpers
@@ -144,7 +145,6 @@ def get_big_test_cache_info(ibs, cfgx2_qreq_):
     """
     if ut.is_developer():
         import ibeis
-        from os.path import dirname, join
         repodir = dirname(ut.get_module_dir(ibeis))
         bt_cachedir = join(repodir, 'BIG_TEST_CACHE2')
     else:
