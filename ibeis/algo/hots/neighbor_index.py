@@ -553,42 +553,6 @@ class NeighborIndex(object):
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
             >>> print(result)
             (0, 2) (0, 2)
-
-        Dev:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
-            >>> qreq_.load_indexer()
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
-            >>> K = 2
-            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
-
-            nnindexer = qreq_.indexer
-            (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
-                qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
-
-            qaid = 1
-            qencid = ibs.get_annot_encounter_text([qaid])[0]
-            ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
-
-            invalid_axs = np.where(ax2_encid == qencid)[0]
-
-            ibs = qreq_.ibs
-
-            invalid = np.in1d(nnindexer.get_nn_axs(qfx2_idx), invalid_axs).reshape(qfx2_idx.shape)
-            qfx2_num_invalid = invalid.sum(axis=1)
-            qfx2_invalid_vec = qfx2_vec[qfx2_num_invalid > 0]
-
-            qfx2_num_invalid.max()
-
-            (qfx2_invalid_idx, _) = nnindexer.flann.nn_index(
-                qfx2_invalid_vec, K + qfx2_num_invalid.max(), checks=nnindexer.checks, cores=nnindexer.cores)
-
-            new_idx = qfx2_invalid_idx[:, K + 1:]
-            new_invalid = np.in1d(nnindexer.get_nn_axs(new_idx), invalid_axs).reshape(new_idx.shape)
-
-            invalid = np.in1d(nnindexer.get_nn_axs(qfx2_idx), invalid_axs).reshape(qfx2_idx.shape)
         """
         if K == 0:
             (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
@@ -631,6 +595,84 @@ class NeighborIndex(object):
                 assert np.allclose(targetdist, qfx2_dist), 'inconsistant distance calculations'
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd
         return (qfx2_idx, qfx2_dist)
+
+    def ibeis_knn(nnindexer):
+        """
+            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        """
+        import ibeis
+        import itertools
+
+        qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
+        qreq_.load_indexer()
+        qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
+        K = 2
+        nnindexer = qreq_.indexer
+        ibs = qreq_.ibs
+        qaid = 1
+        qencid = ibs.get_annot_encounter_text([qaid])[0]
+        ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
+        invalid_axs = np.where(ax2_encid == qencid)[0]
+
+        def in1d_shape(arr1, arr2):
+            return np.in1d(arr1, arr2).reshape(arr1.shape)
+
+        get_neighbors = ut.partial(nnindexer.flann.nn_index,
+                                   checks=nnindexer.checks,
+                                   cores=nnindexer.cores)
+
+        # Alloc space for final results
+        shape = (len(qfx2_vec), K)
+        qfx2_idx = np.full(shape, -1, dtype=np.int32)
+        qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
+        qfx2_truek = np.full(shape, -1, dtype=np.int32)
+
+        # Make a set of temporary indexes and loop variables
+        limit = None
+        limit = 1
+        K_ = K
+        tx2_qfx = np.arange(len(qfx2_vec))
+        tx2_vec = qfx2_vec
+        for count in itertools.count():
+            if limit is not None and count >= limit:
+                break
+            # Find a set of neighbors
+            (tx2_idx, tx2_rawdist) = get_neighbors(tx2_vec, K_)
+            tx2_ax = nnindexer.get_nn_axs(tx2_idx)
+            # Check to see if they meet the criteria
+            tx2_invalid = in1d_shape(tx2_ax, invalid_axs)
+            tx2_valid = np.logical_not(tx2_invalid)
+            tx2_num_valid = tx2_valid.sum(axis=1)
+            tx2_notdone = tx2_num_valid < K
+            tx2_done = np.logical_not(tx2_notdone)
+
+            # Move completely valid queries into the results
+            if np.any(tx2_done):
+                done_qfx = tx2_qfx.compress(tx2_done, axis=0)
+                # Need to parse which columns are the completed ones
+                done_valid_ = tx2_valid.compress(tx2_done, axis=0)
+                done_rawdist_ = tx2_rawdist.compress(tx2_done, axis=0)
+                done_idx_ = tx2_idx.compress(tx2_done, axis=0)
+                # Get the complete valid indicies
+                rowxs, colxs = np.where(done_valid_)
+                first_k_groupxs = [groupx[0:K] for groupx in vt.group_indices(rowxs)[1]]
+                chosen_xs = np.hstack(first_k_groupxs)
+                multi_index = (rowxs.take(chosen_xs), colxs.take(chosen_xs))
+                flat_xs = np.ravel_multi_index(multi_index, done_valid_.shape)
+                done_rawdist = done_rawdist_.take(flat_xs).reshape((-1, K))
+                done_idx = done_idx_.take(flat_xs).reshape((-1, K))
+                # Write done results in output
+                qfx2_idx[done_qfx, :] = done_idx
+                qfx2_rawdist[done_qfx, :] = done_rawdist
+                qfx2_truek[done_qfx, :] = vt.apply_grouping(colxs, first_k_groupxs)
+                # not done
+                #notdone_qfx = tx2_qfx.compress(np.logical_not(tx2_done), axis=0)
+            if np.all(tx2_done):
+                break
+            K_increase = (K - tx2_num_valid.min())
+            K_ += K_increase
+            tx2_qfx = tx2_qfx.compress(tx2_notdone, axis=0)
+            tx2_vec = tx2_vec.compress(tx2_notdone, axis=0)
 
     def debug_nnindexer(nnindexer):
         r"""
