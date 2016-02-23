@@ -1031,6 +1031,8 @@ def intersect2d_indices(A, B):
 
 def intersect2d_flags(A, B):
     r"""
+    Checks intersection of rows of A against rows of B
+
     Args:
         A (ndarray[ndims=2]):
         B (ndarray[ndims=2]):
@@ -1574,6 +1576,47 @@ def find_first_true_indices(flags_list):
         index = None if len(index_list) == 0 else index_list[0]
         return index
     index_list = [tryget_fisrt_true(flags) for flags in flags_list]
+    return index_list
+
+
+def find_k_true_indicies(flags_list, k):
+    r"""
+    Uses output of either this function or find_first_true_indices
+    to find the next index of true flags
+
+    Args:
+        flags_list (list): list of lists of booleans
+
+    CommandLine:
+        python -m utool.util_list --test-find_next_true_indices
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> flags_list = [[False, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [True, True, True]]
+        >>> k = 2
+        >>> indices = find_k_true_indicies(flags_list, k)
+        >>> result = str(indices)
+        >>> print(result)
+        [array([2]), None, array([1, 2]), array([0, 1])]
+    """
+
+    if False:
+        import vtool as vt
+        flags_list = np.array(flags_list)
+        rowxs, colxs = np.where(flags_list)
+        first_k_groupxs = [groupx[0:k] for groupx in vt.group_indices(rowxs)[1]]
+        chosen_xs = np.hstack(first_k_groupxs)
+        flat_xs = np.ravel_multi_index((rowxs.take(chosen_xs), colxs.take(chosen_xs)), flags_list.shape)
+        flat_xs
+    def tryget_k_true(flags):
+        index_list = np.where(flags)[0]
+        index = None if len(index_list) == 0 else index_list[0:k]
+        return index
+    index_list = [tryget_k_true(flags) for flags in flags_list]
     return index_list
 
 
