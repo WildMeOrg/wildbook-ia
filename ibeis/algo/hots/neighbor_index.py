@@ -341,12 +341,12 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE ADD POINTS')
 
-    def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False, memtrack=None):
+    def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
+                       memtrack=None):
         r"""
         Ensures that you get a neighbor indexer. It either loads a chached
         indexer or rebuilds a new one.
         """
-        #with ut.PrintStartEndContext(msg='CACHED NNINDEX', verbose=verbose):
         if NOCACHE_FLANN or force_rebuild:
             print('...nnindex flann cache is forced off')
             load_success = False
@@ -364,7 +364,8 @@ class NeighborIndex(object):
                 nAnnots = nnindexer.num_indexed_annots()
                 print('...nnindex flann cache miss: %d vectors, %d annots' %
                       (nVecs, nAnnots))
-            nnindexer.build_and_save(cachedir, verbose=verbose, memtrack=memtrack)
+            nnindexer.build_and_save(cachedir, verbose=verbose,
+                                     memtrack=memtrack)
 
     def build_and_save(nnindexer, cachedir, verbose=True, memtrack=None):
         nnindexer.reindex(memtrack=memtrack)
@@ -374,7 +375,8 @@ class NeighborIndex(object):
         r""" indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
-        verbose_ = ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num)
+        verbose_ = ut.VERYVERBOSE or verbose or (
+            not ut.QUIET and num_vecs > notify_num)
         if verbose_:
             print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building index')
@@ -404,7 +406,8 @@ class NeighborIndex(object):
         flann_fpath = nnindexer.get_fpath(cachedir)
         nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:
-            print('[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
+            print('[nnindex] flann.save_index(%r)' %
+                  ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir, verbose=True):
@@ -733,10 +736,11 @@ class NeighborIndex2(NeighborIndex):
         nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
 
     def __getstate__(self):
+        state_dict = self.__dict__
         pass
 
-    def __setstate__(self):
-        pass
+    def __setstate__(self, state):
+        assert 'ibs' in state, 'requires controller object to be loaded'
 
     def ibeis_knn(nnindexer, qfx2_vec, K):
         """
