@@ -365,6 +365,7 @@ def testdata_depc(fname=None):
         ismulti=True
     )
     def dummy_preproc_indexer(depc, parent_rowids, config=None):
+
         yield None
 
     # REGISTER MATCHING ALGORITHMS
