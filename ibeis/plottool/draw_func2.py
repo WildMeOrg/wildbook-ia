@@ -3475,7 +3475,7 @@ def draw_text_annotations(text_list,
     return hack_fix_centeralign
 
 
-def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layout='pydot'):
+def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layout='pydot'):
     r"""
     Args:
         graph (networkx.Graph):
@@ -3485,7 +3485,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, lay
         pnum (tuple):  plot number(default = None)
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-show_netx --show
+        python -m plottool.draw_func2 --exec-show_nx --show
         python -m dtool --tf DependencyCache.make_graph --show
 
     Ignore:
@@ -3515,7 +3515,7 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, lay
         >>> node_size = 1100
         >>> fnum = None
         >>> pnum = None
-        >>> e = show_netx(graph, with_labels, node_size, fnum, pnum)
+        >>> e = show_nx(graph, with_labels, node_size, fnum, pnum)
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -3524,20 +3524,26 @@ def show_netx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, lay
     pt.figure(fnum=fnum, pnum=pnum)
     ax = pt.gca()
 
-    explicit_graph = graph.__class__()
-    explicit_nodes = graph.nodes(data=False)
-    explicit_edges = [(n1, n2, data) for (n1, n2, data) in graph.edges(data=True)
-                      if data.get('implicit', False) is not True]
-    explicit_graph.add_nodes_from(explicit_nodes)
-    explicit_graph.add_edges_from(explicit_edges)
+    only_explicit = True
+    if only_explicit:
+        explicit_graph = graph.__class__()
+        explicit_nodes = graph.nodes(data=False)
+        explicit_edges = [(n1, n2, data) for (n1, n2, data) in graph.edges(data=True)
+                          if data.get('implicit', False) is not True]
+        explicit_graph.add_nodes_from(explicit_nodes)
+        explicit_graph.add_edges_from(explicit_edges)
+        layout_graph = explicit_graph
+    else:
+        layout_graph = graph
+
     if layout == 'pydot':
-        pos = nx.nx_pydot.pydot_layout(explicit_graph, prog='dot')
+        pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
-        pos = nx.nx_agraph.graphviz_layout(explicit_graph, prog='dot')
+        pos = nx.nx_agraph.graphviz_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
-        pos = nx.nx_agraph.graphviz_layout(explicit_graph)
+        pos = nx.nx_agraph.graphviz_layout(layout_graph)
     elif layout == 'pygraphviz':
-        pos = nx.nx_agraph.pygraphviz_layout(explicit_graph)
+        pos = nx.nx_agraph.pygraphviz_layout(layout_graph)
     else:
         raise ValueError('layout = %r' % (layout,))
 
