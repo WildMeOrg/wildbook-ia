@@ -1320,8 +1320,15 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
     dst_imgdir = ibs_dst.get_imgdir()
     ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
     ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship',
-                     'annotation_lblannot_relationship',
-                     'keys']
+                     'annotation_lblannot_relationship', 'keys']
+    # TODO: Fix database merge to allow merging tables with more than one superkey
+    # and no primary superkey, which requires an extension of the depcache
+    error_tables = [
+        'imageset_image_relationship',
+        'annotgroup_annotation_relationship',
+        'annotmatch',
+    ]
+    ignore_tables += error_tables
     ibs_dst.db.merge_databases_new(
         ibs_src.db, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets)
     print('FINISHED MERGE %r into %r' %
