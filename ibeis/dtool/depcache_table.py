@@ -146,7 +146,8 @@ class DependencyCacheTable(ut.NiceRepr):
     def __nice__(table):
         num_parents = len(table.parent_tablenames)
         num_cols = len(table.data_colnames)
-        return '(%s) nP=%d nC=%d' % (table.tablename, num_parents, num_cols)
+        return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
+                                       table.ismulti else '', num_cols)
 
     def _assert_self(table):
         assert len(table.data_colnames) == len(table.data_coltypes), (
@@ -538,6 +539,22 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> match_list = request.execute()
             >>> print(match_list)
             >>> print(rowids)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> # Test get behavior for multi-parents
+            >>> depc = testdata_depc()
+            >>> table = depc['nnindexer']
+            >>> _debug = True
+            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3, 4])
+            >>> parent_rowids = request.parent_rowids
+            >>> ut.colorprint('Testing add_rows via getters', 'blue')
+            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
+            >>> match_list = request.execute()
+            >>> print(match_list)
+            >>> print(rowids)
         """
         _debug = table.depc._debug if _debug is None else _debug
         # Get requested configuration id
@@ -608,7 +625,7 @@ class DependencyCacheTable(ut.NiceRepr):
             proptup_gen = table.preproc_func(table.depc, *args, config=config_)
             # Append rowids and rectify nested and external columns
             dirty_params_iter = table.prepare_storage(
-                dirty_parent_rowids, proptup_gen, config_rowid, config)
+                dirty_parent_rowids, proptup_gen, config_rowid, config_)
             # Break iterator into chunks
             chunksize = ut.ifnone(len(dirty_parent_rowids), table.chunksize)
             nInput = len(dirty_parent_rowids)
@@ -699,8 +716,10 @@ class DependencyCacheTable(ut.NiceRepr):
                                      col)
             for col in extern_colnames
         ]))
-
-        extern_dpath = table._get_extern_dpath()
+        # get extern cache directory and fpaths
+        cache_dpath = table.depc.cache_dpath
+        extern_dname = 'extern_' + table.tablename
+        extern_dpath = join(cache_dpath, extern_dname)
         ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
         extern_fpaths_list = [[join(extern_dpath, fname) for fname in fnames]
                               for fnames in extern_fnames_list]
@@ -729,12 +748,6 @@ class DependencyCacheTable(ut.NiceRepr):
             groupxs = [idxs1, idxs2]
             data_new = tuple(ut.ungroup(grouped_items, groupxs, nCols - 1))
             yield data_new
-
-    def _get_extern_dpath(table):
-        cache_dpath = table.depc.cache_dpath
-        extern_dname = 'extern_' + table.tablename
-        extern_dpath = join(cache_dpath, extern_dname)
-        return extern_dpath
 
     def _get_extern_fnames(table, parent_rowids, config_rowid, config,
                            colname=None):
@@ -850,7 +863,7 @@ class DependencyCacheTable(ut.NiceRepr):
     def delete_rows(table, rowid_list, verbose=None):
         """
         CommandLine:
-            python -m dtool.depcache_table --exec-delete_rows --show
+            python -m dtool.depcache_table --exec-delete_rows
 
         Example:
             >>> from dtool.depcache_table import *  # NOQA
@@ -928,7 +941,6 @@ class DependencyCacheTable(ut.NiceRepr):
                                                             rowid_list,
                                                             parent_colnames)
                     child_table.delete_rows(child_rowids)
-        pass
 
         if ut.NOT_QUIET:
             print('Deleting %d non-None rows from %s' % (
@@ -947,7 +959,7 @@ class DependencyCacheTable(ut.NiceRepr):
         TODO: Clean up and allow for eager=False
 
         CommandLine:
-            python -m dtool.depcache_table --exec-get_row_data --show
+            python -m dtool.depcache_table --exec-get_row_data
 
         Example:
             >>> # ENABLE_DOCTEST
