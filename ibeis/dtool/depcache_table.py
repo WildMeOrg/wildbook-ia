@@ -907,7 +907,6 @@ class DependencyCacheTable(ut.NiceRepr):
         # HACK: check if the config specifies the extension type
         extkey = table.extern_ext_config_keys.get(colname, 'ext')
         ext = config[extkey] if extkey in config else '.cPkl'
-
         fname_list = [
             fmtstr.format(prefix=prefix,
                           rowids='_'.join(list(map(str, rowids))),
