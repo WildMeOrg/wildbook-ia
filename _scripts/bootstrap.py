@@ -115,6 +115,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'libeigen2-dev',
         'libeigen3-dev',
         'graphviz',
+        'graphviz-dev',
         'libgraphviz-dev',
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
