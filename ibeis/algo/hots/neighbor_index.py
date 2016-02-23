@@ -553,6 +553,42 @@ class NeighborIndex(object):
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
             >>> print(result)
             (0, 2) (0, 2)
+
+        Dev:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> import ibeis
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
+            >>> qreq_.load_indexer()
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
+            >>> K = 2
+            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
+
+            nnindexer = qreq_.indexer
+            (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
+                qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
+
+            qaid = 1
+            qencid = ibs.get_annot_encounter_text([qaid])[0]
+            ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
+
+            invalid_axs = np.where(ax2_encid == qencid)[0]
+
+            ibs = qreq_.ibs
+
+            invalid = np.in1d(nnindexer.get_nn_axs(qfx2_idx), invalid_axs).reshape(qfx2_idx.shape)
+            qfx2_num_invalid = invalid.sum(axis=1)
+            qfx2_invalid_vec = qfx2_vec[qfx2_num_invalid > 0]
+
+            qfx2_num_invalid.max()
+
+            (qfx2_invalid_idx, _) = nnindexer.flann.nn_index(
+                qfx2_invalid_vec, K + qfx2_num_invalid.max(), checks=nnindexer.checks, cores=nnindexer.cores)
+
+            new_idx = qfx2_invalid_idx[:, K + 1:]
+            new_invalid = np.in1d(nnindexer.get_nn_axs(new_idx), invalid_axs).reshape(new_idx.shape)
+
+            invalid = np.in1d(nnindexer.get_nn_axs(qfx2_idx), invalid_axs).reshape(qfx2_idx.shape)
         """
         if K == 0:
             (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
