@@ -64,6 +64,7 @@ import numpy as np
 import cv2
 from ibeis.control.controller_inject import register_preproc, register_subprop
 from ibeis.algo.hots.chip_match import ChipMatch
+from ibeis.algo.hots import neighbor_index
 (print, rrr, profile) = ut.inject2(__name__, '[core]')
 
 
@@ -985,6 +986,87 @@ def compute_one_vs_one(depc, qaids, daids, config):
             match.ishow_analysis(request)
         #match = SingleMatch_IBEIS(qaid, daid, score, fm)
         yield (score, match)
+
+
+class IndexerConfig(dtool.Config):
+    """
+    Example:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> cfg = VsOneConfig()
+        >>> result = str(cfg)
+        >>> print(result)
+    """
+    _param_info_list = [
+        ut.ParamInfo('algorithm', 'kdtree', 'alg'),
+        ut.ParamInfo('random_seed', 42, 'seed'),
+        ut.ParamInfo('trees', 4, hideif=lambda cfg: cfg['algorithm'] != 'kdtree'),
+        ut.ParamInfo('version', 0),
+    ]
+    _sub_config_list = [
+        FeatConfig,
+        ChipConfig,  # TODO: infer chip config from feat config
+        FeatWeightConfig,
+    ]
+
+    def get_flann_params(cfg):
+        default_params = vt.get_flann_params(cfg['algorithm'])
+        flann_params = ut.update_existing(default_params, cfg.asdict())
+        return flann_params
+
+
+@register_preproc(
+    tablename='neighbor_index', parents=['annotations'],
+    colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
+    ismulti=True,
+    configclass=IndexerConfig,
+    chunksize=1, fname='indexer',
+)
+def compute_neighbor_index(depc, aids_list, config):
+    """
+    Args:
+        depc (dtool.DependencyCache):
+        aids_list (list):
+        config (dtool.Config):
+
+    CommandLine:
+        python -m ibeis.core_annots --exec-compute_neighbor_index --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> #ibs, depc, aid_list = testdata_core(size=5)
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> depc = ibs.depc
+        >>> aids_list = [aid_list]
+        >>> table = depc['chips']
+        >>> config = ibs.depc['neighbor_index'].configclass()
+        >>> result = list(compute_neighbor_index(depc, aids_list, config))
+        >>> nnindexer = result[0][0]
+
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    # TODO: allow augment
+    assert len(aids_list) == 1, 'only working with one indexer at a time'
+    aid_list = aids_list[0]
+    vecs_list = depc.get('feat', aid_list, 'vecs', config.feat_cfg)
+    if False and config['fg_on']:
+        fgws_list = depc.get('featweight', aid_list, 'fgw', config)
+    else:
+        fgws_list = None
+    flann_params = config.get_flann_params()
+    cfgstr = config.get_cfgstr()
+    verbose = True
+    nnindexer = neighbor_index.NeighborIndex2(flann_params, cfgstr)
+    # Initialize neighbor with unindexed data
+    nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=verbose)
+    nnindexer.reindex()
+    yield (nnindexer,)
+    # Load or build the indexing structure
+    #nnindexer.ensure_indexer(cachedir, verbose=verbose, force_rebuild=force_rebuild)
 
 
 if __name__ == '__main__':
