@@ -737,10 +737,11 @@ class NeighborIndex2(NeighborIndex):
 
     def __getstate__(self):
         state_dict = self.__dict__
-        pass
+        return state_dict
 
-    def __setstate__(self, state):
-        assert 'ibs' in state, 'requires controller object to be loaded'
+    def __setstate__(self, state_dict):
+        assert 'ibs' in state_dict, 'requires controller object to be loaded'
+        self.__dict__.update(state_dict)
 
     def ibeis_knn(nnindexer, qfx2_vec, K):
         """
