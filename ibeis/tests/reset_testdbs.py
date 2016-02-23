@@ -60,12 +60,13 @@ def get_testdata_dir(ensure=True, key='testdb1'):
 
 # Convert stanadardized names to true names
 TEST_DBNAMES_MAP = {
-    'nauts': 'NAUT_test',
-    'mtest': 'PZ_MTEST',
-    'testdb0': 'testdb0',
-    'testdb1': 'testdb1',
-    'testdb2': 'testdb2',
+    'nauts':         'NAUT_test',
+    'mtest':         'PZ_MTEST',
+    'testdb0':       'testdb0',
+    'testdb1':       'testdb1',
+    'testdb2':       'testdb2',
     'testdb_guiall': 'testdb_guiall',
+    'wds':           'wd_peter2',
 }
 
 
@@ -159,6 +160,8 @@ def reset_testdbs(**kwargs):
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
         ibeis.ensure_nauts()
+    if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
+        ibeis.ensure_wilddogs()
     if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
         ibeis.init.sysres.ensure_testdb2()
 

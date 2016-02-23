@@ -190,6 +190,16 @@ def ensure_nauts():
     ibeis.ensure_nauts()
 
 
+@devprecmd('wds')
+def ensure_wilddogs():
+    """
+    CommandLine:
+        python dev.py -t wds
+    """
+    import ibeis
+    ibeis.ensure_wilddogs()
+
+
 MOTHERS_VIEWPOINT_EXPORT_PAIRS = [
     [117, 115],
     [72,   70],

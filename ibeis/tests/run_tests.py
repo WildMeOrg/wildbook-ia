@@ -16,6 +16,8 @@ def ensure_testing_data():
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test')):
         ibeis.ensure_nauts()
+    if not ut.checkpath(join(workdir, 'wd_peter2')):
+        ibeis.ensure_wilddogs()
 
 
 def run_tests():
