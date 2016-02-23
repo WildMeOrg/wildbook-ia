@@ -422,13 +422,14 @@ class _CoreDependencyCache(object):
 
         # FIXME: not implemented very efficiently
         # Can do shortest existing path instead
+
         for level_keys in dependency_levels[::-1]:
             for tablekey in level_keys:
                 if tablekey == depc.root:
                     break
                 table = depc[tablekey]
                 child_rowids = rowid_dict[tablekey]
-                colnames = table.parent_rowid_colnames
+                colnames = table.parent_id_colnames
                 parent_rowids_listT = table.get_internal_columns(
                     child_rowids, colnames, keepwrap=True)
                 parent_rowids_list = list(zip(*parent_rowids_listT))
@@ -468,9 +469,9 @@ class _CoreDependencyCache(object):
             >>> depc = testdata_depc()
             >>> tablename = 'spam'
             >>> root_rowids = [1, 2]
-            >>> config1 = {'size': 500}
-            >>> config2 = {'size': 100}
-            >>> config3 = {'size': 500, 'adapt_shape': False}
+            >>> config1 = {'dim_size': 500}
+            >>> config2 = {'dim_size': 100}
+            >>> config3 = {'dim_size': 500, 'adapt_shape': False}
             >>> ensure, eager, nInput = True, True, None
             >>> _debug = True
             >>> rowid_dict1 = depc.get_all_descendant_rowids(
@@ -479,12 +480,12 @@ class _CoreDependencyCache(object):
             >>>     tablename, root_rowids, config2, ensure, eager, nInput, _debug=_debug)
             >>> rowid_dict3 = depc.get_all_descendant_rowids(
             >>>     tablename, root_rowids, config3, ensure, eager, nInput, _debug=_debug)
-            >>> result1 = ut.repr3(rowid_dict1, nl=1)
-            >>> result2 = ut.repr3(rowid_dict2, nl=1)
-            >>> result3 = ut.repr3(rowid_dict3, nl=1)
+            >>> result1 = 'rowid_dict1 = ' + ut.repr3(rowid_dict1, nl=1)
+            >>> result2 = 'rowid_dict2 = ' + ut.repr3(rowid_dict2, nl=1)
+            >>> result3 = 'rowid_dict3 = ' + ut.repr3(rowid_dict3, nl=1)
             >>> result = '\n'.join([result1, result2, result3])
             >>> print(result)
-            {
+            rowid_dict1 = {
                 'chip': [1, 2],
                 'dummy_annot': [1, 2],
                 'fgweight': [1, 2],
@@ -492,7 +493,7 @@ class _CoreDependencyCache(object):
                 'probchip': [1, 2],
                 'spam': [1, 2],
             }
-            {
+            rowid_dict2 = {
                 'chip': [3, 4],
                 'dummy_annot': [1, 2],
                 'fgweight': [3, 4],
@@ -500,7 +501,7 @@ class _CoreDependencyCache(object):
                 'probchip': [1, 2],
                 'spam': [3, 4],
             }
-            {
+            rowid_dict3 = {
                 'chip': [1, 2],
                 'dummy_annot': [1, 2],
                 'fgweight': [5, 6],
@@ -544,8 +545,8 @@ class _CoreDependencyCache(object):
             >>> root_rowids = [1, 2]
             >>> configclass = depc.configclass_dict['chip']
             >>> config_ = configclass()
-            >>> config1 = depc.configclass_dict['vsmany'](size=500)
-            >>> config2 = depc.configclass_dict['vsmany'](size=100)
+            >>> config1 = depc.configclass_dict['vsmany'](dim_size=500)
+            >>> config2 = depc.configclass_dict['vsmany'](dim_size=100)
             >>> config = config2
             >>> prop_dicts1 = depc.get_all_descendant_rowids(
             >>>     tablename, root_rowids, config=config1, _debug=_debug)
@@ -583,13 +584,17 @@ class _CoreDependencyCache(object):
         if levels_up is not None:
             dependency_levels = dependency_levels[:-levels_up]
 
-        configclass_levels = [[depc.configclass_dict.get(tablekey, None)
-                               for tablekey in keys] for keys in dependency_levels]
+        configclass_levels = [
+            [depc.configclass_dict.get(tablekey, None)
+             for tablekey in keys]
+            for keys in dependency_levels
+        ]
         if _debug:
             print('[depc] dependency_levels = %s' %
-                  (ut.repr3(dependency_levels, nl=1),))
+                  ut.repr3(dependency_levels, nl=1))
             print('[depc] dependency_levels = %s' %
-                  (ut.repr3(configclass_levels, nl=1),))
+                  ut.repr3(configclass_levels, nl=1))
+
         # TODO: better support for multi-edges
         if len(root_rowids) > 0 and ut.isiterable(root_rowids[0]):
             rowid_dict = {}
@@ -598,61 +603,78 @@ class _CoreDependencyCache(object):
             rowid_dict[depc.root] = ut.unique_ordered(ut.flatten(root_rowids))
         else:
             rowid_dict = {depc.root: root_rowids}
+
         # Ensure that each level ``tablename``'s dependencies have been computed
         for level_keys in dependency_levels[1:]:
             if _debug:
                 print(' * level_keys %s ' % (level_keys,))
             # For each table in the level
             for tablekey in level_keys:
-                configclass = depc.configclass_dict.get(tablekey, None)
-                #requestclass = depc.requestclass_dict.get(tablekey, None)
-                if configclass is None:
-                    config_ = config
-                else:
-                    # Grab the correct configclass for the current table
-                    config_ = None
-                    if config is None:
-                        config_ = configclass()
-                    elif len(getattr(config, '_subconfig_attrs', [])) > 0:
-                        # Get correct config for implicit dependencies
-                        target_name = configclass().get_config_name()
-                        if target_name in config._subconfig_names:
-                            _index = config._subconfig_names.index(target_name)
-                            subcfg_attr = config._subconfig_attrs[_index]
-                            config_ = config[subcfg_attr]
-                    if config_ is None:
-                        # Preferable way to get configs with explicit
-                        # configs
-                        config_ = configclass(**config)
-                table = depc[tablekey]
-                if False:
-                    parent_rowids = list(zip(*ut.dict_take(rowid_dict,
-                                                           table.parents)))
-                else:
-                    # Hack for multi-edges
-                    parent_rowids = ut.list_transpose(
-                        ut.dict_take(rowid_dict, table.parent_rowid_colnames))
-                    #parent_rowids = list(zip(*))
-
-                if _debug:
-                    print('   * tablekey = %r' % (tablekey,))
-                    print('   * configclass = %r' % (configclass,))
-                    #print('   * requestclass = %r' % (requestclass,))
-                    print('   * config_ = %r' % (config_,))
-                    print('   * parent_rowids = %s' %
-                          (ut.trunc_repr(parent_rowids),))
-                _recompute = recompute_all or (tablekey == tablename and recompute)
-                child_rowids = table.get_rowid(
-                    parent_rowids, config=config_, eager=eager, nInput=nInput,
-                    ensure=ensure, recompute=_recompute)
-                if _debug:
-                    print('   * child_rowids = %s' %
-                          (ut.trunc_repr(child_rowids),))
+                try:
+                    child_rowids = depc._expand_level_rowids(
+                        tablename, tablekey, rowid_dict, ensure, eager, nInput,
+                        config, recompute, recompute_all, _debug)
+                except Exception as ex:
+                    ut.printex(ex, 'error expanding rowids',
+                               keys=['tablename', 'tablekey', 'rowid_dict',
+                                     'config'])
+                    raise
                 rowid_dict[tablekey] = child_rowids
         if _debug:
             print(' GOT DESCENDANT ROWIDS')
             indenter.stop()
         return rowid_dict
+
+    def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
+                             eager, nInput, config, recompute, recompute_all,
+                             _debug):
+        configclass = depc.configclass_dict.get(tablekey, None)
+        #requestclass = depc.requestclass_dict.get(tablekey, None)
+        if configclass is None:
+            config_ = config
+        else:
+            # Grab the correct configclass for the current table
+            config_ = None
+            if config is None:
+                config_ = configclass()
+            elif len(getattr(config, '_subconfig_attrs', [])) > 0:
+                # Get correct config for implicit dependencies
+                target_name = configclass().get_config_name()
+                if target_name in config._subconfig_names:
+                    _index = config._subconfig_names.index(target_name)
+                    subcfg_attr = config._subconfig_attrs[_index]
+                    config_ = config[subcfg_attr]
+            if config_ is None:
+                # Preferable way to get configs with explicit
+                # configs
+                config_ = configclass(**config)
+
+        table = depc[tablekey]
+        if False:
+            parent_rowidsT = ut.dict_take(rowid_dict, table.parents)
+            parent_rowids = list(zip(*parent_rowidsT))
+        else:
+            # Hack for multi-edges
+            parent_rowidsT = ut.dict_take(rowid_dict,
+                                          table.parent_id_prefixes)
+            parent_rowids = ut.list_transpose(parent_rowidsT)
+
+        if _debug:
+            print('   * tablekey = %r' % (tablekey,))
+            print('   * configclass = %r' % (configclass,))
+            #print('   * requestclass = %r' % (requestclass,))
+            print('   * config_ = %r' % (config_,))
+            print('   * parent_rowids = %s' %
+                  (ut.trunc_repr(parent_rowids),))
+
+        _recompute = recompute_all or (tablekey == tablename and recompute)
+        child_rowids = table.get_rowid(
+            parent_rowids, config=config_, eager=eager, nInput=nInput,
+            ensure=ensure, recompute=_recompute)
+        if _debug:
+            print('   * child_rowids = %s' %
+                  (ut.trunc_repr(child_rowids),))
+        return child_rowids
 
     def new_request(depc, tablename, qaids, daids, cfgdict=None):
         print('[depc] NEW %s request' % (tablename,))
@@ -893,7 +915,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> pt.show_netx(graph)
+            >>> pt.show_nx(graph)
             >>> ut.show_if_requested()
         """
         import networkx as nx
@@ -922,7 +944,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             'root': pt.RED,  # 'r',
         }
         def _node_attrs(dict_):
-            props = {k: dict_[v.tabletype] for k, v in
+            props = {k: dict_['node'] for k, v in
                      depc.cachetable_dict.items()}
             props[depc.root] = dict_['root']
             return props
@@ -941,7 +963,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         graph = depc.make_graph()
         if ut.is_developer():
             ut.ensure_pylab_qt4()
-        pt.show_netx(graph, **kwargs)
+        pt.show_nx(graph, **kwargs)
 
     def __nice__(depc):
         infostr_ = 'nTables=%d' % len(depc.cachetable_dict)

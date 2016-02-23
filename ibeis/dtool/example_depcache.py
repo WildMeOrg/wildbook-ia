@@ -360,13 +360,15 @@ def testdata_depc(fname=None):
             yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
 
     @depc.register_preproc(
-        'nnindexer', [dummy_root], ['flann'], [('extern', ut.load_data)],
+        'nnindexer', [dummy_root], ['flann'], [str],  # [('extern', ut.load_data)],
         configclass=DummyIndexerConfig,
         ismulti=True
     )
-    def dummy_preproc_indexer(depc, parent_rowids, config=None):
-
-        yield None
+    def dummy_preproc_indexer(depc, parent_rowids_list, config=None):
+        print('COMPUTING DUMMY INDEXER')
+        assert len(parent_rowids_list) == 1, 'handles only one indexer'
+        for parent_rowids in parent_rowids_list:
+            yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
 
     # REGISTER MATCHING ALGORITHMS
 
@@ -556,7 +558,7 @@ def dummy_example_depcacahe():
     # pt.ensure_pylab_qt4()
 
     graph = depc.make_graph()  # NOQA
-    #pt.show_netx(graph)
+    #pt.show_nx(graph)
 
     print('---------- 111 -----------')
 
