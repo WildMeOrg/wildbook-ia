@@ -745,7 +745,9 @@ class DependencyCacheTable(ut.NiceRepr):
         fmtstr = '{prefix}_id={rowids}_{config_hashid}{ext}'
         # HACK: check if the config specifies the extension type
         key = table.extern_ext_config_keys.get(colname, 'ext')
-        ext = config.get(key, '.cPkl')
+        # ... really weird bug, fails on OSX (Python 2.7.11)
+        # ext = config.get(key, '.cPkl')
+        ext = dict(config).get(key, '.cPkl')
         fname_list = [
             fmtstr.format(prefix=prefix,
                           rowids='_'.join(list(map(str, rowids))),
