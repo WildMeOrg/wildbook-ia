@@ -111,9 +111,9 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
                                              get_rowid_from_superkey, superkey_paramx)
     return name_rowid_list
     # OLD WAY
-    ## nid_list_ = [namenid_dict[name] for name in name_list_]
+    # # nid_list_ = [namenid_dict[name] for name in name_list_]
     #name_text_list_ = ibs.sanitize_name_texts(name_text_list)
-    ## All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
+    # # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
     #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
     #nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
@@ -137,7 +137,7 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
 
 
 @register_ibs_method
-@register_api('/api/name/sanitize', methods=['PUT'])
+@register_api('/api/name/sanitize/', methods=['PUT'])
 def sanitize_name_texts(ibs, name_text_list):
     r"""
     Auto-docstr for 'sanitize_name_texts'
@@ -917,6 +917,23 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
     name_rowid_list = [const.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
                            for rowid, text in zip(name_rowid_list, name_text_list_)]
     return name_rowid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/name/nids_with_gids/', methods=['GET'])
+def get_name_nids_with_gids(ibs, nid_list=None):
+    if nid_list is None:
+        nid_list = sorted(ibs.get_valid_nids())
+    name_list = ibs.get_name_texts(nid_list)
+    gids_list = ibs.get_name_gids(nid_list)
+
+    zipped = zip(nid_list, name_list, gids_list)
+    combined_dict = {
+        name : (nid, gid_list)
+        for nid, name, gid_list in zipped
+    }
+    return combined_dict
 
 
 @register_ibs_method

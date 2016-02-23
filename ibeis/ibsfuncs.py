@@ -30,6 +30,7 @@ except ImportError as ex:
 from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
+import xml.etree.ElementTree as ET
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
@@ -1533,7 +1534,7 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
     notes_list = ibs.get_annot_notes(aid_list)
     is_hard_list = [const.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
     def hack_notes(notes, is_hard, flag):
-        " Adds or removes hard tag if needed "
+        """ Adds or removes hard tag if needed """
         if flag and is_hard or not (flag or is_hard):
             # do nothing
             return notes
@@ -5907,6 +5908,227 @@ def get_annot_occurrence_text(ibs, aids):
     assert all([len(t) == 1 for t in _occur_texts]), 'annot must be in exactly one occurrence'
     occur_texts = ut.take_column(_occur_texts, 0)
     return occur_texts
+
+
+@register_ibs_method
+def _parse_smart_xml(back, xml_path, nTotal, offset=1):
+    # Storage for the patrol imagesets
+    xml_dir, xml_name = split(xml_path)
+    imageset_info_list = []
+    last_photo_number = None
+    last_imageset_info = None
+    # Parse the XML file for the information
+    patrol_tree = ET.parse(xml_path)
+    namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
+    # Load all waypoint elements
+    element = './/%swaypoints' % (namespace, )
+    waypoint_list = patrol_tree.findall(element)
+    if len(waypoint_list) == 0:
+        # raise IOError('There are no observations (waypoints) in this
+        # Patrol XML file: %r' % (xml_path, ))
+        print('There are no observations (waypoints) in this Patrol XML file: %r' %
+              (xml_path, ))
+    for waypoint in waypoint_list:
+        # Get the relevant information about the waypoint
+        waypoint_id   = int(waypoint.get('id'))
+        waypoint_lat  = float(waypoint.get('y'))
+        waypoint_lon  = float(waypoint.get('x'))
+        waypoint_time = waypoint.get('time')
+        waypoint_info = [
+            xml_name,
+            waypoint_id,
+            (waypoint_lat, waypoint_lon),
+            waypoint_time,
+        ]
+        if None in waypoint_info:
+            raise IOError(
+                'The observation (waypoint) is missing information: %r' %
+                (waypoint_info, ))
+        # Get all of the waypoint's observations (we expect only one
+        # normally)
+        element = './/%sobservations' % (namespace, )
+        observation_list = waypoint.findall(element)
+        # if len(observation_list) == 0:
+        #     raise IOError('There are no observations in this waypoint,
+        #     waypoint_id: %r' % (waypoint_id, ))
+        for observation in observation_list:
+            # Filter the observations based on type, we only care
+            # about certain types
+            categoryKey = observation.attrib['categoryKey']
+            if (categoryKey.startswith('animals.liveanimals') or
+                  categoryKey.startswith('animals.problemanimal')):
+                # Get the photonumber attribute for the waypoint's
+                # observation
+                element = './/%sattributes[@attributeKey="photonumber"]' % (
+                    namespace, )
+                photonumber = observation.find(element)
+                if photonumber is not None:
+                    element = './/%ssValue' % (namespace, )
+                    # Get the value for photonumber
+                    sValue  = photonumber.find(element)
+                    if sValue is None:
+                        raise IOError(
+                            ('The photonumber sValue is missing from '
+                             'photonumber, waypoint_id: %r') %
+                            (waypoint_id, ))
+                    # Python cast the value
+                    try:
+                        photo_number = int(float(sValue.text)) - offset
+                    except ValueError:
+                        # raise IOError('The photonumber sValue is invalid,
+                        # waypoint_id: %r' % (waypoint_id, ))
+                        print(('[ibs]     '
+                               'Skipped Invalid Observation with '
+                               'photonumber: %r, waypoint_id: %r')
+                              % (sValue.text, waypoint_id, ))
+                        continue
+                    # Check that the photo_number is within the acceptable bounds
+                    if photo_number >= nTotal:
+                        raise IOError(
+                            'The Patrol XML file is looking for images '
+                            'that do not exist (too few images given)')
+                    # Keep track of the last waypoint that was processed
+                    # becuase we only have photono, which indicates start
+                    # indices and doesn't specify the end index.  The
+                    # ending index is extracted as the next waypoint's
+                    # photonum minus 1.
+                    if (last_photo_number is not None and
+                         last_imageset_info is not None):
+                        imageset_info = (
+                            last_imageset_info + [(last_photo_number,
+                                                    photo_number)])
+                        imageset_info_list.append(imageset_info)
+                    last_photo_number = photo_number
+                    last_imageset_info = waypoint_info
+                else:
+                    # raise IOError('The photonumber value is missing from
+                    # waypoint, waypoint_id: %r' % (waypoint_id, ))
+                    print(('[ibs]     Skipped Empty Observation with'
+                           '"categoryKey": %r, waypoint_id: %r') %
+                          (categoryKey, waypoint_id, ))
+            else:
+                print(('[ibs]     '
+                       'Skipped Incompatible Observation with '
+                       '"categoryKey": %r, waypoint_id: %r') %
+                      (categoryKey, waypoint_id, ))
+    # Append the last photo_number
+    if last_photo_number is not None and last_imageset_info is not None:
+        imageset_info = last_imageset_info + [(last_photo_number, nTotal)]
+        imageset_info_list.append(imageset_info)
+    return imageset_info_list
+
+
+@register_ibs_method
+def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
+    """
+    Function to load and process a SMART patrol XML file
+    """
+    # Get file and copy to ibeis database folder
+    xml_dir, xml_name = split(smart_xml_fpath)
+    dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
+    ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
+    # Process the XML File
+    print('[ibs] Processing Patrol XML file: %r' % (dst_xml_path, ))
+    try:
+        imageset_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
+    except Exception as e:
+        ibs.delete_images(gid_list)
+        print(('[ibs] ERROR: Parsing Patrol XML file failed, '
+               'rolling back by deleting %d images...') %
+              (len(gid_list, )))
+        raise e
+    if len(gid_list) > 0:
+        # Sanity check
+        assert len(imageset_info_list) > 0, (
+            ('Trying to added %d images, but the Patrol  '
+             'XML file has no observations') % (len(gid_list), ))
+    # Display the patrol imagesets
+    for index, imageset_info in enumerate(imageset_info_list):
+        smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = imageset_info
+        start, end = range_
+        gid_list_ = gid_list[start:end]
+        print('[ibs]     Found Patrol ImageSet: %r' % (imageset_info, ))
+        print('[ibs]         GIDs: %r' % (gid_list_, ))
+        if len(gid_list_) == 0:
+            print('[ibs]         SKIPPING EMPTY IMAGESET')
+            continue
+        # Add the GPS data to the iamges
+        gps_list  = [ gps ] * len(gid_list_)
+        ibs.set_image_gps(gid_list_, gps_list)
+        # Create a new imageset
+        imagesettext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1, )
+        imgsetid = ibs.add_imagesets(imagesettext)
+        # Add images to the imagesets
+        imgsetid_list = [imgsetid] * len(gid_list_)
+        ibs.set_image_imgsetids(gid_list_, imgsetid_list)
+        # Set the imageset's smart fields
+        ibs.set_imageset_smart_xml_fnames([imgsetid], [smart_xml_fname])
+        ibs.set_imageset_smart_waypoint_ids([imgsetid], [smart_waypoint_id])
+        # Set the imageset's time based on the images
+        unixtime_list = sorted(ibs.get_image_unixtime(gid_list_))
+        start_time = unixtime_list[0]
+        end_time = unixtime_list[-1]
+        ibs.set_imageset_start_time_posix([imgsetid], [start_time])
+        ibs.set_imageset_end_time_posix([imgsetid], [end_time])
+    # Complete
+    print('[ibs] ...Done processing Patrol XML file')
+
+
+@register_ibs_method
+def compute_occurrences(ibs):
+    """
+    Clusters ungrouped images into imagesets representing occurrences
+
+    CommandLine:
+        python -m ibeis.control.IBEISControl --test-compute_occurrences
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.compute_occurrences()
+        >>> ibs.update_special_imagesets()
+        >>> # Now we want to remove some images from a non-special imageset
+        >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
+        >>> images_to_remove = ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0][0:1]
+        >>> ibs.unrelate_images_and_imagesets(images_to_remove,nonspecial_imgsetids[0:1] * len(images_to_remove))
+        >>> ibs.update_special_imagesets()
+        >>> ungr_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNGROUPED_IMAGES_IMAGESETTEXT)
+        >>> ungr_gids = ibs.get_imageset_gids([ungr_imgsetid])[0]
+        >>> #Now let's make sure that when we recompute imagesets, our non-special imgsetid remains the same
+        >>> print('PRE COMPUTE: ImageSets are %r' % ibs.get_valid_imgsetids())
+        >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
+        >>> ibs.compute_occurrences()
+        >>> print('COMPUTE: New imagesets are %r' % ibs.get_valid_imgsetids())
+        >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
+        >>> ibs.update_special_imagesets()
+        >>> print('UPDATE SPECIAL: New imagesets are %r' % ibs.get_valid_imgsetids())
+        >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
+        >>> assert(images_to_remove[0] not in ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0])
+    """
+    from ibeis.algo.preproc import preproc_occurrence
+    print('[ibs] Computing and adding imagesets.')
+    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+    # only cluster ungrouped images
+    gid_list = ibs.get_ungrouped_gids()
+    with ut.Timer('computing imagesets'):
+        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+            ibs, gid_list)
+    valid_imgsetids = ibs.get_valid_imgsetids()
+    imgsetid_offset = 0 if len(valid_imgsetids) == 0 else max(valid_imgsetids)
+    # This way we can make sure that manually separated imagesets
+    flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
+    # remain untouched, and ensure that new imagesets are created
+    imagesettext_list = ['Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset]
+    #print('imagesettext_list: %r; flat_gids: %r' % (imagesettext_list, flat_gids))
+    print('[ibs] Finished computing, about to add imageset.')
+    ibs.set_image_imagesettext(flat_gids, imagesettext_list)
+    # HACK TO UPDATE IMAGESET POSIX TIMES
+    # CAREFUL THIS BLOWS AWAY SMART DATA
+    ibs.update_imageset_info(ibs.get_valid_imgsetids())
+    print('[ibs] Finished computing and adding imagesets.')
 
 
 if __name__ == '__main__':

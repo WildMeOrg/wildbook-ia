@@ -16,6 +16,7 @@ import utool as ut
 from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 from collections import namedtuple
+from ibeis.web import routes_ajax
 print, rrr, profile = ut.inject2(__name__, '[manual_annot]')
 
 
@@ -217,6 +218,19 @@ def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
         hasgt=hasgt, minqual=minqual, has_timestamp=has_timestamp,
         min_timedelta=min_timedelta)
     return aid_list
+
+
+@register_ibs_method
+@register_api('/api/annot/<aid>/', methods=['GET'])
+def annotation_src_api(aid=None):
+    r"""
+    Returns the base64 encoded image of annotation <aid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/<aid>/
+    """
+    return routes_ajax.annotation_src(aid)
 
 
 def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
@@ -2269,7 +2283,8 @@ def update_annot_visual_uuids(ibs, aid_list):
     ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
 
-#### SETTERS ###
+#### SETTERS ####  # NOQA
+
 
 @register_ibs_method
 @accessor_decors.setter
@@ -3165,7 +3180,7 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
     #    ''', (bytes(partial_vuuid),))
     #print(res.fetchall())
 
-    ## || - is used to concat strings
+    # # || - is used to concat strings
 
     #res = ibs.db.cur.execute(
     #    '''

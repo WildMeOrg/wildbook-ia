@@ -1,0 +1,1053 @@
+# -*- coding: utf-8 -*-
+"""
+Dependencies: flask, tornado
+"""
+from __future__ import absolute_import, division, print_function
+import random
+import math
+from flask import request, current_app
+from ibeis.control import controller_inject
+from ibeis import constants as const
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
+from ibeis.web import appfuncs as appf
+from ibeis.web import routes_ajax
+import utool as ut
+
+
+register_route = controller_inject.get_ibeis_flask_route(__name__)
+
+
+@register_route('/', methods=['GET'])
+def root():
+    return appf.template(None)
+
+
+@register_route('/view/', methods=['GET'])
+def view():
+    def _date_list(gid_list):
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime)
+            if unixtime is not None else
+            'UNKNOWN'
+            for unixtime in unixtime_list
+        ]
+        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        return date_list
+
+    ibs = current_app.ibs
+    aid_list = ibs.filter_aids_count()
+    gid_list = ibs.get_annot_gids(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
+    date_list = _date_list(gid_list)
+
+    gid_list_unique = list(set(gid_list))
+    date_list_unique = _date_list(gid_list_unique)
+    date_taken_dict = {}
+    for gid, date in zip(gid_list_unique, date_list_unique):
+        if date not in date_taken_dict:
+            date_taken_dict[date] = [0, 0]
+        date_taken_dict[date][1] += 1
+
+    gid_list_all = ibs.get_valid_gids()
+    date_list_all = _date_list(gid_list_all)
+    for gid, date in zip(gid_list_all, date_list_all):
+        if date in date_taken_dict:
+            date_taken_dict[date][0] += 1
+
+    value = 0
+    label_list = []
+    value_list = []
+    index_list = []
+    seen_set = set()
+    current_seen_set = set()
+    previous_seen_set = set()
+    last_date = None
+    date_seen_dict = {}
+    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+        index_list.append(index + 1)
+        # Add to counters
+        if date not in date_seen_dict:
+            date_seen_dict[date] = [0, 0, 0, 0]
+
+        date_seen_dict[date][0] += 1
+
+        if nid not in current_seen_set:
+            current_seen_set.add(nid)
+            date_seen_dict[date][1] += 1
+            if nid in previous_seen_set:
+                date_seen_dict[date][3] += 1
+
+        if nid not in seen_set:
+            seen_set.add(nid)
+            value += 1
+            date_seen_dict[date][2] += 1
+
+        # Add to register
+        value_list.append(value)
+        # Reset step (per day)
+        if date != last_date and date != 'UNKNOWN':
+            last_date = date
+            previous_seen_set = set(current_seen_set)
+            current_seen_set = set()
+            label_list.append(date)
+        else:
+            label_list.append('')
+
+    # def optimization1(x, a, b, c):
+    #     return a * np.log(b * x) + c
+
+    # def optimization2(x, a, b, c):
+    #     return a * np.sqrt(x) ** b + c
+
+    # def optimization3(x, a, b, c):
+    #     return 1.0 / (a * np.exp(-b * x) + c)
+
+    # def process(func, opts, domain, zero_index, zero_value):
+    #     values = func(domain, *opts)
+    #     diff = values[zero_index] - zero_value
+    #     values -= diff
+    #     values[ values < 0.0 ] = 0.0
+    #     values[:zero_index] = 0.0
+    #     values = values.astype(int)
+    #     return list(values)
+
+    # optimization_funcs = [
+    #     optimization1,
+    #     optimization2,
+    #     optimization3,
+    # ]
+    # # Get data
+    # x = np.array(index_list)
+    # y = np.array(value_list)
+    # # Fit curves
+    # end    = int(len(index_list) * 1.25)
+    # domain = np.array(range(1, end))
+    # zero_index = len(value_list) - 1
+    # zero_value = value_list[zero_index]
+    # regressed_opts = [ curve_fit(func, x, y)[0] for func in optimization_funcs ]
+    # prediction_list = [
+    #     process(func, opts, domain, zero_index, zero_value)
+    #     for func, opts in zip(optimization_funcs, regressed_opts)
+    # ]
+    # index_list = list(domain)
+    prediction_list = []
+
+    date_seen_dict.pop('UNKNOWN', None)
+    bar_label_list = sorted(date_seen_dict.keys())
+    bar_value_list1 = [ date_taken_dict[date][0] for date in bar_label_list ]
+    bar_value_list2 = [ date_taken_dict[date][1] for date in bar_label_list ]
+    bar_value_list3 = [ date_seen_dict[date][0] for date in bar_label_list ]
+    bar_value_list4 = [ date_seen_dict[date][1] for date in bar_label_list ]
+    bar_value_list5 = [ date_seen_dict[date][2] for date in bar_label_list ]
+    bar_value_list6 = [ date_seen_dict[date][3] for date in bar_label_list ]
+
+    # label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
+    # value_list += [0] * (len(index_list) - len(value_list))
+
+    # Counts
+    imgsetid_list = ibs.get_valid_imgsetids()
+    gid_list = ibs.get_valid_gids()
+    aid_list = ibs.get_valid_aids()
+    nid_list = ibs.get_valid_nids()
+    contrib_list = ibs.get_valid_contrib_rowids()
+    # nid_list = ibs.get_valid_nids()
+    aid_list_count = ibs.filter_aids_count()
+    # gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
+    nid_list_count_dup = ibs.get_annot_name_rowids(aid_list_count)
+    nid_list_count = list(set(nid_list_count_dup))
+
+    # Calculate the Petersen-Lincoln index form the last two days
+    try:
+        c1 = bar_value_list4[-2]
+        c2 = bar_value_list4[-1]
+        c3 = bar_value_list6[-1]
+        pl_index = int(math.ceil( (c1 * c2) / c3 ))
+        pl_error_num = float(c1 * c1 * c2 * (c2 - c3))
+        pl_error_dom = float(c3 ** 3)
+        pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
+    except IndexError:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+        pl_error = 0
+    except ZeroDivisionError:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+        pl_error = 0
+
+    # Get the markers
+    gid_list_markers = ibs.get_annot_gids(aid_list_count)
+    gps_list_markers = map(list, ibs.get_image_gps(gid_list_markers))
+    gps_list_markers_all = map(list, ibs.get_image_gps(gid_list))
+
+    REMOVE_DUP_CODE = True
+    if not REMOVE_DUP_CODE:
+        # Get the tracks
+        nid_track_dict = ut.ddict(list)
+        for nid, gps in zip(nid_list_count_dup, gps_list_markers):
+            if gps[0] == -1.0 and gps[1] == -1.0:
+                continue
+            nid_track_dict[nid].append(gps)
+        gps_list_tracks = [ nid_track_dict[nid] for nid in sorted(nid_track_dict.keys()) ]
+    else:
+        __nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
+        gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
+
+    valid_aids = ibs.get_valid_aids()
+    valid_gids = ibs.get_valid_gids()
+    valid_aids_ = ibs.filter_aids_custom(valid_aids)
+    valid_gids_ = ibs.filter_gids_custom(valid_gids)
+    used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
+    used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
+
+    # Get Age and sex (By Annot)
+    # annot_sex_list = ibs.get_annot_sex(valid_aids_)
+    # annot_age_months_est_min = ibs.get_annot_age_months_est_min(valid_aids_)
+    # annot_age_months_est_max = ibs.get_annot_age_months_est_max(valid_aids_)
+    # age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    # for sex, min_age, max_age in zip(annot_sex_list, annot_age_months_est_min, annot_age_months_est_max):
+    #     if sex not in [0, 1]:
+    #         sex = 2
+    #         # continue
+    #     if (min_age is None or min_age < 12) and max_age < 12:
+    #         age_list[sex][0] += 1
+    #     elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
+    #         age_list[sex][1] += 1
+    #     elif 36 <= min_age and (36 <= max_age or max_age is None):
+    #         age_list[sex][2] += 1
+
+    # Get Age and sex (By Name)
+    name_sex_list = ibs.get_name_sex(nid_list_count)
+    name_age_months_est_mins_list = ibs.get_name_age_months_est_min(nid_list_count)
+    name_age_months_est_maxs_list = ibs.get_name_age_months_est_max(nid_list_count)
+    age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    age_unreviewed = 0
+    age_ambiguous = 0
+    for nid, sex, min_ages, max_ages in zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
+        if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
+            # print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
+            age_ambiguous += 1
+            continue
+        min_age = None
+        max_age = None
+        if len(min_ages) > 0:
+            min_age = min_ages[0]
+        if len(max_ages) > 0:
+            max_age = max_ages[0]
+        # Histogram
+        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+            # print('[web] Unreviewded name %r: Specify the age for the name' % (nid, ))
+            age_unreviewed += 1
+            continue
+        if sex not in [0, 1]:
+            sex = 2
+            # continue
+        if (min_age is None or min_age < 12) and max_age < 12:
+            age_list[sex][0] += 1
+        elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
+            age_list[sex][1] += 1
+        elif 36 <= min_age and (36 <= max_age or max_age is None):
+            age_list[sex][2] += 1
+
+    dbinfo_str = dbinfo()
+
+    return appf.template('view',
+                         line_index_list=index_list,
+                         line_label_list=label_list,
+                         line_value_list=value_list,
+                         prediction_list=prediction_list,
+                         pl_index=pl_index,
+                         pl_error=pl_error,
+                         gps_list_markers=gps_list_markers,
+                         gps_list_markers_all=gps_list_markers_all,
+                         gps_list_tracks=gps_list_tracks,
+                         bar_label_list=bar_label_list,
+                         bar_value_list1=bar_value_list1,
+                         bar_value_list2=bar_value_list2,
+                         bar_value_list3=bar_value_list3,
+                         bar_value_list4=bar_value_list4,
+                         bar_value_list5=bar_value_list5,
+                         bar_value_list6=bar_value_list6,
+                         age_list=age_list,
+                         age_ambiguous=age_ambiguous,
+                         age_unreviewed=age_unreviewed,
+                         dbinfo_str=dbinfo_str,
+                         imgsetid_list=imgsetid_list,
+                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                         num_imgsetids=len(imgsetid_list),
+                         gid_list=gid_list,
+                         gid_list_str=','.join(map(str, gid_list)),
+                         num_gids=len(gid_list),
+                         contrib_list=contrib_list,
+                         contrib_list_str=','.join(map(str, contrib_list)),
+                         num_contribs=len(contrib_list),
+                         gid_list_count=valid_gids_,
+                         gid_list_count_str=','.join(map(str, valid_gids_)),
+                         num_gids_count=len(valid_gids_),
+                         aid_list=aid_list,
+                         aid_list_str=','.join(map(str, aid_list)),
+                         num_aids=len(aid_list),
+                         aid_list_count=valid_aids_,
+                         aid_list_count_str=','.join(map(str, valid_aids_)),
+                         num_aids_count=len(valid_aids_),
+                         nid_list=nid_list,
+                         nid_list_str=','.join(map(str, nid_list)),
+                         num_nids=len(nid_list),
+                         nid_list_count=nid_list_count,
+                         nid_list_count_str=','.join(map(str, nid_list_count)),
+                         num_nids_count=len(nid_list_count),
+                         used_gids=used_gids,
+                         num_used_gids=len(used_gids),
+                         used_contribs=used_contrib_tags,
+                         num_used_contribs=len(used_contrib_tags))
+
+
+@register_route('/view/imagesets/', methods=['GET'])
+def view_imagesets():
+    ibs = current_app.ibs
+    filtered = True
+    imgsetid = request.args.get('imgsetid', '')
+    if len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+    else:
+        imgsetid_list = ibs.get_valid_imgsetids()
+        filtered = False
+    start_time_posix_list = ibs.get_imageset_start_time_posix(imgsetid_list)
+    datetime_list = [
+        ut.unixtime_to_datetimestr(start_time_posix)
+        if start_time_posix is not None else
+        'Unknown'
+        for start_time_posix in start_time_posix_list
+    ]
+    gids_list = [ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ]
+    aids_list = [ ut.flatten(ibs.get_image_aids(gid_list)) for gid_list in gids_list ]
+    images_reviewed_list           = [ appf.imageset_image_processed(ibs, gid_list) for gid_list in gids_list ]
+    annots_reviewed_viewpoint_list = [ appf.imageset_annot_viewpoint_processed(ibs, aid_list) for aid_list in aids_list ]
+    annots_reviewed_quality_list   = [ appf.imageset_annot_quality_processed(ibs, aid_list) for aid_list in aids_list ]
+    image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
+    annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
+    annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
+    reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
+    imageset_list = zip(
+        imgsetid_list,
+        ibs.get_imageset_text(imgsetid_list),
+        ibs.get_imageset_num_gids(imgsetid_list),
+        image_processed_list,
+        ibs.get_imageset_num_aids(imgsetid_list),
+        annot_processed_viewpoint_list,
+        annot_processed_quality_list,
+        start_time_posix_list,
+        datetime_list,
+        reviewed_list,
+    )
+    imageset_list.sort(key=lambda t: t[7])
+    return appf.template('view', 'imagesets',
+                         filtered=filtered,
+                         imgsetid_list=imgsetid_list,
+                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                         num_imgsetids=len(imgsetid_list),
+                         imageset_list=imageset_list,
+                         num_imagesets=len(imageset_list))
+
+
+@register_route('/view/image/<gid>/', methods=['GET'])
+def image_view_api(gid=None, thumbnail=True, fresh=False, **kwargs):
+    r"""
+    Returns the base64 encoded image of image <gid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/view/<gid>/
+    """
+    encoded = routes_ajax.image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
+    return appf.template(None, 'single', encoded=encoded)
+
+
+@register_route('/view/images/', methods=['GET'])
+def view_images():
+    ibs = current_app.ibs
+    filtered = True
+    imgsetid_list = []
+    gid = request.args.get('gid', '')
+    imgsetid = request.args.get('imgsetid', '')
+    page = max(0, int(request.args.get('page', 1)))
+    if len(gid) > 0:
+        gid_list = gid.strip().split(',')
+        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid) for imgsetid_ in imgsetid_list ])
+    else:
+        gid_list = ibs.get_valid_gids()
+        filtered = False
+    # Page
+    page_start = min(len(gid_list), (page - 1) * appf.PAGE_SIZE)
+    page_end   = min(len(gid_list), page * appf.PAGE_SIZE)
+    page_total = int(math.ceil(len(gid_list) / appf.PAGE_SIZE))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(gid_list) else page + 1
+    gid_list = gid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
+    image_unixtime_list = ibs.get_image_unixtime(gid_list)
+    datetime_list = [
+        ut.unixtime_to_datetimestr(image_unixtime)
+        if image_unixtime is not None
+        else
+        'Unknown'
+        for image_unixtime in image_unixtime_list
+    ]
+    image_list = zip(
+        gid_list,
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_image_imgsetids(gid_list) ],
+        ibs.get_image_gnames(gid_list),
+        image_unixtime_list,
+        datetime_list,
+        ibs.get_image_gps(gid_list),
+        ibs.get_image_party_tag(gid_list),
+        ibs.get_image_contributor_tag(gid_list),
+        ibs.get_image_notes(gid_list),
+        appf.imageset_image_processed(ibs, gid_list),
+    )
+    image_list.sort(key=lambda t: t[3])
+    return appf.template('view', 'images',
+                         filtered=filtered,
+                         imgsetid_list=imgsetid_list,
+                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                         num_imgsetids=len(imgsetid_list),
+                         gid_list=gid_list,
+                         gid_list_str=','.join(map(str, gid_list)),
+                         num_gids=len(gid_list),
+                         image_list=image_list,
+                         num_images=len(image_list),
+                         page=page,
+                         page_start=page_start,
+                         page_end=page_end,
+                         page_total=page_total,
+                         page_previous=page_previous,
+                         page_next=page_next)
+
+
+@register_route('/view/annotations/', methods=['GET'])
+def view_annotations():
+    ibs = current_app.ibs
+    filtered = True
+    imgsetid_list = []
+    gid_list = []
+    aid = request.args.get('aid', '')
+    gid = request.args.get('gid', '')
+    imgsetid = request.args.get('imgsetid', '')
+    page = max(0, int(request.args.get('page', 1)))
+    if len(aid) > 0:
+        aid_list = aid.strip().split(',')
+        aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+    elif len(gid) > 0:
+        gid_list = gid.strip().split(',')
+        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ])
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    else:
+        aid_list = ibs.get_valid_aids()
+        filtered = False
+    # Page
+    page_start = min(len(aid_list), (page - 1) * appf.PAGE_SIZE)
+    page_end   = min(len(aid_list), page * appf.PAGE_SIZE)
+    page_total = int(math.ceil(len(aid_list) / appf.PAGE_SIZE))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(aid_list) else page + 1
+    aid_list = aid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
+    annotation_list = zip(
+        aid_list,
+        ibs.get_annot_gids(aid_list),
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list) ],
+        ibs.get_annot_image_names(aid_list),
+        ibs.get_annot_names(aid_list),
+        ibs.get_annot_exemplar_flags(aid_list),
+        ibs.get_annot_species_texts(aid_list),
+        ibs.get_annot_yaw_texts(aid_list),
+        ibs.get_annot_quality_texts(aid_list),
+        ibs.get_annot_sex_texts(aid_list),
+        ibs.get_annot_age_months_est(aid_list),
+        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list)) ],
+    )
+    annotation_list.sort(key=lambda t: t[0])
+    return appf.template('view', 'annotations',
+                         filtered=filtered,
+                         imgsetid_list=imgsetid_list,
+                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                         num_imgsetids=len(imgsetid_list),
+                         gid_list=gid_list,
+                         gid_list_str=','.join(map(str, gid_list)),
+                         num_gids=len(gid_list),
+                         aid_list=aid_list,
+                         aid_list_str=','.join(map(str, aid_list)),
+                         num_aids=len(aid_list),
+                         annotation_list=annotation_list,
+                         num_annotations=len(annotation_list),
+                         page=page,
+                         page_start=page_start,
+                         page_end=page_end,
+                         page_total=page_total,
+                         page_previous=page_previous,
+                         page_next=page_next)
+
+
+@register_route('/view/names/', methods=['GET'])
+def view_names():
+    ibs = current_app.ibs
+    filtered = True
+    aid_list = []
+    imgsetid_list = []
+    gid_list = []
+    nid = request.args.get('nid', '')
+    aid = request.args.get('aid', '')
+    gid = request.args.get('gid', '')
+    imgsetid = request.args.get('imgsetid', '')
+    page = max(0, int(request.args.get('page', 1)))
+    if len(nid) > 0:
+        nid_list = nid.strip().split(',')
+        nid_list = [ None if nid_ == 'None' or nid_ == '' else int(nid_) for nid_ in nid_list ]
+    if len(aid) > 0:
+        aid_list = aid.strip().split(',')
+        aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+        nid_list = ibs.get_annot_name_rowids(aid_list)
+    elif len(gid) > 0:
+        gid_list = gid.strip().split(',')
+        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        nid_list = ibs.get_annot_name_rowids(aid_list)
+    elif len(imgsetid) > 0:
+        imgsetid_list = imgsetid.strip().split(',')
+        imgsetid_list = [ None if imgsetid_ == 'None' or imgsetid_ == '' else int(imgsetid_) for imgsetid_ in imgsetid_list ]
+        gid_list = ut.flatten([ ibs.get_valid_gids(imgsetid=imgsetid_) for imgsetid_ in imgsetid_list ])
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        nid_list = ibs.get_annot_name_rowids(aid_list)
+    else:
+        nid_list = ibs.get_valid_nids()
+        filtered = False
+    # Page
+    appf.PAGE_SIZE_ = int(appf.PAGE_SIZE / 5)
+    page_start = min(len(nid_list), (page - 1) * appf.PAGE_SIZE_)
+    page_end   = min(len(nid_list), page * appf.PAGE_SIZE_)
+    page_total = int(math.ceil(len(nid_list) / appf.PAGE_SIZE_))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(nid_list) else page + 1
+    nid_list = nid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(nid_list), page_previous, page_next, ))
+    aids_list = ibs.get_name_aids(nid_list)
+    annotations_list = [ zip(
+        aid_list_,
+        ibs.get_annot_gids(aid_list_),
+        [ ','.join(map(str, imgsetid_list_)) for imgsetid_list_ in ibs.get_annot_imgsetids(aid_list_) ],
+        ibs.get_annot_image_names(aid_list_),
+        ibs.get_annot_names(aid_list_),
+        ibs.get_annot_exemplar_flags(aid_list_),
+        ibs.get_annot_species_texts(aid_list_),
+        ibs.get_annot_yaw_texts(aid_list_),
+        ibs.get_annot_quality_texts(aid_list_),
+        ibs.get_annot_sex_texts(aid_list_),
+        ibs.get_annot_age_months_est(aid_list_),
+        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list_), appf.imageset_annot_quality_processed(ibs, aid_list_)) ],
+    ) for aid_list_ in aids_list ]
+    name_list = zip(
+        nid_list,
+        annotations_list
+    )
+    name_list.sort(key=lambda t: t[0])
+    return appf.template('view', 'names',
+                         filtered=filtered,
+                         imgsetid_list=imgsetid_list,
+                         imgsetid_list_str=','.join(map(str, imgsetid_list)),
+                         num_imgsetids=len(imgsetid_list),
+                         gid_list=gid_list,
+                         gid_list_str=','.join(map(str, gid_list)),
+                         num_gids=len(gid_list),
+                         aid_list=aid_list,
+                         aid_list_str=','.join(map(str, aid_list)),
+                         num_aids=len(aid_list),
+                         nid_list=nid_list,
+                         nid_list_str=','.join(map(str, nid_list)),
+                         num_nids=len(nid_list),
+                         name_list=name_list,
+                         num_names=len(name_list),
+                         page=page,
+                         page_start=page_start,
+                         page_end=page_end,
+                         page_total=page_total,
+                         page_previous=page_previous,
+                         page_next=page_next)
+
+
+@register_route('/turk/', methods=['GET'])
+def turk():
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+    return appf.template('turk', None, imgsetid=imgsetid)
+
+
+@register_route('/turk/detection/', methods=['GET'])
+def turk_detection():
+    ibs = current_app.ibs
+    refer_aid = request.args.get('refer_aid', None)
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    reviewed_list = appf.imageset_image_processed(ibs, gid_list)
+    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+
+    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
+    gid = request.args.get('gid', '')
+    if len(gid) > 0:
+        gid = int(gid)
+    else:
+        gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
+        if len(gid_list_) == 0:
+            gid = None
+        else:
+            # gid = gid_list_[0]
+            gid = random.choice(gid_list_)
+    previous = request.args.get('previous', None)
+    finished = gid is None
+    review = 'review' in request.args.keys()
+    display_instructions = request.cookies.get('detection_instructions_seen', 1) == 0
+    display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
+    if not finished:
+        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
+        image = appf.open_oriented_image(gpath)
+        image_src = appf.embed_image_html(image, filter_width=False)
+        # Get annotations
+        width, height = ibs.get_image_sizes(gid)
+        aid_list = ibs.get_image_aids(gid)
+        annot_bbox_list = ibs.get_annot_bboxes(aid_list)
+        annot_thetas_list = ibs.get_annot_thetas(aid_list)
+        species_list = ibs.get_annot_species_texts(aid_list)
+        # Get annotation bounding boxes
+        annotation_list = []
+        for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
+            temp = {}
+            temp['left']   = 100.0 * (annot_bbox[0] / width)
+            temp['top']    = 100.0 * (annot_bbox[1] / height)
+            temp['width']  = 100.0 * (annot_bbox[2] / width)
+            temp['height'] = 100.0 * (annot_bbox[3] / height)
+            temp['label']  = species
+            temp['id']     = aid
+            temp['angle']  = float(annot_theta)
+            annotation_list.append(temp)
+        if len(species_list) > 0:
+            species = max(set(species_list), key=species_list.count)  # Get most common species
+        elif appf.default_species(ibs) is not None:
+            species = appf.default_species(ibs)
+        else:
+            species = KEY_DEFAULTS[SPECIES_KEY]
+    else:
+        gpath = None
+        species = None
+        image_src = None
+        annotation_list = []
+    return appf.template('turk', 'detection',
+                         imgsetid=imgsetid,
+                         gid=gid,
+                         refer_aid=refer_aid,
+                         species=species,
+                         image_path=gpath,
+                         image_src=image_src,
+                         previous=previous,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         annotation_list=annotation_list,
+                         display_instructions=display_instructions,
+                         display_species_examples=display_species_examples,
+                         review=review)
+
+
+@register_route('/turk/detection/dynamic/', methods=['GET'])
+def turk_detection_dynamic():
+    ibs = current_app.ibs
+    gid = request.args.get('gid', None)
+
+    gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
+    image = appf.open_oriented_image(gpath)
+    image_src = appf.embed_image_html(image, filter_width=False)
+    # Get annotations
+    width, height = ibs.get_image_sizes(gid)
+    aid_list = ibs.get_image_aids(gid)
+    annot_bbox_list = ibs.get_annot_bboxes(aid_list)
+    annot_thetas_list = ibs.get_annot_thetas(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+    # Get annotation bounding boxes
+    annotation_list = []
+    for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
+        temp = {}
+        temp['left']   = 100.0 * (annot_bbox[0] / width)
+        temp['top']    = 100.0 * (annot_bbox[1] / height)
+        temp['width']  = 100.0 * (annot_bbox[2] / width)
+        temp['height'] = 100.0 * (annot_bbox[3] / height)
+        temp['label']  = species
+        temp['id']     = aid
+        temp['angle']  = float(annot_theta)
+        annotation_list.append(temp)
+    if len(species_list) > 0:
+        species = max(set(species_list), key=species_list.count)  # Get most common species
+    elif appf.default_species(ibs) is not None:
+        species = appf.default_species(ibs)
+    else:
+        species = KEY_DEFAULTS[SPECIES_KEY]
+
+    return appf.template('turk', 'detection_dynamic',
+                         gid=gid,
+                         refer_aid=None,
+                         species=species,
+                         image_path=gpath,
+                         image_src=image_src,
+                         annotation_list=annotation_list,
+                         __wrapper__=False)
+
+
+@register_route('/turk/viewpoint/', methods=['GET'])
+def turk_viewpoint():
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
+        >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
+        >>> ibs.start_web_annot_groupreview(aid_list)
+    """
+    ibs = current_app.ibs
+    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+
+    value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+    review = 'review' in request.args.keys()
+    finished = aid is None
+    display_instructions = request.cookies.get('viewpoint_instructions_seen', 1) == 0
+    if not finished:
+        gid       = ibs.get_annot_gids(aid)
+        gpath     = ibs.get_annot_chip_fpath(aid)
+        image     = appf.open_oriented_image(gpath)
+        image_src = appf.embed_image_html(image)
+        species   = ibs.get_annot_species_texts(aid)
+    else:
+        gid       = None
+        gpath     = None
+        image_src = None
+        species   = None
+
+    imagesettext = ibs.get_imageset_text(imgsetid)
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+
+    return appf.template('turk', 'viewpoint',
+                         imgsetid=imgsetid,
+                         src_ag=src_ag,
+                         dst_ag=dst_ag,
+                         gid=gid,
+                         aid=aid,
+                         value=value,
+                         image_path=gpath,
+                         image_src=image_src,
+                         previous=previous,
+                         species_list=species_list,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         review=review)
+
+
+@register_route('/turk/quality/', methods=['GET'])
+def turk_quality():
+    """
+    PZ Needs Tags:
+        17242
+        14468
+        14427
+        15946
+        14771
+        14084
+        4102
+        6074
+        3409
+
+    GZ Needs Tags;
+    1302
+
+    CommandLine:
+        python -m ibeis.web.app --exec-turk_quality --db PZ_Master1
+        python -m ibeis.web.app --exec-turk_quality --db GZ_Master1
+        python -m ibeis.web.app --exec-turk_quality --db GIRM_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list_ = ibs.find_unlabeled_name_members(qual=True)
+        >>> valid_views = ['primary', 'primary1', 'primary-1']
+        >>> aid_list = ibs.filter_aids_to_viewpoint(aid_list_, valid_views, unknown_ok=False)
+        >>> ibs.start_web_annot_groupreview(aid_list)
+    """
+    ibs = current_app.ibs
+    tup = appf.get_turk_annot_args(appf.imageset_annot_quality_processed)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+
+    value = ibs.get_annot_qualities(aid)
+    if value == -1:
+        value = None
+    if value == 0:
+        value = 1
+    review = 'review' in request.args.keys()
+    finished = aid is None
+    display_instructions = request.cookies.get('quality_instructions_seen', 1) == 0
+    if not finished:
+        gid       = ibs.get_annot_gids(aid)
+        gpath     = ibs.get_annot_chip_fpath(aid)
+        image     = appf.open_oriented_image(gpath)
+        image_src = appf.embed_image_html(image)
+    else:
+        gid       = None
+        gpath     = None
+        image_src = None
+    imagesettext = ibs.get_imageset_text(imgsetid)
+    return appf.template('turk', 'quality',
+                         imgsetid=imgsetid,
+                         src_ag=src_ag,
+                         dst_ag=dst_ag,
+                         gid=gid,
+                         aid=aid,
+                         value=value,
+                         image_path=gpath,
+                         image_src=image_src,
+                         previous=previous,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         review=review)
+
+
+@register_route('/turk/additional/', methods=['GET'])
+def turk_additional():
+    ibs = current_app.ibs
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    nid_list = ibs.get_annot_nids(aid_list)
+    reviewed_list = appf.imageset_annot_additional_processed(ibs, aid_list, nid_list)
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
+
+    imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
+    aid = request.args.get('aid', '')
+    if len(aid) > 0:
+        aid = int(aid)
+    else:
+        aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+        if len(aid_list_) == 0:
+            aid = None
+        else:
+            # aid = aid_list_[0]
+            aid = random.choice(aid_list_)
+    previous = request.args.get('previous', None)
+    value_sex = ibs.get_annot_sex([aid])[0]
+    if value_sex >= 0:
+        value_sex += 2
+    else:
+        value_sex = None
+    value_age_min, value_age_max = ibs.get_annot_age_months_est([aid])[0]
+    value_age = None
+    if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
+        value_age = 1
+    if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
+        value_age = 2
+    elif value_age_min is 3 and value_age_max == 5:
+        value_age = 3
+    elif value_age_min is 6 and value_age_max == 11:
+        value_age = 4
+    elif value_age_min is 12 and value_age_max == 23:
+        value_age = 5
+    elif value_age_min is 24 and value_age_max == 35:
+        value_age = 6
+    elif value_age_min is 36 and (value_age_max > 36 or value_age_max is None):
+        value_age = 7
+
+    review = 'review' in request.args.keys()
+    finished = aid is None
+    display_instructions = request.cookies.get('additional_instructions_seen', 1) == 0
+    if not finished:
+        gid       = ibs.get_annot_gids(aid)
+        gpath     = ibs.get_annot_chip_fpath(aid)
+        image     = appf.open_oriented_image(gpath)
+        image_src = appf.embed_image_html(image)
+    else:
+        gid       = None
+        gpath     = None
+        image_src = None
+    name_aid_list = None
+    nid = ibs.get_annot_name_rowids(aid)
+    if nid is not None:
+        name_aid_list = ibs.get_name_aids(nid)
+        quality_list = ibs.get_annot_qualities(name_aid_list)
+        quality_text_list = ibs.get_annot_quality_texts(name_aid_list)
+        yaw_text_list = ibs.get_annot_yaw_texts(name_aid_list)
+        name_aid_combined_list = list(zip(
+            name_aid_list,
+            quality_list,
+            quality_text_list,
+            yaw_text_list,
+        ))
+
+        name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
+    return appf.template('turk', 'additional',
+                         imgsetid=imgsetid,
+                         gid=gid,
+                         aid=aid,
+                         value_sex=value_sex,
+                         value_age=value_age,
+                         image_path=gpath,
+                         name_aid_combined_list=name_aid_combined_list,
+                         image_src=image_src,
+                         previous=previous,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         review=review)
+
+
+@register_route('/group_review/', methods=['GET'])
+def group_review():
+    prefill = request.args.get('prefill', '')
+    if len(prefill) > 0:
+        ibs = current_app.ibs
+        aid_list = ibs.get_valid_aids()
+        bad_species_list, bad_viewpoint_list = ibs.validate_annot_species_viewpoint_cnn(aid_list)
+
+        GROUP_BY_PREDICTION = True
+        if GROUP_BY_PREDICTION:
+            grouped_dict = ut.group_items(bad_viewpoint_list, ut.get_list_column(bad_viewpoint_list, 3))
+            grouped_list = grouped_dict.values()
+            regrouped_items = ut.flatten(ut.sortedby(grouped_list, map(len, grouped_list)))
+            candidate_aid_list = ut.get_list_column(regrouped_items, 0)
+        else:
+            candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
+    elif request.args.get('aid_list', None) is not None:
+        aid_list = request.args.get('aid_list', '')
+        if len(aid_list) > 0:
+            aid_list = aid_list.replace('[', '')
+            aid_list = aid_list.replace(']', '')
+            aid_list = aid_list.strip().split(',')
+            candidate_aid_list = [ int(aid_.strip()) for aid_ in aid_list ]
+        else:
+            candidate_aid_list = ''
+    else:
+        candidate_aid_list = ''
+
+    return appf.template(None, 'group_review', candidate_aid_list=candidate_aid_list, mode_list=appf.VALID_TURK_MODES)
+
+
+@register_route('/sightings/', methods=['GET'])
+def sightings(html_encode=True):
+    ibs = current_app.ibs
+    complete = request.args.get('complete', None) is not None
+    sightings = ibs.report_sightings_str(complete=complete, include_images=True)
+    if html_encode:
+        sightings = sightings.replace('\n', '<br/>')
+    return sightings
+
+
+@register_route('/api/', methods=['GET'], __api_prefix_check__=False)
+def api_root():
+    rules = current_app.url_map.iter_rules()
+    rule_dict = {}
+    for rule in rules:
+        methods = rule.methods
+        url = str(rule)
+        if '/api/' in url:
+            methods -= set(['HEAD', 'OPTIONS'])
+            if len(methods) == 0:
+                continue
+            if len(methods) > 1:
+                print('methods = %r' % (methods,))
+            method = list(methods)[0]
+            if method not in rule_dict.keys():
+                rule_dict[method] = []
+            rule_dict[method].append((method, url, ))
+    for method in rule_dict.keys():
+        rule_dict[method].sort()
+    url = '%s/api/core/dbname/' % (current_app.server_url, )
+    app_auth = controller_inject.get_url_authorization(url)
+    return appf.template(None, 'api',
+                         app_url=url,
+                         app_name=controller_inject.GLOBAL_APP_NAME,
+                         app_secret=controller_inject.GLOBAL_APP_SECRET,
+                         app_auth=app_auth,
+                         rule_list=rule_dict)
+
+
+@register_route('/upload/', methods=['GET'])
+def upload():
+    return appf.template(None, 'upload')
+
+
+@register_route('/dbinfo/', methods=['GET'])
+def dbinfo():
+    try:
+        ibs = current_app.ibs
+        dbinfo_str = ibs.get_dbinfo_str()
+    except:
+        dbinfo_str = ''
+    dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str, )
+    return dbinfo_str_formatted
+
+
+@register_route('/404/', methods=['GET'])
+def error404(exception=None):
+    import traceback
+    exception_str = str(exception)
+    traceback_str = str(traceback.format_exc())
+    print('[web] %r' % (exception_str, ))
+    print('[web] %r' % (traceback_str, ))
+    return appf.template(None, '404', exception_str=exception_str,
+                         traceback_str=traceback_str)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.web.app
+        python -m ibeis.web.app --allexamples
+        python -m ibeis.web.app --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

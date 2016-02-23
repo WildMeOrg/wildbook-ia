@@ -222,7 +222,7 @@ def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
 
 
 @register_ibs_method
-@register_api('/api/contributor/new_temp', methods=['POST'])
+@register_api('/api/contributor/new_temp/', methods=['POST'])
 def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=False):
     r"""
     Auto-docstr for 'add_new_temp_contributor'
