@@ -305,8 +305,8 @@ def understanding_pseudomax_props(mode=2):
     print('1 / const = %r' % (1 / const[0],))
     print('1 / const_sqrd = %r' % (1 / const_sqrd[0],))
 
-    assert ut.list_allsame(const)
-    assert ut.list_allsame(const_sqrd)
+    assert ut.allsame(const)
+    assert ut.allsame(const_sqrd)
 
     assert np.all(const == np.sqrt(const_sqrd))
 

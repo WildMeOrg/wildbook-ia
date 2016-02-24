@@ -846,7 +846,7 @@ def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
         >>> target_size = (1024, 1024)
         >>> img3_list = [padded_resize(img, target_size) for img in [imgA, imgB, imgC]]
         >>> # verify results
-        >>> assert ut.list_allsame([vt.get_size(img3) for img3 in img3_list])
+        >>> assert ut.allsame([vt.get_size(img3) for img3 in img3_list])
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
