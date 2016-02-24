@@ -24,6 +24,7 @@ import textwrap
 
 # Behavior variables
 
+APTDCON = '--aptdcon' in sys.argv
 UPGRADE_PIP     = '--upgrade' in sys.argv
 CHECK_INSTALLED = '--exhaustive' in sys.argv
 CRASH_ON_FAIL   = True
@@ -163,14 +164,41 @@ APPLE_NONPORTS_PYPKGS = [
 
 
 MACPORTS_PKGMAP = {
-    'gcc'           : 'gcc48',
-    'libjpg'        : 'jpeg',
-    'libjpeg'       : 'jpeg',
-    'libtiff'       : 'tiff',
-    'fftw3'         : 'fftw-3',
-    'python-pyqt4'  : 'py-pyqt4',
-    'littlecms'     : 'lcms',
+    'gcc'                  : None,
+    'g++'                  : None,
+    'gfortran'             : None,
+    'libjpg'               : 'jpeg',
+    'libjpeg'              : 'jpeg',
+    'libtiff'              : 'tiff',
+    'fftw3'                : 'fftw-3',
+    'python-pyqt4'         : 'py27-pyqt4',
+    'littlecms'            : 'lcms',
+    'libhdf5-dev'          : 'hdf5',
+    'libeigen2-dev'        : None,
+    'libeigen3-dev'        : 'eigen3',
+    'graphviz-dev'         : None,
+    'libgraphviz-dev'      : None,
+    'zlib-dev'             : 'zlib',
+    'libgeos-dev'          : 'geos',
+    'atlas'                : None,
+    'py27-ndg-httpsclient' : None,
+    'py27-qt4'             : 'py27-pyqt4',
+    'py27-tk'              : 'py27-tkinter',
+    'pkg-config'           : 'pkgconfig',
+    'libffi-dev'           : 'libffi',
+    'libssl-dev'           : 'openssl',
+    'py27-pyopenssl'       : 'py27-openssl',
+    'py27-pyasn1'          : 'py27-asn1',
 }
+
+
+MACPORTS_PYPKG_IGNORE_LIST = [
+    'flask-cas',
+    'flask-cors',
+    'parse',
+    'lru-dict',
+    'pyfiglet',
+]
 
 
 APT_GET_PKGMAP = {
@@ -423,6 +451,8 @@ def shell(*args, **kwargs):
 def __install_command_macports(pkg):
     pkg = pkg.replace('python-', MACPORTS_PY_PREFIX)
     pkg = MACPORTS_PKGMAP.get(pkg, pkg)
+    if pkg is None:
+        return ('')
     extra = ''
     if pkg == 'python':
         pkg += MACPORTS_PY_SUFFIX
@@ -483,6 +513,8 @@ def __install_command_apt_get(pkg):
     Returns the apt_get install command for a package (accepts known aliases)
     """
     pkg = fix_pkgname_apt_get(pkg)
+    if APTDCON:
+        return 'yes | sudo aptdcon --install %s' % pkg
     return 'sudo apt-get install -y %s' % pkg
 
 
@@ -606,7 +638,7 @@ def __install_command_pip(pkg, upgrade=None):
         return ''
     # See if this package should be installed through
     # the os package manager
-    if MACPORTS:
+    if MACPORTS and pkg not in MACPORTS_PYPKG_IGNORE_LIST:
         # Apple should prefer macports
         pkg = APPLE_PYPKG_MAP.get(pkg, pkg)
         command = __install_command_macports('python-' + pkg)

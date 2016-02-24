@@ -471,6 +471,9 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
         def register_api(rule, **options):
             assert rule.endswith('/'), 'An api should always end in a forward-slash'
             assert 'methods' in options, 'An api should always have a specified methods list'
+            # if '_' in rule:
+            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
+
             # accpet args to flask.route
             def regsiter_closure(func):
                 # make translation function in closure scope
@@ -610,6 +613,8 @@ def get_ibeis_flask_route(__name__):
                 assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
             assert rule.endswith('/'), 'A route should always end in a forward-slash'
             assert 'methods' in options, 'A route should always have a specified methods list'
+            # if '_' in rule:
+            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
             # accpet args to flask.route
             def regsiter_closure(func):
                 # make translation function in closure scope

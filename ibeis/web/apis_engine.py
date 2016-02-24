@@ -296,7 +296,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
 
 @accessor_decors.default_decorator
-@register_api('/api/engine/start_detect_image/', methods=['GET', 'POST'])
+@register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
 @register_ibs_method
 def start_detect_image(ibs, image_uuid_list, species=None):
     """
@@ -311,7 +311,7 @@ def start_detect_image(ibs, image_uuid_list, species=None):
     raise NotImplementedError('add_images_json')
 
 
-@register_api('/api/engine/get_job_status/', methods=['GET', 'POST'])
+@register_api('/api/engine/job/status/', methods=['GET', 'POST'])
 @register_ibs_method
 def get_job_status(ibs, jobid):
     """
@@ -343,7 +343,7 @@ def get_job_status(ibs, jobid):
     return status
 
 
-@register_api('/api/engine/get_job_result/', methods=['GET', 'POST'])
+@register_api('/api/engine/job/result/', methods=['GET', 'POST'])
 @register_ibs_method
 def get_job_result(ibs, jobid):
     """
@@ -353,7 +353,7 @@ def get_job_result(ibs, jobid):
     return result
 
 
-@register_api('/api/engine/wait_for_job_result/', methods=['GET', 'POST'])
+@register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
 @register_ibs_method
 def wait_for_job_result(ibs, jobid, timeout=10, freq=.1):
     ibs.job_manager.jobiface.wait_for_job_result(jobid, timeout=timeout, freq=freq)
