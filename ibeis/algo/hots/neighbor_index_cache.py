@@ -316,8 +316,6 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         print('[aug] Requesting augmented nnindexer')
     if can_augment:
         covered_aids = covered_aids_list[0]
-        #with ut.PrintStartEndContext('AUGMENTING NNINDEX', verbose=verbose):
-        #    with ut.Indenter('|  '):
         if verbose:
             print('[aug] Augmenting index %r old daids with %d new daids' %
                   (len(covered_aids), len(new_daid_list)))

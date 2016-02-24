@@ -169,16 +169,19 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     name_rank = kwargs.get('name_rank', None)
     truth = get_multitruth(ibs, aid_list)
 
-    if name_rank is None:
-        xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
-        #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
-    else:
-        if name_rank == 0:
-            xlabel = {
-                1: 'True Positive', 0: 'False Positive', 2: 'Unknown'}[truth]
+    xlabel = {1: 'Correct ID', 0: 'Incorrect ID', 2: 'Unknown ID'}[truth]
+
+    if False:
+        if name_rank is None:
+            xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
+            #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
         else:
-            xlabel = {
-                1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
+            if name_rank == 0:
+                xlabel = {
+                    1: 'True Positive', 0: 'False Positive', 2: 'Unknown'}[truth]
+            else:
+                xlabel = {
+                    1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
 
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)
