@@ -1000,7 +1000,7 @@ class IndexerConfig(dtool.Config):
         ut.ParamInfo('algorithm', 'kdtree', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
         ut.ParamInfo('trees', 4, hideif=lambda cfg: cfg['algorithm'] != 'kdtree'),
-        ut.ParamInfo('version', 0),
+        ut.ParamInfo('version', 1),
     ]
     _sub_config_list = [
         FeatConfig,
@@ -1041,14 +1041,13 @@ def compute_neighbor_index(depc, aids_list, config):
         >>> aids_list = [aid_list]
         >>> table = depc['chips']
         >>> config = ibs.depc['neighbor_index'].configclass()
-        >>> result = list(compute_neighbor_index(depc, aids_list, config))
-        >>> nnindexer = result[0][0]
-
-        >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
+        >>> #result1 = list(compute_neighbor_index(depc, aids_list, config))
+        >>> #nnindexer = result1[0][0]
+        >>> #print(result1)
+        >>> result2 = ibs.depc.get('neighbor_index', [aid_list], 'indexer', config, recompute=True)
+        >>> print(result2)
     """
+    print('[IBEIS] COMPUTE_NEIGHBOR_INDEX: %r' % (aids_list,))
     # TODO: allow augment
     assert len(aids_list) == 1, 'only working with one indexer at a time'
     aid_list = aids_list[0]
@@ -1064,6 +1063,7 @@ def compute_neighbor_index(depc, aids_list, config):
     # Initialize neighbor with unindexed data
     nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=verbose)
     nnindexer.reindex()
+    # TODO: Figure __getstate__ play with depcache.
     yield (nnindexer,)
     # Load or build the indexing structure
     #nnindexer.ensure_indexer(cachedir, verbose=verbose, force_rebuild=force_rebuild)

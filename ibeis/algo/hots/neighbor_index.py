@@ -138,6 +138,8 @@ class NeighborIndex(object):
         nnindexer.idx2_ax  = None  # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
         nnindexer.cfgstr   = cfgstr  # configuration id
+        if flann_params is None:
+            flann_params = {'algorithm': 'kdtree'}
         if 'random_seed' not in flann_params:
             # Make flann determenistic for the same data
             flann_params['random_seed'] = 42
@@ -729,19 +731,30 @@ class NeighborIndex(object):
         return qfx2_fgw
 
 
-class NeighborIndex2(NeighborIndex):
+class NeighborIndex2(NeighborIndex, ut.NiceRepr):
     def __init__(nnindexer, flann_params=None, cfgstr=None):
 
         super(NeighborIndex2, nnindexer).__init__(flann_params, cfgstr)
         nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
 
+    def __nice__(self):
+        if self.ax2_aid is not None:
+            return ' nA=%r' % (len(self.ax2_aid))
+        else:
+            return ' nA=0'
+
     def __getstate__(self):
-        state_dict = self.__dict__
-        return state_dict
+        # TODO: Figure out how to make these play nice with the depcache
+        return {}
+        #state_dict = self.__dict__
+        #return state_dict
 
     def __setstate__(self, state_dict):
-        assert 'ibs' in state_dict, 'requires controller object to be loaded'
-        self.__dict__.update(state_dict)
+        # TODO: Figure out how to make these play nice with the depcache
+        #assert 'ibs' in state_dict, 'requires controller object to be loaded'
+        #self.__dict__.update(state_dict)
+        pass
+        #return {}
 
     def ibeis_knn(nnindexer, qfx2_vec, K):
         """
