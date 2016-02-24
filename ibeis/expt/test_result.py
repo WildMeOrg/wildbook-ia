@@ -170,16 +170,16 @@ class TestResult(object):
         return qaids_list
 
     def has_constant_daids(testres):
-        return ut.list_allsame(testres.cfgx2_daids)
+        return ut.allsame(testres.cfgx2_daids)
 
     def has_constant_qaids(testres):
-        return ut.list_allsame(testres.cfgx2_qaids)
+        return ut.allsame(testres.cfgx2_qaids)
 
     def has_constant_length_daids(testres):
-        return ut.list_allsame(list(map(len, testres.cfgx2_daids)))
+        return ut.allsame(list(map(len, testres.cfgx2_daids)))
 
     def has_constant_length_qaids(testres):
-        return ut.list_allsame(list(map(len, testres.cfgx2_qaids)))
+        return ut.allsame(list(map(len, testres.cfgx2_qaids)))
 
     def get_infoprop_list(testres, key, qaids=None):
         """
@@ -1207,6 +1207,9 @@ class TestResult(object):
             ('with_tag',    lambda val: UTFF(testres.get_all_tags(), has_any=val)),
             ('without_tag', lambda val: UTFF(testres.get_all_tags(), has_none=val)),
         ]
+        rule_dict = ut.odict(rule_list)
+        rule_list.append(('max_gf_td', rule_dict['max_gf_timedelta']))
+        rule_list.append(('min_gf_td', rule_dict['min_gf_timedelta']))
 
         filt_cfg = filt_cfg.copy()
 
@@ -1353,7 +1356,7 @@ class TestResult(object):
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
             return case_pos_list
 
-    def get_truth2_prop(testres, qaids=None):
+    def get_truth2_prop(testres, qaids=None, join_acfg=False):
         r"""
         Returns:
             tuple: (truth2_prop, prop2_mat)
@@ -1367,12 +1370,13 @@ class TestResult(object):
             >>> import ibeis
             >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> (truth2_prop, prop2_mat) = testres.get_truth2_prop()
-            >>> result = ('(truth2_prop, prop2_mat) = %s' % (str((truth2_prop, prop2_mat)),))
+            >>> result = '(truth2_prop, prop2_mat) = %s' % str((truth2_prop, prop2_mat))
             >>> print(result)
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> ut.show_if_requested()
         """
+
         ibs = testres.ibs
         test_qaids = testres.get_test_qaids() if qaids is None else qaids
 
@@ -1387,20 +1391,21 @@ class TestResult(object):
         truth2_prop['gt']['rank'] = testres.get_infoprop_mat('qx2_gt_rank', test_qaids)
         truth2_prop['gf']['rank'] = testres.get_infoprop_mat('qx2_gf_rank', test_qaids)
 
-        truth2_prop['gt']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gt_raw_score', test_qaids))
-        truth2_prop['gf']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gf_raw_score', test_qaids))
+        truth2_prop['gt']['score'] = testres.get_infoprop_mat(
+            'qx2_gt_raw_score', test_qaids)
+        truth2_prop['gf']['score'] = testres.get_infoprop_mat(
+            'qx2_gf_raw_score', test_qaids)
+        truth2_prop['gt']['score'] = np.nan_to_num(truth2_prop['gt']['score'])
+        truth2_prop['gf']['score'] = np.nan_to_num(truth2_prop['gf']['score'])
 
         # Cast nans to ints (that are participants)
         # if False:
         for truth in ['gt', 'gf']:
             rank_mat = truth2_prop[truth]['rank']
-            rank_mat[np.logical_and(np.isnan(rank_mat), participates)] = testres.get_worst_possible_rank()
+            flags = np.logical_and(np.isnan(rank_mat), participates)
+            rank_mat[flags] = testres.get_worst_possible_rank()
             # truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
 
-        # Rank difference
-        #hardness_degree_rank = truth2_prop['gt']['rank'] - truth2_prop['gf']['rank']
-        #is_failure = hardness_degree_rank >= 0
-        #is_success = hardness_degree_rank < 0
         is_success = truth2_prop['gt']['rank'] == 0
         is_failure = np.logical_not(is_success)
 
@@ -1409,7 +1414,8 @@ class TestResult(object):
 
         # WEIRD THINGS HAPPEN WHEN UNKNOWNS ARE HERE
         #hardness_degree_rank[is_success]
-        #is_weird = hardness_degree_rank == 0  # These probably just completely failure spatial verification
+        # These probably just completely failure spatial verification
+        #is_weird = hardness_degree_rank == 0
 
         # Get timedelta and annotmatch rowid
         for truth in ['gt', 'gf']:
@@ -1429,7 +1435,55 @@ class TestResult(object):
         prop2_mat['is_success'] = is_success
         prop2_mat['is_failure'] = is_failure
         prop2_mat['participates'] = participates
-        return truth2_prop, prop2_mat
+
+        groupxs = testres.get_pcfg_groupxs()
+
+        def group_prop(val, grouped_flags, groupxs):
+            nRows = len(val)
+            # Allocate space for new val
+            new_shape = (nRows, len(groupxs))
+            if val.dtype == object or val.dtype.type == object:
+                new_val = np.full(new_shape, None, dtype=val.dtype)
+            elif ut.is_float(val):
+                new_val = np.full(new_shape, np.nan, dtype=val.dtype)
+            else:
+                new_val = np.zeros(new_shape, dtype=val.dtype)
+            # Populate new val
+            grouped_vals = vt.apply_grouping(val.T, groupxs)
+            _iter = enumerate(zip(grouped_flags, grouped_vals))
+            for new_col, (flags, group) in _iter:
+                rows, cols = np.where(flags.T)
+                new_val[rows, new_col] = group.T[(rows, cols)]
+            return new_val
+
+        if join_acfg:
+            assert ut.allsame(participates.sum(axis=1))
+            grouped_flags = vt.apply_grouping(participates.T, groupxs)
+
+            #new_prop2_mat = {key: group_prop(val)
+            #                 for key, val in prop2_mat.items()}
+            #new_truth2_prop = {
+            #    truth: {key: group_prop(val)
+            #            for key, val in props.items()}
+            #    for truth, props in truth2_prop.items()}
+
+            new_prop2_mat = {}
+            for key, val in prop2_mat.items():
+                new_prop2_mat[key] = group_prop(val, grouped_flags, groupxs)
+
+            new_truth2_prop = {}
+            for truth, props in truth2_prop.items():
+                new_props = {}
+                for key, val in props.items():
+                    new_props[key] = group_prop(val, grouped_flags, groupxs)
+                new_truth2_prop[truth] = new_props
+
+            prop2_mat_ = new_prop2_mat
+            truth2_prop_ = new_truth2_prop
+        else:
+            prop2_mat_ = prop2_mat
+            truth2_prop_ = truth2_prop
+        return truth2_prop_, prop2_mat_
 
     def interact_individual_result(testres, qaid, cfgx=0):
         ibs = testres.ibs

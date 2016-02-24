@@ -1304,7 +1304,7 @@ class ChipMatch(_ChipMatchVisualization,
         ]
         for attr in common_attrs:
             values = ut.list_getattr(cm_list, 'qaid')
-            assert ut.list_allsame(values)
+            assert ut.allsame(values)
             new_attrs[attr] = values[0]
         # assumes disjoint
         attrs = [
@@ -1590,7 +1590,7 @@ class ChipMatch(_ChipMatchVisualization,
         Returns:
             ibeis.ChipMatch: cm
         """
-        assert all(list(map(ut.list_allsame,
+        assert all(list(map(ut.allsame,
                             ut.get_list_column(vmt_list, 0)))), (
             'internal daids should not have different daids for vsone')
         qfx_list = ut.get_list_column(vmt_list, 1)
@@ -2179,7 +2179,7 @@ class ChipMatch(_ChipMatchVisualization,
             with testlog.context('allsame(grouped(dnid_list))'):
                 grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
                 for nids in grouped_nids:
-                    if not ut.list_allsame(nids):
+                    if not ut.allsame(nids):
                         testlog.log_failed('internal dnid name grouping is NOT consistent')
 
             with testlog.context('allsame(name(grouped(daid_list)))'):
@@ -2191,7 +2191,7 @@ class ChipMatch(_ChipMatchVisualization,
                     grouped_mapped_nids = qreq_.ibs.unflat_map(
                         qreq_.ibs.get_annot_name_rowids, grouped_aids)
                     for nids in grouped_mapped_nids:
-                        if not ut.list_allsame(nids):
+                        if not ut.allsame(nids):
                             testlog.log_failed(
                                 'internal daid name grouping is NOT consistent')
 

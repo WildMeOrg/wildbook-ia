@@ -306,7 +306,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
         >>> gid_list = ibs.get_valid_gids()
         >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
         >>> contrib_rowid_list1 = ibs.get_image_contributor_rowid(gid_list)
-        >>> assert ut.list_allsame(contrib_rowid_list1)
+        >>> assert ut.allsame(contrib_rowid_list1)
         >>> ut.assert_eq(contrib_rowid_list1[0], None)
         >>> user_prompt = ut.get_argflag('--user-prompt')
         >>> autolocate = ut.get_argflag('--user-prompt')
@@ -316,7 +316,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
         >>> ibs.print_contributor_table()
         >>> print(result)
         >>> contrib_rowid_list2 = ibs.get_image_contributor_rowid(gid_list)
-        >>> assert ut.list_allsame(contrib_rowid_list2)
+        >>> assert ut.allsame(contrib_rowid_list2)
         >>> ut.assert_eq(contrib_rowid_list2[0], 1)
     """
     # TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config

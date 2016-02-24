@@ -1020,7 +1020,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> # check results
-        >>> assert ut.list_allsame(list(map(len, vmt[:-2]))), 'need same num rows'
+        >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
         >>> ut.assert_inbounds(vmt.dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
         >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))
         >>> ut.quit_if_noshow()
@@ -1042,7 +1042,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> # check results
-        >>> assert ut.list_allsame(list(map(len, vmt[:-2]))), 'need same num rows'
+        >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
         >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
         >>> ut.assert_inbounds(vmt.dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(vmt.daid, config2_=qreq_.qparams)))
         >>> cm = chip_match.ChipMatch.from_vsmany_match_tup(vmt, qaid=qaid)
