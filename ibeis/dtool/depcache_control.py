@@ -10,12 +10,13 @@ from six.moves import zip
 from dtool import sql_control
 from dtool import depcache_table
 from dtool import base
+from collections import defaultdict
 (print, rrr, profile) = ut.inject2(__name__, '[depcache]')
 
 
 # global function registry
-__PREPROC_REGISTER__ = ut.ddict(list)
-__SUBPROP_REGISTER__ = ut.ddict(list)
+PREPROC_REGISTER = defaultdict(list)
+SUBPROP_REGISTER = defaultdict(list)
 
 
 REG_PREPROC_DOC = """
@@ -31,9 +32,14 @@ Args:
     fname (str):  file name(default = None)
     asobject (bool): hacky dont use (default = False)
 
-SeeAlso
-    dtool.DependencyCache._register_prop
+SeeAlso:
+    depcache_table.DependencyCacheTable
 """
+
+
+def check_register(args, kwargs):
+    assert len(args) < 6, 'too many args'
+    assert 'preproc_func' not in kwargs, 'cannot specify func in wrapper'
 
 
 def make_depcache_decors(root_tablename):
@@ -50,21 +56,20 @@ def make_depcache_decors(root_tablename):
         """
         Global regsiter proproc function that will define a table for all
         dependency caches containing the parents. See
-        dtool.DependencyCache._register_prop for additional information.
 
         See dtool.depcache_control.REG_PREPROC_DOC if docstr is not autogened
         """
         def register_preproc_wrapper(func):
             check_register(args, kwargs)
             kwargs['preproc_func'] = func
-            __PREPROC_REGISTER__[root_tablename].append((args, kwargs))
+            PREPROC_REGISTER[root_tablename].append((args, kwargs))
             return func
         return register_preproc_wrapper
 
     def register_subprop(*args, **kwargs):
         def _wrapper(func):
             kwargs['preproc_func'] = func
-            __SUBPROP_REGISTER__[root_tablename].append((args, kwargs))
+            SUBPROP_REGISTER[root_tablename].append((args, kwargs))
             return func
         return _wrapper
 
@@ -75,25 +80,24 @@ def make_depcache_decors(root_tablename):
     return _depcdecors
 
 
-def check_register(args, kwargs):
-    assert len(args) < 6, 'too many args'
-    assert 'preproc_func' not in kwargs, 'cannot specify func in wrapper'
-
-
 class _CoreDependencyCache(object):
-    """ Core worker functions for the depcache """
+    """
+    Core worker functions for the depcache
+    Inherited by a calss with some "nice extras
+    """
+
+    # -----------------------------
+    # REGISTRATION / INITIALIZATION
 
     #@ut.apply_docstr(REG_PREPROC_DOC)
     def _register_prop(depc, tablename, parents=None, colnames=None,
-                       coltypes=None, preproc_func=None, docstr=None,
-                       fname=None, chunksize=None, configclass=None,
-                       requestclass=None,
-                       #version=None,
-                       isinteractive=False,
-                       ismulti=False,
-                       asobject=False):
+                       coltypes=None, preproc_func=None, fname=None,
+                       configclass=None, requestclass=None, **kwargs):
         """
         Registers a table with this dependency cache.
+        Essentially passes args down to make a DependencyTable.
+
+        SEE: dtool.REG_PREPROC_DOC
         """
         if depc._debug:
             print('[depc] Registering tablename=%r' % (tablename,))
@@ -121,8 +125,6 @@ class _CoreDependencyCache(object):
             coltypes = [np.ndarray] * len(colnames)
         if fname is None:
             fname = depc.default_fname
-        if docstr is None:
-            docstr = 'no docstr'
         if configclass is None:
             # Make a default config with no parameters
             default_cfgdict = configclass
@@ -139,32 +141,19 @@ class _CoreDependencyCache(object):
             depc=depc,
             parent_tablenames=parents,
             tablename=tablename,
-            docstr=docstr,
             data_colnames=colnames,
             data_coltypes=coltypes,
             preproc_func=preproc_func,
-            asobject=asobject,
             fname=fname,
-            chunksize=chunksize,
-            ismulti=ismulti,
-            #version=version,
-            isinteractive=isinteractive,
             default_to_unpack=default_to_unpack,
+            **kwargs
         )
         depc.cachetable_dict[tablename] = table
         depc.configclass_dict[tablename] = configclass
         return table
 
-    def notify_root_changed(depc, root_rowids, prop):
-        # this is where we are notified that a "registered" root property has
-        # changed.
-        print('[depc] notified that columns (%s) for (%d) row(s) were modified' %
-              (prop, len(root_rowids),))
-        pass
-
-    #@ut.apply_docstr(REG_PREPROC_DOC)
     def _register_subprop(depc, tablename, propname=None, preproc_func=None):
-        # subproperties are always recomputeed on the fly
+        """ subproperties are always recomputeed on the fly """
         table = depc.cachetable_dict[tablename]
         table.subproperties[propname] = preproc_func
 
@@ -176,8 +165,8 @@ class _CoreDependencyCache(object):
         print('[depc] Initialize %s depcache' % (depc.root.upper(),))
         _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
-            reg_preproc = __PREPROC_REGISTER__[depc.root]
-            reg_subprop = __SUBPROP_REGISTER__[depc.root]
+            reg_preproc = PREPROC_REGISTER[depc.root]
+            reg_subprop = SUBPROP_REGISTER[depc.root]
             if ut.VERBOSE:
                 print('[depc.init] Registering %d global preproc funcs' % len(reg_preproc))
             for args_, kwargs_ in reg_preproc:
@@ -224,12 +213,9 @@ class _CoreDependencyCache(object):
             setattr(w, table.tablename, wobj)
             setattr(wobj, 'get_rowids', get_rowids)
 
-    def clear_all(depc):
-        print('Clearning all cached data in %r' % (depc,))
-        for table in depc.cachetable_dict.values():
-            table.clear_table()
+    # -----------------------------
+    # GRAPH INSPECTION
 
-    # @ut.memoize
     def get_dependencies(depc, tablename):
         """
         gets level dependences from root to tablename
@@ -342,7 +328,6 @@ class _CoreDependencyCache(object):
         #print('from_root = %r' % (from_root,))
         return dependency_levels
 
-    # @ut.memoize
     def get_dependants(depc, tablename):
         """
         gets level dependences table to the leaves
@@ -565,7 +550,6 @@ class _CoreDependencyCache(object):
             >>> _debug = True
             >>> qaids, daids = [1, 2, 4], [2, 3, 4]
             >>> root_rowids = list(zip(*ut.product(qaids, daids)))
-            >>> #qaids = daids = list(range(1, 1000))
             >>> request = depc.new_request('vsone', qaids, daids)
             >>> results = request.execute()
             >>> tablename = 'vsone'
@@ -596,7 +580,8 @@ class _CoreDependencyCache(object):
                   ut.repr3(configclass_levels, nl=1))
 
         # TODO: better support for multi-edges
-        if len(root_rowids) > 0 and ut.isiterable(root_rowids[0]):
+
+        if len(root_rowids) > 0 and ut.isiterable(root_rowids[0]) and not depc[tablename].ismulti:
             rowid_dict = {}
             for colx, col in enumerate(root_rowids):
                 rowid_dict[depc.root + '%d' % (colx + 1,)] = col
@@ -615,9 +600,12 @@ class _CoreDependencyCache(object):
                         tablename, tablekey, rowid_dict, ensure, eager, nInput,
                         config, recompute, recompute_all, _debug)
                 except Exception as ex:
+                    table = depc[tablekey]  # NOQA
                     ut.printex(ex, 'error expanding rowids',
                                keys=['tablename', 'tablekey', 'rowid_dict',
-                                     'config'])
+                                     'config', 'table',
+                                     'dependency_levels',
+                                     ])
                     raise
                 rowid_dict[tablekey] = child_rowids
         if _debug:
@@ -658,7 +646,7 @@ class _CoreDependencyCache(object):
         parent_rowidsT = ut.dict_take(rowid_dict,
                                       table.parent_id_prefixes)
         if table.ismulti:
-            parent_rowids = [parent_rowidsT]
+            parent_rowids = parent_rowidsT
         else:
             parent_rowids = ut.list_transpose(parent_rowidsT)
 
@@ -671,6 +659,7 @@ class _CoreDependencyCache(object):
                   (ut.trunc_repr(parent_rowids),))
 
         _recompute = recompute_all or (tablekey == tablename and recompute)
+
         child_rowids = table.get_rowid(
             parent_rowids, config=config_, eager=eager, nInput=nInput,
             ensure=ensure, recompute=_recompute)
@@ -679,30 +668,16 @@ class _CoreDependencyCache(object):
                   (ut.trunc_repr(child_rowids),))
         return child_rowids
 
+    # -----------------------------
+    # STATE GETTERS
+
     def new_request(depc, tablename, qaids, daids, cfgdict=None):
+        """ creates a request for data that can be executed later """
         print('[depc] NEW %s request' % (tablename,))
         requestclass = depc.requestclass_dict[tablename]
         request = requestclass.new(depc, qaids, daids, cfgdict,
                                    tablename=tablename)
         return request
-
-    #def new_request(depc, tablename, *args, **kwargs):
-    #    print('[depc] NEW %s request' % (tablename,))
-    #    requestclass = depc.requestclass_dict[tablename]
-    #    cfgdict = kwargs.get('cfgdict', None)
-    #    requestkw = dict(cfgdict=cfgdict, tablename=tablename)
-    #    request = requestclass.new(depc, *args, **requestkw)
-    #    return request
-
-    def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename):
-        """
-        anscestor_tablename = depc.root
-        native_rowids = cid_list
-        tablename = const.CHIP_TABLE
-        """
-        rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
-        anscestor_rowids = list(rowid_dict[anscestor_tablename])
-        return anscestor_rowids
 
     def get_root_rowids(depc, tablename, native_rowids):
         return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
@@ -729,6 +704,16 @@ class _CoreDependencyCache(object):
             if _debug:
                 print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
+
+    def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename):
+        """
+        anscestor_tablename = depc.root
+        native_rowids = cid_list
+        tablename = const.CHIP_TABLE
+        """
+        rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
+        anscestor_rowids = list(rowid_dict[anscestor_tablename])
+        return anscestor_rowids
 
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
@@ -780,6 +765,26 @@ class _CoreDependencyCache(object):
 
     get_native = get_native_property
 
+    # -----------------------------
+    # STATE MODIFIERS
+
+    def notify_root_changed(depc, root_rowids, prop):
+        """
+        this is where we are notified that a "registered" root property has
+        changed.
+        """
+        print('[depc] notified that columns (%s) for (%d) row(s) were modified' %
+              (prop, len(root_rowids),))
+        # for key in tables_depending_on(prop)
+        #depc.delete_property(key, root_rowids)
+        # TODO: delete dependant properties
+        pass
+
+    def clear_all(depc):
+        print('Clearning all cached data in %r' % (depc,))
+        for table in depc.cachetable_dict.values():
+            table.clear_table()
+
     def delete_property(depc, tablename, root_rowids, config=None):
         """
         Deletes the rowids of `tablename` that correspond to `root_rowids`
@@ -791,7 +796,6 @@ class _CoreDependencyCache(object):
         return num_deleted
 
 
-# Define the class with some "nice extras """
 @six.add_metaclass(ut.ReloadingMetaclass)
 class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     """

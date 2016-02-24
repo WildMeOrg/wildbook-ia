@@ -118,6 +118,7 @@ class DependencyCacheTable(ut.NiceRepr):
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, ismulti=False,
                  isinteractive=False, default_to_unpack=False):
+        """ recieves kwargs from depc._register_prop """
         try:
             table.db = None
         except Exception:
@@ -314,9 +315,13 @@ class DependencyCacheTable(ut.NiceRepr):
                 state_dict = ut.load_data(fpath, verbose=verbose)
                 self = cls()
                 self.__setstate__(state_dict)
+                if hasattr(self, 'on_load'):
+                    self.on_load(table.depc)
                 return self
 
             def _write_func(fpath, self, verbose=ut.VERBOSE):
+                if hasattr(self, 'on_save'):
+                    self.on_save(table.depc, fpath)
                 ut.save_data(fpath, self.__getstate__(), verbose=verbose, n=4)
             return _read_func, _write_func
 
@@ -606,91 +611,14 @@ class DependencyCacheTable(ut.NiceRepr):
 
     #def add_rows_from_multiparent(table, parent_rowids)
 
-    def add_rows_from_parent(table, parent_rowids, config=None, verbose=True,
-                             _debug=None):
+    def add_rows_from_parent(table, parent_ids_, preproc_args, idxs1, idxs2,
+                             config=None, verbose=True, _debug=None):
         """
         Lazy addition
-
-        CommandLine:
-            python -m dtool.depcache_table --exec-add_rows_from_parent
-            python -m dtool.depcache_table --exec-add_rows_from_parent:2
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> # Test normal case
-            >>> depc = testdata_depc()
-            >>> table = depc['notch']
-            >>> config = table.configclass()
-            >>> _debug = True
-            >>> parent_rowids = list(zip([1, 2, 3, 4]))
-            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
-            >>> print(rowids)
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['vsone']
-            >>> _debug = True
-            >>> # Test pairwise parent case
-            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3, 4])
-            >>> parent_rowids = request.parent_rowids
-            >>> ut.colorprint('Testing add_rows via getters', 'blue')
-            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
-            >>> match_list = request.execute()
-            >>> print(match_list)
-            >>> print(rowids)
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> # Test get behavior for ismulti=True (model) tables
-            >>> depc = testdata_depc()
-            >>> table = depc['nnindexer']
-            >>> config = table.configclass()
-            >>> _debug = True
-            >>> parent_rowids = [((1, 2, 3, 4),)]
-            >>> #exec(ut.execstr_funckw(depc.add_rows_from_parent), globals())
-            >>> #ut.exec_func_src(table.add_rows_from_parent, globals(), sentinal='fmtstr = ')
-            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
-            >>> table.get_row_data(rowids)
-            >>> print(rowids)
         """
         _debug = table.depc._debug if _debug is None else _debug
         # Get requested configuration id
         config_rowid = table.get_config_rowid(config)
-        # Find leaf rowids that need to be computed
-        if table.ismulti:
-            assert len(parent_rowids) == 1, 'can only take one set at a time %r' % (parent_rowids,)
-            # Hack, implementation only will work for nnindexer
-            assert all(ut.flatten(parent_rowids)), 'cant have None input to models'
-            #parent_num = len(parent_rowids)
-            # TODO: partition into multi cols and normal cols.
-            # TODO: Allow for more than one multicol to be specified.
-            parent_uuids = table.depc.get_root_uuid(parent_rowids[0][0])
-            multiset_uuid = ut.hashable_to_uuid(parent_uuids)
-            #parent_ids_ = [(multiset_uuid, parent_num)]
-            parent_ids_ = [(multiset_uuid,)]
-            preproc_args = parent_rowids[0:1]
-            idxs1 = [0]
-        else:
-            if ALLOW_NONE_YIELD:
-                # Force entire row to be none if any are none
-                anyNone_flags = [any(ut.flag_None_items(x))
-                                 for x in parent_rowids]
-                idxs2 = ut.where(anyNone_flags)
-                idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
-                #error_parent_rowids =  ut.take(parent_rowids, idxs2)
-                parent_ids_ = ut.take(parent_rowids, idxs1)
-            else:
-                parent_ids_ = parent_rowids
-            # preproc args are usually the same as parent rowids.
-            # Model tables are the exception.
-            preproc_args = parent_ids_
 
         initial_rowid_list = table._get_rowid(parent_ids_, config=config)
 
@@ -721,7 +649,7 @@ class DependencyCacheTable(ut.NiceRepr):
         if _debug:
             print('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
         if ALLOW_NONE_YIELD:
-            rowid_list = ut.ungroup([rowid_list], [idxs1], len(parent_rowids) - 1)
+            rowid_list = ut.ungroup([rowid_list], [idxs1], len(parent_ids_) - 1)
         return rowid_list
 
     def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
@@ -960,6 +888,51 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
             >>> rowids = table.get_rowid(parent_rowids)
             >>> print(rowids)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> # Test normal case
+            >>> depc = testdata_depc()
+            >>> table = depc['notch']
+            >>> config = table.configclass()
+            >>> _debug = True
+            >>> parent_rowids = list(zip([1, 2, 3, 4]))
+            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
+            >>> print(rowids)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['vsone']
+            >>> _debug = True
+            >>> # Test pairwise parent case
+            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3, 4])
+            >>> parent_rowids = request.parent_rowids
+            >>> ut.colorprint('Testing add_rows via getters', 'blue')
+            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
+            >>> match_list = request.execute()
+            >>> print(match_list)
+            >>> print(rowids)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> # Test get behavior for ismulti=True (model) tables
+            >>> depc = testdata_depc()
+            >>> table = depc['nnindexer']
+            >>> config = table.configclass()
+            >>> _debug = True
+            >>> parent_rowids = [((1, 2, 3, 4),)]
+            >>> #exec(ut.execstr_funckw(depc.add_rows_from_parent), globals())
+            >>> #ut.exec_func(table.add_rows_from_parent, globals(), sentinal='fmtstr = ')
+            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
+            >>> table.get_row_data(rowids)
+            >>> print(rowids)
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
@@ -967,39 +940,66 @@ class DependencyCacheTable(ut.NiceRepr):
                 table.tablename, len(parent_rowids)))
             print('[deptbl.get_rowid] config = %r' % (config,))
             print('[deptbl.get_rowid] ensure = %r' % (ensure,))
-        #rowid_list = parent_rowids
-        #return rowid_list
+
+        # Find leaf rowids that need to be computed
+        if table.ismulti:
+            assert len(parent_rowids) == 1, (
+                'can only take one set at a time %r' % (parent_rowids,))
+            # Hack, implementation only will work for nnindexer
+            assert all(ut.flatten(parent_rowids)), 'cant have None input to models'
+            #parent_num = len(parent_rowids)
+            # TODO: partition into multi cols and normal cols.
+            # TODO: Allow for more than one multicol to be specified.
+            parent_uuids = table.depc.get_root_uuid(parent_rowids[0][0])
+            multiset_uuid = ut.hashable_to_uuid(parent_uuids)
+            #parent_ids_ = [(multiset_uuid, parent_num)]
+            parent_ids_ = [(multiset_uuid,)]
+            preproc_args = parent_rowids[0:1]
+            idxs2 = []
+            idxs1 = [0]
+        else:
+            if ALLOW_NONE_YIELD:
+                # Force entire row to be none if any are none
+                anyNone_flags = [any(ut.flag_None_items(x))
+                                 for x in parent_rowids]
+                idxs2 = ut.where(anyNone_flags)
+                idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
+                #error_parent_rowids =  ut.take(parent_rowids, idxs2)
+                parent_ids_ = ut.take(parent_rowids, idxs1)
+            else:
+                parent_ids_ = parent_rowids
+            # preproc args are usually the same as parent rowids.
+            # Model tables are the exception.
+            preproc_args = parent_ids_
 
         if recompute:
             # FIXME: make recompute work with table.ismulti
             # get existing rowids, delete them, recompute the request
-            rowid_list = table._get_rowid(parent_rowids, config=config,
+            rowid_list = table._get_rowid(parent_ids_, config=config,
                                           eager=True, nInput=None)
             table.delete_rows(rowid_list)
         if ensure or recompute:
-            rowid_list = table.add_rows_from_parent(parent_rowids, config=config)
+            rowid_list = table.add_rows_from_parent(
+                parent_ids_, preproc_args, idxs1, idxs2, config=config)
         else:
             rowid_list = table._get_rowid(
-                parent_rowids, config=config, eager=eager, nInput=nInput)
+                parent_ids_, config=config, eager=eager, nInput=nInput)
         return rowid_list
 
-    def _get_rowid(table, parent_rowids, config=None, eager=True, nInput=None,
+    def _get_rowid(table, parent_ids_, config=None, eager=True, nInput=None,
                    _debug=None):
-        """
-        equivalent to get_rowid except ensure is constrained to be False.
-        """
         colnames = (table.rowid_colname,)
         config_rowid = table.get_config_rowid(config=config)
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
             print('_get_rowid')
             print('_get_rowid table.tablename = %r ' % (table.tablename,))
-            print('_get_rowid parent_rowids = %s' % (ut.trunc_repr(parent_rowids)))
+            print('_get_rowid parent_ids_ = %s' % (ut.trunc_repr(parent_ids_)))
             print('_get_rowid config = %s' % (config))
             print('_get_rowid table.rowid_colname = %s' % (table.rowid_colname))
             print('_get_rowid config_rowid = %s' % (config_rowid))
         andwhere_colnames = table.superkey_colnames
-        params_iter = (rowids + (config_rowid,) for rowids in parent_rowids)
+        params_iter = (ids_ + (config_rowid,) for ids_ in parent_ids_)
         params_iter = list(params_iter)
         #print('**params_iter = %r' % (params_iter,))
         rowid_list = table.db.get_where2(table.tablename, colnames,
@@ -1204,13 +1204,16 @@ class DependencyCacheTable(ut.NiceRepr):
                 uri_full = join(table.depc.cache_dpath, uri)
                 try:
                     if read_extern:
+                        #colname = flat_intern_colnames[extern_colx]
+                        #cls = table.extern_io_classes[colname]
+                        #if hasattr(cls, 'on_load'):
                         data = read_func(uri_full)
                     else:
                         ut.assertpath(uri_full)
                         data = uri_full
                 except Exception as ex:
                     ut.printex(ex, 'failed to load external data',
-                               iswarning=False,
+                               iswarning=(extra_tries > 0),
                                keys=['extra_tries', 'uri', 'uri_full',
                                      (exists, 'uri_full'), 'read_func'])
 

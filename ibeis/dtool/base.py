@@ -11,6 +11,8 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     r"""
     Base class for heirarchical config
     need to overwrite get_param_info_list
+
+
     """
     def __init__(cfg, **kwargs):
         cfg.initialize_params(**kwargs)
@@ -233,9 +235,21 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         return self_list
 
     def __getstate__(cfg):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> cfg = DummyVsManyConfig()
+            >>> ser = pickle.dumps(cfg)
+            >>> cfg2 = pickle.loads(ser)
+            >>> assert cfg == cfg2
+            >>> assert cfg is not cfg2
+        """
         return cfg.asdict()
 
     def __setstate__(cfg, state):
+        cfg.initialize_params()
         cfg.update(**state)
 
     #@classmethod
