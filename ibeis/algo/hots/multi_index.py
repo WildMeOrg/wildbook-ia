@@ -49,7 +49,7 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
         # All groups have the same name
         nidgroup_list = ibs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
         for nidgroup in nidgroup_list:
-            assert ut.list_allsame(nidgroup), 'bad name grouping'
+            assert ut.allsame(nidgroup), 'bad name grouping'
     if __debug__:
         # All subsiquent indexer are subsets (in name/identity space)
         # of the previous

@@ -287,7 +287,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         >>> # Run Assertion Test
         >>> groupid2_items = ut.group_items(aids_list, nid_list)
         >>> grouped_items = list(six.itervalues(groupid2_items))
-        >>> passed_iter = map(ut.list_allsame, grouped_items)
+        >>> passed_iter = map(ut.allsame, grouped_items)
         >>> passed_list = list(passed_iter)
         >>> assert all(passed_list), 'problem in get_name_aids'
         >>> # Print gropued items

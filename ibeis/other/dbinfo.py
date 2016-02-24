@@ -979,7 +979,7 @@ def test_name_consistency(ibs):
     _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
     print(_nids_list[-20:])
     print(nx2_aids[-20:])
-    assert all(map(ut.list_allsame, _nids_list))
+    assert all(map(ut.allsame, _nids_list))
 
 
 def get_keypoint_stats(ibs):

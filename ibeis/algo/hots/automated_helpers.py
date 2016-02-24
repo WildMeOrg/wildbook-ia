@@ -466,7 +466,7 @@ def check_results(ibs_gt, ibs2, aid1_to_aid2, aids_list1_, incinfo):
     aid2_to_aid1 = ut.invert_dict(aid1_to_aid2)
     false_negative_groups_t = [tuple(ut.dict_take_list(aid2_to_aid1, aids2)) for aids2 in false_negative_groups]
     false_negative_group_nids_t = ibs_gt.unflat_map(ibs_gt.get_annot_nids, false_negative_groups_t)
-    assert all(map(ut.list_allsame, false_negative_group_nids_t)), 'inconsistent nids'
+    assert all(map(ut.allsame, false_negative_group_nids_t)), 'inconsistent nids'
     false_negative_group_nid_t = ut.get_list_column(false_negative_group_nids_t, 0)
     # These are the links that should have been made
     missed_links = ut.group_items(false_negative_groups, false_negative_group_nid_t)

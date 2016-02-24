@@ -994,7 +994,7 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
         >>> gid_list = ibs.get_annot_gids(aid_list)
         >>> for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):
-        ...     assert ut.list_allsame(gids), 'annots should be from same image'
+        ...     assert ut.allsame(gids), 'annots should be from same image'
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
 
@@ -1012,7 +1012,7 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
         >>> gid_list = ibs.get_annot_gids(aid_list)
         >>> print('contact_aids = %r' % (contact_aids,))
         >>> for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):
-        ...     assert ut.list_allsame(gids), 'annots should be from same image'
+        ...     assert ut.allsame(gids), 'annots should be from same image'
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
     """

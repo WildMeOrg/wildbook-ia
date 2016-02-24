@@ -210,8 +210,8 @@ timedelta_distribution = ('# Result Timedelta Distribution (Safely Ignore)', ut.
     test_result = ibeis.run_experiment(
         e='timedelta_hist',
         db=db,
-        a=a[0:1],
-        t=t[0:1],
+        a=a,
+        t=t,
         qaid_override=qaid_override, daid_override=daid_override,
         truepos=True)
     test_result.draw_func()

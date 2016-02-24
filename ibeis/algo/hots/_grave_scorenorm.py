@@ -202,7 +202,7 @@ class ScoreNormalizer(ut.Cachable):
         filtered_tn_labels, filtered_tn_scores = filter_seen_data(normalizer.tn_labels, tn_labels, tn_scores)
 
         # Ensure input in list format
-        assert ut.list_allsame(map(
+        assert ut.allsame(map(
             len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
 
         if len(filtered_tp_scores) == 0:

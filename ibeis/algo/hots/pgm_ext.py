@@ -451,7 +451,7 @@ class TemplateCPD(object):
         HACK_SAME_IDS = True
         # TODO: keep track of parent index inheritence
         # then rectify uniqueness based on that
-        if HACK_SAME_IDS and ut.list_allsame(template_ids):
+        if HACK_SAME_IDS and ut.allsame(template_ids):
             _id = template_ids[0]
         else:
             _id = ''.join(template_ids)

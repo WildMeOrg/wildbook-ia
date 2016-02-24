@@ -818,7 +818,7 @@ def check_name_consistency(ibs, nid_list):
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
     error_list = []
     for aids, sids in zip(aids_list, species_rowids_list):
-        if not ut.list_allsame(sids):
+        if not ut.allsame(sids):
             error_msg = 'aids=%r have the same name, but belong to multiple species=%r' % (
                 aids, ibs.get_species_texts(ut.unique_ordered(sids)))
             print(error_msg)
@@ -837,7 +837,7 @@ def check_name_mapping_consistency(ibs, nx2_aids):
     try:
         from ibeis import ibsfuncs
         _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
-        assert all(map(ut.list_allsame, _nids_list))
+        assert all(map(ut.allsame, _nids_list))
     except Exception as ex:
         # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
         #name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]
@@ -848,7 +848,7 @@ def check_name_mapping_consistency(ibs, nx2_aids):
             nids = ibs.get_annot_name_rowids(aids)
             if np.all(np.array(nids) > 0):
                 print(nids)
-                if ut.list_allsame(nids):
+                if ut.allsame(nids):
                     good += 1
                 else:
                     huh += 1
@@ -2695,7 +2695,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
         #     http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
         nidgroup_list = unflat_map(ibs.get_annot_name_rowids, known_aids_list)
         for nidgroup in nidgroup_list:
-            assert ut.list_allsame(nidgroup), 'bad name grouping'
+            assert ut.allsame(nidgroup), 'bad name grouping'
     return known_aids_list, unknown_aids
 
 
