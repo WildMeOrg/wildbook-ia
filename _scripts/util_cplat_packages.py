@@ -24,6 +24,7 @@ import textwrap
 
 # Behavior variables
 
+APTDCON = '--aptdcon' in sys.argv
 UPGRADE_PIP     = '--upgrade' in sys.argv
 CHECK_INSTALLED = '--exhaustive' in sys.argv
 CRASH_ON_FAIL   = True
@@ -512,6 +513,8 @@ def __install_command_apt_get(pkg):
     Returns the apt_get install command for a package (accepts known aliases)
     """
     pkg = fix_pkgname_apt_get(pkg)
+    if APTDCON:
+        return 'yes | sudo aptdcon --install %s' % pkg
     return 'sudo apt-get install -y %s' % pkg
 
 
