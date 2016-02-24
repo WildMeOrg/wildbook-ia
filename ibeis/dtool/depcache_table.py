@@ -665,7 +665,7 @@ class DependencyCacheTable(ut.NiceRepr):
         config_rowid = table.get_config_rowid(config)
         # Find leaf rowids that need to be computed
         if table.ismulti:
-            assert len(parent_rowids) == 1, 'can only take one set at a time'
+            assert len(parent_rowids) == 1, 'can only take one set at a time %r' % (parent_rowids,)
             # Hack, implementation only will work for nnindexer
             assert all(ut.flatten(parent_rowids)), 'cant have None input to models'
             #parent_num = len(parent_rowids)
@@ -881,11 +881,13 @@ class DependencyCacheTable(ut.NiceRepr):
             try:
                 for obj, fpath, col in zip(extern_data, extern_fpaths,
                                            extern_colnames):
-                    #print('WRITING %r' % (col,))
+                    print('WRITING %r' % (col,))
+                    print('fpath = %r' % (fpath,))
                     write_func = table.extern_write_funcs[col]
                     #write_func(obj, fpath, True)
                     #print('fpath = %r' % (fpath,))
                     write_func(fpath, obj)
+                    ut.assert_exists(fpath, verbose=True)
                     #verbose=True)
             except Exception as ex:
                 ut.printex(ex, 'write extern col error', keys=[
@@ -969,6 +971,7 @@ class DependencyCacheTable(ut.NiceRepr):
         #return rowid_list
 
         if recompute:
+            # FIXME: make recompute work with table.ismulti
             # get existing rowids, delete them, recompute the request
             rowid_list = table._get_rowid(parent_rowids, config=config,
                                           eager=True, nInput=None)
@@ -1006,7 +1009,7 @@ class DependencyCacheTable(ut.NiceRepr):
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
-    def delete_rows(table, rowid_list, verbose=None):
+    def delete_rows(table, rowid_list, delete_extern=False, verbose=None):
         """
         CommandLine:
             python -m dtool.depcache_table --exec-delete_rows
@@ -1047,11 +1050,12 @@ class DependencyCacheTable(ut.NiceRepr):
         if ut.NOT_QUIET:
             print('Requested delete of %d rows from %s' % (
                 len(rowid_list), table.tablename))
+            print('delete_extern = %r' % (delete_extern,))
 
         # TODO:
         # REMOVE EXTERNAL FILES
         # if len(table.extern_write_funcs):
-        if 1:
+        if delete_extern:
             if len(table.extern_columns) > 0:
                 extern_colnames = tuple(table.external_to_internal.values())
                 uri_list = table.get_internal_columns(rowid_list,
@@ -1222,7 +1226,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 # rather than deleting the rowids.  Need the parent ids and
                 # config to do that.
                 failed_rowids = ut.compress(nonNone_tbl_rowids, failed_list)
-                table.delete_rows(failed_rowids)
+                table.delete_rows(failed_rowids, delete_extern=False)
                 raise Exception('Non existant data on disk. Need to recompute rows')
             prop_listT[extern_colx] = data_list
         ####

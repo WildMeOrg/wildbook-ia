@@ -650,13 +650,16 @@ class _CoreDependencyCache(object):
                 config_ = configclass(**config)
 
         table = depc[tablekey]
-        if False:
-            parent_rowidsT = ut.dict_take(rowid_dict, table.parents)
-            parent_rowids = list(zip(*parent_rowidsT))
+        #if False:
+        #    parent_rowidsT = ut.dict_take(rowid_dict, table.parents)
+        #    parent_rowids = list(zip(*parent_rowidsT))
+        # Hack for multi-edges
+        #else:
+        parent_rowidsT = ut.dict_take(rowid_dict,
+                                      table.parent_id_prefixes)
+        if table.ismulti:
+            parent_rowids = [parent_rowidsT]
         else:
-            # Hack for multi-edges
-            parent_rowidsT = ut.dict_take(rowid_dict,
-                                          table.parent_id_prefixes)
             parent_rowids = ut.list_transpose(parent_rowidsT)
 
         if _debug:
