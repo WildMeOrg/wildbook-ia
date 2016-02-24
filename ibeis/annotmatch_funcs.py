@@ -521,7 +521,6 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> raise Exception
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
