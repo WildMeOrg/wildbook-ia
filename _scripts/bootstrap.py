@@ -131,16 +131,11 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'libffi-dev',  # requests secure dependencies
         'libssl-dev',  # requests secure dependencies
         #'jasper',  # hyrule cannot handle this
-        #'zmq',
-        #libgeos-dev
     ]
 
     if util_cplat_packages.APPLE:
         PREREQ_PKG_LIST.extend([
             'opencv',
-            'libpng',
-            'zlib',
-            'freetype',
         ])
 
     if util_cplat_packages.DEBIAN_FAMILY:
