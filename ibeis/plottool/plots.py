@@ -1535,7 +1535,7 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
         return interpolated_targets
 
     # Interpolate uniform grid positions
-    if len(known_nd_data.T) == 1 or ut.list_allsame(known_nd_data.T[1]):
+    if len(known_nd_data.T) == 1 or ut.allsame(known_nd_data.T[1]):
         xdata = known_nd_data.T[0]
         ydata = known_target_points
         pt.plot(xdata, ydata)
