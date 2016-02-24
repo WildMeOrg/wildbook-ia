@@ -397,27 +397,33 @@ class NeighborIndex(object):
 
     # ---- <cachable_interface> ---
 
-    def save(nnindexer, cachedir, verbose=True):
+    def save(nnindexer, cachedir=None, fpath=None, verbose=True):
         r"""
-        Caches a neighbor indexer to disk
+        Caches a flann neighbor indexer to disk (not the data)
         """
         if NOSAVE_FLANN:
             if ut.VERYVERBOSE or verbose:
                 print('[nnindex] flann save is deactivated')
             return False
-        flann_fpath = nnindexer.get_fpath(cachedir)
+        if fpath is None:
+            flann_fpath = nnindexer.get_fpath(cachedir)
+        else:
+            flann_fpath = fpath
         nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:
             print('[nnindex] flann.save_index(%r)' %
                   ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
-    def load(nnindexer, cachedir, verbose=True):
+    def load(nnindexer, cachedir=None, fpath=None, verbose=True):
         r"""
-        Loads a cached neighbor indexer from disk
+        Loads a cached flann neighbor indexer from disk (not the data)
         """
         load_success = False
-        flann_fpath = nnindexer.get_fpath(cachedir)
+        if fpath is None:
+            flann_fpath = nnindexer.get_fpath(cachedir)
+        else:
+            flann_fpath = fpath
         nnindexer.flann_fpath = flann_fpath
         if ut.checkpath(flann_fpath, verbose=verbose):
             idx2_vec = nnindexer.idx2_vec
@@ -581,7 +587,8 @@ class NeighborIndex(object):
                 (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
                     qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
             except pyflann.FLANNException as ex:
-                ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (nnindexer.flann_fpath,))
+                ut.printex(ex, 'probably misread the cached flann_fpath=%r' %
+                           (nnindexer.flann_fpath,))
                 #ut.embed()
                 # Uncomment and use if the flan index needs to be deleted
                 #ibs = ut.search_stack_for_localvar('ibs')
@@ -733,27 +740,64 @@ class NeighborIndex(object):
 
 class NeighborIndex2(NeighborIndex, ut.NiceRepr):
     def __init__(nnindexer, flann_params=None, cfgstr=None):
-
         super(NeighborIndex2, nnindexer).__init__(flann_params, cfgstr)
-        nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
+        nnindexer.config = None
+        #nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
 
     def __nice__(self):
-        if self.ax2_aid is not None:
-            return ' nA=%r' % (len(self.ax2_aid))
+        def safelen(l):
+            return None if l is None else len(l)
+        return ' nA=%r nV=%r' % (safelen(self.ax2_aid), safelen(self.idx2_vec))
+
+    @staticmethod
+    def get_support(depc, aid_list, config):
+        vecs_list = depc.get('feat', aid_list, 'vecs', config)
+        if False and config['fg_on']:
+            fgws_list = depc.get('featweight', aid_list, 'fgw', config)
         else:
-            return ' nA=0'
+            fgws_list = None
+        return vecs_list, fgws_list
+
+    def on_load(nnindexer, depc):
+        #print('NNINDEX ON LOAD')
+        aid_list = nnindexer.ax2_aid
+        config = nnindexer.config
+        support = nnindexer.get_support(depc, aid_list, config.feat_cfg)
+        nnindexer.init_support(aid_list, *support)
+        nnindexer.load(fpath=nnindexer.flann_fpath)
+        #nnindexer.ax2_aid
+        pass
+
+    def on_save(nnindexer, depc, fpath):
+        #print('NNINDEX ON SAVE')
+        # Save FLANN as well
+        flann_fpath = ut.augpath(fpath, '_flann', newext='.flann')
+        nnindexer.save(fpath=flann_fpath)
 
     def __getstate__(self):
         # TODO: Figure out how to make these play nice with the depcache
-        return {}
-        #state_dict = self.__dict__
-        #return state_dict
+        state = self.__dict__
+        # These values are removed before a save to disk
+        del state['flann']
+        del state['idx2_fgw']
+        del state['idx2_vec']
+        del state['idx2_ax']
+        del state['idx2_fx']
+        #del state['flann_params']
+        #del state['checks']
+        #nnindexer.num_indexed = None
+        #nnindexer.flann_fpath = None
+        #if flann_params is None:
+        #nnindexer.flann_params = flann_params
+        #nnindexer.cores  = flann_params.get('cores', 0)
+        #nnindexer.checks = flann_params.get('checks', 1028)
+        #nnindexer.num_indexed = None
+        #nnindexer.flann_fpath = None
+        #nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
+        return state
 
     def __setstate__(self, state_dict):
-        # TODO: Figure out how to make these play nice with the depcache
-        #assert 'ibs' in state_dict, 'requires controller object to be loaded'
-        #self.__dict__.update(state_dict)
-        pass
+        self.__dict__.update(state_dict)
         #return {}
 
     def ibeis_knn(nnindexer, qfx2_vec, K):

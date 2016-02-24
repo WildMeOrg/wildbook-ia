@@ -1039,34 +1039,32 @@ def compute_neighbor_index(depc, aids_list, config):
         >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
         >>> depc = ibs.depc
         >>> aids_list = [aid_list]
-        >>> table = depc['chips']
+        >>> #table = depc['chips']
         >>> config = ibs.depc['neighbor_index'].configclass()
-        >>> #result1 = list(compute_neighbor_index(depc, aids_list, config))
-        >>> #nnindexer = result1[0][0]
+        >>> result1 = list(compute_neighbor_index(depc, aids_list, config))
+        >>> nnindexer = result1[0][0]
         >>> #print(result1)
-        >>> result2 = ibs.depc.get('neighbor_index', [aid_list], 'indexer', config, recompute=True)
+        >>> result2 = ibs.depc.get('neighbor_index', [aid_list], 'indexer', config, recompute=False)
+        >>> result3 = ibs.depc.get('neighbor_index', [aid_list], 'indexer', config, recompute=False)
         >>> print(result2)
+        >>> print(result3)
+        >>> assert result2[0] is not result3[0]
+        >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
     """
     print('[IBEIS] COMPUTE_NEIGHBOR_INDEX: %r' % (aids_list,))
     # TODO: allow augment
     assert len(aids_list) == 1, 'only working with one indexer at a time'
     aid_list = aids_list[0]
-    vecs_list = depc.get('feat', aid_list, 'vecs', config.feat_cfg)
-    if False and config['fg_on']:
-        fgws_list = depc.get('featweight', aid_list, 'fgw', config)
-    else:
-        fgws_list = None
     flann_params = config.get_flann_params()
     cfgstr = config.get_cfgstr()
     verbose = True
     nnindexer = neighbor_index.NeighborIndex2(flann_params, cfgstr)
     # Initialize neighbor with unindexed data
-    nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=verbose)
+    support = nnindexer.get_support(depc, aid_list, config)
+    nnindexer.init_support(aid_list, *support, verbose=verbose)
+    nnindexer.config = config
     nnindexer.reindex()
-    # TODO: Figure __getstate__ play with depcache.
     yield (nnindexer,)
-    # Load or build the indexing structure
-    #nnindexer.ensure_indexer(cachedir, verbose=verbose, force_rebuild=force_rebuild)
 
 
 if __name__ == '__main__':
