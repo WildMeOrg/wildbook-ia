@@ -576,7 +576,9 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     img = vt.imread(fpath_in, flags=cv2.IMREAD_UNCHANGED)
     if verbose:
         print('[clipwhite] img.shape = %r' % (img.shape,))
-    if len(img.shape) == 4:
+
+    nChannels = get_num_channels(img)
+    if nChannels == 4:
         # alpha
         thresh = 12
         fillval = 0
@@ -584,7 +586,7 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
         # imgBGRA
         cropped_img = crop_out_imgfill(img, fillval, thresh=thresh, channel=channel)
     else:
-        fillval = np.array([255] * get_num_channels(img))
+        fillval = np.array([255] * nChannels)
         cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
     if verbose:
         print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
