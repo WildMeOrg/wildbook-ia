@@ -470,15 +470,24 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
 
         python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids 193 194 195 196 --show --db WD_Siva
 
+        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids 792 --show --db GZ_ALL --no-with-all
+
+        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids=788,789,790,791 --show --db GZ_ALL --no-with-all
+        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids=782,783,792 --show --db GZ_ALL --no-with-all
+
+
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
+        >>> defaultdb='testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> nids = None if aids is not None else ibs.get_valid_nids()[0:5]
-        >>> make_name_graph_interaction(ibs, nids, aids)
+        >>> with_all = not ut.get_argflag('--no-with-all')
+        >>> make_name_graph_interaction(ibs, nids, aids, with_all=with_all)
+        >>> defaultdb='testdb1'
         >>> ut.show_if_requested()
 
     """

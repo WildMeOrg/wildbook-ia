@@ -615,7 +615,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
-        >>> result = draw_rank_cdf(ibs, testres)
+        >>> do_per_annot = not ut.get_argflag('--do-per-name')
+        >>> result = draw_rank_cdf(ibs, testres, do_per_annot=do_per_annot)
         >>> ut.show_if_requested()
         >>> print(result)
     """
@@ -1059,6 +1060,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
             analysis_fpath = join(individ_results_dpath, qres_fname)
             if SHOW or show_in_notebook or not ut.checkpath(analysis_fpath):
+                bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
+                print('bar_label = %r' % (bar_label,))
                 if show_in_notebook:
                     # hack to show vertical line in notebook
                     if len(cfg_colors) > 0:
@@ -1066,7 +1069,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                                (np.array(cfg_colors[cfgx]) * 255))
                         fnum = fnum + 1
                         fig, ax = pt.imshow(bar, fnum=fnum)
-                        pt.set_xlabel('Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx), ax=ax)
+                        pt.set_xlabel(bar_label, ax=ax)
                         pt.plt.show()  # Need to show when doing notebook
                 for annot_mode in annot_modes:
                     show_kwargs['annot_mode'] = annot_mode

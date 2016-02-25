@@ -17,6 +17,11 @@ def testdata_showchip():
     weight_label = ut.get_argval('--weight_label', type_=str, default='fg_weights')
     annote = not ut.get_argflag('--no-annote')
     kwargs = dict(ori=ut.get_argflag('--ori'), weight_label=weight_label, annote=annote)
+    kwargs['notitle'] = ut.get_argflag('--notitle')
+    kwargs['pts'] = ut.get_argflag('--drawpts')
+    kwargs['ell'] = ut.get_argflag('--drawell')
+    kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=.4)
+    kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
     ut.print_dict(kwargs)
     default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
@@ -74,7 +79,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,
         title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,
         darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,
-        projection, use_gridspec
+        projection, use_gridspec, pts, ell
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:
@@ -151,7 +156,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         except KeyError:
             pass
         pt.viz_keypoints._annotate_kpts(kpts_, **kwargs)
-        pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))
+        if not ut.get_argflag('--noaidlabel'):
+            pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))
     use_title = not kwargs.get('notitle', False)
     if use_title:
         pt.set_title(chip_title_text)
