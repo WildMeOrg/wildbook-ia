@@ -874,7 +874,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
                      show_in_notebook=False, annot_modes=None, figsize=None,
-                     verbose=None):
+                     verbose=None, **kwargs):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -939,7 +939,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     }
     # show analysis
     show_kwargs['show_query'] = False
-    show_kwargs['viz_name_score'] = True
+    show_kwargs['viz_name_score'] = kwargs.get('viz_name_score', True)
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
     #show_kwargs['with_figtitle'] = True

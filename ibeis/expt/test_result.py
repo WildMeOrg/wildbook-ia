@@ -1107,7 +1107,6 @@ class TestResult(object):
             >>> case_pos_list7 = testres.case_sample2(filt_cfg7, verbose=verbose)
             >>> print(case_pos_list7)
 
-
         Example1:
             >>> # SCRIPT
             >>> from ibeis.expt.test_result import *  # NOQA
@@ -1128,6 +1127,8 @@ class TestResult(object):
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
+            >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'])
+            >>> filt_cfg = ':disagree=True,index=0:8,min_gtscore=.00001,require_all_cfg=True'
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
             >>> case_pos_list = testres.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
@@ -1136,6 +1137,20 @@ class TestResult(object):
             >>> all_tags = testres.get_all_tags()
             >>> selcted_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
+
+
+            print('qaid = %r' % (qaid,))
+            print('qx = %r' % (qx,))
+            print('cfgxs = %r' % (cfgxs,))
+            # print testres info about this item
+            take_cfgs = ut.partial(ut.take, index_list=cfgxs)
+            take_qx = ut.partial(ut.take, index_list=qx)
+            truth_cfgs = ut.hmap_vals(take_qx, truth2_prop)
+            truth_item = ut.hmap_vals(take_cfgs, truth_cfgs, max_depth=1)
+            prop_cfgs = ut.hmap_vals(take_qx, prop2_mat)
+            prop_item = ut.hmap_vals(take_cfgs, prop_cfgs, max_depth=0)
+            print('truth2_prop[item] = ' + ut.repr3(truth_item, nl=2))
+            print('prop2_mat[item] = ' + ut.repr3(prop_item, nl=1))
         """
         from ibeis.expt import cfghelpers
         if verbose is None:
@@ -1338,6 +1353,17 @@ class TestResult(object):
                     _valid_idxs.append(idx)
             _qx_list = qx_list[_valid_idxs]
             _cfgx_list = cfgx_list[_valid_idxs]
+            _valid_index = np.vstack((_qx_list, _cfgx_list)).T
+            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, hack=True)
+            qx_list = _qx_list
+            cfgx_list = _cfgx_list
+
+        require_all_cfg = filt_cfg.pop('require_all_cfg', None)
+        if require_all_cfg:
+            qx2_valid_cfgs = ut.group_items(cfgx_list, qx_list)
+            hasall_cfg = [len(qx2_valid_cfgs[qx]) == testres.nConfig for qx in qx_list]
+            _qx_list = qx_list.compress(hasall_cfg)
+            _cfgx_list = cfgx_list.compress(hasall_cfg)
             _valid_index = np.vstack((_qx_list, _cfgx_list)).T
             is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, hack=True)
             qx_list = _qx_list
