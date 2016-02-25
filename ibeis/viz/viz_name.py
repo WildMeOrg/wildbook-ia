@@ -43,7 +43,9 @@ def testdata_multichips():
         index = ut.get_argval('--index', default=0)
         aid_list = ibs.filter_aidpairs_by_tags(any_tags=tags)[index]
     else:
-        aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+        #aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+        aid_list = ibeis.testdata_aids(default_aids=[1, 2, 3])
+
     in_image = not ut.get_argflag('--no-inimage')
     return ibs, aid_list, in_image
 
