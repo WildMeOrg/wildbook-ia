@@ -2549,7 +2549,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
            data_colorbar=False, darken=DARKEN, update=False,
            xlabel=None, redraw_image=True, ax=None, alpha=None, **kwargs):
-    """
+    r"""
     Args:
         img (ndarray): image data
         fnum (int): figure number

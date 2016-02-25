@@ -21,8 +21,8 @@ def get_blended_chip(chip1, chip2, M):
 
 #@ut.indent_func
 def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
-            mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1,
-            refine_method=None, **kwargs):
+            mx=None, show_assign=True, show_lines=True, show_kpts=True,
+            show_aff=None, fnum=1, refine_method=None, **kwargs):
     """ Visualizes spatial verification
 
     CommandLine:
@@ -36,8 +36,11 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     wh2 = vt.get_size(chip2)
     #
     # Get Affine Chips, Keypoints, Inliers
-    show_aff   = aff_tup is not None
-    if show_aff:
+    if show_aff is None:
+        show_aff_ = aff_tup is not None
+    else:
+        show_aff_ = show_aff
+    if show_aff_:
         (aff_inliers, Aff) = aff_tup
         chip1_At = vt.warpAffine(chip1, Aff, wh2)
         #kpts1_mAt = ktool.transform_kpts(kpts1_m, Aff)
@@ -52,8 +55,8 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         chip2_blendH = vt.blend_images(chip1_Ht, chip2)
     #
     # Drawing settings
-    nRows  = (show_assign) + (show_aff) + (show_homog)
-    nCols1 = (show_assign) + (show_aff) + (show_homog)
+    nRows  = (show_assign) + (show_aff_) + (show_homog)
+    nCols1 = (show_assign) + (show_aff_) + (show_homog)
     nCols2 = 2
     pnum1_ = df2.get_pnum_func(nRows, nCols1)
     pnum2_ = df2.get_pnum_func(nRows, nCols2)
@@ -112,7 +115,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     if show_assign:
         # Draw the Assigned -> Affine -> Homography matches
         px = _draw_matches(px, '%d Assigned matches  ' % len(fm), np.arange(len(fm)))
-        if show_aff:
+        if show_aff_:
             px = _draw_matches(px, '%d Initial inliers    ' % len(aff_inliers), aff_inliers)
         if show_homog:
             if refine_method is None:
@@ -124,9 +127,9 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     #
     # Draw the Affine Transformations
     px = nCols2 * show_assign
-    #if show_aff or show_homog:
+    #if show_aff_ or show_homog:
 
-    if show_aff:
+    if show_aff_:
         #px = _draw_chip(px, 'Source',    chip1,        aff_inliers,   kpts1_m, None)
         #px = _draw_chip(px, 'Dest',      chip2,        aff_inliers,   None, kpts2_m)
         px = _draw_chip(px, 'Initial Warped',  chip1_At,     aff_inliers, kpts1_m, None, H1=Aff)
