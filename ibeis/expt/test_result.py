@@ -34,7 +34,7 @@ def combine_testres_list(ibs, testres_list):
     import copy
     from ibeis.expt import annotation_configs
 
-    acfg_list = [testres.acfg for testres in testres_list]
+    acfg_list = [tr.acfg for tr in testres_list]
     acfg_lbl_list = annotation_configs.get_varied_acfg_labels(acfg_list)
 
     flat_acfg_list = annotation_configs.flatten_acfg_list(acfg_list)
@@ -47,28 +47,24 @@ def combine_testres_list(ibs, testres_list):
             return lbl
         return lbl + '+' + acfg_lbl
 
-    agg_cfg_list        = ut.flatten(
-        [testres.cfg_list for testres in testres_list])
-    agg_cfgx2_cfgreinfo = ut.flatten(
-        [testres.cfgx2_cfgresinfo for testres in testres_list])
-    agg_cfgx2_qreq_     = ut.flatten(
-        [testres.cfgx2_qreq_ for testres in testres_list])
-    agg_cfgdict_list    = ut.flatten(
-        [testres.cfgdict_list for testres in testres_list])
+    agg_cfg_list = ut.flatten([tr.cfg_list for tr in testres_list])
+    agg_cfgx2_qreq_ = ut.flatten([tr.cfgx2_qreq_ for tr in testres_list])
+    agg_cfgdict_list = ut.flatten([tr.cfgdict_list for tr in testres_list])
+    agg_cfgx2_cfgresinfo = ut.flatten([tr.cfgx2_cfgresinfo for tr in testres_list])
     agg_varied_acfg_list = ut.flatten([
-        [acfg] * len(testres.cfg_list)
-        for testres, acfg in zip(testres_list, varied_acfg_list)
+        [acfg] * len(tr.cfg_list)
+        for tr, acfg in zip(testres_list, varied_acfg_list)
     ])
     agg_cfgx2_lbls      = ut.flatten(
-        [[combine_lbls(lbl, acfg_lbl) for lbl in testres.cfgx2_lbl]
-         for testres, acfg_lbl in zip(testres_list, acfg_lbl_list)])
+        [[combine_lbls(lbl, acfg_lbl) for lbl in tr.cfgx2_lbl]
+         for tr, acfg_lbl in zip(testres_list, acfg_lbl_list)])
 
     agg_cfgx2_acfg = ut.flatten(
-        [[copy.deepcopy(acfg)] * len(testres.cfg_list) for
-         testres, acfg in zip(testres_list, acfg_list)])
+        [[copy.deepcopy(acfg)] * len(tr.cfg_list) for
+         tr, acfg in zip(testres_list, acfg_list)])
 
     big_testres = TestResult(agg_cfg_list, agg_cfgx2_lbls,
-                             agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_)
+                             agg_cfgx2_cfgresinfo, agg_cfgx2_qreq_)
 
     # Give the big test result an acfg that is common between everything
     big_testres.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
@@ -102,10 +98,15 @@ class TestResult(object):
             'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl)))
         assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), (
             'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl)))
+        # TODO rename cfg_list to pcfg_list
         testres.cfg_list         = cfg_list
         testres.cfgx2_lbl        = cfgx2_lbl
         testres.cfgx2_cfgresinfo = cfgx2_cfgresinfo
         testres.cfgx2_qreq_      = cfgx2_qreq_
+        # TODO: uncomment
+        #testres.cfgx2_acfg
+        #testres.cfgx2_qcfg
+        #testres.acfg_list        = None  #
         testres.lbl              = None
         testres.testnameid       = None
 
@@ -329,26 +330,32 @@ class TestResult(object):
         cfgx2_cumhist = np.cumsum(cfgx2_hist, axis=1)
         if join_acfgs:
             # Hack for turtles
-            groupxs = testres.get_pcfg_groupxs()
+            groupxs = testres.get_cfgx_groupxs()
             cfgx2_cumhist = np.array([np.sum(group, axis=0) for group in ut.apply_grouping(cfgx2_cumhist, groupxs)])
         cfgx2_cumhist_percent = 100 * cfgx2_cumhist / cfgx2_cumhist.T[-1].T[:, None]
         return cfgx2_cumhist_percent, edges
 
-    def get_pcfg_groupxs(testres):
-        """ Groups by common pipe configs
+    def get_cfgx_groupxs(testres):
+        """
+        Groupxs configurations specified to be joined
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> #ibs, testres = main_helpers.testdata_expts('testdb1')
             >>> ibs, testres = main_helpers.testdata_expts(
-            >>>    'seaturtles',
-            >>>     a=['default:num_names=1,name_offset=[0,1,2],joinme=1,dpername=1', 'default:dpername=[1,2,3]'])
-            >>> testres.get_pcfg_groupxs()
+            >>>    'PZ_MTEST',
+            >>>     a=['default:qnum_names=1,qname_offset=[0,1],joinme=1,dpername=1',  'default:qsize=1,dpername=[1,2]'],
+            >>>     t=['default:K=[1,2]'])
+            >>> groupxs = testres.get_cfgx_groupxs()
+            >>> result = groupxs
+            >>> print(result)
+            [[7], [6], [5], [4], [0, 1, 2, 3]]
         """
-        group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.acfg_list]
         import itertools
+        #group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.acfg_list]
+        group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.cfgx2_acfg]
         gen_groupid = itertools.count(1)
         group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
                      for groupid in group_ids_]
@@ -669,7 +676,7 @@ class TestResult(object):
                     newlbl = '+'.join(new_parts)
                 cfg_lbls.append(newlbl)
         if join_acfgs:
-            groupxs = testres.get_pcfg_groupxs()
+            groupxs = testres.get_cfgx_groupxs()
             group_lbls = []
             for group in ut.apply_grouping(cfg_lbls, groupxs):
                 num_parts = 0
@@ -1176,7 +1183,7 @@ class TestResult(object):
             return flags
 
         rule_list = [
-            ('disagree',  lambda val: cols_disagree(prop2_mat['is_failure'], val)),
+            ('disagree', lambda val: cols_disagree(prop2_mat['is_failure'], val)),
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
@@ -1436,7 +1443,7 @@ class TestResult(object):
         prop2_mat['is_failure'] = is_failure
         prop2_mat['participates'] = participates
 
-        groupxs = testres.get_pcfg_groupxs()
+        groupxs = testres.get_cfgx_groupxs()
 
         def group_prop(val, grouped_flags, groupxs):
             nRows = len(val)
@@ -1982,7 +1989,7 @@ class TestResult(object):
 
         # TODO: option to average over pipeline configurations
         if join_acfgs:
-            groupxs = testres.get_pcfg_groupxs()
+            groupxs = testres.get_cfgx_groupxs()
         else:
             groupxs = list(zip(range(len(testres.cfgx2_qreq_))))
         grouped_qreqs = ut.apply_grouping(testres.cfgx2_qreq_, groupxs)
