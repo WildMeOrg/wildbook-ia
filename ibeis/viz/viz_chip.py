@@ -59,13 +59,22 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     r""" Driver function to show chips
 
     Args:
-        ibs (IBEISController):
+        ibs (ibeis.IBEISController):
         aid (int): annotation rowid
         in_image (bool): displays annotation with the context of its source image
         annote (bool): enables overlay annoations
         title_suffix (str):
+        weight_label (None): (default = None)
+        weights (None): (default = None)
+        config2_ (dict): (default = None)
 
-    Keywords:
+    Kwargs:
+        enable_chip_title_prefix, nokpts, kpts_subset, kpts, text_color,
+        notitle, draw_lbls, show_aidstr, show_gname, show_name, show_nid,
+        show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,
+        title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,
+        darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,
+        projection, use_gridspec
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:

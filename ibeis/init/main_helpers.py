@@ -135,7 +135,8 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
     """
     print('[main_helpers] testdata_cmlist')
     qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
-    cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
+    cm_list = qreq_.execute()
+    #qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     return cm_list, qreq_
 
 
@@ -249,6 +250,7 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
     import ibeis
     if ibs is None:
         ibs = ibeis.opendb(defaultdb=defaultdb)
+
     # TODO: rectify command line with function arguments
     from ibeis.expt import experiment_helpers
     _specified2 = True

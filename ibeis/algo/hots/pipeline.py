@@ -1284,17 +1284,27 @@ def sver_single_chipmatch(qreq_, cm):
         >>> ibs = qreq_.ibs
         >>> cm = cm_list[0]
         >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
+        >>> #locals_ = ut.exec_func_src(sver_single_chipmatch, key_list=['svtup_list'], sentinal='# <SENTINAL>')
+        >>> #svtup_list1, = locals_
         >>> source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)
         >>> source = ut.replace_between_tags(source, '', '# <SENTINAL>', '# </SENTINAL>')
         >>> globals_ = globals().copy()
         >>> exec(source, globals_)
         >>> svtup_list = globals_['svtup_list']
-        >>> daids = cm.get_groundtruth_daids()
+        >>> gt_daids = cm.get_groundtruth_daids()
         >>> x = ut.get_argval('--y', type_=int, default=0)
-        >>> print('x = %r' % (x,))
-        >>> daid = daids[x % len(daids)]
+        >>> #print('x = %r' % (x,))
+        >>> #daid = daids[x % len(daids)]
+        >>> notnone_list = ut.not_list(ut.flag_None_items(svtup_list))
+        >>> valid_idxs = np.where(notnone_list)
+        >>> valid_daids = cm.daid_list[valid_idxs]
+        >>> assert len(valid_daids) > 0, 'cannot spatially verify'
+        >>> valid_gt_daids = np.intersect1d(gt_daids, valid_daids)
+        >>> #assert len(valid_gt_daids) == 0, 'no sver groundtruth'
+        >>> daid = valid_gt_daids[x] if len(valid_gt_daids) > 0 else valid_daids[x]
         >>> idx = cm.daid2_idx[daid]
         >>> svtup = svtup_list[idx]
+        >>> assert svtup is not None, 'SV TUP IS NONE'
         >>> refined_inliers, refined_errors, H = svtup[0:3]
         >>> aff_inliers, aff_errors, Aff = svtup[3:6]
         >>> homog_tup = (refined_inliers, H)
@@ -1302,10 +1312,15 @@ def sver_single_chipmatch(qreq_, cm):
         >>> fm = cm.fm_list[idx]
         >>> aid1 = cm.qaid
         >>> aid2 = daid
-        >>> rchip1, rchip2 = ibs.get_annot_chips([aid1, aid2], config2_=qreq_.get_external_query_config2())
-        >>> kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=qreq_.get_external_data_config2())
+        >>> rchip1, = ibs.get_annot_chips([aid1], config2_=qreq_.get_external_query_config2())
+        >>> kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.get_external_query_config2())
+        >>> rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.get_external_data_config2())
+        >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.get_external_data_config2())
         >>> import plottool as pt
-        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=qreq_.qparams.refine_method)
+        >>> show_aff = not ut.get_argflag('--noaff')
+        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup,
+        >>>                    homog_tup=homog_tup, show_aff=show_aff,
+        >>>                    refine_method=qreq_.qparams.refine_method)
         >>> ut.show_if_requested()
     """
     qaid = cm.qaid

@@ -88,7 +88,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
     join_acfgs = True
     if join_acfgs:
-        groupxs = testres.get_pcfg_groupxs()
+        groupxs = testres.get_cfgx_groupxs()
     else:
         groupxs = list(zip(range(len(testres.cfgx2_qreq_))))
     grouped_qreqs = ut.apply_grouping(testres.cfgx2_qreq_, groupxs)
@@ -249,7 +249,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         ibeis --tf -draw_casetag_hist --show
 
         # Experiments I tagged
-        ibeis --tf -draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
+        ibeis --tf -draw_casetag_hist -a timectrl -t invarbest --db PZ_Master1  --show
 
         ibeis -e taghist -a timectrl -t best --db PZ_Master1  --show
 
@@ -887,22 +887,27 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         # Shows the best results
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled \
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
             -t invarbest --filt :orderby=gfscore,reverse=1 --show
 
         # Shows failures sorted by gt score
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled \
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
             -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
 
         # Find the untagged photobomb and scenery cases
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled \
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
             -t invarbest --show --filt \
             :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_td=24h,max_gf_tags=0
 
         # Find untagged failures
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled \
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
             -t invarbest \
             --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
+
+        # Show disagreement cases
+        ibeis --tf draw_match_cases --db PZ_MTEST -a timectrl \
+            -t default:K=[1,4] \
+            --filt :disagree=True,index=0:4 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -945,7 +950,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     #annot_modes = [0]
     #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
-    cpq = draw_helpers.IndividualResultsCopyTaskQueue()
+    if False:
+        cpq = draw_helpers.IndividualResultsCopyTaskQueue()
 
     figdir = ibs.get_fig_dir()
     figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
@@ -956,20 +962,12 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if ut.get_argflag(('--view-fig-directory', '--vf')):
         ut.view_directory(case_figdir)
 
-    DRAW_ANALYSIS = True
-    DRAW_BLIND = False and not SHOW
-
     # Common directory
     individual_results_figdir = join(case_figdir, 'individual_results')
     ut.ensuredir(individual_results_figdir)
 
-    if DRAW_ANALYSIS:
-        top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
-        ut.ensuredir(top_rank_analysis_dir)
-
-    if DRAW_BLIND:
-        blind_results_figdir  = join(case_figdir, 'blind_results')
-        ut.ensuredir(blind_results_figdir)
+    top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
+    ut.ensuredir(top_rank_analysis_dir)
 
     qaids = testres.get_test_qaids()
     # Ensure semantic uuids are in the APP cache.
@@ -991,10 +989,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     ]
 
     analysis_fpath_list = []
-
-    overwrite = True
-    #overwrite = False
-    #overwrite = ut.get_argflag('--overwrite')
 
     cfgx2_shortlbl = testres.get_short_cfglbls()
 
@@ -1060,73 +1054,59 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             query_lbl = query_lbl.replace(' ', '').replace('\'', '')
             _query_lbl = query_lbl
             qres_fname = query_lbl + '.png'
-            if DRAW_ANALYSIS:
-                analysis_fpath = join(individ_results_dpath, qres_fname)
-                if SHOW or overwrite or not ut.checkpath(analysis_fpath) or show_in_notebook:
+
+            analysis_fpath = join(individ_results_dpath, qres_fname)
+            if SHOW or show_in_notebook or not ut.checkpath(analysis_fpath):
+                if show_in_notebook:
+                    # hack to show vertical line in notebook
+                    if len(cfg_colors) > 0:
+                        bar = (np.zeros((1, 400, 3), dtype=np.uint8) +
+                               (np.array(cfg_colors[cfgx]) * 255))
+                        fnum = fnum + 1
+                        fig, ax = pt.imshow(bar, fnum=fnum)
+                        print('bar fnum = %r' % (fnum,))
+                        pt.set_xlabel('fnum=%d qaid=%d, cfgx=%r' % (fnum, qaid, cfgx), ax=ax)
+                for annot_mode in annot_modes:
+                    show_kwargs['annot_mode'] = annot_mode
                     if show_in_notebook:
-                        # hack to show vertical line in notebook
-                        if len(cfg_colors) > 0:
-                            bar = (np.zeros((1, 400, 3), dtype=np.uint8) +
-                                   (np.array(cfg_colors[cfgx]) * 255))
-                            fnum = fnum + 1
-                            pt.imshow(bar, fnum=fnum)
-                    for annot_mode in annot_modes:
-                        show_kwargs['annot_mode'] = annot_mode
-                        if show_in_notebook:
-                            # hack to show vertical line
-                            fnum = fnum + 1
-                        if SHOW:
-                            cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
-                        else:
-                            cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
-                        if show_in_notebook:
-                            _query_lbl = ''  # only show the query label once
-                            if figsize is not None:
-                                fig = pt.gcf()
-                                fig.set_size_inches(*figsize)
-                                fig.set_dpi(256)
-                    cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
-                    if cmdaug is not None:
-                        # Hack for candidacy
-                        analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
-                        print('analysis_fpath = %r' % (analysis_fpath,))
-                    if overwrite:
-                        fig = pt.gcf()
-                        fig.savefig(analysis_fpath)
-                        vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
+                        fnum = fnum + 1
+                    if SHOW:
+                        cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                    else:
+                        print('fnum = %r' % (fnum,))
+                        cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                    if show_in_notebook:
+                        _query_lbl = ''  # only show the query label once
+                        if figsize is not None:
+                            fig = pt.gcf()
+                            fig.set_size_inches(*figsize)
+                            fig.set_dpi(256)
+                cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
+                if cmdaug is not None:
+                    # Hack for candidacy
+                    analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
+                    print('analysis_fpath = %r' % (analysis_fpath,))
+                if not show_in_notebook:
+                    fig = pt.gcf()
+                    fig.savefig(analysis_fpath)
+                    vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
+                    if False:
                         if cmdaug is None:
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
-                analysis_fpath_list.append(analysis_fpath)
-                fpaths_list[-1].append(analysis_fpath)
-                if metadata is not None:
-                    metadata.set_global_data(cfgstr, cm.qaid, 'analysis_fpath', analysis_fpath)
-
-            # BLIND CASES - draws results without labels to see if we can
-            # determine what happened using doubleblind methods
-            if DRAW_BLIND:
-                pt.clf()
-                best_gt_aid = cm.get_top_groundtruth_aid(ibs=ibs)
-                cm.show_name_matches(
-                    ibs, best_gt_aid, show_matches=False,
-                    show_name_score=False, show_name_rank=False,
-                    show_annot_score=False, fnum=fnum, qreq_=qreq_,
-                    **show_kwargs)
-                blind_figtitle = 'BLIND ' + query_lbl
-                pt.set_figtitle(blind_figtitle)
-                blind_fpath = join(individ_results_dpath, blind_figtitle) + '.png'
-                pt.gcf().savefig(blind_fpath)
-                #blind_fpath = pt.custom_figure.save_figure(fpath=blind_fpath, **dumpkw)
-                cpq.append_copy_task(blind_fpath, blind_results_figdir)
-                if metadata is not None:
-                    metadata.set_global_data(cfgstr, cm.qaid, 'blind_fpath', blind_fpath)
+            analysis_fpath_list.append(analysis_fpath)
+            fpaths_list[-1].append(analysis_fpath)
+            if metadata is not None:
+                metadata.set_global_data(cfgstr, cm.qaid, 'analysis_fpath', analysis_fpath)
 
         # if some condition of of batch sizes
-        flush_freq = 4
-        if count % flush_freq == (flush_freq - 1):
-            cpq.flush_copy_tasks()
+        if False:
+            flush_freq = 4
+            if count % flush_freq == (flush_freq - 1):
+                cpq.flush_copy_tasks()
 
-    # Copy summary images to query_analysis folder
-    cpq.flush_copy_tasks()
+    if False:
+        # Copy summary images to query_analysis folder
+        cpq.flush_copy_tasks()
 
     # flat_case_labels = None
     # draw_helpers.make_individual_latex_figures(ibs, fpaths_list,
