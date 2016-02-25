@@ -1060,9 +1060,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
             analysis_fpath = join(individ_results_dpath, qres_fname)
             if SHOW or show_in_notebook or not ut.checkpath(analysis_fpath):
-               import utool
-               with utool.embed_on_exception_context:
-
                 bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
                 print('bar_label = %r' % (bar_label,))
                 if show_in_notebook:
