@@ -131,12 +131,12 @@
   cursor: 'grab';
   background-image: none;
   left: 50%;
-  margin-left: -1px; 
+  margin-left: -1px;
   top: 10px;
   background-color: rgb(127,255,127);
   border: 1px solid #000000;
 }
-.ui-resizable-handle 
+.ui-resizable-handle
 {
   width: 8px;
   height: 8px;
@@ -144,22 +144,22 @@
   border: 1px solid #000000;
   border-radius: 4px;
 }
-.ui-resizable-nw 
+.ui-resizable-nw
 {
   left: -4px;
   top: -4px;
 }
-.ui-resizable-ne 
+.ui-resizable-ne
 {
   top: -4px;
   right: -4px;
 }
-.ui-resizable-sw 
+.ui-resizable-sw
 {
   bottom: -4px;
   left: -4px;
 }
-.ui-resizable-se 
+.ui-resizable-se
 {
   bottom: -4px;
   right:-4px;
@@ -169,17 +169,17 @@
   top: -4px;
   left:50%;
 }
-.ui-resizable-s 
+.ui-resizable-s
 {
   bottom: -4px;
   left: 50%;
 }
-.ui-resizable-w 
+.ui-resizable-w
 {
   left:-4px;
   top:50%;
 }
-.ui-resizable-e 
+.ui-resizable-e
 {
   right:-4px;
   top:50%;
@@ -205,7 +205,7 @@
   height: 11px;
 }
 
-.progress-bar 
+.progress-bar
 {
   font-size: 10px;
   line-height: 10px;
@@ -235,22 +235,22 @@
   margin-top: 20px;
 }
 
-#scroll 
+#scroll
 {
   margin-top: 20px;
   width: 100%;
   overflow-y:hidden;
 }
 
-#scroll ul 
+#scroll ul
 {
-  margin: 0; 
+  margin: 0;
   padding: 0;
   display: table;
   list-style: none;
 }
 
-#scroll li 
+#scroll li
 {
   min-width: 200px;
   padding:0px 10px;
@@ -260,7 +260,7 @@
   border:1px solid #eee;
 }
 
-#scroll img 
+#scroll img
 {
   height: 150px;
   width: autp;
@@ -268,3 +268,8 @@
   display:block;
   margin:0px auto;
 }
+
+/*.ui-rotatable-handle, .ui-resizable-handle, .ia-label-text-box
+{
+  visibility: hidden !important;
+}*/
