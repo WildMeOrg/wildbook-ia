@@ -61,6 +61,7 @@ to_base255 = color_fns.to_base255
 DARKEN = ut.get_argval(
     '--darken', type_=float, default=(.7 if ut.get_argflag('--darken') else None))
 
+print('DARKEN = %r' % (DARKEN,))
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
 all_figures_tile           = fig_presenter.all_figures_tile
@@ -626,10 +627,11 @@ def show_if_requested(N=1):
 
         # Hack write the corresponding logfile next to the output
         log_fpath = ut.get_current_log_fpath()
-        if log_fpath is not None:
-            ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
-        else:
-            print('Cannot copy log file because none exists')
+        if ut.get_argflag('--savelog'):
+            if log_fpath is not None:
+                ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
+            else:
+                print('Cannot copy log file because none exists')
     if ut.inIPython():
         import plottool as pt
         pt.iup()
