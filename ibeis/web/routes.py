@@ -669,6 +669,7 @@ def turk_detection():
                          display_species_examples=display_species_examples,
                          callback_url=callback_url,
                          callback_method='POST',
+                         EMBEDDED_CSS=None,
                          EMBEDDED_JAVASCRIPT=None,
                          review=review)
 
@@ -716,6 +717,7 @@ def turk_detection_dynamic():
                          annotation_list=annotation_list,
                          callback_url=callback_url,
                          callback_method='POST',
+                         EMBEDDED_CSS=None,
                          EMBEDDED_JAVASCRIPT=None,
                          __wrapper__=False)
 
