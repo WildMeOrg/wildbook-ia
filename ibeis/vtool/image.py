@@ -93,7 +93,7 @@ def imread_remote_url(img_fpath, grayscale=False):
     return imgBGR
 
 
-def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
+def imread(img_fpath, delete_if_corrupted=False, grayscale=False, flags=None):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.
 
@@ -155,10 +155,11 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
         imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale)
     else:
         try:
-            if grayscale:
-                imgBGR = cv2.imread(img_fpath, flags=cv2.IMREAD_GRAYSCALE)
-            else:
-                imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
+            if flags is None:
+                flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
+            # TODO cv2.IMREAD_UNCHANGED
+            imgBGR = cv2.imread(img_fpath, flags=flags)
+
         except cv2.error as cv2ex:
             ut.printex(cv2ex, iswarning=True)
             #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
@@ -260,6 +261,8 @@ def get_num_channels(img):
         nChannels = 1
     elif ndims == 3 and img.shape[2] == 3:
         nChannels = 3
+    elif ndims == 3 and img.shape[2] == 4:
+        nChannels = 4
     elif ndims == 3 and img.shape[2] == 1:
         nChannels = 1
     else:
@@ -490,7 +493,26 @@ def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0,
     return out_fpath_
 
 
-def crop_out_imgfill(img, fillval=None, thresh=0):
+def get_pixel_dist(img, pixel, channel=None):
+    """
+    pixel = fillval
+    isfill = mask2d
+    """
+    if not isinstance(pixel, np.ndarray):
+        if isinstance(pixel, (list, tuple)):
+            pixel = np.array(pixel)
+        else:
+            pixel = np.array([pixel])
+    mask2d = np.abs(img - pixel[None, None, :])
+    if len(img.shape) > 2:
+        if channel is None:
+            mask2d = np.sum(mask2d, axis=2)
+        else:
+            mask2d = mask2d[:, :, channel]
+    return mask2d
+
+
+def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
     r"""
     Crops image to remove fillval
 
@@ -538,7 +560,7 @@ def crop_out_imgfill(img, fillval=None, thresh=0):
         fillval = np.array([255] * get_num_channels(img))
     # for colored images
     #with ut.embed_on_exception_context:
-    isfill = get_pixel_dist(img, fillval) <= thresh
+    isfill = get_pixel_dist(img, fillval, channel=channel) <= thresh
     rowslice, colslice = vt.get_crop_slices(isfill)
     cropped_img = img[rowslice, colslice]
     return cropped_img
@@ -550,11 +572,20 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
     # thresh = 128
     thresh = 64
-    img = vt.imread(fpath_in)
-    fillval = np.array([255] * get_num_channels(img))
+
+    img = vt.imread(fpath_in, flags=cv2.IMREAD_UNCHANGED)
     if verbose:
         print('[clipwhite] img.shape = %r' % (img.shape,))
-    cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    if len(img.shape) == 4:
+        # alpha
+        thresh = 12
+        fillval = 0
+        channel = 3
+        # imgBGRA
+        cropped_img = crop_out_imgfill(img, fillval, thresh=thresh, channel=channel)
+    else:
+        fillval = np.array([255] * get_num_channels(img))
+        cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
     if verbose:
         print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
     vt.imwrite(fpath_out, cropped_img)
@@ -1130,18 +1161,6 @@ def find_pixel_value_index(img, pixel):
     mask2d = get_pixel_dist(img, pixel) == 0
     pixel_locs = np.column_stack(np.where(mask2d))
     return pixel_locs
-
-
-def get_pixel_dist(img, pixel):
-    if not isinstance(pixel, np.ndarray):
-        if isinstance(pixel, (list, tuple)):
-            pixel = np.array(pixel)
-        else:
-            pixel = np.array([pixel])
-    mask2d = np.abs(img - pixel[None, None, :])
-    if len(img.shape) > 2:
-        mask2d = np.sum(mask2d, axis=2)
-    return mask2d
 
 
 try:
