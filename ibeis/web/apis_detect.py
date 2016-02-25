@@ -211,7 +211,7 @@ def detect_cnn_yolo_uuid(ibs, image_uuid_list, **kwargs):
 @register_ibs_method
 def commit_detection_results(ibs, detect_result_list):
     aids_list = []
-    for (gid, gpath, result_list) in zip(detect_result_list):
+    for gid, gpath, result_list in detect_result_list:
         aids = []
         for result in result_list:
             bbox = (result['xtl'], result['ytl'],
