@@ -3,19 +3,19 @@
   {% if finished %}
   <div class="alert alert-info text-center" role="alert">
     Congratulations, turking is completed.  Thank you!
-    {% if gsid %}
+    {% if imgsetid %}
     <br/>
-    <a href="{{ url_for('view_imagesets') }}?gsid={{ gsid }}">Return to gsid: {{ gsid }}</a>
+    <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">Return to imgsetid: {{ imgsetid }}</a>
     {% endif %}
   </div>
   {% else %}
   <div class="row">
     <div class="col-lg-2"></div>
-    
+
     <div class="col-lg-8">
-      {% if gsid %}
+      {% if imgsetid %}
         <div class="alert alert-info" role="alert">
-          Filtering for gsid: <a href="{{ url_for('view_imagesets') }}?gsid={{ gsid }}">{{ imagesettext }} ({{ gsid }})</a>
+          Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
           <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
         </div>
       {% endif %}
@@ -35,7 +35,7 @@
       Path: {{ image_path }}
       <img id="big-image" src="{{ image_src }}" src-original="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block; border: 3px solid transparent;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&gsid={{ gsid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&imgsetid={{ imgsetid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
 
       {% if name_aid_combined_list %}
@@ -54,7 +54,7 @@
       {% endif %}
 
       <br/>
-      <form method="post" action="{{ url_for('submit_additional') }}?gsid={{ gsid }}&refer={{ REFER_DST_ENCODED }}">
+      <form method="post" action="{{ url_for('submit_additional') }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="additional-aid" value="{{ aid }}" style="display: none;" readonly>
         Sex: <span id="label-sex"></span> | Age: <span id="label-age"></span>
         <br/>
@@ -97,7 +97,7 @@
         </div>
         <br/>
         {% if previous %}
-          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_additional') }}?gsid={{ gsid }}&aid={{ previous }}">Previous {{ previous }}</a>
+          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
         <input type="submit" name="additional-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
         <!-- <input type="submit" name="additional-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')"> -->
@@ -124,11 +124,11 @@
 
               <a class="btn btn-default" href="{{ url_for('root') }}" style="margin-right: 20px;">No</a>
               <a class="btn btn-danger" onclick="is_biologist();">Yes</a>
-            </div> 
+            </div>
 
             <li>For faster sex annotation, the number keys or a keypad can be used.  The numbers <b>8, 9, and 0</b> are mapped to the corresponding sexes <b>Unknown, Female, Male</b>. The letters <b>'u', 'f', and 'm'</b> are also mapped to the corresponding sexes <b>Unknown, Female, Male</b>.
             <li>For faster age annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding age categories.  We urge every turker to use the number pad to input the additional for speed purposes. </li>
-            <li>If the additional cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices: 
+            <li>If the additional cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices:
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>
                 <!-- <li>simply press the <b>Delete</b> button</li> -->
@@ -212,13 +212,13 @@
       $(".ajax-image-load").hover(function() {
         $("#big-image").attr('src', $(this).attr('src'));
         $("#big-image").css('border-color', '#d43f3a');
-      }, 
+      },
       function() {
         $("#big-image").attr('src', $("#big-image").attr('src-original'));
         $("#big-image").css('border-color', 'transparent');
       });
 
-      setInterval(function() {        
+      setInterval(function() {
         lazy_load_images();
       }, 100) ;
 
@@ -226,9 +226,9 @@
   });
 
   update_label();
-  
+
   {% if display_instructions %}
     $('#turk-instructions').modal('show');
   {% endif %}
-</script> 
+</script>
 {% endblock %}

@@ -143,7 +143,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None,
 
 @register_ibs_method
 @register_api('/api/image/<gid>/', methods=['GET'])
-def image_base64_api(gid=None, thumbnail=True, fresh=False, **kwargs):
+def image_base64_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the base64 encoded image of image <gid>
 
@@ -181,7 +181,6 @@ def get_image_gid(ibs, gid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@accessor_decors.getter_1toM
 @register_api('/api/image/gids_with_aids/', methods=['GET'])
 def get_image_gids_with_aids(ibs, gid_list=None):
     if gid_list is None:

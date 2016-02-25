@@ -920,7 +920,6 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 
 
 @register_ibs_method
-@accessor_decors.getter_1toM
 @register_api('/api/name/nids_with_gids/', methods=['GET'])
 def get_name_nids_with_gids(ibs, nid_list=None):
     if nid_list is None:

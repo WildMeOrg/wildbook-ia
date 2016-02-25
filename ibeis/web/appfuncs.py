@@ -5,6 +5,7 @@ import numpy as np
 import cStringIO as StringIO
 import flask
 import random
+import cv2
 from ibeis.constants import TAU
 from flask import request, current_app
 from os.path import join, dirname, abspath  # NOQA
@@ -50,6 +51,52 @@ ORIENTATIONS = {   # used in apply_orientation
 }
 
 
+def resize_via_web_parameters(image):
+    def _resize(image, t_width=None, t_height=None):
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+        height, width = image.shape[:2]
+        if t_width is None and t_height is None:
+            return image
+        elif t_width is not None and t_height is not None:
+            pass
+        elif t_width is None:
+            t_width = (width / height) * float(t_height)
+        elif t_height is None:
+            t_height = (height / width) * float(t_width)
+        t_width, t_height = float(t_width), float(t_height)
+        t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
+        assert t_width > 0 and t_height > 0, 'target size too small'
+        assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
+        return cv2.resize(image, (t_width, t_height), interpolation=cv2.INTER_LANCZOS4)
+
+    w_pix = request.args.get('resize_pix_w',      request.form.get('resize_pix_w',      None ))
+    h_pix = request.args.get('resize_pix_h',      request.form.get('resize_pix_h',      None ))
+    w_per = request.args.get('resize_per_w',      request.form.get('resize_per_w',      None ))
+    h_per = request.args.get('resize_per_h',      request.form.get('resize_per_h',      None ))
+    _pix  = request.args.get('resize_prefer_pix', request.form.get('resize_prefer_pix', False))
+    _per  = request.args.get('resize_prefer_per', request.form.get('resize_prefer_per', False))
+    args = (w_pix, h_pix, w_per, h_per, _pix, _per, )
+    print('CHECKING RESIZING WITH %r pix, %r pix, %r %%, %r %% [%r, %r]' % args)
+    # Check for nothing
+    if not (w_pix or h_pix or w_per or h_per):
+        return image
+    # Check for both pixels and images
+    if (w_pix or h_pix) and (w_per or h_per):
+        if _pix:
+            w_per, h_per = None
+        elif _per:
+            w_pix, h_pix = None
+        else:
+            raise ValueError('Cannot resize using pixels and percentages, pick one')
+    # Resize using percentages, transform to pixels
+    if w_per:
+        w_pix = float(w_per) * image.shape[1]
+    if h_per:
+        h_pix = float(h_per) * image.shape[0]
+    # Perform resize
+    return _resize(image, t_width=w_pix, t_height=h_pix)
+
+
 def open_oriented_image(im_path):
     im = Image.open(im_path)
     if hasattr(im, '_getexif'):
@@ -57,12 +104,14 @@ def open_oriented_image(im_path):
         if exif is not None and 274 in exif:
             orientation = exif[274]
             im = apply_orientation(im, orientation)
-    img = np.asarray(im).astype(np.float32) / 255.
+    img = np.asarray(im).astype(np.uint8)
     if img.ndim == 2:
         img = img[:, :, np.newaxis]
         img = np.tile(img, (1, 1, 3))
     elif img.shape[2] == 4:
         img = img[:, :, :3]
+    # Check for passed in resize parameters
+    img = resize_via_web_parameters(img)
     return img
 
 
@@ -78,7 +127,7 @@ def apply_orientation(im, orientation):
 
 def embed_image_html(image, filter_width=True):
     """ Creates an image embedded in HTML base64 format. """
-    image_pil = Image.fromarray((255 * image).astype('uint8'))
+    image_pil = Image.fromarray(image)
     width, height = image_pil.size
     if filter_width:
         _height = int(TARGET_WIDTH / 2)
