@@ -1002,8 +1002,10 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
-    _iter = ut.InteractiveIter(qx_list, enabled=SHOW,
-                               custom_actions=custom_actions)
+    if SHOW:
+        _iter = ut.InteractiveIter(qx_list, enabled=SHOW, custom_actions=custom_actions)
+    else:
+        _iter = ut.ProgIter(qx_list, lbl='drawing cases')
     for count, qx in enumerate(_iter):
         cfgxs = qx2_cfgxs[qx]
         qreq_list = ut.take(cfgx2_qreq_, cfgxs)
@@ -1037,7 +1039,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             fnum = fnum + 1
             pt.imshow(np.zeros((1, 200), dtype=np.uint8), fnum=fnum)
 
-        for cfgx, cm, qreq_ in zip(cfgxs, cm_list, qreq_list):
+        for count2, (cfgx, cm, qreq_) in enumerate(zip(cfgxs, cm_list, qreq_list)):
             if show_in_notebook:
                 fnum = fnum + 1
             else:
@@ -1064,8 +1066,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                                (np.array(cfg_colors[cfgx]) * 255))
                         fnum = fnum + 1
                         fig, ax = pt.imshow(bar, fnum=fnum)
-                        print('bar fnum = %r' % (fnum,))
-                        pt.set_xlabel('fnum=%d qaid=%d, cfgx=%r' % (fnum, qaid, cfgx), ax=ax)
+                        pt.set_xlabel('Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx), ax=ax)
+                        pt.plt.show()  # Need to show when doing notebook
                 for annot_mode in annot_modes:
                     show_kwargs['annot_mode'] = annot_mode
                     if show_in_notebook:
@@ -1073,7 +1075,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     if SHOW:
                         cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
                     else:
-                        print('fnum = %r' % (fnum,))
                         cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
                     if show_in_notebook:
                         _query_lbl = ''  # only show the query label once
@@ -1081,6 +1082,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                             fig = pt.gcf()
                             fig.set_size_inches(*figsize)
                             fig.set_dpi(256)
+                        pt.plt.show()
                 cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
                 if cmdaug is not None:
                     # Hack for candidacy
@@ -1093,6 +1095,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     if False:
                         if cmdaug is None:
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
+                else:
+                    pt.plt.show()
             analysis_fpath_list.append(analysis_fpath)
             fpaths_list[-1].append(analysis_fpath)
             if metadata is not None:

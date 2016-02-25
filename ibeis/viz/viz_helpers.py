@@ -368,7 +368,8 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
             text_list.append('name_score=' + ut.num_fmt(name_score))
     if kwargs.get('show_name_rank', True):
         if name_rank is not None:
-            text_list.append('name_rank=%s' % (str(name_rank),))
+            # Make display one based
+            text_list.append('name_rank=#%s' % (str(name_rank + 1),))
     #with ut.embed_on_exception_context:
     if kwargs.get('show_timedelta', True):
         assert qaid is not None, 'qaid cannot be None'
