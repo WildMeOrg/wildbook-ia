@@ -896,7 +896,7 @@ class IBEISController(BASE_CLASS):
     #------------------
 
     @accessor_decors.default_decorator
-    @register_api('/api/core/get_current_log_text/', methods=['GET'])
+    @register_api('/log/current/', methods=['GET'])
     def get_current_log_text(ibs):
         r"""
         CommandLine:
@@ -909,7 +909,7 @@ class IBEISController(BASE_CLASS):
             >>> import ibeis
             >>> import ibeis.web
             >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=.5, start_job_queue=False)
-            >>> resp = web_ibs.send_ibeis_request('/api/core/get_current_log_text/', 'get')
+            >>> resp = web_ibs.send_ibeis_request('/log/current/', 'get')
             >>> print('\n-------Logs ----: \n' )
             >>> print(resp)
             >>> print('\nL____ END LOGS ___\n')
@@ -919,7 +919,7 @@ class IBEISController(BASE_CLASS):
         return text
 
     @accessor_decors.default_decorator
-    @register_api('/api/core/get_dbino/', methods=['GET'])
+    @register_api('/api/core/dbinfo/', methods=['GET'])
     def get_dbinfo(ibs):
         from ibeis.other import dbinfo
         locals_ = dbinfo.get_dbinfo(ibs)

@@ -982,17 +982,29 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     return metadata_rowid_list
 
 
+@register_api('/api/core/version/', methods=['GET'])
+def get_database_version_alias(ibs, db):
+    r"""
+    Alias: `func:get_database_version`
+
+    RESTful:
+        Method: GET
+        URL:    /api/core/version/
+    """
+    return ibs.get_database_version(db)
+
+
 @register_ibs_method
 @accessor_decors.ider
-@register_api('/api/core/database_version/', methods=['GET'])
+@register_api('/api/core/dbversion/', methods=['GET'])
 def get_database_version(ibs, db):
-    r'''
+    r"""
     Gets the specified database version from the controller
 
     RESTful:
         Method: GET
-        URL:    /api/core/database_version/
-    '''
+        URL:    /api/core/dbversion/
+    """
     return db.get_db_version()
 
 
