@@ -140,6 +140,8 @@ if __name__ == '__main__':
 
         /home/zach/data/IBEIS/humpbacks_fb
 
+        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks_fb --user '' --remote drewami:/data/ibeis/seaturtles2
+
     Fix Patchy
         pachy
         cd /home/ibeis-repos
