@@ -6,9 +6,17 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import zipfile
 import time
+from PIL import Image
+import cStringIO as StringIO
 from flask import request, current_app, send_file
-from ibeis.control import controller_inject
+from ibeis.control import accessor_decors, controller_inject
 import utool as ut
+from ibeis.web import appfuncs as appf
+print, rrr, profile = ut.inject2(__name__, '[apis]')
+
+
+CLASS_INJECT_KEY, register_ibs_method = (
+    controller_inject.make_ibs_register_decorator(__name__))
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
@@ -37,8 +45,32 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
             gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     else:
         gpath = ibs.get_image_paths(gid)
-    print(gpath)
-    return send_file(gpath, mimetype='application/unknown')
+
+    image = appf.open_oriented_image(gpath)
+    image_pil = Image.fromarray(image)
+    img_io = StringIO.StringIO()
+    image_pil.save(img_io, 'JPEG', quality=100)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
+    # return send_file(gpath, mimetype='application/unknown')
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/core/check_uuids/', methods=['GET', 'POST'])
+def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
+    # Unique list
+    image_uuid_list = list(set(image_uuid_list))
+    annot_uuid_list = list(set(annot_uuid_list))
+    # Check for all annot UUIDs exist
+    missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
+    missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
+    if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
+        kwargs = {
+            'missing_image_uuid_list' : missing_image_uuid_list,
+            'missing_annot_uuid_list' : missing_annot_uuid_list,
+        }
+        raise controller_inject.WebMissingUUIDException(**kwargs)
 
 
 @register_api('/api/upload/image/', methods=['POST'])

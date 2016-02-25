@@ -5,7 +5,7 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 import random
 import math
-from flask import request, current_app
+from flask import request, current_app, url_for
 from ibeis.control import controller_inject
 from ibeis import constants as const
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
@@ -353,13 +353,13 @@ def view_imagesets():
 
 
 @register_route('/view/image/<gid>/', methods=['GET'])
-def image_view_api(gid=None, thumbnail=True, fresh=False, **kwargs):
+def image_view_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the base64 encoded image of image <gid>
 
     RESTful:
         Method: GET
-        URL:    /api/image/view/<gid>/
+        URL:    /image/view/<gid>/
     """
     encoded = routes_ajax.image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
     return appf.template(None, 'single', encoded=encoded)
@@ -652,6 +652,7 @@ def turk_detection():
         species = None
         image_src = None
         annotation_list = []
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
                          gid=gid,
@@ -666,6 +667,9 @@ def turk_detection():
                          annotation_list=annotation_list,
                          display_instructions=display_instructions,
                          display_species_examples=display_species_examples,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_JAVASCRIPT=None,
                          review=review)
 
 
@@ -702,6 +706,7 @@ def turk_detection_dynamic():
     else:
         species = KEY_DEFAULTS[SPECIES_KEY]
 
+    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), gid, )
     return appf.template('turk', 'detection_dynamic',
                          gid=gid,
                          refer_aid=None,
@@ -709,6 +714,9 @@ def turk_detection_dynamic():
                          image_path=gpath,
                          image_src=image_src,
                          annotation_list=annotation_list,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_JAVASCRIPT=None,
                          __wrapper__=False)
 
 

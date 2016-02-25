@@ -81,6 +81,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.web.apis_detect',
     'ibeis.web.apis_engine',
     'ibeis.web.apis_query',
+    'ibeis.web.apis',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),

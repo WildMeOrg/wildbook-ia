@@ -21,8 +21,9 @@ def set_cookie():
 
 
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
-def image_src(gid=None, thumbnail=True, fresh=False, **kwargs):
+def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
     ibs = current_app.ibs
+    thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     if thumbnail:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
         fresh = fresh or 'fresh' in request.args or 'fresh' in request.form

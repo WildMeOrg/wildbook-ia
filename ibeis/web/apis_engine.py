@@ -101,24 +101,6 @@ def ensure_simple_server(port=5832):
     return bgserver
 
 
-@accessor_decors.default_decorator
-@register_api('/api/engine/check_uuids/', methods=['GET', 'POST'])
-@register_ibs_method
-def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
-    # Unique list
-    image_uuid_list = list(set(image_uuid_list))
-    annot_uuid_list = list(set(annot_uuid_list))
-    # Check for all annot UUIDs exist
-    missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
-    missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
-    if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
-        kwargs = {
-            'missing_image_uuid_list' : missing_image_uuid_list,
-            'missing_annot_uuid_list' : missing_annot_uuid_list,
-        }
-        raise controller_inject.WebMissingUUIDException(**kwargs)
-
-
 @register_ibs_method
 def initialize_job_manager(ibs):
     """
@@ -166,9 +148,9 @@ def close_job_manager(ibs):
     ibs.job_manager = None
 
 
+@register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/start_identify_annots/', methods=['GET', 'POST'])
-@register_ibs_method
 def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
                           pipecfg={}, callback_url=None):
     r"""
@@ -295,10 +277,10 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     return jobid
 
 
+@register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
-@register_ibs_method
-def start_detect_image(ibs, image_uuid_list, species=None):
+def start_detect_image(ibs, image_uuid_list, callback_url=None):
     """
     REST:
         Method: GET
@@ -308,11 +290,29 @@ def start_detect_image(ibs, image_uuid_list, species=None):
         image_uuid_list (list) : list of image uuids to detect on.
         species (str) : species to detect
     """
-    raise NotImplementedError('add_images_json')
+    # Check UUIDs
+    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+
+    #import ibeis
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
+    def ensure_uuid_list(list_):
+        if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
+            list_ = list(map(uuid.UUID, list_))
+        return list_
+
+    image_uuid_list = ensure_uuid_list(image_uuid_list)
+    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_uuid', callback_url, image_uuid_list)
+
+    #if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
 
 
-@register_api('/api/engine/job/status/', methods=['GET', 'POST'])
 @register_ibs_method
+@register_api('/api/engine/job/status/', methods=['GET', 'POST'])
 def get_job_status(ibs, jobid):
     """
     Web call that returns the status of a job
@@ -343,8 +343,8 @@ def get_job_status(ibs, jobid):
     return status
 
 
-@register_api('/api/engine/job/result/', methods=['GET', 'POST'])
 @register_ibs_method
+@register_api('/api/engine/job/result/', methods=['GET', 'POST'])
 def get_job_result(ibs, jobid):
     """
     Web call that returns the result of a job
@@ -353,8 +353,8 @@ def get_job_result(ibs, jobid):
     return result
 
 
-@register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
 @register_ibs_method
+@register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
 def wait_for_job_result(ibs, jobid, timeout=10, freq=.1):
     ibs.job_manager.jobiface.wait_for_job_result(jobid, timeout=timeout, freq=freq)
     result = ibs.job_manager.jobiface.get_unpacked_result(jobid)

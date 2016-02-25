@@ -7,7 +7,7 @@ from flask import current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
-from ibeis.web import apis, routes
+from ibeis.web import routes
 
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
@@ -20,11 +20,11 @@ def download_sightings():
     return appf.send_csv_file(sightings, filename)
 
 
-@register_route('/csv/names_with_gids/', methods=['GET'])
-def get_names_with_gids_csv():
+@register_route('/csv/nids_with_gids/', methods=['GET'])
+def get_nid_with_gids_csv():
     ibs = current_app.ibs
-    filename = 'names_with_gids.csv'
-    combined_dict = apis.get_names_with_gids(ibs)
+    filename = 'nids_with_gids.csv'
+    combined_dict = ibs.get_name_nids_with_gids()
     combined_list = [
         ','.join( map(str, [nid] + [name] + gid_list) )
         for name, (nid, gid_list) in sorted(list(combined_dict.iteritems()))
@@ -138,7 +138,7 @@ def get_demographic_info():
 @register_route('/csv/gids_with_aids/', methods=['GET'])
 def get_gid_with_aids_csv():
     ibs = current_app.ibs
-    combined_dict = apis.get_gid_with_aids(ibs)
+    combined_dict = ibs.get_image_gids_with_aids()
     filename = 'gids_with_aids.csv'
     combined_list = [
         ','.join( map(str, [gid] + aid_list) )

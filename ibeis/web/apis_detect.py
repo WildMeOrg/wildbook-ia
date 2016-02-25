@@ -6,6 +6,8 @@ from __future__ import absolute_import, division, print_function
 from ibeis.control import accessor_decors, controller_inject
 from ibeis import constants as const
 import utool as ut
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
+from ibeis.web import appfuncs as appf
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -88,6 +90,43 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
     return aids_list
 
 
+@register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
+def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method):
+    ibs.web_check_uuids(image_uuid_list=[image_uuid])
+    gid = ibs.get_image_gids_from_uuid(image_uuid)
+
+    gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
+    image = appf.open_oriented_image(gpath)
+    image_src = appf.embed_image_html(image, filter_width=False)
+    width, height = ibs.get_image_sizes(gid)
+
+    annotation_list = []
+    for result in result_list:
+        annotation_list.append({
+            'left'   : 100.0 * (result['xtl'] / width),
+            'top'    : 100.0 * (result['ytl'] / height),
+            'width'  : 100.0 * (result['width'] / width),
+            'height' : 100.0 * (result['height'] / height),
+            'label'  : result['class'],
+            'id'     : None,
+            'angle'  : result.get('angle', 0.0),
+        })
+
+    species = KEY_DEFAULTS[SPECIES_KEY]
+    EMBEDDED_JAVASCRIPT = ''
+
+    return appf.template('turk', 'detection_insert',
+                         gid=gid,
+                         refer_aid=None,
+                         species=species,
+                         image_path=gpath,
+                         image_src=image_src,
+                         annotation_list=annotation_list,
+                         callback_url=callback_url,
+                         callback_method=callback_method,
+                         EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
+
+
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
@@ -137,12 +176,42 @@ def detect_cnn_yolo(ibs, gid_list, **kwargs):
         gid_list = [gid_list]
     print('TYPE:' + str(type(gid_list)))
     print('GID_LIST:' + ut.truncate_str(str(gid_list)))
-    detect_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
-    # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
-    # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
-    print('TYPE:' + str(type(detect_gen)))
+    detect_result_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
+    detect_result_list = list(detect_result_gen)
+    aids_list = ibs.commit_detection_results(detect_result_list)
+    return aids_list
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1to1
+def detect_cnn_yolo_uuid(ibs, image_uuid_list, **kwargs):
+    from ibeis.algo.detect import yolo  # NOQA
+    # TODO: Return confidence here as well
+    print('[ibs] detecting using CNN YOLO')
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    ibs.assert_valid_gids(gid_list)
+    results_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
+    results_list = list(results_gen)
+    results_dict = {
+        'image_uuid_list' : image_uuid_list,
+        'results_list'    : results_list,
+        'score_list'      : [0.0] * len(image_uuid_list),
+    }
+    # for gid, gpath, result_list in results_list:
+    #     score_list = [ result['confidence'] for result in result_list ]
+    #     if len(score_list) == 0:
+    #         score = None
+    #     else:
+    #         score = sum(score_list) / len(score_list)
+    #     results_dict['score_list'].append(score)
+    return results_dict
+
+
+@register_ibs_method
+def commit_detection_results(ibs, detect_result_list):
     aids_list = []
-    for gid, (gpath, result_list) in zip(gid_list, detect_gen):
+    for (gid, gpath, result_list) in zip(detect_result_list):
         aids = []
         for result in result_list:
             bbox = (result['xtl'], result['ytl'],
