@@ -800,23 +800,22 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         self.__dict__.update(state_dict)
         #return {}
 
-    def ibeis_knn(nnindexer, qfx2_vec, K):
+    def conditional_knn(nnindexer, qfx2_vec, num_neighbors, invalid_axs):
         """
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
+            >>> qreq_.load_indexer()
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
+            >>> num_neighbors = 2
+            >>> nnindexer = qreq_.indexer
+            >>> ibs = qreq_.ibs
+            >>> qaid = 1
+            >>> qencid = ibs.get_annot_encounter_text([qaid])[0]
+            >>> ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
+            >>> invalid_axs = np.where(ax2_encid == qencid)[0]
         """
-        import ibeis
+        #import ibeis
         import itertools
-
-        qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
-        qreq_.load_indexer()
-        qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
-        K = 2
-        nnindexer = qreq_.indexer
-        ibs = qreq_.ibs
-        qaid = 1
-        qencid = ibs.get_annot_encounter_text([qaid])[0]
-        ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
-        invalid_axs = np.where(ax2_encid == qencid)[0]
 
         def in1d_shape(arr1, arr2):
             return np.in1d(arr1, arr2).reshape(arr1.shape)
@@ -826,6 +825,7 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
                                    cores=nnindexer.cores)
 
         # Alloc space for final results
+        K = num_neighbors
         shape = (len(qfx2_vec), K)
         qfx2_idx = np.full(shape, -1, dtype=np.int32)
         qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
@@ -837,11 +837,14 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         K_ = K
         tx2_qfx = np.arange(len(qfx2_vec))
         tx2_vec = qfx2_vec
-        for count in itertools.count():
-            if limit is not None and count >= limit:
+        iter_count = 0
+        for iter_count in itertools.count():
+            if limit is not None and iter_count >= limit:
                 break
             # Find a set of neighbors
             (tx2_idx, tx2_rawdist) = get_neighbors(tx2_vec, K_)
+            tx2_idx = vt.atleast_nd(tx2_idx, 2)
+            tx2_rawdist = vt.atleast_nd(tx2_rawdist, 2)
             tx2_ax = nnindexer.get_nn_axs(tx2_idx)
             # Check to see if they meet the criteria
             tx2_invalid = in1d_shape(tx2_ax, invalid_axs)
@@ -869,8 +872,8 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
                 # Write done results in output
                 qfx2_idx[done_qfx, :] = done_idx
                 qfx2_rawdist[done_qfx, :] = done_rawdist
-                qfx2_truek[done_qfx, :] = vt.apply_grouping(colxs,
-                                                            first_k_groupxs)
+                qfx2_truek[done_qfx, :] = vt.apply_grouping(
+                    colxs, first_k_groupxs)
             if np.all(tx2_done):
                 break
             K_increase = (K - tx2_num_valid.min())
@@ -882,7 +885,7 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
             qfx2_dist = np.divide(qfx2_rawdist, nnindexer.max_distance_sqrd)
         else:
             qfx2_dist = qfx2_rawdist
-        return (qfx2_idx, qfx2_dist)
+        return (qfx2_idx, qfx2_dist, iter_count)
 
 
 def test_nnindexer(*args, **kwargs):

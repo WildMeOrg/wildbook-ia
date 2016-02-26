@@ -289,20 +289,22 @@ class IBEISController(BASE_CLASS):
             except KeyError:
                 pass
 
-    def show_depc_graph(ibs):
+    def show_depc_graph(ibs, reduced=False):
         """
         CommandLine:
             python -m ibeis.control.IBEISControl --test-show_depc_graph --show
+            python -m ibeis.control.IBEISControl --test-show_depc_graph --show --reduced
 
         Example:
             >>> # SCRIPT
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
-            >>> ibs.show_depc_graph()
+            >>> reduced = ut.get_argflag('--reduced')
+            >>> ibs.show_depc_graph(reduced=reduced)
             >>> ut.show_if_requested()
         """
-        ibs.depc.show_graph()
+        ibs.depc.show_graph(reduced=reduced)
 
     def get_cachestats_str(ibs):
         """

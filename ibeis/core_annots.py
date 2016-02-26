@@ -1003,8 +1003,8 @@ class IndexerConfig(dtool.Config):
         ut.ParamInfo('version', 1),
     ]
     _sub_config_list = [
-        FeatConfig,
-        ChipConfig,  # TODO: infer chip config from feat config
+        #FeatConfig,
+        #ChipConfig,  # TODO: infer chip config from feat config
         FeatWeightConfig,
     ]
 
@@ -1015,17 +1015,19 @@ class IndexerConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='neighbor_index', parents=['annotations'],
+    #tablename='neighbor_index', parents=['annotations'],
+    #tablename='neighbor_index', parents=['feat*'],
+    tablename='neighbor_index', parents=['feat'],
     colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
     ismulti=True,
     configclass=IndexerConfig,
     chunksize=1, fname='indexer',
 )
-def compute_neighbor_index(depc, aids_list, config):
+def compute_neighbor_index(depc, fids_list, config):
     """
     Args:
         depc (dtool.DependencyCache):
-        aids_list (list):
+        fids_list (list):
         config (dtool.Config):
 
     CommandLine:
@@ -1034,27 +1036,30 @@ def compute_neighbor_index(depc, aids_list, config):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> #ibs, depc, aid_list = testdata_core(size=5)
         >>> import ibeis
         >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
         >>> depc = ibs.depc
+        >>> fid_list = depc.get_rowids('feat', aid_list)
         >>> aids_list = [aid_list]
-        >>> #table = depc['chips']
+        >>> fids_list = [fid_list]
+        >>> # Compute directly from function
         >>> config = ibs.depc['neighbor_index'].configclass()
-        >>> result1 = list(compute_neighbor_index(depc, aids_list, config))
-        >>> nnindexer = result1[0][0]
-        >>> #print(result1)
-        >>> result2 = ibs.depc.get('neighbor_index', [aid_list], 'indexer', config, recompute=False)
-        >>> result3 = ibs.depc.get('neighbor_index', [aid_list], 'indexer', config, recompute=False)
+        >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
+        >>> nnindexer1 = result1[0][0]
+        >>> # Compute using depcache
+        >>> result2 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
+        >>> result3 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False)
         >>> print(result2)
         >>> print(result3)
         >>> assert result2[0] is not result3[0]
+        >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
         >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
     """
-    print('[IBEIS] COMPUTE_NEIGHBOR_INDEX: %r' % (aids_list,))
+    print('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
     # TODO: allow augment
-    assert len(aids_list) == 1, 'only working with one indexer at a time'
-    aid_list = aids_list[0]
+    assert len(fids_list) == 1, 'only working with one indexer at a time'
+    fid_list = fids_list[0]
+    aid_list = depc.get_root_rowids('feat', fid_list)
     flann_params = config.get_flann_params()
     cfgstr = config.get_cfgstr()
     verbose = True
@@ -1065,6 +1070,72 @@ def compute_neighbor_index(depc, aids_list, config):
     nnindexer.config = config
     nnindexer.reindex()
     yield (nnindexer,)
+
+
+#class FeatNeighborConfig(dtool.Config)
+
+
+if False:
+    # NOT YET READY
+    @register_preproc(
+        tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
+        colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
+        #configclass=IndexerConfig,
+        chunksize=1, fname='neighbors',
+    )
+    def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
+        """
+        Args:
+            depc (dtool.DependencyCache):
+            aids_list (list):
+            config (dtool.Config):
+
+        CommandLine:
+            python -m ibeis.core_annots --exec-compute_neighbor_index --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.core_annots import *  # NOQA
+            >>> #ibs, depc, aid_list = testdata_core(size=5)
+            >>> import ibeis
+            >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
+            >>> daid_list = qaid_list
+            >>> depc = ibs.depc
+            >>> index_config = ibs.depc['neighbor_index'].configclass()
+            >>> fid_list = depc.get_rowids('feat', qaid_list)
+            >>> indexer_rowid_list = ibs.depc.get_rowids('neighbor_index', [daid_list], index_config)
+            >>> config = ibs.depc['feat_neighbs'].configclass()
+            >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
+        """
+        print('[IBEIS] NEAREST NEIGHBORS')
+        #assert False
+        # do computation
+        #num_neighbors = (config['K'] + config['Knorm'])
+        ibs = depc.controller
+        num_neighbors = 1
+
+        #b = np.broadcast([1, 2, 3], [1])
+        #list(b)
+        #[(1, 1), (2, 1), (3, 1)]
+
+        # FIXME: not sure how depc should handle this case
+        # Maybe it groups by indexer_rowid_list and then goes from there.
+        indexer = depc.get_native('neighbor_index', indexer_rowid_list, 'indexer')[0]
+        qvecs_list = depc.get_native('feat', fid_list, 'vecs', eager=False, nInput=len(fid_list))
+        #qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
+        qaid_list = depc.get_ancestor_rowids('feat', fid_list)
+
+        ax2_encid = np.array(ibs.get_annot_encounter_text(indexer.ax2_aid))
+
+        for qaid, qfx2_vec in zip(qaid_list, qvecs_list):
+            qencid = ibs.get_annot_encounter_text([qaid])[0]
+            invalid_axs = np.where(ax2_encid == qencid)[0]
+            #indexer.ax2_aid[invalid_axs]
+            nnindxer = indexer
+            qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(qfx2_vec,
+                                                                       num_neighbors,
+                                                                       invalid_axs)
+            yield qfx2_idx, qfx2_dist
 
 
 if __name__ == '__main__':
