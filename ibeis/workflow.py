@@ -13,6 +13,22 @@ Rescore based on progressively increasing thresholds
 """
 
 
+def chip_montage():
+    import ibeis
+    defaltdb = 'seaturtles'
+    a = ['default']
+    ibs = ibeis.opendb(defaultdb=defaltdb)
+    ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)
+    chip_list = ibs.get_annot_chips(qaids)
+    import vtool as vt
+    x = 1000
+    dsize = (int(x * ut.PHI), x)
+    dst = vt.montage(chip_list, dsize)
+    import plottool as pt
+    ut.ensure_pylab_qt4()
+    pt.imshow(dst)
+
+
 def test_sharpness():
     import ibeis
     defaltdb = 'seaturtles'
