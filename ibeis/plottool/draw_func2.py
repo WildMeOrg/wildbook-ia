@@ -1270,8 +1270,16 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
     if 'va' in kwargs:
         kwargs['verticalalignment'] = kwargs['va']
 
-    if 'fontproperties' in kwargs:
-        kwargs['fontproperties'] = custom_constants.FONTS.relative
+    if 'fontproperties' not in kwargs:
+        if 'fontsize' in kwargs:
+            fontsize = kwargs['fontsize']
+            font_prop = mpl.font_manager.FontProperties(family='monospace',
+                                                        weight='light',
+                                                        size=fontsize)
+            kwargs['fontproperties'] = font_prop
+        else:
+            kwargs['fontproperties'] = custom_constants.FONTS.relative
+
     if roffset is not None:
         xroff, yroff = roffset
         xy, width, height = get_axis_xy_width_height(ax)
@@ -3244,11 +3252,15 @@ def remove_patches(ax=None):
 
 
 def imshow_null(msg=None, **kwargs):
+    subkeys = [key for key in ['fontsize'] if key in kwargs]
+    print('kwargs = %r' % (kwargs,))
+    kwargs_ = ut.dict_subset(kwargs, subkeys)
+    print('kwargs_ = %r' % (kwargs_,))
     imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
     if msg is None:
         draw_boxedX()
     else:
-        ax_relative_text(.5, .5, msg, color='r', horizontalalignment='center')
+        ax_relative_text(.5, .5, msg, color='r', horizontalalignment='center', **kwargs_)
 
 
 def axes_bottom_button_bar(ax, text_list=[]):
