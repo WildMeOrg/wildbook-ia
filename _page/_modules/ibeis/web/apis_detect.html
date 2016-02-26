@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.apis_detect &mdash; ibeis 1.5.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.web.apis_detect</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.web.apis_detect</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>
+<span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span>
+<span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">))</span>
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/detect/random_forest/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="detect_random_forest"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.detect_random_forest">[docs]</a><span class="k">def</span> <span class="nf">detect_random_forest</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs animal detection in each image. Adds annotations to the database</span>
+<span class="sd">    as they are found.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run detection on</span>
+<span class="sd">        species (str): string text of the species to identify</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        aids_list (list): list of lists of annotation ids detected in each</span>
+<span class="sd">            image</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-detect_random_forest --show</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT, GET</span>
+<span class="sd">        URL:    /api/detect/random_forest/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; species = ibeis.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = ibs.detect_random_forest(gid_list, species)</span>
+<span class="sd">        &gt;&gt;&gt; # Visualize results</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt;     from ibeis.viz import viz_image</span>
+<span class="sd">        &gt;&gt;&gt;     for fnum, gid in enumerate(gid_list):</span>
+<span class="sd">        &gt;&gt;&gt;         viz_image.show_image(ibs, gid, fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; # Remove newly detected annotations</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Return confidence here as well</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] detecting using random forests&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid_list</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;TYPE:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;GID_LIST:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">detect_gen</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gid_list_with_species</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c"># ibs.cfg.other_cfg.ensure_attr(&#39;detect_add_after&#39;, 1)</span>
+    <span class="c"># ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;TYPE:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">detect_gen</span><span class="p">)))</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">detect_gen</span><span class="p">):</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+            <span class="c"># Ideally, species will come from the detector with confidences</span>
+            <span class="c"># that actually mean something</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;ytl&#39;</span><span class="p">],</span>
+                    <span class="n">result</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">])</span>
+            <span class="p">(</span><span class="n">aid</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">bbox</span><span class="p">],</span> <span class="n">notes_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;rfdetect&#39;</span><span class="p">],</span>
+                <span class="n">species_list</span><span class="o">=</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">detect_confidence_list</span><span class="o">=</span><span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;confidence&#39;</span><span class="p">]],</span>
+                <span class="n">skip_cleaning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/test/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="review_detection_test"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.review_detection_test">[docs]</a><span class="k">def</span> <span class="nf">review_detection_test</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&#39;xtl&#39;</span>        <span class="p">:</span> <span class="n">xtl</span><span class="p">,</span>
+            <span class="s">&#39;ytl&#39;</span>        <span class="p">:</span> <span class="n">ytl</span><span class="p">,</span>
+            <span class="s">&#39;width&#39;</span>      <span class="p">:</span> <span class="n">width</span><span class="p">,</span>
+            <span class="s">&#39;height&#39;</span>     <span class="p">:</span> <span class="n">height</span><span class="p">,</span>
+            <span class="s">&#39;class&#39;</span>      <span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+            <span class="s">&#39;confidence&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s">&#39;angle&#39;</span>      <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">zipped</span>
+    <span class="p">]</span>
+    <span class="n">callback_url</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s">&#39;process_detection_html&#39;</span><span class="p">)</span>
+    <span class="n">template_html</span> <span class="o">=</span> <span class="n">review_detection_html</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">)</span>
+    <span class="n">template_html</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        &lt;script src=&quot;http://code.jquery.com/jquery-2.2.1.min.js&quot; ia-dependency=&quot;javascript&quot;&gt;&lt;/script&gt;</span>
+<span class="s">        </span><span class="si">%s</span><span class="s"></span>
+<span class="s">    &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_html</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">template_html</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="review_detection_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.review_detection_html">[docs]</a><span class="k">def</span> <span class="nf">review_detection_html</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="o">=</span><span class="s">&#39;POST&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the detection review interface for a particular image UUID and a list of</span>
+<span class="sd">    results for that image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid (UUID): the UUID of the image you want to review detections for</span>
+<span class="sd">        result_list (list of dict): list of detection results returned by the detector</span>
+<span class="sd">        callback_url (str): URL that the review form will submit to (action) when</span>
+<span class="sd">            the user is complete with their review</span>
+<span class="sd">        callback_method (str): HTTP method the review form will submit to (method).</span>
+<span class="sd">            Defaults to &#39;POST&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        template (html): json response with the detection web interface in html</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/detect/cnn/yolo/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="o">=</span><span class="p">[</span><span class="n">image_uuid</span><span class="p">])</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">)</span>
+
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="n">image_src</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s">&#39;left&#39;</span>   <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;xtl&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
+            <span class="s">&#39;top&#39;</span>    <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;ytl&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
+            <span class="s">&#39;width&#39;</span>  <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
+            <span class="s">&#39;height&#39;</span> <span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
+            <span class="s">&#39;label&#39;</span>  <span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">],</span>
+            <span class="s">&#39;id&#39;</span>     <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;angle&#39;</span>  <span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;angle&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="p">})</span>
+
+    <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
+
+    <span class="n">root_path</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+    <span class="n">css_file_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s">&#39;include&#39;</span><span class="p">,</span> <span class="s">&#39;jquery-ui&#39;</span><span class="p">,</span> <span class="s">&#39;jquery-ui.min.css&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;include&#39;</span><span class="p">,</span> <span class="s">&#39;jquery.ui.rotatable&#39;</span><span class="p">,</span> <span class="s">&#39;jquery.ui.rotatable.css&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">,</span> <span class="s">&#39;style.css&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+    <span class="n">json_file_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s">&#39;javascript&#39;</span><span class="p">,</span> <span class="s">&#39;jquery.min.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;include&#39;</span><span class="p">,</span> <span class="s">&#39;jquery-ui&#39;</span><span class="p">,</span> <span class="s">&#39;jquery-ui.min.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;include&#39;</span><span class="p">,</span> <span class="s">&#39;jquery.ui.rotatable&#39;</span><span class="p">,</span> <span class="s">&#39;jquery.ui.rotatable.min.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;include&#39;</span><span class="p">,</span> <span class="s">&#39;bbox_annotator_percent.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;javascript&#39;</span><span class="p">,</span> <span class="s">&#39;script.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;javascript&#39;</span><span class="p">,</span> <span class="s">&#39;turk-detection.js&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+
+    <span class="n">EMBEDDED_CSS</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="n">css_template_fmtstr</span> <span class="o">=</span> <span class="s">&#39;&lt;style type=&quot;text/css&quot; ia-dependency=&quot;css&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/style&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">json_template_fmtstr</span> <span class="o">=</span> <span class="s">&#39;&lt;script type=&quot;text/javascript&quot; ia-dependency=&quot;javascript&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/script&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">for</span> <span class="n">css_file</span> <span class="ow">in</span> <span class="n">css_file_list</span><span class="p">:</span>
+        <span class="n">css_filepath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_path</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">css_file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">css_filepath_list</span><span class="p">))</span> <span class="k">as</span> <span class="n">css_file</span><span class="p">:</span>
+            <span class="n">EMBEDDED_CSS</span> <span class="o">+=</span> <span class="n">css_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">css_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">json_file</span> <span class="ow">in</span> <span class="n">json_file_list</span><span class="p">:</span>
+        <span class="n">json_filepath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_path</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">json_file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">json_filepath_list</span><span class="p">))</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">+=</span> <span class="n">json_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="s">&#39;detection_insert&#39;</span><span class="p">,</span>
+                         <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
+                         <span class="n">refer_aid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+                         <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
+                         <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
+                         <span class="n">annotation_list</span><span class="o">=</span><span class="n">annotation_list</span><span class="p">,</span>
+                         <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+                         <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+                         <span class="n">EMBEDDED_CSS</span><span class="o">=</span><span class="n">EMBEDDED_CSS</span><span class="p">,</span>
+                         <span class="n">EMBEDDED_JAVASCRIPT</span><span class="o">=</span><span class="n">EMBEDDED_JAVASCRIPT</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="process_detection_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.process_detection_html">[docs]</a><span class="k">def</span> <span class="nf">process_detection_html</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processes the return from the detection review interface.  Pass the POST</span>
+<span class="sd">    result from the detection review form directly to this function unmodified</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        detection results (dict): Same format as `func:start_detect_image`</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/review/detect/cnn/yolo/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-gid&#39;</span><span class="p">])</span>
+    <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="c"># Get aids</span>
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;detection-annotations&#39;</span><span class="p">])</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&#39;xtl&#39;</span>        <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">width</span>  <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s">&#39;left&#39;</span><span class="p">]</span>   <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
+            <span class="s">&#39;ytl&#39;</span>        <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s">&#39;top&#39;</span><span class="p">]</span>    <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
+            <span class="s">&#39;width&#39;</span>      <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">width</span>  <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">]</span>  <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
+            <span class="s">&#39;height&#39;</span>     <span class="p">:</span> <span class="nb">int</span><span class="p">(</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span> <span class="p">),</span>
+            <span class="s">&#39;class&#39;</span>      <span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s">&#39;confidence&#39;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+    <span class="p">]</span>
+    <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;image_uuid_list&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">image_uuid</span><span class="p">],</span>
+        <span class="s">&#39;results_list&#39;</span>    <span class="p">:</span> <span class="p">[</span><span class="n">result_list</span><span class="p">],</span>
+        <span class="s">&#39;score_list&#39;</span>      <span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">result_dict</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<div class="viewcode-block" id="detect_cnn_yolo_uuid"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.detect_cnn_yolo_uuid">[docs]</a><span class="k">def</span> <span class="nf">detect_cnn_yolo_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">yolo</span>  <span class="c"># NOQA</span>
+    <span class="c"># TODO: Return confidence here as well</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] detecting using CNN YOLO&#39;</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">results_gen</span> <span class="o">=</span> <span class="n">yolo</span><span class="o">.</span><span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_gen</span><span class="p">)</span>
+    <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;image_uuid_list&#39;</span> <span class="p">:</span> <span class="n">image_uuid_list</span><span class="p">,</span>
+        <span class="s">&#39;results_list&#39;</span>    <span class="p">:</span> <span class="n">results_list</span><span class="p">,</span>
+        <span class="s">&#39;score_list&#39;</span>      <span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="c"># for gid, gpath, result_list in results_list:</span>
+    <span class="c">#     score_list = [ result[&#39;confidence&#39;] for result in result_list ]</span>
+    <span class="c">#     if len(score_list) == 0:</span>
+    <span class="c">#         score = None</span>
+    <span class="c">#     else:</span>
+    <span class="c">#         score = sum(score_list) / len(score_list)</span>
+    <span class="c">#     results_dict[&#39;score_list&#39;].append(score)</span>
+    <span class="k">return</span> <span class="n">results_dict</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="detect_cnn_yolo"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.detect_cnn_yolo">[docs]</a><span class="k">def</span> <span class="nf">detect_cnn_yolo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs animal detection in each image. Adds annotations to the database</span>
+<span class="sd">    as they are found.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run detection on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        aids_list (list): list of lists of annotation ids detected in each</span>
+<span class="sd">            image</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-detect_cnn_yolo --show</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT, GET</span>
+<span class="sd">        URL:    /api/detect/cnn/yolo/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = ibs.detect_cnn_yolo(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Visualize results</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt;     from ibeis.viz import viz_image</span>
+<span class="sd">        &gt;&gt;&gt;     for fnum, gid in enumerate(gid_list):</span>
+<span class="sd">        &gt;&gt;&gt;         viz_image.show_image(ibs, gid, fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; # Remove newly detected annotations</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Return confidence here as well</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] detecting using CNN YOLO&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">yolo</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid_list</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;TYPE:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;GID_LIST:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="n">detect_result_gen</span> <span class="o">=</span> <span class="n">yolo</span><span class="o">.</span><span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">detect_result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">detect_result_gen</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_detection_results</span><span class="p">(</span><span class="n">detect_result_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="commit_detection_results"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.commit_detection_results">[docs]</a><span class="k">def</span> <span class="nf">commit_detection_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">detect_result_list</span><span class="p">):</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span> <span class="ow">in</span> <span class="n">detect_result_list</span><span class="p">:</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;ytl&#39;</span><span class="p">],</span>
+                    <span class="n">result</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">])</span>
+            <span class="p">(</span><span class="n">aid</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">bbox</span><span class="p">],</span> <span class="n">notes_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cnnyolodetect&#39;</span><span class="p">],</span>
+                <span class="n">species_list</span><span class="o">=</span><span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]],</span> <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">detect_confidence_list</span><span class="o">=</span><span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;confidence&#39;</span><span class="p">]],</span>
+                <span class="n">skip_cleaning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/detect/species/enabled/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="has_species_detector"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.has_species_detector">[docs]</a><span class="k">def</span> <span class="nf">has_species_detector</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: extend to use non-constant species</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/species/enabled/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: infer this</span>
+    <span class="k">return</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/detect/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_species_with_detectors"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.get_species_with_detectors">[docs]</a><span class="k">def</span> <span class="nf">get_species_with_detectors</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/species/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: infer this</span>
+    <span class="k">return</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/detect/species/working/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_working_species"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_detect.get_working_species">[docs]</a><span class="k">def</span> <span class="nf">get_working_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/species/working/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-allspecies&#39;</span><span class="p">)</span>
+
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_species_nice</span><span class="p">()</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_species_texts</span><span class="p">()</span>
+    <span class="n">species_tup_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span><span class="p">:</span>
+        <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">species_tup</span>
+            <span class="k">for</span> <span class="n">species_tup</span> <span class="ow">in</span> <span class="n">species_tup_list</span>
+            <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">species_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">working_species_tups</span> <span class="o">=</span> <span class="n">species_tup_list</span>
+    <span class="k">return</span> <span class="n">working_species_tups</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app</span>
+<span class="sd">        python -m ibeis.web.app --allexamples</span>
+<span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

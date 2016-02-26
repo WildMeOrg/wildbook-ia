@@ -179,6 +179,14 @@ ibeis.algo.hots.neighbor_index module
     :undoc-members:
     :show-inheritance:
 
+ibeis.algo.hots.neighbor_index_cache module
+-------------------------------------------
+
+.. automodule:: ibeis.algo.hots.neighbor_index_cache
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.algo.hots.nn_weights module
 ---------------------------------
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_matches &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.interact.interact_matches &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -160,7 +160,6 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_hough</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
@@ -179,6 +178,7 @@
 <span class="sd">        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # VIZ_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.interact.interact_matches import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
@@ -186,58 +186,30 @@
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="c">#ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-    <span class="c">#cfgdict = {}</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:Knorm=3&#39;</span><span class="p">])</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="c">#ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict,</span>
-    <span class="c">#                                       defaultdb=&#39;testdb1&#39;,</span>
-    <span class="c">#                                       cmdline_ok=True)</span>
     <span class="n">cm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c">#cm = chip_match.ChipMatch.from_qres(qres)</span>
-    <span class="c">#cm.score_nsum(qreq_)</span>
     <span class="n">cm</span><span class="o">.</span><span class="n">sortself</span><span class="p">()</span>
     <span class="n">aid2</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="c">#self = MatchInteraction(ibs, qres, aid2, mode=1, dodraw=False, **kwargs)</span>
     <span class="bp">self</span> <span class="o">=</span> <span class="n">MatchInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="bp">self</span>
 
+
+<span class="c"># TODO inherit from AbstractInteraction</span>
 </div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="MatchInteraction"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction">[docs]</a><span class="k">class</span> <span class="nc">MatchInteraction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: replace functional version with this class</span>
+<span class="sd">    Plots a chip result and sets up callbacks for interaction.</span>
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        plottool.interact_matches.MatchInteraction2</span>
-
-<span class="sd">    Plots a chip result and sets up callbacks for interaction.</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_old</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nobegin&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-            <span class="n">dodraw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dodraw&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">dodraw</span><span class="o">=</span><span class="n">dodraw</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;Match Interaction&#39;</span><span class="p">,</span> <span class="n">same_fig</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="o">=</span> <span class="n">cm</span>
 
-<div class="viewcode-block" id="MatchInteraction.init_old"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.init_old">[docs]</a>    <span class="k">def</span> <span class="nf">init_old</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        old begin function for working with qres objects</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="o">=</span> <span class="n">qres</span>
-            <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">from_qres</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">cm</span> <span class="o">=</span> <span class="n">qres</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="o">=</span> <span class="n">qres</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_new</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="MatchInteraction.init_new"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.init_new">[docs]</a>    <span class="k">def</span> <span class="nf">init_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                 <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;Match Interaction&#39;</span><span class="p">,</span>
-                 <span class="n">same_fig</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">        new init function for use with ChipMatch class</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="o">=</span> <span class="n">cm</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
@@ -283,7 +255,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rchip1</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">query_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rchip2</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c"># Begin Interaction</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;matches&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">)</span>  <span class="c"># call doclf docla and make figure</span>
+        <span class="c"># call doclf docla and make figure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;matches&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xywh2_ptr</span>  <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="c"># New state vars</span>
@@ -300,7 +273,11 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AbstractInteraction</span><span class="o">.</span><span class="n">append_button</span><span class="o">.</span><span class="n">im_func</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AbstractInteraction</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="o">.</span><span class="n">im_func</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="p">[]</span>
-</div>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nobegin&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="n">dodraw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dodraw&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">dodraw</span><span class="o">=</span><span class="n">dodraw</span><span class="p">)</span>
+
 <div class="viewcode-block" id="MatchInteraction.begin"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">        CommandLine:</span>
@@ -326,7 +303,6 @@
 </div>
 <div class="viewcode-block" id="MatchInteraction.set_callbacks"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.set_callbacks">[docs]</a>    <span class="k">def</span> <span class="nf">set_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c"># TODO: view probchip</span>
-
         <span class="c">#guitool.connect_context_menu(self.fig.canvas, options)</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_click</span><span class="p">)</span>
 
@@ -364,7 +340,6 @@
 
         <span class="k">if</span> <span class="n">is_right_click</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
-
             <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
 
             <span class="k">if</span> <span class="n">is_match_type</span><span class="p">:</span>
@@ -453,9 +428,6 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;...Unknown viztype: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
             <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-
-    <span class="c">#def plot()</span>
-    <span class="c"># define for expandable interaction</span>
 </div>
 <div class="viewcode-block" id="MatchInteraction.chipmatch_view"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.chipmatch_view">[docs]</a>    <span class="k">def</span> <span class="nf">chipmatch_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -486,30 +458,21 @@
         <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">show_matches_kw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">show_matches_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-            <span class="nb">dict</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">draw_lines</span><span class="o">=</span><span class="n">draw_lines</span><span class="p">,</span> <span class="n">draw_ell</span><span class="o">=</span><span class="n">draw_ell</span><span class="p">,</span>
-                 <span class="n">colorbar_</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vert</span><span class="p">))</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">draw_lines</span><span class="o">=</span><span class="n">draw_lines</span><span class="p">,</span>
+                 <span class="n">draw_ell</span><span class="o">=</span><span class="n">draw_ell</span><span class="p">,</span> <span class="n">colorbar_</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vert</span><span class="p">))</span>
         <span class="n">show_matches_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs_</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_homog</span><span class="p">:</span>
             <span class="n">show_matches_kw</span><span class="p">[</span><span class="s">&#39;H1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H1</span>
 
-        <span class="c"># TODO RENAME This to remove qres and rectify with show_matches</span>
-        <span class="n">OLD</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="k">if</span> <span class="n">OLD</span><span class="p">:</span>
-            <span class="n">qres</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qres</span>
-            <span class="n">tup</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span>
-                                               <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span>
-                                               <span class="o">**</span><span class="n">show_matches_kw</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c">#show_matches_kw[&#39;score&#39;] = self.score</span>
-            <span class="n">show_matches_kw</span><span class="p">[</span><span class="s">&#39;rawscore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score</span>
-            <span class="c">#ut.embed()</span>
-            <span class="n">show_matches_kw</span><span class="p">[</span><span class="s">&#39;aid2_raw_rank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span>
-            <span class="n">tup</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span>
-                                                <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span>
-                                                <span class="o">**</span><span class="n">show_matches_kw</span><span class="p">)</span>
-
+        <span class="c">#show_matches_kw[&#39;score&#39;] = self.score</span>
+        <span class="n">show_matches_kw</span><span class="p">[</span><span class="s">&#39;rawscore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score</span>
+        <span class="c">#ut.embed()</span>
+        <span class="n">show_matches_kw</span><span class="p">[</span><span class="s">&#39;aid2_raw_rank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span>
+                                            <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span>
+                                            <span class="o">**</span><span class="n">show_matches_kw</span><span class="p">)</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span> <span class="o">=</span> <span class="n">tup</span>
         <span class="n">xywh2_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">xywh2</span>
 
@@ -536,7 +499,6 @@
 <span class="sd">            &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ibs</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
-        <span class="c">#qres       = self.qres</span>
         <span class="n">qaid</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span>
         <span class="n">aid</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span>
         <span class="n">fnum</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
@@ -549,9 +511,6 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- SELECT --- &#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;qaid=</span><span class="si">%r</span><span class="s">, daid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;... selecting mx-th=</span><span class="si">%r</span><span class="s"> feature match&#39;</span> <span class="o">%</span> <span class="n">mx</span><span class="p">)</span>
-        <span class="c">#print(&#39;qres.filtkey_list = %r&#39; % (qres.filtkey_list,))</span>
-        <span class="c">#fsv = qres.aid2_fsv[aid]</span>
-        <span class="c">#fs  = qres.aid2_fs[aid]</span>
         <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;score stats:&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fsv</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
@@ -585,8 +544,8 @@
         <span class="n">extracted_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">kp1</span><span class="p">,</span> <span class="n">sift1</span><span class="p">,</span> <span class="n">fx1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">info1</span><span class="p">),</span>
                           <span class="p">(</span><span class="n">rchip2</span><span class="p">,</span> <span class="n">kp2</span><span class="p">,</span> <span class="n">sift2</span><span class="p">,</span> <span class="n">fx2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">daid</span><span class="p">,</span> <span class="n">info2</span><span class="p">)]</span>
         <span class="c"># Normalizng Keypoint</span>
-        <span class="c">#if hasattr(qres, &#39;filt2_meta&#39;) and &#39;lnbnn&#39; in qres.filt2_meta:</span>
-        <span class="c">#    qfx2_norm = qres.filt2_meta[&#39;lnbnn&#39;]</span>
+        <span class="c">#if hasattr(cm, &#39;filt2_meta&#39;) and &#39;lnbnn&#39; in cm.filt2_meta:</span>
+        <span class="c">#    qfx2_norm = cm.filt2_meta[&#39;lnbnn&#39;]</span>
         <span class="c">#    # Normalizing chip and feature</span>
         <span class="c">#    (aid3, fx3, normk) = qfx2_norm[fx1]</span>
         <span class="c">#    rchip3 = ibs.get_annot_chips(aid3)</span>
@@ -705,11 +664,6 @@
 </div>
 <div class="viewcode-block" id="MatchInteraction.dev_embed"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.dev_embed">[docs]</a>    <span class="k">def</span> <span class="nf">dev_embed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
-
-    <span class="c">#def name_interaction(self):</span>
-    <span class="c">#    aid1 = self.qaid  # 14</span>
-    <span class="c">#    aid2 = self.daid  # 5546</span>
-    <span class="c">#    #ut.embed()</span>
 </div>
 <div class="viewcode-block" id="MatchInteraction.toggle_vert"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.toggle_vert">[docs]</a>    <span class="k">def</span> <span class="nf">toggle_vert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vert</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vert</span>
@@ -730,7 +684,8 @@
 <div class="viewcode-block" id="MatchInteraction.query_last_feature"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.query_last_feature">[docs]</a>    <span class="k">def</span> <span class="nf">query_last_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ibs</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">qaid</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span>
-        <span class="n">viz</span><span class="o">.</span><span class="n">show_nearest_descriptors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_fx</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">(),</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_chip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">show_nearest_descriptors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_fx</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">(),</span>
+                                     <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_chip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">fig3</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig3</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_click</span><span class="p">)</span>
         <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
@@ -780,7 +735,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

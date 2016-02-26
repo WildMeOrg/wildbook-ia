@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.ingest_database &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.dbio.ingest_database &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -133,7 +133,15 @@
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module lists known raw databases and how to ingest them.</span>
-<span class="sd"># TODO: ADD COPYRIGHT TAG</span>
+
+<span class="sd">Specify arguments and run the following command to ingest a database</span>
+
+<span class="sd">python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir &quot;~/turtles/Turtles from Jill&quot; --ingest-type=named_folders --species=turtles</span>
+
+<span class="sd"># --- GET DATA ---</span>
+<span class="sd">rsync -avhzP &lt;user&gt;@&lt;host&gt;:&lt;remotedir&gt;  &lt;path-to-raw-imgs&gt;</span>
+<span class="sd"># --- RUN INGEST SCRIPT ---</span>
+<span class="sd">python -m ibeis --tf ingest_rawdata --db &lt;new-ibeis-db-name&gt; --imgdir &lt;path-to-raw-imgs&gt; --ingest-type=named_folders --species=&lt;optional&gt; --fmtkey=&lt;optional&gt;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
@@ -250,8 +258,11 @@
 
     <span class="c"># Parse structure for image names</span>
     <span class="k">if</span> <span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;named_folders&#39;</span><span class="p">:</span>
-        <span class="n">name_list1</span> <span class="o">=</span> <span class="n">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list1</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
-        <span class="n">name_list2</span> <span class="o">=</span> <span class="n">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list2</span><span class="p">,</span> <span class="n">unzipped_file_base_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
+        <span class="n">name_list1</span> <span class="o">=</span> <span class="n">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list1</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span>
+                                                       <span class="n">fmtkey</span><span class="p">)</span>
+        <span class="n">name_list2</span> <span class="o">=</span> <span class="n">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list2</span><span class="p">,</span>
+                                                       <span class="n">unzipped_file_base_dir</span><span class="p">,</span>
+                                                       <span class="n">fmtkey</span><span class="p">)</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="n">name_list1</span> <span class="o">+</span> <span class="n">name_list2</span>
         <span class="k">pass</span>
     <span class="k">elif</span> <span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;named_images&#39;</span><span class="p">:</span>
@@ -276,12 +287,18 @@
 
         <span class="n">groupids</span> <span class="o">=</span> <span class="p">[</span><span class="n">multisplit</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">splitchars</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n1</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
         <span class="n">grouped_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">groupids</span><span class="p">)</span>
-        <span class="n">fixed_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">newkey</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">grouped_names</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">newkey</span> <span class="ow">in</span> <span class="n">val</span><span class="p">}</span>
+        <span class="n">fixed_names</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">newkey</span><span class="p">:</span> <span class="n">key</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">grouped_names</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">newkey</span> <span class="ow">in</span> <span class="n">val</span>
+        <span class="p">}</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fixed_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">]</span>
 
     <span class="c"># Add Images</span>
+
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
     <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+
     <span class="c"># &lt;DEBUG&gt;</span>
     <span class="c">#print(&#39;added: &#39; + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
     <span class="n">unique_gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
@@ -305,6 +322,39 @@
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">species_text</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">localize</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">localize_images</span><span class="p">()</span>
+
+    <span class="n">TURTLE_HURISTIC</span> <span class="o">=</span> <span class="s">&#39;turtles&#39;</span> <span class="ow">in</span> <span class="n">img_dir</span>
+    <span class="k">if</span> <span class="n">TURTLE_HURISTIC</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir &quot;~/turtles/Turtles from Jill&quot; --ingest-type=named_folders --species=turtles</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">parent_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">annot_orig_uris</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">parent_gids</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">parse_turtle_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">uril</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">def</span> <span class="nf">findany</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">possible</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="n">x</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">possible</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">findany</span><span class="p">(</span><span class="n">uril</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;right&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">splitext</span><span class="p">(</span><span class="n">uril</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;rs&#39;</span><span class="p">):</span>
+                <span class="n">info</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;right&#39;</span>
+            <span class="k">if</span> <span class="n">findany</span><span class="p">(</span><span class="n">uril</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;left&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">splitext</span><span class="p">(</span><span class="n">uril</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;ls&#39;</span><span class="p">):</span>
+                <span class="n">info</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;left&#39;</span>
+            <span class="k">if</span> <span class="n">findany</span><span class="p">(</span><span class="n">uril</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;carapace&#39;</span><span class="p">,</span> <span class="s">&#39;whole&#39;</span><span class="p">,</span> <span class="s">&#39;carpace&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">splitext</span><span class="p">(</span><span class="n">uril</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;wb&#39;</span><span class="p">):</span>
+                <span class="n">info</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;top&#39;</span>
+            <span class="n">occurrence_id</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">uri</span><span class="p">))</span>
+            <span class="n">info</span><span class="p">[</span><span class="s">&#39;occurrence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;occurrence&#39;</span> <span class="o">+</span> <span class="n">occurrence_id</span>
+            <span class="k">return</span> <span class="n">info</span>
+        <span class="n">turtle_info_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse_turtle_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span> <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">annot_orig_uris</span><span class="p">]</span>
+        <span class="n">view_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">turtle_info_list</span><span class="p">,</span> <span class="s">&#39;view&#39;</span><span class="p">)</span>
+        <span class="n">occur_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">turtle_info_list</span><span class="p">,</span> <span class="s">&#39;occurrence&#39;</span><span class="p">)</span>
+        <span class="n">turtle_tag_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">occur_text_list</span><span class="p">,</span> <span class="n">view_text_list</span><span class="p">))</span>
+
+        <span class="c"># TODO: mark viewpoints using euler angles / quaternions</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imagesettext</span><span class="p">(</span><span class="n">parent_gids</span><span class="p">,</span> <span class="n">occur_text_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">turtle_tag_list</span><span class="p">))</span>
+
     <span class="k">if</span> <span class="n">postingest_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">postingest_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="c"># Print to show success</span>
@@ -346,7 +396,7 @@
     <span class="k">return</span> <span class="n">name_list</span>
 
 </div>
-<div class="viewcode-block" id="FMT_KEYS"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.FMT_KEYS">[docs]</a><span class="k">class</span> <span class="nc">FMT_KEYS</span><span class="p">:</span>
+<div class="viewcode-block" id="FMT_KEYS"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.FMT_KEYS">[docs]</a><span class="k">class</span> <span class="nc">FMT_KEYS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">name_fmt</span> <span class="o">=</span> <span class="s">&#39;{name:*}[id:d].{ext}&#39;</span>
     <span class="n">snails_fmt</span>  <span class="o">=</span> <span class="s">&#39;{name:*dd}{id:dd}.{ext}&#39;</span>
     <span class="n">giraffe1_fmt</span> <span class="o">=</span> <span class="s">&#39;{name:*}_{id:d}.{ext}&#39;</span>
@@ -460,12 +510,12 @@
     <span class="n">conflict_gid_to_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">build_conflict_dict</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
 
     <span class="c"># Check to see which gid has more than one name</span>
-    <span class="n">unique_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">unique_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">unique_names</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">unique_notes</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">unique_gids</span><span class="p">:</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">conflict_gid_to_names</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">conflict_gid_to_names</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span>
         <span class="n">unique_name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">unique_note</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -790,6 +840,7 @@
         <span class="c">#from os.path import isabs</span>
         <span class="c">#if not isabs(self.img_dir):</span>
         <span class="c">#    self.img_dir = join(dbdir, self.img_dir)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span><span class="p">),</span> <span class="n">msg</span>
         <span class="c">#if self.ingest_type == &#39;named_folders&#39;:</span>
         <span class="c">#    assert self.fmtkey == &#39;name&#39;</span>
@@ -1252,7 +1303,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

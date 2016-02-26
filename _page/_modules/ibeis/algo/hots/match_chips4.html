@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.match_chips4 &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.match_chips4 &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -323,7 +323,9 @@
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.match_chips4 import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsmany&#39;, sv_on=True)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = False, False, True</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)</span>
 <span class="sd">        &gt;&gt;&gt; print(qaid2_cm)</span>
@@ -332,7 +334,9 @@
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.match_chips4 import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsone&#39;, sv_on=True)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = False, False, True</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)</span>
 <span class="sd">        &gt;&gt;&gt; print(qaid2_cm)</span>
@@ -341,8 +345,11 @@
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; # TEST SAVE</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsmany&#39;, sv_on=True)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = False, True, True</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)</span>
 <span class="sd">        &gt;&gt;&gt; print(qaid2_cm)</span>
@@ -351,8 +358,11 @@
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; # TEST LOAD</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsmany&#39;, sv_on=True)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = True, True, True</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)</span>
 <span class="sd">        &gt;&gt;&gt; print(qaid2_cm)</span>
@@ -361,9 +371,11 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; # TEST PARTIAL HIT</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsmany&#39;, sv_on=False, prescore_method=&#39;csum&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; #ibs.cfg.other_cfg.hots_batch_size = 2</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4, 5, 6, 7, 8, 9])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4, 5, 6, 7, 8, 9])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = False, True, False</span>
 <span class="sd">        &gt;&gt;&gt; qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose, batch_size=3)</span>
 <span class="sd">        &gt;&gt;&gt; cm = qaid2_cm[1]</span>
@@ -540,7 +552,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

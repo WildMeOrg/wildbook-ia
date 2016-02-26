@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.inspect_gui &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.gui.inspect_gui &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -146,7 +146,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="c">#from ibeis.viz import interact</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+<span class="c">#from ibeis.algo.hots import chip_match</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
 <span class="c">#from plottool import interact_helpers as ih</span>
 <span class="c">#import functools</span>
@@ -346,7 +346,7 @@
                 <span class="c"># qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">qreq2_</span> <span class="o">=</span> <span class="n">qreq_</span>
-            <span class="n">cm</span> <span class="o">=</span> <span class="n">qreq2_</span><span class="o">.</span><span class="n">load_cached_chipmatch</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">qreq2_</span><span class="o">.</span><span class="n">execute_subset</span><span class="p">([</span><span class="n">aid1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
             <span class="p">(</span><span class="s">&#39;Load Vsmany&#39;</span><span class="p">,</span> <span class="n">vsmany_load_and_show</span><span class="p">),</span>
@@ -1059,15 +1059,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># TODO: just draw the image at the correct thumbnail size</span>
         <span class="c"># TODO: draw without matplotlib?</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">):</span>
-            <span class="n">fpath</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">imwrite_single_annotmatch</span><span class="p">(</span>
-                <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">match_thumb_fpath_</span><span class="p">,</span> <span class="n">saveax</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                <span class="n">notitle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: using old qres instead of cm&#39;</span><span class="p">)</span>
-            <span class="n">fpath</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">dump_match_img</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">match_thumb_fpath_</span><span class="p">,</span> <span class="n">saveax</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                <span class="n">notitle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">imwrite_single_annotmatch</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">match_thumb_fpath_</span><span class="p">,</span> <span class="n">saveax</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">notitle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">match_thumbtup_cache</span><span class="p">[</span><span class="n">match_thumb_fpath_</span><span class="p">]</span> <span class="o">=</span> <span class="n">fpath</span>
     <span class="k">return</span> <span class="n">fpath</span>
 
@@ -1091,7 +1085,7 @@
 <span class="sd">        &gt;&gt;&gt; import guitool</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.gui import inspect_gui</span>
 <span class="sd">        &gt;&gt;&gt; cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()</span>
-<span class="sd">        &gt;&gt;&gt; tblname = &#39;qres&#39;</span>
+<span class="sd">        &gt;&gt;&gt; tblname = &#39;chipmatch&#39;</span>
 <span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
 <span class="sd">        &gt;&gt;&gt; ranks_lt = 5</span>
 <span class="sd">        &gt;&gt;&gt; qres_api = make_qres_api(qreq_.ibs, cm_list, ranks_lt, name_scoring, qreq_=qreq_)</span>
@@ -1555,7 +1549,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

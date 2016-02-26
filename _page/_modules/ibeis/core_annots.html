@@ -1,0 +1,1271 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.core_annots &mdash; ibeis 1.5.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.core_annots</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.core_annots</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">IBEIS CORE</span>
+<span class="sd">Defines the core dependency cache supported by the image analysis api</span>
+
+<span class="sd">Extracts annotation chips from imaages and applies optional image</span>
+<span class="sd">normalizations.</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    * Dependency Cache from flukes</span>
+
+<span class="sd">    * make coltypes take imwrite and return just</span>
+<span class="sd">     the image and let dtool save it where it wants</span>
+
+<span class="sd">     * external write functions</span>
+<span class="sd">     * interactive callback functions</span>
+<span class="sd">     * detection interface</span>
+<span class="sd">     * identificatin interface</span>
+<span class="sd">     * table based registration</span>
+
+<span class="sd">NOTES:</span>
+<span class="sd">    HOW TO DESIGN INTERACTIVE PLOTS:</span>
+<span class="sd">        decorate as interactive</span>
+
+<span class="sd">        depc.get_property(recompute=True)</span>
+
+<span class="sd">        instead of calling preproc as a generator and then adding,</span>
+<span class="sd">        calls preproc and passes in a callback function.</span>
+<span class="sd">        preproc spawns interaction and must call callback function when finished.</span>
+
+<span class="sd">        callback function adds the rowids to the table.</span>
+
+<span class="sd">Needed Tables:</span>
+<span class="sd">    Chip</span>
+<span class="sd">    NormChip</span>
+<span class="sd">    Feats</span>
+<span class="sd">    Keypoints</span>
+<span class="sd">    Descriptors</span>
+<span class="sd">    ProbChip</span>
+
+<span class="sd">    IdentifyQuery</span>
+<span class="sd">    NeighborIndex</span>
+<span class="sd">    QualityClassifier</span>
+<span class="sd">    ViewpointClassifier</span>
+
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    python -m ibeis.control.IBEISControl --test-show_depc_graph --show</span>
+
+<span class="sd">Setup:</span>
+<span class="sd">    &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">    &gt;&gt;&gt; import ibeis</span>
+<span class="sd">    &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">    &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; depc = ibs.depc</span>
+<span class="sd">    &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">import</span> <span class="nn">dtool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preproc</span><span class="p">,</span> <span class="n">register_subprop</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots.chip_match</span> <span class="kn">import</span> <span class="n">ChipMatch</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[core]&#39;</span><span class="p">)</span>
+
+
+<span class="c"># dtool.Config.register_func = register_preproc</span>
+
+
+<div class="viewcode-block" id="testdata_core"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.testdata_core">[docs]</a><span class="k">def</span> <span class="nf">testdata_core</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c"># import plottool as pt</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="s">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="n">size</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span>
+
+</div>
+<div class="viewcode-block" id="ChipConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.ChipConfig">[docs]</a><span class="k">class</span> <span class="nc">ChipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;resize_dim&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span>
+                     <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;area&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">,</span> <span class="s">&#39;diag&#39;</span><span class="p">,</span> <span class="s">&#39;maxwh&#39;</span><span class="p">],</span>
+                     <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;dim_size&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="c">#ut.ParamInfo(&#39;dim_size&#39;, 128, &#39;sz&#39;, hideif=None),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="s">&#39;sz&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;preserve_aspect&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;histeq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;pad&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span> <span class="s">&#39;.png&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">,</span> <span class="s">&#39;M&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">ChipConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;chipcache4&#39;</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_chip"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_chip">[docs]</a><span class="k">def</span> <span class="nf">compute_chip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the annotation chip from the bounding box</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (uri, int, int): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_chip --show</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_chip --show --db humpbacks</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc</span>
+<span class="sd">        &gt;&gt;&gt; config = ChipConfig.from_argv_dict(dim_size=None)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:8]</span>
+<span class="sd">        &gt;&gt;&gt; chips = depc.get_property(&#39;chips&#39;, aid_list, &#39;img&#39;, config)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Preprocess Chips&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;config = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">chip_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chipdir</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;2&#39;</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">chip_dpath</span><span class="p">)</span>
+
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;ext&#39;</span><span class="p">]</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;pad&#39;</span><span class="p">]</span>
+    <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;dim_size&#39;</span><span class="p">]</span>
+    <span class="n">resize_dim</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;resize_dim&#39;</span><span class="p">]</span>
+
+    <span class="n">cfghashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
+    <span class="n">avuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="c"># TODO: just hash everything together</span>
+    <span class="n">_fmt</span> <span class="o">=</span> <span class="s">&#39;chip_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}&#39;</span>
+    <span class="n">cfname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span> <span class="n">cfghashid</span><span class="o">=</span><span class="n">cfghashid</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">)]</span>
+    <span class="n">cfpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">chip_dpath</span><span class="p">,</span> <span class="n">chip_fname</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">chip_fname</span> <span class="ow">in</span> <span class="n">cfname_list</span><span class="p">]</span>
+
+    <span class="n">gfpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">bbox_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">theta_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">bbox_size_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+    <span class="c"># Checks</span>
+    <span class="n">invalid_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_size_list</span><span class="p">]</span>
+    <span class="n">invalid_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">invalid_flags</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid_aids</span><span class="p">,)</span>
+
+    <span class="n">scale_func_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;width&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_width</span><span class="p">,</span>
+        <span class="s">&#39;root_area&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_area</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">scale_func</span> <span class="o">=</span> <span class="n">scale_func_dict</span><span class="p">[</span><span class="n">resize_dim</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">dim_size</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">bbox_size_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">resize_dim</span> <span class="o">==</span> <span class="s">&#39;root_area&#39;</span><span class="p">:</span>
+            <span class="n">dim_size</span> <span class="o">=</span> <span class="n">dim_size</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">newsize_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale_func</span><span class="p">(</span><span class="n">dim_size</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_size_list</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">pad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">halfoffset_ms</span> <span class="o">=</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span>
+        <span class="n">extras_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_extramargin_measures</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">halfoffset_ms</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)]</span>
+
+        <span class="c"># Overwrite bbox and new size with margined versions</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">extras_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">extras_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c"># Build transformation from image to chip</span>
+    <span class="n">M_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_image_to_chip_transform</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span> <span class="k">for</span>
+              <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">new_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)]</span>
+
+    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">,</span> <span class="n">M_list</span><span class="p">)</span>
+    <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
+
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span>
+    <span class="n">borderMode</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_CONSTANT</span>
+    <span class="n">warpkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">borderMode</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">arg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;computing chips&#39;</span><span class="p">):</span>
+        <span class="n">cfpath</span><span class="p">,</span> <span class="n">gfpath</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="c"># Read parent image</span>
+        <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span>
+        <span class="c"># Warp chip</span>
+        <span class="n">chipBGR</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_size</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">chipBGR</span><span class="p">)</span>
+        <span class="c">#yield (chipBGR, width, height, M)</span>
+        <span class="c"># Write chip to disk</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">chipBGR</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_subprop</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="s">&#39;dlen_sqrd&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="compute_dlen_sqrd"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_dlen_sqrd">[docs]</a><span class="k">def</span> <span class="nf">compute_dlen_sqrd</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">size_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">),</span> <span class="n">config</span><span class="p">))</span>
+    <span class="n">dlen_sqrt_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">size_list</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dlen_sqrt_list</span>
+
+</div>
+<div class="viewcode-block" id="AnnotMaskConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.AnnotMaskConfig">[docs]</a><span class="k">class</span> <span class="nc">AnnotMaskConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ChipConfig</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;annotmask&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">AnnotMaskConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;../maskcache2&#39;</span><span class="p">,</span>
+    <span class="c"># isinteractive=True,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_annotmask"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_annotmask">[docs]</a><span class="k">def</span> <span class="nf">compute_annotmask</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Interaction dispatcher for annotation masks.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+<span class="sd">        config (AnnotMaskConfig): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (uri, int, int): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_annotmask --show</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_annotmask --show --edit</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; config = AnnotMaskConfig(dim_size=None)</span>
+<span class="sd">        &gt;&gt;&gt; chip_config = config.chip_cfg</span>
+<span class="sd">        &gt;&gt;&gt; edit = ut.get_argflag(&#39;--edit&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; mask = depc.get_property(&#39;annotmask&#39;, aid_list, &#39;img&#39;, config, recompute=edit)[0]</span>
+<span class="sd">        &gt;&gt;&gt; chip = depc.get_property(&#39;chips&#39;, aid_list, &#39;img&#39;, config=chip_config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; resized = vt.resize_mask(mask, chip)</span>
+<span class="sd">        &gt;&gt;&gt; blended = vt.blend_images_multiply(chip, resized)</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(blended, title=&#39;mask&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_impaint</span>
+    <span class="c"># TODO: Ensure interactive required cache words</span>
+    <span class="c"># Keep manual things above the cache dir</span>
+    <span class="n">mask_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s">&#39;../ManualChipMask&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">)</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">chip_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">chip_cfg</span>
+    <span class="n">chip_imgs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">chip_config</span><span class="p">)</span>
+
+    <span class="n">cfghashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
+    <span class="n">avuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="c"># TODO: just hash everything together</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="s">&#39;.png&#39;</span>
+    <span class="n">_fmt</span> <span class="o">=</span> <span class="s">&#39;mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}&#39;</span>
+    <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span> <span class="n">cfghashid</span><span class="o">=</span><span class="n">cfghashid</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_imgs</span><span class="p">,</span> <span class="n">fname_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+        <span class="n">mask_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">):</span>
+            <span class="c"># Allow for editing on recompute</span>
+            <span class="n">init_mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">init_mask</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">interact_impaint</span><span class="o">.</span><span class="n">impaint_mask2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">init_mask</span><span class="o">=</span><span class="n">init_mask</span><span class="p">)</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;imwrite&#39;</span><span class="p">)</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="n">mask_fpath</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+        <span class="c"># Remove the old chips</span>
+        <span class="c">#ibs.delete_annot_chips([aid])</span>
+        <span class="c">#ibs.delete_annot_chip_thumbs([aid])</span>
+
+</div>
+<div class="viewcode-block" id="ProbchipConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.ProbchipConfig">[docs]</a><span class="k">class</span> <span class="nc">ProbchipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="c"># TODO: incorporate into base</span>
+    <span class="n">_named_defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;rf&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;detector&#39;</span><span class="p">:</span> <span class="s">&#39;rf&#39;</span><span class="p">,</span>
+            <span class="s">&#39;smooth_thresh&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;smooth_ksize&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c">#ut.ParamInfo(&#39;preserve_aspect&#39;, True, hideif=True),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;detector&#39;</span><span class="p">,</span> <span class="s">&#39;cnn&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;smooth_thresh&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;smooth_ksize&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;smooth_thresh&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="c">#ut.ParamInfo(&#39;ext&#39;, &#39;.png&#39;),</span>
+    <span class="p">]</span>
+    <span class="c">#_sub_config_list = [</span>
+    <span class="c">#    ChipConfig</span>
+    <span class="c">#]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;img&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">)],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">ProbchipConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;chipcache4&#39;</span><span class="p">,</span>
+    <span class="c"># isinteractive=True,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_probchip"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_probchip">[docs]</a><span class="k">def</span> <span class="nf">compute_probchip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Computes probability chips using pyrf</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.core_annots --test-compute_probchip --show --detector=cnn</span>
+<span class="sd">        python -m ibeis.core_annots --test-compute_probchip --show --detector=rf --smooth_thresh=None</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=&#39;zebra_plains&#39;)[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; config = ProbchipConfig.from_argv_dict(detector=&#39;rf&#39;, smooth_thresh=None)</span>
+<span class="sd">        &gt;&gt;&gt; probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.list_str(probchip_fpath_list_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))</span>
+<span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+
+    <span class="c"># Use the labeled species for the detector</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;detector&#39;</span><span class="p">]</span>
+    <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;dim_size&#39;</span><span class="p">]</span>
+    <span class="n">smooth_thresh</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;smooth_thresh&#39;</span><span class="p">]</span>
+    <span class="n">smooth_ksize</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;smooth_ksize&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">detector</span> <span class="o">==</span> <span class="s">&#39;rf&#39;</span><span class="p">:</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">probchip_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_probchip_dir</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;2&#39;</span>
+    <span class="n">cfghashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
+
+    <span class="c"># TODO: just hash everything together</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">probchip_dir</span><span class="p">)</span>
+    <span class="n">_fmt</span> <span class="o">=</span> <span class="s">&#39;probchip_avuuid_{avuuid}_&#39;</span> <span class="o">+</span> <span class="n">cfghashid</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span>
+    <span class="n">annot_visual_uuid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">probchip_dir</span><span class="p">,</span> <span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">))</span>
+                           <span class="k">for</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="n">annot_visual_uuid_list</span><span class="p">]</span>
+
+    <span class="n">chip_config</span> <span class="o">=</span> <span class="n">ChipConfig</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="n">dim_size</span><span class="p">)</span>
+    <span class="n">mchip_path_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">chip_config</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+    <span class="n">species_rowid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species_list</span><span class="p">))</span>
+
+    <span class="c"># Group by species</span>
+    <span class="n">unique_species_rowids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">)</span>
+    <span class="n">grouped_aids</span>    <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">grouped_species</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">grouped_mpaths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">mchip_path_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">grouped_ppaths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">unique_species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">grouped_species</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">((</span><span class="s">&#39;[preproc_probchip.compute_and_write_probchip] &#39;</span>
+          <span class="s">&#39;Preparing to compute </span><span class="si">%d</span><span class="s"> probchips of </span><span class="si">%d</span><span class="s"> species&#39;</span><span class="p">)</span>
+          <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">grouped_probchip_fpath_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span><span class="p">,</span> <span class="n">grouped_ppaths</span><span class="p">,</span> <span class="n">grouped_mpaths</span><span class="p">)</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">),</span>
+                        <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;probchip for species&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">detector</span> <span class="o">==</span> <span class="s">&#39;rf&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">rf_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span>
+                         <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
+            <span class="n">grouped_probchip_fpath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">detector</span> <span class="o">==</span> <span class="s">&#39;cnn&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">cnn_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span>
+                          <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
+            <span class="n">grouped_probchip_fpath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;unknown detector=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">detector</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
+
+    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping2</span><span class="p">(</span>
+        <span class="n">grouped_probchip_fpath_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,)</span>
+
+</div>
+<div class="viewcode-block" id="cnn_probchips"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.cnn_probchips">[docs]</a><span class="k">def</span> <span class="nf">cnn_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">):</span>
+    <span class="c"># dont use extrmargin here (for now)</span>
+    <span class="n">mask_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">generate_species_background_mask</span><span class="p">(</span><span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">mask_gen</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="mi">64</span><span class="p">):</span>
+        <span class="n">_progiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;write probchip chunk&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span> <span class="ow">in</span> <span class="n">_progiter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">smooth_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">smooth_ksize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">probchip</span> <span class="o">=</span> <span class="n">postprocess_mask</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="rf_probchips"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.rf_probchips">[docs]</a><span class="k">def</span> <span class="nf">rf_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span>
+                 <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
+    <span class="n">extramargin_probchip_fpaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augpath</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;_margin&#39;</span><span class="p">)</span>
+                                   <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">probchip_fpaths</span><span class="p">]</span>
+    <span class="n">rfconfig</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;scale_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span> <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">extramargin_probchip_fpaths</span><span class="p">}</span>
+    <span class="n">probchip_generator</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">rfconfig</span><span class="p">)</span>
+    <span class="c"># Evalutate genrator until completion</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">(</span><span class="n">probchip_generator</span><span class="p">)</span>
+    <span class="n">extramargin_mask_gen</span> <span class="o">=</span> <span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">extramargin_probchip_fpaths</span><span class="p">)</span>
+    <span class="c"># Crop the extra margin off of the new probchips</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">extramargin_mask_gen</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">extramargin_probchip</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+        <span class="n">half_w</span><span class="p">,</span> <span class="n">half_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span>
+        <span class="n">probchip</span> <span class="o">=</span> <span class="n">extramargin_probchip</span><span class="p">[</span><span class="n">half_h</span><span class="p">:</span><span class="o">-</span><span class="n">half_h</span><span class="p">,</span> <span class="n">half_w</span><span class="p">:</span><span class="o">-</span><span class="n">half_w</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">smooth_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">smooth_ksize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">probchip</span> <span class="o">=</span> <span class="n">postprocess_mask</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="postprocess_mask"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.postprocess_mask">[docs]</a><span class="k">def</span> <span class="nf">postprocess_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        mask (ndarray):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: mask2</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_probchip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; config = ChipConfig.from_argv_dict()</span>
+<span class="sd">        &gt;&gt;&gt; probchip_config = ProbchipConfig(smooth_thresh=None)</span>
+<span class="sd">        &gt;&gt;&gt; chip = ibs.depc.get(&#39;chips&#39;, aid_list, &#39;img&#39;, config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; mask = ibs.depc.get(&#39;probchip&#39;, aid_list, &#39;img&#39;, probchip_config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; mask2 = postprocess_mask(mask)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(chip, pnum=(1, 3, 1), fnum=fnum, xlabel=str(chip.shape))</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(mask, pnum=(1, 3, 2), fnum=fnum, title=&#39;before&#39;, xlabel=str(mask.shape))</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(mask2, pnum=(1, 3, 3), fnum=fnum, title=&#39;after&#39;, xlabel=str(mask2.shape))</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="n">thresh</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">kernel_size</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c"># light threshold</span>
+    <span class="n">mask2</span><span class="p">[</span><span class="n">mask2</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c"># open and close</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_CLOSE</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_OPEN</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_CLOSE</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask2</span>
+
+</div>
+<div class="viewcode-block" id="FeatConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.FeatConfig">[docs]</a><span class="k">class</span> <span class="nc">FeatConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; feat_cfg = FeatConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(feat_cfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &lt;FeatConfig(hesaff+sift,scale_max=40)&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FeatConfig.get_param_info_list"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.FeatConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pyhesaff</span>
+        <span class="n">default_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">default_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;feat_type&#39;</span><span class="p">,</span> <span class="s">&#39;hesaff+sift&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;maskmethod&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">param_info_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">default_items</span>
+        <span class="p">}</span>
+        <span class="n">param_info_dict</span><span class="p">[</span><span class="s">&#39;scale_max&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="n">param_info_list</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">param_info_dict</span><span class="p">,</span> <span class="n">default_keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_info_list</span>
+</div>
+<div class="viewcode-block" id="FeatConfig.get_hesaff_params"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.FeatConfig.get_hesaff_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_hesaff_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Get subset of these params that correspond to hesaff</span>
+        <span class="kn">import</span> <span class="nn">pyhesaff</span>
+        <span class="n">default_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">hesaff_param_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default_keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hesaff_param_dict</span>
+
+</div></div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;chips&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;num_feats&#39;</span><span class="p">,</span> <span class="s">&#39;kpts&#39;</span><span class="p">,</span> <span class="s">&#39;vecs&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">FeatConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;featcache&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_feats"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_feats">[docs]</a><span class="k">def</span> <span class="nf">compute_feats</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Computes features and yields results asynchronously: TODO: Remove IBEIS from</span>
+<span class="sd">    this equation. Move the firewall towards the controller</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (dtool.DependencyCache):</span>
+<span class="sd">        cid_list (list):</span>
+<span class="sd">        config (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        generator : generates param tups</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        ~/code/ibeis_cnn/ibeis_cnn/_plugin.py</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --test-compute_feats:0 --show</span>
+<span class="sd">        python -m ibeis.core_annots --test-compute_feats:1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; chip_config = {}</span>
+<span class="sd">        &gt;&gt;&gt; config = FeatConfig()</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = depc.get_rowids(&#39;chips&#39;, aid_list, config=chip_config)</span>
+<span class="sd">        &gt;&gt;&gt; featgen = compute_feats(depc, cid_list, config)</span>
+<span class="sd">        &gt;&gt;&gt; feat_list = list(featgen)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(feat_list) == len(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; (nFeat, kpts, vecs) = feat_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert nFeat == len(kpts) and nFeat == len(vecs)</span>
+<span class="sd">        &gt;&gt;&gt; assert kpts.shape[1] == 6</span>
+<span class="sd">        &gt;&gt;&gt; assert vecs.shape[1] == 128</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; chip = depc.get_native(&#39;chips&#39;, cid_list[0:1], &#39;img&#39;)[0]</span>
+<span class="sd">        &gt;&gt;&gt; pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+    <span class="n">hesaff_params</span>  <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
+    <span class="n">feat_type</span>      <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;feat_type&#39;</span><span class="p">]</span>
+    <span class="n">maskmethod</span>       <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;maskmethod&#39;</span><span class="p">]</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
+    <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">False</span>
+        <span class="c">#aid_list = ibs.get_chip_aids(cid_list)</span>
+        <span class="c">#probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] config = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;full_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+sift&#39;</span><span class="p">:</span>
+        <span class="c"># Multiprocessing parallelization</span>
+        <span class="n">dictargs_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">hesaff_params</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
+        <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">dictargs_iter</span><span class="p">)</span>
+        <span class="c"># eager evaluation.</span>
+        <span class="c"># TODO: Check if there is any benefit to just passing in the iterator.</span>
+        <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
+        <span class="n">featgen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis_cnn</span> <span class="kn">import</span> <span class="n">_plugin</span>
+        <span class="k">assert</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+        <span class="n">featgen</span> <span class="o">=</span> <span class="n">_plugin</span><span class="o">.</span><span class="n">generate_siam_l2_128_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown feat_type=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_type</span><span class="p">,))</span>
+
+    <span class="k">for</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">featgen</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,)</span>
+
+</div>
+<div class="viewcode-block" id="gen_feat_worker"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.gen_feat_worker">[docs]</a><span class="k">def</span> <span class="nf">gen_feat_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tup (tuple):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (None, kpts, vecs)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --exec-gen_feat_worker --show</span>
+<span class="sd">        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30</span>
+<span class="sd">        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; aid = aid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; config = {}</span>
+<span class="sd">        &gt;&gt;&gt; feat_config = FeatConfig.from_argv_dict()</span>
+<span class="sd">        &gt;&gt;&gt; chip_fpath = ibs.depc.get(&#39;chips&#39;, aid_list[0], &#39;img&#39;, config=config, read_extern=False)</span>
+<span class="sd">        &gt;&gt;&gt; maskmethod = ut.get_argval(&#39;--maskmethod&#39;, type_=str, default=&#39;cnn&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; probchip_fpath = ibs.depc.get(&#39;probchip&#39;, aid_list[0], &#39;img&#39;, config=config, read_extern=False) if feat_config[&#39;maskmethod&#39;] == &#39;cnn&#39; else None</span>
+<span class="sd">        &gt;&gt;&gt; hesaff_params = feat_config.asdict()</span>
+<span class="sd">        &gt;&gt;&gt; # Exec function source</span>
+<span class="sd">        &gt;&gt;&gt; tup = (chip_fpath, probchip_fpath, hesaff_params)</span>
+<span class="sd">        &gt;&gt;&gt; masked_chip, num_kpts, kpts, vecs = ut.exec_func_src(</span>
+<span class="sd">        &gt;&gt;&gt;     gen_feat_worker, key_list=[&#39;masked_chip&#39;, &#39;num_kpts&#39;, &#39;kpts&#39;, &#39;vecs&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     sentinal=&#39;num_kpts = kpts.shape[0]&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(num_kpts, kpts, vecs) = %s&#39; % (ut.repr2((num_kpts, kpts, vecs)),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from plottool.interactions import ExpandableInteraction</span>
+<span class="sd">        &gt;&gt;&gt; interact = ExpandableInteraction()</span>
+<span class="sd">        &gt;&gt;&gt; interact.append_plot(pt.interact_keypoints.KeypointInteraction(masked_chip, kpts, vecs))</span>
+<span class="sd">        &gt;&gt;&gt; interact.append_plot(lambda **kwargs: pt.plot_score_histograms([vt.get_scales(kpts)], **kwargs))</span>
+<span class="sd">        &gt;&gt;&gt; interact.start()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">pyhesaff</span>
+    <span class="c">#import numpy as np</span>
+    <span class="c">#import vtool as vt</span>
+    <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">probchip_fpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">probchip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">probchip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_mask</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
+        <span class="c">#vt.blend_images_multiply(chip, probchip)</span>
+        <span class="n">masked_chip</span> <span class="o">=</span> <span class="p">(</span><span class="n">chip</span> <span class="o">*</span> <span class="p">(</span><span class="n">probchip</span><span class="p">[:,</span> <span class="p">:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masked_chip</span> <span class="o">=</span> <span class="n">chip</span>
+    <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="o">=</span> <span class="n">pyhesaff</span><span class="o">.</span><span class="n">detect_kpts_in_image</span><span class="p">(</span><span class="n">masked_chip</span><span class="p">,</span> <span class="o">**</span><span class="n">hesaff_params</span><span class="p">)</span>
+    <span class="n">num_kpts</span> <span class="o">=</span> <span class="n">kpts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">num_kpts</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="FeatWeightConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.FeatWeightConfig">[docs]</a><span class="k">class</span> <span class="nc">FeatWeightConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;featweight&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="s">&#39;probchip&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;fwg&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">FeatWeightConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;featcache&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_fgweights"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_fgweights">[docs]</a><span class="k">def</span> <span class="nf">compute_fgweights</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">pcid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        depc (dtool.DependencyCache): depc</span>
+<span class="sd">        fid_list (list):</span>
+<span class="sd">        config (None): (default = None)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; full_config = {}</span>
+<span class="sd">        &gt;&gt;&gt; config = FeatConfig()</span>
+<span class="sd">        &gt;&gt;&gt; fid_list = depc.get_rowids(&#39;feat&#39;, aid_list, config=full_config)</span>
+<span class="sd">        &gt;&gt;&gt; pcid_list = depc.get_rowids(&#39;probchip&#39;, aid_list, config=full_config)</span>
+<span class="sd">        &gt;&gt;&gt; prop_list = list(compute_fgweights(depc, fid_list, pcid_list))</span>
+<span class="sd">        &gt;&gt;&gt; featweight_list = ut.take_column(prop_list, 0)</span>
+<span class="sd">        &gt;&gt;&gt; result = np.array_str(featweight_list[0][0:3], precision=3)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[compute_fgweights] Computing </span><span class="si">%d</span><span class="s"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="c">#aid_list = depc.get_ancestor_rowids(&#39;feat&#39;, fid_list, &#39;annotations&#39;)</span>
+    <span class="c">#probchip_fpath_list = depc.get(aid_list, &#39;img&#39;, config={}, read_extern=False)</span>
+    <span class="n">probchip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">pcid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">)</span>
+    <span class="n">cid_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_ancestor_rowids</span><span class="p">(</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s">&#39;chips&#39;</span><span class="p">)</span>
+    <span class="n">chipsize_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">))</span>
+    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s">&#39;kpts&#39;</span><span class="p">)</span>
+    <span class="c"># Force grayscale reading of chips</span>
+    <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">probchip_list</span><span class="p">,</span> <span class="n">chipsize_list</span><span class="p">)</span>
+    <span class="c">#featweight_gen = ut.generate(gen_featweight_worker, arg_iter,</span>
+    <span class="c">#nTasks=nTasks, ordered=True, freq=10)</span>
+    <span class="n">featweight_gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_featweight_worker</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,</span>
+                                 <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                 <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">featweight_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featweight_gen</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[compute_fgweights] Done computing </span><span class="si">%d</span><span class="s"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="k">for</span> <span class="n">fw</span> <span class="ow">in</span> <span class="n">featweight_list</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">fw</span><span class="p">,)</span>
+
+</div>
+<div class="viewcode-block" id="gen_featweight_worker"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.gen_featweight_worker">[docs]</a><span class="k">def</span> <span class="nf">gen_featweight_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tup (aid, tuple(kpts(ndarray), probchip_fpath )): keypoints and</span>
+<span class="sd">            probability chip file path aid, kpts, probchip_fpath</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --test-gen_featweight_worker --show</span>
+<span class="sd">        python -m ibeis.core_annots --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg</span>
+<span class="sd">        python -m ibeis.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #test_featweight_worker()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, depc, aid_list = testdata_core()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = aid_list[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; config = {}</span>
+<span class="sd">        &gt;&gt;&gt; probchip = depc.get(&#39;probchip&#39;, aid_list, &#39;img&#39;, config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; chipsize = depc.get(&#39;chips&#39;, aid_list, (&#39;width&#39;, &#39;height&#39;), config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; kpts = depc.get(&#39;feat&#39;, aid_list, &#39;kpts&#39;, config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; tup = (kpts, probchip, chipsize)</span>
+<span class="sd">        &gt;&gt;&gt; weights = gen_featweight_worker(tup)</span>
+<span class="sd">        &gt;&gt;&gt; chip = depc.get(&#39;chips&#39;, aid_list, &#39;img&#39;, config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; pnum_ = pt.make_pnum_nextgen(1, 3)</span>
+<span class="sd">        &gt;&gt;&gt; pt.figure(fnum=fnum, doclf=True)</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(chip, pnum=pnum_(0), fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(chip, pnum=pnum_(1), fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt; color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)</span>
+<span class="sd">        &gt;&gt;&gt; cb = pt.colorbar(weights, color_list)</span>
+<span class="sd">        &gt;&gt;&gt; cb.set_label(&#39;featweights&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">probchip</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="k">if</span> <span class="n">probchip</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">),</span> <span class="o">.</span><span class="mi">25</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sfx</span><span class="p">,</span> <span class="n">sfy</span> <span class="o">=</span> <span class="p">(</span><span class="n">probchip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">chipsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">probchip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">chipsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">kpts_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">offset_kpts</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">sfx</span><span class="p">,</span> <span class="n">sfy</span><span class="p">))</span>
+        <span class="c">#vtpatch.get_warped_patches()</span>
+        <span class="c"># VERY SLOW</span>
+        <span class="n">patch_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patch</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+                       <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="n">kpts_</span><span class="p">]</span>
+        <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">gaussian_average_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span> <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">patch_list</span><span class="p">]</span>
+        <span class="c">#weight_list = [patch.sum() / (patch.size) for patch in patch_list]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weight_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">weights</span>
+
+</div>
+<div class="viewcode-block" id="VsOneRequest"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.VsOneRequest">[docs]</a><span class="k">class</span> <span class="nc">VsOneRequest</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">VsOneSimilarityRequest</span><span class="p">):</span>
+    <span class="n">_tablename</span> <span class="o">=</span> <span class="s">&#39;vsone&#39;</span>
+
+<div class="viewcode-block" id="VsOneRequest.postprocess_execute"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.VsOneRequest.postprocess_execute">[docs]</a>    <span class="k">def</span> <span class="nf">postprocess_execute</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">result_list</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">ibeis</span>
+        <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">parent_rowids</span><span class="p">))</span>
+        <span class="n">depc</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unique_qaids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+        <span class="n">grouped_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+        <span class="n">unique_qnids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">unique_qaids</span><span class="p">)</span>
+        <span class="n">single_cm_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">grouped_cms</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">single_cm_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+
+        <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unique_qaids</span><span class="p">,</span> <span class="n">unique_qnids</span><span class="p">,</span> <span class="n">grouped_daids</span><span class="p">,</span> <span class="n">grouped_cms</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qnid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cms</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+            <span class="c"># Hacked in version of creating an annot match object</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">combine_cms</span><span class="p">(</span><span class="n">cms</span><span class="p">)</span>
+            <span class="n">match</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="n">cm_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+
+        <span class="c">#import utool</span>
+        <span class="c">#utool.embed()</span>
+        <span class="c">#cm = cm_list[0]</span>
+        <span class="c">#cm.print_inspect_str(request)</span>
+        <span class="c">#cm.assert_self(request, assert_feats=False)</span>
+        <span class="k">return</span> <span class="n">cm_list</span>
+
+</div></div>
+<div class="viewcode-block" id="VsOneConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.VsOneConfig">[docs]</a><span class="k">class</span> <span class="nc">VsOneConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg = VsOneConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(cfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c">#ut.ParamInfo(&#39;sver_xy_thresh&#39;, .01),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;sver_xy_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;ratio_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">625</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;refine_method&#39;</span><span class="p">,</span> <span class="s">&#39;homog&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;symmetric&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;K&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;Knorm&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">FeatConfig</span><span class="p">,</span>
+        <span class="n">ChipConfig</span><span class="p">,</span>  <span class="c"># TODO: infer chip config from feat config</span>
+        <span class="n">FeatWeightConfig</span><span class="p">,</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">,</span> <span class="s">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="s">&#39;match&#39;</span><span class="p">],</span> <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ChipMatch</span><span class="p">],</span>
+    <span class="n">requestclass</span><span class="o">=</span><span class="n">VsOneRequest</span><span class="p">,</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">VsOneConfig</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_one_vs_one"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_one_vs_one">[docs]</a><span class="k">def</span> <span class="nf">compute_one_vs_one</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --test-compute_one_vs_one --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, depc, aid_list = testdata_core(size=5)</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = ibeis.testdata_aids(&#39;wd_peter2&#39;, &#39;timectrl:pername=2,view=left,view_ext=0,exclude_reference=True&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc</span>
+<span class="sd">        &gt;&gt;&gt; request = depc.new_request(&#39;vsone&#39;, aid_list, aid_list, {&#39;dim_size&#39;: 450})</span>
+<span class="sd">        &gt;&gt;&gt; config = request.config</span>
+<span class="sd">        &gt;&gt;&gt; qaids, daids = request.parent_rowids_T</span>
+<span class="sd">        &gt;&gt;&gt; # Compute using request</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;...Test vsone cache&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; rawres_list2 = request.execute(postprocess=False)</span>
+<span class="sd">        &gt;&gt;&gt; score_list2 = ut.take_column(rawres_list2, 0)</span>
+<span class="sd">        &gt;&gt;&gt; res_list2 = request.execute()</span>
+<span class="sd">        &gt;&gt;&gt; print(res_list2)</span>
+<span class="sd">        &gt;&gt;&gt; # Compute using function</span>
+<span class="sd">        &gt;&gt;&gt; #print(&#39;...Test vsone function&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #rawres_list1 = list(compute_one_vs_one(depc, qaids, daids, config))</span>
+<span class="sd">        &gt;&gt;&gt; #score_list1 = ut.take_column(rawres_list1, 0)</span>
+<span class="sd">        &gt;&gt;&gt; #print(score_list1)</span>
+<span class="sd">        &gt;&gt;&gt; #assert np.all(score_list1 == score_list2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.ensure_pylab_qt4()</span>
+<span class="sd">        &gt;&gt;&gt; match = res_list2[0]</span>
+<span class="sd">        &gt;&gt;&gt; match.print_inspect_str(request)</span>
+<span class="sd">        &gt;&gt;&gt; #match.show_analysis(qreq_=request)</span>
+<span class="sd">        &gt;&gt;&gt; match.ishow_analysis(qreq_=request)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">qconfig2_</span> <span class="o">=</span> <span class="n">config</span>
+    <span class="n">dconfig2_</span> <span class="o">=</span> <span class="n">config</span>
+    <span class="n">unique_qaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+    <span class="n">unique_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+
+    <span class="c"># TODO: Ensure entire pipeline can use new dependencies</span>
+    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">annot1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict2</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">unique_qaids</span><span class="p">]</span>
+        <span class="n">annot2_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict2</span><span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">unique_daids</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#config.chip_cfgstr = config.chip_cfg.get_cfgstr()</span>
+        <span class="c">#config.chip_cfg_dict = config.chip_cfg.asdict()</span>
+        <span class="n">annot1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">unique_qaids</span><span class="p">]</span>
+        <span class="n">annot2_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict</span><span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">unique_daids</span><span class="p">]</span>
+
+    <span class="c"># precache flann structures</span>
+    <span class="c"># TODO: Make depcache node</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;kdtree&#39;</span><span class="p">,</span> <span class="s">&#39;trees&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">annot1</span> <span class="ow">in</span> <span class="n">annot1_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;flann&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annot1</span><span class="p">:</span>
+            <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;flann&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span>
+                <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">],</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">qaid_to_annot</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_qaids</span><span class="p">,</span> <span class="n">annot1_list</span><span class="p">))</span>
+    <span class="n">daid_to_annot</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_daids</span><span class="p">,</span> <span class="n">annot2_list</span><span class="p">))</span>
+
+    <span class="c">#all_aids = np.unique(ut.flatten([qaids, daids]))</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span>  <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">),</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span>
+                                   <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;compute vsone&#39;</span><span class="p">):</span>
+        <span class="n">annot1</span> <span class="o">=</span> <span class="n">qaid_to_annot</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">annot2</span> <span class="o">=</span> <span class="n">daid_to_annot</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;annot1&#39;</span><span class="p">:</span> <span class="n">annot1</span><span class="p">,</span>
+            <span class="s">&#39;annot2&#39;</span><span class="p">:</span> <span class="n">annot2</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">vt_match</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">vsone_matching2</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">matchtup</span> <span class="o">=</span> <span class="n">vt_match</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;TOP+SV&#39;</span><span class="p">]</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">vt_match</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;H_TOP&#39;</span><span class="p">]</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">matchtup</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">fm</span> <span class="o">=</span> <span class="n">matchtup</span><span class="o">.</span><span class="n">fm</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">matchtup</span><span class="o">.</span><span class="n">fs</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">(</span>
+            <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span>
+            <span class="n">daid_list</span><span class="o">=</span><span class="p">[</span><span class="n">daid</span><span class="p">],</span>
+            <span class="n">fm_list</span><span class="o">=</span><span class="p">[</span><span class="n">fm</span><span class="p">],</span>
+            <span class="n">fsv_list</span><span class="o">=</span><span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="mi">2</span><span class="p">)],</span>
+            <span class="n">H_list</span><span class="o">=</span><span class="p">[</span><span class="n">H</span><span class="p">],</span>
+            <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;L2_SIFT&#39;</span><span class="p">])</span>
+        <span class="n">match</span><span class="o">.</span><span class="n">_update_daid_index</span><span class="p">()</span>
+        <span class="n">match</span><span class="o">.</span><span class="n">evaluate_dnids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">match</span><span class="o">.</span><span class="n">_update_daid_index</span><span class="p">()</span>
+        <span class="n">match</span><span class="o">.</span><span class="n">set_cannonical_name_score</span><span class="p">([</span><span class="n">score</span><span class="p">],</span> <span class="p">[</span><span class="n">score</span><span class="p">])</span>
+
+        <span class="c">#import utool</span>
+        <span class="c">#utool.embed()</span>
+        <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_core</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;dim_size&#39;</span><span class="p">:</span> <span class="mi">450</span><span class="p">})</span>
+            <span class="n">match</span><span class="o">.</span><span class="n">ishow_analysis</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="c">#match = SingleMatch_IBEIS(qaid, daid, score, fm)</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">match</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="IndexerConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.IndexerConfig">[docs]</a><span class="k">class</span> <span class="nc">IndexerConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg = VsOneConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(cfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s">&#39;kdtree&#39;</span><span class="p">,</span> <span class="s">&#39;alg&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;random_seed&#39;</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="s">&#39;seed&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;trees&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;kdtree&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">FeatConfig</span><span class="p">,</span>
+        <span class="n">ChipConfig</span><span class="p">,</span>  <span class="c"># TODO: infer chip config from feat config</span>
+        <span class="n">FeatWeightConfig</span><span class="p">,</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="IndexerConfig.get_flann_params"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.IndexerConfig.get_flann_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_flann_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="n">default_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s">&#39;algorithm&#39;</span><span class="p">])</span>
+        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">update_existing</span><span class="p">(</span><span class="n">default_params</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">flann_params</span>
+
+</div></div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;neighbor_index&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;indexer&#39;</span><span class="p">],</span> <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NeighborIndex2</span><span class="p">],</span>
+    <span class="n">ismulti</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">IndexerConfig</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s">&#39;indexer&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_neighbor_index"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_annots.compute_neighbor_index">[docs]</a><span class="k">def</span> <span class="nf">compute_neighbor_index</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        depc (dtool.DependencyCache):</span>
+<span class="sd">        aids_list (list):</span>
+<span class="sd">        config (dtool.Config):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_neighbor_index --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, depc, aid_list = testdata_core(size=5)</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = ibeis.testdata_aids(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = [aid_list]</span>
+<span class="sd">        &gt;&gt;&gt; #table = depc[&#39;chips&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; config = ibs.depc[&#39;neighbor_index&#39;].configclass()</span>
+<span class="sd">        &gt;&gt;&gt; result1 = list(compute_neighbor_index(depc, aids_list, config))</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = result1[0][0]</span>
+<span class="sd">        &gt;&gt;&gt; #print(result1)</span>
+<span class="sd">        &gt;&gt;&gt; result2 = ibs.depc.get(&#39;neighbor_index&#39;, [aid_list], &#39;indexer&#39;, config, recompute=False)</span>
+<span class="sd">        &gt;&gt;&gt; result3 = ibs.depc.get(&#39;neighbor_index&#39;, [aid_list], &#39;indexer&#39;, config, recompute=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result2)</span>
+<span class="sd">        &gt;&gt;&gt; print(result3)</span>
+<span class="sd">        &gt;&gt;&gt; assert result2[0] is not result3[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[IBEIS] COMPUTE_NEIGHBOR_INDEX: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids_list</span><span class="p">,))</span>
+    <span class="c"># TODO: allow augment</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;only working with one indexer at a time&#39;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">()</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">NeighborIndex2</span><span class="p">(</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+    <span class="c"># Initialize neighbor with unindexed data</span>
+    <span class="n">support</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">get_support</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">init_support</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">support</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">reindex</span><span class="p">()</span>
+    <span class="k">yield</span> <span class="p">(</span><span class="n">nnindexer</span><span class="p">,)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots</span>
+<span class="sd">        python -m ibeis.core_annots --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

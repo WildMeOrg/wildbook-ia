@@ -1,0 +1,475 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.apis_json &mdash; ibeis 1.5.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.web.apis_json</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.web.apis_json</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">basename</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="add_images_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.add_images_json">[docs]</a><span class="k">def</span> <span class="nf">add_images_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uri_list</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">image_width_list</span><span class="p">,</span>
+                    <span class="n">image_height_list</span><span class="p">,</span> <span class="n">image_orig_name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_ext_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">image_time_posix_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_gps_lat_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">image_gps_lon_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL: /api/image/json/</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        sudo pip install boto</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uri_list (list) : list of string image uris, most likely HTTP(S) or S3</span>
+<span class="sd">            encoded URLs.  Alternatively, this can be a list of dictionaries (JSON</span>
+<span class="sd">            objects) that specify AWS S3 stored assets.  An example below:</span>
+
+<span class="sd">                image_uri_list = [</span>
+<span class="sd">                    &#39;http://domain.com/example/asset1.png&#39;,</span>
+<span class="sd">                    &#39;/home/example/Desktop/example/asset2.jpg&#39;,</span>
+<span class="sd">                    &#39;s3://s3.amazon.com/example-bucket-2/asset1-in-bucket-2.tif&#39;,</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;bucket&#39;          : &#39;example-bucket-1&#39;,</span>
+<span class="sd">                        &#39;key&#39;             : &#39;example/asset1.png&#39;,</span>
+<span class="sd">                        &#39;auth_domain&#39;     : None,  # Uses localhost</span>
+<span class="sd">                        &#39;auth_access_id&#39;  : None,  # Uses system default</span>
+<span class="sd">                        &#39;auth_secret_key&#39; : None,  # Uses system default</span>
+<span class="sd">                    },</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;bucket&#39; : &#39;example-bucket-1&#39;,</span>
+<span class="sd">                        &#39;key&#39;    : &#39;example/asset2.jpg&#39;,</span>
+<span class="sd">                        # if unspecified, auth uses localhost and system defaults</span>
+<span class="sd">                    },</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;bucket&#39;          : &#39;example-bucket-2&#39;,</span>
+<span class="sd">                        &#39;key&#39;             : &#39;example/asset1-in-bucket-2.tif&#39;,</span>
+<span class="sd">                        &#39;auth_domain&#39;     : &#39;s3.amazon.com&#39;,</span>
+<span class="sd">                        &#39;auth_access_id&#39;  : &#39;____________________&#39;,</span>
+<span class="sd">                        &#39;auth_secret_key&#39; : &#39;________________________________________&#39;,</span>
+<span class="sd">                    },</span>
+<span class="sd">                ]</span>
+
+<span class="sd">            Note that you cannot specify AWS authentication access ids or secret keys</span>
+<span class="sd">            using string uri&#39;s.  For specific authentication methods, please use the</span>
+<span class="sd">            latter list of dictionaries.</span>
+
+<span class="sd">        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA</span>
+<span class="sd">        image_width_list (list of int) : list of image widths</span>
+<span class="sd">        image_height_list (list of int) : list of image heights</span>
+<span class="sd">        image_orig_name_list (list of str): list of original image names</span>
+<span class="sd">        image_ext_list (list of str): list of original image names</span>
+<span class="sd">        image_time_posix_list (list of int): list of image&#39;s POSIX timestamps</span>
+<span class="sd">        image_gps_lat_list (list of float): list of image&#39;s GPS latitude values</span>
+<span class="sd">        image_gps_lon_list (list of float): list of image&#39;s GPS longitude values</span>
+<span class="sd">        image_notes_list (list of str) : optional list of any related notes with</span>
+<span class="sd">            the images</span>
+<span class="sd">        **kwargs : key-value pairs passed to the ibs.add_images() function.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app --test-add_images_json</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_instance = ibeis.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; _payload = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_uri_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;         {</span>
+<span class="sd">        &gt;&gt;&gt;             &#39;bucket&#39;          : &#39;test-asset-store&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;             &#39;key&#39;             : &#39;caribwhale/20130903-JAC-0002.JPG&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;         },</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_uuid_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.UUID(&#39;7fea8101-7dec-44e3-bf5d-b8287fd231e2&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.UUID(&#39;c081119a-e08e-4863-a710-3210171d27d6&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_width_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         1992,</span>
+<span class="sd">        &gt;&gt;&gt;         1194,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_height_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         1328,</span>
+<span class="sd">        &gt;&gt;&gt;         401,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)</span>
+<span class="sd">        &gt;&gt;&gt; print(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_image_uuids(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_image_uris(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_image_paths(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_image_uris_original(gid_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_get_standard_ext</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span>
+
+    <span class="k">def</span> <span class="nf">_parse_imageinfo</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_resolve_uri</span><span class="p">():</span>
+            <span class="n">list_</span> <span class="o">=</span> <span class="n">image_uri_list</span>
+            <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">s3_dict_encode_to_str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">def</span> <span class="nf">_resolve</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">assert_</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">return</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">_resolve_uri</span><span class="p">()</span>
+        <span class="n">orig_gname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">_get_standard_ext</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+
+        <span class="n">uuid_</span> <span class="o">=</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uuid_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">uuid_</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+
+        <span class="n">param_tup</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">uuid_</span><span class="p">,</span>
+            <span class="n">uri</span><span class="p">,</span>
+            <span class="n">uri</span><span class="p">,</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_orig_name_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">orig_gname</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_ext_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ext</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_width_list</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_height_list</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_time_posix_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)),</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_gps_lat_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)),</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_gps_lon_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_notes_list</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_tup</span>
+
+    <span class="c"># TODO: FIX ME SO THAT WE DON&#39;T HAVE TO LOCALIZE EVERYTHING</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;auto_localize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auto_localize&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;sanitize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sanitize&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">index_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uri_list</span><span class="p">))</span>
+    <span class="n">params_gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">_parse_imageinfo</span><span class="p">,</span> <span class="n">index_list</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">params_gen</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_gen</span><span class="p">)</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_gen</span> <span class="p">]</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="n">params_gen</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="c"># return gid_list</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_uuid_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="add_annots_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.add_annots_json">[docs]</a><span class="k">def</span> <span class="nf">add_annots_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_bbox_list</span><span class="p">,</span>
+                    <span class="n">annot_theta_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_species_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">annot_name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL: /api/annot/json/</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        sudo pip install boto</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA</span>
+<span class="sd">        annot_uuid_list (list of str) : list of annotations UUIDs to be used in IBEIS IA</span>
+<span class="sd">        annot_bbox_list (list of 4-tuple) : list of bounding box coordinates encoded as</span>
+<span class="sd">            a 4-tuple of the values (xtl, ytl, width, height) where xtl is the</span>
+<span class="sd">            &#39;top left corner, x value&#39; and ytl is the &#39;top left corner, y value&#39;.</span>
+<span class="sd">        annot_theta_list (list of float) : list of radian rotation around center.</span>
+<span class="sd">            Defaults to 0.0 (no rotation).</span>
+<span class="sd">        annot_species_list (list of str) : list of species for the annotation, if known.</span>
+<span class="sd">            If the list is partially known, use None (null in JSON) for unknown entries.</span>
+<span class="sd">        annot_name_list (list of str) : list of names for the annotation, if known.</span>
+<span class="sd">            If the list is partially known, use None (null in JSON) for unknown entries.</span>
+<span class="sd">        annot_notes_list (list of str) : list of notes to be added to the annotation.</span>
+<span class="sd">        **kwargs : key-value pairs passed to the ibs.add_annots() function.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app --test-add_annots_json</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; web_instance = ibeis.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; _payload = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_uuid_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.UUID(&#39;7fea8101-7dec-44e3-bf5d-b8287fd231e2&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.UUID(&#39;c081119a-e08e-4863-a710-3210171d27d6&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;annot_uuid_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.UUID(&#39;fe1547c5-1425-4757-9b8f-b2b4a47f552d&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.UUID(&#39;86d3959f-7167-4822-b99f-42d453a50745&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;annot_bbox_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         [0, 0, 1992, 1328],</span>
+<span class="sd">        &gt;&gt;&gt;         [0, 0, 1194, 401],</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibeis.web.app.add_annots_json(web_instance, **_payload)</span>
+<span class="sd">        &gt;&gt;&gt; print(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_annot_image_uuids(aid_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_annot_uuids(aid_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_annot_bboxes(aid_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uuid_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="n">uuid_</span>
+        <span class="k">for</span> <span class="n">uuid_</span> <span class="ow">in</span> <span class="n">image_uuid_list</span>
+    <span class="p">]</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uuid_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="n">uuid_</span>
+        <span class="k">for</span> <span class="n">uuid_</span> <span class="ow">in</span> <span class="n">annot_uuid_list</span>
+    <span class="p">]</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">,</span>  <span class="c"># NOQA</span>
+                              <span class="n">bbox_list</span><span class="o">=</span><span class="n">annot_bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="n">annot_theta_list</span><span class="p">,</span>
+                              <span class="n">species_list</span><span class="o">=</span><span class="n">annot_species_list</span><span class="p">,</span> <span class="n">name_list</span><span class="o">=</span><span class="n">annot_name_list</span><span class="p">,</span>
+                              <span class="n">notes_list</span><span class="o">=</span><span class="n">annot_notes_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c"># return aid_list</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">annot_uuid_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="delete_images_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.delete_images_json">[docs]</a><span class="k">def</span> <span class="nf">delete_images_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL: /api/image/json/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="delete_annots_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.delete_annots_json">[docs]</a><span class="k">def</span> <span class="nf">delete_annots_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL: /api/annot/json/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annot_uuid_list (list of str) : list of annot UUIDs to be delete from IBEIS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app</span>
+<span class="sd">        python -m ibeis.web.app --allexamples</span>
+<span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

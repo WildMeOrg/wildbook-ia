@@ -70,10 +70,10 @@ ibeis.constants module
     :undoc-members:
     :show-inheritance:
 
-ibeis.core module
------------------
+ibeis.core_annots module
+------------------------
 
-.. automodule:: ibeis.core
+.. automodule:: ibeis.core_annots
     :members:
     :undoc-members:
     :show-inheritance:
@@ -98,14 +98,6 @@ ibeis.ibsfuncs module
 ---------------------
 
 .. automodule:: ibeis.ibsfuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.luigi_backend module
---------------------------
-
-.. automodule:: ibeis.luigi_backend
     :members:
     :undoc-members:
     :show-inheritance:

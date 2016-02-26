@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots._pipeline_helpers &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots._pipeline_helpers &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -263,130 +263,23 @@
     <span class="n">args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_asnametup</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">argnames</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">tupname</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span>
 
-</div>
-<div class="viewcode-block" id="get_pipeline_testdata"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots._pipeline_helpers.get_pipeline_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                          <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                          <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                          <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                          <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span>
-                          <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                          <span class="n">preload</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Gets testdata for pipeline defined by tests / and or command line</span>
-
-<span class="sd">    DEPRICATE in favor of ibeis.init.main_helpers.testdata_qreq</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        cmdline_ok : if false does not check command line</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        tuple: ibs, qreq_</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata</span>
-<span class="sd">        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST</span>
-<span class="sd">        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --daids 39 --qaid 41 --db PZ_MTEST</span>
-<span class="sd">        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --qaid 41 --db PZ_MTEST</span>
-<span class="sd">        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --controlled_daids --qaids=41 --db PZ_MTEST --verb-testdata</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots._pipeline_helpers import *</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import _pipeline_helpers as plh</span>
-<span class="sd">        &gt;&gt;&gt; cfgdict = dict(pipeline_root=&#39;vsone&#39;, codename=&#39;vsone&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)</span>
-<span class="sd">        &gt;&gt;&gt; result = &#39;&#39;</span>
-<span class="sd">        &gt;&gt;&gt; result += (&#39;daids = %r\n&#39; % (qreq_.get_external_daids(),))</span>
-<span class="sd">        &gt;&gt;&gt; result += (&#39;qaids = %r&#39; % (qreq_.get_external_qaids(),))</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;cfgstr %s&#39;  % (qreq_.qparams.query_cfgstr,))</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-
-<span class="sd">        daids = array([1, 2, 3, 4, 5])</span>
-<span class="sd">        qaids = array([1])</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
-    <span class="c"># Allow commandline specification if paramaters are not specified in tests</span>
-    <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">assert</span> <span class="n">cmdline_ok</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;cmdline_ok should always be True&#39;</span>
-
-    <span class="k">if</span> <span class="n">cmdline_ok</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
-        <span class="c"># Allow specification of db and qaids/daids</span>
-        <span class="k">if</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">defaultdb</span> <span class="o">=</span> <span class="n">dbname</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
-
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
-
-    <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="n">qaid_list</span>
-    <span class="n">default_daid_list</span> <span class="o">=</span> <span class="n">daid_list</span>
-
-    <span class="c"># setup special defautls</span>
-
-    <span class="k">if</span> <span class="n">default_qaid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;testdb1&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-            <span class="s">&#39;GZ_ALL&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">1032</span><span class="p">],</span>
-            <span class="s">&#39;PZ_ALL&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>
-        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-    <span class="n">default_daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--daids&#39;</span><span class="p">,</span> <span class="s">&#39;--daid-list&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_daid_list</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">default_daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
-            <span class="n">default_daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">default_daid_list</span> <span class="o">=</span> <span class="s">&#39;all&#39;</span>
-
-    <span class="c"># Use commmand line parsing for custom values</span>
-
-    <span class="k">if</span> <span class="n">cmdline_ok</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
-        <span class="n">qaid_list_</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaid_list</span><span class="p">)</span>
-        <span class="n">daid_list_</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">default_daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list_</span><span class="p">)</span>
-        <span class="c">#</span>
-        <span class="c"># Allow commond line specification of all query params</span>
-        <span class="n">default_cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()))</span>
-        <span class="n">default_cfgdict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
-        <span class="n">_orig_cfgdict</span> <span class="o">=</span> <span class="n">cfgdict</span>
-        <span class="n">force_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_orig_cfgdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="n">cfgdict_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_arg</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span>
-            <span class="n">default_cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">,</span> <span class="n">only_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-            <span class="n">force_keys</span><span class="o">=</span><span class="n">force_keys</span><span class="p">)</span>
-        <span class="c">#ut.embed()</span>
-        <span class="k">if</span> <span class="n">VERB_PIPELINE</span> <span class="ow">or</span> <span class="n">VERB_TESTDATA</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[plh] cfgdict_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict_</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">qaid_list_</span> <span class="o">=</span> <span class="n">qaid_list</span>
-        <span class="n">daid_list_</span> <span class="o">=</span> <span class="n">daid_list</span>
-        <span class="n">cfgdict_</span> <span class="o">=</span> <span class="n">cfgdict</span>
-
-    <span class="c">#ibs = ibeis.test_main(db=dbname)</span>
-
-    <span class="k">if</span> <span class="n">VERB_TESTDATA</span><span class="p">:</span>
-        <span class="c">#ibeis.other.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=True)</span>
-        <span class="n">ibeis</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">print_qd_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list_</span><span class="p">,</span> <span class="n">daid_list_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s">&#39;with_metadata&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfgdict</span><span class="p">:</span>
-        <span class="n">cfgdict_</span><span class="p">[</span><span class="s">&#39;with_metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list_</span><span class="p">,</span> <span class="n">daid_list_</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">preload</span><span class="p">:</span>
-        <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span>
-
 
 <span class="c">#+--- OTHER TESTDATA FUNCS ---</span>
 
 </div>
 <div class="viewcode-block" id="testdata_pre_weight_neighbors"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots._pipeline_helpers.testdata_pre_weight_neighbors">[docs]</a><span class="k">def</span> <span class="nf">testdata_pre_weight_neighbors</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: replace testdata_pre_weight_neighbors with</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                a=[&#39;default:qindex=0:1,dindex=0:5,hackerrors=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;                                p=[&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;], verbose=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;weight_neighbors&#39;</span><span class="p">)</span>
     <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;nns_list&#39;</span><span class="p">,</span> <span class="s">&#39;nnvalid0_list&#39;</span><span class="p">])</span>
 
@@ -413,8 +306,9 @@
 </div>
 <div class="viewcode-block" id="testdata_pre_baselinefilter"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots._pipeline_helpers.testdata_pre_baselinefilter">[docs]</a><span class="k">def</span> <span class="nf">testdata_pre_baselinefilter</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">):</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
     <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;baseline_neighbor_filter&#39;</span><span class="p">)</span>
     <span class="n">nns_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;nns_list&#39;</span><span class="p">,</span> <span class="s">&#39;impossible_daids_list&#39;</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span>
@@ -426,8 +320,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#from ibeis.algo import Config</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;spatial_verification&#39;</span><span class="p">)</span>
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s">&#39;cm_list_FILT&#39;</span><span class="p">]</span>
     <span class="c">#nnfilts_list   = locals_[&#39;nnfilts_list&#39;]</span>
@@ -441,8 +337,10 @@
     <span class="c">#from ibeis.algo import Config</span>
     <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;vsone_reranking&#39;</span><span class="p">)</span>
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s">&#39;cm_list_SVER&#39;</span><span class="p">]</span>
     <span class="c">#nnfilts_list   = locals_[&#39;nnfilts_list&#39;]</span>
@@ -454,9 +352,10 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots._pipeline_helpers import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">sver_output_weighting</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">rrvsone_on</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="c"># Get pipeline testdata for this configuration</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c">#daid_list = qreq_.get_external_daids().tolist()</span>
@@ -492,8 +391,6 @@
     <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">make_chipmatch_shortlists</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">nNameShortlist</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
     <span class="n">prior_cm</span>      <span class="o">=</span> <span class="n">cm_shortlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span>
-
-
 <span class="c">#L_______</span>
 
 </div>
@@ -573,7 +470,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

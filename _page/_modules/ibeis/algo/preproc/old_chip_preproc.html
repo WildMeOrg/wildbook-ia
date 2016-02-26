@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc.old_chip_preproc &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.preproc.old_chip_preproc &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -446,10 +446,9 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.preproc.preproc_chip --test-compute_and_write_chips</span>
 
-
 <span class="sd">    FIXME: THERE IS A FREEZE THAT HAPPENS HERE</span>
 <span class="sd">        ./reset_dbs.py</span>
-<span class="sd">        python -m ibeis.expt.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload</span>
+<span class="sd">        python -m ibeis.expt.harness --exec-precompute_test_configuration_features -t custom --expt-preload</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
@@ -487,9 +486,9 @@
 <span class="sd">        newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)</span>
 <span class="sd">        gfpath = gfpath_list[0]</span>
 <span class="sd">        img = vt.imread(gfpath)</span>
-<span class="sd">        chip_sqrt_area = 450</span>
-<span class="sd">        chip_sqrt_area = 500</span>
-<span class="sd">        target_area = chip_sqrt_area ** 2</span>
+<span class="sd">        dim_size = 450</span>
+<span class="sd">        dim_size = 500</span>
+<span class="sd">        target_area = dim_size ** 2</span>
 <span class="sd">        bbox = bbox_list[0]</span>
 <span class="sd">        theta = theta_list[0]</span>
 <span class="sd">        new_size = newsize_list[0]</span>
@@ -509,12 +508,12 @@
     <span class="c"># Get chip configuration information</span>
     <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">chip_cfg_dict</span>  <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chip_cfg_dict&#39;</span><span class="p">)</span>
-        <span class="n">chip_sqrt_area</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">chip_sqrt_area</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dim_size&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dim_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
         <span class="k">assert</span> <span class="n">chip_cfg_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># use ibs if config2_ is None</span>
-        <span class="n">chip_sqrt_area</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">chip_sqrt_area</span>
+        <span class="n">dim_size</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">dim_size</span>
         <span class="n">chip_cfg_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
     <span class="c"># Get chip dest information (output path),</span>
     <span class="c"># source information (image, annotation_bbox, theta)</span>
@@ -525,9 +524,22 @@
     <span class="n">gfpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">bbox_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">theta_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">target_area</span> <span class="o">=</span> <span class="n">chip_sqrt_area</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="c">#target_area = dim_size ** 2</span>
     <span class="n">bbox_size_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-    <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_sizes_with_area</span><span class="p">(</span><span class="n">target_area</span><span class="p">,</span> <span class="n">bbox_size_list</span><span class="p">)</span>
+
+    <span class="n">scale_func_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;width&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_width</span><span class="p">,</span>
+        <span class="s">&#39;root_area&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_area</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">resize_dim</span> <span class="o">=</span> <span class="n">chip_cfg_dict</span><span class="p">[</span><span class="s">&#39;resize_dim&#39;</span><span class="p">]</span>
+    <span class="n">scale_func</span> <span class="o">=</span> <span class="n">scale_func_dict</span><span class="p">[</span><span class="n">resize_dim</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">resize_dim</span> <span class="o">==</span> <span class="s">&#39;root_area&#39;</span><span class="p">:</span>
+        <span class="n">target_dim_size</span> <span class="o">=</span> <span class="n">dim_size</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target_dim_size</span> <span class="o">=</span> <span class="n">dim_size</span>
+    <span class="n">newsize_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale_func</span><span class="p">(</span><span class="n">target_dim_size</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_size_list</span><span class="p">]</span>
+
+    <span class="c">#newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)</span>
     <span class="n">invalid_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_size_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">filtlist_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">filter_list</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nChips</span><span class="p">))</span>
     <span class="c"># Check for invalid chips</span>
@@ -732,7 +744,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

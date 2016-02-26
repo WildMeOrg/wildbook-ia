@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.workflow &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.workflow &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -144,6 +144,27 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
+<div class="viewcode-block" id="test_sharpness"><a class="viewcode-back" href="../../ibeis.html#ibeis.workflow.test_sharpness">[docs]</a><span class="k">def</span> <span class="nf">test_sharpness</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">defaltdb</span> <span class="o">=</span> <span class="s">&#39;seaturtles&#39;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaltdb</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">quality_classifier</span>
+
+    <span class="n">contrast_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">quality_classifier</span><span class="o">.</span><span class="n">compute_average_contrast</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span> <span class="k">for</span> <span class="n">chip</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">)]</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">contrast_list</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">sharpest_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">sharpest_qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="n">sharpest_qaids</span><span class="p">):</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">annot</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">nokpts</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+</div>
 <div class="viewcode-block" id="testdata_workflow"><a class="viewcode-back" href="../../ibeis.html#ibeis.workflow.testdata_workflow">[docs]</a><span class="k">def</span> <span class="nf">testdata_workflow</span><span class="p">(</span><span class="n">defaltdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;defualt&#39;</span><span class="p">]):</span>
     <span class="c"># qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;PZ_MTEST&#39;, a=&#39;default&#39;, t=&#39;default&#39;)</span>
     <span class="c"># ibs = qreq_.ibs</span>
@@ -634,7 +655,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

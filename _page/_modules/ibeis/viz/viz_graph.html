@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_graph &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.viz_graph &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -492,9 +492,9 @@
         <span class="c"># Use name edge to make pos (very bad)</span>
         <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="n">get_name_rowid_edges_from_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
         <span class="n">netx_graph_hack</span> <span class="o">=</span> <span class="n">make_netx_graph_from_aidpairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="n">unique_aids</span><span class="o">=</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">graphviz_layout</span><span class="p">(</span><span class="n">netx_graph_hack</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">nx_agraph</span><span class="o">.</span><span class="n">graphviz_layout</span><span class="p">(</span><span class="n">netx_graph_hack</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">graphviz_layout</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">nx_agraph</span><span class="o">.</span><span class="n">graphviz_layout</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">)</span>
 
     <span class="c">#pos = netx.fruchterman_reingold_layout(netx_graph)</span>
     <span class="c">#pos = netx.spring_layout(netx_graph)</span>
@@ -603,15 +603,24 @@
 
 <span class="sd">        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids 193 194 195 196 --show --db WD_Siva</span>
 
+<span class="sd">        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids 792 --show --db GZ_ALL --no-with-all</span>
+
+<span class="sd">        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids=788,789,790,791 --show --db GZ_ALL --no-with-all</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids=782,783,792 --show --db GZ_ALL --no-with-all</span>
+
+
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aids = ut.get_argval(&#39;--aids&#39;, type_=list, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb=&#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
 <span class="sd">        &gt;&gt;&gt; nids = None if aids is not None else ibs.get_valid_nids()[0:5]</span>
-<span class="sd">        &gt;&gt;&gt; make_name_graph_interaction(ibs, nids, aids)</span>
+<span class="sd">        &gt;&gt;&gt; with_all = not ut.get_argflag(&#39;--no-with-all&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; make_name_graph_interaction(ibs, nids, aids, with_all=with_all)</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb=&#39;testdb1&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -833,7 +842,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_image &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.viz_image &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -203,7 +203,8 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb()</span>
 <span class="sd">        &gt;&gt;&gt; drive_test_script(ibs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_one_annot_per_name</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s">&#39;default:pername=1&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running with (annot) aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running with (image) gid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
@@ -307,8 +308,6 @@
 <span class="sd">        python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL --gid 100</span>
 <span class="sd">        python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 10</span>
 
-<span class="sd">        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST</span>
-
 <span class="sd">        python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 91 --no-annot --rich-title</span>
 <span class="sd">        python -m ibeis.viz.viz_image --test-show_image --show --db GIR_Tanya --aid 1 --no-annot --rich-title</span>
 
@@ -407,7 +406,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

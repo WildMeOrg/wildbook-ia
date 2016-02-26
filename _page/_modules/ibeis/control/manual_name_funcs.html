@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -244,9 +244,9 @@
                                              <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span>
     <span class="c"># OLD WAY</span>
-    <span class="c">## nid_list_ = [namenid_dict[name] for name in name_list_]</span>
+    <span class="c"># # nid_list_ = [namenid_dict[name] for name in name_list_]</span>
     <span class="c">#name_text_list_ = ibs.sanitize_name_texts(name_text_list)</span>
-    <span class="c">## All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot</span>
+    <span class="c"># # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot</span>
     <span class="c">#lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]</span>
     <span class="c">#lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)</span>
     <span class="c">#nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)</span>
@@ -270,7 +270,7 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/sanitize&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/sanitize/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="sanitize_name_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.sanitize_name_texts">[docs]</a><span class="k">def</span> <span class="nf">sanitize_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Auto-docstr for &#39;sanitize_name_texts&#39;</span>
@@ -420,7 +420,7 @@
 <span class="sd">        &gt;&gt;&gt; # Run Assertion Test</span>
 <span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(aids_list, nid_list)</span>
 <span class="sd">        &gt;&gt;&gt; grouped_items = list(six.itervalues(groupid2_items))</span>
-<span class="sd">        &gt;&gt;&gt; passed_iter = map(ut.list_allsame, grouped_items)</span>
+<span class="sd">        &gt;&gt;&gt; passed_iter = map(ut.allsame, grouped_items)</span>
 <span class="sd">        &gt;&gt;&gt; passed_list = list(passed_iter)</span>
 <span class="sd">        &gt;&gt;&gt; assert all(passed_list), &#39;problem in get_name_aids&#39;</span>
 <span class="sd">        &gt;&gt;&gt; # Print gropued items</span>
@@ -1053,6 +1053,22 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/nids_with_gids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_name_nids_with_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_name_nids_with_gids">[docs]</a><span class="k">def</span> <span class="nf">get_name_nids_with_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+    <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_gids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">combined_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">name</span> <span class="p">:</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">zipped</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">combined_dict</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_valid_nids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_valid_nids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filter_empty</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">min_pername</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -1330,7 +1346,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

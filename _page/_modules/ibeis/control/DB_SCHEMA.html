@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.DB_SCHEMA &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.DB_SCHEMA &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -1487,6 +1487,18 @@
         <span class="p">},</span>
     <span class="p">)</span>
 
+</div>
+<div class="viewcode-block" id="update_1_5_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_5_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_5_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># Rename encounters to imagesets</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">IMAGE_UUID</span><span class="p">,)],</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;annot_rowid1&#39;</span><span class="p">,</span> <span class="s">&#39;annot_rowid2&#39;</span><span class="p">,)],</span>
+    <span class="p">)</span>
+
 
 <span class="c"># ========================</span>
 <span class="c"># Valid Versions &amp; Mapping</span>
@@ -1527,6 +1539,7 @@
     <span class="p">(</span><span class="s">&#39;1.4.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_4_8</span><span class="p">,</span>            <span class="n">update_1_4_8</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.4.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="n">pre_1_4_9</span><span class="p">,</span>            <span class="n">update_1_4_9</span><span class="p">,</span>       <span class="n">post_1_4_9</span>          <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.5.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_5_0</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.5.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_5_1</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
 <span class="p">])</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">SeeAlso:</span>
@@ -1673,7 +1686,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

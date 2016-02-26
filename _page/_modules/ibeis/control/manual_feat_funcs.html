@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_feat_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.manual_feat_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -256,14 +256,14 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_feat_funcs import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis.viz.interact</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq1_ = plh.get_pipeline_testdata(defaultdb=&#39;testdb1&#39;, preload=False, cfgdict=dict(rotation_invariance=True))</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq2_ = plh.get_pipeline_testdata(defaultdb=&#39;testdb1&#39;, preload=False, cfgdict=dict(rotation_invariance=False))</span>
+<span class="sd">        &gt;&gt;&gt; qreq1_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[&#39;default:RI=True&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; qreq2_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[&#39;default:RI=False&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq1_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = qreq1_.get_external_qaids()</span>
 <span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[TEST_GET_ANNOT_KPTS]&#39;):</span>
 <span class="sd">        ...     print(&#39;qreq1 params: &#39; + qreq1_.qparams.feat_cfgstr)</span>
@@ -786,7 +786,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_name &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.viz_name &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -151,8 +151,15 @@
 <div class="viewcode-block" id="testdata_showname"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.testdata_showname">[docs]</a><span class="k">def</span> <span class="nf">testdata_showname</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-    <span class="n">name_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--name&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;easy&#39;</span><span class="p">)</span>
-    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">name_text</span><span class="p">)</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="s">&#39;easy&#39;</span>
+
+    <span class="n">name_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--name&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name_text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nid</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">name_text</span><span class="p">)</span>
     <span class="n">in_image</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-inimage&#39;</span><span class="p">)</span>
     <span class="n">index_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--index_list&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">index_list</span>
@@ -161,12 +168,18 @@
 <div class="viewcode-block" id="testdata_multichips"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.testdata_multichips">[docs]</a><span class="k">def</span> <span class="nf">testdata_multichips</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--nid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--tags&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">tags</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--index&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aidpairs_by_tags</span><span class="p">(</span><span class="n">any_tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="c">#aid_list = ut.get_argval(&#39;--aids&#39;, type_=list, default=[1, 2, 3])</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">default_aids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+
     <span class="n">in_image</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-inimage&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">in_image</span>
 
@@ -185,6 +198,9 @@
 <span class="sd">        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05</span>
 
 <span class="sd">        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show</span>
+<span class="sd">        --aids=1 --doboth --show --no-inimage</span>
 
 <span class="sd">        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage</span>
 <span class="sd">        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage</span>
@@ -517,7 +533,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

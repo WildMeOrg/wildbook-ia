@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.templates.generate_notebook &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.templates.generate_notebook &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.templates" href="../templates.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -132,6 +132,13 @@
             
   <h1>Source code for ibeis.templates.generate_notebook</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CommandLine:</span>
+<span class="sd">    # Generate and start an IPython notebook</span>
+<span class="sd">    python -m ibeis --tf autogen_ipynb --ipynb --db &lt;dbname&gt; [-a &lt;acfg&gt;] [-t &lt;pcfg&gt;]</span>
+
+<span class="sd">    python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.templates</span> <span class="kn">import</span> <span class="n">notebook_cells</span>
@@ -144,7 +151,14 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf autogen_ipynb --run --db lynx</span>
-<span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db lynx</span>
+
+<span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport</span>
+<span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample</span>
+
+<span class="sd">        python -m ibeis --tf autogen_ipynb --db PZ_MTEST</span>
+<span class="sd">        # TODO: Add support for dbdir to be specified</span>
+<span class="sd">        python -m ibeis --tf autogen_ipynb --db ~/work/PZ_MTEST</span>
+
 <span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good</span>
 <span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]</span>
 
@@ -174,13 +188,14 @@
         <span class="n">notebook_cells</span> <span class="o">=</span> <span class="n">make_ibeis_cell_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s"># ---- </span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notebook_cells</span><span class="p">))</span>
         <span class="k">return</span>
+    <span class="c"># TODO: Add support for dbdir to be specified</span>
     <span class="n">notebook_str</span> <span class="o">=</span> <span class="n">make_ibeis_notebook</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">nb_fpath</span><span class="p">,</span> <span class="n">notebook_str</span><span class="p">)</span>
     <span class="n">run</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--run&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">run</span>
     <span class="n">launch</span> <span class="o">=</span> <span class="n">launch</span> <span class="k">if</span> <span class="n">launch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ipynb&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">run</span><span class="p">:</span>
-        <span class="n">run_nb</span> <span class="o">=</span> <span class="n">run_ipython_notebook</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
-        <span class="n">output_fpath</span> <span class="o">=</span> <span class="n">export_notebook</span><span class="p">(</span><span class="n">run_nb</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="n">run_nb</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">run_ipython_notebook</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
+        <span class="n">output_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">export_notebook</span><span class="p">(</span><span class="n">run_nb</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">output_fpath</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">launch</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;jupyter-notebook&#39;</span><span class="p">,</span> <span class="n">nb_fpath</span><span class="p">,</span> <span class="n">detatch</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -191,141 +206,91 @@
 
 </div>
 <div class="viewcode-block" id="get_default_cell_template_list"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.get_default_cell_template_list">[docs]</a><span class="k">def</span> <span class="nf">get_default_cell_template_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines the order of ipython notebook cells</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">cells</span> <span class="o">=</span> <span class="n">notebook_cells</span>
 
     <span class="n">noexample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--noexample&#39;</span><span class="p">)</span>
+    <span class="n">asreport</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--asreport&#39;</span><span class="p">)</span>
 
-    <span class="n">cell_template_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">cells</span><span class="o">.</span><span class="n">initialize</span><span class="p">,</span>
+    <span class="n">cell_template_list</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">!=</span> <span class="s">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">fluke_select</span><span class="p">,</span>
-
+    <span class="n">info_cells</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">pipe_config_info</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">annot_config_info</span><span class="p">,</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">timestamp_distribution</span><span class="p">,</span>
+    <span class="p">]</span>
 
-        <span class="bp">None</span> <span class="k">if</span> <span class="n">noexample</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">timestamp_distribution</span><span class="p">,</span>
-        <span class="bp">None</span> <span class="k">if</span> <span class="n">noexample</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">example_annotations</span><span class="p">,</span>
-        <span class="bp">None</span> <span class="k">if</span> <span class="n">noexample</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">example_names</span><span class="p">,</span>
-
-        <span class="n">cells</span><span class="o">.</span><span class="n">per_annotation_accuracy</span><span class="p">,</span>
-        <span class="n">cells</span><span class="o">.</span><span class="n">per_name_accuracy</span><span class="p">,</span>
-        <span class="n">cells</span><span class="o">.</span><span class="n">timedelta_distribution</span><span class="p">,</span>
+    <span class="n">dev_analysis</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">config_overlap</span><span class="p">,</span>
         <span class="c">#cells.dbsize_expt,</span>
-
         <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">feat_score_sep</span><span class="p">,</span>
-
         <span class="n">cells</span><span class="o">.</span><span class="n">all_annot_scoresep</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">success_annot_scoresep</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">introduction</span> <span class="k">if</span> <span class="n">asreport</span> <span class="k">else</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">initialize</span><span class="p">,</span>
+        <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">!=</span> <span class="s">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">fluke_select</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">asreport</span><span class="p">:</span>
+        <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="n">info_cells</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">noexample</span><span class="p">:</span>
+        <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">cells</span><span class="o">.</span><span class="n">example_annotations</span><span class="p">,</span>
+            <span class="n">cells</span><span class="o">.</span><span class="n">example_names</span><span class="p">,</span>
+        <span class="p">]</span>
+
+    <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">per_annotation_accuracy</span><span class="p">,</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">per_name_accuracy</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">easy_success_cases</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">hard_success_cases</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">failure_type1_cases</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">failure_type2_cases</span><span class="p">,</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">timedelta_distribution</span><span class="p">,</span>
         <span class="c">#cells.investigate_specific_case,</span>
         <span class="c">#cells.view_intereseting_tags,</span>
-
-        <span class="c"># TODO:</span>
-        <span class="c"># show query chips</span>
-
     <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">asreport</span><span class="p">:</span>
+        <span class="c"># Append our debug stuff at the bottom</span>
+        <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">cells</span><span class="o">.</span><span class="n">IGNOREAFTER</span><span class="p">]</span>
+        <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="n">info_cells</span>
+
+    <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="n">dev_analysis</span>
+
+    <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="n">cells</span><span class="o">.</span><span class="n">config_disagree_cases</span><span class="p">,</span>
+    <span class="p">]</span>
+
     <span class="n">cell_template_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">cell_template_list</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">cell_template_list</span>
-
-</div>
-<div class="viewcode-block" id="export_notebook"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.export_notebook">[docs]</a><span class="k">def</span> <span class="nf">export_notebook</span><span class="p">(</span><span class="n">run_nb</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">IPython.nbconvert.exporters</span>
-    <span class="kn">import</span> <span class="nn">codecs</span>
-    <span class="c">#exporter = IPython.nbconvert.exporters.PDFExporter()</span>
-    <span class="n">exporter</span> <span class="o">=</span> <span class="n">IPython</span><span class="o">.</span><span class="n">nbconvert</span><span class="o">.</span><span class="n">exporters</span><span class="o">.</span><span class="n">HTMLExporter</span><span class="p">()</span>
-    <span class="n">output</span><span class="p">,</span> <span class="n">resources</span> <span class="o">=</span> <span class="n">exporter</span><span class="o">.</span><span class="n">from_notebook_node</span><span class="p">(</span><span class="n">run_nb</span><span class="p">)</span>
-    <span class="n">ext</span> <span class="o">=</span> <span class="n">resources</span><span class="p">[</span><span class="s">&#39;output_extension&#39;</span><span class="p">]</span>
-    <span class="n">output_fpath</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="n">ext</span>
-    <span class="c">#codecs.open(output_fname, &#39;w&#39;, encoding=&#39;utf-8&#39;).write(output)</span>
-    <span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">output_fpath</span>
-    <span class="c">#IPython.nbconvert.exporters.export_python(runner.nb)</span>
-
-</div>
-<div class="viewcode-block" id="run_ipython_notebook"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.run_ipython_notebook">[docs]</a><span class="k">def</span> <span class="nf">run_ipython_notebook</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    References:</span>
-<span class="sd">        https://github.com/paulgb/runipy</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.templates.generate_notebook import *  # NOQA</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">runipy.notebook_runner</span> <span class="kn">import</span> <span class="n">NotebookRunner</span>
-    <span class="kn">import</span> <span class="nn">nbformat</span>
-    <span class="kn">import</span> <span class="nn">logging</span>
-    <span class="n">log_format</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%(asctime)s</span><span class="s"> </span><span class="si">%(levelname)s</span><span class="s">: </span><span class="si">%(message)s</span><span class="s">&#39;</span>
-    <span class="n">log_datefmt</span> <span class="o">=</span> <span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">/%Y %I:%M:%S %p&#39;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
-        <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="n">log_format</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="n">log_datefmt</span>
-    <span class="p">)</span>
-    <span class="c">#fpath = &#39;tmp.ipynb&#39;</span>
-    <span class="c">#notebook_str = ut.readfrom(fpath)</span>
-    <span class="c">#nb3 = IPython.nbformat.reads(notebook_str, 3)</span>
-    <span class="c">#cell = nb4.cells[1]</span>
-    <span class="c">#self = runner</span>
-    <span class="c">#runner = NotebookRunner(nb3, mpl_inline=True)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Executing IPython notebook&#39;</span><span class="p">)</span>
-    <span class="n">nb4</span> <span class="o">=</span> <span class="n">nbformat</span><span class="o">.</span><span class="n">reads</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-    <span class="n">runner</span> <span class="o">=</span> <span class="n">NotebookRunner</span><span class="p">(</span><span class="n">nb4</span><span class="p">)</span>
-    <span class="n">runner</span><span class="o">.</span><span class="n">run_notebook</span><span class="p">(</span><span class="n">skip_exceptions</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">run_nb</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">nb</span>
-    <span class="k">return</span> <span class="n">run_nb</span>
-
-</div>
-<div class="viewcode-block" id="make_autogen_str"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.make_autogen_str">[docs]</a><span class="k">def</span> <span class="nf">make_autogen_str</span><span class="p">():</span>
-    <span class="kn">import</span> <span class="nn">sys</span>
-
-    <span class="k">def</span> <span class="nf">get_regen_cmd</span><span class="p">():</span>
-        <span class="c"># TODO: move to utool</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-                <span class="c"># Check if running python command</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_python_module</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-                    <span class="n">python_exe</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">python_executable</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-                    <span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="n">new_argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">python_exe</span><span class="p">,</span> <span class="s">&#39;-m&#39;</span><span class="p">,</span> <span class="n">modname</span><span class="p">]</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-                    <span class="k">return</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_argv</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-
-    <span class="n">autogenkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">stamp</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(</span><span class="s">&#39;printable&#39;</span><span class="p">),</span>
-        <span class="n">regen_cmd</span><span class="o">=</span><span class="n">get_regen_cmd</span><span class="p">()</span>
-        <span class="c">#&#39; &#39;.join(sys.argv)</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        # Autogenerated on {stamp}</span>
-<span class="sd">        # Regen Command:</span>
-<span class="sd">        #    {regen_cmd}</span>
-<span class="sd">        #</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">autogenkw</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="make_ibeis_notebook"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.make_ibeis_notebook">[docs]</a><span class="k">def</span> <span class="nf">make_ibeis_notebook</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        ibs (ibeis.IBEISController):  ibeis controller object</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook --db wd_peter_blinston</span>
-<span class="sd">        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook</span>
+<span class="sd">        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook --db wd_peter_blinston --asreport</span>
+<span class="sd">        python -m ibeis --tf --exec-make_ibeis_notebook</span>
 <span class="sd">        python -m ibeis --tf make_ibeis_notebook --db lynx</span>
 <span class="sd">        jupyter-notebook tmp.ipynb</span>
-
 <span class="sd">        runipy tmp.ipynb --html report.html</span>
 <span class="sd">        runipy --pylab tmp.ipynb tmp2.ipynb</span>
-
 <span class="sd">        sudo pip install runipy</span>
-
 <span class="sd">        python -c &quot;import runipy; print(runipy.__version__)&quot;</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # SCRIPYT</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.templates.generate_notebook import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
@@ -333,301 +298,56 @@
 <span class="sd">        &gt;&gt;&gt; print(notebook_str)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cell_list</span> <span class="o">=</span> <span class="n">make_ibeis_cell_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">notebook_str</span> <span class="o">=</span> <span class="n">make_notebook</span><span class="p">(</span><span class="n">cell_list</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">json</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Invalid notebook JSON&#39;</span><span class="p">)</span>
-        <span class="k">raise</span>
-
+    <span class="n">notebook_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_notebook</span><span class="p">(</span><span class="n">cell_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">notebook_str</span>
 
 </div>
 <div class="viewcode-block" id="make_ibeis_cell_list"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.make_ibeis_cell_list">[docs]</a><span class="k">def</span> <span class="nf">make_ibeis_cell_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="n">cell_template_list</span> <span class="o">=</span> <span class="n">get_default_cell_template_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="n">autogen_str</span> <span class="o">=</span> <span class="n">make_autogen_str</span><span class="p">()</span>
+    <span class="n">autogen_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_autogen_str</span><span class="p">()</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="c">#if ut.get_argflag(&#39;--hacktestscore&#39;):</span>
-    <span class="c">#    annotconfig_list_body = ut.codeblock(</span>
-    <span class="c">#        &#39;&#39;&#39;</span>
-    <span class="c">#        &#39;timectrl&#39;,</span>
-    <span class="c">#        &#39;&#39;&#39;</span>
-    <span class="c">#    )</span>
-    <span class="c">#else:</span>
     <span class="n">default_acfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-a&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;default:is_known=True&#39;</span><span class="p">)</span>
-    <span class="n">annotconfig_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">default_acfgstr</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="s">        # See ibeis/expt/annotation_configs.py for names of annot configuration options</span>
-<span class="s">        #&#39;default:has_any=(query,),dpername=1,exclude_reference=True&#39;,</span>
-<span class="s">        #&#39;default:is_known=True&#39;,</span>
-<span class="s">        #&#39;default:qsame_imageset=True,been_adjusted=True,excluderef=True&#39;</span>
-<span class="s">        #&#39;default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20&#39;,</span>
-<span class="s">        #&#39;default:require_timestamp=True,min_timedelta=3600&#39;,</span>
-<span class="s">        #&#39;default:species=primary&#39;,</span>
-<span class="s">        #&#39;timectrl:&#39;,</span>
-<span class="s">        #&#39;timectrl:been_adjusted=True,dpername=3&#39;,</span>
-<span class="s">        #&#39;timectrl:qsize=10,dsize=20&#39;,</span>
-<span class="s">        #&#39;unctrl:been_adjusted=True&#39;,</span>
-<span class="s">        &#39;&#39;&#39;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="c">#if ut.get_argflag(&#39;--hacktestscore&#39;):</span>
-    <span class="c">#    pipeline_list_body = ut.codeblock(</span>
-    <span class="c">#        &#39;&#39;&#39;</span>
-    <span class="c">#        # See ibeis/algo/Config.py for names of pipeline config options</span>
-    <span class="c">#        &#39;default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=True&#39;,</span>
-    <span class="c">#        &#39;default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=True&#39;,</span>
-    <span class="c">#        &#39;default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=True&#39;,</span>
-    <span class="c">#        &#39;default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=False&#39;,</span>
-    <span class="c">#        &#39;default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=False&#39;,</span>
-    <span class="c">#        &#39;default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=False&#39;,</span>
-    <span class="c">#        &#39;&#39;&#39;</span>
-    <span class="c">#    )</span>
-    <span class="c">#elif True:</span>
+
+    <span class="n">asreport</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--asreport&#39;</span><span class="p">)</span>
+
     <span class="n">default_pcfgstr_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="s">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">)</span>
     <span class="n">default_pcfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">default_pcfgstr_list</span><span class="p">,</span> <span class="n">nobr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="n">pipeline_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="n">default_pcfgstr</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="s">        #&#39;default&#39;,</span>
-<span class="s">        #&#39;default:K=1&#39;,</span>
-<span class="s">        #&#39;default:K=1,AI=False&#39;,</span>
-<span class="s">        #&#39;default:K=1,AI=False,QRH=True&#39;,</span>
-<span class="s">        #&#39;default:K=1,RI=True,AI=False&#39;,</span>
-<span class="s">        #&#39;default:K=1,adapteq=True&#39;,</span>
-<span class="s">        #&#39;default:fg_on=[True,False]&#39;,</span>
-<span class="s">        &#39;&#39;&#39;</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">asreport</span><span class="p">:</span>
+        <span class="n">annotconfig_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">default_acfgstr</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">pipeline_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="n">default_pcfgstr</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">annotconfig_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">default_acfgstr</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">            # See ibeis/expt/annotation_configs.py for names of annot configuration options</span>
+<span class="s">            #&#39;default:has_any=(query,),dpername=1,exclude_reference=True&#39;,</span>
+<span class="s">            #&#39;default:is_known=True&#39;,</span>
+<span class="s">            #&#39;default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20&#39;,</span>
+<span class="s">            #&#39;default:require_timestamp=True,min_timedelta=3600&#39;,</span>
+<span class="s">            #&#39;default:species=primary&#39;,</span>
+<span class="s">            #&#39;timectrl:&#39;,</span>
+<span class="s">            #&#39;unctrl:been_adjusted=True&#39;,</span>
+<span class="s">            &#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">pipeline_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="n">default_pcfgstr</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">            #&#39;default&#39;,</span>
+<span class="s">            #&#39;default:K=1,AI=False,QRH=True&#39;,</span>
+<span class="s">            #&#39;default:K=1,RI=True,AI=False&#39;,</span>
+<span class="s">            #&#39;default:K=1,adapteq=True&#39;,</span>
+<span class="s">            #&#39;default:fg_on=[True,False]&#39;,</span>
+<span class="s">            &#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+
     <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
-    <span class="n">_format</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">format_cells</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="n">locals_</span><span class="p">)</span>
+    <span class="n">_format</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">format_cells</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="n">locals_</span><span class="p">)</span>
     <span class="n">cell_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_format</span><span class="p">,</span> <span class="n">cell_template_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">cell_list</span>
-
-</div>
-<div class="viewcode-block" id="format_cells"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.format_cells">[docs]</a><span class="k">def</span> <span class="nf">format_cells</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-            <span class="n">header</span><span class="p">,</span> <span class="n">code</span> <span class="o">=</span> <span class="n">block</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">header</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="n">code</span> <span class="o">=</span> <span class="n">block</span>
-        <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-
-            <span class="k">def</span> <span class="nf">modify_code_indent_formatdict</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">locals_</span><span class="p">):</span>
-                <span class="c"># Parse out search and replace locations in code</span>
-                <span class="n">ncl1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookbehind</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">)</span>
-                <span class="n">ncl2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookahead</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">)</span>
-                <span class="n">ncr1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookbehind</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)</span>
-                <span class="n">ncr2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookahead</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)</span>
-                <span class="n">left</span> <span class="o">=</span> <span class="n">ncl1</span> <span class="o">+</span> <span class="s">&#39;{&#39;</span> <span class="o">+</span> <span class="n">ncl2</span>
-                <span class="n">right</span> <span class="o">=</span> <span class="n">ncr1</span> <span class="o">+</span> <span class="s">&#39;}&#39;</span> <span class="o">+</span> <span class="n">ncr2</span>
-                <span class="n">fmtpat</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;key&#39;</span><span class="p">,</span> <span class="s">&#39;[^}]*&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">right</span>
-                <span class="n">spacepat</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;indent&#39;</span><span class="p">,</span> <span class="s">&#39;^\s+&#39;</span><span class="p">)</span>
-                <span class="n">pattern</span> <span class="o">=</span> <span class="n">spacepat</span> <span class="o">+</span> <span class="n">fmtpat</span>
-                <span class="kn">import</span> <span class="nn">re</span>
-                <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
-                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">):</span>
-                    <span class="n">indent</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s">&#39;indent&#39;</span><span class="p">])</span>
-                    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s">&#39;key&#39;</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">locals_</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
-                        <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                        <span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent_rest</span><span class="p">(</span><span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">indent</span><span class="p">)</span>
-
-            <span class="n">modify_code_indent_formatdict</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
-            <span class="n">code_</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">locals_</span><span class="p">)</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">is_valid_python</span><span class="p">(</span><span class="n">code_</span><span class="p">,</span> <span class="n">reraise</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ipy_magic_workaround</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">code_</span> <span class="o">=</span> <span class="n">code</span>
-        <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">markdown_cell</span><span class="p">(</span><span class="n">header</span><span class="p">),</span> <span class="n">code_cell</span><span class="p">(</span><span class="n">code_</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">code_cell</span><span class="p">(</span><span class="n">code_</span><span class="p">)]</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;failed to format cell&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;header&#39;</span><span class="p">,</span> <span class="s">&#39;block&#39;</span><span class="p">])</span>
-        <span class="k">raise</span>
-
-</div>
-<div class="viewcode-block" id="code_cell"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.code_cell">[docs]</a><span class="k">def</span> <span class="nf">code_cell</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Args:</span>
-<span class="sd">        sourcecode (str):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        str: json formatted ipython notebook code cell</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.templates.generate_notebook --exec-code_cell</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.templates.generate_notebook import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; sourcecode = notebook_cells.timestamp_distribution[1]</span>
-<span class="sd">        &gt;&gt;&gt; sourcecode = notebook_cells.initialize[1]</span>
-<span class="sd">        &gt;&gt;&gt; result = code_cell(sourcecode)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.templates.template_generator</span> <span class="kn">import</span> <span class="n">remove_sentinals</span>
-    <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">remove_sentinals</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
-    <span class="n">cell_header</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {</span>
-<span class="sd">         &quot;cell_type&quot;: &quot;code&quot;,</span>
-<span class="sd">         &quot;execution_count&quot;: null,</span>
-<span class="sd">         &quot;metadata&quot;: {</span>
-<span class="sd">          &quot;collapsed&quot;: true</span>
-<span class="sd">         },</span>
-<span class="sd">         &quot;outputs&quot;: [],</span>
-<span class="sd">         &quot;source&quot;:</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
-    <span class="n">cell_footer</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        }</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">sourcecode</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">source_line_repr</span> <span class="o">=</span> <span class="s">&#39; []</span><span class="se">\n</span><span class="s">&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="n">sourcecode</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="n">line_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">else</span> <span class="n">line</span>
-                     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
-        <span class="c">#repr_line_list = [repr_single(line) for line in line_list]</span>
-        <span class="n">repr_line_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">repr_single</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list</span><span class="p">]</span>
-        <span class="n">source_line_repr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repr_line_list</span><span class="p">),</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">source_line_repr</span> <span class="o">=</span> <span class="s">&#39; [</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">source_line_repr</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> ]</span><span class="se">\n</span><span class="s">&#39;</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">cell_header</span> <span class="o">+</span> <span class="n">source_line_repr</span> <span class="o">+</span> <span class="n">cell_footer</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="markdown_cell"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.markdown_cell">[docs]</a><span class="k">def</span> <span class="nf">markdown_cell</span><span class="p">(</span><span class="n">markdown</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Args:</span>
-<span class="sd">        markdown (str):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        str: json formatted ipython notebook markdown cell</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.templates.generate_notebook --exec-markdown_cell</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.templates.generate_notebook import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; markdown = &#39;# Title&#39;</span>
-<span class="sd">        &gt;&gt;&gt; result = markdown_cell(markdown)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">markdown_header</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">          {</span>
-<span class="sd">           &quot;cell_type&quot;: &quot;markdown&quot;,</span>
-<span class="sd">           &quot;metadata&quot;: {},</span>
-<span class="sd">           &quot;source&quot;: [</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-    <span class="p">)</span>
-    <span class="n">markdown_footer</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">           ]</span>
-<span class="sd">          }</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">markdown_header</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">repr_single</span><span class="p">(</span><span class="n">markdown</span><span class="p">),</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
-            <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">markdown_footer</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="make_notebook"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.make_notebook">[docs]</a><span class="k">def</span> <span class="nf">make_notebook</span><span class="p">(</span><span class="n">cell_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    References:</span>
-<span class="sd">        # Change cell width</span>
-<span class="sd">        http://stackoverflow.com/questions/21971449/how-do-i-increase-the-cell-width-of-the-ipython-notebook-in-my-browser/24207353#24207353</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">header</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {</span>
-<span class="sd">         &quot;cells&quot;: [</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-    <span class="p">)</span>
-
-    <span class="n">footer</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">         ],</span>
-<span class="sd">         &quot;metadata&quot;: {</span>
-<span class="sd">          &quot;kernelspec&quot;: {</span>
-<span class="sd">           &quot;display_name&quot;: &quot;Python 2&quot;,</span>
-<span class="sd">           &quot;language&quot;: &quot;python&quot;,</span>
-<span class="sd">           &quot;name&quot;: &quot;python2&quot;</span>
-<span class="sd">          },</span>
-<span class="sd">          &quot;language_info&quot;: {</span>
-<span class="sd">           &quot;codemirror_mode&quot;: {</span>
-<span class="sd">            &quot;name&quot;: &quot;ipython&quot;,</span>
-<span class="sd">            &quot;version&quot;: 2</span>
-<span class="sd">           },</span>
-<span class="sd">           &quot;file_extension&quot;: &quot;.py&quot;,</span>
-<span class="sd">           &quot;mimetype&quot;: &quot;text/x-python&quot;,</span>
-<span class="sd">           &quot;name&quot;: &quot;python&quot;,</span>
-<span class="sd">           &quot;nbconvert_exporter&quot;: &quot;python&quot;,</span>
-<span class="sd">           &quot;pygments_lexer&quot;: &quot;ipython2&quot;,</span>
-<span class="sd">           &quot;version&quot;: &quot;2.7.6&quot;</span>
-<span class="sd">          }</span>
-<span class="sd">         },</span>
-<span class="sd">         &quot;nbformat&quot;: 4,</span>
-<span class="sd">         &quot;nbformat_minor&quot;: 0</span>
-<span class="sd">        }</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
-
-    <span class="n">cell_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cell_list</span><span class="p">),</span> <span class="s">&#39;  &#39;</span><span class="p">)</span>
-    <span class="n">notebook_str</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">cell_body</span> <span class="o">+</span>  <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>  <span class="n">footer</span>
-    <span class="k">return</span> <span class="n">notebook_str</span>
-
-</div>
-<div class="viewcode-block" id="repr_single"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.repr_single">[docs]</a><span class="k">def</span> <span class="nf">repr_single</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Args:</span>
-<span class="sd">        s (str):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        str: str_repr</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.templates.generate_notebook --exec-repr_single --show</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.templates.generate_notebook import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; s = &#39;#HTML(\&#39;&lt;iframe src=&quot;%s&quot; width=700 height=350&gt;&lt;/iframe&gt;\&#39; % pdf_fpath)&#39;</span>
-<span class="sd">        &gt;&gt;&gt; result = repr_single(s)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">str_repr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reprfunc</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="kn">import</span> <span class="nn">re</span>
-        <span class="k">if</span> <span class="n">str_repr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">):</span>
-            <span class="n">dq</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">DOUBLE_QUOTE</span><span class="p">)</span>
-            <span class="n">sq</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">SINGLE_QUOTE</span><span class="p">)</span>
-            <span class="n">bs</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">BACKSLASH</span><span class="p">)</span>
-            <span class="n">dq_</span><span class="p">,</span> <span class="n">sq_</span><span class="p">,</span> <span class="n">bs_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">,</span> <span class="p">[</span><span class="n">dq</span><span class="p">,</span> <span class="n">sq</span><span class="p">,</span> <span class="n">bs</span><span class="p">]))</span>
-            <span class="n">no_bs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookbehind</span><span class="p">(</span><span class="n">bs_</span><span class="p">)</span>
-            <span class="c">#no_sq = ut.negative_lookbehind(sq)</span>
-            <span class="c">#no_dq = ut.negative_lookbehind(dq)</span>
-
-            <span class="c">#inside = str_repr[1:-1]</span>
-            <span class="c">#inside = re.sub(no_bs + dq, bs + dq, inside)</span>
-            <span class="c">#inside = re.sub(no_bs + bs + sq, r&quot;\\&#39;&quot;, r&quot;&#39;&quot;, inside)</span>
-            <span class="c">#str_repr = &#39;&quot;&#39; + inside + &#39;&quot;&#39;</span>
-            <span class="c">#inside = re.sub(r&#39;&quot;&#39;, r&#39;\\&quot;&#39;, inside)</span>
-            <span class="c">#inside = re.sub(ut.negative_lookbehind(r&quot;&#39;&quot;) + r&quot;\\&#39;&quot;, r&quot;&#39;&quot;, inside)</span>
-
-            <span class="n">inside</span> <span class="o">=</span> <span class="n">str_repr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="c"># Escape double quotes</span>
-            <span class="n">inside</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">no_bs</span> <span class="o">+</span> <span class="s">r&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">r&#39;</span><span class="se">\\</span><span class="s">&quot;&#39;</span><span class="p">,</span> <span class="n">inside</span><span class="p">)</span>
-            <span class="c"># Unescape single quotes</span>
-            <span class="n">inside</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">no_bs</span> <span class="o">+</span> <span class="n">bs_</span> <span class="o">+</span> <span class="s">r&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">r&quot;&#39;&quot;</span><span class="p">,</span> <span class="n">inside</span><span class="p">)</span>
-            <span class="c"># Append external double quotes</span>
-            <span class="n">str_repr</span> <span class="o">=</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">inside</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span>
-        <span class="k">return</span> <span class="n">str_repr</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">reprfunc</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">s</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -674,7 +394,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

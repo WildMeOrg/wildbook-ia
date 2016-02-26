@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tag_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.tag_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -131,11 +131,11 @@
   <h1>Source code for ibeis.tag_funcs</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tag_funcs]&#39;</span><span class="p">)</span>
 
@@ -280,7 +280,7 @@
 
     <span class="n">filtered_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">filter_tags</span><span class="p">,</span> <span class="n">case_tags</span><span class="p">))</span>
     <span class="n">mapped_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">map_tags</span><span class="p">,</span> <span class="n">filtered_tags</span><span class="p">))</span>
-    <span class="n">unique_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">,</span>  <span class="n">mapped_tags</span><span class="p">))</span>
+    <span class="n">unique_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span>  <span class="n">mapped_tags</span><span class="p">))</span>
     <span class="n">new_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">cap_tags</span><span class="p">,</span> <span class="n">unique_tags</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">new_tags</span>
@@ -1093,7 +1093,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">annotmatch_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_annotmatch_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_case_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span>
+    <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span>
                                                          <span class="nb">zip</span><span class="p">(</span><span class="n">annot_tags_list</span><span class="p">,</span>
                                                              <span class="n">annotmatch_tags_list</span><span class="p">))))</span>
     <span class="k">return</span> <span class="n">both_tags_list</span>
@@ -1143,7 +1143,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

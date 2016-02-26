@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.pipeline &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.pipeline &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -179,17 +179,16 @@
 <span class="sd">    been computed?</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c">#profile = ut.profile</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pipeline]&#39;</span><span class="p">)</span>
 
 
@@ -264,8 +263,6 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.init.main_helpers.testdata_qreq_(a=[&#39;default:qindex=0:2,dindex=0:10&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; #cfgdict = dict(codename=&#39;vsmany&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; #ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; print(qreq_.qparams.query_cfgstr)</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
@@ -281,7 +278,9 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsone&#39;, sv_on=False)</span>
-<span class="sd">        &gt;&gt;&gt; ibs1, qreq_1 = plh.get_pipeline_testdata(cfgdict=cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict1)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_1 = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p])</span>
+<span class="sd">        &gt;&gt;&gt; ibs1 = qreq_1.ibs</span>
 <span class="sd">        &gt;&gt;&gt; print(qreq_1.qparams.query_cfgstr)</span>
 <span class="sd">        &gt;&gt;&gt; cm_list1 = request_ibeis_query_L0(ibs1, qreq_1)</span>
 <span class="sd">        &gt;&gt;&gt; cm1 = cm_list1[0]</span>
@@ -380,10 +379,6 @@
         <span class="c"># CAUSES TOO MUCH DATA TO BE SAVED</span>
         <span class="k">for</span> <span class="n">cm</span><span class="p">,</span> <span class="n">nns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">):</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">nns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="c">#msg_list = [</span>
-            <span class="c">#    &#39;qres.qfx2_dist = &#39; + ut.get_object_size_str(qres.qfx2_dist),</span>
-            <span class="c">#]</span>
-            <span class="c">#print(&#39;\n&#39;.join(msg_list))</span>
     <span class="c"># &lt;/HACK&gt;</span>
 
     <span class="k">if</span> <span class="n">VERB_PIPELINE</span><span class="p">:</span>
@@ -444,7 +439,8 @@
             <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_qaids</span><span class="p">])</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_sameimg</span><span class="p">:</span>
         <span class="c"># slow way of getting contact_aids (now incorporates faster way)</span>
-        <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">internal_daids</span><span class="p">)</span>
+        <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span>
+                                                             <span class="n">daid_list</span><span class="o">=</span><span class="n">internal_daids</span><span class="p">)</span>
         <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">)</span>
         <span class="n">EXTEND_TO_OTHER_CONTACT_GT</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="c"># TODO: flag overlapping keypoints with another annot as likely to</span>
@@ -516,10 +512,11 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(</span>
-<span class="sd">        &gt;&gt;&gt;     dbname=&#39;testdb1&#39;, qaid_list=[1, 2],</span>
-<span class="sd">        &gt;&gt;&gt;     cfgdict=dict(K=4, Knorm=1, use_k_padding=False))</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=4, Knorm=1, use_k_padding=False)</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)</span>
@@ -539,10 +536,12 @@
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(</span>
-<span class="sd">        &gt;&gt;&gt;     dbname=&#39;testdb1&#39;, qaid_list=[1, 2],</span>
-<span class="sd">        &gt;&gt;&gt;     cfgdict=dict(K=2, Knorm=3, use_k_padding=True))</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=2, Knorm=3, use_k_padding=True)</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)</span>
@@ -672,9 +671,10 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(dbname=&#39;testdb1&#39;,</span>
-<span class="sd">        &gt;&gt;&gt;                                        qaid_list=[1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, qaid_override=[1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
@@ -736,6 +736,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename=&#39;vsmany&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_qaids()))</span>
@@ -745,11 +746,12 @@
 <span class="sd">        ...    &#39;first col should be all invalid because of self match&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; assert not np.all(nnvalid0_list[0][:, 1]), (</span>
 <span class="sd">        ...    &#39;second col should have some good matches&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 3000)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 3500)</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(codename=&#39;vsone&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_daids()))</span>
@@ -809,6 +811,7 @@
 <span class="sd">        &gt;&gt;&gt; cm_list = build_chipmatches(</span>
 <span class="sd">        &gt;&gt;&gt;     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,</span>
 <span class="sd">        &gt;&gt;&gt;     filtvalids_list, filtnormks_list, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
@@ -856,8 +859,6 @@
 <span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)</span>
 <span class="sd">        &gt;&gt;&gt; filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;filtkey_list = %r&#39; % (filtkey_list,))</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;filtvalids_list = %r&#39; % (filtvalids_list,))</span>
 <span class="sd">        &gt;&gt;&gt; nFiltKeys = len(filtkey_list)</span>
 <span class="sd">        &gt;&gt;&gt; nInternAids = len(qreq_.get_internal_qaids())</span>
 <span class="sd">        &gt;&gt;&gt; filtweight_depth = ut.depth_profile(filtweights_list)</span>
@@ -1154,7 +1155,7 @@
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; vmt = get_sparse_matchinfo_nonagg(qreq_, *args)</span>
 <span class="sd">        &gt;&gt;&gt; # check results</span>
-<span class="sd">        &gt;&gt;&gt; assert ut.list_allsame(list(map(len, vmt[:-2]))), &#39;need same num rows&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert ut.allsame(list(map(len, vmt[:-2]))), &#39;need same num rows&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(vmt.dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
@@ -1176,7 +1177,7 @@
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; vmt = get_sparse_matchinfo_nonagg(qreq_, *args)</span>
 <span class="sd">        &gt;&gt;&gt; # check results</span>
-<span class="sd">        &gt;&gt;&gt; assert ut.list_allsame(list(map(len, vmt[:-2]))), &#39;need same num rows&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert ut.allsame(list(map(len, vmt[:-2]))), &#39;need same num rows&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(vmt.dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(vmt.daid, config2_=qreq_.qparams)))</span>
 <span class="sd">        &gt;&gt;&gt; cm = chip_match.ChipMatch.from_vsmany_match_tup(vmt, qaid=qaid)</span>
@@ -1418,17 +1419,27 @@
 <span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK</span>
+<span class="sd">        &gt;&gt;&gt; #locals_ = ut.exec_func_src(sver_single_chipmatch, key_list=[&#39;svtup_list&#39;], sentinal=&#39;# &lt;SENTINAL&gt;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #svtup_list1, = locals_</span>
 <span class="sd">        &gt;&gt;&gt; source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)</span>
 <span class="sd">        &gt;&gt;&gt; source = ut.replace_between_tags(source, &#39;&#39;, &#39;# &lt;SENTINAL&gt;&#39;, &#39;# &lt;/SENTINAL&gt;&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; globals_ = globals().copy()</span>
 <span class="sd">        &gt;&gt;&gt; exec(source, globals_)</span>
 <span class="sd">        &gt;&gt;&gt; svtup_list = globals_[&#39;svtup_list&#39;]</span>
-<span class="sd">        &gt;&gt;&gt; daids = cm.get_groundtruth_daids()</span>
+<span class="sd">        &gt;&gt;&gt; gt_daids = cm.get_groundtruth_daids()</span>
 <span class="sd">        &gt;&gt;&gt; x = ut.get_argval(&#39;--y&#39;, type_=int, default=0)</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;x = %r&#39; % (x,))</span>
-<span class="sd">        &gt;&gt;&gt; daid = daids[x % len(daids)]</span>
+<span class="sd">        &gt;&gt;&gt; #print(&#39;x = %r&#39; % (x,))</span>
+<span class="sd">        &gt;&gt;&gt; #daid = daids[x % len(daids)]</span>
+<span class="sd">        &gt;&gt;&gt; notnone_list = ut.not_list(ut.flag_None_items(svtup_list))</span>
+<span class="sd">        &gt;&gt;&gt; valid_idxs = np.where(notnone_list)</span>
+<span class="sd">        &gt;&gt;&gt; valid_daids = cm.daid_list[valid_idxs]</span>
+<span class="sd">        &gt;&gt;&gt; assert len(valid_daids) &gt; 0, &#39;cannot spatially verify&#39;</span>
+<span class="sd">        &gt;&gt;&gt; valid_gt_daids = np.intersect1d(gt_daids, valid_daids)</span>
+<span class="sd">        &gt;&gt;&gt; #assert len(valid_gt_daids) == 0, &#39;no sver groundtruth&#39;</span>
+<span class="sd">        &gt;&gt;&gt; daid = valid_gt_daids[x] if len(valid_gt_daids) &gt; 0 else valid_daids[x]</span>
 <span class="sd">        &gt;&gt;&gt; idx = cm.daid2_idx[daid]</span>
 <span class="sd">        &gt;&gt;&gt; svtup = svtup_list[idx]</span>
+<span class="sd">        &gt;&gt;&gt; assert svtup is not None, &#39;SV TUP IS NONE&#39;</span>
 <span class="sd">        &gt;&gt;&gt; refined_inliers, refined_errors, H = svtup[0:3]</span>
 <span class="sd">        &gt;&gt;&gt; aff_inliers, aff_errors, Aff = svtup[3:6]</span>
 <span class="sd">        &gt;&gt;&gt; homog_tup = (refined_inliers, H)</span>
@@ -1436,10 +1447,15 @@
 <span class="sd">        &gt;&gt;&gt; fm = cm.fm_list[idx]</span>
 <span class="sd">        &gt;&gt;&gt; aid1 = cm.qaid</span>
 <span class="sd">        &gt;&gt;&gt; aid2 = daid</span>
-<span class="sd">        &gt;&gt;&gt; rchip1, rchip2 = ibs.get_annot_chips([aid1, aid2], config2_=qreq_.get_external_query_config2())</span>
-<span class="sd">        &gt;&gt;&gt; kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=qreq_.get_external_data_config2())</span>
+<span class="sd">        &gt;&gt;&gt; rchip1, = ibs.get_annot_chips([aid1], config2_=qreq_.get_external_query_config2())</span>
+<span class="sd">        &gt;&gt;&gt; kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.get_external_query_config2())</span>
+<span class="sd">        &gt;&gt;&gt; rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.get_external_data_config2())</span>
+<span class="sd">        &gt;&gt;&gt; kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.get_external_data_config2())</span>
 <span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
-<span class="sd">        &gt;&gt;&gt; pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=qreq_.qparams.refine_method)</span>
+<span class="sd">        &gt;&gt;&gt; show_aff = not ut.get_argflag(&#39;--noaff&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup,</span>
+<span class="sd">        &gt;&gt;&gt;                    homog_tup=homog_tup, show_aff=show_aff,</span>
+<span class="sd">        &gt;&gt;&gt;                    refine_method=qreq_.qparams.refine_method)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
@@ -1618,13 +1634,16 @@
 <span class="sd">    Example2:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST (IMPORTANT)</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = dict(prescore_method=&#39;nsum&#39;, score_method=&#39;nsum&#39;, vsone_reranking=True)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(&#39;PZ_MTEST&#39;, cfgdict=cfgdict, qaid_list=[2])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;PZ_MTEST&#39;, p=[p], qaid_override=[2])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;vsone_reranking&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; cm_list = locals_[&#39;cm_list_SVER&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
 <span class="sd">        &gt;&gt;&gt; cm_list_VSONE = vsone_reranking(qreq_, cm_list, verbose=verbose)</span>
-<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshosw()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import vsone_pipeline</span>
 <span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
 <span class="sd">        &gt;&gt;&gt; # NOTE: the aid2_score field must have been hacked</span>
@@ -1690,7 +1709,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

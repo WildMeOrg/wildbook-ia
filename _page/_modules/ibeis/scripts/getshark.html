@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.scripts.getshark &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.scripts.getshark &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -266,7 +266,7 @@
                                    <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">])]</span>
     <span class="c"># Create directories</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">named_outputdir</span><span class="p">)</span>
-    <span class="n">named_dirs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;namedir_fpath_list&#39;</span><span class="p">])))</span>
+    <span class="n">named_dirs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;namedir_fpath_list&#39;</span><span class="p">])))</span>
     <span class="k">for</span> <span class="n">dir_</span> <span class="ow">in</span> <span class="n">named_dirs</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dir_</span><span class="p">)</span>
     <span class="c"># Copy</span>
@@ -385,7 +385,7 @@
             <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">else</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span><span class="p">]</span>
         <span class="n">pat</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_or</span><span class="p">(</span><span class="n">invalid_tag_patterns</span><span class="p">)</span>
         <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">t</span><span class="p">)]</span>
-        <span class="n">_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">_tags</span><span class="p">)</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">_tags</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_tags</span>
 
     <span class="n">all_img_tag_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">parse_all_fname_tags</span><span class="p">,</span> <span class="n">orig_fname_list</span><span class="p">))</span>
@@ -428,7 +428,7 @@
         <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="s">&#39;f:u:n:h&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">:</span>
         <span class="n">usage</span><span class="p">()</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="n">filename</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;www.whaleshark.org/listImages.jsp&#39;</span>
@@ -505,7 +505,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

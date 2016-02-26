@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -796,7 +796,7 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/wildbook_signal_annot_name_changes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/wildbook/signal_annot_name_changes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="wildbook_signal_annot_name_changes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.wildbook_signal_annot_name_changes">[docs]</a><span class="k">def</span> <span class="nf">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
@@ -928,7 +928,7 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/wildbook_signal_imgsetid_list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/wildbook/signal_imgsetid_list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="wildbook_signal_imgsetid_list"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.wildbook_signal_imgsetid_list">[docs]</a><span class="k">def</span> <span class="nf">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                   <span class="n">set_shipped_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                   <span class="n">open_url_on_complete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -943,7 +943,7 @@
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
-<span class="sd">        URL:    /api/core/wildbook_signal_imgsetid_list/</span>
+<span class="sd">        URL:    /api/wildbook/signal_imgsetid_list/</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        cd $CODE_DIR/Wildbook/tmp</span>
@@ -1146,7 +1146,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

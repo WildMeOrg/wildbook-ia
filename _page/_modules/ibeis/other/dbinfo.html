@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.other.dbinfo &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.other.dbinfo &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.other" href="../other.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -953,7 +953,7 @@
 
         <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">dbinfo_locals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">,</span> <span class="n">dbinfo_list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">extra_keys</span><span class="p">:</span>
-                <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
         <span class="n">extra_collbls</span><span class="p">[</span><span class="s">&#39;qualtext2_nAnnots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;excellent&#39;</span><span class="p">,</span> <span class="s">&#39;good&#39;</span><span class="p">,</span> <span class="s">&#39;ok&#39;</span><span class="p">,</span> <span class="s">&#39;poor&#39;</span><span class="p">,</span> <span class="s">&#39;junk&#39;</span><span class="p">,</span> <span class="s">&#39;UNKNOWN&#39;</span><span class="p">]</span>
         <span class="c">#extra_collbls[&#39;yawtext2_nAnnots&#39;] = [&#39;backleft&#39;, &#39;left&#39;, &#39;frontleft&#39;, &#39;front&#39;, &#39;frontright&#39;, &#39;right&#39;, &#39;backright&#39;, &#39;back&#39;, None]</span>
@@ -1112,7 +1112,7 @@
     <span class="n">_nids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">nx2_aids</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">_nids_list</span><span class="p">[</span><span class="o">-</span><span class="mi">20</span><span class="p">:])</span>
     <span class="k">print</span><span class="p">(</span><span class="n">nx2_aids</span><span class="p">[</span><span class="o">-</span><span class="mi">20</span><span class="p">:])</span>
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">,</span> <span class="n">_nids_list</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">,</span> <span class="n">_nids_list</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="get_keypoint_stats"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.dbinfo.get_keypoint_stats">[docs]</a><span class="k">def</span> <span class="nf">get_keypoint_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -1237,7 +1237,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

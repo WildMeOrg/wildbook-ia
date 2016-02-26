@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.controller_inject &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.controller_inject &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -377,8 +377,8 @@
 <span class="sd">        &gt;&gt;&gt; aids = web_ibs.send_ibeis_request(&#39;/api/annot/&#39;, &#39;get&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; uuid_list = web_ibs.send_ibeis_request(&#39;/api/annot/uuids/&#39;, aid_list=aids)</span>
 <span class="sd">        &gt;&gt;&gt; failrsp = web_ibs.send_ibeis_request(&#39;/api/annot/uuids/&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; failrsp2 = web_ibs.send_ibeis_request(&#39;/api/core/query_chips_simple_dict/&#39;, &#39;get&#39;, qaid_list=[0], daid_list=[0])</span>
-<span class="sd">        &gt;&gt;&gt; log_text = web_ibs.send_ibeis_request(&#39;/api/core/query_chips_simple_dict/&#39;, &#39;get&#39;, qaid_list=[0], daid_list=[0])</span>
+<span class="sd">        &gt;&gt;&gt; failrsp2 = web_ibs.send_ibeis_request(&#39;/api/query/chips/simple_dict//&#39;, &#39;get&#39;, qaid_list=[0], daid_list=[0])</span>
+<span class="sd">        &gt;&gt;&gt; log_text = web_ibs.send_ibeis_request(&#39;/api/query/chips/simple_dict/&#39;, &#39;get&#39;, qaid_list=[0], daid_list=[0])</span>
 <span class="sd">        &gt;&gt;&gt; time.sleep(.1)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;\n---\nuuid_list = %r&#39; % (uuid_list,))</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;\n---\nfailrsp =\n%s&#39; % (failrsp,))</span>
@@ -602,6 +602,11 @@
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">register_api</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">),</span> <span class="s">&#39;An api should always end in a forward-slash&#39;</span>
+            <span class="k">assert</span> <span class="s">&#39;methods&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">,</span> <span class="s">&#39;An api should always have a specified methods list&#39;</span>
+            <span class="c"># if &#39;_&#39; in rule:</span>
+            <span class="c">#     print(&#39;CONSIDER RENAMING RULE: %r&#39; % (rule, ))</span>
+
             <span class="c"># accpet args to flask.route</span>
             <span class="k">def</span> <span class="nf">regsiter_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
                 <span class="c"># make translation function in closure scope</span>
@@ -736,7 +741,13 @@
     <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
     <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">register_route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">register_route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">__api_prefix_check__</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">__api_prefix_check__</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="ow">not</span> <span class="n">rule</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/api/&#39;</span><span class="p">),</span> <span class="s">&#39;Cannot start a route rule (</span><span class="si">%r</span><span class="s">) with the prefix &quot;/api/&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">assert</span> <span class="n">rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">),</span> <span class="s">&#39;A route should always end in a forward-slash&#39;</span>
+            <span class="k">assert</span> <span class="s">&#39;methods&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">,</span> <span class="s">&#39;A route should always have a specified methods list&#39;</span>
+            <span class="c"># if &#39;_&#39; in rule:</span>
+            <span class="c">#     print(&#39;CONSIDER RENAMING RULE: %r&#39; % (rule, ))</span>
             <span class="c"># accpet args to flask.route</span>
             <span class="k">def</span> <span class="nf">regsiter_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
                 <span class="c"># make translation function in closure scope</span>
@@ -907,7 +918,9 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">ExternalStorageException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
-<span class="n">register_preproc</span><span class="p">,</span> <span class="n">register_algo</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+<span class="n">_decors</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">make_depcache_decors</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+<span class="n">register_preproc</span> <span class="o">=</span> <span class="n">_decors</span><span class="p">[</span><span class="s">&#39;preproc&#39;</span><span class="p">]</span>
+<span class="n">register_subprop</span> <span class="o">=</span> <span class="n">_decors</span><span class="p">[</span><span class="s">&#39;subprop&#39;</span><span class="p">]</span>
 
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -954,7 +967,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

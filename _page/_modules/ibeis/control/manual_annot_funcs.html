@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_annot_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.manual_annot_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -149,6 +149,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">routes_ajax</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_annot]&#39;</span><span class="p">)</span>
 
 
@@ -350,6 +351,19 @@
         <span class="n">hasgt</span><span class="o">=</span><span class="n">hasgt</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="n">minqual</span><span class="p">,</span> <span class="n">has_timestamp</span><span class="o">=</span><span class="n">has_timestamp</span><span class="p">,</span>
         <span class="n">min_timedelta</span><span class="o">=</span><span class="n">min_timedelta</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&lt;aid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="annotation_src_api"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.annotation_src_api">[docs]</a><span class="k">def</span> <span class="nf">annotation_src_api</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns the base64 encoded image of annotation &lt;aid&gt;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/&lt;aid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">routes_ajax</span><span class="o">.</span><span class="n">annotation_src</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="filter_annotation_set"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.filter_annotation_set">[docs]</a><span class="k">def</span> <span class="nf">filter_annotation_set</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">include_only_gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -826,7 +840,8 @@
 <span class="sd">        URL:    /api/annot/aids_from_uuid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">ANNOT_UUID</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span>
+                           <span class="n">id_colname</span><span class="o">=</span><span class="n">ANNOT_UUID</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aids_list</span>
 
 </div>
@@ -1112,7 +1127,7 @@
 <span class="sd">        &gt;&gt;&gt; contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)</span>
 <span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_annot_gids(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):</span>
-<span class="sd">        ...     assert ut.list_allsame(gids), &#39;annots should be from same image&#39;</span>
+<span class="sd">        ...     assert ut.allsame(gids), &#39;annots should be from same image&#39;</span>
 <span class="sd">        ...     assert len(gids) == 0 or gids[0] == gid, &#39;and same image as parent annot&#39;</span>
 <span class="sd">        ...     assert aid not in aids, &#39;should not include self&#39;</span>
 
@@ -1130,7 +1145,7 @@
 <span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_annot_gids(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;contact_aids = %r&#39; % (contact_aids,))</span>
 <span class="sd">        &gt;&gt;&gt; for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):</span>
-<span class="sd">        ...     assert ut.list_allsame(gids), &#39;annots should be from same image&#39;</span>
+<span class="sd">        ...     assert ut.allsame(gids), &#39;annots should be from same image&#39;</span>
 <span class="sd">        ...     assert len(gids) == 0 or gids[0] == gid, &#39;and same image as parent annot&#39;</span>
 <span class="sd">        ...     assert aid not in aids, &#39;should not include self&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1728,6 +1743,7 @@
     <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">yaw</span><span class="p">,</span> <span class="p">)</span> <span class="k">for</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">yaw_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_YAW</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">notify_root_changed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;yaws&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2400,7 +2416,8 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_visual_infotup</span><span class="o">=</span><span class="n">visual_infotup</span><span class="p">)</span>
 
 
-<span class="c">#### SETTERS ###</span>
+<span class="c">#### SETTERS ####  # NOQA</span>
+
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
@@ -2512,11 +2529,14 @@
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">will_be_unknown_flag_list</span><span class="p">):</span>
         <span class="c"># remove exemplar status from any annotations that will become unknown</span>
         <span class="n">will_be_unknown_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">will_be_unknown_flag_list</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span>
+                                     <span class="nb">len</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
     <span class="c"># postset nids</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="c"># TODO: flag name rowid update</span>
+    <span class="c"># TODO: flag when the actual name changes as well?</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">notify_root_changed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2555,9 +2575,23 @@
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name_list</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span>
     <span class="c">#name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)</span>
-    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">]),</span> <span class="s">&#39;cannot change name to empty string use ____ for unknown.&#39;</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">]),</span> <span class="p">(</span>
+        <span class="s">&#39;cannot change name to empty string use ____ for unknown.&#39;</span><span class="p">)</span>
     <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<div class="viewcode-block" id="set_annot_name_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_name_texts">[docs]</a><span class="k">def</span> <span class="nf">set_annot_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    alias</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/names/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2575,13 +2609,12 @@
     <span class="c">#ibs.get_nids_from_text</span>
     <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
-    <span class="c">#ibs.set_annot_lblannot_from_value(aid_list, species_text_list, const.SPECIES_KEY)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
 <div class="viewcode-block" id="set_annot_species_and_notify"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_species_and_notify">[docs]</a><span class="k">def</span> <span class="nf">set_annot_species_and_notify</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c"># for gui</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">notify_observers</span><span class="p">()</span>
 
@@ -2605,12 +2638,11 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/annot/species_rowids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, const.SPECIES_KEY)</span>
-    <span class="c">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, species_rowid_list,</span>
-    <span class="c">#ibs.lbltype_ids[const.SPECIES_KEY])</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">notify_root_changed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;species&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2663,6 +2695,7 @@
     <span class="k">if</span> <span class="n">delete_thumbs</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>  <span class="c"># Changing theta redefines the chips</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">notify_root_changed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;theta&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2699,6 +2732,7 @@
     <span class="k">if</span> <span class="n">delete_thumbs</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>  <span class="c"># INVALIDATE THUMBNAILS</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">notify_root_changed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;verts&#39;</span><span class="p">)</span>
 
 
 <span class="c"># PROBCHIP</span>
@@ -2744,9 +2778,8 @@
     <span class="c"># FIXME: this is implemented very poorly. Caches not robust. IE they are</span>
     <span class="c"># never invalidated. Not all config information is passed through</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_probchip</span>
-    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_probchip</span><span class="o">.</span><span class="n">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span>
-                                                                      <span class="n">aid_list</span><span class="p">,</span>
-                                                                      <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_probchip</span><span class="o">.</span><span class="n">compute_and_write_probchip</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">probchip_fpath_list</span>
 
 
@@ -2815,11 +2848,6 @@
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        ibeis.const.QUALITY_INT_TO_TEXT</span>
-
-<span class="sd">    TemplateInfo:</span>
-<span class="sd">        Tsetter_native_column</span>
-<span class="sd">        tbl = annot</span>
-<span class="sd">        col = annot_quality</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
@@ -2993,11 +3021,6 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list: annot_age_months_est_min_list</span>
 
-<span class="sd">    TemplateInfo:</span>
-<span class="sd">        Tgetter_table_column</span>
-<span class="sd">        col = annot_age_months_est_min</span>
-<span class="sd">        tbl = annot</span>
-
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/annot/age_months_est_min/</span>
@@ -3031,11 +3054,6 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list: annot_age_months_est_max_list</span>
-
-<span class="sd">    TemplateInfo:</span>
-<span class="sd">        Tgetter_table_column</span>
-<span class="sd">        col = annot_age_months_est_max</span>
-<span class="sd">        tbl = annot</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -3295,7 +3313,7 @@
     <span class="c">#    &#39;&#39;&#39;, (bytes(partial_vuuid),))</span>
     <span class="c">#print(res.fetchall())</span>
 
-    <span class="c">## || - is used to concat strings</span>
+    <span class="c"># # || - is used to concat strings</span>
 
     <span class="c">#res = ibs.db.cur.execute(</span>
     <span class="c">#    &#39;&#39;&#39;</span>
@@ -3318,11 +3336,6 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list: annot_tags_list</span>
-
-<span class="sd">    TemplateInfo:</span>
-<span class="sd">        Tgetter_table_column</span>
-<span class="sd">        col = annot_tags</span>
-<span class="sd">        tbl = annot</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -3349,10 +3362,6 @@
 <span class="sd">        aid_list</span>
 <span class="sd">        annot_tags_list</span>
 
-<span class="sd">    TemplateInfo:</span>
-<span class="sd">        Tsetter_native_column</span>
-<span class="sd">        tbl = annot</span>
-<span class="sd">        col = annot_tags</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_TAG_TEXT</span><span class="p">,)</span>
@@ -3419,7 +3428,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

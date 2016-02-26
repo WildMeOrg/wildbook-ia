@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.automated_helpers &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.automated_helpers &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -601,7 +601,7 @@
     <span class="n">aid2_to_aid1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">aid1_to_aid2</span><span class="p">)</span>
     <span class="n">false_negative_groups_t</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids2</span> <span class="ow">in</span> <span class="n">false_negative_groups</span><span class="p">]</span>
     <span class="n">false_negative_group_nids_t</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">false_negative_groups_t</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">,</span> <span class="n">false_negative_group_nids_t</span><span class="p">)),</span> <span class="s">&#39;inconsistent nids&#39;</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">,</span> <span class="n">false_negative_group_nids_t</span><span class="p">)),</span> <span class="s">&#39;inconsistent nids&#39;</span>
     <span class="n">false_negative_group_nid_t</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">false_negative_group_nids_t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="c"># These are the links that should have been made</span>
     <span class="n">missed_links</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">false_negative_groups</span><span class="p">,</span> <span class="n">false_negative_group_nid_t</span><span class="p">)</span>
@@ -715,7 +715,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
