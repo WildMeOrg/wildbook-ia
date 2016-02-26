@@ -118,6 +118,7 @@ class _ChipMatchVisualization(object):
             #cm_orig.assert_self(qreq_)
             #other_aids = qreq_.daids
             # Hack to get rid of key error
+            print('CHIP HAS NO GROUND TRUTH MATCHES')
             cm.assert_self(verbose=False)
             cm2 = cm.extend_results(qreq_)
             cm2.assert_self(verbose=False)

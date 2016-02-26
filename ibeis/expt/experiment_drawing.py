@@ -910,6 +910,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
+        ibeis --tf draw_match_cases --db humpbacks_fb \
+            -a default:has_any=hasnotch,mingt=2 \
+            -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple default:proot=vsmany \
+            --qaids-override 12 --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA

@@ -1127,7 +1127,7 @@ class TestResult(object):
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
-            >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'])
+            >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'], qaid_override=12)
             >>> filt_cfg = ':disagree=True,index=0:8,min_gtscore=.00001,require_all_cfg=True'
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
             >>> case_pos_list = testres.case_sample2(filt_cfg)
