@@ -67,7 +67,9 @@ def resize_via_web_parameters(image):
         t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
         assert t_width > 0 and t_height > 0, 'target size too small'
         assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
-        return cv2.resize(image, (t_width, t_height), interpolation=cv2.INTER_LANCZOS4)
+        # interpolation = cv2.INTER_LANCZOS4
+        interpolation = cv2.INTER_LINEAR
+        return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
 
     w_pix = request.args.get('resize_pix_w',      request.form.get('resize_pix_w',      None ))
     h_pix = request.args.get('resize_pix_h',      request.form.get('resize_pix_h',      None ))

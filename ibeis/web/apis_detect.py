@@ -118,7 +118,7 @@ def review_detection_test():
         for aid, (xtl, ytl, width, height), species in zipped
     ]
     callback_url = url_for('process_detection_html')
-    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url)
+    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, include_jquery=True)
     template_html = '''
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
         %s
@@ -127,7 +127,7 @@ def review_detection_test():
 
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
-def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST'):
+def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST', include_jquery=False):
     """
     Returns the detection review interface for a particular image UUID and a list of
     results for that image.
@@ -176,13 +176,17 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         ['css', 'style.css'],
     ]
     json_file_list = [
-        ['javascript', 'jquery.min.js'],
         ['include', 'jquery-ui', 'jquery-ui.min.js'],
         ['include', 'jquery.ui.rotatable', 'jquery.ui.rotatable.min.js'],
         ['include', 'bbox_annotator_percent.js'],
         ['javascript', 'script.js'],
         ['javascript', 'turk-detection.js'],
     ]
+
+    if include_jquery:
+        json_file_list = [
+            ['javascript', 'jquery.min.js'],
+        ] + json_file_list
 
     EMBEDDED_CSS = ''
     EMBEDDED_JAVASCRIPT = ''
