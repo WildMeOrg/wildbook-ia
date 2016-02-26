@@ -341,12 +341,11 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
                                    ut.get_list_column(named_defaults_dict, 'qcfg')))
     # Allow command line override
     aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list, default=default_aids, return_was_specified=True)
-    import utool
-    utool.embed()
 
     aidcfg = None
-    have_aids = aids is None
-    need_expand = (_specified_a and not _specified_aids) and (_specified_a or have_aids)
+    have_aids = aids is not None
+    need_expand = (not have_aids) or (_specified_a and not _specified_aids)
+    #(not aid) or (sa and (not said))
     if need_expand:
         #base_cfg = annotation_configs.single_default
         aidcfg_combo_list = cfghelpers.parse_cfgstr_list2([a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS, expand_nested=False, is_nestedcfgtype=False)

@@ -37,6 +37,7 @@ def testdata_multichips():
     ibs = ibeis.opendb(defaultdb='testdb1')
     nid = ut.get_argval('--nid', type_=int, default=None)
     tags = ut.get_argval('--tags', type_=list, default=None)
+
     if nid is not None:
         aid_list = ibs.get_name_aids(nid)
     elif tags is not None:
@@ -44,7 +45,7 @@ def testdata_multichips():
         aid_list = ibs.filter_aidpairs_by_tags(any_tags=tags)[index]
     else:
         #aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
-        aid_list = ibeis.testdata_aids(default_aids=[1, 2, 3])
+        aid_list = ibeis.testdata_aids(default_aids=[1, 2, 3], ibs=ibs)
 
     in_image = not ut.get_argflag('--no-inimage')
     return ibs, aid_list, in_image
@@ -64,6 +65,9 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
+
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show
+        --aids=1 --doboth --show --no-inimage
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
