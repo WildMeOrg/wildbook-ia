@@ -559,7 +559,7 @@ class _CoreDependencyCache(object):
         # TODO: Need to have a nice way of ensuring configs dont overlap
         # via namespaces.
         _debug = depc._debug if _debug is None else _debug
-        indenter = ut.Indenter('[Descend-%s]' % (tablename,), enabled=_debug)
+        indenter = ut.Indenter('[Descend-to-%s]' % (tablename,), enabled=_debug)
         if _debug:
             indenter.start()
             print(' * GET DESCENDANT ROWIDS %s ' % (tablename,))
@@ -836,7 +836,6 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         depc.default_fname = default_fname
         depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
         depc.get_root_uuid = get_root_uuid
-        depc._graph = None
         # depc._debug = True
 
     def get_tablenames(depc):
@@ -924,17 +923,19 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
+            >>> import utool as ut
             >>> depc = testdata_depc()
-            >>> graph = depc.make_graph()
+            >>> graph = depc.make_graph(reduced=ut.get_argflag('--reduced'))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> pt.show_nx(graph)
+            >>> import networkx as nx
+            >>> #pt.show_nx(nx.dag.transitive_closure(graph))
+            >>> #pt.show_nx(ut.nx_transitive_reduction(graph))
+            >>> #pt.show_nx(graph)
             >>> ut.show_if_requested()
         """
         import networkx as nx
-        #if depc._graph is not None:
-        #    return depc._graph
         # graph = nx.DiGraph()
         graph = nx.MultiDiGraph()
         nodes = list(depc.cachetable_dict.keys())
@@ -964,17 +965,51 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             return props
         nx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
         nx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
-        depc._graph = graph
+        if kwargs.get('reduced', True):
+            graph_tr = ut.nx_transitive_reduction(graph)
+            G = graph
+            G_tr = graph_tr
+
+            # HACK IN STRUCTURE
+
+            # Multi Edges
+            for u, v, data in G.edges(data=True):
+                if data.get('ismulti'):
+                    new_parent = nx.shortest_path(G_tr, u, v)[-2]
+                    #G_tr[new_parent][v][0]['is_multi'] = True
+                    print("NEW MULTI")
+                    print((new_parent, v))
+                    nx.set_edge_attributes(G_tr, 'ismulti', {(new_parent, v, 0): True})
+                    #print(v)
+
+            parents = ut.ddict(list)
+            for u, v, data in G.edges(data=True):
+                parents[v].append(u)
+
+            for node, ps in parents.items():
+                num_connect = ut.dict_hist(ps)
+                nwise_parents = [(k, v) for k, v in num_connect.items() if v > 1]
+
+                for p, n in nwise_parents:
+                    new_parent = nx.shortest_path(G_tr, p, node)[-2]
+                    for x in range(n - 1):
+                        #import utool
+                        #utool.embed()
+                        G_tr.add_edge(new_parent, node)
+                    #G_tr[new_parent][v][0]['is_multi'] = True
+            nx.set_node_attributes(G_tr, 'color', _node_attrs(color_dict))
+            nx.set_node_attributes(G_tr, 'shape', _node_attrs(shape_dict))
+            graph = G_tr
         return graph
 
     @property
     def graph(depc):
         return depc.make_graph()
 
-    def show_graph(depc, **kwargs):
+    def show_graph(depc, reduced=False, **kwargs):
         """ Helper "fluff" function """
         import plottool as pt
-        graph = depc.make_graph()
+        graph = depc.make_graph(reduced=reduced)
         if ut.is_developer():
             ut.ensure_pylab_qt4()
         pt.show_nx(graph, **kwargs)
