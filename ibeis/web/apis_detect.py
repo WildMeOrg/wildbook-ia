@@ -128,6 +128,25 @@ def review_detection_test():
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
 def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST'):
+    """
+    Returns the detection review interface for a particular image UUID and a list of
+    results for that image.
+
+    Args:
+        image_uuid (UUID): the UUID of the image you want to review detections for
+        result_list (list of dict): list of detection results returned by the detector
+        callback_url (str): URL that the review form will submit to (action) when
+            the user is complete with their review
+        callback_method (str): HTTP method the review form will submit to (method).
+            Defaults to 'POST'
+
+    Returns:
+        template (html): json response with the detection web interface in html
+
+    RESTful:
+        Method: GET
+        URL:    /api/review/detect/cnn/yolo/
+    """
     ibs.web_check_uuids(image_uuid_list=[image_uuid])
     gid = ibs.get_image_gids_from_uuid(image_uuid)
 
@@ -195,6 +214,17 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['POST'])
 def process_detection_html(ibs, **kwargs):
+    """
+    Processes the return from the detection review interface.  Pass the POST
+    result from the detection review form directly to this function unmodified
+
+    Returns:
+        detection results (dict): Same format as `func:start_detect_image`
+
+    RESTful:
+        Method: POST
+        URL:    /api/review/detect/cnn/yolo/
+    """
     gid = int(request.form['detection-gid'])
     image_uuid = ibs.get_image_uuids(gid)
     width, height = ibs.get_image_sizes(gid)

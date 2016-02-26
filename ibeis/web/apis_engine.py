@@ -121,7 +121,7 @@ def initialize_job_manager(ibs):
         >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
         >>> payload = ut.map_dict_vals(ut.to_json, _payload)
         >>> #resp = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
-        >>> resp = requests.post(baseurl + '/api/core/add_images_json/', data=payload)
+        >>> resp = requests.post(baseurl + '/api/image/json/', data=payload)
         >>> print(resp)
         >>> web_instance.terminate()
         >>> json_dict = resp.json()
@@ -144,6 +144,24 @@ def initialize_job_manager(ibs):
 
 
 @register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/check_uuids/', methods=['GET', 'POST'])
+def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
+    # Unique list
+    image_uuid_list = list(set(image_uuid_list))
+    annot_uuid_list = list(set(annot_uuid_list))
+    # Check for all annot UUIDs exist
+    missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
+    missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
+    if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
+        kwargs = {
+            'missing_image_uuid_list' : missing_image_uuid_list,
+            'missing_annot_uuid_list' : missing_annot_uuid_list,
+        }
+        raise controller_inject.WebMissingUUIDException(**kwargs)
+
+
+@register_ibs_method
 def close_job_manager(ibs):
     ibs.job_manager = None
 
@@ -156,7 +174,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     r"""
     REST:
         Method: GET
-        URL: /api/core/identify_annots/
+        URL: /api/engine/start_identify_annots/
 
     Args:
         qannot_uuid_list (list) : specifies the query annotations to
@@ -218,17 +236,17 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> # Start callback server
         >>> bgserver = ensure_simple_server()
         >>> # --
-        >>> jobid = web_ibs.send_ibeis_request('/api/core/start_identify_annots/', **data)
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/start_identify_annots/', **data)
         >>> waittime = 1
         >>> while True:
         >>>     print('jobid = %s' % (jobid,))
-        >>>     response1 = web_ibs.send_ibeis_request('/api/core/get_job_status/', jobid=jobid)
+        >>>     response1 = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid=jobid)
         >>>     if response1['jobstatus'] == 'completed':
         >>>         break
         >>>     time.sleep(waittime)
         >>>     waittime = 10
         >>> print('response1 = %s' % (response1,))
-        >>> response2 = web_ibs.send_ibeis_request('/api/core/get_job_result/', jobid=jobid)
+        >>> response2 = web_ibs.send_ibeis_request('/api/engine/job/result/', jobid=jobid)
         >>> print('response2 = %s' % (response2,))
         >>> cmdict = ut.from_json(response2['json_result'])[0]
         >>> print('Finished test')
@@ -237,7 +255,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
-        http://127.0.1.1:5000/api/core/start_identify_annots/'
+        http://127.0.1.1:5000/api/engine/start_identify_annots/'
         jobid = ibs.start_identify_annots(**payload)
     """
     # Check UUIDs
@@ -284,11 +302,11 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None):
     """
     REST:
         Method: GET
-        URL: /api/core/start_detect_image/
+        URL: /api/engine/detect/cnn/yolo/
 
     Args:
         image_uuid_list (list) : list of image uuids to detect on.
-        species (str) : species to detect
+        callback_url (url) : url that will be called when detection succeeds or fails
     """
     # Check UUIDs
     ibs.web_check_uuids(image_uuid_list=image_uuid_list)
@@ -335,7 +353,7 @@ def get_job_status(ibs, jobid):
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
         >>> # Test get status of a job id that does not exist
-        >>> response = web_ibs.send_ibeis_request('/api/core/get_job_status/', jobid='badjob')
+        >>> response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid='badjob')
         >>> web_ibs.terminate2()
 
     """
