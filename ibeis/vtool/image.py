@@ -103,10 +103,10 @@ def montage(img_list, dsize, rng=np.random):
     Example:
         >>> from vtool.image import *  # NOQA
         >>> img_list0 = testdata_imglist()
-        >>> img_list1 = [resize_to_maxdims(img, (200, 200)) for img in img_list0]
-        >>> img_list = img_list1 + img_list1 + img_list1 + img_list1 + img_list1
-        >>> dsize = (1000, 500)
-        >>> rng = np.random.RandomState(0)
+        >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
+        >>> img_list = ut.flatten([img_list1] * 20)
+        >>> dsize = (700, 700)
+        >>> rng = np.random.RandomState(42)
         >>> dst = montage(img_list, dsize, rng)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -122,8 +122,8 @@ def montage(img_list, dsize, rng=np.random):
         #np.ones(img.shape, dtype=np.uint8) * 255
         #vt.warp_patch_onto_kpts()
         w, h = vt.get_size(img)
-        qw = (w / 4.0)
-        qh = (h / 4.0)
+        qw = (w / 3.0)
+        qh = (h / 3.0)
         tx_pdf = (-qw, dsize[0] + qw)
         ty_pdf = (-qh, dsize[1] + qh)
 
