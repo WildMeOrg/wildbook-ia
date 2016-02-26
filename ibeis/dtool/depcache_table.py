@@ -1101,7 +1101,8 @@ class DependencyCacheTable(ut.NiceRepr):
         return num_deleted
 
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
-                     read_extern=True, extra_tries=1):
+                     read_extern=True, extra_tries=1, eager=True,
+                     nInput=None):
         r"""
         colnames = ('mask', 'size')
         FIXME: unpacking is confusing with sql controller

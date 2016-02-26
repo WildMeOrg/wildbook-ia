@@ -635,7 +635,9 @@ class _CoreDependencyCache(object):
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
-                config_ = configclass(**config)
+                import utool
+                with utool.embed_on_exception_context:
+                    config_ = configclass(**config)
 
         table = depc[tablekey]
         #if False:
@@ -705,12 +707,14 @@ class _CoreDependencyCache(object):
                 print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
 
-    def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename):
+    def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename=None):
         """
         anscestor_tablename = depc.root
         native_rowids = cid_list
         tablename = const.CHIP_TABLE
         """
+        if anscestor_tablename is None:
+            anscestor_tablename = depc.root
         rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
         anscestor_rowids = list(rowid_dict[anscestor_tablename])
         return anscestor_rowids
@@ -718,7 +722,8 @@ class _CoreDependencyCache(object):
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
                      ensure=True, _debug=None, recompute=False,
-                     recompute_all=False, read_extern=True):
+                     recompute_all=False, read_extern=True, eager=True,
+                     nInput=None):
         """
         Primary function to load or compute values in the dependency cache.
 
@@ -736,14 +741,16 @@ class _CoreDependencyCache(object):
             # Vectorized get of properties
             tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config,
                                          ensure=ensure, _debug=_debug,
-                                         recompute=recompute,
-                                         recompute_all=recompute_all)
+                                         eager=eager, recompute=recompute,
+                                         recompute_all=recompute_all,
+                                         nInput=nInput)
             if _debug:
                 print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
             table = depc[tablename]
             prop_list = table.get_row_data(tbl_rowids, colnames,
                                            read_extern=read_extern,
-                                           _debug=_debug)
+                                           _debug=_debug, eager=eager,
+                                           nInput=nInput)
             if _debug:
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
