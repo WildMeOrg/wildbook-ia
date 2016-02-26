@@ -926,7 +926,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     cfgx2_qreq_ = testres.cfgx2_qreq_
     SHOW = ut.get_argflag('--show')
     filt_cfg = f
-    if case_pos_list not None:
+    if case_pos_list is None:
         case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
 
     qx_list, cfgx_list = case_pos_list.T
