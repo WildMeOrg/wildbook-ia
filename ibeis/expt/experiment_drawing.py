@@ -874,7 +874,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
                      show_in_notebook=False, annot_modes=None, figsize=None,
-                     verbose=None, **kwargs):
+                     case_pos_list=None, verbose=None, **kwargs):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -906,7 +906,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
 
         # Show disagreement cases
-        ibeis --tf draw_match_cases --db PZ_MTEST -a timectrl \
+        ibeis --tf draw_match_cases --db PZ_MTEST -a default \
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
@@ -926,7 +926,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     cfgx2_qreq_ = testres.cfgx2_qreq_
     SHOW = ut.get_argflag('--show')
     filt_cfg = f
-    case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+    if case_pos_list is not None:
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
 
     qx_list, cfgx_list = case_pos_list.T
     # Get configs needed for each query
