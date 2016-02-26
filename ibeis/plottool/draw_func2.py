@@ -3645,15 +3645,21 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
                     bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
                     endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
                     endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-                    print('sorted_verts = %r' % (sorted_verts,))
                     beta = (1 / frac_thru)
                     alpha = 1 - beta
                     text_point1 = (alpha * endpoint1) + (beta * endpoint2)
                 else:
-                    text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                ax.annotate("*", xy=text_point1, xycoords="data",
-                                  va="center", ha="center",
-                                  bbox=dict(boxstyle="round", fc="w"))
+                    #print('sorted_verts = %r' % (sorted_verts,))
+                    #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                    frac_thru = 3
+
+                    text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
+
+                font_prop = mpl.font_manager.FontProperties(family='monospace',
+                                                            weight='light',
+                                                            size=18)
+                ax.annotate("*", xy=text_point1, xycoords="data", va="center", ha="center", fontproperties=font_prop)
+                #bbox=dict(boxstyle="round", fc=None, alpha=1.0))
             if data.get('label', False):
                 pt1 = np.array(edge_artist.patchA.center)
                 pt2 = np.array(edge_artist.patchB.center)
@@ -3672,9 +3678,9 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
                     text_point1 = (alpha * endpoint1) + (beta * endpoint2)
                 else:
                     text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                ax.annotate(data['label'], xy=text_point1, xycoords="data",
-                                  va="center", ha="center",
-                                  bbox=dict(boxstyle="round", fc="w"))
+                    ax.annotate(data['label'], xy=text_point1, xycoords="data",
+                                va="center", ha="center",
+                                bbox=dict(boxstyle="round", fc="w"))
                 pass
             ax.add_patch(edge_artist)
         # return e
