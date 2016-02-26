@@ -546,8 +546,6 @@ def random_affine_args(zoom_pdf=None,
         np.array([[ 1.009, -0.   ,  1.695],
                   [ 0.   ,  1.042,  2.584],
                   [ 0.   ,  0.   ,  1.   ]])
-
-
     """
     if zoom_pdf is None:
         sx = sy = 1.0

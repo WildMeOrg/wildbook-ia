@@ -168,17 +168,25 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> ut.quit_if_noshow()
         >>> pt.imshow(img)
         >>> pt.show_if_requested()
+
+
+    out = img_in = np.zeros((500, 500, 3), dtype=np.uint8)
     """
     if out is None:
         out = np.copy(img_in)
     if isinstance(verts, np.ndarray):
         verts = verts.tolist()
-    line_list_sequence = zip(verts[:-1], verts[1:])
-    line_tuple_sequence = ((tuple(p1_), tuple(p2_)) for (p1_, p2_) in line_list_sequence)
-    cv2.line(out, tuple(verts[0]), tuple(verts[-1]), color, thickness)
-    for (p1, p2) in line_tuple_sequence:
-        cv2.line(out, p1, p2, color, thickness)
-        #print('p1, p2: (%r, %r)' % (p1, p2))
+    connect = True
+    if connect:
+        line_list_sequence = zip(verts[:-1], verts[1:])
+        line_tuple_sequence = ((tuple(p1_), tuple(p2_)) for (p1_, p2_) in line_list_sequence)
+        cv2.line(out, tuple(verts[0]), tuple(verts[-1]), color, thickness)
+        for (p1, p2) in line_tuple_sequence:
+            cv2.line(out, p1, p2, color, thickness)
+            #print('p1, p2: (%r, %r)' % (p1, p2))
+    else:
+        for count, p in enumerate(verts, start=1):
+            cv2.circle(out, tuple(p), count, color, thickness=1)
     return out
 
 
