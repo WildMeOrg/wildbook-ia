@@ -93,6 +93,52 @@ def imread_remote_url(img_fpath, grayscale=False):
     return imgBGR
 
 
+def montage(img_list, dsize, rng=np.random):
+    """
+    Creates a montage / collage from a set of images
+
+    CommandLine:
+        python -m vtool.image --exec-montage --show
+
+    Example:
+        >>> from vtool.image import *  # NOQA
+        >>> img_list0 = testdata_imglist()
+        >>> img_list1 = [resize_to_maxdims(img, (200, 200)) for img in img_list0]
+        >>> img_list = img_list1 + img_list1 + img_list1 + img_list1 + img_list1
+        >>> dsize = (1000, 500)
+        >>> rng = np.random.RandomState(0)
+        >>> dst = montage(img_list, dsize, rng)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(dst)
+        >>> ut.show_if_requested()
+    """
+    channels = 3
+    shape = tuple(dsize[::-1]) + (channels,)
+    dst = np.zeros(shape, dtype=np.uint8)
+    import vtool as vt
+
+    for img in img_list:
+        np.ones(img.shape, dtype=np.uint8) * 255
+        #vt.warp_patch_onto_kpts()
+        w, h = vt.get_size(img)
+        qw = (w / 4.0)
+        qh = (h / 4.0)
+        tx_pdf = (-qw, dsize[0] + qw)
+        ty_pdf = (-qh, dsize[1] + qh)
+
+        Aff = vt.random_affine_transform(
+            tx_pdf=tx_pdf, ty_pdf=ty_pdf,
+            theta_pdf=(-TAU / 32, TAU / 32),
+            rng=rng)
+
+        cv2.warpAffine(img, Aff[0:2], dsize, dst=dst,
+                       flags=cv2.INTER_LANCZOS4,
+                       borderMode=cv2.BORDER_TRANSPARENT)
+        (255 - get_pixel_dist(dst, 0)) / 255
+    return dst
+
+
 def imread(img_fpath, delete_if_corrupted=False, grayscale=False, flags=None):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.

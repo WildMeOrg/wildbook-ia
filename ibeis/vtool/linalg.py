@@ -489,6 +489,115 @@ def normalize_rows(arr1, out=None):  # , out=None):
 #    pass
 
 
+def random_affine_args(zoom_pdf=None,
+                       tx_pdf=None,
+                       ty_pdf=None,
+                       shear_pdf=None,
+                       theta_pdf=None,
+                       enable_flip=False,
+                       enable_stretch=False,
+                       default_distribution='uniform',
+                       scalar_anchor='reflect',  # 0
+                       rng=np.random):
+    r"""
+
+    TODO: allow for a pdf of ranges for each dimension
+
+    If pdfs are tuples it is interpreted as a default (uniform) distribution between the
+    two points. A single scalar is a default distribution between -scalar and
+    scalar.
+
+    Args:
+        zoom_range (tuple): (default = (1.0, 1.0))
+        tx_range (tuple): (default = (0.0, 0.0))
+        ty_range (tuple): (default = (0.0, 0.0))
+        shear_range (tuple): (default = (0, 0))
+        theta_range (tuple): (default = (0, 0))
+        enable_flip (bool): (default = False)
+        enable_stretch (bool): (default = False)
+        rng (module):  random number generator(default = numpy.random)
+
+    Returns:
+        tuple: affine_args
+
+    CommandLine:
+        python -m vtool.linalg --exec-random_affine_args --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> import vtool as vt
+        >>> zoom_range = (0.9090909090909091, 1.1)
+        >>> tx_range = (0.0, 4.0)
+        >>> ty_range = (0.0, 4.0)
+        >>> shear_range = (0, 0)
+        >>> theta_range = (0, 0)
+        >>> enable_flip = False
+        >>> enable_stretch = False
+        >>> rng = np.random.RandomState(0)
+        >>> affine_args = random_affine_args(
+        >>>     zoom_range, tx_range, ty_range, shear_range, theta_range,
+        >>>     enable_flip, enable_stretch, rng)
+        >>> print('affine_args = %s' % (ut.repr2(affine_args),))
+        >>> (sx, sy, theta, shear, tx, ty) = affine_args
+        >>> Aff = vt.affine_mat3x3(sx, sy, theta, shear, tx, ty)
+        >>> result = ut.numpy_str2(Aff)
+        >>> print(result)
+        np.array([[ 1.009, -0.   ,  1.695],
+                  [ 0.   ,  1.042,  2.584],
+                  [ 0.   ,  0.   ,  1.   ]])
+    """
+    if zoom_pdf is None:
+        sx = sy = 1.0
+    else:
+        log_zoom_range = [np.log(z) for z in zoom_pdf]
+
+        if enable_stretch:
+            sx = sy = np.exp(rng.uniform(*log_zoom_range))
+        else:
+            sx = np.exp(rng.uniform(*log_zoom_range))
+            sy = np.exp(rng.uniform(*log_zoom_range))
+
+    def param_distribution(param_pdf, rng=rng):
+        if param_pdf is None:
+            param = 0
+        elif not ut.isiterable(param_pdf):
+            max_param = param_pdf
+            if scalar_anchor == 'reflect':
+                min_param = -max_param
+            elif scalar_anchor == 0:
+                min_param = 0
+            param = rng.uniform(min_param, max_param)
+        elif isinstance(param_pdf, tuple):
+            min_param, max_param = param_pdf
+            param = rng.uniform(min_param, max_param)
+        else:
+            assert False
+        return param
+
+    theta = param_distribution(theta_pdf)
+    shear = param_distribution(shear_pdf)
+    tx = param_distribution(tx_pdf)
+    ty = param_distribution(ty_pdf)
+
+    flip = enable_flip and (rng.randint(2) > 0)  # flip half of the time
+    if flip:
+        # shear 180 degrees + rotate 180 == flip
+        theta += np.pi
+        shear += np.pi
+
+    affine_args = (sx, sy, theta, shear, tx, ty)
+    return affine_args
+    #Aff = vt.affine_mat3x3(sx, sy, theta, shear, tx, ty)
+    #return Aff
+
+
+def random_affine_transform(*args, **kwargs):
+    affine_args = random_affine_args(**kwargs)
+    Aff = affine_mat3x3(*affine_args)
+    return Aff
+
+
 if __name__ == '__main__':
     """
     CommandLine:

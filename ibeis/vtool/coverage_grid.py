@@ -1,11 +1,11 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map  # NOQA
-#import six
 import numpy as np
 import utool as ut
 import cv2
 from vtool import coverage_kpts
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[covgrid]', DEBUG=False)
+print, print_, profile = ut.inject2(__name__, '[covgrid]', DEBUG=False)
 
 
 # TODO: integrate more
@@ -30,7 +30,7 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         ndarray: weightgrid
 
     CommandLine:
-        python -m vtool.coverage_grid --test-make_grid_coverage_mask
+        python -m vtool.coverage_grid --test-make_grid_coverage_mask --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -45,6 +45,10 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         >>> # verify result
         >>> result = str(weightgrid)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(weightgrid)
+        >>> ut.show_if_requested()
     """
     import vtool as vt
     coverage_gridtup = sparse_grid_coverage(
@@ -149,10 +153,10 @@ def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, 
         >>> grid_steps = 2
         >>> grid_sigma = 1.6
         >>> coverage_gridtup = sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin, grid_steps, grid_sigma)
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     show_coverage_grid(*coverage_gridtup)
-        >>>     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> show_coverage_grid(*coverage_gridtup)
+        >>> pt.show_if_requested()
     """
     import vtool as vt
     # Compute grid size and stride

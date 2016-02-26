@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map  # NOQA
 #import six
 #from six import next
@@ -7,7 +8,7 @@ import numpy as np
 import utool as ut
 from vtool import patch as ptool
 from vtool import keypoint as ktool
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[cov]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[cov]', DEBUG=False)
 
 
 # TODO: integrate more
@@ -78,10 +79,10 @@ def make_kpts_coverage_mask(
         >>> # execute function
         >>> dstimg, patch = make_kpts_coverage_mask(kpts, chipsize, resize=True, return_patch=True)
         >>> # show results
-        >>> if ut.show_was_requested():
-        >>>     mask = dstimg
-        >>>     show_coverage_map(chip, mask, patch, kpts)
-        >>>     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> mask = dstimg
+        >>> show_coverage_map(chip, mask, patch, kpts)
+        >>> pt.show_if_requested()
     """
     if patch is None:
         patch = get_gaussian_weight_patch(cov_gauss_shape, cov_gauss_sigma_frac)
@@ -101,8 +102,9 @@ def make_kpts_coverage_mask(
     )
     # Smooth weight of influence
     if cov_blur_on:
-        cv2.GaussianBlur(dstimg, ksize=cov_blur_ksize, sigmaX=cov_blur_sigma, sigmaY=cov_blur_sigma,
-                         dst=dstimg, borderType=cv2.BORDER_CONSTANT)
+        cv2.GaussianBlur(dstimg, ksize=cov_blur_ksize, sigmaX=cov_blur_sigma,
+                         sigmaY=cov_blur_sigma, dst=dstimg,
+                         borderType=cv2.BORDER_CONSTANT)
     if resize:
         # Resize to original chpsize of requested
         dsize = chipsize
@@ -179,11 +181,11 @@ def warp_patch_onto_kpts(
         >>> #print(patch.sum())
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
         >>> # show results
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     mask = dstimg
-        >>>     show_coverage_map(chip, mask, patch, kpts)
-        >>>     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> mask = dstimg
+        >>> show_coverage_map(chip, mask, patch, kpts)
+        >>> pt.show_if_requested()
     """
     import vtool as vt
     #if len(kpts) == 0:
@@ -251,9 +253,11 @@ def warped_patch_generator(
         cov_size_penalty_power=.5,
         cov_size_penalty_frac=.1):
     """
-    generator that warps the patches (like gaussian) onto an image with dsize using constant memory.
+    generator that warps the patches (like gaussian) onto an image with dsize
+    using constant memory.
 
-    output must be used or copied on every iteration otherwise the next output will clobber the previous
+    output must be used or copied on every iteration otherwise the next output
+    will clobber the previous
 
     References:
         http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
