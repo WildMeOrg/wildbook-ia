@@ -561,11 +561,8 @@ def hist_argmaxima2(hist, maxima_thresh=.8):
         >>> maxima_thresh = .8
         >>> hist = np.array([1, .9, .8, .99, .99, 1.1, .9, 1.0, 1.0])
         >>> # execute function
-        >>> maxima_x, maxima_y, argmaxima = hist_argmaxima2(hist)
-        >>> # verify results
-        >>> result = str((maxima_x, maxima_y, argmaxima))
-        >>> print(result)
-        (array([ 2.75]), array([ 34.62]), array([4]))
+        >>> argmaxima = hist_argmaxima2(hist)
+        >>> print(argmaxima)
 
     """
     # FIXME: Not handling general cases

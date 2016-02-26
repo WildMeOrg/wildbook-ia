@@ -101,6 +101,7 @@ def montage(img_list, dsize, rng=np.random):
         python -m vtool.image --exec-montage --show
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]

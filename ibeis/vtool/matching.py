@@ -535,7 +535,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2):
         >>> is_symmetric1 = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2)
         >>> result = ut.array_repr2(is_symmetric1)
         >>> print(result)
-        array([ True, False,  True, False], dtype=bool)
+        array([ True, False, False,  True], dtype=bool)
     """
     # np.arange(len(fx2_to_fx1), dtype=fx2_to_fx1.dtype)
     match_fx1_to_fx2 = fx1_to_fx2.T[0]

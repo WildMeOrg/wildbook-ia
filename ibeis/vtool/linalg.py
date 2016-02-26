@@ -528,16 +528,16 @@ def random_affine_args(zoom_pdf=None,
         >>> from vtool.linalg import *  # NOQA
         >>> import vtool as vt
         >>> zoom_range = (0.9090909090909091, 1.1)
-        >>> tx_range = (0.0, 4.0)
-        >>> ty_range = (0.0, 4.0)
-        >>> shear_range = (0, 0)
-        >>> theta_range = (0, 0)
+        >>> tx_pdf = (0.0, 4.0)
+        >>> ty_pdf = (0.0, 4.0)
+        >>> shear_pdf = (0, 0)
+        >>> theta_pdf = (0, 0)
         >>> enable_flip = False
         >>> enable_stretch = False
         >>> rng = np.random.RandomState(0)
         >>> affine_args = random_affine_args(
-        >>>     zoom_range, tx_range, ty_range, shear_range, theta_range,
-        >>>     enable_flip, enable_stretch, rng)
+        >>>     zoom_range, tx_pdf, ty_pdf, shear_pdf, theta_pdf,
+        >>>     enable_flip, enable_stretch, rng=rng)
         >>> print('affine_args = %s' % (ut.repr2(affine_args),))
         >>> (sx, sy, theta, shear, tx, ty) = affine_args
         >>> Aff = vt.affine_mat3x3(sx, sy, theta, shear, tx, ty)
@@ -546,6 +546,8 @@ def random_affine_args(zoom_pdf=None,
         np.array([[ 1.009, -0.   ,  1.695],
                   [ 0.   ,  1.042,  2.584],
                   [ 0.   ,  0.   ,  1.   ]])
+
+
     """
     if zoom_pdf is None:
         sx = sy = 1.0
