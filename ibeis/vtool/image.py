@@ -119,7 +119,7 @@ def montage(img_list, dsize, rng=np.random):
     import vtool as vt
 
     for img in img_list:
-        np.ones(img.shape, dtype=np.uint8) * 255
+        #np.ones(img.shape, dtype=np.uint8) * 255
         #vt.warp_patch_onto_kpts()
         w, h = vt.get_size(img)
         qw = (w / 4.0)
@@ -135,7 +135,7 @@ def montage(img_list, dsize, rng=np.random):
         cv2.warpAffine(img, Aff[0:2], dsize, dst=dst,
                        flags=cv2.INTER_LANCZOS4,
                        borderMode=cv2.BORDER_TRANSPARENT)
-        (255 - get_pixel_dist(dst, 0)) / 255
+        #(255 - get_pixel_dist(dst, 0)) / 255
     return dst
 
 
