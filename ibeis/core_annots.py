@@ -70,10 +70,10 @@ from ibeis.algo.hots.chip_match import ChipMatch
 # dtool.Config.register_func = register_preproc
 
 
-def testdata_core(size=2):
+def testdata_core(defaultdb='testdb1', size=2):
     import ibeis
     # import plottool as pt
-    ibs = ibeis.opendb(defaultdb='testdb1')
+    ibs = ibeis.opendb(defaultdb=defaultdb)
     depc = ibs.depc
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
                              default=ibs.get_valid_aids()[0:size])
@@ -600,6 +600,16 @@ def compute_feats(depc, cid_list, config=None):
         >>> assert vecs.shape[1] == 128
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
+        >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
+        >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
+        >>> ut.show_if_requested()
+
+    Example:
+        >>> # TIMING
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
+        >>> chip_config = {}
+        >>> config = FeatConfig()
         >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
         >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
         >>> ut.show_if_requested()
