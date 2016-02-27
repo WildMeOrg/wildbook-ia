@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.pgm_ext &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.pgm_ext &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -586,7 +586,7 @@
         <span class="n">HACK_SAME_IDS</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="c"># TODO: keep track of parent index inheritence</span>
         <span class="c"># then rectify uniqueness based on that</span>
-        <span class="k">if</span> <span class="n">HACK_SAME_IDS</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">template_ids</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">HACK_SAME_IDS</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">template_ids</span><span class="p">):</span>
             <span class="n">_id</span> <span class="o">=</span> <span class="n">template_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_id</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_ids</span><span class="p">)</span>
@@ -918,7 +918,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

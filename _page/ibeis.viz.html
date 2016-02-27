@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz package &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz package &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.viz.interact package" href="ibeis.viz.interact.html"/>
         <link rel="prev" title="ibeis.tests package" href="ibeis.tests.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -121,11 +121,10 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
@@ -218,19 +217,28 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; </li>
 <li><strong>aid</strong> (<em>int</em>) &#8211; annotation rowid</li>
 <li><strong>in_image</strong> (<em>bool</em>) &#8211; displays annotation with the context of its source image</li>
 <li><strong>annote</strong> (<em>bool</em>) &#8211; enables overlay annoations</li>
 <li><strong>title_suffix</strong> (<em>str</em>) &#8211; </li>
+<li><strong>weight_label</strong> (<em>None</em>) &#8211; (default = None)</li>
+<li><strong>weights</strong> (<em>None</em>) &#8211; (default = None)</li>
+<li><strong>config2</strong> (<em>dict</em>) &#8211; (default = None)</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
 <dl class="docutils">
-<dt>Keywords:</dt>
-<dd>color (3/4-tuple, ndarray, or str): colors for keypoints</dd>
+<dt>Kwargs:</dt>
+<dd>enable_chip_title_prefix, nokpts, kpts_subset, kpts, text_color,
+notitle, draw_lbls, show_aidstr, show_gname, show_name, show_nid,
+show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,
+title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,
+darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,
+projection, use_gridspec, pts, ell
+color (3/4-tuple, ndarray, or str): colors for keypoints</dd>
 </dl>
 <p class="rubric">CommandLine:</p>
 <div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.viz_chip --test-show_chip --show --ecc
@@ -336,16 +344,24 @@ python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1
 python -m ibeis --tf make_name_graph_interaction --aids <span class="m">3</span> --show
 
 python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids <span class="m">193</span> <span class="m">194</span> <span class="m">195</span> <span class="m">196</span> --show --db WD_Siva
+
+python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids <span class="m">792</span> --show --db GZ_ALL --no-with-all
+
+python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids<span class="o">=</span>788,789,790,791 --show --db GZ_ALL --no-with-all
+python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --aids<span class="o">=</span>782,783,792 --show --db GZ_ALL --no-with-all
 </pre></div>
 </div>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_graph</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nids</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">with_all</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-with-all&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">with_all</span><span class="o">=</span><span class="n">with_all</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -805,8 +821,6 @@ python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL
 python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL --gid 100
 python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 10
 
-python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
-
 python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid <span class="m">91</span> --no-annot --rich-title
 python -m ibeis.viz.viz_image --test-show_image --show --db GIR_Tanya --aid <span class="m">1</span> --no-annot --rich-title
 </pre></div>
@@ -1037,7 +1051,8 @@ python -m ibeis.viz.viz_matches --test-show_name_matches --show
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">show_single_namematch</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sourcecode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">stripdef</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stripret</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">strip_docstr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sourcecode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">stripdef</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stripret</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">strip_docstr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">setup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;viz_matches.show_name_matches&#39;</span><span class="p">,</span> <span class="s">&#39;#&#39;</span><span class="p">,</span> <span class="n">sourcecode</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">homog</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">setup</span><span class="p">,</span> <span class="s">&#39;&gt;&gt;&gt; &#39;</span><span class="p">))</span>
@@ -1047,11 +1062,15 @@ python -m ibeis.viz.viz_matches --test-show_name_matches --show
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># +--- COPIED SECTION</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">var_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">exec_func_src</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="n">locals_</span><span class="p">,</span> <span class="n">sentinal</span><span class="o">=</span><span class="s">&#39;name_annot_scores = cm.annot_score_list.take(sorted_groupxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">var_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">exec_func_src</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">func</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="n">locals_</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">sentinal</span><span class="o">=</span><span class="s">&#39;name_annot_scores = cm.annot_score_list.take(sorted_groupxs&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">exec</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">var_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># L___ COPIED SECTION</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">show_name_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">,</span> <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">name_H1_list</span><span class="p">,</span> <span class="n">name_featflag_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_name_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span> <span class="n">name_fm_list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">name_fs_list</span><span class="p">,</span> <span class="n">name_h1_list</span><span class="p">,</span> <span class="n">name_featflag_list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
@@ -1073,6 +1092,9 @@ python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 -
 python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids<span class="o">=</span>4020,4839 --no-inimage --notitle --adjust<span class="o">=</span>.05
 
 python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids<span class="o">=</span>6524,6540,6571,6751 --no-inimage --notitle --adjust<span class="o">=</span>.05 --diskshow
+
+python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index<span class="o">=</span>0:4 --show
+--aids<span class="o">=</span><span class="m">1</span> --doboth --show --no-inimage
 
 python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids<span class="o">=</span><span class="m">1</span> --doboth --show --no-inimage
 python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids<span class="o">=</span><span class="m">1</span> --doboth --rc<span class="o">=</span>2,1 --show --no-inimage
@@ -1273,33 +1295,31 @@ python -m ibeis &#8211;tf TestResult.draw_feat_scoresep &#8211;show &#8211;db PZ
 <dl class="function">
 <dt id="ibeis.viz.viz_qres.show_qres">
 <code class="descclassname">ibeis.viz.viz_qres.</code><code class="descname">show_qres</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>qreq_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#show_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.show_qres" title="Permalink to this definition">¶</a></dt>
-<dd><p>Display Query Result Logic</p>
-<p>Defaults to: query chip, groundtruth matches, and top matches
-python -c &#8220;import ut, ibeis; print(ut.auto_docstr(&#8216;ibeis.viz.viz_qres&#8217;, &#8216;show_qres&#8217;))&#8221;
-cm.ishow calls down into this</p>
+<dd><p>Display Query Result Logic
+Defaults to: query chip, groundtruth matches, and top matches</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>cm</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</li>
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>cm</strong> (<em>ibeis.ChipMatch</em>) &#8211; object of feature correspondences and scores</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Kwargs:</p>
-<blockquote>
-<div><p>in_image (bool) show result  in image view if True else chip view</p>
 <dl class="docutils">
-<dt>annot_mode (int):</dt>
-<dd>if annot_mode == 0, then draw lines and ellipse
+<dt>Kwargs:</dt>
+<dd><p class="first">in_image (bool) show result  in image view if True else chip view
+annot_mode (int):</p>
+<blockquote>
+<div>if annot_mode == 0, then draw lines and ellipse
 elif annot_mode == 1, then dont draw lines or ellipse
-elif annot_mode == 2, then draw only lines</dd>
+elif annot_mode == 2, then draw only lines</div></blockquote>
+<p class="last">See: viz_matches.show_name_matches, viz_helpers.get_query_text</p>
+</dd>
 </dl>
-<p>See: viz_matches.show_name_matches, viz_helpers.get_query_text</p>
-</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1337,8 +1357,7 @@ python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids<span class="o">=
 <dl class="function">
 <dt id="ibeis.viz.viz_qres.show_qres_analysis">
 <code class="descclassname">ibeis.viz.viz_qres.</code><code class="descname">show_qres_analysis</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>qreq_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#show_qres_analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.show_qres_analysis" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around show_qres.
-CONVERTING FROM QRES TO CM</p>
+<dd><p>Wrapper around show_qres.</p>
 <dl class="docutils">
 <dt>KWARGS:</dt>
 <dd>aid_list - show matches against aid_list (default top 3)</dd>
@@ -1360,16 +1379,6 @@ CONVERTING FROM QRES TO CM</p>
 <dt>Kwargs:</dt>
 <dd>N, show_gt, show_query, aid_list, figtitle, viz_name_score, viz_name_score</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">?</td>
-</tr>
-</tbody>
-</table>
 <p class="rubric">CommandLine:</p>
 <div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.viz_qres --exec-show_qres_analysis --show
 </pre></div>
@@ -1506,7 +1515,7 @@ CONVERTING FROM QRES TO CM</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -4,6 +4,14 @@ ibeis.expt package
 Submodules
 ----------
 
+ibeis.expt._grave_testres module
+--------------------------------
+
+.. automodule:: ibeis.expt._grave_testres
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.expt.annotation_configs module
 ------------------------------------
 
@@ -16,6 +24,14 @@ ibeis.expt.cfghelpers module
 ----------------------------
 
 .. automodule:: ibeis.expt.cfghelpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.draw_helpers module
+------------------------------
+
+.. automodule:: ibeis.expt.draw_helpers
     :members:
     :undoc-members:
     :show-inheritance:
@@ -36,14 +52,6 @@ ibeis.expt.experiment_drawing module
     :undoc-members:
     :show-inheritance:
 
-ibeis.expt.experiment_harness module
-------------------------------------
-
-.. automodule:: ibeis.expt.experiment_harness
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.expt.experiment_helpers module
 ------------------------------------
 
@@ -56,6 +64,14 @@ ibeis.expt.experiment_printres module
 -------------------------------------
 
 .. automodule:: ibeis.expt.experiment_printres
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.harness module
+-------------------------
+
+.. automodule:: ibeis.expt.harness
     :members:
     :undoc-members:
     :show-inheritance:

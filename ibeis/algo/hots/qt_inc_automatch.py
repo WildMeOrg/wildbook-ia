@@ -176,7 +176,7 @@ def incremental_test_qt(ibs, num_initial=0):
 
 
 def exec_interactive_incremental_queries(ibs, qaid_list, back=None):
-    assert ut.list_allsame(ibs.get_annot_species_rowids(qaid_list)), 'must be all on same species'
+    assert ut.allsame(ibs.get_annot_species_rowids(qaid_list)), 'must be all on same species'
     self = IncQueryHarness()
     self = self.begin_incremental_query(ibs, qaid_list, back=back)
 

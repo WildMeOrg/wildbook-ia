@@ -34,7 +34,7 @@ def combine_testres_list(ibs, testres_list):
     import copy
     from ibeis.expt import annotation_configs
 
-    acfg_list = [testres.acfg for testres in testres_list]
+    acfg_list = [tr.acfg for tr in testres_list]
     acfg_lbl_list = annotation_configs.get_varied_acfg_labels(acfg_list)
 
     flat_acfg_list = annotation_configs.flatten_acfg_list(acfg_list)
@@ -47,28 +47,24 @@ def combine_testres_list(ibs, testres_list):
             return lbl
         return lbl + '+' + acfg_lbl
 
-    agg_cfg_list        = ut.flatten(
-        [testres.cfg_list for testres in testres_list])
-    agg_cfgx2_cfgreinfo = ut.flatten(
-        [testres.cfgx2_cfgresinfo for testres in testres_list])
-    agg_cfgx2_qreq_     = ut.flatten(
-        [testres.cfgx2_qreq_ for testres in testres_list])
-    agg_cfgdict_list    = ut.flatten(
-        [testres.cfgdict_list for testres in testres_list])
+    agg_cfg_list = ut.flatten([tr.cfg_list for tr in testres_list])
+    agg_cfgx2_qreq_ = ut.flatten([tr.cfgx2_qreq_ for tr in testres_list])
+    agg_cfgdict_list = ut.flatten([tr.cfgdict_list for tr in testres_list])
+    agg_cfgx2_cfgresinfo = ut.flatten([tr.cfgx2_cfgresinfo for tr in testres_list])
     agg_varied_acfg_list = ut.flatten([
-        [acfg] * len(testres.cfg_list)
-        for testres, acfg in zip(testres_list, varied_acfg_list)
+        [acfg] * len(tr.cfg_list)
+        for tr, acfg in zip(testres_list, varied_acfg_list)
     ])
     agg_cfgx2_lbls      = ut.flatten(
-        [[combine_lbls(lbl, acfg_lbl) for lbl in testres.cfgx2_lbl]
-         for testres, acfg_lbl in zip(testres_list, acfg_lbl_list)])
+        [[combine_lbls(lbl, acfg_lbl) for lbl in tr.cfgx2_lbl]
+         for tr, acfg_lbl in zip(testres_list, acfg_lbl_list)])
 
     agg_cfgx2_acfg = ut.flatten(
-        [[copy.deepcopy(acfg)] * len(testres.cfg_list) for
-         testres, acfg in zip(testres_list, acfg_list)])
+        [[copy.deepcopy(acfg)] * len(tr.cfg_list) for
+         tr, acfg in zip(testres_list, acfg_list)])
 
     big_testres = TestResult(agg_cfg_list, agg_cfgx2_lbls,
-                             agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_)
+                             agg_cfgx2_cfgresinfo, agg_cfgx2_qreq_)
 
     # Give the big test result an acfg that is common between everything
     big_testres.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
@@ -102,10 +98,15 @@ class TestResult(object):
             'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl)))
         assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), (
             'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl)))
+        # TODO rename cfg_list to pcfg_list
         testres.cfg_list         = cfg_list
         testres.cfgx2_lbl        = cfgx2_lbl
         testres.cfgx2_cfgresinfo = cfgx2_cfgresinfo
         testres.cfgx2_qreq_      = cfgx2_qreq_
+        # TODO: uncomment
+        #testres.cfgx2_acfg
+        #testres.cfgx2_qcfg
+        #testres.acfg_list        = None  #
         testres.lbl              = None
         testres.testnameid       = None
 
@@ -170,16 +171,16 @@ class TestResult(object):
         return qaids_list
 
     def has_constant_daids(testres):
-        return ut.list_allsame(testres.cfgx2_daids)
+        return ut.allsame(testres.cfgx2_daids)
 
     def has_constant_qaids(testres):
-        return ut.list_allsame(testres.cfgx2_qaids)
+        return ut.allsame(testres.cfgx2_qaids)
 
     def has_constant_length_daids(testres):
-        return ut.list_allsame(list(map(len, testres.cfgx2_daids)))
+        return ut.allsame(list(map(len, testres.cfgx2_daids)))
 
     def has_constant_length_qaids(testres):
-        return ut.list_allsame(list(map(len, testres.cfgx2_qaids)))
+        return ut.allsame(list(map(len, testres.cfgx2_qaids)))
 
     def get_infoprop_list(testres, key, qaids=None):
         """
@@ -329,26 +330,32 @@ class TestResult(object):
         cfgx2_cumhist = np.cumsum(cfgx2_hist, axis=1)
         if join_acfgs:
             # Hack for turtles
-            groupxs = testres.get_pcfg_groupxs()
+            groupxs = testres.get_cfgx_groupxs()
             cfgx2_cumhist = np.array([np.sum(group, axis=0) for group in ut.apply_grouping(cfgx2_cumhist, groupxs)])
         cfgx2_cumhist_percent = 100 * cfgx2_cumhist / cfgx2_cumhist.T[-1].T[:, None]
         return cfgx2_cumhist_percent, edges
 
-    def get_pcfg_groupxs(testres):
-        """ Groups by common pipe configs
+    def get_cfgx_groupxs(testres):
+        """
+        Groupxs configurations specified to be joined
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> #ibs, testres = main_helpers.testdata_expts('testdb1')
             >>> ibs, testres = main_helpers.testdata_expts(
-            >>>    'seaturtles',
-            >>>     a=['default:num_names=1,name_offset=[0,1,2],joinme=1,dpername=1', 'default:dpername=[1,2,3]'])
-            >>> testres.get_pcfg_groupxs()
+            >>>    'PZ_MTEST',
+            >>>     a=['default:qnum_names=1,qname_offset=[0,1],joinme=1,dpername=1',  'default:qsize=1,dpername=[1,2]'],
+            >>>     t=['default:K=[1,2]'])
+            >>> groupxs = testres.get_cfgx_groupxs()
+            >>> result = groupxs
+            >>> print(result)
+            [[7], [6], [5], [4], [0, 1, 2, 3]]
         """
-        group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.acfg_list]
         import itertools
+        #group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.acfg_list]
+        group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.cfgx2_acfg]
         gen_groupid = itertools.count(1)
         group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
                      for groupid in group_ids_]
@@ -669,7 +676,7 @@ class TestResult(object):
                     newlbl = '+'.join(new_parts)
                 cfg_lbls.append(newlbl)
         if join_acfgs:
-            groupxs = testres.get_pcfg_groupxs()
+            groupxs = testres.get_cfgx_groupxs()
             group_lbls = []
             for group in ut.apply_grouping(cfg_lbls, groupxs):
                 num_parts = 0
@@ -1100,7 +1107,6 @@ class TestResult(object):
             >>> case_pos_list7 = testres.case_sample2(filt_cfg7, verbose=verbose)
             >>> print(case_pos_list7)
 
-
         Example1:
             >>> # SCRIPT
             >>> from ibeis.expt.test_result import *  # NOQA
@@ -1121,6 +1127,8 @@ class TestResult(object):
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
+            >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'], qaid_override=12)
+            >>> filt_cfg = ':disagree=True,index=0:8,min_gtscore=.00001,require_all_cfg=True'
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
             >>> case_pos_list = testres.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
@@ -1129,6 +1137,20 @@ class TestResult(object):
             >>> all_tags = testres.get_all_tags()
             >>> selcted_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
+
+
+            print('qaid = %r' % (qaid,))
+            print('qx = %r' % (qx,))
+            print('cfgxs = %r' % (cfgxs,))
+            # print testres info about this item
+            take_cfgs = ut.partial(ut.take, index_list=cfgxs)
+            take_qx = ut.partial(ut.take, index_list=qx)
+            truth_cfgs = ut.hmap_vals(take_qx, truth2_prop)
+            truth_item = ut.hmap_vals(take_cfgs, truth_cfgs, max_depth=1)
+            prop_cfgs = ut.hmap_vals(take_qx, prop2_mat)
+            prop_item = ut.hmap_vals(take_cfgs, prop_cfgs, max_depth=0)
+            print('truth2_prop[item] = ' + ut.repr3(truth_item, nl=2))
+            print('prop2_mat[item] = ' + ut.repr3(prop_item, nl=1))
         """
         from ibeis.expt import cfghelpers
         if verbose is None:
@@ -1176,7 +1198,7 @@ class TestResult(object):
             return flags
 
         rule_list = [
-            ('disagree',  lambda val: cols_disagree(prop2_mat['is_failure'], val)),
+            ('disagree', lambda val: cols_disagree(prop2_mat['is_failure'], val)),
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
@@ -1207,6 +1229,9 @@ class TestResult(object):
             ('with_tag',    lambda val: UTFF(testres.get_all_tags(), has_any=val)),
             ('without_tag', lambda val: UTFF(testres.get_all_tags(), has_none=val)),
         ]
+        rule_dict = ut.odict(rule_list)
+        rule_list.append(('max_gf_td', rule_dict['max_gf_timedelta']))
+        rule_list.append(('min_gf_td', rule_dict['min_gf_timedelta']))
 
         filt_cfg = filt_cfg.copy()
 
@@ -1333,6 +1358,17 @@ class TestResult(object):
             qx_list = _qx_list
             cfgx_list = _cfgx_list
 
+        require_all_cfg = filt_cfg.pop('require_all_cfg', None)
+        if require_all_cfg:
+            qx2_valid_cfgs = ut.group_items(cfgx_list, qx_list)
+            hasall_cfg = [len(qx2_valid_cfgs[qx]) == testres.nConfig for qx in qx_list]
+            _qx_list = qx_list.compress(hasall_cfg)
+            _cfgx_list = cfgx_list.compress(hasall_cfg)
+            _valid_index = np.vstack((_qx_list, _cfgx_list)).T
+            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, hack=True)
+            qx_list = _qx_list
+            cfgx_list = _cfgx_list
+
         if return_mask:
             return is_valid
         else:
@@ -1353,7 +1389,7 @@ class TestResult(object):
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
             return case_pos_list
 
-    def get_truth2_prop(testres, qaids=None):
+    def get_truth2_prop(testres, qaids=None, join_acfg=False):
         r"""
         Returns:
             tuple: (truth2_prop, prop2_mat)
@@ -1367,12 +1403,13 @@ class TestResult(object):
             >>> import ibeis
             >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> (truth2_prop, prop2_mat) = testres.get_truth2_prop()
-            >>> result = ('(truth2_prop, prop2_mat) = %s' % (str((truth2_prop, prop2_mat)),))
+            >>> result = '(truth2_prop, prop2_mat) = %s' % str((truth2_prop, prop2_mat))
             >>> print(result)
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> ut.show_if_requested()
         """
+
         ibs = testres.ibs
         test_qaids = testres.get_test_qaids() if qaids is None else qaids
 
@@ -1387,20 +1424,21 @@ class TestResult(object):
         truth2_prop['gt']['rank'] = testres.get_infoprop_mat('qx2_gt_rank', test_qaids)
         truth2_prop['gf']['rank'] = testres.get_infoprop_mat('qx2_gf_rank', test_qaids)
 
-        truth2_prop['gt']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gt_raw_score', test_qaids))
-        truth2_prop['gf']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gf_raw_score', test_qaids))
+        truth2_prop['gt']['score'] = testres.get_infoprop_mat(
+            'qx2_gt_raw_score', test_qaids)
+        truth2_prop['gf']['score'] = testres.get_infoprop_mat(
+            'qx2_gf_raw_score', test_qaids)
+        truth2_prop['gt']['score'] = np.nan_to_num(truth2_prop['gt']['score'])
+        truth2_prop['gf']['score'] = np.nan_to_num(truth2_prop['gf']['score'])
 
         # Cast nans to ints (that are participants)
         # if False:
         for truth in ['gt', 'gf']:
             rank_mat = truth2_prop[truth]['rank']
-            rank_mat[np.logical_and(np.isnan(rank_mat), participates)] = testres.get_worst_possible_rank()
+            flags = np.logical_and(np.isnan(rank_mat), participates)
+            rank_mat[flags] = testres.get_worst_possible_rank()
             # truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
 
-        # Rank difference
-        #hardness_degree_rank = truth2_prop['gt']['rank'] - truth2_prop['gf']['rank']
-        #is_failure = hardness_degree_rank >= 0
-        #is_success = hardness_degree_rank < 0
         is_success = truth2_prop['gt']['rank'] == 0
         is_failure = np.logical_not(is_success)
 
@@ -1409,7 +1447,8 @@ class TestResult(object):
 
         # WEIRD THINGS HAPPEN WHEN UNKNOWNS ARE HERE
         #hardness_degree_rank[is_success]
-        #is_weird = hardness_degree_rank == 0  # These probably just completely failure spatial verification
+        # These probably just completely failure spatial verification
+        #is_weird = hardness_degree_rank == 0
 
         # Get timedelta and annotmatch rowid
         for truth in ['gt', 'gf']:
@@ -1429,7 +1468,55 @@ class TestResult(object):
         prop2_mat['is_success'] = is_success
         prop2_mat['is_failure'] = is_failure
         prop2_mat['participates'] = participates
-        return truth2_prop, prop2_mat
+
+        groupxs = testres.get_cfgx_groupxs()
+
+        def group_prop(val, grouped_flags, groupxs):
+            nRows = len(val)
+            # Allocate space for new val
+            new_shape = (nRows, len(groupxs))
+            if val.dtype == object or val.dtype.type == object:
+                new_val = np.full(new_shape, None, dtype=val.dtype)
+            elif ut.is_float(val):
+                new_val = np.full(new_shape, np.nan, dtype=val.dtype)
+            else:
+                new_val = np.zeros(new_shape, dtype=val.dtype)
+            # Populate new val
+            grouped_vals = vt.apply_grouping(val.T, groupxs)
+            _iter = enumerate(zip(grouped_flags, grouped_vals))
+            for new_col, (flags, group) in _iter:
+                rows, cols = np.where(flags.T)
+                new_val[rows, new_col] = group.T[(rows, cols)]
+            return new_val
+
+        if join_acfg:
+            assert ut.allsame(participates.sum(axis=1))
+            grouped_flags = vt.apply_grouping(participates.T, groupxs)
+
+            #new_prop2_mat = {key: group_prop(val)
+            #                 for key, val in prop2_mat.items()}
+            #new_truth2_prop = {
+            #    truth: {key: group_prop(val)
+            #            for key, val in props.items()}
+            #    for truth, props in truth2_prop.items()}
+
+            new_prop2_mat = {}
+            for key, val in prop2_mat.items():
+                new_prop2_mat[key] = group_prop(val, grouped_flags, groupxs)
+
+            new_truth2_prop = {}
+            for truth, props in truth2_prop.items():
+                new_props = {}
+                for key, val in props.items():
+                    new_props[key] = group_prop(val, grouped_flags, groupxs)
+                new_truth2_prop[truth] = new_props
+
+            prop2_mat_ = new_prop2_mat
+            truth2_prop_ = new_truth2_prop
+        else:
+            prop2_mat_ = prop2_mat
+            truth2_prop_ = truth2_prop
+        return truth2_prop_, prop2_mat_
 
     def interact_individual_result(testres, qaid, cfgx=0):
         ibs = testres.ibs
@@ -1928,7 +2015,7 @@ class TestResult(object):
 
         # TODO: option to average over pipeline configurations
         if join_acfgs:
-            groupxs = testres.get_pcfg_groupxs()
+            groupxs = testres.get_cfgx_groupxs()
         else:
             groupxs = list(zip(range(len(testres.cfgx2_qreq_))))
         grouped_qreqs = ut.apply_grouping(testres.cfgx2_qreq_, groupxs)

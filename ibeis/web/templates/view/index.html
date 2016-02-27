@@ -167,16 +167,16 @@
 
   <div class="row" style="margin: 50px 0px; text-align: center;">
     <div class="col-md-3 col-lg-3">
-      <a href="{{ url_for('display_sightings') }}" target="_blank">View Data</a>
+      <a href="{{ url_for('sightings') }}" target="_blank">View Data</a>
     </div>
     <div class="col-md-3 col-lg-3">
-      <a href="{{ url_for('download_sightings') }}" target="_blank">Download Data (CSV)</a>
+      <a href="{{ url_for('sightings') }}" target="_blank">Download Data (CSV)</a>
     </div>
     <div class="col-md-3 col-lg-3">
-      <a href="{{ url_for('display_sightings') }}?complete" target="_blank">View Complete Data</a>
+      <a href="{{ url_for('sightings') }}?complete" target="_blank">View Complete Data</a>
     </div>
     <div class="col-md-3 col-lg-3">
-      <a href="{{ url_for('download_sightings') }}?complete" target="_blank">Download Complete Data (CSV)</a>
+      <a href="{{ url_for('sightings') }}?complete" target="_blank">Download Complete Data (CSV)</a>
     </div>
   </div>
 {% endblock %}

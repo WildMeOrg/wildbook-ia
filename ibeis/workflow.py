@@ -13,6 +13,43 @@ Rescore based on progressively increasing thresholds
 """
 
 
+def chip_montage():
+    import ibeis
+    defaltdb = 'seaturtles'
+    a = ['default']
+    ibs = ibeis.opendb(defaultdb=defaltdb)
+    ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)
+    chip_list = ibs.get_annot_chips(qaids)
+    import vtool as vt
+    x = 1000
+    dsize = (int(x * ut.PHI), x)
+    dst = vt.montage(chip_list, dsize)
+    import plottool as pt
+    ut.ensure_pylab_qt4()
+    pt.imshow(dst)
+
+
+def test_sharpness():
+    import ibeis
+    defaltdb = 'seaturtles'
+    a = ['default']
+    ibs = ibeis.opendb(defaultdb=defaltdb)
+    ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)
+    from vtool import quality_classifier
+
+    contrast_list = [quality_classifier.compute_average_contrast(chip) for chip in ibs.get_annot_chips(qaids)]
+    sortx = ut.argsort(contrast_list)[::-1]
+    sharpest_qaids = ut.take(qaids, sortx)
+
+    aid = sharpest_qaids[0]
+    ut.ensure_pylab_qt4()
+    from ibeis import viz
+    import plottool as pt
+    for aid in ut.InteractiveIter(sharpest_qaids):
+        viz.show_chip(ibs, aid, annot=False, nokpts=True)
+        pt.update()
+
+
 def testdata_workflow(defaltdb='PZ_MTEST', t=['default'], a=['defualt']):
     # qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default', t='default')
     # ibs = qreq_.ibs

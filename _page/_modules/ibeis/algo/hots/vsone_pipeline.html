@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.vsone_pipeline &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.vsone_pipeline &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -194,11 +194,6 @@
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span>  <span class="c"># NOQA</span>
-<span class="c">#from ibeis.algo.hots import neighbor_index</span>
-<span class="c">#from ibeis.algo.hots import name_scoring</span>
-<span class="c">#import pyflann</span>
-<span class="c">#from ibeis.algo.hots import coverage_kpts</span>
-<span class="c">#profile = ut.profile</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[vsonepipe]&#39;</span><span class="p">)</span>
 
 <span class="c">#from collections import namedtuple</span>
@@ -370,8 +365,8 @@
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">daid</span><span class="p">])</span>
     <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">vsone_single</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-    <span class="n">rchip1</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;rchip1&#39;</span><span class="p">]</span>
-    <span class="n">rchip2</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;rchip2&#39;</span><span class="p">]</span>
+    <span class="n">rchip1</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot1&#39;</span><span class="p">][</span><span class="s">&#39;rchip&#39;</span><span class="p">]</span>
+    <span class="n">rchip2</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot2&#39;</span><span class="p">][</span><span class="s">&#39;rchip&#39;</span><span class="p">]</span>
     <span class="n">H1</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;H_RAT&#39;</span><span class="p">]</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="n">wh2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">rchip2</span><span class="p">)</span>
@@ -381,18 +376,21 @@
     <span class="c"># remove parts of the image that cannot match</span>
     <span class="n">rchip1_crop</span> <span class="o">=</span> <span class="n">rchip1_</span><span class="p">[</span><span class="n">rowslice</span><span class="p">,</span> <span class="n">colslice</span><span class="p">]</span>
     <span class="n">rchip2_crop</span> <span class="o">=</span> <span class="n">rchip2</span><span class="p">[</span><span class="n">rowslice</span><span class="p">,</span> <span class="n">colslice</span><span class="p">]</span>
-    <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;rchip1_crop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rchip1_crop</span>
-    <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;rchip2_crop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rchip2_crop</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot1&#39;</span><span class="p">][</span><span class="s">&#39;rchip_crop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rchip1_crop</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot2&#39;</span><span class="p">][</span><span class="s">&#39;rchip_crop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rchip2_crop</span>
     <span class="k">return</span> <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span>
 
 </div>
 <div class="viewcode-block" id="unsupervised_similarity"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.vsone_pipeline.unsupervised_similarity">[docs]</a><span class="k">def</span> <span class="nf">unsupervised_similarity</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    http://repository.upenn.edu/cgi/viewcontent.cgi?article=1101&amp;context=cis_papers</span>
+
 <span class="sd">    Ignore:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.vsone_pipeline import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; #ibs, aids = ibeis.testdata_aids(&#39;wd_peter2&#39;, &#39;timectrl:pername=2,view=left,view_ext=1,exclude_reference=True&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, aids = ibeis.testdata_aids(&#39;wd_peter2&#39;, &#39;timectrl:pername=2,view=left,view_ext=0,exclude_reference=True&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aids = ibeis.testdata_aids(&#39;PZ_MTEST&#39;, &#39;timectrl:pername=4,view=left,view_ext=0,exclude_reference=True&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
 
@@ -406,12 +404,12 @@
 
     <span class="c"># [0:8]</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">aids</span>
-    <span class="n">aids</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="c">#aids = aids[0:6]</span>
     <span class="n">nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
 
     <span class="n">pair_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
-    <span class="n">score_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="c">#score_mat = np.full((len(aids), len(aids)), np.inf)</span>
     <span class="n">idx_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">self_prodx</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))))</span>
     <span class="c">#idx_list = list(ut.iprod(range(len(aids)), range(len(aids))))</span>
 
@@ -426,36 +424,82 @@
         <span class="n">metadata</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_lazy_dict</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qconfig2_</span><span class="p">,</span> <span class="n">dconfig2_</span><span class="p">)</span>
         <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;kdtree&#39;</span><span class="p">,</span> <span class="s">&#39;trees&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
         <span class="c"># truth = (nids[qx] == nids[dx])</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;flann1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;vecs1&#39;</span><span class="p">],</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">)</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot1&#39;</span><span class="p">][</span><span class="s">&#39;flann&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot1&#39;</span><span class="p">][</span><span class="s">&#39;vecs&#39;</span><span class="p">],</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">)</span>
         <span class="c"># metadata[&#39;flann2&#39;] = vt.flann_cache(metadata[&#39;vecs2&#39;], flann_params=flann_params)</span>
         <span class="n">match</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">vsone_matching2</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">pair_dict</span><span class="p">[(</span><span class="n">qx</span><span class="p">,</span> <span class="n">dx</span><span class="p">)]</span> <span class="o">=</span> <span class="n">match</span>
 
+    <span class="kn">from</span> <span class="nn">skimage.future</span> <span class="kn">import</span> <span class="n">graph</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">rag</span><span class="o">.</span><span class="n">RAG</span><span class="p">()</span>
+    <span class="n">score_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
+    <span class="c"># Populate weight matrix off-diagonal</span>
     <span class="k">for</span> <span class="n">qx</span><span class="p">,</span> <span class="n">dx</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">idx_list</span><span class="p">):</span>
         <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="p">[</span><span class="n">qx</span><span class="p">,</span> <span class="n">dx</span><span class="p">])</span>
         <span class="n">match</span> <span class="o">=</span> <span class="n">pair_dict</span><span class="p">[(</span><span class="n">qx</span><span class="p">,</span> <span class="n">dx</span><span class="p">)]</span>
         <span class="k">print</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
-        <span class="n">score_mat</span><span class="p">[</span><span class="n">qx</span><span class="p">,</span> <span class="n">dx</span><span class="p">]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;TOP+SV&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;TOP+SV&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">score_mat</span><span class="p">[</span><span class="n">qx</span><span class="p">,</span> <span class="n">dx</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">qx</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">score</span><span class="p">)</span>
         <span class="p">(</span><span class="n">nids</span><span class="p">[</span><span class="n">qx</span><span class="p">]</span> <span class="o">==</span> <span class="n">nids</span><span class="p">[</span><span class="n">dx</span><span class="p">])</span>
-
-    <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
-    <span class="n">gt_scores</span> <span class="o">=</span> <span class="n">score_mat</span><span class="p">[</span><span class="n">nids</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">==</span> <span class="n">nids</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
-    <span class="c">#gf_scores = score_mat[nids[pos[1]] != nids[pos[0]]]</span>
-    <span class="n">min_gt_score</span> <span class="o">=</span> <span class="n">gt_scores</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-
-    <span class="c">#nids = np.array(nids)</span>
-    <span class="c">#[np.array(idx_list)]</span>
-    <span class="c">#score_mat[]</span>
-
-    <span class="c">#for qx, dx in ut.ProgressIter(idx_list):</span>
-    <span class="c">#    match = pair_dict[(qx, dx)]</span>
-    <span class="c">#    match.show()</span>
-
-    <span class="n">score_mat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices_from</span><span class="p">(</span><span class="n">score_mat</span><span class="p">)]</span> <span class="o">=</span> <span class="n">score_mat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">score_mat</span><span class="p">)]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span>
-    <span class="n">score_mat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices_from</span><span class="p">(</span><span class="n">score_mat</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c"># Populate weight matrix on-diagonal</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">score_mat</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>  <span class="c"># NOQA</span>
 
     <span class="kn">from</span> <span class="nn">plottool.interactions</span> <span class="kn">import</span> <span class="n">ExpandableInteraction</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="c"># NORMALIZED CUT STUFF</span>
+        <span class="c"># https://github.com/IAS-ZHAW/machine_learning_scripts/blob/master/mlscripts/ml/normalized_min_cut.py</span>
+
+        <span class="c">#labels = np.arange(len(aids))</span>
+        <span class="c">#graph.cut_normalized(labels, g)</span>
+        <span class="n">m_adjacency</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">to_numpy_matrix</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">m_adjacency</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">D_half_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">m_adjacency</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">D_half_inv</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">((</span><span class="n">D</span> <span class="o">-</span> <span class="n">m_adjacency</span><span class="p">),</span> <span class="n">D_half_inv</span><span class="p">))</span>
+        <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="c">#find index of second smallest eigenvalue</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">w</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">v_partition</span> <span class="o">=</span> <span class="n">v</span><span class="p">[:,</span> <span class="n">index</span><span class="p">]</span>
+        <span class="n">v_partition</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">v_partition</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">ibeis</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">v_partition</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">cluster_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">viz_chip</span><span class="o">.</span><span class="n">show_many_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cluster_aids</span><span class="p">)</span>
+        <span class="n">remain_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">flags</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nids</span><span class="p">))):</span>
+            <span class="n">remain_m</span> <span class="o">=</span> <span class="n">m_adjacency</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="o">~</span><span class="n">flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="o">~</span><span class="n">flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">remain_m</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">D_half_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">remain_m</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">D_half_inv</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">((</span><span class="n">D</span> <span class="o">-</span> <span class="n">remain_m</span><span class="p">),</span> <span class="n">D_half_inv</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+            <span class="c">#find index of second smallest eigenvalue</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">w</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">v_partition</span> <span class="o">=</span> <span class="n">v</span><span class="p">[:,</span> <span class="n">index</span><span class="p">]</span>
+            <span class="n">v_partition</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">v_partition</span><span class="p">)</span>
+
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">v_partition</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">cluster_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">remain_aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">viz_chip</span><span class="o">.</span><span class="n">show_many_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cluster_aids</span><span class="p">)</span>
+            <span class="n">remain_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">remain_aids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="n">flags</span><span class="p">))</span>
+            <span class="k">pass</span>
+
+    <span class="c">#diag_idx = np.diag_indices_from(score_mat)</span>
+    <span class="c">#score_mat[diag_idx] = score_mat.sum(axis=0)</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
+    <span class="n">gt_scores</span> <span class="o">=</span> <span class="n">score_mat</span><span class="p">[</span><span class="n">nids</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">==</span> <span class="n">nids</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
+    <span class="n">min_gt_score</span> <span class="o">=</span> <span class="n">gt_scores</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="c">#_pnumiter = pt.make_pnum_nextgen(nSubplots=score_mat.size)</span>
     <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="n">score_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -485,7 +529,7 @@
     <span class="c">#pt.plot_score_histograms([m.matches[&#39;TOP+SV&#39;][1]])</span>
 
     <span class="n">sym_score_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">score_mat</span><span class="p">,</span> <span class="n">score_mat</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-    <span class="n">gt_scores</span> <span class="o">=</span> <span class="n">sym_score_mat</span><span class="p">[</span><span class="n">nids</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">==</span> <span class="n">nids</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
+    <span class="c">#gt_scores = sym_score_mat[nids[pos[1]] == nids[pos[0]]]</span>
     <span class="c">#gf_scores = sym_score_mat[nids[pos[1]] != nids[pos[0]]]</span>
 
     <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">sym_score_mat</span> <span class="o">-</span> <span class="mi">50</span>
@@ -536,15 +580,23 @@
     <span class="n">alg</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">score_mat</span><span class="p">))</span>
     <span class="c">#import pandas</span>
     <span class="c">#score_mat = pandas.DataFrame(pairs).as_matrix()</span>
-    <span class="c">#[vsone_single(qaid, daid) for qaid, daid in ]</span>
+
+    <span class="c">#nids = np.array(nids)</span>
+    <span class="c">#[np.array(idx_list)]</span>
+    <span class="c">#score_mat[]</span>
+
+    <span class="c">#for qx, dx in ut.ProgressIter(idx_list):</span>
+    <span class="c">#    match = pair_dict[(qx, dx)]</span>
+    <span class="c">#    match.show()</span>
     <span class="k">pass</span>
 
 </div>
 <div class="viewcode-block" id="vsone_single2"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.vsone_pipeline.vsone_single2">[docs]</a><span class="k">def</span> <span class="nf">vsone_single2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qconfig2_</span><span class="p">,</span> <span class="n">dconfig2_</span><span class="p">,</span> <span class="n">use_ibscache</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
-    <span class="n">metadata_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">({</span>
-        <span class="s">&#39;rchip_fpath1&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-        <span class="s">&#39;rchip_fpath2&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">([</span><span class="n">daid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-    <span class="p">})</span>
+    <span class="n">metadata_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">()</span>
+    <span class="n">annot1</span> <span class="o">=</span> <span class="n">metadata_</span><span class="p">[</span><span class="s">&#39;annot1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">()</span>
+    <span class="n">annot2</span> <span class="o">=</span> <span class="n">metadata_</span><span class="p">[</span><span class="s">&#39;annot2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">()</span>
+    <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;rchip_fpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;rchip_fpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">([</span><span class="n">daid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">use_ibscache</span><span class="p">:</span>
         <span class="n">hack_multi_config</span> <span class="o">=</span> <span class="bp">False</span>
@@ -565,23 +617,17 @@
                                <span class="k">for</span> <span class="n">config2_</span> <span class="ow">in</span> <span class="n">data_config_list</span><span class="p">])</span>
             <span class="n">dlen_sqrd2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_dlensqrd</span><span class="p">([</span><span class="n">daid</span><span class="p">],</span>
                                                      <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">metadata_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">kpts1</span><span class="o">=</span><span class="n">kpts1</span><span class="p">,</span>
-                <span class="n">kpts2</span><span class="o">=</span><span class="n">kpts2</span><span class="p">,</span>
-                <span class="n">vecs1</span><span class="o">=</span><span class="n">vecs1</span><span class="p">,</span>
-                <span class="n">vecs2</span><span class="o">=</span><span class="n">vecs2</span><span class="p">,</span>
-                <span class="n">dlen_sqrd2</span><span class="o">=</span><span class="n">dlen_sqrd2</span><span class="p">,</span>
-            <span class="p">))</span>
+            <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts1</span>
+            <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vecs1</span>
+            <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts2</span>
+            <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vecs2</span>
+            <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;dlen_sqrd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlen_sqrd2</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">metadata_</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-                <span class="s">&#39;kpts1&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">),</span>
-                <span class="s">&#39;kpts2&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">),</span>
-
-                <span class="s">&#39;vecs1&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">),</span>
-                <span class="s">&#39;vecs2&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">),</span>
-
-                <span class="s">&#39;dlen_sqrd2&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_dlensqrd</span><span class="p">([</span><span class="n">daid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-            <span class="p">})</span>
+            <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)</span>
+            <span class="n">annot1</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)</span>
+            <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)</span>
+            <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)</span>
+            <span class="n">annot2</span><span class="p">[</span><span class="s">&#39;dlen_sqrd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_dlensqrd</span><span class="p">([</span><span class="n">daid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">dconfig2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">vsone_matching</span><span class="p">(</span><span class="n">metadata_</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="n">metadata_</span>
     <span class="k">return</span> <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span>
@@ -624,50 +670,6 @@
     <span class="n">qconfig2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()</span>
     <span class="n">dconfig2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">vsone_single2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qconfig2_</span><span class="p">,</span> <span class="n">dconfig2_</span><span class="p">,</span> <span class="n">use_ibscache</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
-    <span class="c">#metadata_ = ut.LazyDict({</span>
-    <span class="c">#    &#39;rchip_fpath1&#39;: ibs.get_annot_chip_fpath([qaid], config2_=qconfig2_)[0],</span>
-    <span class="c">#    &#39;rchip_fpath2&#39;: ibs.get_annot_chip_fpath([daid], config2_=dconfig2_)[0],</span>
-    <span class="c">#})</span>
-    <span class="c">#cfgdict = {}</span>
-    <span class="c">#if use_ibscache:</span>
-    <span class="c">#    hack_multi_config = True</span>
-    <span class="c">#    if hack_multi_config:</span>
-    <span class="c">#        cfgdict = {&#39;refine_method&#39;: &#39;affine&#39;}</span>
-    <span class="c">#        data_config_list = query_config_list = [</span>
-    <span class="c">#            ibs.new_query_params(affine_invariance=True),</span>
-    <span class="c">#            ibs.new_query_params(affine_invariance=False),</span>
-    <span class="c">#        ]</span>
-    <span class="c">#        kpts1 = np.vstack([ibs.get_annot_kpts(qaid, config2_=config2_)</span>
-    <span class="c">#                           for config2_ in query_config_list])</span>
-    <span class="c">#        vecs1 = np.vstack([ibs.get_annot_vecs(qaid, config2_=config2_)</span>
-    <span class="c">#                           for config2_ in query_config_list])</span>
-
-    <span class="c">#        kpts2 = np.vstack([ibs.get_annot_kpts(daid, config2_=config2_)</span>
-    <span class="c">#                           for config2_ in data_config_list])</span>
-    <span class="c">#        vecs2 = np.vstack([ibs.get_annot_vecs(daid, config2_=config2_)</span>
-    <span class="c">#                           for config2_ in data_config_list])</span>
-    <span class="c">#        dlen_sqrd2 = ibs.get_annot_chip_dlensqrd([daid],</span>
-    <span class="c">#                                                 config2_=dconfig2_)[0]</span>
-    <span class="c">#        metadata_.update(dict(</span>
-    <span class="c">#            kpts1=kpts1,</span>
-    <span class="c">#            kpts2=kpts2,</span>
-    <span class="c">#            vecs1=vecs1,</span>
-    <span class="c">#            vecs2=vecs2,</span>
-    <span class="c">#            dlen_sqrd2=dlen_sqrd2,</span>
-    <span class="c">#        ))</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        metadata_.update({</span>
-    <span class="c">#            &#39;kpts1&#39;: ibs.get_annot_kpts(qaid, config2_=qconfig2_),</span>
-    <span class="c">#            &#39;kpts2&#39;: ibs.get_annot_kpts(daid, config2_=dconfig2_),</span>
-
-    <span class="c">#            &#39;vecs1&#39;: ibs.get_annot_vecs(qaid, config2_=qconfig2_),</span>
-    <span class="c">#            &#39;vecs2&#39;: ibs.get_annot_vecs(daid, config2_=dconfig2_),</span>
-
-    <span class="c">#            &#39;dlen_sqrd2&#39;: ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0],</span>
-    <span class="c">#        })</span>
-    <span class="c">#matches, metadata = vt.vsone_matching(metadata_, cfgdict=cfgdict, verbose=verbose)</span>
-    <span class="c">#assert metadata is metadata_</span>
-    <span class="c">#return matches, metadata</span>
 
 </div>
 <div class="viewcode-block" id="vsone_name_independant_hack"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.vsone_pipeline.vsone_name_independant_hack">[docs]</a><span class="k">def</span> <span class="nf">vsone_name_independant_hack</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -810,7 +812,8 @@
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import _pipeline_helpers as plh</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = dict(pipeline_root=&#39;vsone&#39;, codename=&#39;vsone&#39;, fg_on=False)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, qaid_list=[1], daid_list=[2, 5])</span>
+<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = ibeis.testdata_qreq_(p=p, qaid_override=[1], qaid_override=[2, 5])</span>
 <span class="sd">        &gt;&gt;&gt; result = vsone_independant(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1328,9 +1331,11 @@
     <span class="n">cfgdict_</span><span class="p">[</span><span class="s">&#39;rrvsone_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="c"># HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION</span>
     <span class="c"># Get pipeline testdata for this configuration</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">daid_list</span><span class="o">=</span><span class="s">&#39;all&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
-        <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict_</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:qsize=1,mingt=2&#39;</span><span class="p">])</span>
+
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
@@ -1448,6 +1453,7 @@
 <span class="sd">        &gt;&gt;&gt; gridsearch_unconstrained_matches()</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
     <span class="c"># Make configuration for every parameter setting</span>
@@ -1455,9 +1461,8 @@
     <span class="n">cfgdict_</span><span class="p">[</span><span class="s">&#39;rrvsone_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="c"># HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION</span>
     <span class="c"># Get pipeline testdata for this configuration</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span>
-        <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">daid_list</span><span class="o">=</span><span class="s">&#39;gt&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
-        <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict_</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:qsize=1,mingt=2,dsize=1&#39;</span><span class="p">])</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_groundtruth</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
@@ -1615,7 +1620,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

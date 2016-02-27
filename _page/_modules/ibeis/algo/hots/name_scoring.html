@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.name_scoring &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.name_scoring &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -309,7 +309,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#assert qreq_ is not None</span>
-    <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+        <span class="k">pass</span>
     <span class="c"># The core for each feature match</span>
     <span class="c">#</span>
     <span class="c"># The query feature index for each feature match</span>
@@ -388,7 +392,8 @@
     <span class="c">#--</span>
     <span class="n">valid_fs_list2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">fs_list</span><span class="p">,</span> <span class="n">featflag_list2</span><span class="p">)</span>
     <span class="n">name_grouped_valid_fs_list2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">valid_fs_list2</span><span class="p">,</span>  <span class="n">name_groupxs2</span><span class="p">)</span>
-    <span class="n">nsum_score_list2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">valid_fs_group</span><span class="p">)))</span> <span class="k">for</span> <span class="n">valid_fs_group</span> <span class="ow">in</span> <span class="n">name_grouped_valid_fs_list2</span><span class="p">])</span>
+    <span class="n">nsum_score_list2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">valid_fs_group</span><span class="p">)))</span>
+                                 <span class="k">for</span> <span class="n">valid_fs_group</span> <span class="ow">in</span> <span class="n">name_grouped_valid_fs_list2</span><span class="p">])</span>
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
         <span class="n">nsum_score_list3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>  <span class="c"># NOQA</span>
             <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">fs_group</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">fs_group</span> <span class="ow">in</span> <span class="n">valid_fs_group</span><span class="p">])</span>
@@ -418,7 +423,11 @@
 <span class="sd">        &gt;&gt;&gt; featflat_list = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; assert all(list(map(np.all, featflat_list))), &#39;all features should be able to vote in K=1, per_name=1 case&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+        <span class="k">pass</span>
     <span class="c"># The core for each feature match</span>
     <span class="n">fs_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_fsv_prod_list</span><span class="p">()</span>
     <span class="c"># The query feature index for each feature match</span>
@@ -542,12 +551,10 @@
 <span class="sd">        &gt;&gt;&gt; # Execute Function</span>
 <span class="sd">        &gt;&gt;&gt; score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)</span>
 
-
 <span class="sd">    Ignore:</span>
 <span class="sd">        dict(zip(cm.dnid_list, cm.score_list))</span>
 <span class="sd">        dict(zip(cm.unique_nids, cm.nsum_score_list))</span>
 <span class="sd">        np.all(nid_list == cm.unique_nids)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_groupxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">score_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">name_score_list</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -723,7 +730,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

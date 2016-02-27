@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_configs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.expt.experiment_configs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -411,7 +411,7 @@
     <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
     <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
     <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
+    <span class="s">&#39;dim_size&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
     <span class="s">&#39;fg_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
 <span class="p">}</span>
 
@@ -921,7 +921,7 @@
     <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
     <span class="s">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
     <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
-    <span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
+    <span class="s">&#39;dim_size&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
 <span class="p">}</span>
 <span class="c">#best = vsmany_best</span>
 
@@ -936,7 +936,7 @@
 <span class="c"># 450 works the best on GZ</span>
 <span class="n">chipsize_test</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">chipsize_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;chip_sqrt_area&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">400</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">750</span><span class="p">],</span>
+    <span class="s">&#39;dim_size&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">400</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">750</span><span class="p">],</span>
 <span class="p">})</span>
 
 
@@ -1119,7 +1119,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

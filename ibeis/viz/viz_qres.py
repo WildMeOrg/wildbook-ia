@@ -89,6 +89,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     #viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
     #viz_name_score  = kwargs.get('viz_name_score', False)
     viz_name_score  = kwargs.get('viz_name_score', True)
+    failed_to_match = False
 
     # Debug printing
     #print('[analysis] noshow_gt  = %r' % noshow_gt)
@@ -99,9 +100,12 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         # Compare to aid_list instead of using top ranks
         #print('[analysis] showing top aids')
         top_aids = cm.get_top_aids(N)
+        if len(top_aids) == 0:
+            failed_to_match = True
+            print('WARNING! No matches found for this query')
         if figtitle is None:
             if len(top_aids) == 0:
-                figtitle = 'WARNING: no top scores!' + ibsfuncs.aidstr(cm.qaid)
+                figtitle = 'WARNING: no matches found!' + ibsfuncs.aidstr(cm.qaid)
             else:
                 topscore = cm.get_annot_scores(top_aids)[0]
                 figtitle = ('q%s -- topscore=%r' % (ibsfuncs.aidstr(cm.qaid), topscore))
@@ -173,9 +177,10 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         top_nids = ibs.get_annot_name_rowids(top_aids)
         top_aids = ut.compress(top_aids, ut.flag_unique_items(top_nids))
 
-    #ut.embed()
     return show_qres(ibs, cm, gt_aids=showgt_aids, top_aids=top_aids,
-                     figtitle=figtitle, show_query=show_query, qreq_=qreq_, **kwargs)
+                     figtitle=figtitle, show_query=show_query, qreq_=qreq_,
+                     failed_to_match=failed_to_match,
+                     **kwargs)
 
 
 def testdata_show_qres():
@@ -256,6 +261,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     #name_scoring   = kwargs.get('name_scoring', False)
     viz_name_score = kwargs.get('viz_name_score', qreq_ is not None)
     max_nCols      = kwargs.get('max_nCols', None)
+    failed_to_match = kwargs.get('failed_to_match', False)
 
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
 
@@ -280,7 +286,11 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         #else:
         #    top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
 
-    nTop   = len(top_aids)
+    if failed_to_match:
+        # HACK to visually indicate failure to match in analysis
+        top_aids = [None] + top_aids
+
+    nTop = len(top_aids)
 
     if max_nCols is None:
         max_nCols = 5
@@ -298,8 +308,6 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     if ut.DEBUG2:
         print(cm.get_inspect_str())
-
-    ranked_aids = cm.get_top_aids()
 
     #--------------------------------------------------
     # Get grid / cell information to build subplot grid
@@ -350,6 +358,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     # HACK:
     _color_list = pt.distinct_colors(nTop)
     aid2_color = {aid: _color_list[ox] for ox, aid in enumerate(top_aids)}
+    ranked_aids = cm.get_top_aids()
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
@@ -393,12 +402,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             if sidebyside:
                 # Draw each match side by side the query
                 if viz_name_score:
-                    #if isinstance(cm, chip_match.ChipMatch):
-                    cm_ = cm
-                    #else:
-                    #    cm_ = chip_match.ChipMatch.from_qres(cm)
-                    #    cm_.score_nsum(qreq_)
-                    cm_.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
+                    cm.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
                 else:
                     _kwshow['draw_border'] = False
                     _kwshow['draw_lbl'] = False
@@ -419,15 +423,16 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         if aid_list is None:
             return
         # Do lazy load before show
-        data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+        #data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
 
         tblhack = getattr(qreq_, 'tablename', None)
         # HACK FOR HUMPBACKS
         # (Also in viz_matches)
         if tblhack == 'vsone' or (qreq_ is not None and not qreq_._isnewreq):
             # precompute
-            ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)
-            ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)
+            pass
+            #ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)
+            #ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)
 
         for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
@@ -436,7 +441,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             # This pair has no matches between them.
             if len(oranks) == 0:
                 orank = -1
-                _show_matches_fn(aid, orank, pnum)
+                if aid is None:
+                    pt.imshow_null('Failed to find matches\nfor qaid=%r' % (cm.qaid), fnum=fnum, pnum=pnum, fontsize=18)
+                else:
+                    _show_matches_fn(aid, orank, pnum)
                 #if DEBUG_SHOW_QRES:
                 #    print('skipping pnum=%r' % (pnum,))
                 continue
@@ -463,6 +471,8 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         # Plot Results
         _plot_matches_aids(top_aids, shift_topN, (nRows, nTopNCols))
         figtitle += aug
+    if failed_to_match:
+        figtitle += '\n No matches found'
 
     incanvas = kwargs.get('with_figtitle', not vh.NO_LBL_OVERRIDE)
     pt.set_figtitle(figtitle, incanvas=incanvas)

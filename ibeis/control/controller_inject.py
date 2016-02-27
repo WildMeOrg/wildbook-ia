@@ -244,8 +244,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
         >>> failrsp = web_ibs.send_ibeis_request('/api/annot/uuids/')
-        >>> failrsp2 = web_ibs.send_ibeis_request('/api/core/query_chips_simple_dict/', 'get', qaid_list=[0], daid_list=[0])
-        >>> log_text = web_ibs.send_ibeis_request('/api/core/query_chips_simple_dict/', 'get', qaid_list=[0], daid_list=[0])
+        >>> failrsp2 = web_ibs.send_ibeis_request('/api/query/chips/simple_dict//', 'get', qaid_list=[0], daid_list=[0])
+        >>> log_text = web_ibs.send_ibeis_request('/api/query/chips/simple_dict/', 'get', qaid_list=[0], daid_list=[0])
         >>> time.sleep(.1)
         >>> print('\n---\nuuid_list = %r' % (uuid_list,))
         >>> print('\n---\nfailrsp =\n%s' % (failrsp,))
@@ -469,6 +469,11 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
         def register_api(rule, **options):
+            assert rule.endswith('/'), 'An api should always end in a forward-slash'
+            assert 'methods' in options, 'An api should always have a specified methods list'
+            # if '_' in rule:
+            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
+
             # accpet args to flask.route
             def regsiter_closure(func):
                 # make translation function in closure scope
@@ -603,7 +608,13 @@ def get_ibeis_flask_route(__name__):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_route(rule, **options):
+        def register_route(rule, __api_prefix_check__=True, **options):
+            if __api_prefix_check__:
+                assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
+            assert rule.endswith('/'), 'A route should always end in a forward-slash'
+            assert 'methods' in options, 'A route should always have a specified methods list'
+            # if '_' in rule:
+            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
             # accpet args to flask.route
             def regsiter_closure(func):
                 # make translation function in closure scope

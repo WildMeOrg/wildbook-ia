@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.Config &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.Config &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.algo" href="../algo.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -1228,15 +1228,16 @@
     <span class="sd">&quot;&quot;&quot; ChipConfig &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cc_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ChipConfig</span><span class="p">,</span> <span class="n">cc_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;chip_cfg&#39;</span><span class="p">)</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">chip_sqrt_area</span> <span class="o">=</span> <span class="mi">450</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">grabcut</span>         <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">histeq</span>          <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">adapteq</span>         <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">region_norm</span>     <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">rank_eq</span>         <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">local_eq</span>        <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">maxcontrast</span>     <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">chipfmt</span>         <span class="o">=</span> <span class="s">&#39;.png&#39;</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">dim_size</span>    <span class="o">=</span> <span class="mi">450</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">resize_dim</span>  <span class="o">=</span> <span class="s">&#39;root_area&#39;</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">grabcut</span>     <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">histeq</span>      <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">adapteq</span>     <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">region_norm</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">rank_eq</span>     <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">local_eq</span>    <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">maxcontrast</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">chipfmt</span>     <span class="o">=</span> <span class="s">&#39;.png&#39;</span>
         <span class="n">cc_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ChipConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.algo.html#ibeis.algo.Config.ChipConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">cc_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1252,10 +1253,10 @@
             <span class="n">chip_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;rankeq&#39;</span><span class="p">]</span>  <span class="o">*</span> <span class="n">cc_cfg</span><span class="o">.</span><span class="n">rank_eq</span>
             <span class="n">chip_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;localeq&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">cc_cfg</span><span class="o">.</span><span class="n">local_eq</span>
             <span class="n">chip_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;maxcont&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">cc_cfg</span><span class="o">.</span><span class="n">maxcontrast</span>
-            <span class="n">isOrig</span> <span class="o">=</span> <span class="p">(</span><span class="n">cc_cfg</span><span class="o">.</span><span class="n">chip_sqrt_area</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>
-                      <span class="n">cc_cfg</span><span class="o">.</span><span class="n">chip_sqrt_area</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">isOrig</span> <span class="o">=</span> <span class="p">(</span><span class="n">cc_cfg</span><span class="o">.</span><span class="n">dim_size</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>
+                      <span class="n">cc_cfg</span><span class="o">.</span><span class="n">dim_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">chip_cfgstr</span> <span class="o">+=</span> <span class="p">([</span><span class="s">&#39;szorig&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">isOrig</span> <span class="k">else</span>
-                            <span class="p">[</span><span class="s">&#39;sz</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cc_cfg</span><span class="o">.</span><span class="n">chip_sqrt_area</span><span class="p">])</span>
+                            <span class="p">[</span><span class="s">&#39;sz</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cc_cfg</span><span class="o">.</span><span class="n">dim_size</span><span class="p">])</span>
             <span class="n">chip_cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_CHIP(&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chip_cfgstr</span><span class="p">)),</span> <span class="s">&#39;)&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">chip_cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1635,7 +1636,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

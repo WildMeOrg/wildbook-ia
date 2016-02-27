@@ -3,11 +3,11 @@
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import join, dirname, split, basename, splitext
-import re
+from os.path import join
 import numpy as np
 import utool as ut
 import vtool as vt
+from ibeis.expt import draw_helpers
 from six.moves import map, range
 print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
 
@@ -61,7 +61,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     # TODO: option to group configs with same pcfg and different acfg
 
     def load_annot_scores(testres, cfgx, filt_cfg):
-        #cfgx = 0
         qaids = testres.cfgx2_qaids[cfgx]
         gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score', qaids).T[cfgx]
         gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score', qaids).T[cfgx]
@@ -83,17 +82,13 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         tn_daids = gf_daid[isvalid]
         tp_daids = gt_daid[isvalid]
 
-        #encoder = vt.ScoreNormalizer(target_tpr=.7)
-        #print(qreq_.get_cfgstr())
         part_attrs = {1: {'qaid': tp_qaids, 'daid': tn_daids},
                       0: {'qaid': tn_qaids, 'daid': tp_daids}}
         return tp_nscores, tn_nscores, part_attrs
 
     join_acfgs = True
-
-    # TODO: option to average over pipeline configurations
     if join_acfgs:
-        groupxs = testres.get_pcfg_groupxs()
+        groupxs = testres.get_cfgx_groupxs()
     else:
         groupxs = list(zip(range(len(testres.cfgx2_qreq_))))
     grouped_qreqs = ut.apply_grouping(testres.cfgx2_qreq_, groupxs)
@@ -247,14 +242,14 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
                       ut.get_argflag('--no-wordcloud')):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.IBEISController):  ibeis controller object
         testres (TestResult):  test result object
 
     CommandLine:
-        python -m ibeis --tf -draw_casetag_hist --show
+        ibeis --tf -draw_casetag_hist --show
 
         # Experiments I tagged
-        python -m ibeis --tf -draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
+        ibeis --tf -draw_casetag_hist -a timectrl -t invarbest --db PZ_Master1  --show
 
         ibeis -e taghist -a timectrl -t best --db PZ_Master1  --show
 
@@ -313,7 +308,8 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
                                         other_problem_tags])
     if not ut.get_argflag('--fulltag'):
-        all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
+        all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags)
+                    for case_tags in all_tags]
     # Get tags that match the filter
     if f is None:
         f = ['']
@@ -375,22 +371,22 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     May need to clean this scheme up a bit.
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.IBEISController):  ibeis controller object
         testres (TestResult):  test result object
 
     CommandLine:
-        python -m ibeis --tf draw_rank_surface --db PZ_Master1 -a varysize_td -t CircQRH_K --show
+        ibeis --tf draw_rank_surface --db PZ_Master1 -a varysize_td -t CircQRH_K --show
 
-        python -m ibeis --tf draw_rank_surface --show  -t best -a varysize --db PZ_Master1 --show
+        ibeis --tf draw_rank_surface --show -t best -a varysize --db PZ_Master1 --show
 
-        python -m ibeis --tf draw_rank_surface --show  -t CircQRH_K -a varysize_td  --db PZ_Master1 --show
-        python -m ibeis --tf draw_rank_surface --show  -t CircQRH_K -a varysize_td  --db PZ_Master1 --show
+        ibeis --tf draw_rank_surface --show -t CircQRH_K -a varysize_td --db PZ_Master1 --show
+        ibeis --tf draw_rank_surface --show -t CircQRH_K -a varysize_td --db PZ_Master1 --show
 
-        python -m ibeis --tf draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master1 --show --param-keys=K,dcfg_sample_per_name,dcfg_sample_size
-        python -m ibeis --tf draw_rank_surface --show  -t best \
+        ibeis --tf draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master1 --show --param-keys=K,dcfg_sample_per_name,dcfg_sample_size
+        ibeis --tf draw_rank_surface --show  -t best \
             -a varynannots_td varynannots_td:qmin_pername=3,dpername=2  \
             --db PZ_Master1 --show --param-keys=dcfg_sample_per_name,dcfg_sample_size
-        python -m ibeis --tf draw_rank_surface --show  -t best -a varynannots_td  --db PZ_Master1 --show --param-keys=dcfg_sample_size
+        ibeis --tf draw_rank_surface --show  -t best -a varynannots_td  --db PZ_Master1 --show --param-keys=dcfg_sample_size
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -432,7 +428,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
     if verbose:
         print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
-        print('e.g. cfgx_lists_dict[1] contains the indexes of all configs whre K = basis_dict["K"][1]')
+        print('e.g. cfgx_lists_dict[1] contains indicies of configs where K = basis_dict["K"][1]')
         print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
 
     #const_key = 'K'
@@ -582,7 +578,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.IBEISController):  ibeis controller object
         testres (TestResult):
 
     CommandLine:
@@ -619,7 +615,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
-        >>> result = draw_rank_cdf(ibs, testres)
+        >>> do_per_annot = not ut.get_argflag('--do-per-name')
+        >>> result = draw_rank_cdf(ibs, testres, do_per_annot=do_per_annot)
         >>> ut.show_if_requested()
         >>> print(result)
     """
@@ -641,7 +638,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         ' - ' + label
         for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
 
-    color_list = pt.distinct_colors(len(label_list), cmap_seed=ut.get_argval('--prefix', type_=str, default=None))
+    cmap_seed = ut.get_argval('--prefix', type_=str, default=None)
+    color_list = pt.distinct_colors(len(label_list), cmap_seed=cmap_seed)
 
     marker_list = pt.distinct_markers(len(label_list))
     test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset',
@@ -728,13 +726,32 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
 
 
 @profile
-def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=False):
+def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
+                         verbose=False):
     r"""
 
     CommandLine:
-        python -m ibeis.dev -e draw_case_timedeltas
-        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
-        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
+        python -m ibeis.dev -e draw_case_timedeltas --show
+        python -m ibeis.dev -e draw_case_timedeltas --show -t default \
+            -a unctrl:num_names=1,name_offset=[1,2]
+        python -m ibeis.dev -e draw_case_timedeltas --show -t default \
+            -a unctrl:num_names=1,name_offset=[1,2],joinme=1
+        python -m ibeis.dev -e draw_case_timedeltas --show -t default \
+            -a unctrl:num_names=1,name_offset=[1,2] \
+               unctrl:num_names=1,name_offset=[3,0]
+
+
+        python -m ibeis.dev -e timedelta_hist --show -t baseline \
+            -a unctrl ctrl:force_const_size=True unctrl:force_const_size=True \
+            --consistent --db PZ_MTEST
+
+        # Testing
+        python -m ibeis.dev -e timedelta_hist --show -t baseline \
+            -a unctrl ctrl:force_const_size=True unctrl:force_const_size=True \
+            --consistent --db PZ_Master1
+        python -m ibeis.dev -e timedelta_hist --show -t baseline \
+            -a unctrl ctrl:sample_rule_ref=max_timedelta --db PZ_Master1 \
+            --aidcfginfo
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -754,21 +771,30 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
     if verbose:
         testres.print_unique_annot_config_stats(ibs)
 
-    truth2_prop, prop2_mat = testres.get_truth2_prop()
-    is_failure = prop2_mat['is_failure']
-    is_success = prop2_mat['is_success']
-    X_data_list = []
-    X_label_list = []
-    cfgx2_shortlbl = testres.get_short_cfglbls()
+    join_acfgs = True
+
+    #cfgx2_shortlbl = testres.get_short_cfglbls()
+    cfgx2_shortlbl = testres.get_short_cfglbls(join_acfgs=join_acfgs)
+
     if falsepos is None:
         falsepos = ut.get_argflag('--falsepos')
     if truepos is None:
         truepos  = ut.get_argflag('--truepos')
+
+    X_data_list = []
+    X_label_list = []
+
+    truth2_prop, prop2_mat = testres.get_truth2_prop(join_acfg=join_acfgs)
+    #is_failure = prop2_mat['is_failure']
+    is_success = prop2_mat['is_success']
+
     for cfgx, lbl in enumerate(cfgx2_shortlbl):
-        gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
-        gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
-        gt_s_td = truth2_prop['gt']['timedelta'].T[cfgx][is_success.T[cfgx]]
-        gf_s_td = truth2_prop['gf']['timedelta'].T[cfgx][is_success.T[cfgx]]  # NOQA
+        gt_timedelta = truth2_prop['gt']['timedelta'].T
+        gf_timedelta = truth2_prop['gf']['timedelta'].T
+        #gt_f_td = gt_timedelta[cfgx][is_failure.T[cfgx]]
+        #gf_f_td = gf_timedelta[cfgx][is_failure.T[cfgx]]
+        gt_s_td = gt_timedelta[cfgx][is_success.T[cfgx]]
+        gf_s_td = gf_timedelta[cfgx][is_success.T[cfgx]]
         if not falsepos or truepos:
             X_data_list  += [
                 gt_s_td,
@@ -779,15 +805,10 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
                 #'FP ' + lbl
             ]
         if falsepos:
-            X_data_list  += [
-                gf_s_td
-            ]
-            X_label_list += [
-                'FP ' + lbl
-            ]
-        plotkw['marker_list'] += pt.distinct_markers(1, style='polygon',
-                                                     offset=cfgx,
-                                                     total=len(cfgx2_shortlbl))
+            X_data_list  += [gf_s_td]
+            X_label_list += ['FP ' + lbl]
+        plotkw['marker_list'] += pt.distinct_markers(
+            1, style='polygon', offset=cfgx, total=len(cfgx2_shortlbl))
 
     numnan_list = [(~np.isfinite(X)).sum() for X in X_data_list]
     xdata_list = [X[~np.isnan(X)] for X in X_data_list]
@@ -853,37 +874,46 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
                      show_in_notebook=False, annot_modes=None, figsize=None,
-                     verbose=None):
+                     case_pos_list=None, verbose=None, **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
-        testres (TestResult):
+        ibs (ibeis.IBEISController):  ibeis controller object
+        testres (TestResult):  test result object
         metadata (None): (default = None)
 
     CommandLine:
         python -m ibeis --tf draw_match_cases
-
-        python -m ibeis.dev -e draw_match_cases --figdir=individual_results
-        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
-        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
-
-        python -m ibeis.dev -e print --db PZ_Master1 -a timecontrolled -t invarbest
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt : --show
+        python -m ibeis.dev -e draw_match_cases --figdir=figure
+        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl \
+            -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         # Shows the best results
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
+            -t invarbest --filt :orderby=gfscore,reverse=1 --show
 
         # Shows failures sorted by gt score
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
+            -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
 
         # Find the untagged photobomb and scenery cases
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest \
-            --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_timedelta=24h,max_gf_tags=0 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
+            -t invarbest --show --filt \
+            :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_td=24h,max_gf_tags=0
 
         # Find untagged failures
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
+            -t invarbest \
+            --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
 
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
+        # Show disagreement cases
+        ibeis --tf draw_match_cases --db PZ_MTEST -a default \
+            -t default:K=[1,4] \
+            --filt :disagree=True,index=0:4 --show
+
+        ibeis --tf draw_match_cases --db humpbacks_fb \
+            -a default:has_any=hasnotch,mingt=2 \
+            -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple default:proot=vsmany \
+            --qaids-override 12 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -900,25 +930,9 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         ut.colorprint('[expt] Drawing individual results', 'yellow')
     cfgx2_qreq_ = testres.cfgx2_qreq_
     SHOW = ut.get_argflag('--show')
-    # Get selected rows and columns for individual rank investigation
-    #qaids = testres.qaids
-    #=================================
-    # TODO:
-    # Get a better (stratified) sample of the hard cases that incorporates the known failure cases
-    # (Show a photobomb, scenery match, etc...)
-    # This is just one config, because showing everything should also be an
-    # option so we can find these errors
-    #-------------
-    # TODO;
-    # Time statistics on incorrect results
-    #=================================
-    # Sel rows index into qx_list
-    # Sel cols index into cfgx2 maps
-    #_viewkw = dict(view_interesting=True)
-
-    # verbose = True
     filt_cfg = f
-    case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+    if case_pos_list is None:
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
 
     qx_list, cfgx_list = case_pos_list.T
     # Get configs needed for each query
@@ -931,7 +945,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     }
     # show analysis
     show_kwargs['show_query'] = False
-    show_kwargs['viz_name_score'] = True
+    show_kwargs['viz_name_score'] = kwargs.get('viz_name_score', True)
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
     #show_kwargs['with_figtitle'] = True
@@ -939,14 +953,12 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     show_kwargs['fastmode'] = True
     #show_kwargs['with_figtitle'] = show_in_notebook
     if annot_modes is None:
-        if SHOW:
-            annot_modes = [1]
-        else:
-            annot_modes = [1]
+        annot_modes = [1]
     #annot_modes = [0]
     #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
-    cpq = IndividualResultsCopyTaskQueue()
+    if False:
+        cpq = draw_helpers.IndividualResultsCopyTaskQueue()
 
     figdir = ibs.get_fig_dir()
     figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
@@ -957,20 +969,12 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if ut.get_argflag(('--view-fig-directory', '--vf')):
         ut.view_directory(case_figdir)
 
-    DRAW_ANALYSIS = True
-    DRAW_BLIND = False and not SHOW
-
     # Common directory
     individual_results_figdir = join(case_figdir, 'individual_results')
     ut.ensuredir(individual_results_figdir)
 
-    if DRAW_ANALYSIS:
-        top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
-        ut.ensuredir(top_rank_analysis_dir)
-
-    if DRAW_BLIND:
-        blind_results_figdir  = join(case_figdir, 'blind_results')
-        ut.ensuredir(blind_results_figdir)
+    top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
+    ut.ensuredir(top_rank_analysis_dir)
 
     qaids = testres.get_test_qaids()
     # Ensure semantic uuids are in the APP cache.
@@ -979,8 +983,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     def toggle_annot_mode():
         for ix in range(len(annot_modes)):
             annot_modes[ix] = (annot_modes[ix] + 1 % 3)
-        #show_kwargs['annot_mode'] = (show_kwargs['annot_mode'] + 1) % 3
-        #print('show_kwargs[annot_mode] = %r' % (show_kwargs['annot_mode'] ,))
 
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
@@ -995,10 +997,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
     analysis_fpath_list = []
 
-    overwrite = True
-    #overwrite = False
-    #overwrite = ut.get_argflag('--overwrite')
-
     cfgx2_shortlbl = testres.get_short_cfglbls()
 
     if ut.NOT_QUIET:
@@ -1007,13 +1005,14 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
     fnum_start = None
     fnum = pt.ensure_fnum(fnum_start)
-    # print('show_in_notebook = %r' % (show_in_notebook,))
 
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
-    _iter = ut.InteractiveIter(qx_list, enabled=SHOW,
-                               custom_actions=custom_actions)
+    if SHOW:
+        _iter = ut.InteractiveIter(qx_list, enabled=SHOW, custom_actions=custom_actions)
+    else:
+        _iter = ut.ProgIter(qx_list, lbl='drawing cases')
     for count, qx in enumerate(_iter):
         cfgxs = qx2_cfgxs[qx]
         qreq_list = ut.take(cfgx2_qreq_, cfgxs)
@@ -1033,31 +1032,21 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             print('qx = %r' % (qx,))
             print('cfgxs = %r' % (cfgxs,))
             # print testres info about this item
-            print('truth2_prop[item] = ' + ut.repr3(
-                ut.hmap_vals(
-                    ut.partial(ut.take, index_list=cfgxs),
-                    ut.hmap_vals(
-                        ut.partial(ut.take, index_list=qx),
-                        truth2_prop),
-                    max_depth=1),
-                nl=2)
-            )
-            print('prop2_mat[item] = ' + ut.repr3(
-                ut.hmap_vals(
-                    ut.partial(ut.take, index_list=cfgxs),
-                    ut.hmap_vals(
-                        ut.partial(ut.take, index_list=qx),
-                        prop2_mat),
-                    max_depth=0),
-                nl=1)
-            )
+            take_cfgs = ut.partial(ut.take, index_list=cfgxs)
+            take_qx = ut.partial(ut.take, index_list=qx)
+            truth_cfgs = ut.hmap_vals(take_qx, truth2_prop)
+            truth_item = ut.hmap_vals(take_cfgs, truth_cfgs, max_depth=1)
+            prop_cfgs = ut.hmap_vals(take_qx, prop2_mat)
+            prop_item = ut.hmap_vals(take_cfgs, prop_cfgs, max_depth=0)
+            print('truth2_prop[item] = ' + ut.repr3(truth_item, nl=2))
+            print('prop2_mat[item] = ' + ut.repr3(prop_item, nl=1))
 
         if show_in_notebook:
             # hack to show vertical line in notebook separate configs
             fnum = fnum + 1
             pt.imshow(np.zeros((1, 200), dtype=np.uint8), fnum=fnum)
 
-        for cfgx, cm, qreq_ in zip(cfgxs, cm_list, qreq_list):
+        for count2, (cfgx, cm, qreq_) in enumerate(zip(cfgxs, cm_list, qreq_list)):
             if show_in_notebook:
                 fnum = fnum + 1
             else:
@@ -1074,227 +1063,68 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             query_lbl = query_lbl.replace(' ', '').replace('\'', '')
             _query_lbl = query_lbl
             qres_fname = query_lbl + '.png'
-            if DRAW_ANALYSIS:
-                analysis_fpath = join(individ_results_dpath, qres_fname)
-                #print('analysis_fpath = %r' % (analysis_fpath,))
-                if SHOW or overwrite or not ut.checkpath(analysis_fpath) or show_in_notebook:
+
+            analysis_fpath = join(individ_results_dpath, qres_fname)
+            if SHOW or show_in_notebook or not ut.checkpath(analysis_fpath):
+                bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
+                print('bar_label = %r' % (bar_label,))
+                if show_in_notebook:
+                    # hack to show vertical line in notebook
+                    if len(cfg_colors) > 0:
+                        bar = (np.zeros((1, 400, 3), dtype=np.uint8) +
+                               (np.array(cfg_colors[cfgx]) * 255))
+                        fnum = fnum + 1
+                        fig, ax = pt.imshow(bar, fnum=fnum)
+                        pt.set_xlabel(bar_label, ax=ax)
+                        pt.plt.show()  # Need to show when doing notebook
+                for annot_mode in annot_modes:
+                    show_kwargs['annot_mode'] = annot_mode
                     if show_in_notebook:
-                        # hack to show vertical line in notebook
-                        if len(cfg_colors) > 0:
-                            bar = (np.zeros((1, 400, 3), dtype=np.uint8) +
-                                   (np.array(cfg_colors[cfgx]) * 255))
-                            fnum = fnum + 1
-                            pt.imshow(bar, fnum=fnum)
-                    for annot_mode in annot_modes:
-                        show_kwargs['annot_mode'] = annot_mode
-                        if show_in_notebook:
-                            # hack to show vertical line
-                            fnum = fnum + 1
-                        if SHOW:
-                            cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
-                        else:
-                            cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
-                        if show_in_notebook:
-                            _query_lbl = ''  # only show the query label once
-                            if figsize is not None:
-                                fig = pt.gcf()
-                                fig.set_size_inches(*figsize)
-                                fig.set_dpi(256)
-                    cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
-                    if cmdaug is not None:
-                        # Hack for candidacy
-                        analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
-                        print('analysis_fpath = %r' % (analysis_fpath,))
-                    if overwrite:
-                        fig = pt.gcf()
-                        fig.savefig(analysis_fpath)
-                        vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
+                        fnum = fnum + 1
+                    if SHOW:
+                        cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                    else:
+                        cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                    if show_in_notebook:
+                        _query_lbl = ''  # only show the query label once
+                        if figsize is not None:
+                            fig = pt.gcf()
+                            fig.set_size_inches(*figsize)
+                            fig.set_dpi(256)
+                        pt.plt.show()
+                cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
+                if cmdaug is not None:
+                    # Hack for candidacy
+                    analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
+                    print('analysis_fpath = %r' % (analysis_fpath,))
+                if not show_in_notebook:
+                    fig = pt.gcf()
+                    fig.savefig(analysis_fpath)
+                    vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
+                    if False:
                         if cmdaug is None:
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
-                    #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
-                    #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
-                analysis_fpath_list.append(analysis_fpath)
-                fpaths_list[-1].append(analysis_fpath)
-                if metadata is not None:
-                    metadata.set_global_data(cfgstr, cm.qaid, 'analysis_fpath', analysis_fpath)
-
-            # BLIND CASES - draws results without labels to see if we can
-            # determine what happened using doubleblind methods
-            if DRAW_BLIND:
-                pt.clf()
-                best_gt_aid = cm.get_top_groundtruth_aid(ibs=ibs)
-                cm.show_name_matches(
-                    ibs, best_gt_aid, show_matches=False,
-                    show_name_score=False, show_name_rank=False,
-                    show_annot_score=False, fnum=fnum, qreq_=qreq_,
-                    **show_kwargs)
-                blind_figtitle = 'BLIND ' + query_lbl
-                pt.set_figtitle(blind_figtitle)
-                blind_fpath = join(individ_results_dpath, blind_figtitle) + '.png'
-                pt.gcf().savefig(blind_fpath)
-                #blind_fpath = pt.custom_figure.save_figure(fpath=blind_fpath, **dumpkw)
-                cpq.append_copy_task(blind_fpath, blind_results_figdir)
-                if metadata is not None:
-                    metadata.set_global_data(cfgstr, cm.qaid, 'blind_fpath', blind_fpath)
+                else:
+                    pt.plt.show()
+            analysis_fpath_list.append(analysis_fpath)
+            fpaths_list[-1].append(analysis_fpath)
+            if metadata is not None:
+                metadata.set_global_data(cfgstr, cm.qaid, 'analysis_fpath', analysis_fpath)
 
         # if some condition of of batch sizes
-        flush_freq = 4
-        if count % flush_freq == (flush_freq - 1):
-            cpq.flush_copy_tasks()
+        if False:
+            flush_freq = 4
+            if count % flush_freq == (flush_freq - 1):
+                cpq.flush_copy_tasks()
 
-    # Copy summary images to query_analysis folder
-    cpq.flush_copy_tasks()
+    if False:
+        # Copy summary images to query_analysis folder
+        cpq.flush_copy_tasks()
 
     # flat_case_labels = None
-    # make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
-    #                               cfgx2_shortlbl, case_figdir,
-    #                               analysis_fpath_list)
+    # draw_helpers.make_individual_latex_figures(ibs, fpaths_list,
+    # flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list)
     return analysis_fpath_list
-
-
-class IndividualResultsCopyTaskQueue(object):
-    def __init__(self):
-        self.cp_task_list = []
-
-    def append_copy_task(self, fpath_orig, dstdir=None):
-        """ helper which copies a summary figure to root dir """
-        fname_orig, ext = splitext(basename(fpath_orig))
-        outdir = dirname(fpath_orig)
-        fdir_clean, cfgdir = split(outdir)
-        if dstdir is None:
-            dstdir = fdir_clean
-        #aug = cfgdir[0:min(len(cfgdir), 10)]
-        aug = cfgdir
-        fname_fmt = '{aug}_{fname_orig}{ext}'
-        fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
-        fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
-        fdst_clean = join(dstdir, fname_clean)
-        self.cp_task_list.append((fpath_orig, fdst_clean))
-
-    def flush_copy_tasks(self):
-        # Execute all copy tasks and empty the lists
-        if ut.NOT_QUIET:
-            print('[DRAW_RESULT] copying %r summaries' % (len(self.cp_task_list)))
-        for src, dst in self.cp_task_list:
-            ut.copy(src, dst, verbose=False)
-        del self.cp_task_list[:]
-
-
-def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
-                                  cfgx2_shortlbl, case_figdir,
-                                  analysis_fpath_list):
-    # HACK MAKE LATEX CONVINENCE STUFF
-    #print('LATEX HACK')
-    if len(fpaths_list) == 0:
-        print('nothing to render')
-        return
-    RENDER = ut.get_argflag('--render')
-    DUMP_FIGDEF = ut.get_argflag(('--figdump', '--dump-figdef', '--figdef'))
-
-    if not (DUMP_FIGDEF or RENDER):  # HACK
-        return
-
-    latex_code_blocks = []
-    latex_block_keys = []
-
-    caption_prefix = ut.get_argval('--cappref', type_=str, default='')
-    caption_suffix = ut.get_argval('--capsuf', type_=str, default='')
-    cmdaug = ut.get_argval('--cmdaug', type_=str, default='custom')
-
-    selected = None
-
-    for case_idx, (fpaths, labels) in enumerate(zip(fpaths_list, flat_case_labels)):
-        if labels is None:
-            labels = [cmdaug]
-        if len(fpaths) < 4:
-            nCols = len(fpaths)
-        else:
-            nCols = 2
-
-        _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels) + '_' + str(case_idx)
-        #print('_cmdname = %r' % (_cmdname,))
-        cmdname = ut.latex_sanatize_command_name(_cmdname)
-        label_str = cmdname
-        if len(caption_prefix) == 0:
-            caption_str = ut.escape_latex('Casetags: ' +
-                                          ut.list_str(labels, nl=False, strvals=True) +
-                                          ', db=' + ibs.get_dbname() + '. ')
-        else:
-            caption_str = ''
-
-        use_sublbls = len(cfgx2_shortlbl) > 1
-        if use_sublbls:
-            caption_str += ut.escape_latex('Each figure shows a different configuration: ')
-            sublbls = ['(' + chr(97 + count) + ') ' for count in range(len(cfgx2_shortlbl))]
-        else:
-            #caption_str += ut.escape_latex('This figure depicts correct and
-            #incorrect matches from configuration: ')
-            sublbls = [''] * len(cfgx2_shortlbl)
-        def wrap_tt(text):
-            return r'{\tt ' + text + '}'
-        _shortlbls = cfgx2_shortlbl
-        _shortlbls = list(map(ut.escape_latex, _shortlbls))
-        # Adjust spacing for breaks
-        #tex_small_space = r''
-        tex_small_space = r'\hspace{0pt}'
-        # Remove query specific config flags in individual results
-        _shortlbls = [re.sub('\\bq[^,]*,?', '', shortlbl) for shortlbl in _shortlbls]
-        # Let config strings be broken over newlines
-        _shortlbls = [re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl)
-                      for shortlbl in _shortlbls]
-        _shortlbls = [re.sub(', *', ',' + tex_small_space, shortlbl)
-                      for shortlbl in _shortlbls]
-        _shortlbls = list(map(wrap_tt, _shortlbls))
-        cfgx2_texshortlbl = ['\n    ' + lbl + shortlbl
-                             for lbl, shortlbl in zip(sublbls, _shortlbls)]
-
-        caption_str += ut.conj_phrase(cfgx2_texshortlbl, 'and') + '.\n    '
-        caption_str = '\n    ' + caption_prefix + caption_str + caption_suffix
-        caption_str = caption_str.rstrip()
-        figure_str  = ut.get_latex_figure_str(fpaths,
-                                                nCols=nCols,
-                                                label_str=label_str,
-                                                caption_str=caption_str,
-                                                use_sublbls=None,
-                                                use_frame=True)
-        latex_block = ut.latex_newcommand(cmdname, figure_str)
-        latex_block = '\n%----------\n' + latex_block
-        latex_code_blocks.append(latex_block)
-        latex_block_keys.append(cmdname)
-
-    # HACK
-    remove_fpath = ut.truepath('~/latex/crall-candidacy-2015') + '/'
-
-    latex_fpath = join(case_figdir, 'latex_cases.tex')
-
-    if selected is not None:
-        selected_keys = selected
-    else:
-        selected_keys = latex_block_keys
-
-    selected_blocks = ut.dict_take(dict(zip(latex_block_keys, latex_code_blocks)), selected_keys)
-
-    figdef_block = '\n'.join(selected_blocks)
-    figcmd_block = '\n'.join(['\\' + key for key in latex_block_keys])
-
-    selected_block = figdef_block + '\n\n' + figcmd_block
-
-    # HACK: need full paths to render
-    selected_block_renderable = selected_block
-    selected_block = selected_block.replace(remove_fpath, '')
-    if RENDER:
-        ut.render_latex_text(selected_block_renderable)
-
-    if DUMP_FIGDEF:
-        ut.writeto(latex_fpath, selected_block)
-
-    if DUMP_FIGDEF or RENDER:
-        ut.print_code(selected_block, 'latex')
-    #else:
-    #    print('STANDARD LATEX RESULTS')
-    #    cmdname = ibs.get_dbname() + 'Results'
-    #    latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
-    #    ut.print_code(latex_block, 'latex')
 
 
 if __name__ == '__main__':

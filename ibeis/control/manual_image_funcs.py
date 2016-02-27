@@ -25,6 +25,7 @@ from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
 import vtool as vt
+from ibeis.web import routes_ajax
 print, rrr, profile = ut.inject2(__name__, '[manual_image]')
 
 
@@ -141,6 +142,19 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None,
 
 
 @register_ibs_method
+@register_api('/api/image/<gid>/', methods=['GET'])
+def image_base64_api(gid=None, thumbnail=False, fresh=False, **kwargs):
+    r"""
+    Returns the base64 encoded image of image <gid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/<gid>/
+    """
+    return routes_ajax.image_src(gid, thumbnail=thumbnail, fresh=fresh, **kwargs)
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 def get_image_gid(ibs, gid_list, eager=True, nInput=None):
     """ self verifier
@@ -164,6 +178,17 @@ def get_image_gid(ibs, gid_list, eager=True, nInput=None):
     gid_list = ibs.db.get(const.IMAGE_TABLE, colnames,
                           id_iter, id_colname='rowid', eager=eager, nInput=nInput)
     return gid_list
+
+
+@register_ibs_method
+@register_api('/api/image/gids_with_aids/', methods=['GET'])
+def get_image_gids_with_aids(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list = sorted(ibs.get_valid_gids())
+    aids_list = ibs.get_image_aids(gid_list)
+    zipped = zip(gid_list, aids_list)
+    combined_dict = { gid : aid_list for gid, aid_list in zipped }
+    return combined_dict
 
 
 @register_ibs_method
@@ -197,7 +222,7 @@ def get_num_images(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
-@register_api('/api/image/path', methods=['POST'])
+@register_api('/api/image/path/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None,
                sanitize=True, **kwargs):
     r"""

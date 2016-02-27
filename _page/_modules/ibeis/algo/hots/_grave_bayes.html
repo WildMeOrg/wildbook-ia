@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots._grave_bayes &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots._grave_bayes &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -314,7 +314,7 @@
         <span class="n">sort_reduced_row_lbls_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="c"># hack into a new joint factor</span>
-        <span class="n">var_states</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">sort_reduced_row_lbls_</span><span class="p">))</span>
+        <span class="n">var_states</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">sort_reduced_row_lbls_</span><span class="p">))</span>
         <span class="n">statename_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_vars</span><span class="p">,</span> <span class="n">var_states</span><span class="p">))</span>
         <span class="n">cardinality</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">var_states</span><span class="p">)</span>
         <span class="n">val_lookup</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">sort_reduced_row_lbls_</span><span class="p">),</span> <span class="n">sort_reduced_values</span><span class="p">))</span>
@@ -793,9 +793,9 @@
     <span class="c">#netx_graph.graph.setdefault(&#39;graph&#39;, {})[&#39;rankdir&#39;] = &#39;LR&#39;</span>
 
     <span class="n">pos</span> <span class="o">=</span> <span class="n">get_hacked_pos</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">)</span>
-    <span class="c">#netx.pygraphviz_layout(netx_graph)</span>
-    <span class="c">#pos = netx.pydot_layout(netx_graph, prog=&#39;dot&#39;)</span>
-    <span class="c">#pos = netx.graphviz_layout(netx_graph)</span>
+    <span class="c">#netx.nx_agraph.pygraphviz_layout(netx_graph)</span>
+    <span class="c">#pos = netx.nx_agraph.pydot_layout(netx_graph, prog=&#39;dot&#39;)</span>
+    <span class="c">#pos = netx.nx_agraph.graphviz_layout(netx_graph)</span>
 
     <span class="n">drawkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">1500</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">evidence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -1166,7 +1166,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

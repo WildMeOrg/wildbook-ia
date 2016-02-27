@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utool.util_class &mdash; ibeis 1.5.0 documentation</title>
+  <title>utool.util_class &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -775,80 +775,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ReloadingMetaclass</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
-        <span class="c">#print(&#39;Making rrr for %r&#39; % (name,))</span>
         <span class="n">rrr</span> <span class="o">=</span> <span class="n">private_rrr_factory</span><span class="p">()</span>
-        <span class="c">#def rrr(self, verbose=True):</span>
-        <span class="c">#    classname = self.__class__.__name__</span>
-        <span class="c">#    try:</span>
-        <span class="c">#        modname = self.__class__.__module__</span>
-        <span class="c">#        if verbose:</span>
-        <span class="c">#            print(&#39;reloading &#39; + classname + &#39; from &#39; + modname)</span>
-        <span class="c">#        # --HACK--</span>
-        <span class="c">#        if hasattr(self, &#39;_on_reload&#39;):</span>
-        <span class="c">#            self._on_reload()</span>
-
-        <span class="c">#        NEW = True</span>
-        <span class="c">#        if NEW:</span>
-        <span class="c">#            # Do for all inheriting classes</span>
-        <span class="c">#            def find_base_clases(_class, find_base_clases=None):</span>
-        <span class="c">#                class_list = []</span>
-        <span class="c">#                for _baseclass in _class.__bases__:</span>
-        <span class="c">#                    class_list.extend(find_base_clases(_baseclass, find_base_clases))</span>
-        <span class="c">#                if _class is not object:</span>
-        <span class="c">#                    class_list.append(_class)</span>
-        <span class="c">#                return class_list</span>
-
-        <span class="c">#            _class = self.__class__</span>
-        <span class="c">#            class_list = find_base_clases(_class, find_base_clases)</span>
-        <span class="c">#            for _class in class_list:</span>
-        <span class="c">#                if verbose:</span>
-        <span class="c">#                    print(&#39;reloading parent &#39; + _class.__name__ + &#39;</span>
-        <span class="c">#                    from &#39; + _class.__module__)</span>
-        <span class="c">#                if _class.__module__ != &#39;__main__&#39;:</span>
-        <span class="c">#                    module_ = sys.modules[_class.__module__]</span>
-        <span class="c">#                    if hasattr(module_, &#39;rrr&#39;):</span>
-        <span class="c">#                        module_.rrr()</span>
-        <span class="c">#                    else:</span>
-        <span class="c">#                        import imp</span>
-        <span class="c">#                        imp.reload(module_)</span>
-        <span class="c">#                _newclass = getattr(module_, _class.__name__)</span>
-        <span class="c">#                reload_class_methods(self, _newclass)</span>
-        <span class="c">#        else:</span>
-        <span class="c">#            # --------</span>
-        <span class="c">#            # Reload the parent module if it is not main</span>
-        <span class="c">#            module = sys.modules[modname]</span>
-        <span class="c">#            if modname != &#39;__main__&#39;:</span>
-        <span class="c">#                if hasattr(module, &#39;rrr&#39;):</span>
-        <span class="c">#                    module.rrr()</span>
-        <span class="c">#                else:</span>
-        <span class="c">#                    import imp</span>
-        <span class="c">#                    imp.reload(module)</span>
-        <span class="c">#            # --------</span>
-        <span class="c">#            # Reload parent classes (if inherited)</span>
-        <span class="c">#            # TODO: figure out how to do this</span>
-        <span class="c">#            #for _baseclass in self.__class__.__bases__:</span>
-        <span class="c">#            #    if hasattr(_baseclass, &#39;rrr&#39;):</span>
-        <span class="c">#            #        print(&#39;Reloading parent: %r&#39; % (_baseclass))</span>
-        <span class="c">#            #        # make a bound rrr method that belongs to the parent instance</span>
-        <span class="c">#            #        base_rrr = _baseclass.rrr.__get__(self, _baseclass)</span>
-        <span class="c">#            #        base_rrr(verbose=verbose)</span>
-        <span class="c">#            # Get new class definition</span>
-        <span class="c">#            class_ = getattr(module, classname)</span>
-        <span class="c">#            reload_class_methods(self, class_)</span>
-        <span class="c">#        # --HACK--</span>
-        <span class="c">#        # TODO: handle injected definitions</span>
-        <span class="c">#        if hasattr(self, &#39;_initialize_self&#39;):</span>
-        <span class="c">#            self._initialize_self()</span>
-        <span class="c">#    except Exception as ex:</span>
-        <span class="c">#        import utool as ut</span>
-        <span class="c">#        ut.printex(ex, &#39;Error Reloading Class&#39;, keys=[</span>
-        <span class="c">#            &#39;modname&#39;,</span>
-        <span class="c">#            &#39;module&#39;,</span>
-        <span class="c">#            &#39;class_&#39;,</span>
-        <span class="c">#            &#39;self&#39;, ])</span>
-        <span class="c">#        #ut.embed()</span>
-        <span class="c">#        #print(ut.dict_str(module.__dict__))</span>
-        <span class="c">#        raise</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
 
 
@@ -1024,6 +951,42 @@
     <span class="k">return</span> <span class="n">method_list</span>
 
 
+<span class="k">class</span> <span class="nc">HashComparableMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines extra methods for Configs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            cls (type): meta</span>
+<span class="sd">            name (str): classname</span>
+<span class="sd">            supers (list): bases</span>
+<span class="sd">            dct (dict): class dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">method_list</span> <span class="o">=</span> <span class="n">get_comparison_methods</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">method_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+                <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                <span class="n">dct</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                <span class="n">dct</span><span class="p">[</span><span class="s">&#39;meta_&#39;</span> <span class="o">+</span> <span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="c">#ut.inject_func_as_method(metaself, func)</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">HashComparableMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">HashComparable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">reloadable_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    convinience decorator instead of @six.add_metaclass(ReloadingMetaclass)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ReloadingMetaclass</span><span class="p">)(</span><span class="n">cls</span><span class="p">)</span>
+
+
 <span class="k">class</span> <span class="nc">KwargsWrapper</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Allows an arbitrary object attributes to be passed as a **kwargs</span>
@@ -1125,7 +1088,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

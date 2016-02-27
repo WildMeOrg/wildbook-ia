@@ -57,7 +57,8 @@ try:
     from ibeis.control.IBEISControl import IBEISController
     from ibeis.algo.hots.query_request import QueryRequest
     from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
-    from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
+    from ibeis.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest,
+                                   ensure_nauts, ensure_wilddogs)
     from ibeis.init import main_helpers
 
     from ibeis import algo

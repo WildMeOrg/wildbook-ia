@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_meta_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.manual_meta_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -355,7 +355,7 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/new_temp&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/new_temp/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_new_temp_contributor"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.add_new_temp_contributor">[docs]</a><span class="k">def</span> <span class="nf">add_new_temp_contributor</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">autolocate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Auto-docstr for &#39;add_new_temp_contributor&#39;</span>
@@ -439,7 +439,7 @@
 <span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
 <span class="sd">        &gt;&gt;&gt; ibs.delete_contributors(ibs.get_valid_contrib_rowids())</span>
 <span class="sd">        &gt;&gt;&gt; contrib_rowid_list1 = ibs.get_image_contributor_rowid(gid_list)</span>
-<span class="sd">        &gt;&gt;&gt; assert ut.list_allsame(contrib_rowid_list1)</span>
+<span class="sd">        &gt;&gt;&gt; assert ut.allsame(contrib_rowid_list1)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(contrib_rowid_list1[0], None)</span>
 <span class="sd">        &gt;&gt;&gt; user_prompt = ut.get_argflag(&#39;--user-prompt&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; autolocate = ut.get_argflag(&#39;--user-prompt&#39;)</span>
@@ -449,7 +449,7 @@
 <span class="sd">        &gt;&gt;&gt; ibs.print_contributor_table()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &gt;&gt;&gt; contrib_rowid_list2 = ibs.get_image_contributor_rowid(gid_list)</span>
-<span class="sd">        &gt;&gt;&gt; assert ut.list_allsame(contrib_rowid_list2)</span>
+<span class="sd">        &gt;&gt;&gt; assert ut.allsame(contrib_rowid_list2)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(contrib_rowid_list2[0], 1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config</span>
@@ -1115,17 +1115,29 @@
     <span class="k">return</span> <span class="n">metadata_rowid_list</span>
 
 </div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/version/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_database_version_alias"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_database_version_alias">[docs]</a><span class="k">def</span> <span class="nf">get_database_version_alias</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Alias: `func:get_database_version`</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/core/version/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_version</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+
+</div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/database_version/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/dbversion/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_database_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_database_version">[docs]</a><span class="k">def</span> <span class="nf">get_database_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-    <span class="sd">r&#39;&#39;&#39;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Gets the specified database version from the controller</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/core/database_version/</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">        URL:    /api/core/dbversion/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
 
 </div>
@@ -1335,13 +1347,6 @@
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
-<span class="c">#@accessor_decors.default_decorator</span>
-<span class="c">#def get_qreq_rowid(ibs):</span>
-<span class="c">#    &quot;&quot;&quot; # FIXME: Configs are still handled poorly</span>
-<span class="c">#    assert ibs.qres is not None</span>
-<span class="c">#    qreq_rowid = ibs.qreq.get_cfgstr()</span>
-<span class="c">#    return qreq_rowid</span>
-
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -1391,7 +1396,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

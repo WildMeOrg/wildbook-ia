@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.chip_match &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.chip_match &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -253,6 +253,7 @@
             <span class="c">#cm_orig.assert_self(qreq_)</span>
             <span class="c">#other_aids = qreq_.daids</span>
             <span class="c"># Hack to get rid of key error</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;CHIP HAS NO GROUND TRUTH MATCHES&#39;</span><span class="p">)</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="n">cm2</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">extend_results</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
             <span class="n">cm2</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -357,6 +358,24 @@
 <span class="sd">        CommandLine:</span>
 <span class="sd">            python -m ibeis --tf ChipMatch.show_ranked_matches --show --qaid 1</span>
 <span class="sd">            python -m ibeis --tf ChipMatch.show_ranked_matches --qaid 86 --colorbar_=False --show</span>
+<span class="sd">            python -m ibeis --tf ChipMatch.show_ranked_matches:0 --qaid 86 --colorbar_=False --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.viz import viz_matches</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; cm_list, qreq_ = ibeis.testdata_cmlist(&#39;PZ_MTEST&#39;, [1])</span>
+<span class="sd">            &gt;&gt;&gt; defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))</span>
+<span class="sd">            &gt;&gt;&gt; kwargs = ut.argparse_dict(defaultkw, only_specified=True)</span>
+<span class="sd">            &gt;&gt;&gt; ut.delete_dict_keys(kwargs, [&#39;qaid&#39;])</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;plottype&#39;] = kwargs.get(&#39;plottype&#39;, &#39;namematch&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">            &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; clip_top = ut.get_argval(&#39;--clip-top&#39;, default=3)</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;kwargs = %s&#39; % (ut.repr2(kwargs, nl=True),))</span>
+<span class="sd">            &gt;&gt;&gt; cm.show_ranked_matches(qreq_, clip_top, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -465,7 +484,7 @@
     <span class="k">def</span> <span class="nf">ishow_analysis</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        CommandLine:</span>
-<span class="sd">            python -m ibeis.algo.hots.chip_match --exec-ChipMatch.ishow_analysis --show</span>
+<span class="sd">            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show</span>
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -618,7 +637,12 @@
         <span class="n">nsum_nid_list</span><span class="p">,</span> <span class="n">nsum_score_list</span> <span class="o">=</span> <span class="n">name_scoring</span><span class="o">.</span><span class="n">compute_nsum_score</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">==</span> <span class="n">nsum_nid_list</span><span class="p">),</span> <span class="s">&#39;name score not in alignment&#39;</span>
 
-        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normsum</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">normsum</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normsum</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">normsum</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">normsum</span><span class="p">:</span>
             <span class="c"># Normalize name scores</span>
             <span class="n">num_unmatched</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">unique_nids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">nsum_score_list</span><span class="p">)</span>
             <span class="n">valid_scores</span> <span class="o">=</span> <span class="n">nsum_score_list</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">nsum_score_list</span><span class="p">))</span>
@@ -803,7 +827,7 @@
         <span class="k">return</span> <span class="n">out</span>
 
 </div></div>
-<div class="viewcode-block" id="AnnotMatch"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.chip_match.AnnotMatch">[docs]</a><span class="k">class</span> <span class="nc">AnnotMatch</span><span class="p">(</span><span class="n">MatchBaseIO</span><span class="p">):</span>
+<div class="viewcode-block" id="AnnotMatch"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.chip_match.AnnotMatch">[docs]</a><span class="k">class</span> <span class="nc">AnnotMatch</span><span class="p">(</span><span class="n">MatchBaseIO</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This implements part the match between whole annotations and the other</span>
 <span class="sd">    annotaions / names. This does not include algorithm specific feature</span>
@@ -860,19 +884,14 @@
 <span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm()</span>
 <span class="sd">            &gt;&gt;&gt; custom_str = cm._custom_str()</span>
 <span class="sd">            &gt;&gt;&gt; result = (&#39;custom_str = %s&#39; % (ut.repr2(custom_str),))</span>
-<span class="sd">            &gt;&gt;&gt; assert custom_str.startswith(&#39;&lt;ChipMatch qaid=1 nD=10 at &#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert custom_str.startswith(&#39;qaid=1 nD=10&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">typestr</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
         <span class="n">infostr_</span> <span class="o">=</span> <span class="s">&#39;qaid=</span><span class="si">%s</span><span class="s"> nD=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">num_daids</span><span class="p">)</span>
-        <span class="n">custom_str</span> <span class="o">=</span> <span class="s">&#39;&lt;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> at </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">infostr_</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cm</span><span class="p">)))</span>
-        <span class="k">return</span> <span class="n">custom_str</span>
+        <span class="k">return</span> <span class="n">infostr_</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">cm</span><span class="o">.</span><span class="n">_custom_str</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">cm</span><span class="o">.</span><span class="n">_custom_str</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">cm</span><span class="o">.</span><span class="n">_custom_str</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">algo_annot_scores</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
@@ -1096,8 +1115,8 @@
 </div>
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="AnnotMatch.set_cannonical_name_score"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.chip_match.AnnotMatch.set_cannonical_name_score">[docs]</a>    <span class="k">def</span> <span class="nf">set_cannonical_name_score</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">annot_score_list</span><span class="p">,</span> <span class="n">name_score_list</span><span class="p">):</span>
-        <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">annot_score_list</span>
-        <span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span>  <span class="o">=</span> <span class="n">name_score_list</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">annot_score_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span>  <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">name_score_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
         <span class="c"># align with score_list</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span> <span class="o">=</span> <span class="n">name_scoring</span><span class="o">.</span><span class="n">align_name_scores_with_annots</span><span class="p">(</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid2_idx</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_groupxs</span><span class="p">,</span>
@@ -1204,8 +1223,20 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        qaid and daid_list are not optional. fm_list and fsv_list are strongly</span>
 <span class="sd">        encouraged and will probalby break things if they are not there.</span>
+
+<span class="sd">        SeeAlso: initialize</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ChipMatch</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">ChipMatch</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c"># Hack for ipython reload</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;id(cm.__class__) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">__class__</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;id(ChipMatch) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">ChipMatch</span><span class="p">),))</span>
+            <span class="c">#import utool</span>
+            <span class="c">#utool.embed()</span>
+            <span class="c">#assert id(cm.__class__) &gt; id(ChipMatch)</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">raise</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span>      <span class="o">=</span> <span class="bp">None</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span>     <span class="o">=</span> <span class="bp">None</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">fk_list</span>      <span class="o">=</span> <span class="bp">None</span>
@@ -1238,14 +1269,14 @@
             <span class="k">assert</span> <span class="n">dnid_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">dnid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">),</span> <span class="n">msg</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>         <span class="o">=</span> <span class="n">qaid</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span>    <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-        <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span>   <span class="o">=</span> <span class="n">score_list</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span>   <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">score_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">H_list</span>       <span class="o">=</span> <span class="n">H_list</span>
         <span class="c"># name info</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">qnid</span> <span class="o">=</span> <span class="n">qnid</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-        <span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span> <span class="o">=</span> <span class="n">name_score_list</span>
-        <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">annot_score_list</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">name_score_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">annot_score_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
 
         <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span>      <span class="o">=</span> <span class="n">fm_list</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span>     <span class="o">=</span> <span class="n">fsv_list</span>
@@ -1339,7 +1370,9 @@
 <span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
-<span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(&#39;PZ_MTEST&#39;, a=&#39;default:dindex=0:10,qindex=0:1&#39;, t=&#39;best:SV=False&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(&#39;PZ_MTEST&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                               a=&#39;default:dindex=0:10,qindex=0:1&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                               t=&#39;best:SV=False&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert len(cm.daid_list) == 9</span>
 <span class="sd">            &gt;&gt;&gt; cm.assert_self(qreq_)</span>
 <span class="sd">            &gt;&gt;&gt; other_aids = qreq_.ibs.get_valid_aids()</span>
@@ -1381,8 +1414,10 @@
         <span class="n">fsv_list</span> <span class="o">=</span> <span class="n">extend_nplists</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nVs</span><span class="p">),</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
         <span class="n">H_list</span>   <span class="o">=</span> <span class="n">extend_pylist</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">H_list</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
-        <span class="n">filtnorm_aids</span> <span class="o">=</span> <span class="n">filtnorm_op</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_aids</span><span class="p">,</span> <span class="n">extend_nplists</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
-        <span class="n">filtnorm_fxs</span> <span class="o">=</span> <span class="n">filtnorm_op</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_fxs</span><span class="p">,</span> <span class="n">extend_nplists</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+        <span class="n">filtnorm_aids</span> <span class="o">=</span> <span class="n">filtnorm_op</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_aids</span><span class="p">,</span> <span class="n">extend_nplists</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                                    <span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+        <span class="n">filtnorm_fxs</span> <span class="o">=</span> <span class="n">filtnorm_op</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_fxs</span><span class="p">,</span> <span class="n">extend_nplists</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                                   <span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
         <span class="c"># &lt;/feat correspondence&gt;</span>
 
         <span class="n">out</span> <span class="o">=</span> <span class="n">ChipMatch</span><span class="p">(</span>
@@ -1392,16 +1427,62 @@
             <span class="n">filtnorm_aids</span><span class="o">=</span><span class="n">filtnorm_aids</span><span class="p">,</span> <span class="n">autoinit</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="n">fs_list</span>
         <span class="c"># attrs should be dicts</span>
-        <span class="c">#for score_method in out.special_annot_scores:</span>
-        <span class="c">#    attr = score_method + &#39;_score_list&#39;</span>
-        <span class="c">#    setattr(out, attr, extend_scores(getattr(cm, attr, None), num))</span>
-        <span class="c">#for score_method in out.special_name_scores:</span>
-        <span class="c">#    attr = score_method + &#39;_score_list&#39;</span>
-        <span class="c">#    setattr(out, attr, extend_scores(getattr(cm, attr, None), num2))</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">algo_annot_scores</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">out</span><span class="o">.</span><span class="n">algo_annot_scores</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">extend_scores</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">algo_annot_scores</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">num</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">algo_name_scores</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">out</span><span class="o">.</span><span class="n">algo_name_scores</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">extend_scores</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">algo_name_scores</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">num2</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">_update_daid_index</span><span class="p">()</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">_update_unique_nid_index</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">out</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ChipMatch.combine_cms"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.chip_match.ChipMatch.combine_cms">[docs]</a>    <span class="k">def</span> <span class="nf">combine_cms</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; ibs, depc, aid_list = testdata_core(size=4)</span>
+<span class="sd">            &gt;&gt;&gt; request = depc.new_request(&#39;vsone&#39;, [1], [2, 3, 4], {&#39;dim_size&#39;: 450})</span>
+<span class="sd">            &gt;&gt;&gt; rawres_list2 = request.execute(postprocess=False)</span>
+<span class="sd">            &gt;&gt;&gt; cm_list = ut.take_column(rawres_list2, 1)</span>
+<span class="sd">            &gt;&gt;&gt; cls = ChipMatch</span>
+<span class="sd">            &gt;&gt;&gt; out = ChipMatch.combine_cms(cm_list)</span>
+<span class="sd">            &gt;&gt;&gt; out.score_nsum(request)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; out.ishow_analysis(request)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_attrs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">common_attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="s">&#39;qnid&#39;</span><span class="p">,</span> <span class="s">&#39;fsv_col_lbls&#39;</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">common_attrs</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="s">&#39;qaid&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">new_attrs</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c"># assumes disjoint</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;daid_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;dnid_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;score_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;annot_score_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;H_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;fm_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;fsv_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;fk_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;filtnorm_aids&#39;</span><span class="p">,</span>
+            <span class="s">&#39;filtnorm_fxs&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">new_attrs</span><span class="p">[</span><span class="s">&#39;qaid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qaid</span>
+        <span class="n">new_attrs</span><span class="p">[</span><span class="s">&#39;qnid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qnid</span>
+        <span class="n">new_attrs</span><span class="p">[</span><span class="s">&#39;fsv_col_lbls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fsv_col_lbls</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="n">new_attrs</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_attrs</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">new_attrs</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">_update_daid_index</span><span class="p">()</span>
         <span class="n">out</span><span class="o">.</span><span class="n">_update_unique_nid_index</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span>
@@ -1412,7 +1493,9 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
-<span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(&#39;PZ_MTEST&#39;, a=&#39;default:dindex=0:10,qindex=0:1&#39;, t=&#39;best:SV=False&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(&#39;PZ_MTEST&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                               a=&#39;default:dindex=0:10,qindex=0:1&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                               t=&#39;best:sv=false&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; idx_list = list(range(cm.num_daids))</span>
 <span class="sd">            &gt;&gt;&gt; inplace = False</span>
 <span class="sd">            &gt;&gt;&gt; keepscores = True</span>
@@ -1425,7 +1508,9 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
-<span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(&#39;PZ_MTEST&#39;, a=&#39;default:dindex=0:10,qindex=0:1&#39;, t=&#39;best:SV=False&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm(&#39;PZ_MTEST&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                               a=&#39;default:dindex=0:10,qindex=0:1&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;                               t=&#39;best:SV=False&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; idx_list = [0, 2]</span>
 <span class="sd">            &gt;&gt;&gt; inplace = False</span>
 <span class="sd">            &gt;&gt;&gt; keepscores = True</span>
@@ -1659,7 +1744,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ibeis.ChipMatch: cm</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">,</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">,</span>
                             <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">vmt_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))),</span> <span class="p">(</span>
             <span class="s">&#39;internal daids should not have different daids for vsone&#39;</span><span class="p">)</span>
         <span class="n">qfx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">vmt_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -1962,7 +2047,7 @@
 <span class="sd">            &gt;&gt;&gt; result = (&#39;varinfo = %s&#39; % (str(varinfo),))</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cm</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="c">#cm.assert_self(qreq_)</span>
 
         <span class="n">top_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39; top aids&#39;</span><span class="p">,</span> <span class="s">&#39; scores&#39;</span><span class="p">,</span> <span class="s">&#39; ranks&#39;</span><span class="p">]</span>
 
@@ -2199,8 +2284,8 @@
     <span class="c"># Testing Functions</span>
     <span class="c">#------------------</span>
 </div>
-<div class="viewcode-block" id="ChipMatch.assert_self"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.chip_match.ChipMatch.assert_self">[docs]</a>    <span class="k">def</span> <span class="nf">assert_self</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
-
+<div class="viewcode-block" id="ChipMatch.assert_self"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.chip_match.ChipMatch.assert_self">[docs]</a>    <span class="k">def</span> <span class="nf">assert_self</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">assert_feats</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_assert_eq_len</span><span class="p">(</span><span class="n">list1_</span><span class="p">,</span> <span class="n">list2_</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">list1_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq_len</span><span class="p">(</span><span class="n">list1_</span><span class="p">,</span> <span class="n">list2_</span><span class="p">)</span>
@@ -2232,7 +2317,8 @@
 
         <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;dnid_list = name(daid_list)&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">strict</span> <span class="ow">or</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)):</span>
+                <span class="n">nid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span> <span class="o">==</span> <span class="n">nid_list</span><span class="p">):</span>
                     <span class="n">testlog</span><span class="o">.</span><span class="n">log_failed</span><span class="p">(</span><span class="s">&#39;annot aligned nids are NOT ok&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">testlog</span><span class="o">.</span><span class="n">skip_test</span><span class="p">()</span>
@@ -2247,7 +2333,7 @@
             <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;allsame(grouped(dnid_list))&#39;</span><span class="p">):</span>
                 <span class="n">grouped_nids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_groupxs</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">grouped_nids</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">nids</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">nids</span><span class="p">):</span>
                         <span class="n">testlog</span><span class="o">.</span><span class="n">log_failed</span><span class="p">(</span><span class="s">&#39;internal dnid name grouping is NOT consistent&#39;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;allsame(name(grouped(daid_list)))&#39;</span><span class="p">):</span>
@@ -2256,10 +2342,12 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c"># this might fail if this result is old and the names have changed</span>
                     <span class="n">grouped_aids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_groupxs</span><span class="p">)</span>
-                    <span class="n">grouped_mapped_nids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">grouped_aids</span><span class="p">)</span>
+                    <span class="n">grouped_mapped_nids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+                        <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">grouped_aids</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">grouped_mapped_nids</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">nids</span><span class="p">):</span>
-                            <span class="n">testlog</span><span class="o">.</span><span class="n">log_failed</span><span class="p">(</span><span class="s">&#39;internal daid name grouping is NOT consistent&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">nids</span><span class="p">):</span>
+                            <span class="n">testlog</span><span class="o">.</span><span class="n">log_failed</span><span class="p">(</span>
+                                <span class="s">&#39;internal daid name grouping is NOT consistent&#39;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;dnid_list - unique_nid alignment&#39;</span><span class="p">):</span>
                 <span class="n">grouped_nids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_groupxs</span><span class="p">)</span>
@@ -2292,21 +2380,25 @@
                 <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                     <span class="n">testlog</span><span class="o">.</span><span class="n">skip_test</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">([</span><span class="n">fm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span> <span class="s">&#39;fm arrs must be Nx2 dimensions&#39;</span>
+                    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">([</span><span class="n">fm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span>
+                        <span class="s">&#39;fm arrs must be Nx2 dimensions&#39;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;fsv_col_lbls agree with fsv shape&#39;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                     <span class="n">testlog</span><span class="o">.</span><span class="n">skip_test</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_col_lbls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">strict</span><span class="p">:</span>
-                        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_col_lbls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;need to specify the names of the columns&#39;</span>
+                        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_col_lbls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="p">(</span>
+                            <span class="s">&#39;need to specify the names of the columns&#39;</span><span class="p">)</span>
                         <span class="n">num_col_lbls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fsv_col_lbls</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                             <span class="n">num_col_lbls</span> <span class="o">=</span> <span class="mi">0</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">num_col_lbls</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">([</span><span class="n">fsv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">],</span> <span class="n">num_col_lbls</span><span class="p">),</span> <span class="s">&#39;num_col_lbls=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_col_lbls</span><span class="p">,)</span>
+                    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">fsv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">],</span> <span class="n">num_col_lbls</span><span class="p">),</span> <span class="p">(</span>
+                            <span class="s">&#39;num_col_lbls=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_col_lbls</span><span class="p">,))</span>
 
             <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;filtnorm checks&#39;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_aids</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_fxs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -2319,12 +2411,14 @@
                     <span class="k">with</span> <span class="n">testlog</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s">&#39;len(fsvs) agree with filtnorm_arrs&#39;</span><span class="p">):</span>
                         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span>
                             <span class="n">aids_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>
-                            <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">fsv</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">)])</span>
+                            <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">fsv</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">)])</span>
                             <span class="k">for</span> <span class="n">aids_list</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_aids</span>
                         <span class="p">]),</span> <span class="s">&#39;norm aid indicies do not agree with featscores&#39;</span>
                         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span>
                             <span class="n">fxs_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>
-                            <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">fsv</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">fxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">fxs</span><span class="p">,</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fxs_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">)])</span>
+                            <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">fsv</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">fxs</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">fxs</span><span class="p">,</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fxs_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">)])</span>
                             <span class="k">for</span> <span class="n">fxs_list</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">filtnorm_fxs</span>
                         <span class="p">]),</span> <span class="s">&#39;norm fx indicies do not agree with featscores&#39;</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -2333,10 +2427,11 @@
 
         <span class="c"># testlog.log_passed(&#39;filtkey and fsv shapes are ok&#39;)</span>
 
-        <span class="k">if</span> <span class="n">strict</span> <span class="ow">or</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">assert_feats</span> <span class="ow">and</span> <span class="p">(</span><span class="n">strict</span> <span class="ow">or</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
             <span class="n">external_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
             <span class="n">external_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span><span class="p">:</span>
+            <span class="n">proot</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">,</span> <span class="s">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">proot</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">external_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;only one external qaid for vsone&#39;</span>
                 <span class="k">if</span> <span class="n">strict</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                     <span class="n">nExternalQVecs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span>
@@ -2468,15 +2563,14 @@
 <span class="sd">        &gt;&gt;&gt;                             TRUNCATE_UUIDS=False, MAX_FNAME_LEN=200)</span>
 <span class="sd">        &gt;&gt;&gt; result = fname</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        qaid=18_cm_ehrflaqssbmixdqx_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl</span>
+<span class="sd">        qaid=18_cm_cvgrsbnffsgifyom_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">qauuid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[chipmatch] Warning qasuuid should be given&#39;</span><span class="p">)</span>
         <span class="n">qauuid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[chipmatch] Warning cfgstr should be passed given&#39;</span><span class="p">)</span>
-        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                                  <span class="n">with_pipe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c">#print(&#39;cfgstr = %r&#39; % (cfgstr,))</span>
     <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}&#39;</span>
     <span class="n">text_type</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span>
@@ -2532,7 +2626,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

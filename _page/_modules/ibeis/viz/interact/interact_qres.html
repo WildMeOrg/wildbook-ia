@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_qres &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.interact.interact_qres &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -136,12 +136,9 @@
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c">#from ibeis.algo.hots import chip_match</span>
 <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
-<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>  <span class="c"># NOQA</span>
-<span class="c">#from plottool import interact_matches  # NOQA</span>
-<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_sver</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
 
@@ -170,22 +167,27 @@
 <span class="sd">        &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm()</span>
 <span class="sd">        &gt;&gt;&gt; fig = ishow_analysis(qreq_.ibs, cm, qreq_=qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">interact</span> <span class="o">=</span> <span class="n">InteractQres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">interact</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
-        <span class="n">interact</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">interact</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">ishow_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">interact</span> <span class="o">=</span> <span class="n">InteractQres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">interact</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+    <span class="n">interact</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">interact</span>
 
 </div>
 <span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span>
-<span class="c">#BASE_CLASS = interact_matches.MatchInteraction2</span>
 
 
 <div class="viewcode-block" id="InteractQres"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.InteractQres">[docs]</a><span class="k">class</span> <span class="nc">InteractQres</span><span class="p">(</span><span class="n">BASE_CLASS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Displays query chip, groundtruth matches, and top matches</span>
+
+<span class="sd">    THERE IS A DIFFERENCE BETWEEN THIS AND MATCH INTERACTION. THIS IS FOR</span>
+<span class="sd">    DISPLAYING THE RANKED LIST MATCH INTERACTION IS LOOKING AT A SINGLE PAIR</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        #interact_matches.MatchInteraction2</span>
+<span class="sd">        #ibeis.viz.interact.MatchInteraction</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="o">=</span> <span class="n">cm</span>
@@ -290,199 +292,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
 </div></div>
-<div class="viewcode-block" id="ishow_qres"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.ishow_qres">[docs]</a><span class="k">def</span> <span class="nf">ishow_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Displays query chip, groundtruth matches, and top matches</span>
-
-<span class="sd">    THERE IS A DIFFERENCE BETWEEN THIS AND MATCH INTERACTION. THIS IS FOR DISPLAYING THE RANKED LIST</span>
-<span class="sd">    MATCH INTERACTION IS LOOKING AT A SINGLE PAIR</span>
-
-<span class="sd">    TODO: make this a class</span>
-<span class="sd">    TODO; dodraw should be false by default</span>
-
-<span class="sd">    SeeAlso:</span>
-<span class="sd">        #interact_matches.MatchInteraction2</span>
-<span class="sd">        #ibeis.viz.interact.MatchInteraction</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        cm (QueryResult):  object of feature correspondences and scores</span>
-<span class="sd">        analysis (bool):</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.viz.interact.interact_qres --test-ishow_qres --show</span>
-<span class="sd">        python -m ibeis.viz.interact.interact_qres --test-ishow_qres</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; # EN-ABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.viz.interact.interact_qres import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm()</span>
-<span class="sd">        &gt;&gt;&gt; analysis = True</span>
-<span class="sd">        &gt;&gt;&gt; fig = ishow_qres(qreq_.ibs, cm, analysis, dodraw=False, qreq_=qreq_)</span>
-<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="c"># TODO: make this a class</span>
-        <span class="n">interact</span> <span class="o">=</span> <span class="n">InteractQres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">interact</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
-        <span class="n">interact</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">interact</span>
-    <span class="c">#else:</span>
-    <span class="c">#    fnum = pt.ensure_fnum(kwargs.get(&#39;fnum&#39;, None))</span>
-    <span class="c">#    kwargs[&#39;fnum&#39;] = fnum</span>
-
-    <span class="c">#    fig = ih.begin_interaction(&#39;qres&#39;, fnum)</span>
-    <span class="c">#    # Result Interaction</span>
-    <span class="c">#    #if verbose:</span>
-    <span class="c">#    #    print(&#39;[ishow_qres] starting interaction&#39;)</span>
-
-    <span class="c">#    # Start the transformation into a class</span>
-    <span class="c">#    self = ut.DynStruct()</span>
-    <span class="c">#    self.qreq_ = qreq_</span>
-    <span class="c">#    self.ibs = ibs</span>
-    <span class="c">#    verbose = False</span>
-
-    <span class="c">#    def show_sver_process_to_aid(aid2):</span>
-    <span class="c">#        if verbose:</span>
-    <span class="c">#            print(&#39;ctrl+clicked aid2=%r&#39; % aid2)</span>
-    <span class="c">#        fnum_ = pt.next_fnum()</span>
-    <span class="c">#        ishow_sver(ibs, cm.qaid, aid2, qreq_=self.qreq_, fnum=fnum_)</span>
-    <span class="c">#        fig.canvas.draw()</span>
-    <span class="c">#        pt.bring_to_front(fig)</span>
-
-    <span class="c">#    def show_matches_to_aid(aid2):</span>
-    <span class="c">#        if verbose:</span>
-    <span class="c">#            print(&#39;clicked aid2=%r&#39; % aid2)</span>
-    <span class="c">#        fnum_ = pt.next_fnum()</span>
-    <span class="c">#        cm.ishow_matches(ibs, aid2, qreq_=self.qreq_, fnum=fnum_)</span>
-    <span class="c">#        fig = pt.gcf()</span>
-    <span class="c">#        fig.canvas.draw()</span>
-    <span class="c">#        #pt.bring_to_front(fig)</span>
-
-    <span class="c">#    def _top_matches_view(toggle=0):</span>
-    <span class="c">#        # Toggle if the click is not in any axis</span>
-    <span class="c">#        if verbose:</span>
-    <span class="c">#            print(&#39;clicked none&#39;)</span>
-    <span class="c">#        kwargs[&#39;annot_mode&#39;] = kwargs.get(&#39;annot_mode&#39;, 0) + toggle</span>
-    <span class="c">#        fig = viz.show_qres(ibs, cm, qreq_=self.qreq_, **kwargs)</span>
-    <span class="c">#        return fig</span>
-
-    <span class="c">#    def _analysis_view(toggle=0):</span>
-    <span class="c">#        # Toggle if the click is not in any axis</span>
-    <span class="c">#        if verbose:</span>
-    <span class="c">#            print(&#39;clicked none&#39;)</span>
-    <span class="c">#        kwargs[&#39;annot_mode&#39;] = kwargs.get(&#39;annot_mode&#39;, 0) + toggle</span>
-    <span class="c">#        fig = cm.show_analysis(ibs, qreq_=self.qreq_, **kwargs)</span>
-    <span class="c">#        return fig</span>
-
-    <span class="c">#    def _refresh():</span>
-    <span class="c">#        if analysis:</span>
-    <span class="c">#            fig = _analysis_view(toggle=1)</span>
-    <span class="c">#        else:</span>
-    <span class="c">#            fig = _top_matches_view(toggle=1)</span>
-    <span class="c">#        fig.canvas.draw()</span>
-    <span class="c">#        # TODO NEED TO MOVE TO CLASS STRUCTURE</span>
-    <span class="c">#        ph.draw()</span>
-
-    <span class="c">#    #def _on_keypress(event):</span>
-    <span class="c">#    #    if event.key == &#39;,&#39;:</span>
-    <span class="c">#    #        print(event.key)</span>
-    <span class="c">#    #        from ibeis.gui import inspect_gui</span>
-    <span class="c">#    #        update_callback = _refresh</span>
-    <span class="c">#    #        backend_callback = None</span>
-    <span class="c">#    #        print(&#39;qreq_ = %r&#39; % (self.qreq_,))</span>
-    <span class="c">#    #        print(&#39;right click&#39;)</span>
-    <span class="c">#    #        height = fig.canvas.geometry().height()</span>
-    <span class="c">#    #        import guitool</span>
-    <span class="c">#    #        qpoint = guitool.newQPoint(event.x, height - event.y)</span>
-    <span class="c">#    #        qwin = fig.canvas</span>
-    <span class="c">#    #        inspect_gui.show_aidpair_context_menu(</span>
-    <span class="c">#    #            ibs, qwin, qpoint, cm.qaid, aid2, cm, qreq_=self.qreq_,</span>
-    <span class="c">#    #            update_callback=update_callback,</span>
-    <span class="c">#    #            backend_callback=backend_callback, aid_list=aid_list)</span>
-
-    <span class="c">#    def _on_match_click(event):</span>
-    <span class="c">#        &quot;&quot;&quot; result interaction mpl event callback slot &quot;&quot;&quot;</span>
-    <span class="c">#        print(&#39;[viz] clicked result&#39;)</span>
-    <span class="c">#        if ih.clicked_outside_axis(event):</span>
-    <span class="c">#            _refresh()</span>
-    <span class="c">#        else:</span>
-    <span class="c">#            ax = event.inaxes</span>
-    <span class="c">#            viztype = ph.get_plotdat(ax, &#39;viztype&#39;, &#39;&#39;)</span>
-    <span class="c">#            #if verbose:</span>
-    <span class="c">#            #    print(str(event.__dict__))</span>
-    <span class="c">#            print(&#39;viztype=%r&#39; % viztype)</span>
-    <span class="c">#            # Clicked a specific matches</span>
-    <span class="c">#            print(&#39;plodat_dict = &#39; + ut.dict_str(ph.get_plotdat_dict(ax)))</span>
-    <span class="c">#            if viztype.startswith(&#39;chip&#39;):</span>
-    <span class="c">#                import guitool</span>
-    <span class="c">#                from ibeis.viz.interact import interact_chip</span>
-    <span class="c">#                height = fig.canvas.geometry().height()</span>
-    <span class="c">#                qpoint = guitool.newQPoint(event.x, height - event.y)</span>
-    <span class="c">#                refresh_func = _analysis_view</span>
-    <span class="c">#                interact_chip.show_annot_context_menu(</span>
-    <span class="c">#                    ibs, cm.qaid, fig.canvas, qpoint, refresh_func=refresh_func,</span>
-    <span class="c">#                    with_interact_chip=False)</span>
-    <span class="c">#            if viztype.startswith(&#39;matches&#39;) or viztype == &#39;multi_match&#39;:  # why startswith?</span>
-    <span class="c">#                aid2 = ph.get_plotdat(ax, &#39;aid2&#39;, None)</span>
-    <span class="c">#                aid_list = ph.get_plotdat(ax, &#39;aid_list&#39;, None)</span>
-    <span class="c">#                if event.button == 3:   # right-click</span>
-    <span class="c">#                    print(&#39;right click&#39;)</span>
-    <span class="c">#                    height = fig.canvas.geometry().height()</span>
-    <span class="c">#                    import guitool</span>
-    <span class="c">#                    qpoint = guitool.newQPoint(event.x, height - event.y)</span>
-    <span class="c">#                    qwin = fig.canvas</span>
-    <span class="c">#                    # TODO; this functionality should be in viz.interact</span>
-    <span class="c">#                    from ibeis.gui import inspect_gui</span>
-    <span class="c">#                    update_callback = _refresh</span>
-    <span class="c">#                    backend_callback = None</span>
-    <span class="c">#                    print(&#39;qreq_ = %r&#39; % (self.qreq_,))</span>
-    <span class="c">#                    options = inspect_gui.get_aidpair_context_menu_options(</span>
-    <span class="c">#                        ibs, cm.qaid, aid2, cm, qreq_=qreq_,</span>
-    <span class="c">#                        update_callback=update_callback,</span>
-    <span class="c">#                        backend_callback=backend_callback, aid_list=aid_list)</span>
-    <span class="c">#                    guitool.popup_menu(qwin, qpoint, options)</span>
-    <span class="c">#                    #inspect_gui.show_aidpair_context_menu(</span>
-    <span class="c">#                    #    ibs, qwin, qpoint, cm.qaid, aid2, cm, qreq_=self.qreq_,</span>
-    <span class="c">#                    #    update_callback=update_callback,</span>
-    <span class="c">#                    #    backend_callback=backend_callback, aid_list=aid_list)</span>
-    <span class="c">#                    #callback_list = [</span>
-    <span class="c">#                    #]</span>
-    <span class="c">#                    #guitool.popup_menu(qwin, qpoint, callback_list)</span>
-    <span class="c">#                else:</span>
-    <span class="c">#                    # Ctrl-Click</span>
-    <span class="c">#                    key = &#39;&#39; if event.key is None else event.key</span>
-    <span class="c">#                    print(&#39;key = %r&#39; % key)</span>
-    <span class="c">#                    if key.find(&#39;control&#39;) == 0:</span>
-    <span class="c">#                        print(&#39;[viz] result control clicked&#39;)</span>
-    <span class="c">#                        show_sver_process_to_aid(aid2)</span>
-    <span class="c">#                    # Left-Click</span>
-    <span class="c">#                    else:</span>
-    <span class="c">#                        print(&#39;[viz] result clicked&#39;)</span>
-    <span class="c">#                        show_matches_to_aid(aid2)</span>
-    <span class="c">#                    #print(&#39;multimatches&#39;)</span>
-    <span class="c">#                    #aid2 = ph.get_plotdat(ax, &#39;aid2&#39;, None)</span>
-    <span class="c">#                    #key = &#39;&#39; if event.key is None else event.key</span>
-    <span class="c">#                    #print(&#39;key = %r&#39; % key)</span>
-    <span class="c">#                    #if key == &#39;&#39;:</span>
-    <span class="c">#                    #    show_matches_to_aid(aid2)</span>
-    <span class="c">#        ph.draw()</span>
-
-    <span class="c">#    if analysis:</span>
-    <span class="c">#        fig = _analysis_view()</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        fig = _top_matches_view()</span>
-    <span class="c">#    if dodraw:</span>
-    <span class="c">#        ph.draw()</span>
-    <span class="c">#    ih.connect_callback(fig, &#39;button_press_event&#39;, _on_match_click)</span>
-    <span class="c">#    #ih.connect_callback(fig, &#39;key_press_event&#39;, _on_keypress)</span>
-    <span class="c">#    #if verbose:</span>
-    <span class="c">#    #    print(&#39;[ishow_qres] Finished&#39;)</span>
-    <span class="c">#    return fig</span>
-
-</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -527,7 +336,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

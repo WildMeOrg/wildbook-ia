@@ -26,7 +26,7 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
                       else qreq_.get_external_query_config2())
     tblhack = getattr(qreq_, 'tablename', None)
     #print('!!! query_config2_ = %r' % (query_config2_,))
-    if not tblhack and qreq_._isnewreq:
+    if (not tblhack or tblhack == 'BC_DTW') and qreq_._isnewreq:
         if hasattr(qreq_, 'get_fmatch_overlayed_chip')  and draw_fmatches and draw_fmatches != 'hackoff':
             rchip1 = qreq_.get_fmatch_overlayed_chip(qaid, config=query_config2_)
             draw_fmatches = False
@@ -50,7 +50,7 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
     #print('!!! data_config2_ = %r' % (data_config2_,))
     #print('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
-    if not tblhack and qreq_._isnewreq:
+    if (not tblhack or tblhack == 'BC_DTW') and qreq_._isnewreq:
         if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
             rchip2_list = qreq_.get_fmatch_overlayed_chip(aid_list, config=data_config2_)
             #rchip2_list = ibs.depc.get_property('chips', aid_list, 'img', config=data_config2_)
@@ -169,16 +169,19 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     name_rank = kwargs.get('name_rank', None)
     truth = get_multitruth(ibs, aid_list)
 
-    if name_rank is None:
-        xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
-        #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
-    else:
-        if name_rank == 0:
-            xlabel = {
-                1: 'True Positive', 0: 'False Positive', 2: 'Unknown'}[truth]
+    xlabel = {1: 'Correct ID', 0: 'Incorrect ID', 2: 'Unknown ID'}[truth]
+
+    if False:
+        if name_rank is None:
+            xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
+            #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
         else:
-            xlabel = {
-                1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
+            if name_rank == 0:
+                xlabel = {
+                    1: 'True Positive', 0: 'False Positive', 2: 'Unknown'}[truth]
+            else:
+                xlabel = {
+                    1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
 
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)

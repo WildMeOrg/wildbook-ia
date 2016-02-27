@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc.preproc_featweight &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.preproc.preproc_featweight &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -157,13 +157,9 @@
 
 <span class="sd">    python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show --cnn</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
-                                           <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                                           <span class="c">#qaid_list=&#39;all&#39;,</span>
-                                           <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                                           <span class="n">cfgdict</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;featweight_detector&#39;</span><span class="p">:</span> <span class="s">&#39;cnn&#39;</span><span class="p">})</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:featweight_detector=cnn&#39;</span><span class="p">],</span> <span class="n">qaid_override</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="n">lazy</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">aid_list</span>            <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
@@ -485,7 +481,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

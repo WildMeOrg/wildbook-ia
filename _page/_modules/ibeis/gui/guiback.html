@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.guiback &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.gui.guiback &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -1438,7 +1438,6 @@
         <span class="k">if</span> <span class="n">imgsetid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] invalid imgsetid&#39;</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="c">#back.compute_feats(refresh=False, **kwargs)</span>
         <span class="c"># Get the query annotation ids to search and</span>
         <span class="c"># the database annotation ids to be searched</span>
         <span class="n">query_title</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
@@ -1448,7 +1447,6 @@
                 <span class="c"># old style Actions-&gt;Query execution</span>
                 <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_aids</span><span class="p">()</span>
                 <span class="n">query_title</span> <span class="o">+=</span> <span class="s">&#39;selection&#39;</span>
-                <span class="c">#qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c"># if not visual selection, then qaids are selected by imageset</span>
                 <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_qaids</span><span class="p">(</span><span class="n">imgsetid</span><span class="o">=</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="n">query_is_known</span><span class="p">)</span>
@@ -1468,8 +1466,6 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_prioritized_name_subset</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">annots_per_name</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">query_title</span> <span class="o">+=</span> <span class="s">&#39; priority_subset&#39;</span>
-            <span class="c">#qaid_list = ut.compress(</span>
-            <span class="c">#    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))</span>
 
         <span class="k">if</span> <span class="n">daids_mode</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">:</span>
             <span class="n">query_title</span> <span class="o">+=</span> <span class="s">&#39; vs exemplars&#39;</span>
@@ -2387,7 +2383,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

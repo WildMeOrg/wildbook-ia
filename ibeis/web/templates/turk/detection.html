@@ -4,16 +4,16 @@
   <div class="alert alert-info text-center" role="alert">
     Congratulations, detection turking is completed.  Thank you!
     <br/>
-    <a href="{{ url_for('turk_viewpoint') }}?gsid={{ gsid }}">Continue by turking viewpoints</a>
+    <a href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}">Continue by turking viewpoints</a>
   </div>
   {% else %}
     <div class="row">
       <div class="col-lg-1"></div>
 
       <div class="col-lg-10">
-        {% if gsid %}
+        {% if imgsetid %}
           <div class="alert alert-info" role="alert">
-            Filtering for gsid: <a href="{{ url_for('view_imagesets') }}?gsid={{ gsid }}">{{ imagesettext }} ({{ gsid }})</a>
+            Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
             <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
           </div>
         {% endif %}

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_chip &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.viz_chip &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -150,6 +150,11 @@
     <span class="n">weight_label</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--weight_label&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;fg_weights&#39;</span><span class="p">)</span>
     <span class="n">annote</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-annote&#39;</span><span class="p">)</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ori</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ori&#39;</span><span class="p">),</span> <span class="n">weight_label</span><span class="o">=</span><span class="n">weight_label</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;notitle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--notitle&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;pts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--drawpts&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;ell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--drawell&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;ell_alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--ellalpha&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=.</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;ell_linewidth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--ell_linewidth&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">FeatureWeightConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">default_config</span><span class="p">)</span>
@@ -192,13 +197,22 @@
     <span class="sd">r&quot;&quot;&quot; Driver function to show chips</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        ibs (ibeis.IBEISController):</span>
 <span class="sd">        aid (int): annotation rowid</span>
 <span class="sd">        in_image (bool): displays annotation with the context of its source image</span>
 <span class="sd">        annote (bool): enables overlay annoations</span>
 <span class="sd">        title_suffix (str):</span>
+<span class="sd">        weight_label (None): (default = None)</span>
+<span class="sd">        weights (None): (default = None)</span>
+<span class="sd">        config2_ (dict): (default = None)</span>
 
-<span class="sd">    Keywords:</span>
+<span class="sd">    Kwargs:</span>
+<span class="sd">        enable_chip_title_prefix, nokpts, kpts_subset, kpts, text_color,</span>
+<span class="sd">        notitle, draw_lbls, show_aidstr, show_gname, show_name, show_nid,</span>
+<span class="sd">        show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,</span>
+<span class="sd">        title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,</span>
+<span class="sd">        darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,</span>
+<span class="sd">        projection, use_gridspec, pts, ell</span>
 <span class="sd">        color (3/4-tuple, ndarray, or str): colors for keypoints</span>
 
 <span class="sd">    CommandLine:</span>
@@ -275,7 +289,8 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">viz_keypoints</span><span class="o">.</span><span class="n">_annotate_kpts</span><span class="p">(</span><span class="n">kpts_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">upperleft_text</span><span class="p">(</span><span class="n">chip_text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;text_color&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--noaidlabel&#39;</span><span class="p">):</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">upperleft_text</span><span class="p">(</span><span class="n">chip_text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;text_color&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
     <span class="n">use_title</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;notitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">use_title</span><span class="p">:</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">chip_title_text</span><span class="p">)</span>
@@ -397,7 +412,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

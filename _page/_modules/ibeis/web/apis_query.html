@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.apis_query &mdash; ibeis 1.5.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.web.apis_query</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.web.apis_query</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">))</span>
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/query/recognition_query_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_recognition_query_aids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_query.get_recognition_query_aids">[docs]</a><span class="k">def</span> <span class="nf">get_recognition_query_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">is_known</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPCIRATE</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/query/recognition_query_aids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_known</span><span class="o">=</span><span class="n">is_known</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/query/chips/simple_dict/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="query_chips_simple_dict"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_query.query_chips_simple_dict">[docs]</a><span class="k">def</span> <span class="nf">query_chips_simple_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Runs query_chips, but returns a json compatible dictionary</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        same as query_chips</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/query/chips/simple_dict/</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        query_chips</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1</span>
+
+<span class="sd">        python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0 --humpbacks</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #qaid = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = ibs.query_chips_simple_dict(qaids, daids, return_cm=True)</span>
+<span class="sd">        &gt;&gt;&gt; qgids = ibs.get_annot_image_rowids(qaids)</span>
+<span class="sd">        &gt;&gt;&gt; qnids = ibs.get_annot_name_rowids(qaids)</span>
+<span class="sd">        &gt;&gt;&gt; for dict_, qgid, qnid in zip(dict_list, qgids, qnids):</span>
+<span class="sd">        &gt;&gt;&gt;     dict_[&#39;qgid&#39;] = qgid</span>
+<span class="sd">        &gt;&gt;&gt;     dict_[&#39;qnid&#39;] = qnid</span>
+<span class="sd">        &gt;&gt;&gt;     dict_[&#39;dgid_list&#39;] = ibs.get_annot_image_rowids(dict_[&#39;daid_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt;     dict_[&#39;dnid_list&#39;] = ibs.get_annot_name_rowids(dict_[&#39;daid_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt;     dict_[&#39;dgname_list&#39;] = ibs.get_image_gnames(dict_[&#39;dgid_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt;     dict_[&#39;qgname&#39;] = ibs.get_image_gnames(dict_[&#39;qgid&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; result  = ut.list_str(dict_list, nl=2, precision=2, hack_liststr=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = result.replace(&#39;u\&#39;&#39;, &#39;&quot;&#39;).replace(&#39;\&#39;&#39;, &#39;&quot;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import time</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import requests</span>
+<span class="sd">        &gt;&gt;&gt; # Start up the web instance</span>
+<span class="sd">        &gt;&gt;&gt; web_instance = ibeis.opendb_in_background(db=&#39;testdb1&#39;, web=True, browser=False)</span>
+<span class="sd">        &gt;&gt;&gt; time.sleep(.5)</span>
+<span class="sd">        &gt;&gt;&gt; baseurl = &#39;http://127.0.1.1:5000&#39;</span>
+<span class="sd">        &gt;&gt;&gt; data = dict(qaid_list=[1])</span>
+<span class="sd">        &gt;&gt;&gt; resp = requests.get(baseurl + &#39;/api/query/chips/simple_dict/&#39;, data=data)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp)</span>
+<span class="sd">        &gt;&gt;&gt; web_instance.terminate()</span>
+<span class="sd">        &gt;&gt;&gt; json_dict = resp.json()</span>
+<span class="sd">        &gt;&gt;&gt; cmdict_list = json_dict[&#39;response&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; assert &#39;score_list&#39; in cmdict_list[0]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;return_cm_simple_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/query/chips/dict/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="query_chips_dict"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_query.query_chips_dict">[docs]</a><span class="k">def</span> <span class="nf">query_chips_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs query_chips, but returns a json compatible dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/query/chips/dict/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;return_cm_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/query/chips/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="query_chips"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_query.query_chips">[docs]</a><span class="k">def</span> <span class="nf">query_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span>
+                <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">prog_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">return_cm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">return_cm_dict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">return_cm_simple_dict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Submits a query request to the hotspotter recognition pipeline. Returns</span>
+<span class="sd">    a list of QueryResult objects.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        In the future the QueryResult objects will be replaced by ChipMatch</span>
+<span class="sd">        objects</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid_list (list): a list of annotation ids to be submitted as</span>
+<span class="sd">            queries</span>
+<span class="sd">        daid_list (list): a list of annotation ids used as the database</span>
+<span class="sd">            that will be searched</span>
+<span class="sd">        cfgdict (dict): dictionary of configuration options used to create</span>
+<span class="sd">            a new QueryRequest if not already specified</span>
+<span class="sd">        use_cache (bool): turns on/off chip match cache (default: True)</span>
+<span class="sd">        use_bigcache (bool): turns one/off chunked chip match cache (default: True)</span>
+<span class="sd">        qreq_ (QueryRequest): optional, a QueryRequest object that</span>
+<span class="sd">            overrides all previous settings</span>
+<span class="sd">        return_request (bool): returns the request which will be created if</span>
+<span class="sd">            one is not already specified</span>
+<span class="sd">        verbose (bool): default=False, turns on verbose printing</span>
+<span class="sd">        return_cm (bool): default=True, if true converts QueryResult</span>
+<span class="sd">            objects into serializable ChipMatch objects (in the future</span>
+<span class="sd">            this will be defaulted to True)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: a list of ChipMatch objects containing the matching</span>
+<span class="sd">            annotations, scores, and feature matches</span>
+
+<span class="sd">    Returns(2):</span>
+<span class="sd">        tuple: (cm_list, qreq_) - a list of query results and optionally the QueryRequest object used</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-query_chips</span>
+
+<span class="sd">        # Test speed of single query</span>
+<span class="sd">        python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \</span>
+<span class="sd">            -a default:qindex=0:1,dindex=0:500 --nocache-hs</span>
+
+<span class="sd">        python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \</span>
+<span class="sd">            -a default:qindex=0:1,dindex=0:3000 --nocache-hs</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/query/chips/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_()</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = ibs.query_chips(qreq_=qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">return_cm</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">return_cm</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c"># The qaid and daid objects are allowed to be None if qreq_ is</span>
+    <span class="c"># specified</span>
+    <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
+    <span class="n">qaid_list</span><span class="p">,</span> <span class="n">was_scalar</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_iterable</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+
+    <span class="c"># Wrapped call to the main entrypoint in the API to the hotspotter</span>
+    <span class="c"># pipeline</span>
+    <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+        <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+        <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_bigcache</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+        <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+        <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">,</span>
+        <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">)</span>
+
+    <span class="c"># Return a list of query results instead of that awful dictionary</span>
+    <span class="c"># that will be depricated in future version of hotspotter.</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_cm</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">return_cm</span> <span class="ow">or</span> <span class="n">return_cm_dict</span> <span class="ow">or</span> <span class="n">return_cm_simple_dict</span><span class="p">:</span>
+        <span class="c"># Convert to cm_list</span>
+        <span class="k">if</span> <span class="n">return_cm_simple_dict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">qauuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">dauuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;qauuid&#39;</span><span class="p">,</span> <span class="s">&#39;dauuid_list&#39;</span><span class="p">]</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">as_simple_dict</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">return_cm_dict</span><span class="p">:</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list</span>
+    <span class="c">#else:</span>
+    <span class="c">#    cm_list = [</span>
+    <span class="c">#        cm.as_qres2(qreq_)</span>
+    <span class="c">#        for cm in cm_list</span>
+    <span class="c">#    ]</span>
+
+    <span class="k">if</span> <span class="n">was_scalar</span><span class="p">:</span>
+        <span class="c"># hack for scalar input</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cm_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/query/chips4/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">_query_chips4</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                  <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                  <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span>
+                  <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">prog_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    submits a query request</span>
+<span class="sd">    main entrypoint in the IBIES API to the hotspotter pipeline</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-_query_chips4 --show</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/query/chips4/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; #from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.test_main(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; cm = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+    <span class="c"># Check fo empty queries</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no database chips&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no query chips&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Impossible query request&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                   <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid_list&#39;</span><span class="p">,</span> <span class="s">&#39;daid_list&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Check for consistency</span>
+        <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">(),</span> <span class="n">qaid_list</span><span class="p">,</span>
+                <span class="s">&#39;qaids do not agree with qreq_&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">(),</span> <span class="n">daid_list</span><span class="p">,</span>
+                <span class="s">&#39;daids do not agree with qreq_&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                                          <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="c"># Send query to hotspotter (runs the query)</span>
+        <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span>  <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="p">,</span>
+            <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">qreq_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_cm</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app</span>
+<span class="sd">        python -m ibeis.web.app --allexamples</span>
+<span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

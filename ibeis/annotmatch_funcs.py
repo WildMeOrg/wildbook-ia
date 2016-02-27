@@ -703,6 +703,7 @@ def review_tagged_splits():
         >>> from ibeis.viz import viz_graph
         >>> nids = [split_nids[0]]
         >>> selected_aids = np.unique(problem_aids.ravel()).tolist()
+        >>> selected_aids = [] if ut.get_argflag('--noselect') else  selected_aids
         >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
         >>> ut.show_if_requested()
 

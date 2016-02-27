@@ -657,8 +657,8 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
         ]
         cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
 
-        assert cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs)
-        assert cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs)
+        assert np.all(cm_orig.daid_list.take(tp_idxs) == cm.daid_list.take(tp_idxs))
+        assert np.all(cm_orig.daid_list.take(tn_idxs) == cm.daid_list.take(tn_idxs))
         #cm.assert_self(qreq_)
 
     tp_fsv = np.vstack(ut.take(cm.fsv_list, tp_idxs))

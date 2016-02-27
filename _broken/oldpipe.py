@@ -42,7 +42,7 @@ def append_chipmatch_vsmany_agg(valid_match_tup):
 def append_chipmatch_vsone_agg(valid_match_tup):
     # OLD WAY OF DOING THINGS
     (valid_daid, valid_qfx, valid_dfx, valid_score, valid_rank,) = valid_match_tup
-    assert ut.list_allsame(valid_daid), 'internal daids should not have different daids for vsone'
+    assert ut.allsame(valid_daid), 'internal daids should not have different daids for vsone'
     # Note the difference in construction of fm
     fm = np.vstack((valid_dfx, valid_qfx)).T
     fs = valid_score
@@ -100,7 +100,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
         >>> ut.assert_eq(total_reweighted2, 0, 'should be 0 reweighted')
     """
     #filtlist_list = [nnfilts[0] for nnfilts in six.itervalues(qaid2_nnfilts)]
-    #assert ut.list_allsame(filtlist_list), 'different queries with differnt filts'
+    #assert ut.allsame(filtlist_list), 'different queries with differnt filts'
     #filtkey_list = filtlist_list[0]
     dupvotex = ut.listfind(qreq_.qparams.active_filter_list, hstypes.FiltKeys.DUPVOTE)
     if dupvotex is None:

@@ -152,7 +152,7 @@ def turk(filename=None):
         return ap.template('turk', filename)
 
 
-@app.route('/submit/viewpoint', methods=['POST'])
+@app.route('/submit/viewpoint/', methods=['POST'])
 def submit_viewpoint():
     aid = int(request.form['viewpoint-aid'])
     value = int(request.form['viewpoint-value'])
@@ -191,7 +191,7 @@ def submit_viewpoint():
     return redirect(url_for('turk', filename='viewpoint'))
 
 
-@app.route('/submit/detection', methods=['POST'])
+@app.route('/submit/detection/', methods=['POST'])
 def submit_detection():
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)

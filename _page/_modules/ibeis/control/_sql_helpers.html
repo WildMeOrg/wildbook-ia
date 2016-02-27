@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control._sql_helpers &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control._sql_helpers &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -398,6 +398,20 @@
 <span class="sd">    clearbackup = False</span>
 <span class="sd">    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_check_superkeys</span><span class="p">():</span>
+        <span class="n">all_tablename_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span>
+        <span class="c"># always ignore the metadata table.</span>
+        <span class="n">ignore_tables_</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span>
+        <span class="n">tablename_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tablename</span> <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">all_tablename_list</span>
+                          <span class="k">if</span> <span class="n">tablename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_tables_</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">tablename_list</span><span class="p">:</span>
+            <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_superkey_colnames</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="c"># some tables seem to only have old constraints and aren&#39;t</span>
+            <span class="c"># properly updated to superkeys... weird.</span>
+            <span class="n">old_constraints</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_constraints</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_constraints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+                <span class="s">&#39;ERROR UPDATING DATABASE, SUPERKEYS of </span><span class="si">%s</span><span class="s"> DROPPED!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
+
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] update_schema_version&#39;</span><span class="p">)</span>
     <span class="n">db_fpath</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">fpath</span>
     <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
@@ -408,7 +422,8 @@
         <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c"># TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)</span>
         <span class="k">while</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-            <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s">&#39;_backup&#39;</span><span class="p">,</span> <span class="s">&#39;_v&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="s">&#39;_copy&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">ext</span><span class="p">))</span>
+            <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s">&#39;_backup&#39;</span><span class="p">,</span> <span class="s">&#39;_v&#39;</span><span class="p">,</span>
+                                       <span class="n">version</span><span class="p">,</span> <span class="s">&#39;_copy&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">ext</span><span class="p">))</span>
             <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_backup_fname</span><span class="p">)</span>
             <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">,</span> <span class="n">db_backup_fpath</span><span class="p">)</span>
@@ -422,11 +437,13 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">start_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version] The current database version is unknown&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version]&#39;</span>
+                             <span class="s">&#39; The current database version is unknown&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">end_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version_target</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version] The target database version is unknown&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version]&#39;</span>
+                             <span class="s">&#39; The target database version is unknown&#39;</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Update path: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">valid_versions</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]))</span>
@@ -440,6 +457,7 @@
                 <span class="n">update</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">post</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">post</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+            <span class="n">_check_superkeys</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;The database update failed, rolled back to the original version.&#39;</span>
@@ -590,7 +608,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

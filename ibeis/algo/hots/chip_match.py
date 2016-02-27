@@ -118,6 +118,7 @@ class _ChipMatchVisualization(object):
             #cm_orig.assert_self(qreq_)
             #other_aids = qreq_.daids
             # Hack to get rid of key error
+            print('CHIP HAS NO GROUND TRUTH MATCHES')
             cm.assert_self(verbose=False)
             cm2 = cm.extend_results(qreq_)
             cm2.assert_self(verbose=False)
@@ -222,6 +223,24 @@ class _ChipMatchVisualization(object):
         CommandLine:
             python -m ibeis --tf ChipMatch.show_ranked_matches --show --qaid 1
             python -m ibeis --tf ChipMatch.show_ranked_matches --qaid 86 --colorbar_=False --show
+            python -m ibeis --tf ChipMatch.show_ranked_matches:0 --qaid 86 --colorbar_=False --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> from ibeis.viz import viz_matches
+            >>> import ibeis
+            >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', [1])
+            >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
+            >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
+            >>> ut.delete_dict_keys(kwargs, ['qaid'])
+            >>> kwargs['plottype'] = kwargs.get('plottype', 'namematch')
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> clip_top = ut.get_argval('--clip-top', default=3)
+            >>> print('kwargs = %s' % (ut.repr2(kwargs, nl=True),))
+            >>> cm.show_ranked_matches(qreq_, clip_top, **kwargs)
+            >>> ut.show_if_requested()
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1304,7 +1323,7 @@ class ChipMatch(_ChipMatchVisualization,
         ]
         for attr in common_attrs:
             values = ut.list_getattr(cm_list, 'qaid')
-            assert ut.list_allsame(values)
+            assert ut.allsame(values)
             new_attrs[attr] = values[0]
         # assumes disjoint
         attrs = [
@@ -1590,7 +1609,7 @@ class ChipMatch(_ChipMatchVisualization,
         Returns:
             ibeis.ChipMatch: cm
         """
-        assert all(list(map(ut.list_allsame,
+        assert all(list(map(ut.allsame,
                             ut.get_list_column(vmt_list, 0)))), (
             'internal daids should not have different daids for vsone')
         qfx_list = ut.get_list_column(vmt_list, 1)
@@ -2179,7 +2198,7 @@ class ChipMatch(_ChipMatchVisualization,
             with testlog.context('allsame(grouped(dnid_list))'):
                 grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
                 for nids in grouped_nids:
-                    if not ut.list_allsame(nids):
+                    if not ut.allsame(nids):
                         testlog.log_failed('internal dnid name grouping is NOT consistent')
 
             with testlog.context('allsame(name(grouped(daid_list)))'):
@@ -2191,7 +2210,7 @@ class ChipMatch(_ChipMatchVisualization,
                     grouped_mapped_nids = qreq_.ibs.unflat_map(
                         qreq_.ibs.get_annot_name_rowids, grouped_aids)
                     for nids in grouped_mapped_nids:
-                        if not ut.list_allsame(nids):
+                        if not ut.allsame(nids):
                             testlog.log_failed(
                                 'internal daid name grouping is NOT consistent')
 

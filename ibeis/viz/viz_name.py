@@ -18,8 +18,15 @@ def show_name_of(ibs, aid, **kwargs):
 def testdata_showname():
     import ibeis
     ibs = ibeis.opendb(defaultdb='testdb1')
-    name_text = ut.get_argval('--name', type_=str, default='easy')
-    nid = ibs.get_name_rowids_from_text(name_text)
+    default = None
+    if ibs.dbname == 'testdb1':
+        default = 'easy'
+
+    name_text = ut.get_argval('--name', type_=str, default=default)
+    if name_text is None:
+        nid = 1
+    else:
+        nid = ibs.get_name_rowids_from_text(name_text)
     in_image = not ut.get_argflag('--no-inimage')
     index_list = ut.get_argval('--index_list', type_=list, default=None)
     return ibs, nid, in_image, index_list
@@ -28,12 +35,18 @@ def testdata_showname():
 def testdata_multichips():
     import ibeis
     ibs = ibeis.opendb(defaultdb='testdb1')
+    nid = ut.get_argval('--nid', type_=int, default=None)
     tags = ut.get_argval('--tags', type_=list, default=None)
-    if tags is not None:
+
+    if nid is not None:
+        aid_list = ibs.get_name_aids(nid)
+    elif tags is not None:
         index = ut.get_argval('--index', default=0)
         aid_list = ibs.filter_aidpairs_by_tags(any_tags=tags)[index]
     else:
-        aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+        #aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+        aid_list = ibeis.testdata_aids(default_aids=[1, 2, 3], ibs=ibs)
+
     in_image = not ut.get_argflag('--no-inimage')
     return ibs, aid_list, in_image
 
@@ -52,6 +65,9 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
+
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show
+        --aids=1 --doboth --show --no-inimage
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage

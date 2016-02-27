@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.filter_annots &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.init.filter_annots &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -131,7 +131,10 @@
   <h1>Source code for ibeis.init.filter_annots</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">TODO: sort annotations at the end of every step</span>
+<span class="sd">TODO:</span>
+<span class="sd">    * cross validation</span>
+<span class="sd">    * encounter vs database (time filtering)</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">operator</span>
@@ -318,7 +321,7 @@
         <span class="n">annotmatch_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_annotmatch_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">need_both_tags</span><span class="p">:</span>
-        <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">,</span>
+        <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span>
                                   <span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_tags_list</span><span class="p">,</span>
                                                       <span class="n">annotmatch_tags_list</span><span class="p">))))</span>
 
@@ -381,14 +384,15 @@
 <span class="sd">    Returns location and name of the ~~annot~~ data cache</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
     <span class="c"># Make loading aids a big faster for experiments</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
         <span class="kn">import</span> <span class="nn">ibeis</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
         <span class="n">repodir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">))</span>
         <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">repodir</span><span class="p">,</span> <span class="s">&#39;ACFG_CACHE&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="s">&#39;./localdata/ACFG_CACHE&#39;</span>
+        <span class="c">#acfg_cachedir = &#39;./localdata/ACFG_CACHE&#39;</span>
+        <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;ACFG_CACHE&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">acfg_cachedir</span><span class="p">)</span>
     <span class="n">acfg_cachename</span> <span class="o">=</span> <span class="s">&#39;ACFG_CACHE&#39;</span>
 
@@ -407,10 +411,12 @@
     <span class="k">return</span> <span class="n">acfg_cacheinfo</span>
 
 </div>
-<div class="viewcode-block" id="expand_single_acfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.expand_single_acfg">[docs]</a><span class="k">def</span> <span class="nf">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_TESTDATA</span><span class="p">):</span>
+<div class="viewcode-block" id="expand_single_acfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.expand_single_acfg">[docs]</a><span class="k">def</span> <span class="nf">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    for main_helpers &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERB_TESTDATA</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;+=== EXPAND_SINGLE_ACFG ===&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39; * acfg = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
@@ -418,9 +424,10 @@
                            <span class="n">align</span><span class="o">=</span><span class="bp">True</span><span class="p">),))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;+---------------------&#39;</span><span class="p">)</span>
     <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
-    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
-    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
-    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">subindex_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
+    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_intragroup</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">subindex_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">avail_aids</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___ EXPAND_SINGLE_ACFG ___&#39;</span><span class="p">)</span>
@@ -595,7 +602,7 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="expand_acfgs"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.expand_acfgs">[docs]</a><span class="k">def</span> <span class="nf">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                 <span class="n">hack_exclude_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                 <span class="n">hack_exclude_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">save_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Main multi-expansion function. Expands an annot config dict into qaids and</span>
 <span class="sd">    daids.  New version of this function based on a configuration dictionary</span>
@@ -689,12 +696,11 @@
     <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">)</span>
 
     <span class="c"># Check if this filter has been cached</span>
-    <span class="c"># TODO: keep a database state config that augments the cachestr</span>
-
+    <span class="c"># TODO: keep a database state config that augments the cachestr?</span>
     <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">use_cache</span> <span class="o">=</span> <span class="n">USE_ACFG_CACHE</span>
 
-    <span class="n">save_cache</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c"># save_cache = True</span>
     <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">or</span> <span class="n">save_cache</span><span class="p">:</span>
         <span class="n">acfg_cacheinfo</span> <span class="o">=</span> <span class="n">get_acfg_cacheinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
         <span class="n">acfg_cachedir</span><span class="p">,</span> <span class="n">acfg_cachename</span><span class="p">,</span> <span class="n">aid_cachestr</span> <span class="o">=</span> <span class="n">acfg_cacheinfo</span>
@@ -740,90 +746,83 @@
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dpredone_iden_keys</span><span class="p">:</span>
         <span class="n">dcfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
 
+    <span class="c">#if aidcfg[&#39;qcfg&#39;][&#39;hack_imageset&#39;] is True:</span>
+    <span class="c">#    return ibs.get_imageset_expanded_aids()</span>
+    <span class="c"># Hack: Make hierarchical filters to supersede this</span>
+    <span class="k">if</span> <span class="n">initial_aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">initial_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
+
+    <span class="n">verbflags</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">qfiltflags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;q&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">verbflags</span><span class="p">)</span>
+    <span class="n">dfiltflags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">verbflags</span><span class="p">)</span>
+
+    <span class="n">default_aids</span> <span class="o">=</span> <span class="n">initial_aids</span>
+
+    <span class="c"># A chain of filters on all of the aids</span>
+    <span class="n">global_filter_chain</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">filter_annots_independent</span><span class="p">,</span> <span class="n">idenfilt_cfg_common</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">filter_annots_intragroup</span><span class="p">,</span> <span class="n">idenfilt_cfg_common</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="c"># Chains of filters individually for each partition</span>
+    <span class="n">partition_chains</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="c"># Query partition chain</span>
+            <span class="p">(</span><span class="n">filter_annots_independent</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">filter_annots_intragroup</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">sample_annots</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="c"># Database partition chain</span>
+            <span class="p">(</span><span class="n">filter_annots_independent</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">filter_annots_intragroup</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">sample_annots_wrt_ref</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c">#if aidcfg[&#39;qcfg&#39;][&#39;hack_imageset&#39;] is True:</span>
-        <span class="c">#    return ibs.get_imageset_expanded_aids()</span>
-        <span class="c"># Hack: Make hierarchical filters to supersede this</span>
-        <span class="k">if</span> <span class="n">initial_aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">initial_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">()</span>
-
-        <span class="n">verbflags</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-        <span class="n">qfiltflags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;q&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">verbflags</span><span class="p">)</span>
-        <span class="n">dfiltflags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">verbflags</span><span class="p">)</span>
-
-        <span class="n">default_aids</span> <span class="o">=</span> <span class="n">initial_aids</span>
-
-        <span class="c"># A chain of filters on all of the aids</span>
-        <span class="n">global_filter_chain</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">filter_annots_independent</span><span class="p">,</span> <span class="n">idenfilt_cfg_common</span><span class="p">),</span>
-            <span class="p">(</span><span class="n">filter_annots_intragroup</span><span class="p">,</span> <span class="n">idenfilt_cfg_common</span><span class="p">),</span>
-        <span class="p">]</span>
-
-        <span class="c"># Chains of filters individually for each partition</span>
-        <span class="n">partition_chains</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">[</span>
-                <span class="p">(</span><span class="n">filter_annots_independent</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span>
-                <span class="p">(</span><span class="n">filter_annots_intragroup</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span>
-                <span class="p">(</span><span class="n">sample_annots</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span>
-            <span class="p">],</span>
-            <span class="p">[</span>
-                <span class="p">(</span><span class="n">filter_annots_independent</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">),</span>
-                <span class="p">(</span><span class="n">filter_annots_intragroup</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">),</span>
-                <span class="c">#(sample_annots_wrt_ref, dcfg),</span>
-            <span class="p">]</span>
-        <span class="p">]</span>
-
-        <span class="c"># TODO: GENERALIZE GLOBAL FILTER CHAIN</span>
+        <span class="c"># GLOBAL FILTER CHAIN</span>
+        <span class="c"># applies filtering to all available aids</span>
         <span class="k">for</span> <span class="n">filtfn</span><span class="p">,</span> <span class="n">filtcfg</span> <span class="ow">in</span> <span class="n">global_filter_chain</span><span class="p">:</span>
             <span class="n">default_aids</span> <span class="o">=</span> <span class="n">filtfn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_aids</span><span class="p">,</span> <span class="n">filtcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
                                   <span class="n">withpre</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">verbflags</span><span class="p">)</span>
 
-        <span class="c"># TODO: GENERALIZE PARTITION FILTER</span>
+        <span class="c"># PARTITION FILTER CHAIN</span>
+        <span class="c"># chain of filters for query / database annots</span>
         <span class="n">default_qaids</span> <span class="o">=</span> <span class="n">default_daids</span> <span class="o">=</span> <span class="n">default_aids</span>
         <span class="n">partition_avail_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">default_qaids</span><span class="p">,</span> <span class="n">default_daids</span><span class="p">]</span>
-        <span class="n">partition_verbflags</span>  <span class="o">=</span> <span class="p">[</span><span class="n">qfiltflags</span><span class="p">,</span> <span class="n">dfiltflags</span><span class="p">]</span>
-
-        <span class="c"># TODO: PARITION FILTER CHAINS</span>
+        <span class="n">partion_kwargs</span>  <span class="o">=</span> <span class="p">[</span><span class="n">qfiltflags</span><span class="p">,</span> <span class="n">dfiltflags</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">partition_chains</span><span class="p">)):</span>
             <span class="n">filter_chain</span> <span class="o">=</span> <span class="n">partition_chains</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">_verbflags</span> <span class="o">=</span> <span class="n">partition_verbflags</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">filtfn</span><span class="p">,</span> <span class="n">filtcfg</span> <span class="ow">in</span> <span class="n">filter_chain</span><span class="p">:</span>
-                <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filtfn</span><span class="p">(</span>
-                    <span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">filtcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">_verbflags</span><span class="p">)</span>
+            <span class="n">_partkw</span> <span class="o">=</span> <span class="n">partion_kwargs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">filter_tup</span> <span class="ow">in</span> <span class="n">filter_chain</span><span class="p">:</span>
+                <span class="n">filtfn</span><span class="p">,</span> <span class="n">filtcfg</span> <span class="o">=</span> <span class="n">filter_tup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filter_tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="c"># handle filters that take reference sets</span>
+                    <span class="n">refindex</span> <span class="o">=</span> <span class="n">filter_tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">ref_aids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span><span class="p">[</span><span class="n">refindex</span><span class="p">]</span>
+                    <span class="n">_partkw</span><span class="p">[</span><span class="s">&#39;ref_aids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref_aids</span>
+                <span class="c"># Execute filtering</span>
+                <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filtfn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">filtcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">_partkw</span><span class="p">)</span>
             <span class="n">partition_avail_aids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">avail_aids</span>
 
-        <span class="c"># TODO: GENERALIZE PARITION REFERENCE SAMPLE?</span>
-        <span class="c"># HACK:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">partition_avail_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
-        <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">_verbflags</span> <span class="o">=</span> <span class="n">partition_verbflags</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">ref_aids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">sample_annots_wrt_ref</span><span class="p">(</span>
-            <span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">,</span> <span class="n">ref_aids</span><span class="o">=</span><span class="n">ref_aids</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">_verbflags</span><span class="p">)</span>
-        <span class="n">partition_avail_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">avail_aids</span>
-
-        <span class="c"># TODO: GENERALIZE SUBINDEX</span>
-        <span class="c"># Subindex if requested (typically not done)</span>
+        <span class="c"># SUBINDEX EACH PARTITIONED CHAIN</span>
         <span class="n">subindex_cfgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qcfg</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">partition_avail_aids</span><span class="p">)):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">_verbflags</span> <span class="o">=</span> <span class="n">partition_verbflags</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">_partkw</span> <span class="o">=</span> <span class="n">partion_kwargs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">filtcfg</span> <span class="o">=</span> <span class="n">subindex_cfgs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">subindex_annots</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">filtcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">_verbflags</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">filtcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">_partkw</span><span class="p">)</span>
             <span class="n">partition_avail_aids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">avail_aids</span>
-        <span class="n">avail_qaids</span><span class="p">,</span> <span class="n">avail_daids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span>
 
-        <span class="c"># Comment out?</span>
-        <span class="n">avail_qaids</span> <span class="o">=</span> <span class="n">subindex_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_qaids</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">qfiltflags</span><span class="p">)</span>
-        <span class="n">avail_daids</span> <span class="o">=</span> <span class="n">subindex_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_daids</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">,</span> <span class="o">**</span><span class="n">dfiltflags</span><span class="p">)</span>
+        <span class="c"># UNPACK FILTER RESULTS</span>
+        <span class="n">avail_qaids</span><span class="p">,</span> <span class="n">avail_daids</span> <span class="o">=</span> <span class="n">partition_avail_aids</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;PRINTING ERROR INFO&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39; * acfg = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">comp_acfg</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="bp">True</span><span class="p">),))</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error expanding acfgs&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error executing filter chains&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
 
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_qaids</span><span class="p">)</span>
@@ -855,7 +854,8 @@
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="filter_annots_independent"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.filter_annots_independent">[docs]</a><span class="k">def</span> <span class="nf">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
                               <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_TESTDATA</span><span class="p">,</span> <span class="n">withpre</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot; Filtering that doesn&#39;t have to do with a reference set of aids</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Filtering that doesn&#39;t have to do with a reference set of aids</span>
 
 <span class="sd">    TODO make filterflags version</span>
 
@@ -893,8 +893,8 @@
 <span class="sd">    Ignore:</span>
 <span class="sd">        # Testing tag features</span>
 <span class="sd">        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \</span>
-<span class="sd">                -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \</span>
-<span class="sd">                ---acfginfo --veryverbtd</span>
+<span class="sd">            -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \</span>
+<span class="sd">            ---acfginfo --veryverbtd</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
     <span class="k">if</span> <span class="n">aidcfg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -902,17 +902,16 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;No annot filter returning&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">avail_aids</span>
 
-    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verbose_context_factory</span><span class="p">(</span>
-        <span class="s">&#39;FILTER_INDEPENDENT&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verb_context</span><span class="p">(</span><span class="s">&#39;FILTER_INDEPENDENT&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">startfilter</span><span class="p">(</span><span class="n">withpre</span><span class="o">=</span><span class="n">withpre</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;is_known&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;is_known&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;is_known&#39;</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_without_name</span><span class="p">(</span>
                 <span class="n">avail_aids</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="ow">not</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;is_known&#39;</span><span class="p">])</span>
         <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;require_timestamp&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;require_timestamp&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;require_timestamp&#39;</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_without_timestamps</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
         <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
@@ -920,7 +919,7 @@
     <span class="n">metadata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">(</span>
         <span class="n">species</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">expand_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">],</span> <span class="bp">None</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;species&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">]</span>
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;species&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_to_species</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
@@ -941,7 +940,7 @@
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;contrib_contains&#39;</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;minqual&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;require_quality&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;minqual&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;require_quality&#39;</span><span class="p">):</span>
         <span class="n">minqual</span> <span class="o">=</span> <span class="s">&#39;junk&#39;</span> <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;minqual&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;minqual&#39;</span><span class="p">]</span>
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;minqual&#39;</span><span class="p">,</span> <span class="s">&#39;require_quality&#39;</span><span class="p">):</span>
             <span class="c"># Filter quality</span>
@@ -949,7 +948,7 @@
                 <span class="n">avail_aids</span><span class="p">,</span> <span class="n">minqual</span><span class="p">,</span> <span class="n">unknown_ok</span><span class="o">=</span><span class="ow">not</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;require_quality&#39;</span><span class="p">])</span>
         <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;max_numfeat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;min_numfeat&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;max_numfeat&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;min_numfeat&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">max_numfeat</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;max_numfeat&#39;</span><span class="p">]</span>
         <span class="n">min_numfeat</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;min_numfeat&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">max_numfeat</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -963,7 +962,7 @@
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;max_numfeat&#39;</span><span class="p">,</span> <span class="s">&#39;min_numfeat&#39;</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;require_viewpoint&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;view&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;require_viewpoint&#39;</span><span class="p">):</span>
         <span class="c"># Resolve base viewpoint</span>
         <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;primary&#39;</span><span class="p">:</span>
             <span class="n">view</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_primary_species_viewpoint</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">])</span>
@@ -1021,6 +1020,11 @@
 <span class="sd">    independent and a second consecutive call may yield new results.</span>
 <span class="sd">    Thus, the order in which this filter is applied matters.</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis --tf get_annotcfg_list \</span>
+<span class="sd">                -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \</span>
+<span class="sd">                --db lynx --veryverbtd --nocache-aid</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; aidcfg[&#39;min_timedelta&#39;] = 60 * 60 * 24</span>
 <span class="sd">        &gt;&gt;&gt; aidcfg[&#39;min_pername&#39;] = 3</span>
@@ -1032,18 +1036,12 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;No annot filter returning&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">avail_aids</span>
 
-    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verbose_context_factory</span><span class="p">(</span>
-        <span class="s">&#39;FILTER_INTRAGROUP&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verb_context</span><span class="p">(</span><span class="s">&#39;FILTER_INTRAGROUP&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">startfilter</span><span class="p">(</span><span class="n">withpre</span><span class="o">=</span><span class="n">withpre</span><span class="p">)</span>
 
     <span class="n">metadata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">expand_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">],</span> <span class="n">avail_aids</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;same_imageset&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        ibeis --tf get_annotcfg_list \</span>
-<span class="sd">                -a default:qsame_imageset=True,been_adjusted=True,excluderef=True \</span>
-<span class="sd">                --db lynx --veryverbtd --nocache-aid</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">same_imageset</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;same_imageset&#39;</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">same_imageset</span> <span class="ow">is</span> <span class="bp">True</span>
         <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_primary_imageset</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
@@ -1062,6 +1060,16 @@
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;same_imageset&#39;</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">qaid_list</span>
         <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
+
+    <span class="c"># TODO:</span>
+    <span class="c"># Filter via GPS distance</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;min_spacedelta&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;min_spacetimedelta&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
 
     <span class="c"># FIXME: This is NOT an independent filter because it depends on pairwise</span>
     <span class="c"># interactions</span>
@@ -1143,19 +1151,19 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sampling when a reference set is given</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sample_per_name</span>     <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">]</span>
-    <span class="n">sample_per_ref_name</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_per_ref_name&#39;</span><span class="p">]</span>
-    <span class="n">exclude_reference</span>   <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;exclude_reference&#39;</span><span class="p">]</span>
-    <span class="n">sample_size</span>         <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span>
-    <span class="n">offset</span>              <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_offset&#39;</span><span class="p">]</span>
-    <span class="n">sample_rule_ref</span>     <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_rule_ref&#39;</span><span class="p">]</span>
-    <span class="n">sample_rule</span>         <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_rule&#39;</span><span class="p">]</span>
+    <span class="n">sample_per_name</span>     <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">)</span>
+    <span class="n">sample_per_ref_name</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_per_ref_name&#39;</span><span class="p">)</span>
+    <span class="n">exclude_reference</span>   <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exclude_reference&#39;</span><span class="p">)</span>
+    <span class="n">sample_size</span>         <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_size&#39;</span><span class="p">)</span>
+    <span class="n">offset</span>              <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_offset&#39;</span><span class="p">)</span>
+    <span class="n">sample_rule_ref</span>     <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_rule_ref&#39;</span><span class="p">)</span>
+    <span class="n">sample_rule</span>         <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_rule&#39;</span><span class="p">)</span>
+    <span class="n">sample_occur</span>        <span class="o">=</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sample_occur&#39;</span><span class="p">)</span>
 
     <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
     <span class="n">ref_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">)</span>
 
-    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verbose_context_factory</span><span class="p">(</span>
-        <span class="s">&#39;SAMPLE (REF)&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verb_context</span><span class="p">(</span><span class="s">&#39;SAMPLE (REF)&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">startfilter</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">sample_per_ref_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -1171,22 +1179,34 @@
         <span class="c"># VerbosityContext.report_annot_stats(ibs, ref_aids, prefix, &#39;&#39;)</span>
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;exclude_reference&#39;</span><span class="p">,</span>
                               <span class="n">num_ref_aids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">)):</span>
-            <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">ref_aids</span><span class="p">)</span>
-            <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
-            <span class="c"># HACK:</span>
-            <span class="c">#also_exclude_overlaps = ibs.get_dbname() == &#39;Oxford&#39;</span>
-            <span class="n">also_exclude_overlaps</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">if</span> <span class="n">also_exclude_overlaps</span><span class="p">:</span>
-                <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">avail_aids</span><span class="p">)</span>
-                <span class="c"># Disallow the same name in the same image</span>
-                <span class="n">x</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">contact_aids_list</span><span class="p">)</span>
-                <span class="n">y</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">)</span>
-                <span class="n">sameimg_samename_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">==</span> <span class="n">y0</span><span class="p">)</span>
-                     <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)])</span>
+            <span class="kn">import</span> <span class="nn">utool</span>
+            <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
+                <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">ref_aids</span><span class="p">)</span>
+                <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
+                <span class="c"># HACK:</span>
+                <span class="c">#also_exclude_overlaps = ibs.get_dbname() == &#39;Oxford&#39;</span>
+                <span class="n">also_exclude_overlaps</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">also_exclude_overlaps</span><span class="p">:</span>
+                    <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">avail_aids</span><span class="p">)</span>
+                    <span class="c"># Disallow the same name in the same image</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">contact_aids_list</span><span class="p">)</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">)</span>
+                    <span class="n">sameimg_samename_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">==</span> <span class="n">y0</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)])</span>
 
-            <span class="c">#contact_aids = ut.flatten(contact_aids_list)</span>
-            <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">sameimg_samename_aids</span><span class="p">)</span>
+                <span class="c">#contact_aids = ut.flatten(contact_aids_list)</span>
+                <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">sameimg_samename_aids</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;sample_occurr&#39;</span><span class="p">,</span>
+                              <span class="n">num_ref_aids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">)):</span>
+            <span class="n">also_exclude_ref_encounters</span> <span class="o">=</span> <span class="n">sample_occur</span> <span class="ow">is</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">also_exclude_ref_encounters</span><span class="p">:</span>
+                <span class="c"># Get other aids from the references&#39; encounters</span>
+                <span class="n">ref_enc_texts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_encounter_text</span><span class="p">(</span><span class="n">ref_aids</span><span class="p">)</span>
+                <span class="n">avail_enc_texts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_encounter_text</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
+                <span class="n">flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_flags</span><span class="p">(</span><span class="n">avail_enc_texts</span><span class="p">,</span> <span class="n">ref_enc_texts</span><span class="p">)</span>
+                <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">sample_per_ref_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">sample_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
         <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">endfilter</span><span class="p">()</span>
@@ -1294,6 +1314,64 @@
     <span class="k">return</span> <span class="n">avail_aids</span>
 
 </div>
+<div class="viewcode-block" id="multi_sampled_seaturtle_queries"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.multi_sampled_seaturtle_queries">[docs]</a><span class="k">def</span> <span class="nf">multi_sampled_seaturtle_queries</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init.filter_annots</span> <span class="kn">import</span> <span class="n">expand_acfgs</span>
+    <span class="kn">import</span> <span class="nn">copy</span>
+    <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="s">&#39;seaturtles&#39;</span>  <span class="c"># &#39;testdb1&#39;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;default:sample_occur=True,occur_offset=0,exclude_reference=True,qhas_any=(left,right),num_names=1&#39;</span><span class="p">]</span>
+    <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">parse_acfg_combo_list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">acfg_combo_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="c"># Do each name individually. A bit slower, but more correct</span>
+        <span class="n">qaids_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">daids_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;name_offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;occur_offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;occur_offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">save_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;occur_offset&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">qaids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+                <span class="n">daids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">prev</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">)</span>
+            <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;name_offset&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">):</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">enc_per_name</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># A bit faster because we can do multiple names at the same time</span>
+        <span class="n">qaids_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">daids_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;num_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">][</span><span class="s">&#39;num_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;name_offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;occur_offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">save_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;occur_offset&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">qaids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+            <span class="n">daids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">):</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">enc_per_name</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="sample_annots"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.sample_annots">[docs]</a><span class="k">def</span> <span class="nf">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_TESTDATA</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1302,6 +1380,9 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf sample_annots --veryverbtd</span>
+
+<span class="sd">        python -m ibeis --tf get_annotcfg_list --db seaturtles \</span>
+<span class="sd">            -a default:qhas_any=\(left,right\),sample_occur=True,exclude_reference=True,sample_offset=0,num_names=1 --acfginfo</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -1322,23 +1403,78 @@
 <span class="sd">        &gt;&gt;&gt;                            prefix, avail_aids)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;avail_aids = %s&#39; % (str(avail_aids),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.filter_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt import annotation_configs</span>
+<span class="sd">        &gt;&gt;&gt; db = &#39;seaturtles&#39;  # &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=db)</span>
+<span class="sd">        &gt;&gt;&gt; aidcfg = copy.deepcopy(annotation_configs.default)[&#39;qcfg&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; aidcfg[&#39;sample_occur&#39;] = True</span>
+<span class="sd">        &gt;&gt;&gt; initial_aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; withpre, verbose, prefix = True, 2, &#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; avail_aids = filter_annots_independent(</span>
+<span class="sd">        &gt;&gt;&gt;     ibs, initial_aids, {&#39;has_any&#39;: [&#39;left&#39;, &#39;right&#39;]}, prefix, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = sample_annots(ibs, avail_aids, aidcfg, prefix, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; avail_aids = initial_aids</span>
+<span class="sd">        &gt;&gt;&gt; ref_aids = qaids</span>
+<span class="sd">        &gt;&gt;&gt; dcfg = dict(exclude_reference=True, sample_occur=True)</span>
+<span class="sd">        &gt;&gt;&gt; daids = sample_annots_wrt_ref(ibs, initial_aids, dcfg, qaids, prefix, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
 
-    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verbose_context_factory</span><span class="p">(</span>
-        <span class="s">&#39;SAMPLE (NOREF)&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_cfg</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="n">default_dict</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">SAMPLE_DEFAULTS</span>
+        <span class="k">return</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verb_context</span><span class="p">(</span><span class="s">&#39;SAMPLE (NOREF)&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">startfilter</span><span class="p">()</span>
 
-    <span class="n">sample_rule</span>     <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_rule&#39;</span><span class="p">]</span>
-    <span class="n">sample_per_name</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">]</span>
-    <span class="n">sample_size</span>     <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span>
-    <span class="n">offset</span>          <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;sample_offset&#39;</span><span class="p">]</span>
+    <span class="n">sample_rule</span>     <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;sample_rule&#39;</span><span class="p">)</span>
+    <span class="n">sample_per_name</span> <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">)</span>
+    <span class="n">sample_size</span>     <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;sample_size&#39;</span><span class="p">)</span>
+    <span class="n">offset</span>          <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;sample_offset&#39;</span><span class="p">)</span>
+    <span class="n">occur_offset</span>    <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;occur_offset&#39;</span><span class="p">)</span>
+    <span class="n">name_offset</span>     <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;name_offset&#39;</span><span class="p">)</span>
+    <span class="n">num_names</span>       <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;num_names&#39;</span><span class="p">)</span>
+    <span class="n">sample_occur</span>    <span class="o">=</span> <span class="n">get_cfg</span><span class="p">(</span><span class="s">&#39;sample_occur&#39;</span><span class="p">)</span>
 
     <span class="n">unflat_get_annot_unixtimes</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">occur_offset</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">occur_offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">name_offset</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">name_offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">num_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">grouped_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">,</span> <span class="s">&#39;sample_rule&#39;</span><span class="p">,</span>
+                              <span class="s">&#39;sample_offset&#39;</span><span class="p">):</span>
+            <span class="n">name_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">name_offset</span><span class="p">,</span> <span class="n">name_offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">[</span><span class="n">name_slice</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">sample_occur</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="c"># Occurrence / Encounter sampling</span>
+        <span class="n">occur_texts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_occurrence_text</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
+        <span class="n">grouped_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hierarchical_group_items</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="p">[</span><span class="n">names</span><span class="p">,</span> <span class="n">occur_texts</span><span class="p">])</span>
+        <span class="c"># ensure dictionary ordering for offset consistency</span>
+        <span class="n">sgrouped_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hmap_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">,</span> <span class="n">grouped_</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">occur_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">occur_offset</span><span class="p">,</span> <span class="n">occur_offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">chosen</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="n">occur_slice</span><span class="p">])</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">sgrouped_</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+        <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;sample_offset&#39;</span><span class="p">):</span>
+            <span class="c"># TODO: num ocurrences to sample</span>
+            <span class="c"># TODO: num annots per encounter to sample</span>
+            <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">chosen</span><span class="p">)</span>
+        <span class="c"># now find which groups of annotations share those tags</span>
 
     <span class="k">if</span> <span class="n">sample_per_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># For the query we just choose a single annot per name</span>
@@ -1361,8 +1497,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Unknown sample_rule=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sample_rule</span><span class="p">,))</span>
         <span class="c"># L ___</span>
-        <span class="n">sample_idxs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column_slice</span><span class="p">(</span>
-            <span class="n">preference_idxs_list</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">sample_per_name</span><span class="p">)</span>
+        <span class="n">sample_idxs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iget_list_column_slice</span><span class="p">(</span>
+            <span class="n">preference_idxs_list</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">sample_per_name</span><span class="p">))</span>
         <span class="n">sample_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_ziptake</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">sample_idxs_list</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">,</span> <span class="s">&#39;sample_rule&#39;</span><span class="p">,</span>
@@ -1375,7 +1511,6 @@
         <span class="k">if</span> <span class="n">sample_size</span> <span class="o">&gt;</span> <span class="n">avail_aids</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning sample size too large&#39;</span><span class="p">)</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">SEED2</span><span class="p">)</span>
-
         <span class="c"># Randomly sample names rather than annotations this makes sampling a</span>
         <span class="c"># knapsack problem. Use a random greedy solution</span>
         <span class="n">grouped_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -1387,7 +1522,6 @@
                                                        <span class="n">sample_size</span><span class="p">)</span>
         <span class="n">group_idx_sample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">items_subset</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">subgroup_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">group_idx_sample</span><span class="p">)</span>
-
         <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;sample_size&#39;</span><span class="p">):</span>
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">subgroup_aids</span><span class="p">)</span>
             <span class="c">#avail_aids = ut.random_sample(avail_aids, sample_size, rng=rng)</span>
@@ -1405,8 +1539,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns exact subindex of annotations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verbose_context_factory</span><span class="p">(</span>
-        <span class="s">&#39;SUBINDEX&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="n">VerbosityContext</span> <span class="o">=</span> <span class="n">verb_context</span><span class="p">(</span><span class="s">&#39;SUBINDEX&#39;</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">startfilter</span><span class="p">(</span><span class="n">withpre</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;shuffle&#39;</span><span class="p">]:</span>
@@ -1503,13 +1636,46 @@
         <span class="k">return</span> <span class="n">expr_nid2_result</span>
 
 </div></div>
-<div class="viewcode-block" id="verbose_context_factory"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.verbose_context_factory">[docs]</a><span class="k">def</span> <span class="nf">verbose_context_factory</span><span class="p">(</span><span class="n">filtertype</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+<div class="viewcode-block" id="verb_context"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.verb_context">[docs]</a><span class="k">def</span> <span class="nf">verb_context</span><span class="p">(</span><span class="n">filtertype</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; closure helper &quot;&quot;&quot;</span>
-    <span class="k">class</span> <span class="nc">VerbosityContext</span><span class="p">():</span>
+    <span class="k">class</span> <span class="nc">VerbosityContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        very hacky way of printing info so we dont pollute the actual function</span>
-<span class="sd">        too much</span>
+<span class="sd">        Printing filter info in a way that avoids polluting the function</span>
+<span class="sd">        namespace. This is a hack.</span>
+
+<span class="sd">        This is a with_statement context class that expect a variable avail_aids</span>
+<span class="sd">        to be modified inside the context. It prints the state of the variable</span>
+<span class="sd">        before and after filtering. Several static methods can be used</span>
+<span class="sd">        at the start and end of larger filtering functions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">,</span> <span class="o">**</span><span class="n">filterextra</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">dictkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nobraces</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">infostr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">subdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="n">infostr</span> <span class="o">+=</span> <span class="s">&#39;&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">subdict</span><span class="p">,</span> <span class="o">**</span><span class="n">dictkw</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] * Filter by </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">infostr</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">filterextra</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">infostr2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">filterextra</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">]      </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">infostr2</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;avail_aids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_before</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;avail_aids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">num_after</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+                <span class="n">num_removed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_before</span> <span class="o">-</span> <span class="n">num_after</span>
+                <span class="k">if</span> <span class="n">num_removed</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">]   ... removed </span><span class="si">%d</span><span class="s"> annots. </span><span class="si">%d</span><span class="s"> remain&#39;</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">num_removed</span><span class="p">,</span> <span class="n">num_after</span><span class="p">))</span>
 
         <span class="nd">@staticmethod</span>
         <span class="k">def</span> <span class="nf">report_annot_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">name_suffix</span><span class="p">,</span> <span class="n">statskw</span><span class="o">=</span><span class="p">{}):</span>
@@ -1529,6 +1695,10 @@
 
         <span class="nd">@staticmethod</span>
         <span class="k">def</span> <span class="nf">startfilter</span><span class="p">(</span><span class="n">withpre</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Args:</span>
+<span class="sd">                withpre (bool): if True reports stats before filtering</span>
+<span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                 <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] * [</span><span class="si">%s</span><span class="s">] </span><span class="si">%s</span><span class="s">AIDS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">filtertype</span><span class="p">,</span>
@@ -1554,34 +1724,6 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] * HAHID: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">hashid</span><span class="p">))</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] * [</span><span class="si">%s</span><span class="s">]: len(avail_</span><span class="si">%s</span><span class="s">aids) = </span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">filtertype</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
-
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">,</span> <span class="o">**</span><span class="n">filterextra</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="n">dictkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nobraces</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                <span class="n">infostr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">subdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
-                    <span class="n">infostr</span> <span class="o">+=</span> <span class="s">&#39;&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">subdict</span><span class="p">,</span> <span class="o">**</span><span class="n">dictkw</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] * Filter by </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">infostr</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
-                <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">filterextra</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">infostr2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">filterextra</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">]      </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">infostr2</span><span class="p">))</span>
-
-        <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;avail_aids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_before</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_var_from_stack</span><span class="p">(</span><span class="s">&#39;avail_aids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-                <span class="n">num_after</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
-                <span class="n">num_removed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_before</span> <span class="o">-</span> <span class="n">num_after</span>
-                <span class="k">if</span> <span class="n">num_removed</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">]   ... removed </span><span class="si">%d</span><span class="s"> annots. </span><span class="si">%d</span><span class="s"> remain&#39;</span> <span class="o">%</span>
-                          <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">num_removed</span><span class="p">,</span> <span class="n">num_after</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">VerbosityContext</span>
 
 </div>
@@ -1629,7 +1771,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

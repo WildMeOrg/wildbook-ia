@@ -51,13 +51,13 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
     # Run detection
     results_iter = detect(gpath_list, **kwargs)
     # Upscale the results
-    for downsample, (gpath, result_list) in zip(downsample_list, results_iter):
+    for downsample, gid, (gpath, result_list) in zip(downsample_list, gid_list, results_iter):
         # Upscale the results back up to the original image size
         if downsample is not None and downsample != 1.0:
             for result in result_list:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-        yield (gpath, result_list)
+        yield (gid, gpath, result_list)
 
 
 def detect(gpath_list, **kwargs):

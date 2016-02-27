@@ -663,7 +663,7 @@ def update_wildbook_config(ibs, wildbook_tomcat_path, dryrun=False):
 
 
 @register_ibs_method
-@register_api('/api/core/wildbook_signal_annot_name_changes/', methods=['PUT'])
+@register_api('/api/wildbook/signal_annot_name_changes/', methods=['PUT'])
 def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb_target=None, dryrun=False):
     r"""
     Args:
@@ -795,7 +795,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
 
 @register_ibs_method
-@register_api('/api/core/wildbook_signal_imgsetid_list/', methods=['PUT'])
+@register_api('/api/wildbook/signal_imgsetid_list/', methods=['PUT'])
 def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
                                   set_shipped_flag=True,
                                   open_url_on_complete=True, tomcat_dpath=None,
@@ -810,7 +810,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
 
     RESTful:
         Method: PUT
-        URL:    /api/core/wildbook_signal_imgsetid_list/
+        URL:    /api/wildbook/signal_imgsetid_list/
 
     Ignore:
         cd $CODE_DIR/Wildbook/tmp

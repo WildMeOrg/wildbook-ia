@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_helpers &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.viz_helpers &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -501,7 +501,8 @@
             <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">name_score</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_name_rank&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_rank=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name_rank</span><span class="p">),))</span>
+            <span class="c"># Make display one based</span>
+            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_rank=#</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),))</span>
     <span class="c">#with ut.embed_on_exception_context:</span>
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_timedelta&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">qaid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;qaid cannot be None&#39;</span>
@@ -588,7 +589,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

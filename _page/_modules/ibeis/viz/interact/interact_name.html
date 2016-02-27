@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_name &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.interact.interact_name &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -328,7 +328,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">gt1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gts_list</span>
         <span class="c"># A flat list of all the aids we are looking at</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_split_case</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_nid_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">other_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">]))</span>
 
@@ -355,7 +355,7 @@
 <div class="viewcode-block" id="MatchVerificationInteraction.get_other_nids"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.get_other_nids">[docs]</a>    <span class="k">def</span> <span class="nf">get_other_nids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">all_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span>
-        <span class="n">unique_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">all_nid_list</span><span class="p">)</span>
+        <span class="n">unique_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">all_nid_list</span><span class="p">)</span>
         <span class="n">is_unknown</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">unique_nid_list</span><span class="p">)</span>
         <span class="n">is_name1</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nid_list</span><span class="p">]</span>
         <span class="n">is_name2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nid_list</span><span class="p">]</span>
@@ -865,7 +865,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

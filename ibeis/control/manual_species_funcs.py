@@ -75,7 +75,7 @@ def get_all_species_nice(ibs):
 
 
 @register_ibs_method
-#@register_api('/api/species/sanitize', methods=['PUT'])
+#@register_api('/api/species/sanitize/', methods=['PUT'])
 def sanitize_species_texts(ibs, species_text_list):
     r"""
     changes unknown species to the unknown value

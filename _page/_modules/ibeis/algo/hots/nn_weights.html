@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.nn_weights &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.nn_weights &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -379,10 +379,6 @@
 <span class="sd">        &gt;&gt;&gt; weights2 = weights_list2[0]</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(weights1 == weights2)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 2700, 4000)</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        #from ibeis.algo.hots import neighbor_index as hsnbrx</span>
-<span class="sd">        #nnindexer = hsnbrx.request_ibeis_nnindexer(qreq_)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="n">normalizer_rule</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
@@ -451,7 +447,7 @@
 <span class="sd">        &gt;&gt;&gt; qfx2_normk = get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule)</span>
 <span class="sd">        &gt;&gt;&gt; qfx2_normweight = nn_weights.apply_normweight(</span>
 <span class="sd">        &gt;&gt;&gt;   normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_normweight.sum(), 800, 950)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_normweight.sum(), 600, 950)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
     <span class="n">qfx2_normdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
@@ -806,7 +802,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
     <span class="kn">import</span> <span class="nn">six</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_pre_weight_neighbors</span><span class="p">()</span>
+    <span class="c">#ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()</span>
+
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_pre</span><span class="p">(</span><span class="s">&#39;weight_neighbors&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span>
+                                    <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:qindex=0:1,dindex=0:5,hackerrors=False&#39;</span><span class="p">],</span>
+                                    <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nns_list</span>
+    <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nnvalid0_list</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">test_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
@@ -871,7 +873,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

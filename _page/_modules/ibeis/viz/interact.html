@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.interact &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -153,14 +153,12 @@
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_image</span> <span class="kn">import</span> <span class="n">ishow_image</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_chip</span> <span class="kn">import</span> <span class="n">ishow_chip</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_name</span> <span class="kn">import</span> <span class="n">ishow_name</span>
-<span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_qres</span> <span class="kn">import</span> <span class="n">ishow_qres</span>
-<span class="c">#from ibeis.viz.interact.interact_matches import ishow_matches</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_bbox</span> <span class="kn">import</span> <span class="n">iselect_bbox</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_sver</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
 
 <span class="kn">import</span> <span class="nn">utool</span>
 
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.viz.interact]&#39;</span><span class="p">)</span>
 
 
@@ -263,7 +261,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

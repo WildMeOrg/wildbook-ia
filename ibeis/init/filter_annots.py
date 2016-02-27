@@ -6,8 +6,6 @@ TODO:
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import operator
-import re
 import functools
 import copy
 import utool as ut
@@ -956,7 +954,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
             'primary1': ibsfuncs.get_extended_viewpoints(
                 primary_viewpoint, num1=1, num2=0, include_base=False)[0]
         }
-        self = CountstrParser(lhs_dict, prop2_nid2_aids)
+        self = ut.CountstrParser(lhs_dict, prop2_nid2_aids)
         nid2_flag = self.parse_countstr_expr(countstr)
         nid2_aids = ibs.group_annots_by_name_dict(avail_aids)
         valid_nids = [nid for nid, flag in nid2_flag.items() if flag]
@@ -1450,59 +1448,6 @@ def ensure_flatlistlike(input_):
     #    pass
     iter_ = ensure_flatiterable(input_)
     return list(iter_)
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class CountstrParser(object):
-    numop = '#'
-    compare_op_map = {
-        '<'  : operator.lt,
-        '<=' : operator.le,
-        '>'  : operator.gt,
-        '>=' : operator.ge,
-        '='  : operator.eq,
-        '!=' : operator.ne,
-    }
-
-    def __init__(self, lhs_dict, prop2_nid2_aids):
-        self.lhs_dict = lhs_dict
-        self.prop2_nid2_aids = prop2_nid2_aids
-        pass
-
-    def parse_countstr_binop(self, part):
-        import utool as ut
-        # Parse binary comparison operation
-        left, op, right = re.split(ut.regex_or(('[<>]=?', '=')), part)
-        # Parse length operation. Get prop_left_nids, prop_left_values
-        if left.startswith(self.numop):
-            varname = left[len(self.numop):]
-            # Parse varname
-            prop = self.lhs_dict.get(varname, varname)
-            # Apply length operator to each name with the prop
-            prop_left_nids = self.prop2_nid2_aids.get(prop, {}).keys()
-            valiter = self.prop2_nid2_aids.get(prop, {}).values()
-            prop_left_values = np.array(list(map(len, valiter)))
-        # Pares number
-        if right:
-            prop_right_value = int(right)
-        # Execute comparison
-        prop_binary_result = self.compare_op_map[op](
-            prop_left_values, prop_right_value)
-        prop_nid2_result = dict(zip(prop_left_nids, prop_binary_result))
-        return prop_nid2_result
-
-    def parse_countstr_expr(self, countstr):
-        # Split over ands for now
-        and_parts = countstr.split('&')
-        prop_nid2_result_list = []
-        for part in and_parts:
-            prop_nid2_result = self.parse_countstr_binop(part)
-            prop_nid2_result_list.append(prop_nid2_result)
-        # change to dict_union when parsing ors
-        andcombine = functools.partial(
-            ut.dict_isect_combine, combine_op=operator.and_)
-        expr_nid2_result = reduce(andcombine, prop_nid2_result_list)
-        return expr_nid2_result
 
 
 def verb_context(filtertype, aidcfg, verbose):

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots._neighbor_experiment &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots._neighbor_experiment &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -141,7 +141,7 @@
 <span class="kn">import</span> <span class="nn">pyflann</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">exists</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index_cache</span>
 <span class="c">#import mem_top</span>
 
 <span class="c">#import vtool.nearest_neighbors as nntool</span>
@@ -152,10 +152,8 @@
 <div class="viewcode-block" id="augment_nnindexer_experiment"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots._neighbor_experiment.augment_nnindexer_experiment">[docs]</a><span class="k">def</span> <span class="nf">augment_nnindexer_experiment</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">    python -c &quot;import utool; print(utool.auto_docstr(&#39;ibeis.algo.hots._neighbor_experiment&#39;, &#39;augment_nnindexer_experiment&#39;))&quot;</span>
-
 <span class="sd">    References:</span>
-<span class="sd">        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/</span>
+<span class="sd">        http://answers.opencv.org/question/44592/flann-index-training-fails-with-segfault/</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        utprof.py -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment</span>
@@ -214,8 +212,8 @@
 
     <span class="c"># Clear Caches</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_flann_cachedir</span><span class="p">()</span>
-    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">clear_memcache</span><span class="p">()</span>
-    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">clear_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">clear_memcache</span><span class="p">()</span>
+    <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">clear_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
 
     <span class="c"># Setup</span>
     <span class="n">all_randomize_daids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deterministic_shuffle</span><span class="p">(</span><span class="n">all_daids</span><span class="p">[:])</span>
@@ -242,7 +240,7 @@
             <span class="c"># Request an indexer which could be an augmented version of an existing indexer.</span>
             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
                 <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;BEFORE AUGMENT&#39;</span><span class="p">)</span>
-                <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">)</span>
+                <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">)</span>
                 <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;AFTER AUGMENT&#39;</span><span class="p">)</span>
             <span class="n">nnindexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">)</span>
             <span class="n">addition_count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
@@ -276,18 +274,18 @@
             <span class="c"># Call the same code, but force rebuilds</span>
             <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;BEFORE REINDEX&#39;</span><span class="p">)</span>
             <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
-                <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span>
+                <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span>
                     <span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">,</span> <span class="n">force_rebuild</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>
             <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;AFTER REINDEX&#39;</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">print_cachestats_str</span><span class="p">()</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),))</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">UUID_MAP_CACHE</span><span class="p">),))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">UUID_MAP_CACHE</span><span class="p">),))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;totalsize(nnindexer) = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">))</span>
-            <span class="n">memtrack</span><span class="o">.</span><span class="n">report_type</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NeighborIndex</span><span class="p">)</span>
+            <span class="n">memtrack</span><span class="o">.</span><span class="n">report_type</span><span class="p">(</span><span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">NeighborIndex</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">print_object_size_tree</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;nnindexer_&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">IS_SMALL</span><span class="p">:</span>
                 <span class="n">nnindexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">)</span>
@@ -510,26 +508,27 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.neighbor_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.neighbor_index_cache import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; result = test_incremental_add(ibs)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sample_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rowid_sample</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">sample_aids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s">&#39;default:pername=1,mingt=2&#39;</span><span class="p">)</span>
     <span class="n">aids1</span> <span class="o">=</span> <span class="n">sample_aids</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">aids2</span> <span class="o">=</span> <span class="n">sample_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
     <span class="n">aids3</span> <span class="o">=</span> <span class="n">sample_aids</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># NOQA</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">aids1</span>  <span class="c"># NOQA</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids1</span><span class="p">)</span>
-    <span class="n">nnindexer1</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids1</span><span class="p">))</span>  <span class="c"># NOQA</span>
-    <span class="n">nnindexer2</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="n">nnindexer1</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids1</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="n">nnindexer2</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>  <span class="c"># NOQA</span>
 
     <span class="c"># TODO: SYSTEM use visual uuids</span>
     <span class="c">#daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()</span>
     <span class="n">items</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aids3</span><span class="p">)</span>
-    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
-    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">read_uuid_map</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">read_uuid_map</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">candidate_sets</span> <span class="o">=</span> <span class="n">candidate_uuids</span>
     <span class="n">covertup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">greedy_max_inden_setcover</span><span class="p">(</span><span class="n">candidate_sets</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span>
     <span class="n">uncovered_items</span><span class="p">,</span> <span class="n">covered_items_list</span><span class="p">,</span> <span class="n">accepted_keys</span> <span class="o">=</span> <span class="n">covertup</span>
@@ -538,14 +537,14 @@
     <span class="n">covered_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">covered_items</span><span class="p">))</span>
     <span class="n">uncovered_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">uncovered_items</span><span class="p">))</span>
 
-    <span class="n">nnindexer3</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">uncovered_aids</span><span class="p">,</span> <span class="n">uncovered_aids</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="n">nnindexer3</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">uncovered_aids</span><span class="p">,</span> <span class="n">uncovered_aids</span><span class="p">))</span>  <span class="c"># NOQA</span>
 
     <span class="c"># TODO: SYSTEM use visual uuids</span>
     <span class="c">#daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()</span>
     <span class="n">items</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">sample_aids</span><span class="p">)</span>
-    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="c">#contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:</span>
-    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">read_uuid_map</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">read_uuid_map</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">candidate_sets</span> <span class="o">=</span> <span class="n">candidate_uuids</span>
     <span class="n">covertup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">greedy_max_inden_setcover</span><span class="p">(</span><span class="n">candidate_sets</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span>
     <span class="n">uncovered_items</span><span class="p">,</span> <span class="n">covered_items_list</span><span class="p">,</span> <span class="n">accepted_keys</span> <span class="o">=</span> <span class="n">covertup</span>
@@ -559,8 +558,8 @@
     <span class="c">#uuid_map[daids_hashid] = visual_uuid_list</span>
     <span class="c">#visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)</span>
     <span class="c">#visual_uuid_list</span>
-    <span class="c">#%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=False)</span>
-    <span class="c">#%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=True)</span>
+    <span class="c">#%timeit neighbor_index_cache.request_ibeis_nnindexer(qreq_, use_memcache=False)</span>
+    <span class="c">#%timeit neighbor_index_cache.request_ibeis_nnindexer(qreq_, use_memcache=True)</span>
 
     <span class="c">#for uuids in uuid_set</span>
     <span class="c">#    if</span>
@@ -577,7 +576,7 @@
 <span class="sd">        &gt;&gt;&gt; result = test_multiple_add_removes()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.algo.hots.neighbor_index</span> <span class="kn">import</span> <span class="n">test_nnindexer</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots.neighbor_index_cache</span> <span class="kn">import</span> <span class="n">test_nnindexer</span>
     <span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">nnindexer</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span> <span class="o">=</span> <span class="n">test_nnindexer</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -887,8 +886,7 @@
 <span class="sd">        ~/local/build_scripts/flannscripts/autogen_bindings.py</span>
 
 <span class="sd">    Greping:</span>
-<span class="sd">        fl</span>
-<span class="sd">        cd src</span>
+<span class="sd">        cd ~/code/flann/src</span>
 <span class="sd">        grep -ER cleanRemovedPoints *</span>
 <span class="sd">        grep -ER removed_points_ *</span>
 
@@ -1045,7 +1043,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

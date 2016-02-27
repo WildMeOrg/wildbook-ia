@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.main_helpers &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.init.main_helpers &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -214,6 +214,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.init.main_helpers import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
 <span class="sd">        &gt;&gt;&gt; p = None</span>
+<span class="sd">        &gt;&gt;&gt; a = None</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = testdata_qreq_(p)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;qreq_ = %s&#39; % (str(qreq_),))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -265,7 +266,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_cmlist&#39;</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
-    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="c">#qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)</span>
     <span class="k">return</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span>
 
 </div>
@@ -287,9 +289,10 @@
 <span class="sd">    override, daid override (and maybe initial aids).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_expts&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_expts&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_harness</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">harness</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">test_result</span>
     <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">default_acfgstr_name_list</span> <span class="o">=</span> <span class="n">a</span>
@@ -318,24 +321,24 @@
     <span class="k">if</span> <span class="n">use_bigtest_cache3</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
         <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">)),</span> <span class="s">&#39;BIG_TESTLIST_CACHE3&#39;</span><span class="p">))</span>
-        <span class="n">load_testres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">cached_func</span><span class="p">(</span><span class="s">&#39;testreslist&#39;</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">)(</span><span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span><span class="p">)</span>
+        <span class="n">load_testres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">cached_func</span><span class="p">(</span><span class="s">&#39;testreslist&#39;</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">)(</span><span class="n">harness</span><span class="o">.</span><span class="n">run_test_configurations2</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">load_testres</span> <span class="o">=</span> <span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span>
+        <span class="n">load_testres</span> <span class="o">=</span> <span class="n">harness</span><span class="o">.</span><span class="n">run_test_configurations2</span>
     <span class="n">testres_list</span> <span class="o">=</span> <span class="n">load_testres</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
         <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">)</span>
     <span class="n">testres</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">combine_testres_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres_list</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="n">testres</span><span class="p">)</span>
-
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">testres</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span>
     <span class="c">#return ibs, testres_list</span>
 
 </div>
-<div class="viewcode-block" id="testdata_expanded_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_expanded_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_expanded_aids</span><span class="p">(</span><span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                           <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                           <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                           <span class="n">daid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="testdata_expanded_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_expanded_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_expanded_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        default_qaids (list): (default = [1])</span>
@@ -364,13 +367,12 @@
 <span class="sd">        &gt;&gt;&gt; annotation_configs.print_acfg(aidcfg)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;Printing annotconfig stats&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; #print(&#39;qaid_list = %r&#39; % (np.array(qaid_list),))</span>
-<span class="sd">        &gt;&gt;&gt; ibs.get_annotconfig_stats(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_annotconfig_stats(qaid_list, daid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;Combined annotconfig stats&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;qaid_list = %r&#39; % (qaid_list,))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_expanded_aids&#39;</span><span class="p">)</span>
-    <span class="c"># print(&#39;[testdata_expanded_aids] Getting test annot configs&#39;)</span>
     <span class="k">if</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># Hack to aggree with experiment-helpers</span>
         <span class="n">default_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -379,6 +381,7 @@
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+
     <span class="c"># TODO: rectify command line with function arguments</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
     <span class="n">_specified2</span> <span class="o">=</span> <span class="bp">True</span>
@@ -394,7 +397,7 @@
 
     <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
-        <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">)</span>
+        <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
     <span class="c">#aidcfg = old_main_helpers.get_commandline_aidcfg()</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
@@ -405,11 +408,12 @@
 
     <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="n">expanded_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_specified</span> <span class="ow">or</span> <span class="n">_specified2</span><span class="p">)</span> <span class="ow">and</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_specified</span> <span class="ow">or</span> <span class="n">_specified2</span><span class="p">):</span>
         <span class="c"># hack</span>
-        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">default_qaids</span>
-
-    <span class="c">#ibs.get_annotconfig_stats(qaid_list, daid_list)</span>
+        <span class="k">if</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">qaid_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">default_qaids</span>
+        <span class="k">if</span> <span class="n">default_daids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">daid_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">default_daids</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
@@ -421,7 +425,8 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="testdata_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">adefault</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_acfg</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="testdata_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">adefault</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">return_acfg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints</span>
@@ -454,7 +459,7 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_helpers] testdata_aids&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">adefault</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">_specified_a</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">return_ibs</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">return_ibs</span> <span class="o">=</span> <span class="bp">True</span>
@@ -466,9 +471,13 @@
     <span class="n">named_qcfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span>
                                    <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s">&#39;qcfg&#39;</span><span class="p">)))</span>
     <span class="c"># Allow command line override</span>
-    <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aid&#39;</span><span class="p">,</span> <span class="s">&#39;--aids&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">aids</span><span class="p">,</span> <span class="n">_specified_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aid&#39;</span><span class="p">,</span> <span class="s">&#39;--aids&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_aids</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
     <span class="n">aidcfg</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">have_aids</span> <span class="o">=</span> <span class="n">aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="n">need_expand</span> <span class="o">=</span> <span class="p">(</span><span class="ow">not</span> <span class="n">have_aids</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">_specified_a</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_specified_aids</span><span class="p">)</span>
+    <span class="c">#(not aid) or (sa and (not said))</span>
+    <span class="k">if</span> <span class="n">need_expand</span><span class="p">:</span>
         <span class="c">#base_cfg = annotation_configs.single_default</span>
         <span class="n">aidcfg_combo_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="n">named_qcfg_defaults</span><span class="p">,</span> <span class="s">&#39;acfg&#39;</span><span class="p">,</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">ALIAS_KEYS</span><span class="p">,</span> <span class="n">expand_nested</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="c">#aidcfg_combo = cfghelpers.customize_base_cfg(&#39;default&#39;, cfgstr_options,</span>
@@ -480,7 +489,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidcfg_combo</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Error: combinations not handled for single cfg setting&#39;</span><span class="p">)</span>
         <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">aidcfg_combo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">aids</span> <span class="o">=</span> <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">return_ibs</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span>
     <span class="k">if</span> <span class="n">return_acfg</span><span class="p">:</span>
@@ -533,7 +542,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

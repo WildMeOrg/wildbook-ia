@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc.preproc_detectimg &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.preproc.preproc_detectimg &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -135,26 +135,20 @@
   <h1>Source code for ibeis.algo.preproc.preproc_detectimg</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="c"># Python</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
-<span class="c"># UTool</span>
-<span class="kn">import</span> <span class="nn">utool</span>
-<span class="c"># VTool</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
-<span class="kn">import</span> <span class="nn">vtool.chip</span> <span class="kn">as</span> <span class="nn">ctool</span>
-<span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_detectimg]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_detectimg]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="gen_detectimg_and_write"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.gen_detectimg_and_write">[docs]</a><span class="k">def</span> <span class="nf">gen_detectimg_and_write</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; worker function for parallel generator &quot;&quot;&quot;</span>
     <span class="n">gid</span><span class="p">,</span> <span class="n">gfpath</span><span class="p">,</span> <span class="n">new_gfpath</span><span class="p">,</span> <span class="n">new_size</span> <span class="o">=</span> <span class="n">tup</span>
     <span class="c">#print(&#39;[preproc] writing detectimg: %r&#39; % new_gfpath)</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span>
-    <span class="n">new_img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">new_size</span><span class="p">)</span>
-    <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">new_gfpath</span><span class="p">,</span> <span class="n">new_img</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">new_size</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">new_gfpath</span><span class="p">,</span> <span class="n">new_img</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid</span><span class="p">,</span> <span class="n">new_gfpath</span>
 
 </div>
@@ -167,7 +161,7 @@
     <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span> <span class="n">new_gfpath_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)</span>
     <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
     <span class="c"># THis probably wont work for the same reason gen_chip wont work</span>
-    <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_detectimg_and_write</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_detectimg_and_write</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_image_detectimg_fpath_list"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_detectimg.get_image_detectimg_fpath_list">[docs]</a><span class="k">def</span> <span class="nf">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
@@ -189,7 +183,7 @@
 <span class="sd">        &gt;&gt;&gt; assert result == target, &#39;got result=\n%s&#39; % result</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="s">&#39;gid_list&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="s">&#39;gid_list&#39;</span><span class="p">)</span>
     <span class="n">sqrt_area</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span>
     <span class="n">gext_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">guuid_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -220,7 +214,7 @@
 <span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(new_gfpath_list, nPerPage=4)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_detectimg_cachedir</span><span class="p">())</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_detectimg_cachedir</span><span class="p">())</span>
     <span class="c"># Get img configuration information</span>
     <span class="n">sqrt_area</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span>
     <span class="n">target_area</span> <span class="o">=</span> <span class="n">sqrt_area</span> <span class="o">**</span> <span class="mi">2</span>
@@ -229,7 +223,7 @@
     <span class="c"># Get img source information (image, annotation_bbox, theta)</span>
     <span class="n">gfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">gsize_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">ctool</span><span class="o">.</span><span class="n">get_scaled_sizes_with_area</span><span class="p">(</span><span class="n">target_area</span><span class="p">,</span> <span class="n">gsize_list</span><span class="p">)</span>
+    <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_sizes_with_area</span><span class="p">(</span><span class="n">target_area</span><span class="p">,</span> <span class="n">gsize_list</span><span class="p">)</span>
     <span class="c"># Define &quot;Asynchronous&quot; generator</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] Computing </span><span class="si">%d</span><span class="s"> imgs asynchronously&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gfpath_list</span><span class="p">)))</span>
     <span class="n">detectimg_async_iter</span> <span class="o">=</span> <span class="n">gen_detectimg_async</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span>
@@ -259,7 +253,7 @@
     <span class="c"># Mark which aid&#39;s need their detectimg computed</span>
     <span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="n">exists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gfpath</span> <span class="ow">in</span> <span class="n">new_gfpath_list</span><span class="p">]</span>
-    <span class="n">invalid_gids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
+    <span class="n">invalid_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_detectimg] </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> detectimgs need to be computed&#39;</span> <span class="o">%</span>
           <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_gids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
     <span class="n">compute_and_write_detectimg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invalid_gids</span><span class="p">)</span>
@@ -307,7 +301,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.query_request &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.query_request &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -140,7 +140,7 @@
 <span class="sd">    Rename to IdentifyRequest</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index_cache</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">multi_index</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">scorenorm</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span>
@@ -275,13 +275,13 @@
     <span class="n">qresdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_qres_cachedir</span><span class="p">()</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfgdict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-    <span class="c"># HACK FOR DEPC REQUESTS:</span>
-    <span class="n">algoname</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">dtool</span><span class="o">.</span><span class="n">AlgoConfig</span><span class="p">):</span>
-        <span class="n">requestclass</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">requestclass_dict</span><span class="p">[</span><span class="n">algoname</span><span class="p">]</span>
+    <span class="c"># HACK FOR DEPC REQUESTS including flukes</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+        <span class="n">tablename</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+        <span class="n">requestclass</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">requestclass_dict</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
-        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">request</span> <span class="o">=</span> <span class="n">requestclass</span><span class="o">.</span><span class="n">new_algo_request</span><span class="p">(</span>  <span class="c"># NOQA</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="p">,</span> <span class="n">algoname</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">request</span> <span class="o">=</span> <span class="n">requestclass</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>  <span class="c"># NOQA</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="n">tablename</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c">#if cfgdict.get(&#39;pipeline_root&#39;, None)</span>
         <span class="n">DYNAMIC_K</span> <span class="o">=</span> <span class="bp">False</span>
@@ -613,7 +613,7 @@
         <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="c">#qreq_.metadata = {}</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">new_daids</span><span class="p">)</span>
-        <span class="c"># TODO: multi-indexer add_support</span>
+        <span class="c"># TODO: multi-indexer add support</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c">#qreq_.load_indexer(verbose=True)</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">add_ibeis_support</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">new_daids</span><span class="p">)</span>
@@ -688,12 +688,10 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.query_request import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots import pipeline</span>
-<span class="sd">            &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsone&#39;, sv_on=True)</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
 <span class="sd">            &gt;&gt;&gt; qaid_list = [1, 2, 3, 4]</span>
 <span class="sd">            &gt;&gt;&gt; daid_list = [1, 2, 3, 4]</span>
-<span class="sd">            &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,</span>
-<span class="sd">            ...     qaid_list=qaid_list, daid_list=daid_list)</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p=&#39;default:codename=vsone,sv_on=True&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; qaids = qreq_.get_internal_qaids()</span>
 <span class="sd">            &gt;&gt;&gt; ut.assert_lists_eq(qaid_list, qaids)</span>
 <span class="sd">            &gt;&gt;&gt; masked_qaid_list = [1, 2, 3,]</span>
@@ -723,12 +721,10 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots.query_request import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">            &gt;&gt;&gt; from ibeis.algo.hots import pipeline</span>
-<span class="sd">            &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsone&#39;, sv_on=True)</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
 <span class="sd">            &gt;&gt;&gt; qaid_list = [1, 2, 3, 4]</span>
 <span class="sd">            &gt;&gt;&gt; daid_list = [1, 2, 3, 4]</span>
-<span class="sd">            &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,</span>
-<span class="sd">            ...     qaid_list=qaid_list, daid_list=daid_list)</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p=&#39;default:codename=vsone,sv_on=True&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; qaids = qreq_.get_internal_qaids()</span>
 <span class="sd">            &gt;&gt;&gt; ut.assert_lists_eq(qaid_list, qaids)</span>
 <span class="sd">            &gt;&gt;&gt; unmasked_qaid_list = [1, 2, 3,]</span>
@@ -925,7 +921,8 @@
         <span class="k">return</span> <span class="n">pipe_hashstr</span>
 </div>
     <span class="nd">@profile</span>
-<div class="viewcode-block" id="QueryRequest.get_cfgstr"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.query_request.QueryRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">with_query</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">hash_pipe</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryRequest.get_cfgstr"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.query_request.QueryRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">with_input</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                   <span class="n">hash_pipe</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">        main cfgstring used to identify the &#39;querytype&#39;</span>
 <span class="sd">        FIXME: name params + data</span>
@@ -934,7 +931,7 @@
 <span class="sd">            rename query_cfgstr to pipe_cfgstr or pipeline_cfgstr EVERYWHERE</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            with_query (bool): (default = False)</span>
+<span class="sd">            with_input (bool): (default = False)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            str: cfgstr</span>
@@ -951,13 +948,13 @@
 <span class="sd">            &gt;&gt;&gt; daids = ibs.get_valid_aids(species=species)</span>
 <span class="sd">            &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=species)</span>
 <span class="sd">            &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaids, daids)</span>
-<span class="sd">            &gt;&gt;&gt; with_query = True</span>
-<span class="sd">            &gt;&gt;&gt; cfgstr = qreq_.get_cfgstr(with_query)</span>
+<span class="sd">            &gt;&gt;&gt; with_input = True</span>
+<span class="sd">            &gt;&gt;&gt; cfgstr = qreq_.get_cfgstr(with_input)</span>
 <span class="sd">            &gt;&gt;&gt; result = (&#39;cfgstr = %s&#39; % (str(cfgstr),))</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">with_query</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">with_input</span><span class="p">:</span>
             <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">with_data</span><span class="p">:</span>
             <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">())</span>
@@ -974,7 +971,7 @@
 <span class="sd">        FIXME: name</span>
 <span class="sd">        params + data + query</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">full_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">full_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">full_cfgstr</span>
 </div>
 <div class="viewcode-block" id="QueryRequest.get_qresdir"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.query_request.QueryRequest.get_qresdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_qresdir</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
@@ -1163,7 +1160,7 @@
                 <span class="c"># TODO: SYSTEM updatable indexer</span>
                 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qreq] loading single indexer normalizer&#39;</span><span class="p">)</span>
-                <span class="n">indexer</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span>
+                <span class="n">indexer</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span>
                     <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">qreq_</span><span class="o">.</span><span class="n">_indexer_request_params</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">index_method</span> <span class="o">==</span> <span class="s">&#39;multi&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
@@ -1290,7 +1287,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Efficient function to get a list of chipmatch paths</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">qauuid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
         <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">chip_match</span><span class="o">.</span><span class="n">get_chipmatch_fname</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qauuid</span><span class="o">=</span><span class="n">qauuid</span><span class="p">,</span>
@@ -1299,28 +1296,16 @@
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">fname_list</span>
 </div>
-    <span class="nd">@profile</span>
-<div class="viewcode-block" id="QueryRequest.load_cached_chipmatch"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.query_request.QueryRequest.load_cached_chipmatch">[docs]</a>    <span class="k">def</span> <span class="nf">load_cached_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        DEPRICATE in favor of chipmatch</span>
-
-<span class="sd">        convinience function for loading a query that has already been</span>
-<span class="sd">        cached &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">qaid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
-        <span class="n">shallow_qreq_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">()</span>
-        <span class="n">is_scalar</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
-        <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_scalar</span> <span class="k">else</span> <span class="n">qaid</span>
-        <span class="n">shallow_qreq_</span><span class="o">.</span><span class="n">set_external_qaids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
-        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">shallow_qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span>
-            <span class="n">qaid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">(),</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-            <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">shallow_qreq_</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">is_scalar</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cm_list</span>
-</div>
 <div class="viewcode-block" id="QueryRequest.execute"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.query_request.QueryRequest.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">shallow_qreq_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">shallow_qreq_</span><span class="p">,</span>
+                                            <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm_list</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.execute_subset"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.query_request.QueryRequest.execute_subset">[docs]</a>    <span class="k">def</span> <span class="nf">execute_subset</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">shallow_qreq_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span>
             <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">shallow_qreq_</span><span class="p">,</span>
@@ -1399,7 +1384,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio package &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.dbio package &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.expt package" href="ibeis.expt.html"/>
         <link rel="prev" title="ibeis.control package" href="ibeis.control.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -115,11 +115,10 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core">ibeis.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.luigi_backend">ibeis.luigi_backend module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
@@ -353,11 +352,6 @@
 <div class="section" id="module-ibeis.dbio.export_subset">
 <span id="ibeis-dbio-export-subset-module"></span><h2>ibeis.dbio.export_subset module<a class="headerlink" href="#module-ibeis.dbio.export_subset" title="Permalink to this headline">¶</a></h2>
 <p>Exports subset of an IBEIS database to a new IBEIS database</p>
-<dl class="docutils">
-<dt>TODO:</dt>
-<dd>NEED TO UPDATE FILE TO USE THE NEW NAME AND SPECIES TABLE NOW THAT THEY
-ARE NO LONGER LBLANNOTS</dd>
-</dl>
 <dl class="class">
 <dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData">
 <em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">ANNOTATION_TransferData</code><span class="sig-paren">(</span><em>annot_parent_INDEX_list</em>, <em>annot_uuid_list</em>, <em>annot_theta_list</em>, <em>annot_verts_list</em>, <em>annot_yaw_list</em>, <em>annot_detection_confidence_list</em>, <em>annot_exemplar_flag_list</em>, <em>annot_visual_uuid_list</em>, <em>annot_semantic_uuid_list</em>, <em>annot_note_list</em>, <em>annot_name_INDEX_list</em>, <em>annot_species_INDEX_list</em>, <em>lblannot_td_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData" title="Permalink to this definition">¶</a></dt>
@@ -1145,7 +1139,7 @@ python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Mast
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">expanded_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Expand to get all annots in each chosen image</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--new-dbpath&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;PZ_ViewPoints&#39;</span><span class="p">)</span>
@@ -1629,12 +1623,18 @@ python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys -
 </div>
 <div class="section" id="module-ibeis.dbio.ingest_database">
 <span id="ibeis-dbio-ingest-database-module"></span><h2>ibeis.dbio.ingest_database module<a class="headerlink" href="#module-ibeis.dbio.ingest_database" title="Permalink to this headline">¶</a></h2>
-<p>This module lists known raw databases and how to ingest them.
-# TODO: ADD COPYRIGHT TAG</p>
+<p>This module lists known raw databases and how to ingest them.</p>
+<p>Specify arguments and run the following command to ingest a database</p>
+<p>python -m ibeis &#8211;tf ingest_rawdata &#8211;db seaturtles  &#8211;imgdir &#8220;~/turtles/Turtles from Jill&#8221; &#8211;ingest-type=named_folders &#8211;species=turtles</p>
+<p># &#8212; GET DATA &#8212;
+rsync -avhzP &lt;user&gt;&#64;&lt;host&gt;:&lt;remotedir&gt;  &lt;path-to-raw-imgs&gt;
+# &#8212; RUN INGEST SCRIPT &#8212;
+python -m ibeis &#8211;tf ingest_rawdata &#8211;db &lt;new-ibeis-db-name&gt; &#8211;imgdir &lt;path-to-raw-imgs&gt; &#8211;ingest-type=named_folders &#8211;species=&lt;optional&gt; &#8211;fmtkey=&lt;optional&gt;</p>
 <dl class="class">
 <dt id="ibeis.dbio.ingest_database.FMT_KEYS">
 <em class="property">class </em><code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">FMT_KEYS</code><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#FMT_KEYS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
 <dt id="ibeis.dbio.ingest_database.FMT_KEYS.elephant_fmt">
 <code class="descname">elephant_fmt</code><em class="property"> = '{prefix?}{name}_{view}_{id?}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.elephant_fmt" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2174,7 +2174,7 @@ best word i can think of is io. maybe marshall?</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -689,6 +689,11 @@ def ensure_pz_mtest_mergesplit_test():
     print('final_result = %s' % (ut.list_str(final_result),))
 
 
+def ensure_wilddogs():
+    """ Ensures that you have the NAUT_test dataset """
+    ensure_db_from_url(const.ZIPPED_URLS.WDS)
+
+
 def ensure_nauts():
     """ Ensures that you have the NAUT_test dataset """
     ensure_db_from_url(const.ZIPPED_URLS.NAUTS)

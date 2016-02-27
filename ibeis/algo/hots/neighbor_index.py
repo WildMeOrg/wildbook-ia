@@ -51,7 +51,8 @@ def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
                                     'Cannot invert index without features!')
     # Create indexes into the input aids
     ax_list = np.arange(len(aid_list))
-    idx2_vec, idx2_ax, idx2_fx = invert_index(vecs_list, ax_list, verbose=verbose)
+    idx2_vec, idx2_ax, idx2_fx = invert_index(
+        vecs_list, ax_list, verbose=verbose)
     # <HACK:fgweights>
     if fgws_list is not None:
         idx2_fgw = np.hstack(fgws_list)
@@ -137,6 +138,8 @@ class NeighborIndex(object):
         nnindexer.idx2_ax  = None  # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
         nnindexer.cfgstr   = cfgstr  # configuration id
+        if flann_params is None:
+            flann_params = {'algorithm': 'kdtree'}
         if 'random_seed' not in flann_params:
             # Make flann determenistic for the same data
             flann_params['random_seed'] = 42
@@ -171,7 +174,8 @@ class NeighborIndex(object):
             nnindexer.max_distance_sqrd = None
 
     @ut.tracefunc_xml
-    def add_ibeis_support(nnindexer, qreq_, new_daid_list, verbose=ut.NOT_QUIET):
+    def add_ibeis_support(nnindexer, qreq_, new_daid_list,
+                          verbose=ut.NOT_QUIET):
         r"""
         # TODO: ensure that the memcache changes appropriately
         """
@@ -339,12 +343,12 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE ADD POINTS')
 
-    def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False, memtrack=None):
+    def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
+                       memtrack=None):
         r"""
         Ensures that you get a neighbor indexer. It either loads a chached
         indexer or rebuilds a new one.
         """
-        #with ut.PrintStartEndContext(msg='CACHED NNINDEX', verbose=verbose):
         if NOCACHE_FLANN or force_rebuild:
             print('...nnindex flann cache is forced off')
             load_success = False
@@ -362,7 +366,8 @@ class NeighborIndex(object):
                 nAnnots = nnindexer.num_indexed_annots()
                 print('...nnindex flann cache miss: %d vectors, %d annots' %
                       (nVecs, nAnnots))
-            nnindexer.build_and_save(cachedir, verbose=verbose, memtrack=memtrack)
+            nnindexer.build_and_save(cachedir, verbose=verbose,
+                                     memtrack=memtrack)
 
     def build_and_save(nnindexer, cachedir, verbose=True, memtrack=None):
         nnindexer.reindex(memtrack=memtrack)
@@ -372,7 +377,8 @@ class NeighborIndex(object):
         r""" indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
-        verbose_ = ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num)
+        verbose_ = ut.VERYVERBOSE or verbose or (
+            not ut.QUIET and num_vecs > notify_num)
         if verbose_:
             print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building index')
@@ -391,26 +397,33 @@ class NeighborIndex(object):
 
     # ---- <cachable_interface> ---
 
-    def save(nnindexer, cachedir, verbose=True):
+    def save(nnindexer, cachedir=None, fpath=None, verbose=True):
         r"""
-        Caches a neighbor indexer to disk
+        Caches a flann neighbor indexer to disk (not the data)
         """
         if NOSAVE_FLANN:
             if ut.VERYVERBOSE or verbose:
                 print('[nnindex] flann save is deactivated')
             return False
-        flann_fpath = nnindexer.get_fpath(cachedir)
+        if fpath is None:
+            flann_fpath = nnindexer.get_fpath(cachedir)
+        else:
+            flann_fpath = fpath
         nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:
-            print('[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
+            print('[nnindex] flann.save_index(%r)' %
+                  ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
-    def load(nnindexer, cachedir, verbose=True):
+    def load(nnindexer, cachedir=None, fpath=None, verbose=True):
         r"""
-        Loads a cached neighbor indexer from disk
+        Loads a cached flann neighbor indexer from disk (not the data)
         """
         load_success = False
-        flann_fpath = nnindexer.get_fpath(cachedir)
+        if fpath is None:
+            flann_fpath = nnindexer.get_fpath(cachedir)
+        else:
+            flann_fpath = fpath
         nnindexer.flann_fpath = flann_fpath
         if ut.checkpath(flann_fpath, verbose=verbose):
             idx2_vec = nnindexer.idx2_vec
@@ -517,8 +530,8 @@ class NeighborIndex(object):
                         distance is normalized squared euclidean distance.
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-knn:0 --debug2
-            python -m ibeis.algo.hots.neighbor_index --test-knn:1
+            python -m ibeis --tf NeighborIndex.knn:0 --debug2
+            python -m ibeis --tf NeighborIndex.knn:1
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -553,42 +566,6 @@ class NeighborIndex(object):
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
             >>> print(result)
             (0, 2) (0, 2)
-
-        Dev:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
-            >>> qreq_.load_indexer()
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
-            >>> K = 2
-            >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
-
-            nnindexer = qreq_.indexer
-            (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
-                qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
-
-            qaid = 1
-            qencid = ibs.get_annot_encounter_text([qaid])[0]
-            ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
-
-            invalid_axs = np.where(ax2_encid == qencid)[0]
-
-            ibs = qreq_.ibs
-
-            invalid = np.in1d(nnindexer.get_nn_axs(qfx2_idx), invalid_axs).reshape(qfx2_idx.shape)
-            qfx2_num_invalid = invalid.sum(axis=1)
-            qfx2_invalid_vec = qfx2_vec[qfx2_num_invalid > 0]
-
-            qfx2_num_invalid.max()
-
-            (qfx2_invalid_idx, _) = nnindexer.flann.nn_index(
-                qfx2_invalid_vec, K + qfx2_num_invalid.max(), checks=nnindexer.checks, cores=nnindexer.cores)
-
-            new_idx = qfx2_invalid_idx[:, K + 1:]
-            new_invalid = np.in1d(nnindexer.get_nn_axs(new_idx), invalid_axs).reshape(new_idx.shape)
-
-            invalid = np.in1d(nnindexer.get_nn_axs(qfx2_idx), invalid_axs).reshape(qfx2_idx.shape)
         """
         if K == 0:
             (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
@@ -610,7 +587,8 @@ class NeighborIndex(object):
                 (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
                     qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
             except pyflann.FLANNException as ex:
-                ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (nnindexer.flann_fpath,))
+                ut.printex(ex, 'probably misread the cached flann_fpath=%r' %
+                           (nnindexer.flann_fpath,))
                 #ut.embed()
                 # Uncomment and use if the flan index needs to be deleted
                 #ibs = ut.search_stack_for_localvar('ibs')
@@ -738,7 +716,7 @@ class NeighborIndex(object):
         Gets forground weights of neighbors
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --exec-NeighborIndex.get_nn_fgws
+            python -m ibeis --tf NeighborIndex.get_nn_fgws
 
         Args:
             qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
@@ -758,6 +736,156 @@ class NeighborIndex(object):
         else:
             qfx2_fgw = nnindexer.idx2_fgw.take(qfx2_nnidx)
         return qfx2_fgw
+
+
+class NeighborIndex2(NeighborIndex, ut.NiceRepr):
+    def __init__(nnindexer, flann_params=None, cfgstr=None):
+        super(NeighborIndex2, nnindexer).__init__(flann_params, cfgstr)
+        nnindexer.config = None
+        #nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
+
+    def __nice__(self):
+        def safelen(l):
+            return None if l is None else len(l)
+        return ' nA=%r nV=%r' % (safelen(self.ax2_aid), safelen(self.idx2_vec))
+
+    @staticmethod
+    def get_support(depc, aid_list, config):
+        vecs_list = depc.get('feat', aid_list, 'vecs', config)
+        if False and config['fg_on']:
+            fgws_list = depc.get('featweight', aid_list, 'fgw', config)
+        else:
+            fgws_list = None
+        return vecs_list, fgws_list
+
+    def on_load(nnindexer, depc):
+        #print('NNINDEX ON LOAD')
+        aid_list = nnindexer.ax2_aid
+        config = nnindexer.config
+        support = nnindexer.get_support(depc, aid_list, config.feat_cfg)
+        nnindexer.init_support(aid_list, *support)
+        nnindexer.load(fpath=nnindexer.flann_fpath)
+        #nnindexer.ax2_aid
+        pass
+
+    def on_save(nnindexer, depc, fpath):
+        #print('NNINDEX ON SAVE')
+        # Save FLANN as well
+        flann_fpath = ut.augpath(fpath, '_flann', newext='.flann')
+        nnindexer.save(fpath=flann_fpath)
+
+    def __getstate__(self):
+        # TODO: Figure out how to make these play nice with the depcache
+        state = self.__dict__
+        # These values are removed before a save to disk
+        del state['flann']
+        del state['idx2_fgw']
+        del state['idx2_vec']
+        del state['idx2_ax']
+        del state['idx2_fx']
+        #del state['flann_params']
+        #del state['checks']
+        #nnindexer.num_indexed = None
+        #nnindexer.flann_fpath = None
+        #if flann_params is None:
+        #nnindexer.flann_params = flann_params
+        #nnindexer.cores  = flann_params.get('cores', 0)
+        #nnindexer.checks = flann_params.get('checks', 1028)
+        #nnindexer.num_indexed = None
+        #nnindexer.flann_fpath = None
+        #nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
+        return state
+
+    def __setstate__(self, state_dict):
+        self.__dict__.update(state_dict)
+        #return {}
+
+    def conditional_knn(nnindexer, qfx2_vec, num_neighbors, invalid_axs):
+        """
+            >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='seaturtles')
+            >>> qreq_.load_indexer()
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.qaids[0])
+            >>> num_neighbors = 2
+            >>> nnindexer = qreq_.indexer
+            >>> ibs = qreq_.ibs
+            >>> qaid = 1
+            >>> qencid = ibs.get_annot_encounter_text([qaid])[0]
+            >>> ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
+            >>> invalid_axs = np.where(ax2_encid == qencid)[0]
+        """
+        #import ibeis
+        import itertools
+
+        def in1d_shape(arr1, arr2):
+            return np.in1d(arr1, arr2).reshape(arr1.shape)
+
+        get_neighbors = ut.partial(nnindexer.flann.nn_index,
+                                   checks=nnindexer.checks,
+                                   cores=nnindexer.cores)
+
+        # Alloc space for final results
+        K = num_neighbors
+        shape = (len(qfx2_vec), K)
+        qfx2_idx = np.full(shape, -1, dtype=np.int32)
+        qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
+        qfx2_truek = np.full(shape, -1, dtype=np.int32)
+
+        # Make a set of temporary indexes and loop variables
+        limit = None
+        limit = 4
+        K_ = K
+        tx2_qfx = np.arange(len(qfx2_vec))
+        tx2_vec = qfx2_vec
+        iter_count = 0
+        for iter_count in itertools.count():
+            if limit is not None and iter_count >= limit:
+                break
+            # Find a set of neighbors
+            (tx2_idx, tx2_rawdist) = get_neighbors(tx2_vec, K_)
+            tx2_idx = vt.atleast_nd(tx2_idx, 2)
+            tx2_rawdist = vt.atleast_nd(tx2_rawdist, 2)
+            tx2_ax = nnindexer.get_nn_axs(tx2_idx)
+            # Check to see if they meet the criteria
+            tx2_invalid = in1d_shape(tx2_ax, invalid_axs)
+            tx2_valid = np.logical_not(tx2_invalid)
+            tx2_num_valid = tx2_valid.sum(axis=1)
+            tx2_notdone = tx2_num_valid < K
+            tx2_done = np.logical_not(tx2_notdone)
+
+            # Move completely valid queries into the results
+            if np.any(tx2_done):
+                done_qfx = tx2_qfx.compress(tx2_done, axis=0)
+                # Need to parse which columns are the completed ones
+                done_valid_ = tx2_valid.compress(tx2_done, axis=0)
+                done_rawdist_ = tx2_rawdist.compress(tx2_done, axis=0)
+                done_idx_ = tx2_idx.compress(tx2_done, axis=0)
+                # Get the complete valid indicies
+                rowxs, colxs = np.where(done_valid_)
+                unique_rows, groupxs = vt.group_indices(rowxs)
+                first_k_groupxs = [groupx[0:K] for groupx in groupxs]
+                chosen_xs = np.hstack(first_k_groupxs)
+                multi_index = (rowxs.take(chosen_xs), colxs.take(chosen_xs))
+                flat_xs = np.ravel_multi_index(multi_index, done_valid_.shape)
+                done_rawdist = done_rawdist_.take(flat_xs).reshape((-1, K))
+                done_idx = done_idx_.take(flat_xs).reshape((-1, K))
+                # Write done results in output
+                qfx2_idx[done_qfx, :] = done_idx
+                qfx2_rawdist[done_qfx, :] = done_rawdist
+                qfx2_truek[done_qfx, :] = vt.apply_grouping(
+                    colxs, first_k_groupxs)
+            if np.all(tx2_done):
+                break
+            K_increase = (K - tx2_num_valid.min())
+            K_ += K_increase
+            tx2_qfx = tx2_qfx.compress(tx2_notdone, axis=0)
+            tx2_vec = tx2_vec.compress(tx2_notdone, axis=0)
+
+        if nnindexer.max_distance_sqrd is not None:
+            qfx2_dist = np.divide(qfx2_rawdist, nnindexer.max_distance_sqrd)
+        else:
+            qfx2_dist = qfx2_rawdist
+        return (qfx2_idx, qfx2_dist, iter_count)
 
 
 def test_nnindexer(*args, **kwargs):

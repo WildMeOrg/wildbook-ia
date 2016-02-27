@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.export_subset &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.dbio.export_subset &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -134,11 +134,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Exports subset of an IBEIS database to a new IBEIS database</span>
 
-<span class="sd">TODO:</span>
-<span class="sd">    NEED TO UPDATE FILE TO USE THE NEW NAME AND SPECIES TABLE NOW THAT THEY</span>
-<span class="sd">    ARE NO LONGER LBLANNOTS</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
@@ -155,8 +151,7 @@
 <span class="c"># from vtool import geometry</span>
 
 <span class="c"># Transfer data structures could become classes.</span>
-<span class="c"># TODO: Infer transfer data properties from SQLController</span>
-<span class="c"># TODO: REmove the nesting of transfer datas</span>
+<span class="c"># TODO: Remove the nesting of transfer datas</span>
 <span class="c"># it should be a flat list</span>
 <span class="n">TransferData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s">&#39;TransferData&#39;</span><span class="p">,</span> <span class="p">(</span>
@@ -1457,6 +1452,14 @@
     <span class="n">ut</span><span class="o">.</span><span class="n">copy_files_to</span><span class="p">(</span><span class="n">imgpath_list</span><span class="p">,</span> <span class="n">dst_imgdir</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">ignore_tables</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lblannot&#39;</span><span class="p">,</span> <span class="s">&#39;lblimage&#39;</span><span class="p">,</span> <span class="s">&#39;image_lblimage_relationship&#39;</span><span class="p">,</span>
                      <span class="s">&#39;annotation_lblannot_relationship&#39;</span><span class="p">,</span> <span class="s">&#39;keys&#39;</span><span class="p">]</span>
+    <span class="c"># TODO: Fix database merge to allow merging tables with more than one superkey</span>
+    <span class="c"># and no primary superkey, which requires an extension of the depcache</span>
+    <span class="n">error_tables</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;imageset_image_relationship&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annotgroup_annotation_relationship&#39;</span><span class="p">,</span>
+        <span class="s">&#39;annotmatch&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">ignore_tables</span> <span class="o">+=</span> <span class="n">error_tables</span>
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">merge_databases_new</span><span class="p">(</span>
         <span class="n">ibs_src</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">ignore_tables</span><span class="o">=</span><span class="n">ignore_tables</span><span class="p">,</span> <span class="n">rowid_subsets</span><span class="o">=</span><span class="n">rowid_subsets</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;FINISHED MERGE </span><span class="si">%r</span><span class="s"> into </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
@@ -1619,7 +1622,7 @@
 <span class="sd">        &gt;&gt;&gt; aid_list = expanded_aids_list[0][0]</span>
 <span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)</span>
 <span class="sd">        &gt;&gt;&gt; # Expand to get all annots in each chosen image</span>
-<span class="sd">        &gt;&gt;&gt; gid_list = ut.unique_keep_order(ibs.get_annot_gids(aid_list))</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ut.unique_ordered(ibs.get_annot_gids(aid_list))</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ut.flatten(ibs.get_image_aids(gid_list))</span>
 <span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)</span>
 <span class="sd">        &gt;&gt;&gt; new_dbpath = ut.get_argval(&#39;--new-dbpath&#39;, default=&#39;PZ_ViewPoints&#39;)</span>
@@ -2123,7 +2126,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

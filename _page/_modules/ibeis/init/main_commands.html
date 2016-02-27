@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.main_commands &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.init.main_commands &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -150,7 +150,7 @@
     <span class="sd">&quot;&quot;&quot;view directory and quit&quot;&quot;&quot;</span>
     <span class="n">_ibsdb</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">_ibsdb</span><span class="p">))</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="vdd"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.vdd">[docs]</a><span class="k">def</span> <span class="nf">vdd</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -197,7 +197,7 @@
         <span class="n">preload_convert_hsdb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">preload_exit</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_cmd] preload exit&#39;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="postload_commands"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.postload_commands">[docs]</a><span class="k">def</span> <span class="nf">postload_commands</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
@@ -343,7 +343,7 @@
     <span class="c">#    pass</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">postload_exit</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_cmd] postload exit&#39;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -377,7 +377,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

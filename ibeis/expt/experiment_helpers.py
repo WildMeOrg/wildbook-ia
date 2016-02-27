@@ -375,8 +375,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>> print('\n PRINTING TEST RESULTS')
         >>> result = ut.list_str(acfg_list, nl=3)
         >>> print('\n')
+        >>> #statskw = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict, with_vals=False)
         >>> printkw = dict(combined=True, per_name_vpedge=None,
-        >>>                per_qual=False, per_vp=False)
+        >>>                per_qual=False, per_vp=False, case_tag_hist=False)
         >>> annotation_configs.print_acfg_list(
         >>>     acfg_list, expanded_aids_list, ibs, **printkw)
     """

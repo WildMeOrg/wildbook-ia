@@ -35,9 +35,9 @@ References:
     https://gist.github.com/minrk/1358832
 
 #python -m ibeis --tf test_zmq_task
-python -m ibeis.web.zmq_task_queue --main
-python -m ibeis.web.zmq_task_queue --main --bg
-python -m ibeis.web.zmq_task_queue --main --fg
+python -m ibeis.web.apis_engine --main
+python -m ibeis.web.apis_engine --main --bg
+python -m ibeis.web.apis_engine --main --fg
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -54,7 +54,7 @@ import numpy as np
 import functools
 from functools import partial
 from ibeis.control import accessor_decors, controller_inject
-print, rrr, profile = ut.inject2(__name__, '[zmqstuff]')
+print, rrr, profile = ut.inject2(__name__, '[apis_engine]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -82,12 +82,12 @@ VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg')
 def ensure_simple_server(port=5832):
     r"""
     CommandLine:
-        python -m ibeis.web.zmq_task_queue --exec-ensure_simple_server
+        python -m ibeis.web.apis_engine --exec-ensure_simple_server
         python -m utool.util_web --exec-start_simple_webserver
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> from ibeis.web.apis_engine import *  # NOQA
         >>> result = ensure_simple_server()
         >>> print(result)
     """
@@ -101,24 +101,6 @@ def ensure_simple_server(port=5832):
     return bgserver
 
 
-@accessor_decors.default_decorator
-@register_api('/api/core/check_uuids/', methods=['GET', 'POST'])
-@register_ibs_method
-def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
-    # Unique list
-    image_uuid_list = list(set(image_uuid_list))
-    annot_uuid_list = list(set(annot_uuid_list))
-    # Check for all annot UUIDs exist
-    missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
-    missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
-    if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
-        kwargs = {
-            'missing_image_uuid_list' : missing_image_uuid_list,
-            'missing_annot_uuid_list' : missing_annot_uuid_list,
-        }
-        raise controller_inject.WebMissingUUIDException(**kwargs)
-
-
 @register_ibs_method
 def initialize_job_manager(ibs):
     """
@@ -126,20 +108,20 @@ def initialize_job_manager(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
 
     Example:
         >>> # WEB_DOCTEST
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> web_instance = ibeis.opendb_bg_web(db='testdb1', wait=10)
         >>> baseurl = 'http://127.0.1.1:5000'
         >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
         >>> payload = ut.map_dict_vals(ut.to_json, _payload)
-        >>> #resp = requests.post(baseurl + '/api/core/helloworld/?f=b', data=payload)
-        >>> resp = requests.post(baseurl + '/api/core/add_images_json/', data=payload)
+        >>> #resp = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
+        >>> resp = requests.post(baseurl + '/api/image/json/', data=payload)
         >>> print(resp)
         >>> web_instance.terminate()
         >>> json_dict = resp.json()
@@ -162,19 +144,37 @@ def initialize_job_manager(ibs):
 
 
 @register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/check_uuids/', methods=['GET', 'POST'])
+def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
+    # Unique list
+    image_uuid_list = list(set(image_uuid_list))
+    annot_uuid_list = list(set(annot_uuid_list))
+    # Check for all annot UUIDs exist
+    missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
+    missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
+    if len(missing_image_uuid_list) > 0 or len(missing_annot_uuid_list) > 0:
+        kwargs = {
+            'missing_image_uuid_list' : missing_image_uuid_list,
+            'missing_annot_uuid_list' : missing_annot_uuid_list,
+        }
+        raise controller_inject.WebMissingUUIDException(**kwargs)
+
+
+@register_ibs_method
 def close_job_manager(ibs):
     ibs.job_manager = None
 
 
-@accessor_decors.default_decorator
-@register_api('/api/core/start_identify_annots/', methods=['GET', 'POST'])
 @register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/start_identify_annots/', methods=['GET', 'POST'])
 def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
                           pipecfg={}, callback_url=None):
     r"""
     REST:
         Method: GET
-        URL: /api/core/identify_annots/
+        URL: /api/engine/start_identify_annots/
 
     Args:
         qannot_uuid_list (list) : specifies the query annotations to
@@ -187,24 +187,24 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     CommandLine:
         # Run as main process
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:0
+        python -m ibeis.web.apis_engine --exec-start_identify_annots:0
         # Run using server process
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1
+        python -m ibeis.web.apis_engine --exec-start_identify_annots:1
 
         # Split into multiple processes
-        python -m ibeis.web.zmq_task_queue --main --bg
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --fg
+        python -m ibeis.web.apis_engine --main --bg
+        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --fg
 
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88
+        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88
 
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --duuids=[]
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
+        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --duuids=[]
+        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
-        >>> from ibeis.web import zmq_task_queue
+        >>> from ibeis.web.apis_engine import *  # NOQA
+        >>> from ibeis.web import apis_engine
         >>> import ibeis
         >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(
         >>>     defaultdb='PZ_MTEST', a=['default:qsize=2,dsize=10'])
@@ -221,7 +221,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Example:
         >>> # WEB_DOCTEST
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
@@ -236,17 +236,17 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> # Start callback server
         >>> bgserver = ensure_simple_server()
         >>> # --
-        >>> jobid = web_ibs.send_ibeis_request('/api/core/start_identify_annots/', **data)
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/start_identify_annots/', **data)
         >>> waittime = 1
         >>> while True:
         >>>     print('jobid = %s' % (jobid,))
-        >>>     response1 = web_ibs.send_ibeis_request('/api/core/get_job_status/', jobid=jobid)
+        >>>     response1 = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid=jobid)
         >>>     if response1['jobstatus'] == 'completed':
         >>>         break
         >>>     time.sleep(waittime)
         >>>     waittime = 10
         >>> print('response1 = %s' % (response1,))
-        >>> response2 = web_ibs.send_ibeis_request('/api/core/get_job_result/', jobid=jobid)
+        >>> response2 = web_ibs.send_ibeis_request('/api/engine/job/result/', jobid=jobid)
         >>> print('response2 = %s' % (response2,))
         >>> cmdict = ut.from_json(response2['json_result'])[0]
         >>> print('Finished test')
@@ -255,7 +255,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
-        http://127.0.1.1:5000/api/core/start_identify_annots/'
+        http://127.0.1.1:5000/api/engine/start_identify_annots/'
         jobid = ibs.start_identify_annots(**payload)
     """
     # Check UUIDs
@@ -263,8 +263,8 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     ibs.web_check_uuids(annot_uuid_list=combined_annot_uuid_list)
 
     #import ibeis
-    #from ibeis.web import zmq_task_queue
-    #ibs.load_plugin_module(zmq_task_queue)
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
     def ensure_uuid_list(list_):
         if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
             list_ = list(map(uuid.UUID, list_))
@@ -295,47 +295,65 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     return jobid
 
 
-@accessor_decors.default_decorator
-@register_api('/api/core/start_detect_image/', methods=['GET', 'POST'])
 @register_ibs_method
-def start_detect_image(ibs, image_uuid_list, species=None):
+@accessor_decors.default_decorator
+@register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
+def start_detect_image(ibs, image_uuid_list, callback_url=None):
     """
     REST:
         Method: GET
-        URL: /api/core/start_detect_image/
+        URL: /api/engine/detect/cnn/yolo/
 
     Args:
         image_uuid_list (list) : list of image uuids to detect on.
-        species (str) : species to detect
+        callback_url (url) : url that will be called when detection succeeds or fails
     """
-    raise NotImplementedError('add_images_json')
+    # Check UUIDs
+    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+
+    #import ibeis
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
+    def ensure_uuid_list(list_):
+        if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
+            list_ = list(map(uuid.UUID, list_))
+        return list_
+
+    image_uuid_list = ensure_uuid_list(image_uuid_list)
+    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_uuid', callback_url, image_uuid_list)
+
+    #if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
 
 
-@register_api('/api/core/get_job_status/', methods=['GET', 'POST'])
 @register_ibs_method
+@register_api('/api/engine/job/status/', methods=['GET', 'POST'])
 def get_job_status(ibs, jobid):
     """
     Web call that returns the status of a job
 
     CommandLine:
         # Run Everything together
-        python -m ibeis.web.zmq_task_queue --exec-get_job_status
+        python -m ibeis.web.apis_engine --exec-get_job_status
 
         # Start job queue in its own process
-        python -m ibeis.web.zmq_task_queue --main --bg
+        python -m ibeis.web.apis_engine --main --bg
         # Start web server in its own process
         ./dev.py --web
         pass
         # Run foreground process
-        python -m ibeis.web.zmq_task_queue --exec-get_job_status:0 --fg
+        python -m ibeis.web.apis_engine --exec-get_job_status:0 --fg
 
     Example:
         >>> # WEB_DOCTEST
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
         >>> # Test get status of a job id that does not exist
-        >>> response = web_ibs.send_ibeis_request('/api/core/get_job_status/', jobid='badjob')
+        >>> response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid='badjob')
         >>> web_ibs.terminate2()
 
     """
@@ -343,8 +361,8 @@ def get_job_status(ibs, jobid):
     return status
 
 
-@register_api('/api/core/get_job_result/', methods=['GET', 'POST'])
 @register_ibs_method
+@register_api('/api/engine/job/result/', methods=['GET', 'POST'])
 def get_job_result(ibs, jobid):
     """
     Web call that returns the result of a job
@@ -353,8 +371,8 @@ def get_job_result(ibs, jobid):
     return result
 
 
-@register_api('/api/core/wait_for_job_result/', methods=['GET', 'POST'])
 @register_ibs_method
+@register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
 def wait_for_job_result(ibs, jobid, timeout=10, freq=.1):
     ibs.job_manager.jobiface.wait_for_job_result(jobid, timeout=timeout, freq=freq)
     result = ibs.job_manager.jobiface.get_unpacked_result(jobid)
@@ -364,16 +382,16 @@ def wait_for_job_result(ibs, jobid, timeout=10, freq=.1):
 def test_zmq_task():
     """
     CommandLine:
-        python -m ibeis.web.zmq_task_queue --exec-test_zmq_task
-        python -b -m ibeis.web.zmq_task_queue --exec-test_zmq_task
+        python -m ibeis.web.apis_engine --exec-test_zmq_task
+        python -b -m ibeis.web.apis_engine --exec-test_zmq_task
 
-        python -m ibeis.web.zmq_task_queue --main
-        python -m ibeis.web.zmq_task_queue --main --bg
-        python -m ibeis.web.zmq_task_queue --main --fg
+        python -m ibeis.web.apis_engine --main
+        python -m ibeis.web.apis_engine --main --bg
+        python -m ibeis.web.apis_engine --main --fg
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> from ibeis.web.apis_engine import *  # NOQA
         >>> test_zmq_task()
     """
     _init_signals()
@@ -968,9 +986,9 @@ def _init_signals():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.web.zmq_task_queue
-        python -m ibeis.web.zmq_task_queue --allexamples
-        python -m ibeis.web.zmq_task_queue --allexamples --noface --nosrc
+        python -m ibeis.web.apis_engine
+        python -m ibeis.web.apis_engine --allexamples
+        python -m ibeis.web.apis_engine --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

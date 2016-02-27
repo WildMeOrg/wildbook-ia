@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.multi_index &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.algo.hots.multi_index &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -144,7 +144,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">neighbor_index_cache</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr_</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[multi_index]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -184,7 +184,7 @@
         <span class="c"># All groups have the same name</span>
         <span class="n">nidgroup_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aidgroup_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">nidgroup</span> <span class="ow">in</span> <span class="n">nidgroup_list</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">nidgroup</span><span class="p">),</span> <span class="s">&#39;bad name grouping&#39;</span>
+            <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">nidgroup</span><span class="p">),</span> <span class="s">&#39;bad name grouping&#39;</span>
     <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
         <span class="c"># All subsiquent indexer are subsets (in name/identity space)</span>
         <span class="c"># of the previous</span>
@@ -283,9 +283,9 @@
         <span class="n">num_indexers</span> <span class="o">=</span> <span class="mi">8</span>
         <span class="n">aids_list</span><span class="p">,</span> <span class="n">overflow_aids</span><span class="p">,</span> <span class="n">num_bins</span> <span class="o">=</span> <span class="n">group_daids_for_indexing_by_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">num_indexers</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">index_method</span> <span class="o">==</span> <span class="s">&#39;multi&#39;</span><span class="p">:</span>
-        <span class="n">neighbor_index</span><span class="o">.</span><span class="n">check_background_process</span><span class="p">()</span>
+        <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">check_background_process</span><span class="p">()</span>
         <span class="c"># Use greedy set cover to get a list of nnindxers that are already built</span>
-        <span class="n">tup</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">group_daids_by_cached_nnindexer</span><span class="p">(</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">group_daids_by_cached_nnindexer</span><span class="p">(</span>
             <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">)</span>
         <span class="n">uncovered_aids</span><span class="p">,</span> <span class="n">covered_aids_list</span> <span class="o">=</span> <span class="n">tup</span>
         <span class="c"># If the number of bins gets too big do a reindex</span>
@@ -297,7 +297,7 @@
                 <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">covered_aids_list</span><span class="p">))]</span>
                 <span class="c">#ut.embed()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+                <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
                 <span class="n">aids_list</span> <span class="o">=</span> <span class="n">covered_aids_list</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">covered_aids_list</span>
@@ -316,7 +316,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c"># Dont bother shallow copying qreq_ here.</span>
             <span class="c"># just passing aids is enough</span>
-            <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_memcached_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+            <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_memcached_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
             <span class="n">nn_indexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">)</span>
     <span class="c">#if len(unknown_aids) &gt; 0:</span>
     <span class="c">#    print(&#39;[mindex] building unknown forest&#39;)</span>
@@ -565,12 +565,12 @@
         <span class="n">prev_aids</span> <span class="o">=</span> <span class="n">nnindexer_old</span><span class="o">.</span><span class="n">get_indexed_aids</span><span class="p">()</span>
         <span class="n">new_aid_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_aids</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">)</span>
         <span class="c"># Reindexed combined aids</span>
-        <span class="n">nnindexer_new</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_memcached_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">new_aid_list_</span><span class="p">)</span>
+        <span class="n">nnindexer_new</span> <span class="o">=</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_memcached_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">new_aid_list_</span><span class="p">)</span>
         <span class="c"># Replace the old nnindexer with the new nnindexer</span>
         <span class="n">mxer</span><span class="o">.</span><span class="n">nn_indexer_list</span><span class="p">[</span><span class="n">min_argx</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnindexer_new</span>
         <span class="n">mxer</span><span class="o">.</span><span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">min_reindex_thresh</span>
 
-        <span class="k">if</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">can_request_background_nnindexer</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">can_request_background_nnindexer</span><span class="p">():</span>
             <span class="c"># Check if background process needs to be spawned</span>
             <span class="c"># FIXME: this does not belong in method code</span>
             <span class="n">num_indexed_list_new</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">get_multi_num_indexed_annots</span><span class="p">()</span>
@@ -583,7 +583,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c"># Reindex the multi-indexed trees in the background</span>
                     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">get_indexed_aids</span><span class="p">()</span>
-                    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+                    <span class="n">neighbor_index_cache</span><span class="o">.</span><span class="n">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="MultiNeighborIndex.num_indexed_vecs"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.multi_index.MultiNeighborIndex.num_indexed_vecs">[docs]</a>    <span class="k">def</span> <span class="nf">num_indexed_vecs</span><span class="p">(</span><span class="n">mxer</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -850,7 +850,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

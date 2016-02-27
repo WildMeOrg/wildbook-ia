@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_chip_funcs &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.control.manual_chip_funcs &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -686,7 +686,8 @@
     <span class="c"># FIXME: configids need reworking</span>
     <span class="n">chip_config_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="c">#cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, &#39;config_rowid=?&#39;, (chip_config_rowid,))  # big big I belive</span>
-    <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="s">&#39;config_rowid=?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">chip_config_rowid</span><span class="p">,))</span>
+    <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="s">&#39;config_rowid=?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">chip_config_rowid</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">cid_list</span>
 
 </div>
@@ -708,7 +709,8 @@
     <span class="c"># Delete sql-external (on-disk) information</span>
     <span class="n">preproc_chip</span><span class="o">.</span><span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
     <span class="c"># Delete sql-dependencies</span>
-    <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_feat_rowid</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+    <span class="n">fid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_feat_rowid</span><span class="p">(</span>
+        <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_aids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -745,11 +747,11 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo import Config</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import query_params</span>
-<span class="sd">        &gt;&gt;&gt; #chip_config2_ = Config.ChipConfig(chip_sqrt_area=450)</span>
-<span class="sd">        &gt;&gt;&gt; #chip_config3_ = Config.ChipConfig(chip_sqrt_area=200)</span>
+<span class="sd">        &gt;&gt;&gt; #chip_config2_ = Config.ChipConfig(dim_size=450)</span>
+<span class="sd">        &gt;&gt;&gt; #chip_config3_ = Config.ChipConfig(dim_size=200)</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; config2_ = query_params.QueryParams(cfgdict=dict(chip_sqrt_area=450))</span>
-<span class="sd">        &gt;&gt;&gt; config3_ = query_params.QueryParams(cfgdict=dict(chip_sqrt_area=200))</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = query_params.QueryParams(cfgdict=dict(dim_size=450))</span>
+<span class="sd">        &gt;&gt;&gt; config3_ = query_params.QueryParams(cfgdict=dict(dim_size=200))</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
 <span class="sd">        &gt;&gt;&gt; cid_list2 = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)</span>
 <span class="sd">        &gt;&gt;&gt; cid_list3 = ibs.get_annot_chip_rowids(aid_list, config2_=config3_)</span>
@@ -805,8 +807,10 @@
         <span class="c"># TODO store config_rowid in qparams</span>
         <span class="c"># Or find better way to do this in general</span>
         <span class="c">#chip_cfg_suffix = config2_.qparams.chip_cfgstr</span>
-        <span class="n">chip_cfg_suffix</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chip_cfgstr&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">chip_cfg_suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="n">chip_cfg_suffix</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chip_cfgstr&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="c">#import utool</span>
+        <span class="c">#with utool.embed_on_exception_context:</span>
+        <span class="k">assert</span> <span class="n">chip_cfg_suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;chip_cfg_suffix=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_cfg_suffix</span><span class="p">,)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">chip_cfg_suffix</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
     <span class="n">chip_cfg_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_config_rowid_from_suffix</span><span class="p">(</span><span class="n">chip_cfg_suffix</span><span class="p">)</span>
@@ -1008,7 +1012,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

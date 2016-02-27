@@ -52,14 +52,6 @@ ibeis.control._autogen_annotmatch_funcs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control._autogen_explicit_controller module
--------------------------------------------------
-
-.. automodule:: ibeis.control._autogen_explicit_controller
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.control._autogen_featweight_funcs module
 ----------------------------------------------
 

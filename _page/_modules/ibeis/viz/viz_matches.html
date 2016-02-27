@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_matches &mdash; ibeis 1.5.0 documentation</title>
+  <title>ibeis.viz.viz_matches &mdash; ibeis 1.5.1 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.0 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
             
           
@@ -157,8 +157,9 @@
     <span class="c">#print(&#39;!!! qqreq_ = %r&#39; % (qreq_,))</span>
     <span class="n">query_config2_</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span>
                       <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
+    <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;tablename&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="c">#print(&#39;!!! query_config2_ = %r&#39; % (query_config2_,))</span>
-    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">tblhack</span> <span class="ow">or</span> <span class="n">tblhack</span> <span class="o">==</span> <span class="s">&#39;BC_DTW&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;get_fmatch_overlayed_chip&#39;</span><span class="p">)</span>  <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="o">!=</span> <span class="s">&#39;hackoff&#39;</span><span class="p">:</span>
             <span class="n">rchip1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_fmatch_overlayed_chip</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">query_config2_</span><span class="p">)</span>
             <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="bp">False</span>
@@ -181,7 +182,8 @@
                      <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">())</span>
     <span class="c">#print(&#39;!!! data_config2_ = %r&#39; % (data_config2_,))</span>
     <span class="c">#print(&#39;!!! dqreq_ = %r&#39; % (qreq_,))</span>
-    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
+    <span class="n">tblhack</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;tablename&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">tblhack</span> <span class="ow">or</span> <span class="n">tblhack</span> <span class="o">==</span> <span class="s">&#39;BC_DTW&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">_isnewreq</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;get_fmatch_overlayed_chip&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="ow">and</span> <span class="n">draw_fmatches</span> <span class="o">!=</span> <span class="s">&#39;hackoff&#39;</span><span class="p">:</span>
             <span class="n">rchip2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_fmatch_overlayed_chip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">)</span>
             <span class="c">#rchip2_list = ibs.depc.get_property(&#39;chips&#39;, aid_list, &#39;img&#39;, config=data_config2_)</span>
@@ -240,7 +242,8 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; func = chip_match.ChipMatch.show_single_namematch</span>
-<span class="sd">        &gt;&gt;&gt; sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True, strip_docstr=True)</span>
+<span class="sd">        &gt;&gt;&gt; sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True,</span>
+<span class="sd">        &gt;&gt;&gt;                                     strip_docstr=True)</span>
 <span class="sd">        &gt;&gt;&gt; setup = ut.regex_replace(&#39;viz_matches.show_name_matches&#39;, &#39;#&#39;, sourcecode)</span>
 <span class="sd">        &gt;&gt;&gt; homog = False</span>
 <span class="sd">        &gt;&gt;&gt; print(ut.indent(setup, &#39;&gt;&gt;&gt; &#39;))</span>
@@ -250,17 +253,22 @@
 <span class="sd">        &gt;&gt;&gt; dnid = ibs.get_annot_nids(cm.qaid)</span>
 <span class="sd">        &gt;&gt;&gt; # +--- COPIED SECTION</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = locals()</span>
-<span class="sd">        &gt;&gt;&gt; var_list = ut.exec_func_src(func, locals_=locals_, sentinal=&#39;name_annot_scores = cm.annot_score_list.take(sorted_groupxs&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; var_list = ut.exec_func_src(</span>
+<span class="sd">        &gt;&gt;&gt;     func, locals_=locals_,</span>
+<span class="sd">        &gt;&gt;&gt;     sentinal=&#39;name_annot_scores = cm.annot_score_list.take(sorted_groupxs&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; exec(ut.execstr_dict(var_list))</span>
 <span class="sd">        &gt;&gt;&gt; # L___ COPIED SECTION</span>
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
-<span class="sd">        &gt;&gt;&gt; show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; show_name_matches(ibs, qaid, name_daid_list, name_fm_list,</span>
+<span class="sd">        &gt;&gt;&gt;                   name_fs_list, name_h1_list, name_featflag_list,</span>
+<span class="sd">        &gt;&gt;&gt;                   qreq_=qreq_, **kwargs)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#print(&quot;SHOW NAME MATCHES&quot;)</span>
     <span class="c">#print(ut.repr2(kwargs, nl=True))</span>
     <span class="c">#from ibeis import constants as const</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
     <span class="n">draw_fmatches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;draw_fmatches&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="n">rchip1</span><span class="p">,</span> <span class="n">kpts1</span> <span class="o">=</span> <span class="n">get_query_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_fmatches</span><span class="p">)</span>
     <span class="n">rchip2_list</span><span class="p">,</span> <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">get_data_annot_pair_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_daid_list</span><span class="p">,</span>
@@ -286,24 +294,28 @@
     <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span>
         <span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_daid_list</span><span class="p">),</span> <span class="n">name_daid_list</span><span class="p">)</span>
     <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">):</span>  <span class="c"># False:</span>
         <span class="n">tags_list</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">consolodate_annotmatch_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">)</span>
-    <span class="n">tag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tags_list</span><span class="p">))</span>
+    <span class="n">tag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">tags_list</span><span class="p">))</span>
 
     <span class="n">name_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">truth</span> <span class="o">=</span> <span class="n">get_multitruth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">&#39;Genuine&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;Imposter&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
-        <span class="c">#xlabel = {1: &#39;True&#39;, 0: &#39;False&#39;, 2: &#39;Unknown&#39;}[truth]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">name_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="mi">1</span><span class="p">:</span> <span class="s">&#39;True Positive&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;False Positive&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
+
+    <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">&#39;Correct ID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;Incorrect ID&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown ID&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">&#39;Genuine&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;Imposter&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
+            <span class="c">#xlabel = {1: &#39;True&#39;, 0: &#39;False&#39;, 2: &#39;Unknown&#39;}[truth]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="mi">1</span><span class="p">:</span> <span class="s">&#39;False Negative&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;True Negative&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="s">&#39;True Positive&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;False Positive&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">xlabel</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="s">&#39;False Negative&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s">&#39;True Negative&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">}[</span><span class="n">truth</span><span class="p">]</span>
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">xlabel</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
 
@@ -313,6 +325,8 @@
 </div>
 <div class="viewcode-block" id="get_multitruth"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.get_multitruth">[docs]</a><span class="k">def</span> <span class="nf">get_multitruth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="mi">2</span>
     <span class="n">name_equality</span> <span class="o">=</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span>
                      <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])))</span>
     <span class="n">truth</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">name_equality</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="mi">2</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">name_equality</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
@@ -828,7 +842,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.0',
+            VERSION:'1.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -20,14 +20,6 @@ ibeis.other.duct_tape module
     :undoc-members:
     :show-inheritance:
 
-ibeis.other.optimize_k module
------------------------------
-
-.. automodule:: ibeis.other.optimize_k
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------
