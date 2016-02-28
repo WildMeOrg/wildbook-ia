@@ -609,11 +609,11 @@ def compute_feats(depc, cid_list, config=None):
         >>> # TIMING
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
-        >>> chip_config = {}
-        >>> config = FeatConfig()
-        >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
-        >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
-        >>> ut.show_if_requested()
+        >>> config = {'dim_size': 450}
+        >>> num_feats = depc.get('feat', aid_list, 'num_feats', config=config, recompute=True)
+
+        ibs.delete_annot_feats(aid_list)
+        ibs.get_annot_feat_rowids(aid_list)
     """
     nInput = len(cid_list)
     hesaff_params  = config.get_hesaff_params()
