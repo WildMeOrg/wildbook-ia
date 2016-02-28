@@ -703,9 +703,11 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
     # Save filter to cache
     if save_cache:
         ut.ensuredir(acfg_cachedir)
-        ut.save_cache(acfg_cachedir, acfg_cachename, aid_cachestr,
-                      (qaid_list, daid_list))
-
+        try:
+            ut.save_cache(acfg_cachedir, acfg_cachename, aid_cachestr,
+                          (qaid_list, daid_list))
+        except IOError:
+            pass
     return qaid_list, daid_list
 
 
