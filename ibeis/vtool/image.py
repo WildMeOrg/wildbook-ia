@@ -98,7 +98,8 @@ def montage(img_list, dsize, rng=np.random):
     Creates a montage / collage from a set of images
 
     CommandLine:
-        python -m vtool.image --exec-montage --show
+        python -m vtool.image --exec-montage:0 --show
+        python -m vtool.image --exec-montage:1
 
     Example:
         >>> # SLOW_DOCTEST
@@ -113,6 +114,31 @@ def montage(img_list, dsize, rng=np.random):
         >>> import plottool as pt
         >>> pt.imshow(dst)
         >>> ut.show_if_requested()
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> import ibeis
+        >>> import random
+        >>> from os.path import join, expanduser, abspath
+        >>> from vtool.image import *  # NOQA
+        >>> ibs = ibeis.opendb('GZC')
+        >>> gid_list0 = ibs.get_valid_gids()
+        >>> img_list = []
+        >>> for i in range(6000):
+        >>>     print(i)
+        >>>     try:
+        >>>         gid = random.choice(gid_list0)
+        >>>         image = ibs.get_images(gid)
+        >>>         image = resize_to_maxdims(image, (512, 512))
+        >>>         img_list.append(image)
+        >>>     except Exception:
+        >>>         pass
+        >>> dsize = (19200, 10800)
+        >>> rng = np.random.RandomState(42)
+        >>> dst = montage(img_list, dsize, rng)
+        >>> filepath = abspath(expanduser(join('~', 'Desktop', 'montage.jpg')))
+        >>> print('Writing to: %r' % (filepath, ))
+        >>> imwrite(filepath, dst)
     """
     channels = 3
     shape = tuple(dsize[::-1]) + (channels,)
@@ -1798,7 +1824,7 @@ def ensure_3channel(patch):
 
 
 def infer_vert(img1, img2, vert):
-    " which is the better stack dimension """
+    """ which is the better stack dimension """
     (h1, w1) = img1.shape[0: 2]  # get chip dimensions
     (h2, w2) = img2.shape[0: 2]
     woff, hoff = 0, 0
