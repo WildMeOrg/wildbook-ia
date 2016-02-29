@@ -1102,6 +1102,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     print('analysis_fpath = %r' % (analysis_fpath,))
                 if not show_in_notebook:
                     fig = pt.gcf()
+                    print('analysis_fpath = %r' % (analysis_fpath,))
                     fig.savefig(analysis_fpath)
                     vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
                     if DO_COPY_QUEUE:
