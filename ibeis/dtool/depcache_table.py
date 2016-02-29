@@ -611,7 +611,7 @@ class DependencyCacheTable(ut.NiceRepr):
 
     #def add_rows_from_multiparent(table, parent_rowids)
 
-    def add_rows_from_parent(table, parent_ids_, preproc_args, idxs1, idxs2,
+    def add_rows_from_parent(table, parent_ids_, preproc_args,
                              config=None, verbose=True, _debug=None):
         """
         Lazy addition
@@ -648,8 +648,6 @@ class DependencyCacheTable(ut.NiceRepr):
             rowid_list = initial_rowid_list
         if _debug:
             print('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
-        if ALLOW_NONE_YIELD:
-            rowid_list = ut.ungroup([rowid_list], [idxs1], len(parent_ids_) - 1)
         return rowid_list
 
     def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
@@ -866,6 +864,8 @@ class DependencyCacheTable(ut.NiceRepr):
 
         CommandLine:
             python -m dtool.depcache_table --exec-get_rowid
+            python -m dtool.depcache_table --exec-get_rowid:2
+            python -m dtool.depcache_table --exec-get_rowid:4
 
         Example0:
             >>> # ENABLE_DOCTEST
@@ -898,9 +898,11 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> table = depc['notch']
             >>> config = table.configclass()
             >>> _debug = True
-            >>> parent_rowids = list(zip([1, 2, 3, 4]))
+            >>> parent_rowids = list(zip([1, None, 2, 3, 4]))
             >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
-            >>> print(rowids)
+            >>> result = ('rowids = %r' % (rowids,))
+            >>> print(result)
+            rowids = [1, None, 2, 3, 4]
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -918,7 +920,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> print(match_list)
             >>> print(rowids)
 
-        Example:
+        Example4:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
@@ -927,12 +929,15 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> table = depc['nnindexer']
             >>> config = table.configclass()
             >>> _debug = True
-            >>> parent_rowids = [((1, 2, 3, 4),)]
+            >>> parent_rowids = [((1, 2, 3, 4),), None, ((1, 2, 3, 4, 5),)]
             >>> #exec(ut.execstr_funckw(depc.add_rows_from_parent), globals())
             >>> #ut.exec_func(table.add_rows_from_parent, globals(), sentinal='fmtstr = ')
             >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
-            >>> table.get_row_data(rowids)
-            >>> print(rowids)
+            >>> result = ('rowids = %r' % (rowids,))
+            >>> indexer = table.get_row_data(rowids)
+            >>> print('indexer = %r' % (indexer,))
+            >>> print(result)
+            rowids = [1, None, 2]
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
@@ -941,49 +946,55 @@ class DependencyCacheTable(ut.NiceRepr):
             print('[deptbl.get_rowid] config = %r' % (config,))
             print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
+        if ALLOW_NONE_YIELD:
+            # Force entire row to be none if any are none
+            anyNone_flags = [x is None or any(ut.flag_None_items(x))
+                             for x in parent_rowids]
+            idxs2 = ut.where(anyNone_flags)
+            idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
+            #error_parent_rowids =  ut.take(parent_rowids, idxs2)
+            valid_parent_ids_ = ut.take(parent_rowids, idxs1)
+        else:
+            valid_parent_ids_ = parent_rowids
+
+        preproc_args = valid_parent_ids_
+
         # Find leaf rowids that need to be computed
         if table.ismulti:
-            assert len(parent_rowids) == 1, (
-                'can only take one set at a time %r' % (parent_rowids,))
+            #assert len(parent_rowids) == 1, (
+            #    'can only take one set at a time %r' % (parent_rowids,))
             # Hack, implementation only will work for nnindexer
-            assert all(ut.flatten(parent_rowids)), 'cant have None input to models'
+            assert all(ut.flatten(valid_parent_ids_)), 'cant have None input to models'
             #parent_num = len(parent_rowids)
             # TODO: partition into multi cols and normal cols.
             # TODO: Allow for more than one multicol to be specified.
-            parent_uuids = table.depc.get_root_uuid(parent_rowids[0][0])
-            multiset_uuid = ut.hashable_to_uuid(parent_uuids)
+            parent_uuids_list = [table.depc.get_root_uuid(rowidset[0]) for rowidset in valid_parent_ids_]
+            multiset_uuid_list = [ut.hashable_to_uuid(parent_uuids)
+                                  for parent_uuids in parent_uuids_list]
             #parent_ids_ = [(multiset_uuid, parent_num)]
-            parent_ids_ = [(multiset_uuid,)]
-            preproc_args = parent_rowids[0:1]
-            idxs2 = []
-            idxs1 = [0]
+            parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
         else:
-            if ALLOW_NONE_YIELD:
-                # Force entire row to be none if any are none
-                anyNone_flags = [any(ut.flag_None_items(x))
-                                 for x in parent_rowids]
-                idxs2 = ut.where(anyNone_flags)
-                idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
-                #error_parent_rowids =  ut.take(parent_rowids, idxs2)
-                parent_ids_ = ut.take(parent_rowids, idxs1)
-            else:
-                parent_ids_ = parent_rowids
             # preproc args are usually the same as parent rowids.
             # Model tables are the exception.
-            preproc_args = parent_ids_
+            parent_ids_ = valid_parent_ids_
 
         if recompute:
             # FIXME: make recompute work with table.ismulti
             # get existing rowids, delete them, recompute the request
-            rowid_list = table._get_rowid(parent_ids_, config=config,
-                                          eager=True, nInput=None)
-            table.delete_rows(rowid_list)
+            rowid_list_ = table._get_rowid(parent_ids_, config=config,
+                                           eager=True, nInput=None)
+            table.delete_rows(rowid_list_)
         if ensure or recompute:
-            rowid_list = table.add_rows_from_parent(
-                parent_ids_, preproc_args, idxs1, idxs2, config=config)
+            rowid_list_ = table.add_rows_from_parent(
+                parent_ids_, preproc_args, config=config)
         else:
-            rowid_list = table._get_rowid(
+            rowid_list_ = table._get_rowid(
                 parent_ids_, config=config, eager=eager, nInput=nInput)
+
+        if ALLOW_NONE_YIELD:
+            rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
+        else:
+            rowid_list = rowid_list_
         return rowid_list
 
     def _get_rowid(table, parent_ids_, config=None, eager=True, nInput=None,

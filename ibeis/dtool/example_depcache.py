@@ -366,7 +366,7 @@ def testdata_depc(fname=None):
     )
     def dummy_preproc_indexer(depc, parent_rowids_list, config=None):
         print('COMPUTING DUMMY INDEXER')
-        assert len(parent_rowids_list) == 1, 'handles only one indexer'
+        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
         for parent_rowids in parent_rowids_list:
             yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
 

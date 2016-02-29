@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Interface into SQL for the IBEIS Controller
+
+TODO; need to use some sort of sticky bit so
+sql files are created with reasonable permissions.
 """
 #from __future__ import absolute_import, division, print_function
 from __future__ import absolute_import, division, print_function, unicode_literals
