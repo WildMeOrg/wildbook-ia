@@ -206,7 +206,7 @@ def add_species(ibs, species_nice_list, species_text_list=None,
 
     """
     # Strip all spaces
-    species_nice_list = [ _ if _ is None else _.strip() for _ in species_nice_list ]
+    species_nice_list = [ const.UNKNOWN if _ is None else _.strip() for _ in species_nice_list ]
 
     if species_text_list is None:
         species_text_list = _convert_species_nice_to_text(species_nice_list)
