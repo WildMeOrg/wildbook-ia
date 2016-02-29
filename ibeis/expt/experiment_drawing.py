@@ -928,6 +928,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     import plottool as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
+    # FIXME: make save work
     cfgx2_qreq_ = testres.cfgx2_qreq_
     SHOW = ut.get_argflag('--show')
     filt_cfg = f
@@ -957,7 +958,9 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     #annot_modes = [0]
     #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
-    if False:
+    # if False:
+    DO_COPY_QUEUE = True
+    if DO_COPY_QUEUE:
         cpq = draw_helpers.IndividualResultsCopyTaskQueue()
 
     figdir = ibs.get_fig_dir()
@@ -1101,7 +1104,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     fig = pt.gcf()
                     fig.savefig(analysis_fpath)
                     vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
-                    if False:
+                    if DO_COPY_QUEUE:
                         if cmdaug is None:
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
                 else:
@@ -1112,12 +1115,12 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                 metadata.set_global_data(cfgstr, cm.qaid, 'analysis_fpath', analysis_fpath)
 
         # if some condition of of batch sizes
-        if False:
+        if DO_COPY_QUEUE:
             flush_freq = 4
             if count % flush_freq == (flush_freq - 1):
                 cpq.flush_copy_tasks()
 
-    if False:
+    if DO_COPY_QUEUE:
         # Copy summary images to query_analysis folder
         cpq.flush_copy_tasks()
 
