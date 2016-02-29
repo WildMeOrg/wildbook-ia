@@ -240,6 +240,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
             >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from six.moves import cPickle as pickle
             >>> cfg = DummyVsManyConfig()
             >>> ser = pickle.dumps(cfg)
             >>> cfg2 = pickle.loads(ser)

@@ -640,11 +640,6 @@ class _CoreDependencyCache(object):
                     config_ = configclass(**config)
 
         table = depc[tablekey]
-        #if False:
-        #    parent_rowidsT = ut.dict_take(rowid_dict, table.parents)
-        #    parent_rowids = list(zip(*parent_rowidsT))
-        # Hack for multi-edges
-        #else:
         parent_rowidsT = ut.dict_take(rowid_dict,
                                       table.parent_id_prefixes)
         if table.ismulti:
@@ -932,7 +927,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
             >>> #pt.show_nx(ut.nx_transitive_reduction(graph))
-            >>> #pt.show_nx(graph)
+            >>> pt.show_nx(graph)
             >>> ut.show_if_requested()
         """
         import networkx as nx

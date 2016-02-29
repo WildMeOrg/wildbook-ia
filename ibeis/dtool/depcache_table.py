@@ -25,7 +25,7 @@ CONFIG_STRID     = 'config_strid'
 if ut.is_developer():
     GRACE_PERIOD = 0
 else:
-    GRACE_PERIOD = 5
+    GRACE_PERIOD = 0
 #ALLOW_NONE_YIELD = False
 ALLOW_NONE_YIELD = True
 
@@ -106,18 +106,16 @@ class DependencyCacheTable(ut.NiceRepr):
         >>> from dtool.depcache_table import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
-        >>> table = depc['vsmany']
-        >>> print(table)
-        >>> table = depc['spam']
-        >>> table = depc['vsone']
-        >>> print(table)
+        >>> print(depc['vsmany'])
+        >>> print(depc['spam'])
+        >>> print(depc['vsone'])
+        >>> print(depc['nnindexer'])
     """
 
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 chunksize=None, ismulti=False,
-                 isinteractive=False, default_to_unpack=False):
+                 chunksize=None, isinteractive=False, default_to_unpack=False):
         """ recieves kwargs from depc._register_prop """
         try:
             table.db = None
@@ -133,7 +131,6 @@ class DependencyCacheTable(ut.NiceRepr):
         table.data_coltypes = data_coltypes
         table.preproc_func = preproc_func
         table.on_delete = None
-        table.ismulti = ismulti
         table.isinteractive = isinteractive
         table.default_to_unpack = default_to_unpack
         table.docstr = docstr
@@ -156,6 +153,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.extern_write_funcs = {}
         table.extern_ext_config_keys = {}
         table.extern_io_classes = {}
+        table.ismulti_cols = {}
         # Update internals
         table._update_parentcol_internal()
         table._update_datacol_internal()
@@ -404,20 +402,45 @@ class DependencyCacheTable(ut.NiceRepr):
     def _update_parentcol_internal(table):
         """
         constructs the columns needed to represent relationship to parents
+
+        CommandLine:
+            python -m dtool.depcache_table --exec-_update_parentcol_internal --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> for tablename in ['vsmany', 'spam', 'vsone', 'nnindexer']:
+            >>>    print('%s' % (depc[tablename],))
+            >>>    print('%s.parents = %r' % (tablename, depc[tablename].parents,))
+            >>>    print('%s.ismulti = %r' % (tablename, depc[tablename].ismulti,))
+            >>>    print('%s.ismulti_cols = %r' % (tablename, depc[tablename].ismulti_cols,))
         """
         # Handle dependencies when a parents are pairwise between tables
-        parent_id_prefixs = []
+        ismulti_cols = {}
+        parent_id_prefixs1 = []
+        parent_id_prefixs2 = []
         seen_ = ut.ddict(lambda: 1)
-        colhist = ut.dict_hist(table.parents)
-        for col in table.parents:
+
+        for colx, col in enumerate(table.parent_tablenames):
+            # Detect multicolumns
+            if col.endswith('*'):
+                prefix = col[:-1]
+                ismulti_cols[prefix] = True
+            else:
+                prefix = col
+            parent_id_prefixs1.append(prefix)
+
+        colhist = ut.dict_hist(parent_id_prefixs1)
+        for colx, col in enumerate(parent_id_prefixs1):
             if colhist[col] > 1:
-                # Hack such that duplicate column names receive a count index
+                # Duplicate column names recieve indicies
                 prefix = col + str(seen_[col])
                 seen_[col] += 1
             else:
                 prefix = col
-            # maybe add set to multicol?
-            parent_id_prefixs.append(prefix)
+            parent_id_prefixs2.append(prefix)
 
         _internal_parent_id_colnames = []
         _internal_parent_id_coltypes = []
@@ -426,14 +449,11 @@ class DependencyCacheTable(ut.NiceRepr):
         _internal_parent_extra_coltypes = []
 
         # Handle case when parents are a set of ids
-        for prefix in parent_id_prefixs:
+        for prefix in parent_id_prefixs2:
             # HACK. ALL COLUMNS ARE MULTI
-            column_ismulti = table.ismulti  # or (prefix.endswith('*'))
-            if not column_ismulti:
-                # Normal case when dependencies are one to one
-                _internal_parent_id_colnames.append(prefix + '_rowid')
-                _internal_parent_id_coltypes.append('INTEGER NOT NULL')
-            else:
+            # FIXME: will bug one duplicate multi-indexes
+            column_ismulti = ismulti_cols.get(prefix, False)  # or (prefix.endswith('*'))
+            if column_ismulti:
                 # Case when dependencies are many to one
                 # hash of set items
                 _internal_parent_id_colnames.append(prefix + '_setuuid')
@@ -444,6 +464,10 @@ class DependencyCacheTable(ut.NiceRepr):
                 # path to indiviual parts
                 _internal_parent_extra_coltypes.append('INTEGER NOT NULL')
                 _internal_parent_extra_coltypes.append('TEXT')
+            else:
+                # Normal case when dependencies are one to one
+                _internal_parent_id_colnames.append(prefix + '_rowid')
+                _internal_parent_id_coltypes.append('INTEGER NOT NULL')
         table._internal_parent_id_colnames = tuple(
             _internal_parent_id_colnames)
         table._internal_parent_id_coltypes = tuple(
@@ -452,7 +476,8 @@ class DependencyCacheTable(ut.NiceRepr):
             _internal_parent_extra_colnames)
         table._internal_parent_extra_coltypes = tuple(
             _internal_parent_extra_coltypes)
-        table._parent_id_prefixes = tuple(parent_id_prefixs)
+        table._parent_id_prefixes = tuple(parent_id_prefixs2)
+        table.ismulti_cols = ismulti_cols
 
     def clear_table(table):
         """
@@ -463,8 +488,12 @@ class DependencyCacheTable(ut.NiceRepr):
         table.db.add_table(**table.get_addtable_kw())
 
     @property
+    def ismulti(table):
+        return sum(table.ismulti_cols.values()) > 0
+
+    @property
     def parents(table):
-        return table.parent_tablenames
+        return [p.replace('*', '') for p in table.parent_tablenames]
 
     @property
     def parent_id_colnames(table):
@@ -889,7 +918,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> rowids = table.get_rowid(parent_rowids)
             >>> print(rowids)
 
-        Example:
+        Example2:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
@@ -904,7 +933,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> print(result)
             rowids = [1, None, 2, 3, 4]
 
-        Example:
+        Example3:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
@@ -924,7 +953,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
-            >>> # Test get behavior for ismulti=True (model) tables
+            >>> # Test get behavior for multi (model) tables
             >>> depc = testdata_depc()
             >>> table = depc['nnindexer']
             >>> config = table.configclass()
@@ -965,7 +994,8 @@ class DependencyCacheTable(ut.NiceRepr):
             assert all(ut.flatten(valid_parent_ids_)), 'cant have None input to models'
             # TODO: partition into multi cols and normal cols.
             # TODO: Allow for more than one multicol to be specified.
-            parent_uuids_list = [table.depc.get_root_uuid(rowidset[0]) for rowidset in valid_parent_ids_]
+            parent_uuids_list = [table.depc.get_root_uuid(rowidset[0])
+                                 for rowidset in valid_parent_ids_]
             multiset_uuid_list = [ut.hashable_to_uuid(parent_uuids)
                                   for parent_uuids in parent_uuids_list]
             # preproc args are usually the same as parent ids.  Model tables
@@ -982,6 +1012,7 @@ class DependencyCacheTable(ut.NiceRepr):
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None)
             table.delete_rows(rowid_list_)
+
         if ensure or recompute:
             rowid_list_ = table.add_rows_from_parent(
                 parent_ids_, preproc_args, config=config)
