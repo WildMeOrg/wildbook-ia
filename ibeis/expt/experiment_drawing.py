@@ -889,11 +889,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
         # Shows the best results
         python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
-            -t invarbest --filt :orderby=gfscore,reverse=1 --show
+            -t invarbest --filt :sortasc=gtscore,success=True,index=200:201 --show
 
         # Shows failures sorted by gt score
         python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
-            -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
+            -t invarbest --filt :sortdsc=gfscore,min_gtrank=1 --show
 
         # Find the untagged photobomb and scenery cases
         python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
@@ -923,7 +923,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         >>> filt_cfg = main_helpers.testdata_filtcfg()
         >>> metadata = None
         >>> analysis_fpath_list = draw_match_cases(ibs, testres, metadata, f=filt_cfg)
-        >>> #ut.show_if_requested()
+        >>> ut.show_if_requested()
     """
     import plottool as pt
     if ut.NOT_QUIET:
