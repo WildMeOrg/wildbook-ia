@@ -952,30 +952,28 @@ class DependencyCacheTable(ut.NiceRepr):
                              for x in parent_rowids]
             idxs2 = ut.where(anyNone_flags)
             idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
-            #error_parent_rowids =  ut.take(parent_rowids, idxs2)
             valid_parent_ids_ = ut.take(parent_rowids, idxs1)
         else:
             valid_parent_ids_ = parent_rowids
 
         preproc_args = valid_parent_ids_
 
-        # Find leaf rowids that need to be computed
         if table.ismulti:
+            # Hack, implementation only will work for nnindexer
             #assert len(parent_rowids) == 1, (
             #    'can only take one set at a time %r' % (parent_rowids,))
-            # Hack, implementation only will work for nnindexer
             assert all(ut.flatten(valid_parent_ids_)), 'cant have None input to models'
-            #parent_num = len(parent_rowids)
             # TODO: partition into multi cols and normal cols.
             # TODO: Allow for more than one multicol to be specified.
             parent_uuids_list = [table.depc.get_root_uuid(rowidset[0]) for rowidset in valid_parent_ids_]
             multiset_uuid_list = [ut.hashable_to_uuid(parent_uuids)
                                   for parent_uuids in parent_uuids_list]
+            # preproc args are usually the same as parent ids.  Model tables
+            # are the exception.
+            #parent_num = len(parent_rowids)
             #parent_ids_ = [(multiset_uuid, parent_num)]
             parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
         else:
-            # preproc args are usually the same as parent rowids.
-            # Model tables are the exception.
             parent_ids_ = valid_parent_ids_
 
         if recompute:
