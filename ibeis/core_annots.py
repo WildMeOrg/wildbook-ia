@@ -1025,11 +1025,12 @@ class IndexerConfig(dtool.Config):
 
 
 @register_preproc(
+    #tablename='neighbor_index', parents=['annotations*'],
     #tablename='neighbor_index', parents=['annotations'],
-    #tablename='neighbor_index', parents=['feat*'],
-    tablename='neighbor_index', parents=['feat'],
+    tablename='neighbor_index', parents=['feat*'],
+    #tablename='neighbor_index', parents=['feat'],
     colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
-    ismulti=True,
+    #ismulti=True,
     configclass=IndexerConfig,
     chunksize=1, fname='indexer',
 )
@@ -1050,15 +1051,15 @@ def compute_neighbor_index(depc, fids_list, config):
         >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
         >>> depc = ibs.depc
         >>> fid_list = depc.get_rowids('feat', aid_list)
-        >>> aids_list = [aid_list]
-        >>> fids_list = [fid_list]
+        >>> aids_list = tuple([aid_list])
+        >>> fids_list = tuple([fid_list])
         >>> # Compute directly from function
         >>> config = ibs.depc['neighbor_index'].configclass()
         >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
         >>> nnindexer1 = result1[0][0]
         >>> # Compute using depcache
         >>> result2 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
-        >>> result3 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False)
+        >>> #result3 = ibs.depc.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
         >>> print(result2)
         >>> print(result3)
         >>> assert result2[0] is not result3[0]

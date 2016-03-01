@@ -2929,6 +2929,38 @@ def get_yaw_viewtexts(yaw_list):
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_yaw_viewtexts
 
+    TODO:
+        rhombicubeoctehedron
+
+        https://en.wikipedia.org/wiki/Rhombicuboctahedron
+
+        up,
+        down,
+        front,
+        left,
+        back,
+        right,
+        front-left,
+        back-left,
+        back-right,
+        front-right,
+        up-front,
+        up-left,
+        up-back,
+        up-right,
+        up-front-left,
+        up-back-left,
+        up-back-right,
+        up-front-right,
+        down-front,
+        down-left,
+        down-back,
+        down-right,
+        down-front-left,
+        down-back-left,
+        down-back-right,
+        down-front-right,
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
