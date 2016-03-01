@@ -3344,9 +3344,29 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
                    wire=False, mode=None, contour=False, dark=False, rstride=1,
                    cstride=1, pnum=None, labelkw=None, xlabelkw=None,
                    ylabelkw=None, zlabelkw=None, titlekw=None, *args, **kwargs):
-    """
+    r"""
     References:
         http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-plot_surface3d --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> import vtool as vt
+        >>> shape=(19, 19)
+        >>> sigma1, sigma2 = 2.0, 1.0
+        >>> ybasis = np.arange(shape[0])
+        >>> xbasis = np.arange(shape[1])
+        >>> xgrid, ygrid = np.meshgrid(xbasis, ybasis)
+        >>> sigma = [sigma1, sigma2]
+        >>> gausspatch = vt.gaussian_patch(shape, sigma=sigma)
+        >>> title = 'ksize=%r, sigma=%r' % (shape, (sigma1, sigma2),)
+        >>> pt.plot_surface3d(xgrid, ygrid, gausspatch, rstride=1, cstride=1,
+        >>>                   cmap=mpl.cm.coolwarm, title=title)
+        >>> pt.show_if_requested()
     """
     if titlekw is None:
         titlekw = {}
