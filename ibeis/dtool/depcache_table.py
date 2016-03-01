@@ -199,7 +199,7 @@ class DependencyCacheTable(ut.NiceRepr):
         num_parents = len(table.parent_tablenames)
         num_cols = len(table.data_colnames)
         return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
-                                       table.ismulti else '', num_cols)
+                                       False and table.ismulti else '', num_cols)
 
     def _assert_self(table):
         assert len(table.data_colnames) == len(table.data_coltypes), (
@@ -234,7 +234,9 @@ class DependencyCacheTable(ut.NiceRepr):
                              len(table.parents()))
                     )
                     raise AssertionError(msg)
-        for colname, cls in table.extern_io_classes.items():
+        extern_class_colattrs = [colattr for colattr in table.data_col_attrs if colattr.get('is_external_class')]
+        for colattr in extern_class_colattrs:
+            cls = colattr['coltype']
             # Check external column class funcs
             argspec = ut.get_func_argspec(cls.__init__)
             if argspec.defaults is not None:
@@ -318,6 +320,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # Append data columns
         internal_col_attrs.append(colattr)
         for data_colattr in table.data_col_attrs:
+            colname = data_colattr['colname']
             if data_colattr.get('isnested', False):
                 for nestcol in data_colattr['nestattrs']:
                     colattr = ut.odict()
@@ -325,6 +328,7 @@ class DependencyCacheTable(ut.NiceRepr):
                     colattr['sqltype'] = nestcol['sqltype']
                     colattr['intern_colx'] = len(internal_col_attrs)
                     colattr['data_colx'] = data_colattr['data_colx']
+                    colattr['colname'] = colname
                     colattr['isdata'] = True
                     internal_col_attrs.append(colattr)
             else:
@@ -334,6 +338,11 @@ class DependencyCacheTable(ut.NiceRepr):
                 colattr['intern_colx'] = len(internal_col_attrs)
                 colattr['data_colx'] = data_colattr['data_colx']
                 colattr['isdata'] = True
+                colattr['colname'] = colname
+                if data_colattr.get('is_external', False):
+                    colattr['is_external_pointer'] = True
+                    colattr['write_func'] = data_colattr['write_func']
+                    colattr['read_func'] = data_colattr['read_func']
                 internal_col_attrs.append(colattr)
 
         # Append extra columns
@@ -464,7 +473,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 sqltype = lite.TYPE_TO_SQLTYPE[str]
                 internal_data_colnames.append(intern_colname)
                 internal_data_coltypes.append(sqltype)
-                colattr['is_external'] = is_external
+                colattr['is_external'] = True
                 colattr['intern_colname'] = intern_colname
                 colattr['write_func'] = write_func
                 colattr['read_func'] = read_func
@@ -486,6 +495,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 internal_data_coltypes.append(sqltype)
                 #raise AssertionError('external class columns')
                 colattr['is_external'] = True
+                colattr['is_external_class'] = True
                 colattr['coltype'] = coltype
                 colattr['intern_colname'] = intern_colname
                 colattr['write_func'] = write_func
@@ -626,30 +636,61 @@ class DependencyCacheTable(ut.NiceRepr):
         table.db.add_table(**table.get_addtable_kw())
 
     @property
+    @ut.memoize
     def ismulti(table):
         # TODO: or has multi parent
-        return len(table.multi_parent_colxs) > 0
-        #return sum(table.ismulti_cols.values()) > 0
+        return any(table.get_parent_col_attr('ismulti'))
 
     @property
+    @ut.memoize
     def parent(table):
         return ut.odict([(parent_colattr['parent_table'], parent_colattr)
                          for parent_colattr in table.parent_col_attrs])
         #return tuple([parent_colattr['parent_table']
         #              for parent_colattr in table.parent_col_attrs])
 
+    def parents(table, data=None):
+        if data:
+            return [(parent_colattr['parent_table'], parent_colattr)
+                    for parent_colattr in table.parent_col_attrs]
+        else:
+            return [parent_colattr['parent_table']
+                    for parent_colattr in table.parent_col_attrs]
+
+    def get_parent_col_attr(table, key):
+        return ut.dict_take_column(table.parent_col_attrs, key)
+
+    def get_intern_data_col_attr(table, key):
+        return ut.dict_take_column(table.internal_data_col_attrs, key)
+
+    def get_intern_col_attr(table, key):
+        return ut.dict_take_column(table.internal_col_attrs, key)
+
+    def get_data_col_attr(table, key):
+        return ut.dict_take_column(table.data_col_attrs, key)
+
+    # --- Standard Properties
+
+    @property
+    def internal_data_col_attrs(table):
+        flags = table.get_intern_col_attr('isdata')
+        return ut.compress(table.internal_col_attrs, flags)
+
+    @property
+    def internal_parent_col_attrs(table):
+        flags = table.get_intern_col_attr('isparent')
+        return ut.compress(table.internal_col_attrs, flags)
+
+    @ut.memoize
     def requestable_col_attrs(table):
         # Maps names of requestable columns to indicies of internal columns
         requestable_col_attrs = {}
-        for colattr in table.internal_col_attrs:
-            if colattr.get('isdata'):
-                rattr = {}
-                colname = colattr['intern_colname']
-                rattr['intern_colx'] = colattr['intern_colx']
-                rattr['intern_colname'] = colattr['intern_colname']
-                requestable_col_attrs[colname] = rattr
-            else:
-                continue
+        for colattr in table.internal_data_col_attrs:
+            rattr = {}
+            colname = colattr['intern_colname']
+            rattr['intern_colx'] = colattr['intern_colx']
+            rattr['intern_colname'] = colattr['intern_colname']
+            requestable_col_attrs[colname] = rattr
 
         for colattr in table.data_col_attrs:
             rattr = {}
@@ -664,7 +705,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 rattr['intern_colname'] = intern_attr['intern_colname']
                 rattr['intern_colx'] = intern_attr['intern_colx']
                 rattr['read_func'] = colattr['read_func']
-                #rattr['write_func'] = colattr['write_func']
+                rattr['write_func'] = colattr['write_func']
                 rattr['is_extern'] = True
             else:
                 continue
@@ -673,21 +714,17 @@ class DependencyCacheTable(ut.NiceRepr):
             requestable_col_attrs[colname] = rattr
         return requestable_col_attrs
 
-    def parents(table, data=None):
-        if data:
-            return [(parent_colattr['parent_table'], parent_colattr)
-                    for parent_colattr in table.parent_col_attrs]
-        else:
-            return [parent_colattr['parent_table']
-                    for parent_colattr in table.parent_col_attrs]
+    # --- / Standard Properties
 
     @property
+    @ut.memoize
     def parent_id_tablenames(table):
         tablenames = tuple([parent_colattr['parent_table']
                             for parent_colattr in table.parent_col_attrs])
         return tablenames
 
     @property
+    @ut.memoize
     def parent_id_prefix(table):
         prefixes = tuple([parent_colattr['prefix']
                           for parent_colattr in table.parent_col_attrs])
@@ -702,7 +739,9 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def extern_columns(table):
-        return list(table.external_to_internal.keys())
+        colnames = table.get_data_col_attr('colname')
+        flags = table.get_data_col_attr('is_extern')
+        return ut.compress(colnames, flags)
 
     @property
     def rowid_colname(table):
@@ -715,7 +754,7 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def parent_id_colnames(table):
-        return table._internal_parent_id_colnames
+        return tuple([colattr['intern_colname'] for colattr in table.parent_col_attrs])
 
     #@property
     #def _table_colnames(table):
@@ -906,11 +945,9 @@ class DependencyCacheTable(ut.NiceRepr):
                                       lbl='add %s chunk' % (table.tablename))
             # TODO: Separate into func which can be specified as a callback.
             #colnames =
-            colnames = (
-                table.superkey_colnames +
-                table._internal_data_colnames +
-                table._internal_parent_extra_colnames
-            )
+            intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
+            insertable_flags = [not colattr.get('isprimary') for colattr in table.internal_col_attrs]
+            colnames = tuple(ut.compress(intern_colnames, insertable_flags))
             for dirty_params_chunk in prog_iter:
                 # None data means that there was an error for a specific row
                 if ALLOW_NONE_YIELD:
@@ -942,7 +979,8 @@ class DependencyCacheTable(ut.NiceRepr):
             proptup_gen = (None if data is None else (data,)
                            for data in proptup_gen)
         # Flatten nested columns
-        if len(table._nested_idxs) > 0:
+        #if len(table._nested_idxs) > 0:
+        if any(table.get_data_col_attr('isnested')):
             proptup_gen = table._prepare_storage_nested(proptup_gen)
         # Write external columns
         if len(table.extern_write_funcs) > 0:
@@ -956,7 +994,9 @@ class DependencyCacheTable(ut.NiceRepr):
                 if ALLOW_NONE_YIELD and data_cols is None:
                     yield None
                     continue
-                multi_args = [arg for arg in ut.take(args_, table.multi_parent_colxs)]
+
+                multi_parent_flags = table.get_parent_col_attr('ismulti')
+                multi_args = ut.compress(args_, multi_parent_flags)
                 parent_extra = tuple(ut.flatten([(len(arg), 'not stored')
                                                  for arg in multi_args]))
                 yield parent_id_ + (config_rowid,) + data_cols + parent_extra
@@ -971,7 +1011,7 @@ class DependencyCacheTable(ut.NiceRepr):
         Accepts nested tuples and flattens them to fit into the sql tables
         """
         nCols = len(table.data_colnames)
-        idxs1 = table._nested_idxs
+        idxs1 = ut.where(table.get_data_col_attr('isnested'))
         idxs2 = ut.index_complement(idxs1, nCols)
         for data in proptup_gen:
             if ALLOW_NONE_YIELD and data is None:
@@ -993,12 +1033,21 @@ class DependencyCacheTable(ut.NiceRepr):
         """
         Writes external data to disk if write function is specified.
         """
-        extern_colnames = list(table.extern_write_funcs.keys())
-        nCols = len(table._internal_data_colnames)
-        idxs1 = [
-            ut.listfind(table._internal_data_colnames, col + EXTERN_SUFFIX)
-            for col in extern_colnames
-        ]
+        internal_data_col_attrs = table.internal_data_col_attrs
+        writable_flags = ut.dict_take_column(internal_data_col_attrs,
+                                             'write_func', False)
+        extern_colattrs = ut.compress(internal_data_col_attrs, writable_flags)
+        extern_colnames = ut.dict_take_column(extern_colattrs, 'colname')
+        extern_writers = ut.dict_take_column(extern_colattrs, 'write_func')
+
+        nCols = len(internal_data_col_attrs)
+        idxs1 = ut.where(writable_flags)
+        #extern_colnames = list(table.extern_write_funcs.keys())
+        #nCols = len(table._internal_data_colnames)
+        #idxs1 = [
+        #    ut.listfind(table._internal_data_colnames, col + EXTERN_SUFFIX)
+        #    for col in extern_colnames
+        #]
         idxs2 = ut.index_complement(idxs1, nCols)
         extern_fnames_list = list(zip(*[
             table._get_extern_fnames(dirty_parent_ids, config_rowid, config,
@@ -1016,6 +1065,7 @@ class DependencyCacheTable(ut.NiceRepr):
         ]
 
         for data, extern_fpaths in zip(proptup_gen, extern_fpaths_list):
+            pass
             if ALLOW_NONE_YIELD and data is None:
                 yield None
                 continue
@@ -1023,11 +1073,15 @@ class DependencyCacheTable(ut.NiceRepr):
             extern_data = ut.take(data, idxs1)
             # Write external data to disk
             try:
-                for obj, fpath, col in zip(extern_data, extern_fpaths,
-                                           extern_colnames):
+                for obj, fpath, col, write_func in zip(extern_data,
+                                                       extern_fpaths,
+                                                       extern_colnames,
+                                                       extern_writers):
                     print('WRITING %r' % (col,))
                     print('fpath = %r' % (fpath,))
-                    write_func = table.extern_write_funcs[col]
+                    #table.data_col_attrs
+                    #write_func = table.requestable_col_attrs()[col]['write_func']
+                    #write_func = table.extern_write_funcs[col]
                     #write_func(obj, fpath, True)
                     #print('fpath = %r' % (fpath,))
                     write_func(fpath, obj)
@@ -1082,9 +1136,6 @@ class DependencyCacheTable(ut.NiceRepr):
 
         CommandLine:
             python -m dtool.depcache_table --exec-get_rowid
-            python -m dtool.depcache_table --exec-get_rowid:2
-            python -m dtool.depcache_table --exec-get_rowid:4
-            python -m dtool.depcache_table --exec-get_rowid:5
 
         Example5:
             >>> # ENABLE_DOCTEST
@@ -1128,11 +1179,17 @@ class DependencyCacheTable(ut.NiceRepr):
 
         if table.ismulti:
             # Convert any parent-id containing multiple values into a hash of uuids
-            normal_colxs = ut.index_complement(table.multi_parent_colxs, len(table.parent))
-            multi_parents = [ut.apply_grouping(ids_, table.multi_parent_colxs) for ids_ in valid_parent_ids_]
+            multi_parent_flags = table.get_parent_col_attr('ismulti')
+            num_parents = len(multi_parent_flags)
+            multi_parent_colxs = ut.where(multi_parent_flags)
+            multi_parent_colxs1 = table.multi_parent_colxs
+            assert multi_parent_colxs1 == multi_parent_colxs
+
+            normal_colxs = ut.index_complement(multi_parent_colxs, num_parents)
+            multi_parents = [ut.apply_grouping(ids_, multi_parent_colxs) for ids_ in valid_parent_ids_]
             normal_parents = [ut.apply_grouping(ids_, normal_colxs) for ids_ in valid_parent_ids_]
             # TODO: give each table a uuid getter function that derives from get_root_uuids
-            multicol_tables = ut.take(table.parents(), table.multi_parent_colxs)
+            multicol_tables = ut.take(table.parents(), multi_parent_colxs)
             parent_uuid_getters = [table.depc.get_root_uuid if col == table.depc.root else ut.identity
                                    for col in multicol_tables]
             #parent_uuid_getters = [table.depc.get_root_uuid for idx in table.multi_parent_colxs]
@@ -1148,7 +1205,7 @@ class DependencyCacheTable(ut.NiceRepr):
             #parent_ids_ = [(multiset_uuid, parent_num)]
             #parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
             parent_ids_ = [tuple(
-                ut.ungroup([uuids, normalids], [table.multi_parent_colxs, normal_colxs], len(table.parent) - 1))
+                ut.ungroup([uuids, normalids], [multi_parent_colxs, normal_colxs], num_parents - 1))
                 for uuids, normalids in zip(multiset_uuid_list, normal_parents)
             ]
         else:
@@ -1202,11 +1259,13 @@ class DependencyCacheTable(ut.NiceRepr):
             python -m dtool.depcache_table --exec-delete_rows
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> #table = depc['keypoint']
             >>> table = depc['chip']
+            >>> exec(ut.execstr_funckw(table.delete_rows), globals())
             >>> tablename = table.tablename
             >>> graph = depc.make_graph(with_implicit=False)
             >>> config1 = None
@@ -1227,8 +1286,6 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> rowid_list = rowid_list1 + rowid_list2
             >>> assert len(ut.setintersect_ordered(rowid_list1, rowid_list2)) == 0
             >>> table.delete_rows(rowid_list)
-
-        Ignore:
         """
         #import networkx as nx
         #from dtool.algo.preproc import preproc_feat
@@ -1241,24 +1298,25 @@ class DependencyCacheTable(ut.NiceRepr):
 
         # TODO:
         # REMOVE EXTERNAL FILES
-        # if len(table.extern_write_funcs):
-        if delete_extern:
-            if len(table.extern_columns) > 0:
-                extern_colnames = tuple(table.external_to_internal.values())
-                uri_list = table.get_internal_columns(rowid_list,
-                                                      extern_colnames,
-                                                      unpack_scalars=False,
-                                                      keepwrap=False)
-                fpath_list = ut.flatten(uri_list)
+        internal_colnames = table.get_intern_data_col_attr('intern_colname')
+        is_extern = table.get_intern_data_col_attr('is_external_pointer')
+        extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
+        if len(extern_colnames) > 0:
+            uri_list = table.get_internal_columns(rowid_list,
+                                                  extern_colnames,
+                                                  unpack_scalars=False,
+                                                  keepwrap=False)
+            fpath_list = ut.flatten(uri_list)
+            if delete_extern:
                 print('fpath_list = %r' % (fpath_list,))
                 print('deleting internal files')
                 ut.remove_file_list(fpath_list)
+            else:
+                print('would delete fpath_list = %r' % (fpath_list,))
 
         # DELETE EXPLICITLY DEFINED CHILDREN
         # (TODO: handle implicit definitions)
         if True:
-            parent_colnames = (table.tablename,)
-
             def get_child_partial_rowids(child_table, rowid_list,
                                          parent_colnames):
                 colnames = (child_table.rowid_colname,)
@@ -1273,6 +1331,8 @@ class DependencyCacheTable(ut.NiceRepr):
             for child in table.children:
                 child_table = table.depc[child]
                 if not child_table.ismulti:
+                    # Hack, wont work for vsone / multisets
+                    parent_colnames = (child_table.parent[table.tablename]['intern_colname'],)
                     child_rowids = get_child_partial_rowids(child_table,
                                                             rowid_list,
                                                             parent_colnames)
