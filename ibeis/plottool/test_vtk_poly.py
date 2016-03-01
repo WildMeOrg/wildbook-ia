@@ -103,6 +103,8 @@ def rhombicuboctahedron():
     }
 
     for key, vert_ids in face_dict.items():
+        #if key != 'L':
+        #    continue
         if len(vert_ids) == 4:
             q = vtk.vtkQuad()
         else:
@@ -133,11 +135,11 @@ def rhombicuboctahedron():
     ug.SetPoints(vertex_locations)
     ug.InsertNextCell(vtk.VTK_POLYHEDRON, face_stream)
 
-    writer = vtk.vtkUnstructuredGridWriter()
-    writer.SetFileName("rhombicuboctahedron.vtk")
-    #writer.SetInputData(ug)
-    writer.SetInput(ug)
-    writer.Write()
+    #writer = vtk.vtkUnstructuredGridWriter()
+    #writer.SetFileName("rhombicuboctahedron.vtk")
+    ##writer.SetInputData(ug)
+    #writer.SetInput(ug)
+    #writer.Write()
 
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInput(ug)
@@ -145,16 +147,19 @@ def rhombicuboctahedron():
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
 
-    if False:
+    if 1:
         # Read the image data from a file
         import utool as ut
 
         textureCoords = vtk.vtkFloatArray()
         textureCoords.SetNumberOfComponents(3)
+        #coords = ut.take(vertex_array, face_dict['L'])
+        #for coord in coords:
+        #    textureCoords.InsertNextTuple(tuple(coord))
         textureCoords.InsertNextTuple((0, 0, 0))
         textureCoords.InsertNextTuple((1, 0, 0))
         textureCoords.InsertNextTuple((1, 1, 0))
-        textureCoords.InsertNextTuple((0, 2, 0))
+        textureCoords.InsertNextTuple((0, 1, 0))
 
         # Create texture object
         fpath = ut.grab_test_imgpath('zebra.png')
@@ -163,6 +168,8 @@ def rhombicuboctahedron():
 
         texture = vtk.vtkTexture()
         texture.SetInput(reader.GetOutput())
+        texture.RepeatOff()
+        texture.InterpolateOff()
 
         ptdat = pd.GetPointData()
         ptdat.SetTCoords(textureCoords)
