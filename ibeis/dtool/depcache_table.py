@@ -277,6 +277,9 @@ class DependencyCacheTable(ut.NiceRepr):
         Infers interal properties about this table given the colnames and
         datatypes
 
+        CommandLine:
+            python -m dtool.depcache_table --exec-_update_datacol_internal --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
@@ -286,17 +289,20 @@ class DependencyCacheTable(ut.NiceRepr):
             >>>     print('----')
             >>>     table._update_datacol_internal()
             >>>     print(table)
-            >>>     print('data_colnames = %r' % (table.data_colnames,))
-            >>>     print('data_coltypes = %r' % (table.data_coltypes,))
-            >>>     print('_internal_data_colnames = %r' % (table._internal_data_colnames,))
-            >>>     print('_internal_data_coltypes = %r' % (table._internal_data_coltypes,))
-            >>>     print('nested_to_flat = %r' % (table.nested_to_flat,))
-            >>>     print('external_to_internal = %r' % (table.external_to_internal,))
-            >>>     print('extern_read_funcs = %r' % (table.extern_read_funcs,))
+            >>>     #print('data_colnames = %r' % (table.data_colnames,))
+            >>>     #print('data_coltypes = %r' % (table.data_coltypes,))
+            >>>     #print('_internal_data_colnames = %r' % (table._internal_data_colnames,))
+            >>>     #print('_internal_data_coltypes = %r' % (table._internal_data_coltypes,))
+            >>>     #print('nested_to_flat = %r' % (table.nested_to_flat,))
+            >>>     #print('external_to_internal = %r' % (table.external_to_internal,))
+            >>>     #print('extern_read_funcs = %r' % (table.extern_read_funcs,))
+            >>>     print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=8)))
             >>> table = depc['probchip']
             >>> table = depc['spam']
             >>> table = depc['vsone']
         """
+        data_col_attrs = []
+
         # TODO: can rewrite much of this
         extern_read_funcs = {}
         extern_write_funcs = {}
@@ -326,6 +332,7 @@ class DependencyCacheTable(ut.NiceRepr):
         # Parse column datatypes
         _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
         for colx, (colname, coltype) in _iter:
+            colattr = {}
             # Check column input subtypes
             is_tuple     = isinstance(coltype, tuple)
             is_func      = ut.is_func_or_method(coltype)
@@ -337,19 +344,32 @@ class DependencyCacheTable(ut.NiceRepr):
             is_nested   = is_tuple and not (is_func or is_externtup)
             is_external = (is_func or is_functup or is_externtup)
             # Switch on input types
+            colattr['colname'] = colname
+            colattr['coltype'] = coltype
+            colattr['colx'] = colx
             if is_normal:
                 # Normal non-nested column
+                sqltype = lite.TYPE_TO_SQLTYPE[coltype]
                 internal_data_colnames.append(colname)
-                internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[coltype])
+                internal_data_coltypes.append(sqltype)
+                colattr['sqltype'] = sqltype
+                colattr['is_normal'] = is_normal
             elif is_nested:
                 # Nested non-function normal columns
                 table._nested_idxs.append(colx)
                 nested_to_flat[colname] = []
+                colattr['is_nested'] = is_nested
+                nestattrs = colattr['nestattrs'] = []
                 for count, subtype in enumerate(coltype):
+                    nestattr = {}
+                    nestattrs.append(nestattr)
                     flat_colname = '%s_%d' % (colname, count)
                     nested_to_flat[colname].append(flat_colname)
                     internal_data_colnames.append(flat_colname)
-                    internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[subtype])
+                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
+                    internal_data_coltypes.append(sqltype)
+                    nestattr['flat_colname'] = flat_colname
+                    nestattr['sqltype'] = sqltype
             elif is_external:
                 # Nested external funcs
                 write_func = None
@@ -369,8 +389,14 @@ class DependencyCacheTable(ut.NiceRepr):
                     extern_write_funcs[colname] = write_func
                 intern_colname = colname + EXTERN_SUFFIX
                 external_to_internal[colname] = intern_colname
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
                 internal_data_colnames.append(intern_colname)
-                internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[str])
+                internal_data_coltypes.append(sqltype)
+                colattr['is_external'] = is_external
+                colattr['intern_colname'] = intern_colname
+                colattr['write_func'] = write_func
+                colattr['read_func'] = read_func
+                colattr['sqltype'] = sqltype
             else:
                 # External class column
                 assert (hasattr(coltype, '__getstate__') and
@@ -384,8 +410,15 @@ class DependencyCacheTable(ut.NiceRepr):
                 intern_colname = colname + EXTERN_SUFFIX
                 external_to_internal[colname] = intern_colname
                 internal_data_colnames.append(intern_colname)
-                internal_data_coltypes.append(lite.TYPE_TO_SQLTYPE[str])
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                internal_data_coltypes.append(sqltype)
                 #raise AssertionError('external class columns')
+                colattr['coltype'] = coltype
+                colattr['intern_colname'] = intern_colname
+                colattr['write_func'] = write_func
+                colattr['read_func'] = read_func
+                colattr['sqltype'] = sqltype
+            data_col_attrs.append(colattr)
         # Set new internal data properties of the table
         assert len(set(internal_data_colnames)) == len(internal_data_colnames)
         assert len(internal_data_coltypes) == len(internal_data_colnames)
@@ -395,6 +428,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.extern_io_classes = extern_io_classes
         table.external_to_internal = external_to_internal
         table.nested_to_flat = nested_to_flat
+        table.data_col_attrs = data_col_attrs
         table._internal_data_colnames = tuple(internal_data_colnames)
         table._internal_data_coltypes = tuple(internal_data_coltypes)
         table._assert_self()
@@ -411,13 +445,13 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> for tablename in ['vsmany', 'spam', 'vsone', 'nnindexer']:
-            >>>    print('%s' % (depc[tablename],))
-            >>>    print('%s.parents = %r' % (tablename, depc[tablename].parents,))
-            >>>    print('%s.ismulti = %r' % (tablename, depc[tablename].ismulti,))
-            >>>    print('%s.multi_parent_colxs = %r' % (tablename, depc[tablename].multi_parent_colxs,))
+            >>> for table in depc.tables:
+            >>>     print('----')
+            >>>     table._update_parentcol_internal()
+            >>>     print(table)
+            >>>     print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs),))
         """
-        #parent_col_attrs = {}
+        parent_col_attrs = []
 
         # Handle dependencies when a parents are pairwise between tables
         ismulti_cols = {}
@@ -427,21 +461,33 @@ class DependencyCacheTable(ut.NiceRepr):
         seen_ = ut.ddict(lambda: 1)
 
         for colx, col in enumerate(table.parent_tablenames):
+            colattr = {}
             # Detect multicolumns
             if col.endswith('*'):
+                ismulti = True
                 prefix = col[:-1]
                 ismulti_cols[prefix] = True
                 multi_parent_colxs.append(colx)
             else:
+                ismulti = False
                 prefix = col
+            colattr['colx'] = colx
+            colattr['col'] = col
+            colattr['ismulti'] = ismulti
+            colattr['prefix'] = prefix
             parent_id_prefixs1.append(prefix)
+            parent_col_attrs.append(colattr)
+        table.parent_col_attrs = parent_col_attrs
 
         colhist = ut.dict_hist(parent_id_prefixs1)
         for colx, col in enumerate(parent_id_prefixs1):
+            colattr = parent_col_attrs[colx]
             if colhist[col] > 1:
                 # Duplicate column names recieve indicies
                 prefix = col + str(seen_[col])
                 seen_[col] += 1
+                colattr['is_nwise'] = True
+                colattr['n'] = colhist[col]
             else:
                 prefix = col
             parent_id_prefixs2.append(prefix)
@@ -453,25 +499,35 @@ class DependencyCacheTable(ut.NiceRepr):
         _internal_parent_extra_coltypes = []
 
         # Handle case when parents are a set of ids
-        for prefix in parent_id_prefixs2:
+        for colattr, prefix in zip(parent_col_attrs, parent_id_prefixs2):
             # HACK. ALL COLUMNS ARE MULTI
             # FIXME: will bug one duplicate multi-indexes
             column_ismulti = ismulti_cols.get(prefix, False)  # or (prefix.endswith('*'))
             if column_ismulti:
                 # Case when dependencies are many to one
                 # hash of set items
-                _internal_parent_id_colnames.append(prefix + '_setuuid')
-                _internal_parent_id_coltypes.append('INTEGER NOT NULL')
+                colname = prefix + '_setuuid'
+                sqltype = 'TEXT NOT NULL'
+                _internal_parent_id_colnames.append(colname)
+                _internal_parent_id_coltypes.append(sqltype)
                 # number of items in set
+                extra_colnames = [prefix + '_setsize', prefix + '_setfpath']
+                extra_coltypes = ['INTEGER NOT NULL', 'TEXT']
                 _internal_parent_extra_colnames.append(prefix + '_setsize')
                 _internal_parent_extra_colnames.append(prefix + '_setfpath')
                 # path to indiviual parts
                 _internal_parent_extra_coltypes.append('INTEGER NOT NULL')
                 _internal_parent_extra_coltypes.append('TEXT')
+                colattr['extra_colnames'] = extra_colnames
+                colattr['extra_coltypes'] = extra_coltypes
             else:
                 # Normal case when dependencies are one to one
-                _internal_parent_id_colnames.append(prefix + '_rowid')
-                _internal_parent_id_coltypes.append('INTEGER NOT NULL')
+                colname = prefix + '_rowid'
+                sqltype = 'INTEGER NOT NULL'
+                _internal_parent_id_colnames.append(colname)
+                _internal_parent_id_coltypes.append(sqltype)
+            colattr['colname'] = colname
+            colattr['sqltype'] = sqltype
         table._internal_parent_id_colnames = tuple(
             _internal_parent_id_colnames)
         table._internal_parent_id_coltypes = tuple(
