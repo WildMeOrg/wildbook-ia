@@ -153,7 +153,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table.extern_write_funcs = {}
         table.extern_ext_config_keys = {}
         table.extern_io_classes = {}
-        table.ismulti_cols = {}
+        table.multi_parent_colxs = {}
         # Update internals
         table._update_parentcol_internal()
         table._update_datacol_internal()
@@ -415,10 +415,13 @@ class DependencyCacheTable(ut.NiceRepr):
             >>>    print('%s' % (depc[tablename],))
             >>>    print('%s.parents = %r' % (tablename, depc[tablename].parents,))
             >>>    print('%s.ismulti = %r' % (tablename, depc[tablename].ismulti,))
-            >>>    print('%s.ismulti_cols = %r' % (tablename, depc[tablename].ismulti_cols,))
+            >>>    print('%s.multi_parent_colxs = %r' % (tablename, depc[tablename].multi_parent_colxs,))
         """
+        #parent_col_attrs = {}
+
         # Handle dependencies when a parents are pairwise between tables
         ismulti_cols = {}
+        multi_parent_colxs = []
         parent_id_prefixs1 = []
         parent_id_prefixs2 = []
         seen_ = ut.ddict(lambda: 1)
@@ -428,6 +431,7 @@ class DependencyCacheTable(ut.NiceRepr):
             if col.endswith('*'):
                 prefix = col[:-1]
                 ismulti_cols[prefix] = True
+                multi_parent_colxs.append(colx)
             else:
                 prefix = col
             parent_id_prefixs1.append(prefix)
@@ -477,7 +481,7 @@ class DependencyCacheTable(ut.NiceRepr):
         table._internal_parent_extra_coltypes = tuple(
             _internal_parent_extra_coltypes)
         table._parent_id_prefixes = tuple(parent_id_prefixs2)
-        table.ismulti_cols = ismulti_cols
+        table.multi_parent_colxs = multi_parent_colxs
 
     def clear_table(table):
         """
@@ -489,7 +493,9 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def ismulti(table):
-        return sum(table.ismulti_cols.values()) > 0
+        # TODO: or has multi parent
+        return len(table.multi_parent_colxs) > 0
+        #return sum(table.ismulti_cols.values()) > 0
 
     @property
     def parents(table):
@@ -765,8 +771,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 if ALLOW_NONE_YIELD and data_cols is None:
                     yield None
                     continue
-                col_is_multi = table.ismulti  # hack
-                multi_args = [arg for arg in args_ if col_is_multi]
+                multi_args = [arg for arg in ut.take(args_, table.multi_parent_colxs)]
                 parent_extra = tuple(ut.flatten([(len(arg), 'not stored')
                                                  for arg in multi_args]))
                 yield parent_id_ + (config_rowid,) + data_cols + parent_extra
@@ -895,6 +900,7 @@ class DependencyCacheTable(ut.NiceRepr):
             python -m dtool.depcache_table --exec-get_rowid
             python -m dtool.depcache_table --exec-get_rowid:2
             python -m dtool.depcache_table --exec-get_rowid:4
+            python -m dtool.depcache_table --exec-get_rowid:5
 
         Example0:
             >>> # ENABLE_DOCTEST
@@ -967,6 +973,28 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> print('indexer = %r' % (indexer,))
             >>> print(result)
             rowids = [1, None, 2]
+
+        Example5:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> # Test get behavior for multi (model) tables
+            >>> depc = testdata_depc()
+            >>> table = depc['multitest1']
+            >>> config = table.configclass()
+            >>> _debug = True
+            >>> depc.get_rowids('chip', [1, 2, 3, 4, 5])
+            >>> depc.get_rowids('spam', [2, 3])
+            >>> parent_rowids = [((1, 2, 3, 4), 3, (1, 2,)), (None, None, None),
+            >>>                  ((1, 2, 3, 4, 5), None, (1, 2,)), ((1, 2,), 1, (2, 3,))]
+            >>> #exec(ut.execstr_funckw(depc.add_rows_from_parent), globals())
+            >>> #ut.exec_func(table.add_rows_from_parent, globals(), sentinal='fmtstr = ')
+            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
+            >>> result = ('rowids = %r' % (rowids,))
+            >>> indexer = table.get_row_data(rowids)
+            >>> print('indexer = %r' % (indexer,))
+            >>> print(result)
+            rowids = [1, None, None, 2]
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
@@ -988,26 +1016,34 @@ class DependencyCacheTable(ut.NiceRepr):
         preproc_args = valid_parent_ids_
 
         if table.ismulti:
-            # Hack, implementation only will work for nnindexer
-            #assert len(parent_rowids) == 1, (
-            #    'can only take one set at a time %r' % (parent_rowids,))
-            assert all(ut.flatten(valid_parent_ids_)), 'cant have None input to models'
-            # TODO: partition into multi cols and normal cols.
-            # TODO: Allow for more than one multicol to be specified.
-            parent_uuids_list = [table.depc.get_root_uuid(rowidset[0])
-                                 for rowidset in valid_parent_ids_]
-            multiset_uuid_list = [ut.hashable_to_uuid(parent_uuids)
-                                  for parent_uuids in parent_uuids_list]
+            # Convert any parent-id containing multiple values into a hash of uuids
+            normal_colxs = ut.index_complement(table.multi_parent_colxs, len(table.parents))
+            multi_parents = [ut.apply_grouping(ids_, table.multi_parent_colxs) for ids_ in valid_parent_ids_]
+            normal_parents = [ut.apply_grouping(ids_, normal_colxs) for ids_ in valid_parent_ids_]
+            # TODO: give each table a uuid getter function that derives from get_root_uuids
+            multicol_tables = ut.take(table.parents, table.multi_parent_colxs)
+            parent_uuid_getters = [table.depc.get_root_uuid if col == table.depc.root else ut.identity
+                                   for col in multicol_tables]
+            #parent_uuid_getters = [table.depc.get_root_uuid for idx in table.multi_parent_colxs]
+            #[table.depc[col].get_internal_columns([2, 3], (CONFIG_ROWID,)) for col in multicol_tables]
+            parent_uuids_list = [[uuid_getter(ids_) for uuid_getter, ids_ in
+                                  zip(parent_uuid_getters, ids_tup)]
+                                 for ids_tup in multi_parents]
+            multiset_uuid_list = [[ut.hashable_to_uuid(uuids) for uuids in parent_uuids_tup]
+                                  for parent_uuids_tup in parent_uuids_list]
             # preproc args are usually the same as parent ids.  Model tables
             # are the exception.
             #parent_num = len(parent_rowids)
             #parent_ids_ = [(multiset_uuid, parent_num)]
-            parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
+            #parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
+            parent_ids_ = [tuple(
+                ut.ungroup([uuids, normalids], [table.multi_parent_colxs, normal_colxs], len(table.parents) - 1))
+                for uuids, normalids in zip(multiset_uuid_list, normal_parents)
+            ]
         else:
             parent_ids_ = valid_parent_ids_
 
         if recompute:
-            # FIXME: make recompute work with table.ismulti
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None)

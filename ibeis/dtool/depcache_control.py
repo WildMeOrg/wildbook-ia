@@ -345,6 +345,7 @@ class _CoreDependencyCache(object):
                 ['keypoint'],
                 ['fgweight', 'descriptor'],
                 ['spam'],
+                ['multitest1'],
             ]
 
         Example:
@@ -357,6 +358,7 @@ class _CoreDependencyCache(object):
             >>> print(result)
             [
                 ['spam'],
+                ['multitest1'],
             ]
 
         """
@@ -686,20 +688,30 @@ class _CoreDependencyCache(object):
         Returns the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
         """
-        _debug = depc._debug if _debug is None else _debug
-        with ut.Indenter('[GetRowID-%s]' % (tablename,),
-                         enabled=_debug):
-            if _debug:
-                print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
-                print(' * config = %r' % (config,))
-            # Compute everything from the root to the requested table
-            rowid_dict = depc.get_all_descendant_rowids(
-                tablename, root_rowids, config=config, ensure=ensure,
-                eager=eager, nInput=nInput, recompute=recompute,
-                recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
-            rowid_list = rowid_dict[tablename]
-            if _debug:
-                print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
+        table = depc[tablename]
+        if table.ismulti:
+            # TODO: rectify multi root_rowids
+            pass
+        #import utool
+        #with utool.embed_on_exception_context:
+        if True:
+            _debug = depc._debug if _debug is None else _debug
+            with ut.Indenter('[GetRowID-%s]' % (tablename,),
+                             enabled=_debug):
+                if _debug:
+                    print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
+                    print(' * config = %r' % (config,))
+                # TODO: Get nonself rowids first
+                # THen get self rowids for debugging ease
+
+                # Compute everything from the root to the requested table
+                rowid_dict = depc.get_all_descendant_rowids(
+                    tablename, root_rowids, config=config, ensure=ensure,
+                    eager=eager, nInput=nInput, recompute=recompute,
+                    recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
+                rowid_list = rowid_dict[tablename]
+                if _debug:
+                    print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
 
     def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename=None):
@@ -725,6 +737,39 @@ class _CoreDependencyCache(object):
         Gets the data in `colnames` of `tablename` that correspond to
         `root_rowids` using `config`.  if colnames is None, all columns are
         returned.
+
+        Args:
+            tablename (str): table name containing desired property
+            root_rowids (List[int]): ids of the root object
+            colnames (None): desired property (default = None)
+            config (None): (default = None)
+            ensure (bool): eager evaluation if True(default = True)
+            _debug (None): (default = None)
+            recompute (bool): (default = False)
+            recompute_all (bool): (default = False)
+            read_extern (bool): (default = True)
+            eager (bool): (default = True)
+            nInput (None): (default = None)
+
+        Returns:
+            list: prop_list
+
+        CommandLine:
+            python -m dtool.depcache_control --exec-get_property --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.get_property), globals())
+            >>> tablename = 'keypoint'
+            >>> root_rowids = [1, 2, 3]
+            >>> prop_list = depc.get_property(
+            >>>     tablename, root_rowids, colnames, config, ensure, _debug,
+            >>>     recompute, recompute_all, read_extern, eager, nInput)
+            >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
+            >>> print(result)
         """
         _debug = depc._debug if _debug is None else _debug
         with ut.Indenter('[GetProp-%s]' % (tablename,), enabled=_debug):
@@ -796,6 +841,13 @@ class _CoreDependencyCache(object):
         table = depc[tablename]
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
+
+    def get_uuids(depc, tablename, root_rowids, config=None):
+        # TODO: Make uuids for dependant object based on root uuid and path of
+        # construction.
+        if tablename == depc.root:
+            uuid_list = depc.get_root_uuid(root_rowids)
+        return uuid_list
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

@@ -369,6 +369,16 @@ def testdata_depc(fname=None):
         for parent_rowids in parent_rowids_list:
             yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
 
+    @depc.register_preproc(
+        'multitest1', ['chip*', 'keypoint', 'spam*'], ['foo'], [str],  # [('extern', ut.load_data)],
+        #configclass=DummyIndexerConfig,
+    )
+    def dummy_multiset1(depc, parent_rowids_list, kp_rowids, spam_ids, config=None):
+        print('COMPUTING MULTITEST 1 ')
+        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+        for parent_rowids, kpids in zip(parent_rowids_list, kp_rowids):
+            yield ('cool multi object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
+
     # REGISTER MATCHING ALGORITHMS
 
     @depc.register_preproc(
