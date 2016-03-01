@@ -370,14 +370,25 @@ def testdata_depc(fname=None):
             yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
 
     @depc.register_preproc(
-        'multitest1', ['chip*', 'keypoint', 'spam*'], ['foo'], [str],  # [('extern', ut.load_data)],
+        'multitest', ['chip*', 'keypoint', 'fgweight*', 'spam'], ['foo'], [str],  # [('extern', ut.load_data)],
         #configclass=DummyIndexerConfig,
     )
-    def dummy_multiset1(depc, parent_rowids_list, kp_rowids, spam_ids, config=None):
+    def dummy_multitest(depc, parent_rowids_list, kp_rowids, fg_ids, spam_ids, config=None):
         print('COMPUTING MULTITEST 1 ')
         #assert len(parent_rowids_list) == 1, 'handles only one indexer'
         for parent_rowids, kpids in zip(parent_rowids_list, kp_rowids):
-            yield ('cool multi object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
+            yield ('cool multi object' + str(config) + ' ' + str(parent_rowids),)
+
+    # TEST MULTISET DEPENDENCIES
+    @depc.register_preproc(
+        'multitest_score', ['multitest'], ['score'], [int],  # [('extern', ut.load_data)],
+        #configclass=DummyIndexerConfig,
+    )
+    def dummy_multitest_score(depc, parent_rowids, config=None):
+        print('COMPUTING DEPENDENCY OF MULTITEST 1 ')
+        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+        for parent_rowids in zip(parent_rowids):
+            yield (parent_rowids,)
 
     # REGISTER MATCHING ALGORITHMS
 

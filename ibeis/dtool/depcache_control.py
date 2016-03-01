@@ -229,19 +229,6 @@ class _CoreDependencyCache(object):
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> tablename = 'chip'
-            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
-            >>> print(result)
-            [
-                ['dummy_annot'],
-                ['chip'],
-            ]
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
             >>> tablename = 'fgweight'
             >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
             >>> print(result)
@@ -251,49 +238,6 @@ class _CoreDependencyCache(object):
                 ['keypoint'],
                 ['fgweight'],
             ]
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'spam'
-            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
-            >>> print(result)
-            [
-                ['dummy_annot'],
-                ['chip', 'probchip'],
-                ['keypoint'],
-                ['fgweight'],
-                ['spam'],
-            ]
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'vsone'
-            >>> result = ut.repr3(depc.get_dependencies(tablename), nl=1)
-            >>> print(result)
-            [
-                ['dummy_annot'],
-                ['vsone'],
-            ]
-
-
-        Ignore:
-            # TODO: use networkx implementations of graph algorithms
-            # whereever applicable
-            tablename = 'Block_Curvature'
-            import networkx as nx
-            graph = depc.make_graph()
-            nx.dag.ancestors(graph, tablename)
-            nx.dag_longest_path(graph, tablename, depc.root)
-            nx.algorithms.dag.topological_sort(graph)
-            nx.algorithms.dag.topological_sort_recursive(graph)
-            list(nx.all_simple_paths(graph, depc.root, tablename))
-            list(nx.all_shortest_paths(graph, depc.root, tablename))
         """
         try:
             # get_ancestor_levels
@@ -314,18 +258,11 @@ class _CoreDependencyCache(object):
             dependency_levels = ut.longest_levels(dependency_levels_)
         except Exception as ex:
             ut.printex(ex, 'error getting dependencies',
-                       keys=[
-                           'tablename',
-                           'root',
-                           'children_to_parents',
-                           'to_root',
-                           'from_root',
-                           'dependency_levels_',
-                           'dependency_levels',
-                       ])
+                       keys=['tablename', 'root', 'children_to_parents',
+                             'to_root', 'from_root', 'dependency_levels_',
+                             'dependency_levels', ])
             raise
 
-        #print('from_root = %r' % (from_root,))
         return dependency_levels
 
     def get_dependants(depc, tablename):
@@ -345,22 +282,9 @@ class _CoreDependencyCache(object):
                 ['keypoint'],
                 ['fgweight', 'descriptor'],
                 ['spam'],
-                ['multitest1'],
+                ['multitest'],
+                ['multitest_score'],
             ]
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'spam'
-            >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
-            >>> print(result)
-            [
-                ['spam'],
-                ['multitest1'],
-            ]
-
         """
         # get_descendant_levels
         edges = depc.get_edges()
@@ -420,7 +344,7 @@ class _CoreDependencyCache(object):
                 parent_rowids_listT = table.get_internal_columns(
                     child_rowids, colnames, keepwrap=True)
                 parent_rowids_list = list(zip(*parent_rowids_listT))
-                for parent_key, parent_rowids in zip(table.parents, parent_rowids_list):
+                for parent_key, parent_rowids in zip(table.parent, parent_rowids_list):
                     rowid_dict[parent_key] = parent_rowids
         return rowid_dict
 
@@ -643,7 +567,7 @@ class _CoreDependencyCache(object):
 
         table = depc[tablekey]
         parent_rowidsT = ut.dict_take(rowid_dict,
-                                      table.parent_id_prefixes)
+                                      table.parent_id_tablenames)
         if table.ismulti:
             parent_rowids = parent_rowidsT
         else:
@@ -928,14 +852,18 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             depc.fname_to_db[fname].print_table_csv('config')
 
     def get_edges(depc, data=False):
-        gen_ = ((table, parent, tablekey)
-                for tablekey, table in depc.cachetable_dict.items()
-                for parent in table.parents)
         if data:
-            edges = [(parent, tablekey, {'ismulti': table.ismulti})
-                     for (table, parent, tablekey) in gen_]
+            edges = [
+                (parentkey, tablekey, {'ismulti': parent_data['ismulti']})
+                for tablekey, table in depc.cachetable_dict.items()
+                for parentkey, parent_data in table.parents(data=True)
+            ]
         else:
-            edges = [(parent, tablekey) for (table, parent, tablekey) in gen_]
+            edges = [
+                (parentkey, tablekey)
+                for tablekey, table in depc.cachetable_dict.items()
+                for parentkey in table.parents(data=False)
+            ]
         return edges
 
     def get_implicit_edges(depc, data=False):
@@ -1013,21 +941,31 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         nx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
         nx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
         if kwargs.get('reduced', True):
-            graph_tr = ut.nx_transitive_reduction(graph)
+
+            # Reduce only the non-multi part of the graph
+            nonmulti_graph = graph.copy()
+            multi_data_edges = [(u, v, d) for u, v, d in graph.edges(data=True) if d.get('ismulti')]
+            multi_edges = [(u, v) for u, v, d in multi_data_edges]
+            nonmulti_graph.remove_edges_from(multi_edges)
+
+            graph_tr = ut.nx_transitive_reduction(nonmulti_graph)
             G = graph
             G_tr = graph_tr
 
             # HACK IN STRUCTURE
-
             # Multi Edges
-            for u, v, data in G.edges(data=True):
-                if data.get('ismulti'):
-                    new_parent = nx.shortest_path(G_tr, u, v)[-2]
-                    #G_tr[new_parent][v][0]['is_multi'] = True
-                    print("NEW MULTI")
-                    print((new_parent, v))
-                    nx.set_edge_attributes(G_tr, 'ismulti', {(new_parent, v, 0): True})
-                    #print(v)
+            # (doesn't quite work)
+            if False:
+                for u, v, data in G.edges(data=True):
+                    if data.get('ismulti'):
+                        new_parent = nx.shortest_path(G_tr, u, v)[-2]
+                        #G_tr[new_parent][v][0]['is_multi'] = True
+                        print("NEW MULTI")
+                        print((new_parent, v))
+                        nx.set_edge_attributes(G_tr, 'ismulti', {(new_parent, v, 0): True})
+                        #print(v)
+            else:
+                G_tr.add_edges_from(multi_data_edges)
 
             parents = ut.ddict(list)
             for u, v, data in G.edges(data=True):

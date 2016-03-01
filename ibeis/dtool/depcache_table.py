@@ -3,6 +3,7 @@
 Module contining DependencyCacheTable
 
 python -m dtool.depcache_control --exec-make_graph --show
+python -m dtool.depcache_control --exec-make_graph --show --reduce
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -124,6 +125,8 @@ class DependencyCacheTable(ut.NiceRepr):
             from dtool.sql_control import SQLDatabaseController
             table.db = SQLDatabaseController()
         table.fpath_to_db = {}
+        import re
+        assert re.search('[0-9]', tablename) is None, 'tablename=%r cannot contain numbers' % (tablename,)
 
         table.parent_tablenames = parent_tablenames
         table.tablename = tablename
@@ -140,23 +143,23 @@ class DependencyCacheTable(ut.NiceRepr):
         table.chunksize = chunksize
         table._asobject = asobject
         # SQL Internals
+        table.sqldb_fpath = None
         table._internal_parent_id_colnames = ()
         table._internal_parent_id_coltypes = ()
         table._internal_parent_extra_colnames = ()
         table._internal_parent_extra_coltypes = ()
         table._parent_id_prefixes = ()
         table._internal_data_colnames = ()
-        table._internal_data_coltypes = ()
         table._nested_idxs = []
-        table.sqldb_fpath = None
         table.extern_read_funcs = {}
         table.extern_write_funcs = {}
         table.extern_ext_config_keys = {}
         table.extern_io_classes = {}
         table.multi_parent_colxs = {}
         # Update internals
-        table._update_parentcol_internal()
-        table._update_datacol_internal()
+        table._update_internal_parentcol()
+        table._update_internal_datacol()
+        table._update_internal_allcol()
         # Check for errors
         table._assert_self()
 
@@ -175,7 +178,16 @@ class DependencyCacheTable(ut.NiceRepr):
         else:
             # TODO: Check for table modifications
             new_state = table.get_addtable_kw()
-            current_state = table.db.get_table_autogen_dict(table.tablename)
+            try:
+                current_state = table.db.get_table_autogen_dict(table.tablename)
+            except Exception as ex:
+                strict = True
+                ut.printex(ex, 'TABLE %s IS CORRUPTED' % (table.tablename,), iswarning=not strict)
+                if strict:
+                    raise
+                table.clear_table()
+                current_state = table.db.get_table_autogen_dict(table.tablename)
+
             if current_state['coldef_list'] != new_state['coldef_list']:
                 print('WARNING TABLE IS MODIFIED')
                 if predrop_grace_period(table.tablename):
@@ -190,87 +202,149 @@ class DependencyCacheTable(ut.NiceRepr):
                                        table.ismulti else '', num_cols)
 
     def _assert_self(table):
-        assert len(table.data_colnames) == len(table.data_coltypes), (
-            'specify same number of colnames and coltypes')
-        if table.preproc_func is not None:
-            # Check that preproc_func has a valid signature
-            # ie (depc, parent_ids, config)
-            argspec = ut.get_func_argspec(table.preproc_func)
-            args = argspec.args
-            if argspec.varargs and argspec.keywords:
-                assert len(args) == 1, (
-                    'varargs and kwargs must have one arg for depcache')
-            else:
-                if len(args) < 3:
-                    print('args = %r' % (args,))
-                    msg = (
-                        'preproc_func=%r for table=%s must have a '
-                        'depcache arg, at least one parent rowid arg, '
-                        'and a config arg') % (
-                            table.preproc_func, table.tablename,)
+        import utool
+        with utool.embed_on_exception_context:
+
+            assert len(table.data_colnames) == len(table.data_coltypes), (
+                'specify same number of colnames and coltypes')
+            if table.preproc_func is not None:
+                # Check that preproc_func has a valid signature
+                # ie (depc, parent_ids, config)
+                argspec = ut.get_func_argspec(table.preproc_func)
+                args = argspec.args
+                if argspec.varargs and argspec.keywords:
+                    assert len(args) == 1, (
+                        'varargs and kwargs must have one arg for depcache')
+                else:
+                    if len(args) < 3:
+                        print('args = %r' % (args,))
+                        msg = (
+                            'preproc_func=%r for table=%s must have a '
+                            'depcache arg, at least one parent rowid arg, '
+                            'and a config arg') % (
+                                table.preproc_func, table.tablename,)
+                        raise AssertionError(msg)
+                    rowid_args = args[1:-1]
+                    if len(rowid_args) != len(table.parents()):
+                        print('table.preproc_func = %r' %
+                              (table.preproc_func,))
+                        print('args = %r' % (args,))
+                        print('rowid_args = %r' % (rowid_args,))
+                        msg = (
+                            ('preproc function for table=%s must have as many '
+                             'rowids %d args as parent %d') % (
+                                table.tablename, len(rowid_args),
+                                 len(table.parents()))
+                        )
+                        raise AssertionError(msg)
+            for colname, cls in table.extern_io_classes.items():
+                # Check external column class funcs
+                argspec = ut.get_func_argspec(cls.__init__)
+                if argspec.defaults is not None:
+                    num_nondefault = len(argspec.args) - len(argspec.defaults)
+                else:
+                    num_nondefault = len(argspec.args)
+                if num_nondefault > 1:
+                    msg = ut.codeblock(
+                        '''
+                        External args must be able to be constructed without any
+                        args. IE: You need a default __init__(self) method
+                        ''')
                     raise AssertionError(msg)
-                rowid_args = args[1:-1]
-                if len(rowid_args) != len(table.parents):
-                    print('table.preproc_func = %r' %
-                          (table.preproc_func,))
-                    print('args = %r' % (args,))
-                    print('rowid_args = %r' % (rowid_args,))
-                    msg = (
-                        ('preproc function for table=%s must have as many '
-                         'rowids %d args as parents %d') % (
-                            table.tablename, len(rowid_args),
-                             len(table.parents))
-                    )
-                    raise AssertionError(msg)
-        for colname, cls in table.extern_io_classes.items():
-            # Check external column class funcs
-            argspec = ut.get_func_argspec(cls.__init__)
-            if argspec.defaults is not None:
-                num_nondefault = len(argspec.args) - len(argspec.defaults)
-            else:
-                num_nondefault = len(argspec.args)
-            if num_nondefault > 1:
-                msg = ut.codeblock(
-                    '''
-                    External args must be able to be constructed without any
-                    args. IE: You need a default __init__(self) method
-                    ''')
-                raise AssertionError(msg)
 
     def get_addtable_kw(table):
-        primary_coldef = [(table.rowid_colname, 'INTEGER PRIMARY KEY')]
-        internal_parent_id_coldef = list(zip(
-            table._internal_parent_id_colnames,
-            table._internal_parent_id_coltypes,
-        ))
-        config_coldef = [
-            (CONFIG_ROWID, 'INTEGER DEFAULT 0')
-        ]
-        internal_parent_extras_coldef = list(zip(
-            table._internal_parent_extra_colnames,
-            table._internal_parent_extra_coltypes,
-        ))
-        internal_data_coldef = list(zip(
-            table._internal_data_colnames,
-            table._internal_data_coltypes
-        ))
-        coldef_list = (
-            primary_coldef +
-            internal_parent_id_coldef +
-            config_coldef +
-            internal_data_coldef +
-            internal_parent_extras_coldef
-        )
+        coldef_list = [(colattr['intern_colname'], colattr['sqltype'])
+                       for colattr in table.internal_col_attrs]
         add_table_kw = ut.odict([
             ('tablename', table.tablename,),
             ('coldef_list', coldef_list,),
             ('docstr', table.docstr,),
             ('superkeys', [table.superkey_colnames],),
-            ('dependson', table.parents),
+            ('dependson', table.parents()),
         ])
         return add_table_kw
 
-    def _update_datacol_internal(table):
+    def _update_internal_allcol(table):
+        r"""
+        Build column definitions convinient for sql
+
+        CommandLine:
+            python -m dtool.depcache_table --exec-_update_internal_allcol --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> for table in ut.take(depc, ['vsone', 'spam', 'notch', 'vsmany', 'chip', 'multitest']): #depc.tables:
+            >>>     print('----')
+            >>>     table._update_internal_allcol()
+            >>>     print(table)
+            >>>     ut.colorprint('table.internal_col_attrs = %s' % (ut.repr3(table.internal_col_attrs, nl=1, sorted_=False)), 'python')
+            >>>     print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs, nl=2),))
+            >>>     print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=2),))
+            >>>     for a in ut.get_instance_attrnames(table, with_properties=True, default=False):
+            >>>         print('  table.%s = %r' % (a, getattr(table, a)))
+        """
+        internal_col_attrs = []
+
+        # Append primary column
+        colattr = ut.odict([
+            ('intern_colname', table.rowid_colname),
+            ('sqltype', 'INTEGER PRIMARY KEY'),
+        ])
+        colattr['intern_colx'] = len(internal_col_attrs)
+        internal_col_attrs.append(colattr)
+
+        # Append parent columns
+        for parent_colattr in table.parent_col_attrs:
+            colattr = ut.odict()
+            colattr['intern_colname'] = parent_colattr['intern_colname']
+            colattr['parent_table'] = parent_colattr['parent_table']
+            colattr['ismulti'] = parent_colattr['ismulti']
+            colattr['sqltype'] = parent_colattr['sqltype']
+            colattr['parent_colx'] = parent_colattr['parent_colx']
+            colattr['intern_colx'] = len(internal_col_attrs)
+            internal_col_attrs.append(colattr)
+
+        # Append config columns
+        colattr = ut.odict([
+            ('intern_colname', CONFIG_ROWID),
+            ('sqltype', 'INTEGER DEFAULT 0'),
+        ])
+        colattr['intern_colx'] = len(internal_col_attrs)
+
+        # Append data columns
+        internal_col_attrs.append(colattr)
+        for data_colattr in table.data_col_attrs:
+            if data_colattr.get('is_nested', False):
+                for nestcol in data_colattr['nestattrs']:
+                    colattr = ut.odict()
+                    colattr['intern_colname'] = nestcol['flat_colname']
+                    colattr['sqltype'] = nestcol['sqltype']
+                    colattr['intern_colx'] = len(internal_col_attrs)
+                    colattr['data_colx'] = data_colattr['data_colx']
+                    internal_col_attrs.append(colattr)
+            else:
+                colattr = ut.odict()
+                colattr['intern_colname'] = data_colattr['intern_colname']
+                colattr['sqltype'] = data_colattr['sqltype']
+                colattr['intern_colx'] = len(internal_col_attrs)
+                colattr['data_colx'] = data_colattr['data_colx']
+                internal_col_attrs.append(colattr)
+
+        # Append extra columns
+        for parent_colattr in table.parent_col_attrs:
+            for extra_colattr in parent_colattr.get('extra_cols', []):
+                colattr = ut.odict()
+                colattr['intern_colname'] = extra_colattr['intern_colname']
+                colattr['sqltype'] = extra_colattr['sqltype']
+                colattr['intern_colx'] = len(internal_col_attrs)
+                internal_col_attrs.append(colattr)
+
+        table.internal_col_attrs = internal_col_attrs
+
+    def _update_internal_datacol(table):
         """
         Constructs the columns needed to represent relationship to data
 
@@ -278,7 +352,7 @@ class DependencyCacheTable(ut.NiceRepr):
         datatypes
 
         CommandLine:
-            python -m dtool.depcache_table --exec-_update_datacol_internal --show
+            python -m dtool.depcache_table --exec-_update_internal_datacol --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -287,15 +361,8 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> for table in depc.tables:
             >>>     print('----')
-            >>>     table._update_datacol_internal()
+            >>>     table._update_internal_datacol()
             >>>     print(table)
-            >>>     #print('data_colnames = %r' % (table.data_colnames,))
-            >>>     #print('data_coltypes = %r' % (table.data_coltypes,))
-            >>>     #print('_internal_data_colnames = %r' % (table._internal_data_colnames,))
-            >>>     #print('_internal_data_coltypes = %r' % (table._internal_data_coltypes,))
-            >>>     #print('nested_to_flat = %r' % (table.nested_to_flat,))
-            >>>     #print('external_to_internal = %r' % (table.external_to_internal,))
-            >>>     #print('extern_read_funcs = %r' % (table.extern_read_funcs,))
             >>>     print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=8)))
             >>> table = depc['probchip']
             >>> table = depc['spam']
@@ -331,8 +398,8 @@ class DependencyCacheTable(ut.NiceRepr):
 
         # Parse column datatypes
         _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
-        for colx, (colname, coltype) in _iter:
-            colattr = {}
+        for data_colx, (colname, coltype) in _iter:
+            colattr = ut.odict()
             # Check column input subtypes
             is_tuple     = isinstance(coltype, tuple)
             is_func      = ut.is_func_or_method(coltype)
@@ -346,27 +413,28 @@ class DependencyCacheTable(ut.NiceRepr):
             # Switch on input types
             colattr['colname'] = colname
             colattr['coltype'] = coltype
-            colattr['colx'] = colx
+            colattr['data_colx'] = data_colx
             if is_normal:
                 # Normal non-nested column
                 sqltype = lite.TYPE_TO_SQLTYPE[coltype]
                 internal_data_colnames.append(colname)
                 internal_data_coltypes.append(sqltype)
+                colattr['intern_colname'] = colname
                 colattr['sqltype'] = sqltype
                 colattr['is_normal'] = is_normal
             elif is_nested:
                 # Nested non-function normal columns
-                table._nested_idxs.append(colx)
+                table._nested_idxs.append(data_colx)
                 nested_to_flat[colname] = []
                 colattr['is_nested'] = is_nested
                 nestattrs = colattr['nestattrs'] = []
                 for count, subtype in enumerate(coltype):
-                    nestattr = {}
+                    nestattr = ut.odict()
                     nestattrs.append(nestattr)
                     flat_colname = '%s_%d' % (colname, count)
+                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
                     nested_to_flat[colname].append(flat_colname)
                     internal_data_colnames.append(flat_colname)
-                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
                     internal_data_coltypes.append(sqltype)
                     nestattr['flat_colname'] = flat_colname
                     nestattr['sqltype'] = sqltype
@@ -404,13 +472,13 @@ class DependencyCacheTable(ut.NiceRepr):
                         'External classes must have __getstate__ and '
                         '__setstate__ methods')
                 read_func, write_func = make_extern_io_funcs(coltype)
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
                 extern_io_classes[colname]  = coltype
                 extern_read_funcs[colname]  = read_func
                 extern_write_funcs[colname] = write_func
                 intern_colname = colname + EXTERN_SUFFIX
                 external_to_internal[colname] = intern_colname
                 internal_data_colnames.append(intern_colname)
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
                 internal_data_coltypes.append(sqltype)
                 #raise AssertionError('external class columns')
                 colattr['coltype'] = coltype
@@ -430,58 +498,56 @@ class DependencyCacheTable(ut.NiceRepr):
         table.nested_to_flat = nested_to_flat
         table.data_col_attrs = data_col_attrs
         table._internal_data_colnames = tuple(internal_data_colnames)
-        table._internal_data_coltypes = tuple(internal_data_coltypes)
         table._assert_self()
 
-    def _update_parentcol_internal(table):
+    def _update_internal_parentcol(table):
         """
-        constructs the columns needed to represent relationship to parents
+        constructs the columns needed to represent relationship to parent
 
         CommandLine:
-            python -m dtool.depcache_table --exec-_update_parentcol_internal --show
+            python -m dtool.depcache_table --exec-_update_internal_parentcol --show
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> for table in depc.tables:
+            >>> for table in ['vsone', 'multitest', 'spam', 'notch', 'vsmany', 'chip']: #depc.tables:
             >>>     print('----')
-            >>>     table._update_parentcol_internal()
+            >>>     table._update_internal_parentcol()
             >>>     print(table)
             >>>     print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs),))
         """
         parent_col_attrs = []
 
-        # Handle dependencies when a parents are pairwise between tables
+        # Handle dependencies when a parent are pairwise between tables
         ismulti_cols = {}
         multi_parent_colxs = []
         parent_id_prefixs1 = []
         parent_id_prefixs2 = []
         seen_ = ut.ddict(lambda: 1)
 
-        for colx, col in enumerate(table.parent_tablenames):
-            colattr = {}
+        for parent_colx, col in enumerate(table.parent_tablenames):
+            colattr = ut.odict()
             # Detect multicolumns
             if col.endswith('*'):
                 ismulti = True
-                prefix = col[:-1]
-                ismulti_cols[prefix] = True
-                multi_parent_colxs.append(colx)
+                parent_table = col[:-1]
+                ismulti_cols[parent_table] = True
+                multi_parent_colxs.append(parent_colx)
             else:
                 ismulti = False
-                prefix = col
-            colattr['colx'] = colx
+                parent_table = col
             colattr['col'] = col
             colattr['ismulti'] = ismulti
-            colattr['prefix'] = prefix
-            parent_id_prefixs1.append(prefix)
+            colattr['parent_table'] = parent_table
+            colattr['parent_colx'] = parent_colx
+            parent_id_prefixs1.append(parent_table)
             parent_col_attrs.append(colattr)
-        table.parent_col_attrs = parent_col_attrs
 
         colhist = ut.dict_hist(parent_id_prefixs1)
-        for colx, col in enumerate(parent_id_prefixs1):
-            colattr = parent_col_attrs[colx]
+        for parent_colx, col in enumerate(parent_id_prefixs1):
+            colattr = parent_col_attrs[parent_colx]
             if colhist[col] > 1:
                 # Duplicate column names recieve indicies
                 prefix = col + str(seen_[col])
@@ -490,6 +556,7 @@ class DependencyCacheTable(ut.NiceRepr):
                 colattr['n'] = colhist[col]
             else:
                 prefix = col
+            colattr['prefix'] = prefix
             parent_id_prefixs2.append(prefix)
 
         _internal_parent_id_colnames = []
@@ -498,7 +565,7 @@ class DependencyCacheTable(ut.NiceRepr):
         _internal_parent_extra_colnames = []
         _internal_parent_extra_coltypes = []
 
-        # Handle case when parents are a set of ids
+        # Handle case when parent are a set of ids
         for colattr, prefix in zip(parent_col_attrs, parent_id_prefixs2):
             # HACK. ALL COLUMNS ARE MULTI
             # FIXME: will bug one duplicate multi-indexes
@@ -508,26 +575,32 @@ class DependencyCacheTable(ut.NiceRepr):
                 # hash of set items
                 colname = prefix + '_setuuid'
                 sqltype = 'TEXT NOT NULL'
+                extra_cols = [
+                    {'intern_colname': prefix + '_setsize', 'sqltype': 'INTEGER NOT NULL'},
+                    {'intern_colname': prefix + '_setfpath', 'sqltype': 'TEXT'},
+                ]
                 _internal_parent_id_colnames.append(colname)
                 _internal_parent_id_coltypes.append(sqltype)
                 # number of items in set
-                extra_colnames = [prefix + '_setsize', prefix + '_setfpath']
-                extra_coltypes = ['INTEGER NOT NULL', 'TEXT']
                 _internal_parent_extra_colnames.append(prefix + '_setsize')
                 _internal_parent_extra_colnames.append(prefix + '_setfpath')
                 # path to indiviual parts
                 _internal_parent_extra_coltypes.append('INTEGER NOT NULL')
                 _internal_parent_extra_coltypes.append('TEXT')
-                colattr['extra_colnames'] = extra_colnames
-                colattr['extra_coltypes'] = extra_coltypes
+                colattr['extra_cols'] = extra_cols
             else:
                 # Normal case when dependencies are one to one
                 colname = prefix + '_rowid'
                 sqltype = 'INTEGER NOT NULL'
                 _internal_parent_id_colnames.append(colname)
                 _internal_parent_id_coltypes.append(sqltype)
-            colattr['colname'] = colname
+            colattr['intern_colname'] = colname
             colattr['sqltype'] = sqltype
+
+        parent_col_attrs = [ut.order_dict_by(colattr, ['intern_colname', 'sqltype'])
+                            for colattr in parent_col_attrs]
+        table.parent_col_attrs = parent_col_attrs
+
         table._internal_parent_id_colnames = tuple(
             _internal_parent_id_colnames)
         table._internal_parent_id_coltypes = tuple(
@@ -554,16 +627,34 @@ class DependencyCacheTable(ut.NiceRepr):
         #return sum(table.ismulti_cols.values()) > 0
 
     @property
-    def parents(table):
-        return [p.replace('*', '') for p in table.parent_tablenames]
+    def parent(table):
+        return ut.odict([(parent_colattr['parent_table'], parent_colattr)
+                         for parent_colattr in table.parent_col_attrs])
+        #return tuple([parent_colattr['parent_table']
+        #              for parent_colattr in table.parent_col_attrs])
+
+    def parents(table, data=None):
+        if data:
+            return [(parent_colattr['parent_table'], parent_colattr)
+                    for parent_colattr in table.parent_col_attrs]
+        else:
+            return [parent_colattr['parent_table']
+                    for parent_colattr in table.parent_col_attrs]
 
     @property
-    def parent_id_colnames(table):
-        return table._internal_parent_id_colnames
+    def parent_id_tablenames(table):
+        tablenames = tuple([parent_colattr['parent_table']
+                            for parent_colattr in table.parent_col_attrs])
+        return tablenames
 
     @property
-    def parent_id_prefixes(table):
-        return table._parent_id_prefixes
+    def parent_id_prefix(table):
+        prefixes = tuple([parent_colattr['prefix']
+                          for parent_colattr in table.parent_col_attrs])
+        import utool
+        with utool.embed_on_exception_context:
+            assert prefixes == table._parent_id_prefixes
+            return prefixes
 
     @property
     def children(table):
@@ -590,8 +681,12 @@ class DependencyCacheTable(ut.NiceRepr):
         return table.parent_id_colnames + (CONFIG_ROWID,)
 
     @property
-    def _table_colnames(table):
-        return
+    def parent_id_colnames(table):
+        return table._internal_parent_id_colnames
+
+    #@property
+    #def _table_colnames(table):
+    #    return
 
     def print_schemadef(table):
         print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
@@ -645,7 +740,7 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def requestclass(table):
-        return table.depc.requestclass_dict[table.tablename]
+        return table.depc.requestclass_dict.get(table.tablename, None)
 
     # ---------------------------
     # --- CONFIGURATION TABLE ---
@@ -757,7 +852,7 @@ class DependencyCacheTable(ut.NiceRepr):
             if table._asobject:
                 # Convinience
                 argsT = [table.depc.get_obj(parent, rowids)
-                         for parent, rowids in zip(table.parents,
+                         for parent, rowids in zip(table.parents(),
                                                    dirty_parent_ids)]
             # hack out config if given a request
             config_ = config.config if hasattr(config, 'config') else config
@@ -777,6 +872,7 @@ class DependencyCacheTable(ut.NiceRepr):
             prog_iter = ut.ProgChunks(dirty_params_iter, chunksize, nInput,
                                       lbl='add %s chunk' % (table.tablename))
             # TODO: Separate into func which can be specified as a callback.
+            #colnames =
             colnames = (
                 table.superkey_colnames +
                 table._internal_data_colnames +
@@ -792,7 +888,7 @@ class DependencyCacheTable(ut.NiceRepr):
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table',
-                'table.parents',
+                'table.parents()',
                 'parent_ids_',
                 'config',
                 'argsT',
@@ -864,7 +960,6 @@ class DependencyCacheTable(ut.NiceRepr):
         """
         Writes external data to disk if write function is specified.
         """
-        #extern_colnames = list(table.extern_io_classes.keys())
         extern_colnames = list(table.extern_write_funcs.keys())
         nCols = len(table._internal_data_colnames)
         idxs1 = [
@@ -958,93 +1053,20 @@ class DependencyCacheTable(ut.NiceRepr):
             python -m dtool.depcache_table --exec-get_rowid:4
             python -m dtool.depcache_table --exec-get_rowid:5
 
-        Example0:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['vsmany']
-            >>> request = table.new_request([1, 2], [3, 4])
-            >>> results = request.execute()
-            >>> print(results)
-
-        Example1:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> config = {}
-            >>> table = depc['spam']
-            >>> rowid_dict = depc.get_all_descendant_rowids('spam', [1, 2], levels_up=1)
-            >>> parent_rowids = list(zip(*ut.dict_take(rowid_dict, table.parents)))
-            >>> rowids = table.get_rowid(parent_rowids)
-            >>> print(rowids)
-
-        Example2:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> # Test normal case
-            >>> depc = testdata_depc()
-            >>> table = depc['notch']
-            >>> config = table.configclass()
-            >>> _debug = True
-            >>> parent_rowids = list(zip([1, None, 2, 3, 4]))
-            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
-            >>> result = ('rowids = %r' % (rowids,))
-            >>> print(result)
-            rowids = [1, None, 2, 3, 4]
-
-        Example3:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['vsone']
-            >>> _debug = True
-            >>> # Test pairwise parent case
-            >>> config = request = depc.new_request('vsone', [1, 2], [2, 3, 4])
-            >>> parent_rowids = request.parent_rowids
-            >>> ut.colorprint('Testing add_rows via getters', 'blue')
-            >>> rowids = table.get_rowid(parent_rowids, config=request, _debug=_debug)
-            >>> match_list = request.execute()
-            >>> print(match_list)
-            >>> print(rowids)
-
-        Example4:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> # Test get behavior for multi (model) tables
-            >>> depc = testdata_depc()
-            >>> table = depc['nnindexer']
-            >>> config = table.configclass()
-            >>> _debug = True
-            >>> parent_rowids = [((1, 2, 3, 4),), None, ((1, 2, 3, 4, 5),)]
-            >>> #exec(ut.execstr_funckw(depc.add_rows_from_parent), globals())
-            >>> #ut.exec_func(table.add_rows_from_parent, globals(), sentinal='fmtstr = ')
-            >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
-            >>> result = ('rowids = %r' % (rowids,))
-            >>> indexer = table.get_row_data(rowids)
-            >>> print('indexer = %r' % (indexer,))
-            >>> print(result)
-            rowids = [1, None, 2]
-
         Example5:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> # Test get behavior for multi (model) tables
             >>> depc = testdata_depc()
-            >>> table = depc['multitest1']
+            >>> table = depc['multitest']
             >>> config = table.configclass()
+            >>> exec(ut.execstr_funckw(table.get_rowid), globals())
             >>> _debug = True
             >>> depc.get_rowids('chip', [1, 2, 3, 4, 5])
             >>> depc.get_rowids('spam', [2, 3])
-            >>> parent_rowids = [((1, 2, 3, 4), 3, (1, 2,)), (None, None, None),
-            >>>                  ((1, 2, 3, 4, 5), None, (1, 2,)), ((1, 2,), 1, (2, 3,))]
-            >>> #exec(ut.execstr_funckw(depc.add_rows_from_parent), globals())
-            >>> #ut.exec_func(table.add_rows_from_parent, globals(), sentinal='fmtstr = ')
+            >>> parent_rowids = [((1, 2, 3, 4), 3, (1, 2,), 1), (None, None, None, 1),
+            >>>                  ((1, 2, 3, 4, 5), None, (1, 2,), 1), ((1, 2,), 1, (2, 3,), 1)]
             >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
             >>> result = ('rowids = %r' % (rowids,))
             >>> indexer = table.get_row_data(rowids)
@@ -1054,7 +1076,7 @@ class DependencyCacheTable(ut.NiceRepr):
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
-            print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parents' % (
+            print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parent' % (
                 table.tablename, len(parent_rowids)))
             print('[deptbl.get_rowid] config = %r' % (config,))
             print('[deptbl.get_rowid] ensure = %r' % (ensure,))
@@ -1073,11 +1095,11 @@ class DependencyCacheTable(ut.NiceRepr):
 
         if table.ismulti:
             # Convert any parent-id containing multiple values into a hash of uuids
-            normal_colxs = ut.index_complement(table.multi_parent_colxs, len(table.parents))
+            normal_colxs = ut.index_complement(table.multi_parent_colxs, len(table.parent))
             multi_parents = [ut.apply_grouping(ids_, table.multi_parent_colxs) for ids_ in valid_parent_ids_]
             normal_parents = [ut.apply_grouping(ids_, normal_colxs) for ids_ in valid_parent_ids_]
             # TODO: give each table a uuid getter function that derives from get_root_uuids
-            multicol_tables = ut.take(table.parents, table.multi_parent_colxs)
+            multicol_tables = ut.take(table.parents(), table.multi_parent_colxs)
             parent_uuid_getters = [table.depc.get_root_uuid if col == table.depc.root else ut.identity
                                    for col in multicol_tables]
             #parent_uuid_getters = [table.depc.get_root_uuid for idx in table.multi_parent_colxs]
@@ -1093,7 +1115,7 @@ class DependencyCacheTable(ut.NiceRepr):
             #parent_ids_ = [(multiset_uuid, parent_num)]
             #parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
             parent_ids_ = [tuple(
-                ut.ungroup([uuids, normalids], [table.multi_parent_colxs, normal_colxs], len(table.parents) - 1))
+                ut.ungroup([uuids, normalids], [table.multi_parent_colxs, normal_colxs], len(table.parent) - 1))
                 for uuids, normalids in zip(multiset_uuid_list, normal_parents)
             ]
         else:
@@ -1337,9 +1359,6 @@ class DependencyCacheTable(ut.NiceRepr):
                 uri_full = join(table.depc.cache_dpath, uri)
                 try:
                     if read_extern:
-                        #colname = flat_intern_colnames[extern_colx]
-                        #cls = table.extern_io_classes[colname]
-                        #if hasattr(cls, 'on_load'):
                         data = read_func(uri_full)
                     else:
                         ut.assertpath(uri_full)
