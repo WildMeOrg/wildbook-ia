@@ -360,7 +360,7 @@ def testdata_depc(fname=None):
             yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
 
     @depc.register_preproc(
-        'nnindexer', [dummy_root + '*'], ['flann'], [str],  # [('extern', ut.load_data)],
+        'nnindexer', ['keypoint*'], ['flann'], [str],  # [('extern', ut.load_data)],
         configclass=DummyIndexerConfig,
     )
     def dummy_preproc_indexer(depc, parent_rowids_list, config=None):

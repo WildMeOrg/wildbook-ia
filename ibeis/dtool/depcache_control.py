@@ -280,7 +280,7 @@ class _CoreDependencyCache(object):
             [
                 ['chip'],
                 ['keypoint'],
-                ['fgweight', 'descriptor'],
+                ['fgweight', 'nnindexer', 'descriptor'],
                 ['spam'],
                 ['multitest'],
                 ['multitest_score'],
@@ -507,7 +507,8 @@ class _CoreDependencyCache(object):
 
         # TODO: better support for multi-edges
 
-        if len(root_rowids) > 0 and ut.isiterable(root_rowids[0]) and not depc[tablename].ismulti:
+        if (len(root_rowids) > 0 and ut.isiterable(root_rowids[0]) and
+             not depc[tablename].ismulti):
             rowid_dict = {}
             for colx, col in enumerate(root_rowids):
                 rowid_dict[depc.root + '%d' % (colx + 1,)] = col
@@ -611,11 +612,40 @@ class _CoreDependencyCache(object):
         """
         Returns the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
+            >>> root_rowids = [1, 2, 3]
+            >>> kp_rowids = depc.get_rowids('keypoint', root_rowids)
+            >>> tablename = 'vsone'
+            >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
+            >>> print(result)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
+            >>> flat_root_ids = [1, 2, 3]
+            >>> kp_rowids = depc.get_rowids('keypoint', flat_root_ids)
+            >>> root_rowids = [flat_root_ids]
+            >>> tablename = 'nnindexer'
+            >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
+            >>> print(result)
         """
-        table = depc[tablename]
-        if table.ismulti:
-            # TODO: rectify multi root_rowids
-            pass
+        #table = depc[tablename]
+        ##[multi_flags]
+        #multi_flags = table.get_intern_parent_col_attr('ismulti')
+        #nwise_flags = table.get_intern_parent_col_attr('isnwise')
+        #ut.compress(root_rowids, multi_flags)
+        #if table.ismulti:
+        #    # TODO: rectify multi root_rowids
+        #    pass
         #import utool
         #with utool.embed_on_exception_context:
         if True:
@@ -679,10 +709,10 @@ class _CoreDependencyCache(object):
             list: prop_list
 
         CommandLine:
-            python -m dtool.depcache_control --exec-get_property --show
+            python -m dtool.depcache_control --exec-get_property
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
