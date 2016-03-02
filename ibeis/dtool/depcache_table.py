@@ -676,21 +676,21 @@ class DependencyCacheTable(ut.NiceRepr):
     @property
     def children(table):
         import networkx as nx
-        graph = table.depc.make_graph(with_implicit=False)
+        graph = table.depc.explicit_graph
         children_tablenames = nx.neighbors(graph, table.tablename)
         return children_tablenames
 
     @property
     def ancestors(table):
         import networkx as nx
-        graph = table.depc.make_graph(with_implicit=False)
+        graph = table.depc.explicit_graph
         children_tablenames = nx.ancestors(graph, table.tablename)
         return children_tablenames
 
     @property
     def paths_from_source(table):
         import networkx as nx
-        graph = table.depc.make_graph(with_implicit=False)
+        graph = table.depc.explicit_graph
         sources = ut.find_source_nodes(graph)
         paths_from_source = ut.flatten([
             list(nx.all_simple_paths(graph, a, table.tablename))
@@ -738,7 +738,7 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def path_multi_edges_from_source(table):
-        graph = table.depc.make_graph(with_implicit=False)
+        graph = table.depc.explicit_graph
         paths_from_source = table.paths_from_source
         paths_from_source2 = ut.unique(ut.lmap(tuple, paths_from_source))
         path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
@@ -770,73 +770,55 @@ class DependencyCacheTable(ut.NiceRepr):
         return path_multiedges
 
     @property
-    def dep_split_edges(table):
+    def subgraph_split(table):
         """
         CommandLine:
-            python -m dtool.depcache_table --exec-dep_split_edges --show
+            python -m dtool.depcache_table --exec-subgraph_split --show
 
         Example:
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'multitest'
-            >>> table = depc[tablename]
-            >>> type_to_subgraphs = table.dep_split_edges
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc()
+            >>> tablename = 'multitest_score'
+            >>> table = depc[tablename]
+            >>> graph = table.depc.explicit_graph
+            >>> type_to_subgraphs = table.subgraph_split
+            >>> pt.show_nx(graph)
             >>> for type_, subgraph in type_to_subgraphs.items():
             >>>     pt.show_nx(subgraph)
             >>>     pt.set_title(type_)
-            >>> graph = table.depc.make_graph(with_implicit=False)
-            >>> pt.show_nx(graph)
             >>> ut.show_if_requested()
+            >>> pt.present()
         """
         # NEED TO SEPARATE SUBGRAPHS by edge type
         #import networkx as nx
-        graph = table.depc.make_graph(with_implicit=False)
-        #paths_from_source = table.paths_from_source
-        #paths_from_source = table.path_multi_edges_from_source
-        #path_edges = [tuple(ut.itertwo(path)) for path in paths_from_source]
+        graph = table.depc.explicit_graph
         path_edges = ut.lmap(tuple, table.path_multi_edges_from_source)
         path2_pidx = ut.make_index_lookup(path_edges)
 
         edge2_pidx = dict(ut.group_items(
-            *list(zip(*[(idx, edge) for path, idx in path2_pidx.items() for
-                        edge in path]))))
-        #pidx2_path = ut.invert_dict(path2_pidx)
+            *list(zip(*[(idx, edge) for path, idx in path2_pidx.items()
+                        for edge in path]))))
 
         edges = set(ut.flatten(path_edges))
 
-        #edges = set(ut.flatten([list(ut.itertwo(path))
-        #                        for path in paths_from_source]))
-        #subgraphs = {}
-        split_edges = []
-        type_to_paths2 = ut.ddict(list)
+        type_to_paths = ut.ddict(list)
         type_to_pidxs = {}
         for u, v, k in edges:
-            #mutli_edge_data = graph.edge[u][v]
-            #for k, edge_data in mutli_edge_data.items():
-            #print('graph.edge[%s][%s][%s] = %r' % (u, v, k, edge_data,))
             edge_data = graph.edge[u][v][k]
             edge_type = edge_data['edge_type']
             if edge_type != 'normal':
-                split_edge = (u, v, edge_type, edge_data)
                 pidxs = edge2_pidx[(u, v, k)]
                 type_to_pidxs[edge_type] = pidxs
-                split_edges.append(split_edge)
-                type_to_paths2[edge_type].extend(ut.take(path_edges, pidxs))
-                #subgraph = graph.subgraph(list(nx.descendants(graph, v)) + [v])
-                #subgraphs[split_edge] = subgraph
-                #print('subgraph.nodes = %r' % (subgraph.nodes(),))
-                #print(nx.descendants(graph, v))
-                #print("SPLIT")
+                type_to_paths[edge_type].extend(ut.take(path_edges, pidxs))
 
         type_to_subgraphs = {}
-        for type_, paths in type_to_paths2.items():
+        for type_, paths in type_to_paths.items():
             sub_edges = ut.flatten(paths)
             subgraph = ut.subgraph_from_edges(graph, sub_edges)
             type_to_subgraphs[type_] = subgraph
-            #pt.show_nx(subgraph)
 
         use_normal = True
         if use_normal:
@@ -845,46 +827,31 @@ class DependencyCacheTable(ut.NiceRepr):
             paths = ut.take(path_edges, normal_pidxs)
             sub_edges = ut.flatten(paths)
             subgraph = ut.subgraph_from_edges(graph, sub_edges)
-            type_to_subgraphs['normal'] = subgraph
+            if len(subgraph.node) > 0:
+                type_to_subgraphs['normal'] = subgraph
+
+        #list(nx.all_simple_paths(type_to_subgraphs['normal'], ut.find_source_nodes(graph)[0], table.tablename))
+        #ut.level_order(type_to_subgraphs['normal'])
+
+        ##rgraph = graph.reverse()
+        #have_parents_of = ut.ddict(set)
+        #total_parents_of = {}
+        #for type_, paths in type_to_paths.items():
+        #    #if len(paths) > 1:
+        #    #    break
+        #    for path in paths:
+        #        for u, v, k in path:
+        #            colx = graph.pred[v][u][k]['parent_colx']
+        #            total = sum(ut.map_dict_vals(len, graph.pred[v]).values())
+        #            have_parents_of[v].add(colx)
+        #            total_parents_of[v] = total
+        #            print((colx, total, u, v))
+        #            #if edge_colx > 1:
+        #            #    break
+        #have_fractions = {key: (have_parents_of[key], total_parents_of[key])
+        #                  for key in  have_parents_of}
 
         return type_to_subgraphs
-
-        #type_to_paths = ut.ddict(list)
-        #for path in paths_from_source:
-        #    minux = len(path)
-        #    split_type = None
-        #    for split_edge in split_edges:
-        #        u, v, t, d = split_edge
-        #        try:
-        #            ux = path.index(u)
-        #            vx = path.index(v)
-        #            if vx == ux + 1:
-        #                print('kill path = %r' % (path,))
-        #                if ux < minux:
-        #                    minux = ux
-        #                    split_type = t
-        #        except ValueError:
-        #            pass
-        #    if split_type is not None:
-        #        type_to_paths[split_type].append(path)
-        #    else:
-        #        type_to_paths['normal'].append(path)
-        #        #[:minux])
-        #print('type_to_paths = %r' % (type_to_paths,))
-        #if False:
-
-        #    vals = type_to_paths.values()[0]
-        #    vals = type_to_paths['multi_fgweight']
-
-        #    nodes = ut.unique(ut.flatten(vals))
-        #    subgraph = dag.subgraph(nodes)
-        #    #meta = ut.topsort_ordering(graph)
-        #    #preorder = ut.dict_subset(meta['pre'], nodes)
-        #    #postorder = ut.dict_subset(meta['post'], nodes)
-        #    #preorder = ut.sortedby(nodes, )
-        #    #postorder = ut.sortedby(nodes, ut.take(ordering['post'], nodes))
-        #    nodes = ut.intersect_ordered(nx.dag.topological_sort(graph),
-        #                                 ut.unique(ut.flatten(vals)))
 
     @property
     def extern_columns(table):
@@ -1403,7 +1370,7 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> table = depc['chip']
             >>> exec(ut.execstr_funckw(table.delete_rows), globals())
             >>> tablename = table.tablename
-            >>> graph = depc.make_graph(with_implicit=False)
+            >>> graph = depc.explicit_graph
             >>> config1 = None
             >>> config2 = table.configclass(version=-1)
             >>> config3 = table.configclass(version=-1, ext='.jpg')

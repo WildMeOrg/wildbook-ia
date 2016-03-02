@@ -562,9 +562,7 @@ class _CoreDependencyCache(object):
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
-                import utool
-                with utool.embed_on_exception_context:
-                    config_ = configclass(**config)
+                config_ = configclass(**config)
 
         table = depc[tablekey]
         parent_rowidsT = ut.dict_take(rowid_dict,
@@ -577,7 +575,6 @@ class _CoreDependencyCache(object):
         if _debug:
             print('   * tablekey = %r' % (tablekey,))
             print('   * configclass = %r' % (configclass,))
-            #print('   * requestclass = %r' % (requestclass,))
             print('   * config_ = %r' % (config_,))
             print('   * parent_rowids = %s' %
                   (ut.trunc_repr(parent_rowids),))
@@ -641,6 +638,20 @@ class _CoreDependencyCache(object):
             >>> print(result)
         """
         table = depc[tablename]  # NOQA
+        type_to_subgraph = table.subgraph_split
+        #graph = depc.explicit_graph
+        import networkx as nx
+        composed_graph = nx.compose_all(type_to_subgraph.values())
+        #pt.show_nx(composed_graph)
+        topsort = nx.topological_sort(composed_graph)
+        type_to_dependlevels = ut.map_dict_vals(ut.level_order, type_to_subgraph)
+        level_orders = type_to_dependlevels
+        # Find computation order for all dependencies
+        compute_order = ut.merge_level_order(level_orders, topsort)
+        print('compute_order = %r' % (ut.repr3(compute_order),))
+
+        #ut.print_dict(type_to_dependlevels, nl=1)
+
         ##[multi_flags]
         #multi_flags = table.get_intern_parent_col_attr('ismulti')
         #nwise_flags = table.get_intern_parent_col_attr('isnwise')
@@ -885,23 +896,28 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
     def get_edges(depc, data=False):
         if data:
-            def get_edgetype(tablekey, parentkey, parent_data):
+            def get_edgedata(tablekey, parentkey, parent_data):
                 if parent_data['ismulti'] or parent_data['isnwise']:
                     edge_type_parts = []
                     if parent_data['ismulti']:
-                        edge_type_parts.append('multi_%s' % (parentkey,))
+                        edge_type_parts.append('multi_%s_%s' % (parentkey, tablekey))
                     if parent_data['isnwise']:
-                        edge_type_parts.append('nwise_%s' % (parent_data['nwise_idx'],))
+                        edge_type_parts.append('nwise_%s_%s_%s' % (
+                            parentkey, tablekey, parent_data['nwise_idx'],))
                     edge_type_id = '_'.join(edge_type_parts)
                 else:
                     edge_type_id = 'normal'
-                return edge_type_id
-            edges = [
-                (parentkey, tablekey, {
+                edge_data = {
                     'ismulti': parent_data['ismulti'],
                     'isnwise': parent_data.get('isnwise'),
                     'nwise_idx': parent_data.get('nwise_idx'),
-                    'edge_type': get_edgetype(tablekey, parentkey, parent_data)})
+                    'parent_colx': parent_data.get('parent_colx'),
+                    'edge_type': edge_type_id
+                }
+                return edge_data
+            edges = [
+                (parentkey, tablekey,
+                 get_edgedata(tablekey, parentkey, parent_data))
                 for tablekey, table in depc.cachetable_dict.items()
                 for parentkey, parent_data in table.parents(data=True)
             ]
@@ -965,7 +981,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
 
-        if kwargs.get('with_implicit', True):
+        if kwargs.get('implicit', True):
             implicit_edges = depc.get_implicit_edges(data=True)
             graph.add_edges_from(implicit_edges)
 
@@ -1038,6 +1054,14 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     @property
     def graph(depc):
         return depc.make_graph()
+
+    @property
+    def explicit_graph(depc):
+        return depc.make_graph(implicit=False)
+
+    @property
+    def reduced_graph(depc):
+        return depc.make_graph(reduced=True)
 
     def show_graph(depc, reduced=False, **kwargs):
         """ Helper "fluff" function """
