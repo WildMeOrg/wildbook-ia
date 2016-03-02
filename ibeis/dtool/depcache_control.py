@@ -540,9 +540,7 @@ class _CoreDependencyCache(object):
             indenter.stop()
         return rowid_dict
 
-    def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
-                             eager, nInput, config, recompute, recompute_all,
-                             _debug):
+    def _ensure_config(depc, tablekey, config):
         configclass = depc.configclass_dict.get(tablekey, None)
         #requestclass = depc.requestclass_dict.get(tablekey, None)
         if configclass is None:
@@ -563,6 +561,13 @@ class _CoreDependencyCache(object):
                 # Preferable way to get configs with explicit
                 # configs
                 config_ = configclass(**config)
+        return config_
+
+    def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
+                             eager, nInput, config, recompute, recompute_all,
+                             _debug):
+
+        config_ = depc.ensure_config(tablekey, config)
 
         table = depc[tablekey]
         parent_rowidsT = ut.dict_take(rowid_dict,
@@ -574,7 +579,6 @@ class _CoreDependencyCache(object):
 
         if _debug:
             print('   * tablekey = %r' % (tablekey,))
-            print('   * configclass = %r' % (configclass,))
             print('   * config_ = %r' % (config_,))
             print('   * parent_rowids = %s' %
                   (ut.trunc_repr(parent_rowids),))
@@ -636,6 +640,10 @@ class _CoreDependencyCache(object):
             >>> table = depc[tablename]  # NOQA
             >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
             >>> print(result)
+
+        tablename = 'nnindexer'
+        multi_rowids = (1, 2, 3, 4, 5)
+        root_rowids = [[multi_rowids]]
         """
 
         def determine_compute_ordering(type_to_subgraph):
@@ -693,6 +701,65 @@ class _CoreDependencyCache(object):
         expected_input_order = determine_input_ordering(type_to_subgraph, compute_order)
         if len(expected_input_order) > 1:
             assert ut.depth_atleast(root_rowids, 2)
+
+        if False:
+            # New way to get rowids
+            input_level = compute_order[0]
+            mid_levels = compute_order[1:-1]
+            output_level = compute_order[-1]
+
+            input_lookup = ut.make_index_lookup(expected_input_order)
+            rowid_lookup = {key: {} for key in expected_input_order}
+
+            # Handle input level
+            tablekey, input_names = input_level
+            assert tablekey == depc.root
+            for name in input_names:
+                rowid_lookup[name][tablekey] = root_rowids[input_lookup[name]]
+
+            # Handle mid levels
+            for tablekey, input_names in mid_levels:
+                break
+                config_ = depc._ensure_config(tablekey, config)
+                table = depc[tablekey]
+                # FIXME generalize
+                needs_unpack = [not table.ismulti and 'multi' in name for name in input_names]
+                lookupkeys = list(zip(table.parent_id_tablenames, input_names))
+                parent_rowidsT = [rowid_lookup[k2][k1] for k1, k2 in lookupkeys]
+                #parent_rowids_ = [rowids[0] if flag else rowids
+                #                  for flag, rowids in zip(needs_unpack, parent_rowidsT)]
+                parent_rowids_ = [rowids if flag else rowids
+                                  for flag, rowids in zip(needs_unpack, parent_rowidsT)]
+                parent_rowids = list(zip(*parent_rowids_))
+
+                _recompute = recompute_all
+
+                # Probably not right for general multi-input
+                mid_rowids = table.get_rowid(
+                    parent_rowids, config=config_, eager=eager, nInput=nInput,
+                    ensure=ensure, recompute=_recompute)
+
+                rowid_lookup[name][tablekey] = mid_rowids
+                #for name in input_names:
+                #    pass
+
+            # Handle final level (could be part of for loop, but this makes debugging nice)
+            tablekey, input_names = output_level
+            assert tablekey == tablename
+            config_ = depc._ensure_config(tablekey, config)
+            table = depc[tablekey]
+            lookupkeys = list(zip(table.parent_id_tablenames, input_names))
+            parent_rowidsT = [rowid_lookup[k2][k1] for k1, k2 in lookupkeys]
+            parent_rowids = ut.list_transpose(parent_rowidsT)
+
+            _recompute = recompute_all or (tablekey == tablename and recompute)
+            _recompute = False
+
+            output_rowids = table.get_rowid(
+                parent_rowids, config=config_, eager=eager, nInput=nInput,
+                ensure=ensure, recompute=_recompute)
+            rowid_list = output_rowids
+            return rowid_list
 
         ##[multi_flags]
         #multi_flags = table.get_intern_parent_col_attr('ismulti')
