@@ -933,7 +933,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                               for e1, e2 in implicit_edges]
         return implicit_edges
 
-    #@ut.memoize
+    @ut.memoize
     def make_graph(depc, **kwargs):
         """
         Helper "fluff" function

@@ -772,11 +772,24 @@ class DependencyCacheTable(ut.NiceRepr):
     @property
     def dep_split_edges(table):
         """
+        CommandLine:
+            python -m dtool.depcache_table --exec-dep_split_edges --show
+
+        Example:
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> tablename = 'multitest'
             >>> table = depc[tablename]
+            >>> type_to_subgraphs = table.dep_split_edges
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> for type_, subgraph in type_to_subgraphs.items():
+            >>>     pt.show_nx(subgraph)
+            >>>     pt.set_title(type_)
+            >>> graph = table.depc.make_graph(with_implicit=False)
+            >>> pt.show_nx(graph)
+            >>> ut.show_if_requested()
         """
         # NEED TO SEPARATE SUBGRAPHS by edge type
         #import networkx as nx
@@ -834,12 +847,7 @@ class DependencyCacheTable(ut.NiceRepr):
             subgraph = ut.subgraph_from_edges(graph, sub_edges)
             type_to_subgraphs['normal'] = subgraph
 
-        if True:
-            import plottool as pt
-            pt.ensure_pylab_qt4()
-            for type_, subgraph in type_to_subgraphs.items():
-                pt.show_nx(subgraph)
-                pt.set_title(type_)
+        return type_to_subgraphs
 
         #type_to_paths = ut.ddict(list)
         #for path in paths_from_source:
@@ -877,8 +885,6 @@ class DependencyCacheTable(ut.NiceRepr):
         #    #postorder = ut.sortedby(nodes, ut.take(ordering['post'], nodes))
         #    nodes = ut.intersect_ordered(nx.dag.topological_sort(graph),
         #                                 ut.unique(ut.flatten(vals)))
-
-        return type_to_paths
 
     @property
     def extern_columns(table):
