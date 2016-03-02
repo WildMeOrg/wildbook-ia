@@ -298,6 +298,9 @@ class DependencyCacheTable(ut.NiceRepr):
             colattr['parent_table'] = parent_colattr['parent_table']
             colattr['ismulti'] = parent_colattr['ismulti']
             colattr['isnwise'] = parent_colattr['isnwise']
+            if colattr['isnwise']:
+                colattr['nwise_total'] = parent_colattr['nwise_total']
+                colattr['nwise_idx'] = parent_colattr['nwise_idx']
             colattr['sqltype'] = parent_colattr['sqltype']
             colattr['parent_colx'] = parent_colattr['parent_colx']
             colattr['intern_colx'] = len(internal_col_attrs)
@@ -519,12 +522,16 @@ class DependencyCacheTable(ut.NiceRepr):
             colattr = parent_col_attrs[parent_colx]
             if colhist[col] > 1:
                 # Duplicate column names recieve indicies
-                prefix = col + str(seen_[col])
+                nwise_idx = seen_[col]
+                nwise_total = colhist[col]
+                prefix = col + str(nwise_idx)
                 seen_[col] += 1
                 colattr['isnwise'] = True
-                colattr['n'] = colhist[col]
+                colattr['nwise_total'] = nwise_total
+                colattr['nwise_idx'] = nwise_idx
             else:
                 prefix = col
+                colattr['isnwise'] = False
             colattr['prefix'] = prefix
             parent_id_prefixs2.append(prefix)
 
@@ -681,12 +688,197 @@ class DependencyCacheTable(ut.NiceRepr):
         return children_tablenames
 
     @property
-    def ancestor_paths(table):
+    def paths_from_source(table):
         import networkx as nx
         graph = table.depc.make_graph(with_implicit=False)
-        ancestor_paths = [list(nx.all_simple_paths(graph, a, table.tablename))
-                          for a in table.ancestors]
-        return ancestor_paths
+        sources = ut.find_source_nodes(graph)
+        paths_from_source = ut.flatten([
+            list(nx.all_simple_paths(graph, a, table.tablename))
+            for a in sources])
+
+        #source = sources[0]
+        #G = graph
+        #target = table.tablename
+        #cutoff = len(G) - 1
+
+        #def _all_simple_paths_multigraph(G, source, target, cutoff=None):
+        #    # from networkx
+        #    if cutoff < 1:
+        #        return
+        #    visited = [source]
+        #    visited2 = [(source, 0)]
+        #    stack = [(v for u, v in G.edges(source))]
+
+        #    while stack:
+        #        children = stack[-1]
+        #        child = next(children, None)
+        #        if child is None:
+        #            stack.pop()
+        #            visited.pop()
+        #            visited2.pop()
+        #        elif len(visited) < cutoff:
+        #            if child == target:
+        #                #yield visited + [(target, 0)]
+        #                yield visited2 + [(target, 0)]
+        #            elif child not in visited:
+        #                visited.append(child)
+        #                visited2.append((child, 0))
+        #                stack.append((v for u, v in G.edges(child)))
+        #        else:
+        #            count = ([child] + list(children)).count(target)
+        #            for i in range(count):
+        #                #yield visited + [(target, i)]
+        #                yield visited2 + [(target, i)]
+        #            stack.pop()
+        #            visited.pop()
+        #            visited2.pop()
+        #list(_all_simple_paths_multigraph(G, source, target, cutoff))
+
+        return paths_from_source
+
+    @property
+    def path_multi_edges_from_source(table):
+        graph = table.depc.make_graph(with_implicit=False)
+        paths_from_source = table.paths_from_source
+        paths_from_source2 = ut.unique(ut.lmap(tuple, paths_from_source))
+        path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
+
+        # expand paths with multi edge indexes
+        import copy
+        expanded_paths = []
+        for path in path_edges2:
+            all_paths = [[]]
+            for u, v in path:
+                mutli_edge_data = graph.edge[u][v]
+                items = list(mutli_edge_data.items())
+                K = len(items)
+                if len(items) == 1:
+                    path_iter = [all_paths]
+                    pass
+                elif len(items) > 1:
+                    path_iter = [[copy.copy(p) for p in all_paths]
+                                 for k_ in range(K)]
+                for (k, edge_data), paths in zip(items, path_iter):
+                    for p in paths:
+                        p.append((u, v, {k: edge_data}))
+                all_paths = ut.flatten(path_iter)
+            expanded_paths.extend(all_paths)
+
+        path_multiedges = [[(u, v, list(kd.keys())[0]) for u, v, kd in path]
+                           for path in expanded_paths]
+        #path_multiedges = expanded_paths
+        return path_multiedges
+
+    @property
+    def dep_split_edges(table):
+        """
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'multitest'
+            >>> table = depc[tablename]
+        """
+        # NEED TO SEPARATE SUBGRAPHS by edge type
+        #import networkx as nx
+        graph = table.depc.make_graph(with_implicit=False)
+        #paths_from_source = table.paths_from_source
+        #paths_from_source = table.path_multi_edges_from_source
+        #path_edges = [tuple(ut.itertwo(path)) for path in paths_from_source]
+        path_edges = ut.lmap(tuple, table.path_multi_edges_from_source)
+        path2_pidx = ut.make_index_lookup(path_edges)
+
+        edge2_pidx = dict(ut.group_items(
+            *list(zip(*[(idx, edge) for path, idx in path2_pidx.items() for
+                        edge in path]))))
+        #pidx2_path = ut.invert_dict(path2_pidx)
+
+        edges = set(ut.flatten(path_edges))
+
+        #edges = set(ut.flatten([list(ut.itertwo(path))
+        #                        for path in paths_from_source]))
+        #subgraphs = {}
+        split_edges = []
+        type_to_paths2 = ut.ddict(list)
+        type_to_pidxs = {}
+        for u, v, k in edges:
+            #mutli_edge_data = graph.edge[u][v]
+            #for k, edge_data in mutli_edge_data.items():
+            #print('graph.edge[%s][%s][%s] = %r' % (u, v, k, edge_data,))
+            edge_data = graph.edge[u][v][k]
+            edge_type = edge_data['edge_type']
+            if edge_type != 'normal':
+                split_edge = (u, v, edge_type, edge_data)
+                pidxs = edge2_pidx[(u, v, k)]
+                type_to_pidxs[edge_type] = pidxs
+                split_edges.append(split_edge)
+                type_to_paths2[edge_type].extend(ut.take(path_edges, pidxs))
+                #subgraph = graph.subgraph(list(nx.descendants(graph, v)) + [v])
+                #subgraphs[split_edge] = subgraph
+                #print('subgraph.nodes = %r' % (subgraph.nodes(),))
+                #print(nx.descendants(graph, v))
+                #print("SPLIT")
+
+        type_to_subgraphs = {}
+        for type_, paths in type_to_paths2.items():
+            sub_edges = ut.flatten(paths)
+            subgraph = ut.subgraph_from_edges(graph, sub_edges)
+            type_to_subgraphs[type_] = subgraph
+            #pt.show_nx(subgraph)
+
+        use_normal = True
+        if use_normal:
+            normal_pidxs = ut.index_complement(
+                ut.flatten(type_to_pidxs.values()), len(path_edges))
+            paths = ut.take(path_edges, normal_pidxs)
+            sub_edges = ut.flatten(paths)
+            subgraph = ut.subgraph_from_edges(graph, sub_edges)
+            type_to_subgraphs['normal'] = subgraph
+
+        if True:
+            import plottool as pt
+            pt.ensure_pylab_qt4()
+            for type_, subgraph in type_to_subgraphs.items():
+                pt.show_nx(subgraph)
+                pt.set_title(type_)
+
+        #type_to_paths = ut.ddict(list)
+        #for path in paths_from_source:
+        #    minux = len(path)
+        #    split_type = None
+        #    for split_edge in split_edges:
+        #        u, v, t, d = split_edge
+        #        try:
+        #            ux = path.index(u)
+        #            vx = path.index(v)
+        #            if vx == ux + 1:
+        #                print('kill path = %r' % (path,))
+        #                if ux < minux:
+        #                    minux = ux
+        #                    split_type = t
+        #        except ValueError:
+        #            pass
+        #    if split_type is not None:
+        #        type_to_paths[split_type].append(path)
+        #    else:
+        #        type_to_paths['normal'].append(path)
+        #        #[:minux])
+        #print('type_to_paths = %r' % (type_to_paths,))
+        #if False:
+
+        #    vals = type_to_paths.values()[0]
+        #    vals = type_to_paths['multi_fgweight']
+
+        #    nodes = ut.unique(ut.flatten(vals))
+        #    subgraph = dag.subgraph(nodes)
+        #    #meta = ut.topsort_ordering(graph)
+        #    #preorder = ut.dict_subset(meta['pre'], nodes)
+        #    #postorder = ut.dict_subset(meta['post'], nodes)
+        #    #preorder = ut.sortedby(nodes, )
+        #    #postorder = ut.sortedby(nodes, ut.take(ordering['post'], nodes))
+        #    nodes = ut.intersect_ordered(nx.dag.topological_sort(graph),
+        #                                 ut.unique(ut.flatten(vals)))
+
+        return type_to_paths
 
     @property
     def extern_columns(table):

@@ -370,10 +370,11 @@ def testdata_depc(fname=None):
             yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
 
     @depc.register_preproc(
-        'multitest', ['chip*', 'keypoint', 'fgweight*', 'spam'], ['foo'], [str],  # [('extern', ut.load_data)],
+        'multitest', ['chip*', 'keypoint', 'fgweight*', 'spam', 'notch', 'notch'], ['foo'], [str],  # [('extern', ut.load_data)],
         #configclass=DummyIndexerConfig,
     )
-    def dummy_multitest(depc, parent_rowids_list, kp_rowids, fg_ids, spam_ids, config=None):
+    def dummy_multitest(depc, parent_rowids_list, kp_rowids, fg_ids, spam_ids,
+                        notch1, notch2, config=None):
         print('COMPUTING MULTITEST 1 ')
         #assert len(parent_rowids_list) == 1, 'handles only one indexer'
         for parent_rowids, kpids in zip(parent_rowids_list, kp_rowids):

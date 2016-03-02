@@ -635,10 +635,12 @@ class _CoreDependencyCache(object):
             >>> kp_rowids = depc.get_rowids('keypoint', flat_root_ids)
             >>> root_rowids = [flat_root_ids]
             >>> tablename = 'nnindexer'
+            >>> tablename = 'multitest'
+            >>> table = depc[tablename]  # NOQA
             >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
             >>> print(result)
         """
-        #table = depc[tablename]
+        table = depc[tablename]  # NOQA
         ##[multi_flags]
         #multi_flags = table.get_intern_parent_col_attr('ismulti')
         #nwise_flags = table.get_intern_parent_col_attr('isnwise')
@@ -883,8 +885,23 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
     def get_edges(depc, data=False):
         if data:
+            def get_edgetype(tablekey, parentkey, parent_data):
+                if parent_data['ismulti'] or parent_data['isnwise']:
+                    edge_type_parts = []
+                    if parent_data['ismulti']:
+                        edge_type_parts.append('multi_%s' % (parentkey,))
+                    if parent_data['isnwise']:
+                        edge_type_parts.append('nwise_%s' % (parent_data['nwise_idx'],))
+                    edge_type_id = '_'.join(edge_type_parts)
+                else:
+                    edge_type_id = 'normal'
+                return edge_type_id
             edges = [
-                (parentkey, tablekey, {'ismulti': parent_data['ismulti']})
+                (parentkey, tablekey, {
+                    'ismulti': parent_data['ismulti'],
+                    'isnwise': parent_data.get('isnwise'),
+                    'nwise_idx': parent_data.get('nwise_idx'),
+                    'edge_type': get_edgetype(tablekey, parentkey, parent_data)})
                 for tablekey, table in depc.cachetable_dict.items()
                 for parentkey, parent_data in table.parents(data=True)
             ]
@@ -916,7 +933,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                               for e1, e2 in implicit_edges]
         return implicit_edges
 
-    @ut.memoize
+    #@ut.memoize
     def make_graph(depc, **kwargs):
         """
         Helper "fluff" function
@@ -970,11 +987,12 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             return props
         nx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
         nx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
-        if kwargs.get('reduced', True):
+        if kwargs.get('reduced', False):
 
             # Reduce only the non-multi part of the graph
             nonmulti_graph = graph.copy()
-            multi_data_edges = [(u, v, d) for u, v, d in graph.edges(data=True) if d.get('ismulti')]
+            multi_data_edges = [(u, v, d) for u, v, d in graph.edges(data=True)
+                                if d.get('ismulti')]
             multi_edges = [(u, v) for u, v, d in multi_data_edges]
             nonmulti_graph.remove_edges_from(multi_edges)
 
