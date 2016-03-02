@@ -3653,7 +3653,7 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
 
             # endpoint1 = edge_verts[0]
             # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
-            if data.get('ismulti', False):
+            if data.get('ismulti', False) or data.get('isnwise', False):
                 pt1 = np.array(edge_artist.patchA.center)
                 pt2 = np.array(edge_artist.patchB.center)
                 frac_thru = 4
@@ -3678,7 +3678,11 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
                 font_prop = mpl.font_manager.FontProperties(family='monospace',
                                                             weight='light',
                                                             size=18)
-                ax.annotate("*", xy=text_point1, xycoords="data", va="center", ha="center", fontproperties=font_prop)
+                if data.get('ismulti', False):
+                    text = '*'
+                else:
+                    text = str(data.get('nwise_idx', '!'))
+                ax.annotate(text, xy=text_point1, xycoords="data", va="center", ha="center", fontproperties=font_prop)
                 #bbox=dict(boxstyle="round", fc=None, alpha=1.0))
             if data.get('label', False):
                 pt1 = np.array(edge_artist.patchA.center)
