@@ -3570,6 +3570,15 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
     else:
         layout_graph = graph
 
+    #bfs_order = 0
+    #if bfs_order:
+    #    source = ut.find_source_nodes(layout_graph)[0]
+    #    #bfs_tree = nx.bfs_tree(layout_graph, source)
+    #    bfs_tree = nx.dfs_tree(layout_graph, source)
+    #    layout_graph = bfs_tree
+    #    #bfs_shortpaths = nx.single_source_shortest_path(bfs_tree, source)
+    #    #node_levels = ut.map_dict_vals(len, bfs_shortpaths)
+
     if layout == 'pydot':
         pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
@@ -3671,7 +3680,8 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
                 else:
                     #print('sorted_verts = %r' % (sorted_verts,))
                     #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                    frac_thru = 3
+                    #frac_thru = 3
+                    frac_thru = 6
 
                     text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
 
