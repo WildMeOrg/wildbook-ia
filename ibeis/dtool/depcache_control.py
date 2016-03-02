@@ -630,27 +630,69 @@ class _CoreDependencyCache(object):
             >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
             >>> flat_root_ids = [1, 2, 3]
             >>> kp_rowids = depc.get_rowids('keypoint', flat_root_ids)
-            >>> root_rowids = [flat_root_ids]
+            >>> root_rowids = [flat_root_ids] * 8
             >>> tablename = 'nnindexer'
-            >>> tablename = 'multitest'
+            >>> tablename = 'multitest_score'
             >>> table = depc[tablename]  # NOQA
             >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
             >>> print(result)
         """
+
+        def determine_compute_ordering(type_to_subgraph):
+            """ Returns which nodes to compute first, and what inputs are needed """
+            import networkx as nx
+            composed_graph = nx.compose_all(type_to_subgraph.values())
+            #pt.show_nx(composed_graph)
+            topsort = nx.topological_sort(composed_graph)
+            type_to_dependlevels = ut.map_dict_vals(ut.level_order, type_to_subgraph)
+            level_orders = type_to_dependlevels
+            # Find computation order for all dependencies
+            compute_order = ut.merge_level_order(level_orders, topsort)
+            #expected_types = list(type_to_dependlevels.keys())
+            #print('expected_types = %r' % (expected_types,))
+            #print('compute_order = %s' % (ut.repr3(compute_order),))
+            return compute_order
+
+            # Need to figure out natural order that these should be in.
+
+        def determine_input_ordering(type_to_subgraph, compute_order):
+            """ Returns what input ordering shoulbe be in parent_rowids """
+            from six.moves import zip_longest
+            hgroupids = ut.ddict(list)
+            for _tablename, order in reversed(compute_order):
+                if _tablename == depc.root:
+                    continue
+                for t in order:
+                    s = type_to_subgraph[t]
+                    colxs = [y['parent_colx'] for x in s.pred[_tablename].values()
+                             for y in x.values()]
+                    assert len(colxs) > 0
+                    colx = min(colxs)
+                    #order_colxs.append(colx)
+                    hgroupids[t].append(colx)
+
+            hgroupids = dict(hgroupids)
+
+            keys = hgroupids.keys()
+            vals = hgroupids.values()
+            groupids = list(zip_longest(*vals, fillvalue=0))
+            hgroups = ut.hierarchical_group_items(keys, groupids)
+            fgroups = ut.flatten_dict_items(hgroups)
+            fkey_list = [int(''.join(map(str, key))) for key in fgroups.keys()]
+            fval_list = fgroups.values()
+
+            dupkeys = ut.find_duplicate_items(fkey_list)
+            assert len(dupkeys) == 0, 'cannot have duplicate orderings'
+
+            expected_input_order = ut.flatten(ut.sortedby(fval_list, fkey_list))
+            return expected_input_order
+
         table = depc[tablename]  # NOQA
         type_to_subgraph = table.subgraph_split
-        #graph = depc.explicit_graph
-        import networkx as nx
-        composed_graph = nx.compose_all(type_to_subgraph.values())
-        #pt.show_nx(composed_graph)
-        topsort = nx.topological_sort(composed_graph)
-        type_to_dependlevels = ut.map_dict_vals(ut.level_order, type_to_subgraph)
-        level_orders = type_to_dependlevels
-        # Find computation order for all dependencies
-        compute_order = ut.merge_level_order(level_orders, topsort)
-        print('compute_order = %r' % (ut.repr3(compute_order),))
-
-        #ut.print_dict(type_to_dependlevels, nl=1)
+        compute_order = determine_compute_ordering(type_to_subgraph)
+        expected_input_order = determine_input_ordering(type_to_subgraph, compute_order)
+        if len(expected_input_order) > 1:
+            assert ut.depth_atleast(root_rowids, 2)
 
         ##[multi_flags]
         #multi_flags = table.get_intern_parent_col_attr('ismulti')
