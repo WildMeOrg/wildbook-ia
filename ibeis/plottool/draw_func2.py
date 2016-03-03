@@ -3566,7 +3566,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         pos = get_nx_pos(graph, layout)
 
     zoom = kwargs.pop('zoom', .4)
-    frameon = kwargs.pop('frameon')
+    frameon = kwargs.pop('frameon', True)
     if old:
         node_size = kwargs.get('node_size', 1100)
         nx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
@@ -3578,7 +3578,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         ax.autoscale()
         ax.grid(False)
         pt.plt.axis('equal')
-        pt.plt.axis('off')
+        #pt.plt.axis('off')
+        ax.set_xticks([])
+        ax.set_yticks([])
 
     plotinfo = {
         'pos': pos,
@@ -3646,6 +3648,53 @@ def get_nx_pos(graph, layout):
     return pos
 
 
+def nx_agraph_layout(graph, **kwargs):
+    """
+    Kwargs:
+        overlap = false
+        splines = curved
+        sep = .1
+        esep = .8 # should be strictly less than sep
+        dpi = 1
+        Damping
+        prog=['neato'|'dot'|'twopi'|'circo'|'fdp'|'nop']
+
+    References:
+        nodesep sep ipsep
+        http://www.graphviz.org/doc/info/attrs.html
+    """
+    import networkx as nx
+    import pygraphviz
+
+    node_pos = {}
+    ctrl_pts = []
+
+    factor = kwargs.pop('factor', 60.0)
+
+    prog = kwargs.pop('prog', 'neato')
+    argparts = ['-G%s=%s' % (key, str(val).lower())
+                for key, val in kwargs.items()]
+    args = ' '.join(argparts)
+    # Convert to agraph format
+    agraph = nx.nx_agraph.to_agraph(graph)
+    agraph.layout(prog=prog, args=args)
+    for node in graph.nodes():
+        anode = pygraphviz.Node(agraph, node)
+        try:
+            xx, yy = anode.attr['pos'].split(',')
+            node_pos[node] = np.array((float(xx), float(yy))) / factor
+        except:
+            node_pos[node] = (0.0, 0.0)
+
+    for edge in graph.edges():
+        aedge = pygraphviz.Edge(agraph, edge[0], edge[1])
+        edge_ctrlpts = np.array([tuple([float(f) for f in ea.split(',')])
+                                 for ea in aedge.attr['pos'][2:].split(' ')])
+        edge_ctrlpts /= factor
+        ctrl_pts.append(edge_ctrlpts)
+    return node_pos, ctrl_pts
+
+
 def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
                   size_dict=None, hacknoedge=False, hacknonode=False):
     """ fancy way to draw networkx graphs without using networkx """
@@ -3653,6 +3702,8 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
 
     node_patch_list = []
     edge_patch_list = []
+
+    patches = {}
 
     ###
     # Draw nodes
@@ -3682,7 +3733,8 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
             patch.center = xy
         # elif shape == 'star':
         #     pass
-        graph.node[n]['patch'] = patch
+        patches[n] = patch
+        #graph.node[n]['patch'] = patch
         x, y = pos[n]
         text = n
         if label is not None:
@@ -3698,8 +3750,10 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
     edge_list = graph.edges(data=True)
     for (u, v, data) in edge_list:
         edge = (u, v)
-        n1 = graph.node[u]['patch']
-        n2 = graph.node[v]['patch']
+        #n1 = graph.node[u]['patch']
+        #n2 = graph.node[v]['patch']
+        n1 = patches[u]
+        n2 = patches[v]
 
         # Bend left / right depending on node positions
         dir_ = np.sign(n1.center[0] - n2.center[0])
@@ -3831,6 +3885,7 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4, frameon=True):
     ax  = pt.gca()
     artist_list = []
     offset_img_list = []
+
     bboxkw = dict(
         xycoords='data',
         boxcoords='offset points',
@@ -3848,13 +3903,7 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4, frameon=True):
             # THIS DOES NOT DO WHAT I WANT
             # Scales the image with data coords
             offset_img = OffsetImage(img, zoom=zoom)
-            #artist = AnnotationBbox(offset_img, (x, y), xybox=(-0., 0.), **bboxkw)
-            #artist = AnnotationBbox(offset_img, (x, y), xycoords='data', frameon=False)
-            artist = AnnotationBbox(offset_img, (x, y),
-                                    #xycoords='data',
-                                    xycoords=ax.transData,
-                                    frameon=False)
-
+            artist = AnnotationBbox(offset_img, (x, y), xybox=(-0., 0.), **bboxkw)
             offset_img_list.append(offset_img)
             artist_list.append(artist)
 
