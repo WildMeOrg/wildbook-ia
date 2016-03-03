@@ -506,7 +506,6 @@ class _CoreDependencyCache(object):
                   ut.repr3(configclass_levels, nl=1))
 
         # TODO: better support for multi-edges
-
         if (len(root_rowids) > 0 and ut.isiterable(root_rowids[0]) and
              not depc[tablename].ismulti):
             rowid_dict = {}
@@ -567,7 +566,7 @@ class _CoreDependencyCache(object):
                              eager, nInput, config, recompute, recompute_all,
                              _debug):
 
-        config_ = depc.ensure_config(tablekey, config)
+        config_ = depc._ensure_config(tablekey, config)
 
         table = depc[tablekey]
         parent_rowidsT = ut.dict_take(rowid_dict,
