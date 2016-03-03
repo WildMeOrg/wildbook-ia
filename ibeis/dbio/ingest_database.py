@@ -211,7 +211,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
             if findany(uril, ['left']) or splitext(uril)[0].endswith('ls'):
                 info['view'] = 'left'
             if findany(uril, ['carapace', 'whole', 'carpace']) or splitext(uril)[0].endswith('wb'):
-                info['view'] = 'top'
+                #info['view'] = 'top'
+                info['view'] = 'up'
             occurrence_id = basename(dirname(uri))
             info['occurrence'] = 'occurrence' + occurrence_id
             return info
