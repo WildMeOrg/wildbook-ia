@@ -350,7 +350,7 @@
         switch (status) {
           case 'input':
             data = selector.finish(options);
-            if (data.label && data.width >= 10 && data.height >= 10) {
+            if (data.label && data.width >= 0.5 && data.height >= 0.5) {
               annotator.add_entry(data);
               annotator.adding = false;
               if (annotator.onchange) {

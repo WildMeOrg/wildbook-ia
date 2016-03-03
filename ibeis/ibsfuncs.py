@@ -120,13 +120,20 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
         'val'      : [],
     }
     index = 1 if offset == 'auto' else offset
+    try:
+        train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
+        test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    except:
+        train_gid_set = set([])
+        test_gid_set = set([])
+
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         yawed = True
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
-        if len(aid_list) > 0:
+        if len(aid_list) > -1:
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
@@ -174,11 +181,16 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
                 #TODO: Change species_name to getter in IBEISControl once
                 #implemented
                 #species_name = 'grevys_zebra'
-                species_name = ibs.get_annot_species_texts(aid)
-                yaw = ibs.get_annot_yaws(aid)
                 info = {}
+                species_name = ibs.get_annot_species_texts(aid)
+                if species_name not in ['zebra_plains', 'zebra_grevys']:
+                    species_name = 'unspecified'
+                # yaw = ibs.get_annot_yaw_texts(aid)
+                # if yaw != '' and yaw is not None:
+                #     info['pose'] = yaw
+                yaw = ibs.get_annot_yaws(aid)
                 if yaw != -1 and yaw is not None:
-                    info['pose'] = "%0.6f" % yaw
+                    info['pose'] = '%0.06f' % (yaw, )
                 else:
                     yawed = False
                     print("UNVIEWPOINTED: %d " % gid)
@@ -186,16 +198,29 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
                     species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
 
-            # Update sets
-            state = random.uniform(0.0, 1.0)
-            if state <= 0.50:
+            # # Update sets
+            # state = random.uniform(0.0, 1.0)
+            # if state <= 0.50:
+            #     sets_dict['test'].append(out_name)
+            # elif state <= 0.75:
+            #     sets_dict['train'].append(out_name)
+            #     sets_dict['trainval'].append(out_name)
+            # else:
+            #     sets_dict['val'].append(out_name)
+            #     sets_dict['trainval'].append(out_name)
+
+            if gid in test_gid_set:
                 sets_dict['test'].append(out_name)
-            elif state <= 0.75:
-                sets_dict['train'].append(out_name)
-                sets_dict['trainval'].append(out_name)
+            elif gid in train_gid_set:
+                state = random.uniform(0.0, 1.0)
+                if state <= 0.75:
+                    sets_dict['train'].append(out_name)
+                    sets_dict['trainval'].append(out_name)
+                else:
+                    sets_dict['val'].append(out_name)
+                    sets_dict['trainval'].append(out_name)
             else:
-                sets_dict['val'].append(out_name)
-                sets_dict['trainval'].append(out_name)
+                raise NotImplementedError()
 
             # Write XML
             if True or not enforce_yaw or yawed:
@@ -1839,6 +1864,61 @@ def vsstr(qaid, aid, lite=False):
         return '%d-vs-%d' % (qaid, aid)
     else:
         return 'qaid%d-vs-aid%d' % (qaid, aid)
+
+
+@register_ibs_method
+def imageset_train_test_split(ibs, train_split=0.8):
+    from random import shuffle
+    gid_list = ibs.get_valid_gids()
+    aids_list = ibs.get_image_aids(gid_list)
+    distro_dict = {}
+    for gid, aid_list in zip(gid_list, aids_list):
+        total = len(aid_list)
+        if total not in distro_dict:
+            distro_dict[total] = []
+        distro_dict[total].append(gid)
+
+    print('Processing train/test imagesets...')
+    global_train_list = []
+    global_test_list = []
+    for distro, gid_list_ in distro_dict.iteritems():
+        total = len(gid_list_)
+        shuffle(gid_list_)
+        split_index = total * (1.0 - train_split) + 1E-9  # weird
+        if split_index < 1.0:
+            split_index = total / 2
+        else:
+            split_index = np.around(split_index)
+        split_index = int(split_index)
+        args = (distro, total, split_index, )
+        print('\tdistro: %d - total: %d - split_index: %d' % args)
+        train_list = gid_list_[split_index:]
+        test_list = gid_list_[:split_index]
+        args = (len(test_list), len(train_list), len(train_list) / total, )
+        print('\ttest: %d\n\ttrain: %d\n\tsplit: %0.04f' % args)
+        global_train_list.extend(train_list)
+        global_test_list.extend(test_list)
+
+    args = (
+        len(global_train_list),
+        len(global_test_list),
+        len(global_train_list) + len(global_test_list),
+        len(global_train_list) / len(gid_list),
+        train_split,
+    )
+
+    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
+    test_imgsetid = ibs.add_imagesets('TEST_SET')
+
+    temp_list = ibs.get_imageset_gids(train_imgsetid)
+    ibs.unrelate_images_and_imagesets(temp_list, [train_imgsetid] * len(temp_list))
+    temp_list = ibs.get_imageset_gids(test_imgsetid)
+    ibs.unrelate_images_and_imagesets(temp_list, [test_imgsetid] * len(temp_list))
+
+    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
+    ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
+
+    print('Complete... %d train + %d test = %d [%0.04f, %0.04f]' % args)
 
 
 @register_ibs_method

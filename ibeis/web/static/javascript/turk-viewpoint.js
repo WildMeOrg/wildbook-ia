@@ -57,6 +57,16 @@ $(window).keydown(function(event) {
       // R key pressed, submit form as right
       $('input#turk-submit-right').click();
     }
+    else if(key == 85)
+    {
+      // U key pressed, select Unspecified Animal in selection box
+      $('select[name="viewpoint-species"]').val("unspecified_animal");
+    }
+    else if(key == 90)
+    {
+      // Z key pressed, select Plains Zebra in selection box
+      $('select[name="viewpoint-species"]').val("zebra_plains");
+    }
     else if(key == 80)
     {
       // P key pressed, follow previous link
