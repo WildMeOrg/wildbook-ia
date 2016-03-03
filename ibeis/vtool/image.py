@@ -817,6 +817,9 @@ def get_round_scaled_dsize(dsize_old, scale):
 
 
 def resized_dims_and_ratio(img_size, max_dsize):
+    """
+    returns resized dimensions to get ``img_size`` to fit into ``max_dsize``
+    """
     #if isinstance(max_dsize, (tuple, list, np.ndarray)):
     max_width, max_height = max_dsize
     width, height = img_size
