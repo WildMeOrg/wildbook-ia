@@ -17,7 +17,7 @@ import functools
 #    # --- generalize func
 #    """
 #    # a missing external resource should delete its rowid from its native table
-#    # it is the parents responcibility to recompute the desired child
+#    # it is the parent responcibility to recompute the desired child
 #    # configuration.
 #    """
 #    data_list = ut.alloc_nones(len(fpath_list))
