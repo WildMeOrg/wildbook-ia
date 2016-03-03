@@ -44,7 +44,8 @@ from plottool import fig_presenter
 
 DEBUG = False
 # Try not injecting into plotting things
-ut.noinject(__name__, '[df2]')
+#ut.noinject(__name__, '[df2]')
+(print, rrr, profile) = ut.inject2(__name__, '[df2]')
 
 
 def is_texmode():
@@ -3509,7 +3510,8 @@ def draw_text_annotations(text_list,
     return hack_fix_centeralign
 
 
-def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layout='pydot'):
+def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
+            ax=None, pos=None, img_dict=None, old=False, **kwargs):
     r"""
     Args:
         graph (networkx.Graph):
@@ -3538,6 +3540,7 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
 
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
@@ -3554,10 +3557,45 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
     """
     import plottool as pt
     import networkx as nx
-    fnum = pt.ensure_fnum(fnum)
-    pt.figure(fnum=fnum, pnum=pnum)
-    ax = pt.gca()
+    if ax is None:
+        fnum = pt.ensure_fnum(fnum)
+        pt.figure(fnum=fnum, pnum=pnum)
+        ax = pt.gca()
 
+    if pos is None:
+        pos = get_nx_pos(graph, layout)
+
+    zoom = kwargs.pop('zoom', .4)
+    frameon = kwargs.pop('frameon')
+    if old:
+        node_size = kwargs.get('node_size', 1100)
+        nx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+        #edge_labels = {(v1, v2): data['label'] for v1, v2, data in
+        #graph.edges(data=True) if 'label' in data}
+        #nx.draw_networkx_edge_labels(graph, pos, edge_labels)
+    else:
+        draw_network2(graph, pos, ax, **kwargs)
+        ax.autoscale()
+        ax.grid(False)
+        pt.plt.axis('equal')
+        pt.plt.axis('off')
+
+    plotinfo = {
+        'pos': pos,
+    }
+
+    if img_dict is not None:
+        node_list = graph.nodes()
+        pos_list = ut.take(pos, node_list)
+        img_list = ut.take(img_dict, node_list)
+        imgdat = pt.netx_draw_images_at_positions(
+            img_list, pos_list, zoom=zoom, frameon=frameon)
+        plotinfo['imgdat'] = imgdat
+    return plotinfo
+
+
+def get_nx_pos(graph, layout):
+    import networkx as nx
     only_explicit = True
     if only_explicit:
         explicit_graph = graph.__class__()
@@ -3581,191 +3619,309 @@ def show_nx(graph, with_labels=True, node_size=1100, fnum=None, pnum=None, layou
 
     if layout == 'pydot':
         pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
-    elif layout == 'graphviz':
-        pos = nx.nx_agraph.graphviz_layout(layout_graph, prog='dot')
+    #elif layout == 'graphviz':
+    #    pos = nx.nx_agraph.graphviz_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
         pos = nx.nx_agraph.graphviz_layout(layout_graph)
     elif layout == 'pygraphviz':
         pos = nx.nx_agraph.pygraphviz_layout(layout_graph)
+    elif layout == 'spring':
+        _pos = nx.spectral_layout(layout_graph, scale=500)
+        pos = nx.fruchterman_reingold_layout(layout_graph, pos=_pos, scale=500, iterations=100)
+        pos = ut.map_dict_vals(lambda x: x * 500, pos)
+    elif layout == 'circular':
+        pos = nx.circular_layout(layout_graph, scale=100)
+    elif layout == 'spectral':
+        pos = nx.spectral_layout(layout_graph, scale=500)
+    elif layout == 'shell':
+        pos = nx.shell_layout(layout_graph, scale=100)
+        #pos = ut.map_dict_vals(lambda x: x * 500, nx.spring_layout(layout_graph))
+        # same as nx.spring_layout
+    #elif layout == 'force' or layout == 'fruchterman_reingold':
+        # force-directed algo
+        #pos = ut.map_dict_vals(lambda x: x * 500,
+        #                       nx.fruchterman_reingold_layout(layout_graph))
     else:
-        raise ValueError('layout = %r' % (layout,))
+        raise ValueError('Undefined layout = %r' % (layout,))
+    return pos
 
-    def draw_network2(graph, pos, ax, sg=None):
-        """ fancy way to draw networkx graphs without using networkx """
-        ###
-        # Draw nodes
-        for n, nattrs in graph.nodes(data=True):
-            # shape = nattrs.get('shape', 'circle')
-            label = nattrs.get('label', None)
-            alpha = nattrs.get('alpha', .5)
-            node_color = nattrs.get('color', None)
-            if node_color is None:
-                node_color = pt.NEUTRAL_BLUE
-            #node_color = pt.color_funcs.to_base255(node_color)
-            xy = pos[n]
-            patch_kw = dict(alpha=alpha, color=node_color)
-            # if shape == 'circle':
+
+def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
+                  size_dict=None, hacknoedge=False, hacknonode=False):
+    """ fancy way to draw networkx graphs without using networkx """
+    import plottool as pt
+
+    node_patch_list = []
+    edge_patch_list = []
+
+    ###
+    # Draw nodes
+    for n, nattrs in graph.nodes(data=True):
+        # shape = nattrs.get('shape', 'circle')
+        label = nattrs.get('label', None)
+        alpha = nattrs.get('alpha', .5)
+        node_color = nattrs.get('color', None)
+        if node_color is None:
+            node_color = pt.NEUTRAL_BLUE
+        #node_color = pt.color_funcs.to_base255(node_color)
+        xy = pos[n]
+        patch_kw = dict(alpha=alpha, color=node_color)
+        if node_shape == 'circle':
             # radius = node_size / 100
             radius = node_size / 50
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
-            # elif shape == 'rhombus':
-            #     height = width = node_size / 10
-            #     patch = mpl.patches.Rectangle(xy, width, height, angle=45,
-            #                                   **patch_kw)
-            #     patch.center = (xy[0] + width // 2, xy[1] + height // 2)
-            # elif shape == 'star':
-            #     pass
-            ax.add_patch(patch)
-            graph.node[n]['patch'] = patch
-            x, y = pos[n]
-            text = n
-            if label is not None:
-                text += ': ' + str(label)
-            pt.ax_absolute_text(x, y, text, ha='center', va='center')
-        ###
-        # Draw Edges
-        seen = {}
-        edge_list = graph.edges(data=True)
-        for (u, v, data) in edge_list:
-            edge = (u, v)
-            n1 = graph.node[u]['patch']
-            n2 = graph.node[v]['patch']
-
-            # Bend left / right depending on node positions
-            dir_ = np.sign(n1.center[0] - n2.center[0])
-            inc = dir_ * 0.1
-            rad = dir_ * 0.2
-            posA = list(n1.center)
-            posB = list(n2.center)
-            # Make duplicate edges more bendy to see them
-            if edge in seen:
-                posB[0] += 10
-                rad = seen[edge] + inc
-            seen[edge] = rad
-
-            if (v, u) in seen:
-                rad = seen[edge] * -1
-
-            if data.get('implicit', False):
-                alpha = .2
-                color = pt.GREEN
+        elif node_shape == 'rect' or node_shape == 'rhombus':
+            if size_dict is not None:
+                width, height = size_dict[n]
             else:
-                alpha = 0.5
-                color = pt.BLACK
+                height = width = node_size / 50
+            angle = 0 if node_shape == 'rect' else 45
+            xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
+            patch = mpl.patches.Rectangle(
+                xy_bl, width, height, angle=angle, **patch_kw)
+            patch.center = xy
+        # elif shape == 'star':
+        #     pass
+        graph.node[n]['patch'] = patch
+        x, y = pos[n]
+        text = n
+        if label is not None:
+            text += ': ' + str(label)
+        if not hacknonode:
+            pt.ax_absolute_text(x, y, text, ha='center', va='center')
 
-            arrowstyle = '-' if not graph.is_directed() else '-|>'
+        #ax.add_patch(patch)
+        node_patch_list.append(patch)
+    ###
+    # Draw Edges
+    seen = {}
+    edge_list = graph.edges(data=True)
+    for (u, v, data) in edge_list:
+        edge = (u, v)
+        n1 = graph.node[u]['patch']
+        n2 = graph.node[v]['patch']
 
-            edge_artist = mpl.patches.FancyArrowPatch(
-                posA, posB, patchA=n1, patchB=n2,
-                arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
-                mutation_scale=10.0, lw=2, alpha=alpha, color=color)
+        # Bend left / right depending on node positions
+        dir_ = np.sign(n1.center[0] - n2.center[0])
+        inc = dir_ * 0.1
+        rad = dir_ * 0.2
+        posA = list(n1.center)
+        posB = list(n2.center)
+        # Make duplicate edges more bendy to see them
+        if edge in seen:
+            posB[0] += 10
+            rad = seen[edge] + inc
+        seen[edge] = rad
 
-            # endpoint1 = edge_verts[0]
-            # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
-            if data.get('ismulti', False) or data.get('isnwise', False):
-                pt1 = np.array(edge_artist.patchA.center)
-                pt2 = np.array(edge_artist.patchB.center)
-                frac_thru = 4
-                edge_verts = edge_artist.get_verts()
-                edge_verts = vt.unique_rows(edge_verts)
-                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
-                if len(sorted_verts) <= 4:
-                    mpl_bbox = edge_artist.get_extents()
-                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
-                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
-                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-                    beta = (1 / frac_thru)
-                    alpha = 1 - beta
-                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
-                else:
-                    #print('sorted_verts = %r' % (sorted_verts,))
-                    #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                    #frac_thru = 3
-                    frac_thru = 6
+        if (v, u) in seen:
+            rad = seen[edge] * -1
 
-                    text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
+        if data.get('implicit', False):
+            alpha = .2
+            color = pt.GREEN
+        else:
+            alpha = 0.5
+            color = pt.BLACK
 
-                font_prop = mpl.font_manager.FontProperties(family='monospace',
-                                                            weight='light',
-                                                            size=18)
-                if data.get('ismulti', False):
-                    text = '*'
-                else:
-                    text = str(data.get('nwise_idx', '!'))
-                ax.annotate(text, xy=text_point1, xycoords="data", va="center", ha="center", fontproperties=font_prop)
-                #bbox=dict(boxstyle="round", fc=None, alpha=1.0))
-            if data.get('label', False):
-                pt1 = np.array(edge_artist.patchA.center)
-                pt2 = np.array(edge_artist.patchB.center)
-                frac_thru = 2
-                edge_verts = edge_artist.get_verts()
-                edge_verts = vt.unique_rows(edge_verts)
-                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
-                if len(sorted_verts) <= 4:
-                    mpl_bbox = edge_artist.get_extents()
-                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
-                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
-                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-                    print('sorted_verts = %r' % (sorted_verts,))
-                    beta = (1 / frac_thru)
-                    alpha = 1 - beta
-                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
-                else:
-                    text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                    ax.annotate(data['label'], xy=text_point1, xycoords="data",
-                                va="center", ha="center",
-                                bbox=dict(boxstyle="round", fc="w"))
-                pass
-            ax.add_patch(edge_artist)
-        # return e
+        color = data.get('color', color)
 
-    #def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
-    #    import pygraphviz
-    #    import networkx as nx
-    #    # Add "invisible" edges to induce an ordering
-    #    # Hack for layout (ordering of top level nodes)
-    #    netx_graph2 = netx_graph.copy()
-    #    if getattr(netx_graph, 'ttype2_cpds', None) is not None:
-    #        grouped_nodes = []
-    #        for ttype in netx_graph.ttype2_cpds.keys():
-    #            ttype_cpds = netx_graph.ttype2_cpds[ttype]
-    #            # use defined ordering
-    #            ttype_nodes = ut.list_getattr(ttype_cpds, 'variable')
-    #            # ttype_nodes = sorted(ttype_nodes)
-    #            invis_edges = list(ut.itertwo(ttype_nodes))
-    #            netx_graph2.add_edges_from(invis_edges)
-    #            grouped_nodes.append(ttype_nodes)
+        arrowstyle = '-' if not graph.is_directed() else '-|>'
 
-    #        A = nx.to_agraph(netx_graph2)
-    #        for nodes in grouped_nodes:
-    #            A.add_subgraph(nodes, rank='same')
-    #    else:
-    #        A = nx.to_agraph(netx_graph2)
+        arrow_patch = mpl.patches.FancyArrowPatch(
+            posA, posB, patchA=n1, patchB=n2,
+            arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
+            mutation_scale=10.0, lw=2, alpha=alpha, color=color)
 
-    #    args = ''
-    #    G = netx_graph
-    #    A.layout(prog=prog, args=args)
-    #    #A.draw('example.png', prog='dot')
-    #    node_pos = {}
-    #    for n in G:
-    #        node_ = pygraphviz.Node(A, n)
-    #        try:
-    #            xx, yy = node_.attr["pos"].split(',')
-    #            node_pos[n] = (float(xx), float(yy))
-    #        except:
-    #            print("no position for node", n)
-    #            node_pos[n] = (0.0, 0.0)
-    #    return node_pos
+        # endpoint1 = edge_verts[0]
+        # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
+        if data.get('ismulti', False) or data.get('isnwise', False):
+            pt1 = np.array(arrow_patch.patchA.center)
+            pt2 = np.array(arrow_patch.patchB.center)
+            frac_thru = 4
+            edge_verts = arrow_patch.get_verts()
+            edge_verts = vt.unique_rows(edge_verts)
+            sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+            if len(sorted_verts) <= 4:
+                mpl_bbox = arrow_patch.get_extents()
+                bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                beta = (1 / frac_thru)
+                alpha = 1 - beta
+                text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+            else:
+                #print('sorted_verts = %r' % (sorted_verts,))
+                #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                #frac_thru = 3
+                frac_thru = 6
 
-    if False:
-        nx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
-        #edge_labels = {(v1, v2): data['label'] for v1, v2, data in graph.edges(data=True) if 'label' in data}
-        #nx.draw_networkx_edge_labels(graph, pos, edge_labels)
+                text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
+
+            font_prop = mpl.font_manager.FontProperties(family='monospace',
+                                                        weight='light',
+                                                        size=18)
+            if data.get('ismulti', False):
+                text = '*'
+            else:
+                text = str(data.get('nwise_idx', '!'))
+            ax.annotate(text, xy=text_point1, xycoords='data', va='center',
+                        ha='center', fontproperties=font_prop)
+            #bbox=dict(boxstyle='round', fc=None, alpha=1.0))
+        if data.get('label', False):
+            pt1 = np.array(arrow_patch.patchA.center)
+            pt2 = np.array(arrow_patch.patchB.center)
+            frac_thru = 2
+            edge_verts = arrow_patch.get_verts()
+            edge_verts = vt.unique_rows(edge_verts)
+            sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+            if len(sorted_verts) <= 4:
+                mpl_bbox = arrow_patch.get_extents()
+                bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                print('sorted_verts = %r' % (sorted_verts,))
+                beta = (1 / frac_thru)
+                alpha = 1 - beta
+                text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+            else:
+                text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                ax.annotate(data['label'], xy=text_point1, xycoords='data',
+                            va='center', ha='center',
+                            bbox=dict(boxstyle='round', fc='w'))
+        #ax.add_patch(arrow_patch)
+        edge_patch_list.append(arrow_patch)
+
+    use_collections = False
+    if use_collections:
+        edge_coll = mpl.collections.PatchCollection(edge_patch_list)
+        node_coll = mpl.collections.PatchCollection(node_patch_list)
+        #coll.set_facecolor(fcolor)
+        #coll.set_alpha(alpha)
+        #coll.set_linewidth(lw)
+        #coll.set_edgecolor(color)
+        #coll.set_transform(ax.transData)
+        ax.add_collection(node_coll)
+        ax.add_collection(edge_coll)
     else:
-        draw_network2(graph, pos, ax)
-        ax.autoscale()
-        pt.plt.axis('equal')
-        pt.plt.axis('off')
+        if not hacknonode:
+            for patch in node_patch_list:
+                ax.add_patch(patch)
+        if not hacknoedge:
+            for patch in edge_patch_list:
+                ax.add_patch(patch)
+
+
+def netx_draw_images_at_positions(img_list, pos_list, zoom=.4, frameon=True):
+    """
+    Overlays images on a networkx graph
+
+    References:
+        https://gist.github.com/shobhit/3236373
+        http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+        http://stackoverflow.com/questions/11487797/mpl-basemap-overlay-small-image
+        http://matplotlib.org/api/text_api.html
+        http://matplotlib.org/api/offsetbox_api.html
+
+    TODO: look into DraggableAnnotation
+    """
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+    print('[viz_graph] drawing %d images' % len(img_list))
+    # Thumb stackartist
+    import plottool as pt
+    ax  = pt.gca()
+    artist_list = []
+    offset_img_list = []
+    bboxkw = dict(
+        xycoords='data',
+        boxcoords='offset points',
+        #boxcoords='data',
+        pad=0.25, frameon=frameon,
+        # frameon=False, bboxprops=dict(fc="cyan"),
+        # arrowprops=dict(arrowstyle="->"))
+    )
+    for pos, img in zip(pos_list, img_list):
+        x, y = pos
+        height, width = img.shape[0:2]
+        #print('height = %r' % (height,))
+        #print('width = %r' % (width,))
+        if False:
+            # THIS DOES NOT DO WHAT I WANT
+            # Scales the image with data coords
+            offset_img = OffsetImage(img, zoom=zoom)
+            #artist = AnnotationBbox(offset_img, (x, y), xybox=(-0., 0.), **bboxkw)
+            #artist = AnnotationBbox(offset_img, (x, y), xycoords='data', frameon=False)
+            artist = AnnotationBbox(offset_img, (x, y),
+                                    #xycoords='data',
+                                    xycoords=ax.transData,
+                                    frameon=False)
+
+            offset_img_list.append(offset_img)
+            artist_list.append(artist)
+
+        #offset_img = None
+
+        # THIS DOES EXACTLY WHAT I WANT
+        # Ties the image to data coords
+        pt.plt.imshow(img, extent=[x - width // 2, x + width // 2,
+                                   y - height // 2, y + height // 2])
+
+    for artist in artist_list:
+        ax.add_artist(artist)
+
+    imgdat = {
+        'offset_img_list': offset_img_list,
+        'artist_list': artist_list,
+    }
+    return imgdat
+
+
+def zoom_factory(ax, offset_img_list, base_scale=1.1):
+    """
+    TODO: make into interaction
+
+    References:
+        https://gist.github.com/tacaswell/3144287
+    """
+    def zoom_fun(event):
+        #print('zooming')
+        # get the current x and y limits
+        cur_xlim = ax.get_xlim()
+        cur_ylim = ax.get_ylim()
+        xdata = event.xdata  # get event x location
+        ydata = event.ydata  # get event y location
+        if xdata is None or ydata is None:
+            return
+        if event.button == 'up':
+            # deal with zoom in
+            scale_factor = 1 / base_scale
+        elif event.button == 'down':
+            # deal with zoom out
+            scale_factor = base_scale
+        else:
+            raise NotImplementedError('event.button=%r' % (event.button,))
+            # deal with something that should never happen
+            scale_factor = 1
+            print(event.button)
+        for offset_img in offset_img_list:
+            zoom = offset_img.get_zoom()
+            offset_img.set_zoom(zoom / (scale_factor ** (1.2)))
+        # Get distance from the cursor to the edge of the figure frame
+        x_left = xdata - cur_xlim[0]
+        x_right = cur_xlim[1] - xdata
+        y_top = ydata - cur_ylim[0]
+        y_bottom = cur_ylim[1] - ydata
+        ax.set_xlim([xdata - x_left * scale_factor, xdata + x_right * scale_factor])
+        ax.set_ylim([ydata - y_top * scale_factor, ydata + y_bottom * scale_factor])
+
+        # ----
+        ax.figure.canvas.draw()  # force re-draw
+
+    fig = ax.get_figure()  # get the figure of interest
+    # attach the call back
+    fig.canvas.mpl_connect('scroll_event', zoom_fun)
+
+    #return the function
+    return zoom_fun
 
 
 def set_figsize(w, h, dpi):
@@ -3808,8 +3964,11 @@ def plot_func(funcs, start=0, stop=1, num=100):
     xdata = np.linspace(start, stop, num)
     if not ut.isiterable(funcs):
         funcs = [funcs]
-    labels = [func if isinstance(func, six.string_types) else ut.get_callable_name(func) for func in funcs]
-    funcs  = [eval(func) if isinstance(func, six.string_types) else func for func in funcs]
+    labels = [func if isinstance(func, six.string_types)
+              else ut.get_callable_name(func)
+              for func in funcs]
+    funcs  = [eval(func) if isinstance(func, six.string_types)
+              else func for func in funcs]
     ydatas = [func(xdata) for func in funcs]
     pt.multi_plot(xdata, ydatas, label_list=labels, marker='')  # yscale='log')
 
