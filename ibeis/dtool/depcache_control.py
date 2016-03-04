@@ -643,6 +643,23 @@ class _CoreDependencyCache(object):
         tablename = 'nnindexer'
         multi_rowids = (1, 2, 3, 4, 5)
         root_rowids = [[multi_rowids]]
+        import plottool as pt
+        pt.ensure_pylab_qt4()
+        pt.show_nx(depc.graph)
+
+        from dtool.depcache_control import *  # NOQA
+        from dtool.example_depcache import testdata_depc
+        depc = testdata_depc()
+        exec(ut.execstr_funckw(depc.get_rowids), globals())
+        flat_root_ids = [1, 2, 3]
+        root_rowids = [[flat_root_ids], [(flat_root_ids,)]]
+        root_rowids = [list(zip(flat_root_ids)), (flat_root_ids,)]
+        print(ut.depth_profile(root_rowids))
+        tablename = 'neighbs'
+
+        for key, val in type_to_subgraph.items():
+            pt.show_nx(val)
+            pt.set_title(key)
         """
 
         def determine_compute_ordering(type_to_subgraph):
@@ -663,7 +680,7 @@ class _CoreDependencyCache(object):
             # Need to figure out natural order that these should be in.
 
         def determine_input_ordering(type_to_subgraph, compute_order):
-            """ Returns what input ordering shoulbe be in parent_rowids """
+            """ Returns what input (to depc.get_rowids) ordering shoulbe be in parent_rowids """
             from six.moves import zip_longest
             hgroupids = ut.ddict(list)
             for _tablename, order in reversed(compute_order):
@@ -697,11 +714,111 @@ class _CoreDependencyCache(object):
         table = depc[tablename]  # NOQA
         type_to_subgraph = table.subgraph_split
         compute_order = determine_compute_ordering(type_to_subgraph)
-        expected_input_order = determine_input_ordering(type_to_subgraph, compute_order)
+        expected_input_order = determine_input_ordering(type_to_subgraph,
+                                                        compute_order)
         if len(expected_input_order) > 1:
             assert ut.depth_atleast(root_rowids, 2)
 
-        if False:
+        INDEXER_VERSION = False
+        # MULTITEST_VERSION = False
+        FINAL_VERSION = False
+
+        if INDEXER_VERSION or tablename == 'neighbs':
+            # New way to get rowids
+            input_level = compute_order[0]
+            mid_levels = compute_order[1:-1]
+            output_level = compute_order[-1]
+
+            compute_order
+
+            input_lookup = ut.make_index_lookup(expected_input_order)
+            rowid_lookup = ut.odict([(key, {}) for key in expected_input_order])
+
+            # Need to split each path into parts.
+            # Each part represents another level of unflattening
+            # (because root indicies are all flat)
+
+            # Handle input level
+            tablekey, input_names = input_level
+            assert tablekey == depc.root
+            for name in input_names:
+                argx = input_lookup[name]
+                rowid_lookup[name]['rawroot'] = root_rowids[argx]
+                rowid_lookup[name][tablekey] = root_rowids[argx]
+                for i in range(5):
+                    try:
+                        rowid_lookup[name][tablekey] = ut.flatten(rowid_lookup[name][tablekey])
+                    except Exception:
+                        pass
+
+            # Handle mid levels
+            for tablekey, input_names in mid_levels:
+                config_ = depc._ensure_config(tablekey, config)
+                table = depc[tablekey]
+                lookupkeys = list(zip(table.parent_id_tablenames, input_names))
+                print('----------')
+                print('input_names = %r' % (input_names,))
+                print('tablekey = %r' % (tablekey,))
+                print('lookupkeys = %r' % (lookupkeys,))
+                print('table = %r' % (table,))
+                print('table.get_rowid = %r' % (table.get_rowid,))
+                print('L----------')
+                # FIXME generalize
+                if table.ismulti:
+                    parent_rowidsT = [[tuple(rowid_lookup[typekey][tblkey])]
+                                      for tblkey, typekey in lookupkeys]
+                else:
+                    parent_rowidsT = [rowid_lookup[typekey][tblkey]
+                                      for tblkey, typekey in lookupkeys]
+                parent_rowidsT = np.broadcast_arrays(*parent_rowidsT)
+
+                parent_rowids = list(zip(*parent_rowidsT))
+                _recompute = recompute_all
+
+                # Probably not right for general multi-input
+                mid_rowids = table.get_rowid(
+                    parent_rowids, config=config_, eager=eager, nInput=nInput,
+                    ensure=ensure, recompute=_recompute)
+                for name in input_names:
+                    rowid_lookup[name][table.tablename] = mid_rowids
+
+            if True:
+                tablekey, input_names = output_level
+                # Reorder input names
+                input_names = ut.take(input_names, ut.dict_take(input_lookup, input_names))
+
+                config_ = depc._ensure_config(tablekey, config)
+                table = depc[tablekey]
+                lookupkeys = list(zip(table.parent_id_tablenames, input_names))
+
+                table.parent_id_tablenames
+                print('---FINAL-------')
+                print('input_names = %r' % (input_names,))
+                print('tablekey = %r' % (tablekey,))
+                print('lookupkeys = %r' % (lookupkeys,))
+                print('table = %r' % (table,))
+                print('table.get_rowid = %r' % (table.get_rowid,))
+                print('L----------')
+                # FIXME generalize
+                if table.ismulti:
+                    parent_rowidsT = [[tuple(rowid_lookup[typekey][tblkey])]
+                                      for tblkey, typekey in lookupkeys]
+                else:
+                    parent_rowidsT = [rowid_lookup[typekey][tblkey]
+                                      for tblkey, typekey in lookupkeys]
+                parent_rowidsT = np.broadcast_arrays(*parent_rowidsT)
+
+                parent_rowids = list(zip(*parent_rowidsT))
+                _recompute = recompute_all
+
+                # Probably not right for general multi-input
+                mid_rowids = table.get_rowid(
+                    parent_rowids, config=config_, eager=eager, nInput=nInput,
+                    ensure=ensure, recompute=_recompute)
+                for name in input_names:
+                    rowid_lookup[name][table.tablename] = mid_rowids
+
+        if FINAL_VERSION:
             # New way to get rowids
             input_level = compute_order[0]
             mid_levels = compute_order[1:-1]
@@ -718,7 +835,6 @@ class _CoreDependencyCache(object):
 
             # Handle mid levels
             for tablekey, input_names in mid_levels:
-                break
                 config_ = depc._ensure_config(tablekey, config)
                 table = depc[tablekey]
                 # FIXME generalize
@@ -727,8 +843,9 @@ class _CoreDependencyCache(object):
                 parent_rowidsT = [rowid_lookup[k2][k1] for k1, k2 in lookupkeys]
                 #parent_rowids_ = [rowids[0] if flag else rowids
                 #                  for flag, rowids in zip(needs_unpack, parent_rowidsT)]
-                parent_rowids_ = [rowids if flag else rowids
-                                  for flag, rowids in zip(needs_unpack, parent_rowidsT)]
+                parent_rowids_ = [rowids_ if flag else rowids_
+                                  for flag, rowids_ in
+                                  zip(needs_unpack, parent_rowidsT)]
                 parent_rowids = list(zip(*parent_rowids_))
 
                 _recompute = recompute_all
@@ -738,7 +855,7 @@ class _CoreDependencyCache(object):
                     parent_rowids, config=config_, eager=eager, nInput=nInput,
                     ensure=ensure, recompute=_recompute)
 
-                rowid_lookup[name][tablekey] = mid_rowids
+                rowid_lookup[name][tablekey] = list(zip(mid_rowids))
                 #for name in input_names:
                 #    pass
 
