@@ -1992,7 +1992,7 @@ def detect_yolo_test_set_sweep(ibs):
     weight_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.weights')))
 
     test_imgsetid = ibs.add_imagesets('TEST_SET')
-    gid_list = ibs.get_imageset_gids(test_imgsetid)[-1:]
+    gid_list = ibs.get_imageset_gids(test_imgsetid)
     uuid_list = ibs.get_image_uuids(gid_list)
 
     print('gid_list = %r' % (gid_list, ))
