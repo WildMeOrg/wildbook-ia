@@ -791,6 +791,8 @@ class _CoreDependencyCache(object):
                     rowid_lookup[name]['rawroot'] = root_rowids[argx]
                     rowid_lookup[name][tablekey] = root_rowids[argx]
                     # HACK: Flatten to scalars
+                    # The inputs should just be given in the "correct" nesting.
+                    # TODO: determine what correct nesting is.
                     for i in range(5):
                         try:
                             current = rowid_lookup[name][tablekey]
