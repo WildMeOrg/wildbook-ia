@@ -973,7 +973,7 @@ class DependencyCacheTable(ut.NiceRepr):
         config_rowid = config_rowid_list[0]
         if table.depc._debug:
             print('config_rowid_list = %r' % (config_rowid_list,))
-            print('config_rowid = %r' % (config_rowid,))
+            #print('config_rowid = %r' % (config_rowid,))
         return config_rowid
 
     # ----------------------
@@ -1268,8 +1268,9 @@ class DependencyCacheTable(ut.NiceRepr):
         if _debug:
             print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parent' % (
                 table.tablename, len(parent_rowids)))
-            print('[deptbl.get_rowid] config = %r' % (config,))
-            print('[deptbl.get_rowid] ensure = %r' % (ensure,))
+            if _debug > 1:
+                print('[deptbl.get_rowid] config = %r' % (config,))
+                print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
         if ALLOW_NONE_YIELD:
             # Force entire row to be none if any are none

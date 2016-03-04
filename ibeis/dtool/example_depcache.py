@@ -406,14 +406,14 @@ def testdata_depc(fname=None):
     @depc.register_preproc(tablename='neighbs', colnames=['qx2_idx', 'qx2_dist'],
                            coltypes=[np.ndarray, np.ndarray],
                            parents=['dummy_annot', 'nnindexer'])
-    def vsmany_matching2(depc, qaids, nnindexer, config=None):
+    def vsmany_matching2(depc, qaids, nnindexer_ids, config=None):
         """
         CommandLine:
             python -m dtool.base --exec-VsManySimilarityRequest
         """
         #dummy_preproc_kpts
         for qaid in qaids:
-            yield None
+            yield np.array([qaid]), np.array([nnindexer_ids])
 
     @depc.register_preproc(
         tablename='vsmany', colnames='annotmatch', coltypes=DummyAnnotMatch,
