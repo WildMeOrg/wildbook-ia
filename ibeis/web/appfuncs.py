@@ -99,7 +99,7 @@ def resize_via_web_parameters(image):
     return _resize(image, t_width=w_pix, t_height=h_pix)
 
 
-def open_oriented_image(im_path):
+def open_oriented_image(im_path, ignore_resize=False):
     im = Image.open(im_path)
     if hasattr(im, '_getexif'):
         exif = im._getexif()
@@ -113,7 +113,8 @@ def open_oriented_image(im_path):
     elif img.shape[2] == 4:
         img = img[:, :, :3]
     # Check for passed in resize parameters
-    img = resize_via_web_parameters(img)
+    if not ignore_resize:
+        img = resize_via_web_parameters(img)
     return img
 
 

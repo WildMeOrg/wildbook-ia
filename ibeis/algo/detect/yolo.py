@@ -60,7 +60,8 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, **kwargs):
+def detect(gpath_list, detector=None, config_filepath=None, weight_filepath=None,
+           **kwargs):
     """
     Args:
         gpath_list (list of str): the list of image paths that need detection
@@ -71,7 +72,10 @@ def detect(gpath_list, **kwargs):
         iter
     """
     # Run detection
-    verbose = kwargs.get('verbose', False)
-    detector = pydarknet.Darknet_YOLO_Detector(verbose=verbose)
+    if detector is None:
+        verbose = kwargs.get('verbose', False)
+        detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
+                                                   weight_filepath=weight_filepath,
+                                                   verbose=verbose)
     results_iter = detector.detect(gpath_list, **kwargs)
     return results_iter
