@@ -561,7 +561,8 @@ def show_matches(ibs, cm, aid2, sel_fm=[], qreq_=None, **kwargs):
 def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
                          fs_list, featflag_list, fnum=None, pnum=None,
                          **kwargs):
-    """ move to df2
+    """
+    move to df2
     rchip = rchip1
     H = H1 = None
     target_wh = None

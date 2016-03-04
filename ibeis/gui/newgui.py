@@ -487,7 +487,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 query_is_known=None, daids_mode=const.VS_EXEMPLARS_KEY,
                 cfgdict={'can_match_samename': False, 'use_k_padding': False},
             ),
-            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.7, 0.0),
+            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.02, -0.7, 0.0),
+            fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
+
+        ibswgt.set_exemplars = _NEWBUT(
+            'Set Exemplars',
+            back.set_exemplars_from_quality_and_viewpoint,
+            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.03, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
         ibswgt.import_button = _NEWBUT(
@@ -542,6 +548,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
                 ibswgt.batch_intra_occurrence_query_button,
                 ibswgt.batch_vsexemplar_query_button,
+                ibswgt.set_exemplars,
                 _NEWLBL(''),
             ],
         ]

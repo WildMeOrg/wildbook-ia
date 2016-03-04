@@ -1432,7 +1432,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if len(qaid_list) == 0:
             msg = ut.codeblock(
                 '''
-                There are no annotations (of species=%r) left in this imageset.
+                No annotations (of species=%r) remain in this imageset.
 
                 * Has the imageset been completed?
                 * Is the species correctly set?
