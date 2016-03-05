@@ -1937,6 +1937,62 @@ def imageset_train_test_split(ibs, train_split=0.8):
 
 
 @register_ibs_method
+def detect_distributions(ibs):
+    # Process distributions of densities
+    gid_list = ibs.get_valid_gids()
+    aids_list = ibs.get_image_aids(gid_list)
+    distro_dict = {}
+    species_dict = {}
+    for gid, aid_list in zip(gid_list, aids_list):
+        total = len(aid_list)
+        if total >= 7:
+            total = 7
+        if total not in distro_dict:
+            distro_dict[total] = 0
+        distro_dict[total] += 1
+        for aid in aid_list:
+            species = ibs.get_annot_species_texts(aid)
+            if species not in ['zebra_plains', 'zebra_grevys']:
+                species = 'unspecified'
+            viewpoint = ibs.get_annot_yaw_texts(aid)
+            if species not in species_dict:
+                species_dict[species] = {}
+            if viewpoint not in species_dict[species]:
+                species_dict[species][viewpoint] = 0
+            species_dict[species][viewpoint] += 1
+
+    print('Density distribution')
+    for distro in sorted(distro_dict.keys()):
+        print('%d,%d' % (distro, distro_dict[distro]))
+    print('\n')
+
+    for species in sorted(species_dict.keys()):
+        print('Species viewpoint distribution: %r' % (species, ))
+        viewpoint_dict = species_dict[species]
+        total = 0
+        for viewpoint in sorted(viewpoint_dict.keys()):
+            print('%s: %d' % (viewpoint, viewpoint_dict[viewpoint]))
+            total += viewpoint_dict[viewpoint]
+        print('Total: %d\n' % (total, ))
+
+    plot_distrobutions(distro_dict)
+
+
+def plot_distrobutions(distro_dict):
+    import matplotlib.pyplot as plt
+    key_list = sorted(distro_dict.keys())
+    label_list = [ '7+' if key == 7 else str(key) for key in key_list ]
+    size_list = [ distro_dict[key] for key in key_list ]
+    color_list = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral']
+    explode = [0.0] + [0.0] * (len(size_list) - 1)
+
+    plt.pie(size_list, explode=explode, labels=label_list, colors=color_list,
+            autopct='%1.1f%%', shadow=True, startangle=90)
+    plt.axis('equal')
+    plt.show()
+
+
+@register_ibs_method
 def detect_rf_test_set_sweep(ibs):
     from ibeis.algo.detect import randomforest  # NOQA
     from os.path import abspath, expanduser, join, exists
@@ -2067,7 +2123,7 @@ def detect_overlap(gt_list, pred_list):
     return overlap
 
 
-def detect_precision_recall(overlap, min_overlap=0.50):
+def detect_precision_recall(overlap, min_overlap, **kwargs):
     num_gt, num_pred = overlap.shape
     if num_gt == 0:
         pr = 0.0
@@ -2112,6 +2168,7 @@ def detect_parse_gt(ibs):
 
 
 def detect_parse_sweep(sweep_filepath):
+    from os.path import abspath, expanduser, join, exists
     with open(sweep_filepath, 'r') as sweep_file:
         line_list = sweep_file.readlines()
     sweep_dict = {}
@@ -2128,7 +2185,14 @@ def detect_parse_sweep(sweep_filepath):
             line = line.strip().split()
             assert len(line) == 2
             current_gpath = line[0]
-            current_width, current_height = vt.open_image_size(current_gpath)
+            if exists(current_gpath):
+                current_width, current_height = vt.open_image_size(current_gpath)
+            else:
+                current_gpath = current_gpath.replace(
+                    '/media/extend/jason/data',
+                    abspath(expanduser(join('~', 'Desktop', 'data')))
+                )
+                current_width, current_height = vt.open_image_size(current_gpath)
             current_index = int(line[1])
         else:
             assert current_gpath is not None and current_index is not None
@@ -2150,7 +2214,7 @@ def detect_parse_sweep(sweep_filepath):
     return sweep_dict
 
 
-def detect_precision_recall_algo(ibs, algo):
+def detect_precision_recall_algo(ibs, algo, **kwargs):
     import uuid
     from os.path import abspath, expanduser, join, split
     test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo)))
@@ -2175,6 +2239,10 @@ def detect_precision_recall_algo(ibs, algo):
             print('Skipping: Incomplete sweep file')
             errored += 1
             continue
+        except AssertionError:
+            print('Skipping: Corrupt sweep file')
+            errored += 1
+            continue
         print('Parsed: %r' % (sweep_filepath, ))
         # print(sweep_dict)
     print('Skipped: %d' % (skipped, ))
@@ -2183,12 +2251,12 @@ def detect_precision_recall_algo(ibs, algo):
     return sweep_dict_dict
 
 
-def detect_precision_recall_algo_average(ibs, algo):
+def detect_precision_recall_algo_average(ibs, algo, **kwargs):
     test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     gt_dict = detect_parse_gt(ibs)
-    sweep_dict_dict = detect_precision_recall_algo(ibs, algo)
+    sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
 
     pr_dict = {}
     re_dict = {}
@@ -2196,17 +2264,18 @@ def detect_precision_recall_algo_average(ibs, algo):
     for uuid in uuid_list:
         print('    %r' % (uuid, ))
         gt_list = gt_dict[uuid]
-        sweep_dict = sweep_dict_dict[uuid]
-        for index in sweep_dict:
-            if index not in pr_dict:
-                pr_dict[index] = []
-            if index not in re_dict:
-                re_dict[index] = []
-            pred_list = sweep_dict[index]
-            overlap = detect_overlap(gt_list, pred_list)
-            pr, re = detect_precision_recall(overlap)
-            pr_dict[index].append(1.0 - pr)
-            re_dict[index].append(1.0 - re)
+        if uuid in sweep_dict_dict:
+            sweep_dict = sweep_dict_dict[uuid]
+            for index in sweep_dict:
+                if index not in pr_dict:
+                    pr_dict[index] = []
+                if index not in re_dict:
+                    re_dict[index] = []
+                pred_list = sweep_dict[index]
+                overlap = detect_overlap(gt_list, pred_list)
+                pr, re = detect_precision_recall(overlap, **kwargs)
+                pr_dict[index].append(pr)
+                re_dict[index].append(re)
     print('...complete')
 
     for _dict in [pr_dict, re_dict]:
@@ -2219,18 +2288,22 @@ def detect_precision_recall_algo_average(ibs, algo):
     return pr_dict, re_dict
 
 
-def detect_precision_recall_algo_plot(ibs, algo, species, color):
+def detect_precision_recall_algo_plot(ibs, algo, species, color, invert1=False, invert2=False, **kwargs):
     import matplotlib.pyplot as plt
 
     def axes(dict_):
         x_axis = []
         y_axis = []
         for _ in sorted(dict_.keys()):
-            x_axis.append( _ / 100.0 )
-            y_axis.append(dict_[_])
+            if invert2:
+                x_axis.append( 1.0 - (_ / 100.0) )
+                y_axis.append(dict_[_])
+            else:
+                x_axis.append( _ / 100.0 )
+                y_axis.append(dict_[_])
         return x_axis, y_axis
 
-    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo)
+    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, **kwargs)
 
     algo_dict = {
         'rf'   : 'HF',
@@ -2245,6 +2318,10 @@ def detect_precision_recall_algo_plot(ibs, algo, species, color):
     }
     species = species_dict[species]
 
+    # Fix for RF
+    if invert1:
+        pr_dict, re_dict = re_dict, pr_dict
+
     # Plot curves
     x_axis, y_axis = axes(pr_dict)
     plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
@@ -2254,25 +2331,25 @@ def detect_precision_recall_algo_plot(ibs, algo, species, color):
 
 
 @register_ibs_method
-def detect_precision_recall_algo_display(ibs):
+def detect_precision_recall_algo_display(ibs, min_overlap=0.5, **kwargs):
     import matplotlib.pyplot as plt
-    from os.path import abspath, expanduser
+    from os.path import abspath, expanduser, join
     import ibeis
 
     axes_ = plt.subplot(111)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('Sensitivity')
+    axes_.set_xlabel('Sensitivity (GT Overlap >= %0.02f)' % (min_overlap, ))
     axes_.set_ylabel('Percentage')
-    axes_.set_xlim([0.0, 1.05])
-    axes_.set_ylim([0.0, 1.05])
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
 
-    ibs_ = ibeis.opendb(dbdir=abspath(expanduser('~/Desktop/data/PZ_Paper')))
-    detect_precision_recall_algo_plot(ibs_, 'rf', 'pz', 'r')
-    # detect_precision_recall_algo_plot(ibs_, 'yolo', 'pz', 'g')
-    ibs_ = ibeis.opendb(dbdir=abspath(expanduser('~/Desktop/data/GZ_Paper')))
-    detect_precision_recall_algo_plot(ibs_, 'rf', 'gz', 'b')
-    # detect_precision_recall_algo_plot(ibs_, 'yolo', 'gz', 'p')
+    ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'PZ_Paper'))))
+    detect_precision_recall_algo_plot(ibs_, 'rf', 'pz', 'r', invert1=True, min_overlap=min_overlap)
+    detect_precision_recall_algo_plot(ibs_, 'yolo', 'pz', 'g', invert2=True, min_overlap=min_overlap)
+    ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'GZ_Paper'))))
+    detect_precision_recall_algo_plot(ibs_, 'rf', 'gz', 'b', invert1=True, min_overlap=min_overlap)
+    detect_precision_recall_algo_plot(ibs_, 'yolo', 'gz', 'y', invert2=True, min_overlap=min_overlap)
 
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
