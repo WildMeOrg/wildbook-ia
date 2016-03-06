@@ -2294,6 +2294,10 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
     error_classification_by_viewpoint = {}
     error_classification_by_density   = {}
 
+    gt_by_species   = {}
+    gt_by_viewpoint = {}
+    gt_by_density   = {}
+
     pr_dict = {}
     re_dict = {}
     print('Processing IOU + P/R Curves...')
@@ -2303,6 +2307,12 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
         gt_density = len(gt_list)
         total += gt_density
         gt_density = min(gt_density, 7)
+
+        if gt_density not in gt_by_density:
+            gt_by_density[gt_density] = 0
+
+        gt_by_density[gt_density] += 1
+
         if uuid in sweep_dict_dict:
             sweep_dict = sweep_dict_dict[uuid]
             best_pr = None
@@ -2335,6 +2345,15 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
                 if gt_species not in ['zebra_plains', 'zebra_grevys']:
                     gt_species = 'unspecified'
                 gt_viewpoint = gt_list[gt]['viewpoint']
+
+                if gt_species not in gt_by_species:
+                    gt_by_species[gt_species] = 0
+                if gt_viewpoint not in gt_by_viewpoint:
+                    gt_by_viewpoint[gt_viewpoint] = 0
+
+                gt_by_species[gt_species] += 1
+                gt_by_viewpoint[gt_viewpoint] += 1
+
                 if gt not in assignment_dict:
                     error_localization += 1
                     if gt_species not in error_localization_by_species:
@@ -2372,6 +2391,10 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
                 _dict[index] = None
             else:
                 _dict[index] = sum(temp) / len(temp)
+
+    print(gt_by_species)
+    print(gt_by_viewpoint)
+    print(gt_by_density)
 
     print(sum( map(len, ibs.get_image_aids(test_gid_set)) ))
     print(total - error_localization - error_classification)
