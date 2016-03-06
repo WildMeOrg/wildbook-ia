@@ -132,9 +132,9 @@ if __name__ == '__main__':
         print('[vtool] cython is off')
         # raise
     #from vtool import linalg
-    test_locals1 = utool.run_test(test_L2_sqrd)
-    test_locals2 = utool.run_test(test_invVR_sqrd_scale)
-    test_locals2 = utool.run_test(test_det_dist)
+    test_locals1, error_report1 = utool.run_test(test_L2_sqrd)
+    test_locals2, error_report2 = utool.run_test(test_invVR_sqrd_scale)
+    test_locals3, error_report3 = utool.run_test(test_det_dist)
     benchmark_L2_dist()
     benchmark_invVR_sqrd_scale()
     benchmark_det_dist()

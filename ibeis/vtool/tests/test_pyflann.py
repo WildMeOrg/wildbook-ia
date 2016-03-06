@@ -385,53 +385,6 @@ def test_pyflann_io():
         raise AssertionError('...data is the different! FAILURE!')
 
 
-#if __name__ == '__main__':
-#    """
-#    python -m vtool.tests.test_pyflann
-
-
-#    build_index(self, pts, **kwargs) method of pyflann.index.FLANN instance
-#        This builds and internally stores an index to be used for
-#        future nearest neighbor matchings.  It erases any previously
-#        stored indexes, so use multiple instances of this class to
-#        work with multiple stored indices.  Use nn_index(...) to find
-#        the nearest neighbors in this index.
-
-#        pts is a 2d numpy array or matrix. All the computation is done
-#        in float32 type, but pts may be any type that is convertable
-#        to float32.
-
-#    delete_index(self, **kwargs) method of pyflann.index.FLANN instance
-#        Deletes the current index freeing all the momory it uses.
-#        The memory used by the dataset that was indexed is not freed.
-
-#    """
-#    np.random.seed(1)
-#    tests = [
-#        test_pyflann_io,
-#        test_pyflann_hkmeans,
-#        test_pyflann_kmeans,
-#        test_pyflann_add_point,
-#        test_pyflann_searches,
-#        test_pyflann_tune,
-#    ]
-#    passed = 0
-#    for test in tests:
-#        passed += not (False is utool.run_test(test))
-#    print('%d/%d passed in test_pyflann' % (passed, len(tests)))
-
-#if __name__ == '__main__':
-#    """
-#    CommandLine:
-#        python -m vtool.tests.test_pyflann
-#        python -m vtool.tests.test_pyflann --allexamples
-#        python -m vtool.tests.test_pyflann --allexamples --noface --nosrc
-#    """
-#    import multiprocessing
-#    multiprocessing.freeze_support()  # for win32
-#    import utool as ut  # NOQA
-#    ut.doctest_funcs()
-
 if __name__ == '__main__':
     """
     CommandLine:
