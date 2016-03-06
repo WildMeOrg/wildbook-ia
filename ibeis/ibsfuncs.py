@@ -2340,7 +2340,10 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
             overlap = detect_overlap(gt_list, pred_list)
             pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
 
-            for gt in range(len(gt_list)):
+            temp_total = len(gt_list)
+            temp_local = 0
+            temp_class = 0
+            for gt in range(temp_total):
                 gt_species   = gt_list[gt]['species']
                 if gt_species not in ['zebra_plains', 'zebra_grevys']:
                     gt_species = 'unspecified'
@@ -2360,11 +2363,9 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
                         error_localization_by_species[gt_species] = 0
                     if gt_viewpoint not in error_localization_by_viewpoint:
                         error_localization_by_viewpoint[gt_viewpoint] = 0
-                    if gt_density not in error_localization_by_density:
-                        error_localization_by_density[gt_density] = 0
                     error_localization_by_species[gt_species] += 1
                     error_localization_by_viewpoint[gt_viewpoint] += 1
-                    error_localization_by_density[gt_density] += 1
+                    temp_local += 1
                 else:
                     pred = assignment_dict[gt]
                     pred_species = pred_list[pred]['species']
@@ -2377,11 +2378,17 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
                             error_classification_by_species[gt_species] = 0
                         if gt_viewpoint not in error_classification_by_viewpoint:
                             error_classification_by_viewpoint[gt_viewpoint] = 0
-                        if gt_density not in error_classification_by_density:
-                            error_classification_by_density[gt_density] = 0
                         error_classification_by_species[gt_species] += 1
                         error_classification_by_viewpoint[gt_viewpoint] += 1
-                        error_classification_by_density[gt_density] += 1
+                        temp_class += 1
+            if gt_density not in error_localization_by_density:
+                error_localization_by_density[gt_density] = 0
+            if gt_density not in error_classification_by_density:
+                error_classification_by_density[gt_density] = 0
+            if temp_local > temp_total // 2:
+                error_localization_by_density[gt_density] += 1
+            if temp_class > temp_total // 2:
+                error_classification_by_density[gt_density] += 1
     print('...complete')
 
     for _dict in [pr_dict, re_dict]:
