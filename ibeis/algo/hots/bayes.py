@@ -507,8 +507,8 @@ def _test_compute_reduced_joint(model, query_vars, evidence, method):
 
 def compute_reduced_joint(model, query_vars, evidence, method,
                           operation='maximize'):
+    import pgmpy
     if method == 'approx':
-        import pgmpy
         # TODO: incorporate operation?
         query_states = model.get_number_of_states(query_vars)
         print('model.number_of_states = %r' % (
@@ -608,7 +608,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
     CommandLine:
         python -m ibeis.algo.hots.bayes --exec-cluster_query --show
 
-    ParamGrid:
+    GridParams:
         >>> param_grid = dict(
         >>>     #method=['approx', 'bf', 'bp'],
         >>>     method=['approx', 'bp'],
@@ -618,7 +618,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
         >>> keys = 'method'.split(', ')
         >>> method, = ut.dict_take(combos[index], keys)
 
-    Setup:
+    GridSetup:
         >>> from ibeis.algo.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
@@ -634,13 +634,13 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
         >>> evidence = model._ensure_internal_evidence(evidence)
         >>> query_vars = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
 
-    Example:
+    GridExample:
         >>> # DISABLE_DOCTEST
         >>> query_results = cluster_query(model, query_vars, evidence,
         >>>                               method=method)
         >>> print(ut.repr2(query_results['top_assignments'], nl=1))
         >>> ut.quit_if_noshow()
-        >>> pgm_ext.show_model(model, evidence=evidence, **query_results)
+        >>> pgm_viz.show_model(model, evidence=evidence, **query_results)
         >>> ut.show_if_requested()
     """
     evidence = model._ensure_internal_evidence(evidence)

@@ -396,7 +396,8 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
 
     import plottool as pt
     import networkx as netx
-    factor_list = kwargs.get('factor_list', [])
+    kwargs = kwargs.copy()
+    factor_list = kwargs.pop('factor_list', [])
 
     ttype_colors, ttype_scalars = make_colorcodes(model)
 
