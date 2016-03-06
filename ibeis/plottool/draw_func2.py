@@ -62,7 +62,7 @@ to_base255 = color_fns.to_base255
 DARKEN = ut.get_argval(
     '--darken', type_=float, default=(.7 if ut.get_argflag('--darken') else None))
 
-print('DARKEN = %r' % (DARKEN,))
+# print('DARKEN = %r' % (DARKEN,))
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
 all_figures_tile           = fig_presenter.all_figures_tile
