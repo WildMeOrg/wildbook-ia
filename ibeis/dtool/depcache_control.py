@@ -592,68 +592,8 @@ class _CoreDependencyCache(object):
                   (ut.trunc_repr(child_rowids),))
         return child_rowids
 
-    def determine_compute_ordering(depc, type_to_subgraph):
-        """ Returns which nodes to compute first, and what inputs are needed """
-        import networkx as nx
-        composed_graph = nx.compose_all(type_to_subgraph.values())
-        #pt.show_nx(composed_graph)
-        topsort = nx.topological_sort(composed_graph)
-        type_to_dependlevels = ut.map_dict_vals(ut.level_order, type_to_subgraph)
-        level_orders = type_to_dependlevels
-        # Find computation order for all dependencies
-        compute_order = ut.merge_level_order(level_orders, topsort)
-        #expected_types = list(type_to_dependlevels.keys())
-        #print('expected_types = %r' % (expected_types,))
-        #print('compute_order = %s' % (ut.repr3(compute_order),))
-        return compute_order
-
-        # Need to figure out natural order that these should be in.
-
-    def determine_input_ordering(depc, type_to_subgraph, compute_order):
-        """ Returns what input (to depc.get_rowids) ordering shoulbe be in parent_rowids """
-        from six.moves import zip_longest
-        hgroupids = ut.ddict(list)
-        for _tablename, order in reversed(compute_order):
-            if _tablename == depc.root:
-                continue
-            for t in order:
-                s = type_to_subgraph[t]
-                colxs = [y['parent_colx'] for x in s.pred[_tablename].values()
-                         for y in x.values()]
-                assert len(colxs) > 0
-                colx = min(colxs)
-                #order_colxs.append(colx)
-                hgroupids[t].append(colx)
-
-        hgroupids = dict(hgroupids)
-
-        keys = hgroupids.keys()
-        vals = hgroupids.values()
-        groupids = list(zip_longest(*vals, fillvalue=0))
-        hgroups = ut.hierarchical_group_items(keys, groupids)
-        fgroups = ut.flatten_dict_items(hgroups)
-        fkey_list = [int(''.join(map(str, key))) for key in fgroups.keys()]
-        fval_list = fgroups.values()
-
-        dupkeys = ut.find_duplicate_items(fkey_list)
-        assert len(dupkeys) == 0, 'cannot have duplicate orderings'
-
-        expected_input_order = ut.flatten(ut.sortedby(fval_list, fkey_list))
-        return expected_input_order
-
     # -----------------------------
     # STATE GETTERS
-
-    def new_request(depc, tablename, qaids, daids, cfgdict=None):
-        """ creates a request for data that can be executed later """
-        print('[depc] NEW %s request' % (tablename,))
-        requestclass = depc.requestclass_dict[tablename]
-        request = requestclass.new(depc, qaids, daids, cfgdict,
-                                   tablename=tablename)
-        return request
-
-    def get_root_rowids(depc, tablename, native_rowids):
-        return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
 
     def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
                    eager=True, nInput=None, _debug=None, recompute=False,
@@ -662,17 +602,81 @@ class _CoreDependencyCache(object):
         Returns the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
 
-        Example:
+        Ignore:
+            tablename = 'nnindexer'
+            multi_rowids = (1, 2, 3, 4, 5)
+            root_rowids = [[multi_rowids]]
+            import plottool as pt
+            pt.ensure_pylab_qt4()
+
+            from dtool.depcache_control import *  # NOQA
+            from dtool.example_depcache import testdata_depc
+            depc = testdata_depc()
+            exec(ut.execstr_funckw(depc.get_rowids), globals())
+            print(ut.depth_profile(root_rowids))
+            tablename = 'neighbs'
+            table = depc[tablename]  # NOQA
+            import plottool as pt
+            pt.ensure_pylab_qt4()
+            _debug = depc._debug = True
+            depc.get_rowids(tablename, root_rowids, config, _debug=_debug)
+
+            pt.show_nx(depc.graph)
+            for key, val in table.type_to_subgraph.items():
+                pt.show_nx(val)
+                pt.set_title(key)
+
+        CommandLine:
+            python -m dtool.depcache_control --exec-get_rowids --show
+            python -m dtool.depcache_control --dump-get_rowids --show
+            python -m dtool.depcache_control --exec-get_rowids:0 --show
+
+        GridParams:
+            >>> param_grid = dict(
+            >>>     tablename=[ 'spam', 'neighbs'] # 'spam', 'multitest_score','keypoint'],
+            >>>     #tablename=['neighbs', 'keypoint', 'spam', 'multitest_score','keypoint'],
+            >>> )
+            >>> flat_root_ids = [1, 2, 3]
+            >>> combos = ut.all_dict_combinations(param_grid)
+            >>> index = 0
+            >>> keys = 'tablename'.split(', ')
+            >>> tablename, = ut.dict_take(combos[index], keys)
+
+        Setup:
+            >>> # ENABLE_GRID_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> #pt.show_nx(depc.graph)
+
+        GridExample0:
+            >>> table = depc[tablename]  # NOQA
+            >>> flat_root_ids = [1, 2, 3]
+            >>> root_rowids = [flat_root_ids for _ in table.expected_input_order]
+            >>> print('root_rowids = %r' % (root_rowids,))
+            >>> #root_rowids = [[flat_root_ids], [(flat_root_ids,)]]
+            >>> #root_rowids = [list(zip(flat_root_ids)), (flat_root_ids,)]
+            >>> _debug = True
+            >>> depc.get_rowids(tablename, root_rowids, config, _debug=_debug)
+            >>> for key, val in table.type_to_subgraph.items():
+            >>>     pt.show_nx(val)
+            >>>     pt.set_title(key)
+
+        Example1:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
             >>> root_rowids = [1, 2, 3]
-            >>> kp_rowids = depc.get_rowids('keypoint', root_rowids)
-            >>> tablename = 'vsone'
-            >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
-            >>> print(result)
+            >>> tablename = 'spam'
+            >>> table = depc[tablename]
+            >>> kp_rowids = depc.get_rowids(tablename, root_rowids)
+            >>> #result = ('prop_list = %s' % (ut.repr2(prop_list),))
+            >>> #print(result)
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -683,71 +687,46 @@ class _CoreDependencyCache(object):
             >>> flat_root_ids = [1, 2, 3]
             >>> kp_rowids = depc.get_rowids('keypoint', flat_root_ids)
             >>> root_rowids = [flat_root_ids] * 8
+            >>> _debug = True
             >>> tablename = 'nnindexer'
             >>> tablename = 'multitest_score'
             >>> table = depc[tablename]  # NOQA
-            >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
-            >>> print(result)
-
-        tablename = 'nnindexer'
-        multi_rowids = (1, 2, 3, 4, 5)
-        root_rowids = [[multi_rowids]]
-        import plottool as pt
-        pt.ensure_pylab_qt4()
-
-        from dtool.depcache_control import *  # NOQA
-        from dtool.example_depcache import testdata_depc
-        depc = testdata_depc()
-        exec(ut.execstr_funckw(depc.get_rowids), globals())
-        flat_root_ids = [1, 2, 3]
-        root_rowids = [[flat_root_ids], [(flat_root_ids,)]]
-        root_rowids = [list(zip(flat_root_ids)), (flat_root_ids,)]
-        print(ut.depth_profile(root_rowids))
-        tablename = 'neighbs'
-        table = depc[tablename]  # NOQA
-        type_to_subgraph = table.subgraph_split
-        import plottool as pt
-        pt.ensure_pylab_qt4()
-
-        _debug = depc._debug = True
-
-        pt.show_nx(depc.graph)
-        for key, val in type_to_subgraph.items():
-            pt.show_nx(val)
-            pt.set_title(key)
+            >>> #result = ('prop_list = %s' % (ut.repr2(prop_list),))
+            >>> # print(result)
         """
         _debug = depc._debug if _debug is None else _debug
         if _debug:
             print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
             print(' * config = %r' % (config,))
         table = depc[tablename]  # NOQA
-        type_to_subgraph = table.subgraph_split
-        compute_order = depc.determine_compute_ordering(type_to_subgraph)
-        expected_input_order = depc.determine_input_ordering(type_to_subgraph,
-                                                             compute_order)
+        expected_input_order = table.expected_input_order
+        compute_order = table.compute_order
+
         if _debug:
             print(' * expected_input_order = %s' % (expected_input_order,))
             print(' * compute_order = %s' % (ut.repr3(compute_order),))
         if len(expected_input_order) > 1:
-            assert ut.depth_atleast(root_rowids, 2)
+            assert ut.depth_atleast(root_rowids, 2), (
+                'expected_input_order = %r' % (expected_input_order,))
 
-        INDEXER_VERSION = False
+        INDEXER_VERSION = True
 
         if INDEXER_VERSION or tablename == 'neighbs':
-
-            def handle_level(tablekey, input_names, rowid_lookup, _recompute):
-                ordering = ut.dict_take(input_lookup, input_names)
+            def handle_level(tablekey, input_names, rowid_lookup, _recompute,
+                             level):
+                print('+--- HANDLE LEVEL %d -------' % (level,))
+                ordering = ut.dict_take(input_order_lookup, input_names)
                 sortx = ut.argsort(ordering)
                 input_names = ut.take(input_names, sortx)
                 config_ = depc._ensure_config(tablekey, config)
                 table = depc[tablekey]
+
                 lookupkeys = list(zip(table.parent_id_tablenames, input_names))
+                # lookupkeys = list(ut.iprod(table.parent_id_tablenames, input_names))
+                # lookupkeys = list(zip(table.parent_id_tablenames, input_types))
                 if _debug:
-                    print('----------')
-                    print('input_names = %r' % (input_names,))
-                    print('tablekey = %r' % (tablekey,))
-                    print('lookupkeys = %r' % (lookupkeys,))
-                    print('table = %r' % (table,))
+                    print('---- LOCALS ------')
+                    ut.print_locals(input_names, tablekey, lookupkeys, table)
                     print('L----------')
                 # FIXME generalize
                 _parent_ids = [rowid_lookup[typekey][tblkey]
@@ -759,11 +738,17 @@ class _CoreDependencyCache(object):
                 parent_rowidsT = np.broadcast_arrays(*parent_rowidsT)
                 parent_rowids = list(zip(*parent_rowidsT))
                 # Probably not right for general multi-input
-                next_rowids = table.get_rowid(
-                    parent_rowids, config=config_, eager=eager, nInput=nInput,
-                    ensure=ensure, recompute=_recompute)
+                import utool
+                with utool.embed_on_exception_context:
+                    next_rowids = table.get_rowid(
+                        parent_rowids, config=config_, eager=eager, nInput=nInput,
+                        ensure=ensure, recompute=_recompute)
                 for name in input_names:
                     rowid_lookup[name][table.tablename] = next_rowids
+                if _debug:
+                    ut.printdict(rowid_lookup, 'rowid_lookup')
+                if _debug:
+                    print('L___ HANDLE LEVEL %d -------' % (level,))
                 return next_rowids
 
             with ut.Indenter('[GetRowID-%s]' % (tablename,),
@@ -774,10 +759,11 @@ class _CoreDependencyCache(object):
                 output_level = compute_order[-1]
 
                 # List that holds a mapping from input order to input "name"
-                input_lookup = ut.make_index_lookup(expected_input_order)
+                input_order_lookup = ut.make_index_lookup(expected_input_order)
                 # Dictionary that holds the rowids computed for each table
                 # while tracing the dependencies.
-                rowid_lookup = ut.odict([(key, ut.odict()) for key in expected_input_order])
+                rowid_lookup = ut.odict([(key, ut.odict())
+                                         for key in expected_input_order])
 
                 # Need to split each path into parts.
                 # Each part represents another level of unflattening
@@ -787,7 +773,7 @@ class _CoreDependencyCache(object):
                 tablekey, input_names = input_level
                 assert tablekey == depc.root
                 for name in input_names:
-                    argx = input_lookup[name]
+                    argx = input_order_lookup[name]
                     rowid_lookup[name]['rawroot'] = root_rowids[argx]
                     rowid_lookup[name][tablekey] = root_rowids[argx]
                     # HACK: Flatten to scalars
@@ -801,36 +787,23 @@ class _CoreDependencyCache(object):
                             pass
 
                 level = 0
-                print('+--- HANDLE INPUT LEVEL %d -------' % (level,))
                 if _debug:
-                    print('input_lookup = %r' % (input_lookup,))
+                    print('input_order_lookup = %r' % (input_order_lookup,))
                     ut.printdict(rowid_lookup, 'rowid_lookup')
-                if _debug:
-                    print('L___ HANDLE INPUT LEVEL %d -------' % (level,))
 
                 # Handle mid levels
                 _recompute = recompute_all
-                for level, (tablekey, input_names) in enumerate(mid_levels, start=1):
-                    if _debug:
-                        print('+--- HANDLE LEVEL %d -------' % (level,))
+                for level, (tablekey, input_names) in enumerate(mid_levels,
+                                                                start=1):
                     handle_level(tablekey, input_names, rowid_lookup,
-                                 _recompute)
-                    if _debug:
-                        ut.printdict(rowid_lookup, 'rowid_lookup')
-                    if _debug:
-                        print('L___ HANDLE LEVEL -------')
+                                 _recompute, level)
                 level += 1
 
                 # Handel final (requested) level
                 tablekey, input_names = output_level
                 _recompute = recompute
-                if _debug:
-                    print('+--- HANDLE FINAL LEVEL %d -------' % (level,))
                 rowid_list =  handle_level(tablekey, input_names, rowid_lookup,
-                                           _recompute)
-                if _debug:
-                    ut.printdict(rowid_lookup, 'rowid_lookup')
-                    print('L___ HANDLE FINAL LEVEL -------')
+                                           _recompute, level)
         else:
             with ut.Indenter('[GetRowID-%s]' % (tablename,),
                              enabled=_debug):
@@ -944,6 +917,17 @@ class _CoreDependencyCache(object):
         return prop_list
 
     get_native = get_native_property
+
+    def new_request(depc, tablename, qaids, daids, cfgdict=None):
+        """ creates a request for data that can be executed later """
+        print('[depc] NEW %s request' % (tablename,))
+        requestclass = depc.requestclass_dict[tablename]
+        request = requestclass.new(depc, qaids, daids, cfgdict,
+                                   tablename=tablename)
+        return request
+
+    def get_root_rowids(depc, tablename, native_rowids):
+        return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
 
     # -----------------------------
     # STATE MODIFIERS
@@ -1065,20 +1049,29 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             def get_edgedata(tablekey, parentkey, parent_data):
                 if parent_data['ismulti'] or parent_data['isnwise']:
                     edge_type_parts = []
+                    local_input_id = ''
                     if parent_data['ismulti']:
-                        edge_type_parts.append('multi_%s_%s' % (parentkey, tablekey))
+                        # TODO: give different ids to multi edges
+                        # edge_type_parts.append('multi_%s_%s' % (parentkey, tablekey))
+                        edge_type_parts.append('multi')
+                        local_input_id = '*'
                     if parent_data['isnwise']:
-                        edge_type_parts.append('nwise_%s_%s_%s' % (
-                            parentkey, tablekey, parent_data['nwise_idx'],))
+                        edge_type_parts.append('nwise_%s' % (
+                             parent_data['nwise_idx'],))
+                        local_input_id = six.text_type(parent_data['nwise_idx'])
+                        # edge_type_parts.append('nwise_%s_%s_%s' % (
+                        #     parentkey, tablekey, parent_data['nwise_idx'],))
                     edge_type_id = '_'.join(edge_type_parts)
                 else:
                     edge_type_id = 'normal'
+                    local_input_id = '1'
                 edge_data = {
                     'ismulti': parent_data['ismulti'],
                     'isnwise': parent_data.get('isnwise'),
                     'nwise_idx': parent_data.get('nwise_idx'),
                     'parent_colx': parent_data.get('parent_colx'),
-                    'edge_type': edge_type_id
+                    'edge_type': edge_type_id,
+                    'local_input_id': local_input_id,
                 }
                 return edge_data
             edges = [

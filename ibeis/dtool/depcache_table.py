@@ -11,6 +11,7 @@ import six
 from six.moves import zip, range
 from os.path import join, exists
 from dtool import __SQLITE__ as lite
+import networkx as nx
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
 
 
@@ -54,6 +55,23 @@ def predrop_grace_period(tablename, seconds=None):
     return ut.grace_period(warnmsg, seconds)
 
 
+def make_extern_io_funcs(table, cls):
+    """ Hack in read/write defaults for pickleable classes """
+    def _read_func(fpath, verbose=ut.VERBOSE):
+        state_dict = ut.load_data(fpath, verbose=verbose)
+        self = cls()
+        self.__setstate__(state_dict)
+        if hasattr(self, 'on_load'):
+            self.on_load(table.depc)
+        return self
+
+    def _write_func(fpath, self, verbose=ut.VERBOSE):
+        if hasattr(self, 'on_save'):
+            self.on_save(table.depc, fpath)
+        ut.save_data(fpath, self.__getstate__(), verbose=verbose, n=4)
+    return _read_func, _write_func
+
+
 def ensure_config_table(db):
     """ SQL definition of configuration table. """
     config_addtable_kw = ut.odict(
@@ -85,7 +103,594 @@ def ensure_config_table(db):
 
 
 @ut.reloadable_class
-class DependencyCacheTable(ut.NiceRepr):
+class _TableHelper(ut.NiceRepr):
+    """ helper """
+
+    def __nice__(table):
+        num_parents = len(table.parent_tablenames)
+        num_cols = len(table.data_colnames)
+        return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
+                                       False and table.ismulti else '', num_cols)
+
+    #@property
+    #def _table_colnames(table):
+    #    return
+
+    @property
+    @ut.memoize
+    def ismulti(table):
+        # TODO: or has multi parent
+        return any(table.get_parent_col_attr('ismulti'))
+
+    @property
+    def configclass(table):
+        return table.depc.configclass_dict[table.tablename]
+
+    @property
+    def requestclass(table):
+        return table.depc.requestclass_dict.get(table.tablename, None)
+
+    def print_schemadef(table):
+        print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
+
+    def print_configs(table):
+        """
+        CommandLine:
+            python -m dtool.depcache_table --exec-print_configs
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['keypoint']
+            >>> config = table.configclass()
+            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
+            >>> config = table.configclass(adapt_shape=False)
+            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
+            >>> table.print_configs()
+            >>> table = depc['chip']
+            >>> rowids = depc.get_rowids('spam', [1, 2])
+            >>> table.print_configs()
+        """
+        text = table.db.get_table_csv(CONFIG_TABLE,
+                                      params_iter=[(table.tablename,)],
+                                      andwhere_colnames=(CONFIG_TABLENAME,))
+        print(text)
+
+    def print_csv(table):
+        print(table.db.get_table_csv(table.tablename))
+
+    def new_request(table, qaids, daids, cfgdict=None):
+        request = table.depc.new_request(table.tablename, qaids, daids,
+                                         cfgdict=cfgdict)
+        return request
+    @property
+    def children(table):
+        graph = table.depc.explicit_graph
+        children_tablenames = nx.neighbors(graph, table.tablename)
+        return children_tablenames
+
+    @property
+    def ancestors(table):
+        graph = table.depc.explicit_graph
+        children_tablenames = nx.ancestors(graph, table.tablename)
+        return children_tablenames
+
+    @property
+    @ut.memoize
+    def type_to_subgraph(table):
+        """
+        CommandLine:
+            python -m dtool.depcache_table --exec-type_to_subgraph --show
+
+        TODO:
+            * determine root argument structure
+            * ???
+            * compute dependencies in order
+            * profit
+
+        Example:
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc()
+            >>> tablename = 'multitest_score_x'
+            >>> tablename = 'notchpair'
+            >>> table = depc[tablename]
+            >>> graph = table.depc.explicit_graph
+            >>> type_to_subgraph = table.type_to_subgraph
+            >>> from plottool.interactions import ExpandableInteraction
+            >>> import networkx as nx
+            >>> inter = ExpandableInteraction()
+            >>> inter.append_plot(ut.partial(pt.show_nx, graph, title='full'))
+            >>> for type_, subgraph in type_to_subgraph.items():
+            >>>     inter.append_plot(ut.partial(pt.show_nx, subgraph,
+            >>>                                  title=type_))
+            >>> composed_graph = nx.compose_all(type_to_subgraph.values())
+            >>> inter.append_plot(ut.partial(pt.show_nx, composed_graph,
+            >>>                              title='composed'))
+            >>> inter.start()
+            >>> ut.show_if_requested()
+
+        """
+        # NEED TO SEPARATE SUBGRAPHS by edge type
+        #import networkx as nx
+        graph = table.depc.explicit_graph
+        sources = ut.find_source_nodes(graph)
+        assert len(sources) == 1
+        source = sources[0]
+        target = table.tablename
+
+        paths_to_source   = ut.all_multi_paths(graph, source, target, data=True)
+        rpaths_to_source  = ut.lmap(ut.reverse_path_edges, paths_to_source)
+        accum_path_redges = ut.lmap(ut.accum_path_data, rpaths_to_source,
+                                    srckey='local_input_id', dstkey='rinput_path_id')
+        accum_path_edges  = ut.lmap(ut.reverse_path_edges, accum_path_redges)
+        path_edges_nodata = ut.lmap(tuple, ut.lmap(ut.take_column, accum_path_edges, colx=slice(0, 3)))
+
+        def compress_rinput_pathid(rinput_path_id):
+            prev = None  # rinput_path_id[0]
+            compressed = []
+            for item in rinput_path_id:
+                # if item != prev:
+                if item != prev and not (item == '1' and prev == '2'):
+                    compressed.append(item)
+                # else:
+                #     compressed.append(prev)
+                prev = item
+            if len(compressed) > 1:
+                compressed = compressed[1:]
+            compressed = tuple(compressed)
+            return compressed
+        [[edge[3]['rinput_path_id'] for edge in path] for path in accum_path_edges]
+        x = [[compress_rinput_pathid(edge[3]['rinput_path_id']) for edge in path] for path in accum_path_edges]
+
+        if True:
+            G2 = nx.MultiDiGraph()
+            for y, es in zip(x, path_edges_nodata):
+                for (z1, z2), e in zip(ut.itertwo(y + [('1',)]), es):
+                    u, v, k = e
+                    suffix1 = '[' + ','.join(z1) + ']'
+                    suffix2 = '[' + ','.join(z2) + ']'
+                    u2 = u + suffix1
+                    v2 = v + suffix2
+                    if not G2.has_edge(u2, v2):
+                        G2.add_edge(u2, v2)
+                if not G2.has_edge(u2, v2):
+                    G2.add_edge(u2, v2)
+            import plottool as pt
+            nodes = ut.all_nodes_between(graph, source, target)
+            G = graph.subgraph(nodes)
+            pt.show_nx(G)
+            pt.show_nx(G2)
+            return
+
+        path_edges_nodata
+
+        if False:
+            nodes = ut.all_nodes_between(graph, source, target)
+            tablegraph = graph.subgraph(nodes)
+            import plottool as pt
+            # pt.show_nx(tablegraph.reverse())
+            # sink = ut.find_sink_nodes(tablegraph)[0]
+            # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
+            G = tablegraph
+            source = ut.find_source_nodes(tablegraph)[0]
+            bfs_edges = list(ut.bfs_multi_edges(G, source, data=0, reverse=False))
+            print('bfs_edges = %r' % (bfs_edges,))
+            T = nx.MultiDiGraph()
+            T.add_node(source)
+            T.add_edges_from(bfs_edges)
+            pt.show_nx(T)
+
+            def find_suffix(k, d):
+                suffix = ''
+                if d['ismulti']:
+                    suffix += '_SET'
+                if k != 0:
+                    suffix += '_X' + str(k)
+                return suffix
+
+            G2 = nx.MultiDiGraph()
+            # for u, v, k, d in G.edges(keys=True, data=True):
+            edge_iter = ((u, v, k, d) for u in nx.topological_sort(G)[::-1] for v, kd in G[u].items() for k, d in kd.items())
+            edges = list(edge_iter)
+            for u, v, k, d in edges:
+                s0 = ''
+                # s0 = '_X0'
+                suffix = find_suffix(k, d)
+                if len(suffix) == 0:
+                    G2.add_edge(u + s0, v + s0, attr_dict=d)
+                else:
+                    G2.add_edge(u + suffix, v + s0, attr_dict=d)
+                    path_list = list(ut.all_multi_paths(G, source, u, data=True))
+                    for path in path_list:
+                        rpath = ut.reverse_path_edges(path)
+                        parent_suffix = suffix
+                        for redge in rpath:
+                            v2, u2, k2, d2 = redge
+                            u2 += parent_suffix
+                            parent_suffix += find_suffix(k2, d2)
+                            v2 += parent_suffix
+                            if not G2.has_edge(u2, v2):
+                                # if p2 not in G2.node:
+                                G2.add_edge(u2, v2)
+
+            pt.show_nx(G2)
+            pt.show_nx(G)
+
+
+        path2_pidx = ut.make_index_lookup(path_edges_nodata, dict_factory=ut.odict)
+        assert isinstance(path2_pidx, ut.odict)
+        # Build mapping from each edge to the paths that is a part of
+        pidx_list = ut.flatten([[idx] * len(path) for path, idx in path2_pidx.items()])
+        edge_list = ut.flatten(accum_path_edges)
+        edge_nodata_list = ut.flatten(path_edges_nodata)
+        edge_nodata_to_datas = ut.group_items(edge_list, edge_nodata_list)
+        # edge_hashable_list = [repr(edge) for edge in edge_list]
+        # unique_edge_flags1 = ut.flag_unique_items(edge_nodata_list)
+        # unique_edge_flags2 = ut.flag_unique_items(edge_hashable_list)
+        # assert unique_edge_flags2 == unique_edge_flags1
+        edge2_pidx = dict(ut.group_items(pidx_list, edge_nodata_list))
+        # unique_edges = list(set(edge_nodata_list))
+
+        type_to_paths = ut.ddict(list)
+        for edge_nodata, edges in edge_nodata_to_datas.items():
+            print('edge = %r' % (edge_nodata,))
+            u, v, k = edge_nodata
+            rinput_path_ids = ut.take_column(ut.take_column(edges, 3), 'rinput_path_id')
+            rinput_path_id = rinput_path_ids[0]
+            print('rinput_path_ids = %r' % (rinput_path_ids,))
+            # edge_data = graph.edge[u][v][k]
+            # local_input_id = edge_data['local_input_id']
+            # print('local_input_id = %r' % (local_input_id,))
+            pidxs = edge2_pidx[edge_nodata]
+            paths = ut.take(accum_path_edges, pidxs)
+            # Only take the path up to the current edge?
+            # paths = [path[:path.index(edge) + 1] for path in paths]
+            # print('paths = %s' % ut.repr3(paths, nl=2))
+            # print('--------')
+            type_to_paths[rinput_path_id].extend(paths)
+            # type_to_paths[local_input_id].extend(paths)
+            # type_to_pidxs[local_input_id] = pidxs
+            # edge_type = edge_data['edge_type']
+            # if edge_type != 'normal':
+            #     pidxs = edge2_pidx[(u, v, k)]
+            #     type_to_pidxs[edge_type] = pidxs
+            #     type_to_paths[edge_type].extend(ut.take(path_edges, pidxs))
+        # type_to_pidxs = {}
+
+        type_to_subgraph = {}
+        for type_, paths in type_to_paths.items():
+            sub_edges = ut.flatten(paths)
+            subgraph = ut.subgraph_from_edges(graph, sub_edges)
+            type_to_subgraph[type_] = subgraph
+
+        # use_normal = False
+        # if use_normal:
+        #     normal_pidxs = ut.index_complement(
+        #         ut.flatten(type_to_pidxs.values()), len(path_edges))
+        #     paths = ut.take(path_edges, normal_pidxs)
+        #     sub_edges = ut.flatten(paths)
+        #     subgraph = ut.subgraph_from_edges(graph, sub_edges)
+        #     if len(subgraph.node) > 0:
+        #         type_to_subgraph['normal'] = subgraph
+        return type_to_subgraph
+
+    @ut.memoize
+    def nonfinal_compute_order(table):
+        """
+        Returns which nodes to compute first, and what inputs are needed
+
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc()
+            >>> tablename = 'neighbs'
+            >>> tablename = 'multitest_score'
+            >>> table = depc[tablename]
+            >>> nonfinal_compute_order = table.nonfinal_compute_order()
+            >>> print(ut.repr3(nonfinal_compute_order))
+
+        """
+        import networkx as nx
+        type_to_subgraph = table.type_to_subgraph
+        composed_graph = nx.compose_all(type_to_subgraph.values())
+        #pt.show_nx(composed_graph)
+        topsort = nx.topological_sort(composed_graph)
+        type_to_dependlevels = ut.map_dict_vals(ut.level_order,
+                                                type_to_subgraph)
+        level_orders = type_to_dependlevels
+        # Find computation order for all dependencies
+        nonfinal_compute_order = ut.merge_level_order(level_orders, topsort)
+        return nonfinal_compute_order
+
+    @property
+    @ut.memoize
+    def expected_input_order(table):
+        """
+        Returns what input (to depc.get_rowids) ordering should be be in
+        parent_rowids
+        """
+        from six.moves import zip_longest
+        nonfinal_compute_order = table.nonfinal_compute_order()
+        type_to_subgraph = table.type_to_subgraph
+        hgroupids = ut.ddict(list)
+        for _tablename, order in reversed(nonfinal_compute_order):
+            if _tablename == table.depc.root:
+                continue
+            for t in order:
+                s = type_to_subgraph[t]
+                colxs = [y['parent_colx'] for x in s.pred[_tablename].values()
+                         for y in x.values()]
+                assert len(colxs) > 0
+                colx = min(colxs)
+                #order_colxs.append(colx)
+                hgroupids[t].append(colx)
+
+        hgroupids = dict(hgroupids)
+
+        keys = hgroupids.keys()
+        vals = hgroupids.values()
+        groupids = list(zip_longest(*vals, fillvalue=0))
+        hgroups = ut.hierarchical_group_items(keys, groupids)
+        fgroups = ut.flatten_dict_items(hgroups)
+        fkey_list = [int(''.join(map(str, key))) for key in fgroups.keys()]
+        fval_list = fgroups.values()
+
+        dupkeys = ut.find_duplicate_items(fkey_list)
+        assert len(dupkeys) == 0, 'cannot have duplicate orderings'
+
+        expected_input_order = ut.flatten(ut.sortedby(fval_list, fkey_list))
+        return expected_input_order
+
+    @property
+    @ut.memoize
+    def compute_order(table):
+        """
+
+        >>> from dtool.depcache_control import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> import plottool as pt
+        >>> pt.ensure_pylab_qt4()
+        >>> depc = testdata_depc()
+        >>> #tablename = 'multitest_score'
+        >>> tablename = 'neighbs'
+        >>> table = depc[tablename]
+        >>> compute_order = table.compute_order
+        >>> print('compute_order = %s' % (ut.repr3(compute_order),))
+
+        """
+        # Ensure the input names are in the correct order
+        nonfinal_compute_order = table.nonfinal_compute_order()
+        expected_input_order = table.expected_input_order
+        # List that holds a mapping from input order to input "name"
+        input_order_lookup = ut.make_index_lookup(expected_input_order)
+
+        def resort_names(input_names):
+            ordering = ut.dict_take(input_order_lookup, input_names)
+            sortx = ut.argsort(ordering)
+            return ut.take(input_names, sortx)
+
+        # compute_order = [('raw_input', expected_input_order)]
+        compute_order = [(key, resort_names(input_names))
+                               for key, input_names in nonfinal_compute_order]
+        return compute_order
+
+    @ut.memoize
+    def requestable_col_attrs(table):
+        # Maps names of requestable columns to indicies of internal columns
+        requestable_col_attrs = {}
+        for colattr in table.internal_data_col_attrs:
+            rattr = {}
+            colname = colattr['intern_colname']
+            rattr['intern_colx'] = colattr['intern_colx']
+            rattr['intern_colname'] = colattr['intern_colname']
+            requestable_col_attrs[colname] = rattr
+
+        for colattr in table.data_col_attrs:
+            rattr = {}
+            if colattr.get('isnested'):
+                nest_internal_names = ut.take_column(colattr['nestattrs'], 'flat_colname')
+                nest_attrs = ut.dict_take(requestable_col_attrs, nest_internal_names)
+                rattr['intern_colname'] = nest_internal_names
+                rattr['intern_colx'] = ut.take_column(nest_attrs, 'intern_colx')
+                rattr['isnested'] = True
+            elif colattr.get('is_external'):
+                intern_attr = requestable_col_attrs[colattr['intern_colname']]
+                rattr['intern_colname'] = intern_attr['intern_colname']
+                rattr['intern_colx'] = intern_attr['intern_colx']
+                rattr['read_func'] = colattr['read_func']
+                rattr['write_func'] = colattr['write_func']
+                rattr['is_extern'] = True
+            else:
+                continue
+            colname = colattr['colname']
+            rattr['colname'] = colname
+            requestable_col_attrs[colname] = rattr
+        return requestable_col_attrs
+
+    def _update_internal_datacol(table):
+        """
+        Constructs the columns needed to represent relationship to data
+
+        Infers interal properties about this table given the colnames and
+        datatypes
+
+        CommandLine:
+            python -m dtool.depcache_table --exec-_update_internal_datacol --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> for table in depc.tables:
+            >>>     print('----')
+            >>>     table._update_internal_datacol()
+            >>>     print(table)
+            >>>     print('table.data_col_attrs = %s' %
+            >>>           ut.repr3(table.data_col_attrs, nl=8))
+            >>> table = depc['probchip']
+            >>> table = depc['spam']
+            >>> table = depc['vsone']
+        """
+        data_col_attrs = []
+
+        # Parse column datatypes
+        _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
+        for data_colx, (colname, coltype) in _iter:
+            colattr = ut.odict()
+            # Check column input subtypes
+            is_tuple     = isinstance(coltype, tuple)
+            is_func      = ut.is_func_or_method(coltype)
+            is_externtup = is_tuple and coltype[0] == 'extern'
+            is_functup   = is_tuple and ut.is_func_or_method(coltype[0])
+            # Check column input main types
+            is_normal   = coltype in lite.TYPE_TO_SQLTYPE
+            #is_normal   = not (is_tuple or is_func)
+            isnested   = is_tuple and not (is_func or is_externtup)
+            is_external = (is_func or is_functup or is_externtup)
+            # Switch on input types
+            colattr['colname'] = colname
+            colattr['coltype'] = coltype
+            colattr['data_colx'] = data_colx
+            if is_normal:
+                # Normal non-nested column
+                sqltype = lite.TYPE_TO_SQLTYPE[coltype]
+                colattr['intern_colname'] = colname
+                colattr['sqltype'] = sqltype
+                colattr['is_normal'] = is_normal
+            elif isnested:
+                # Nested non-function normal columns
+                colattr['isnested'] = isnested
+                nestattrs = colattr['nestattrs'] = []
+                for count, subtype in enumerate(coltype):
+                    nestattr = ut.odict()
+                    nestattrs.append(nestattr)
+                    flat_colname = '%s_%d' % (colname, count)
+                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
+                    nestattr['flat_colname'] = flat_colname
+                    nestattr['sqltype'] = sqltype
+            elif is_external:
+                # Nested external funcs
+                write_func = None
+                if is_externtup:
+                    read_func = coltype[1]
+                    if len(coltype) > 2:
+                        write_func = coltype[2]
+                elif is_functup:
+                    read_func = coltype[0]
+                else:
+                    read_func = coltype
+                intern_colname = colname + EXTERN_SUFFIX
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                colattr['is_external'] = True
+                colattr['intern_colname'] = intern_colname
+                colattr['write_func'] = write_func
+                colattr['read_func'] = read_func
+                colattr['sqltype'] = sqltype
+            else:
+                # External class column
+                assert (hasattr(coltype, '__getstate__') and
+                        hasattr(coltype, '__setstate__')), (
+                        'External classes must have __getstate__ and '
+                        '__setstate__ methods')
+                read_func, write_func = make_extern_io_funcs(table, coltype)
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                intern_colname = colname + EXTERN_SUFFIX
+                #raise AssertionError('external class columns')
+                colattr['is_external'] = True
+                colattr['is_external_class'] = True
+                colattr['coltype'] = coltype
+                colattr['intern_colname'] = intern_colname
+                colattr['write_func'] = write_func
+                colattr['read_func'] = read_func
+                colattr['sqltype'] = sqltype
+            data_col_attrs.append(colattr)
+        # Set new internal data properties of the table
+        table.data_col_attrs = data_col_attrs
+        table._assert_self()
+
+    def _update_internal_parentcol(table):
+        """
+        constructs the columns needed to represent relationship to parent
+        """
+        parent_col_attrs = []
+
+        # Handle dependencies when a parent are pairwise between tables
+        ismulti_cols = {}
+        parent_id_prefixs1 = []
+        parent_id_prefixs2 = []
+        seen_ = ut.ddict(lambda: 1)
+
+        for parent_colx, col in enumerate(table.parent_tablenames):
+            colattr = ut.odict()
+            # Detect multicolumns
+            if col.endswith('*'):
+                ismulti = True
+                parent_table = col[:-1]
+                ismulti_cols[parent_table] = True
+            else:
+                ismulti = False
+                parent_table = col
+            colattr['col'] = col
+            colattr['ismulti'] = ismulti
+            colattr['parent_table'] = parent_table
+            colattr['parent_colx'] = parent_colx
+            parent_id_prefixs1.append(parent_table)
+            parent_col_attrs.append(colattr)
+
+        colhist = ut.dict_hist(parent_id_prefixs1)
+        for parent_colx, col in enumerate(parent_id_prefixs1):
+            colattr = parent_col_attrs[parent_colx]
+            if colhist[col] > 1:
+                # Duplicate column names recieve indicies
+                nwise_idx = seen_[col]
+                nwise_total = colhist[col]
+                prefix = col + str(nwise_idx)
+                seen_[col] += 1
+                colattr['isnwise'] = True
+                colattr['nwise_total'] = nwise_total
+                colattr['nwise_idx'] = nwise_idx
+            else:
+                prefix = col
+                colattr['isnwise'] = False
+            colattr['prefix'] = prefix
+            parent_id_prefixs2.append(prefix)
+
+        # Handle case when parent are a set of ids
+        for colattr, prefix in zip(parent_col_attrs, parent_id_prefixs2):
+            column_ismulti = ismulti_cols.get(prefix, False)
+            if column_ismulti:
+                # Case when dependencies are many to one hash of set items
+                colname = prefix + '_setuuid'
+                sqltype = 'TEXT NOT NULL'
+                extra_cols = [
+                    {'intern_colname': prefix + '_setsize', 'sqltype':
+                     'INTEGER NOT NULL'},
+                    {'intern_colname': prefix + '_setfpath', 'sqltype':
+                     'TEXT'},
+                ]
+                colattr['extra_cols'] = extra_cols
+            else:
+                # Normal case when dependencies are one to one
+                colname = prefix + '_rowid'
+                sqltype = 'INTEGER NOT NULL'
+            colattr['intern_colname'] = colname
+            colattr['sqltype'] = sqltype
+
+        parent_col_attrs = [
+            ut.order_dict_by(colattr, ['intern_colname', 'sqltype'])
+            for colattr in parent_col_attrs]
+        table.parent_col_attrs = parent_col_attrs
+
+
+@ut.reloadable_class
+class DependencyCacheTable(_TableHelper):
     r"""
     An individual node in the dependency graph.
 
@@ -126,7 +731,8 @@ class DependencyCacheTable(ut.NiceRepr):
             table.db = SQLDatabaseController()
         table.fpath_to_db = {}
         import re
-        assert re.search('[0-9]', tablename) is None, 'tablename=%r cannot contain numbers' % (tablename,)
+        assert re.search('[0-9]', tablename) is None, (
+            'tablename=%r cannot contain numbers' % (tablename,))
 
         table.parent_tablenames = parent_tablenames
         table.tablename = tablename
@@ -186,12 +792,6 @@ class DependencyCacheTable(ut.NiceRepr):
                     table.clear_table()
                 else:
                     raise NotImplementedError('Need to be able to modify tables')
-
-    def __nice__(table):
-        num_parents = len(table.parent_tablenames)
-        num_cols = len(table.data_colnames)
-        return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
-                                       False and table.ismulti else '', num_cols)
 
     def _assert_self(table):
         assert len(table.data_colnames) == len(table.data_coltypes), (
@@ -268,16 +868,21 @@ class DependencyCacheTable(ut.NiceRepr):
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
-            >>> for table in ut.take(depc, ['vsone', 'spam', 'notch', 'vsmany', 'chip', 'multitest']): #depc.tables:
+            >>> tablenames = ['vsone', 'spam', 'notch', 'vsmany', 'chip',
+            >>>               'multitest']
+            >>> for table in ut.take(depc, ): #depc.tables:
             >>>     print('----')
             >>>     table._update_internal_allcol()
             >>>     print(table)
             >>>     ut.colorprint('table.internal_col_attrs = %s' %
             >>>                   (ut.repr3(table.internal_col_attrs, nl=1,
             >>>                             sorted_=False)), 'python')
-            >>>     print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs, nl=2),))
-            >>>     print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=2),))
-            >>>     for a in ut.get_instance_attrnames(table, with_properties=True, default=False):
+            >>>     print('table.parent_col_attrs = %s' % (
+            >>>             ut.repr3(table.parent_col_attrs, nl=2),))
+            >>>     print('table.data_col_attrs = %s' % (
+            >>>               ut.repr3(table.data_col_attrs, nl=2),))
+            >>>     for a in ut.get_instance_attrnames(
+            >>>               table, with_properties=True, default=False):
             >>>         print('  table.%s = %r' % (a, getattr(table, a)))
         """
         internal_col_attrs = []
@@ -356,211 +961,6 @@ class DependencyCacheTable(ut.NiceRepr):
 
         table.internal_col_attrs = internal_col_attrs
 
-    def _update_internal_datacol(table):
-        """
-        Constructs the columns needed to represent relationship to data
-
-        Infers interal properties about this table given the colnames and
-        datatypes
-
-        CommandLine:
-            python -m dtool.depcache_table --exec-_update_internal_datacol --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> for table in depc.tables:
-            >>>     print('----')
-            >>>     table._update_internal_datacol()
-            >>>     print(table)
-            >>>     print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=8)))
-            >>> table = depc['probchip']
-            >>> table = depc['spam']
-            >>> table = depc['vsone']
-        """
-        data_col_attrs = []
-        # TODO: can rewrite much of this
-
-        def make_extern_io_funcs(cls):
-            # Hack in read/write defaults for pickleable classes
-            def _read_func(fpath, verbose=ut.VERBOSE):
-                state_dict = ut.load_data(fpath, verbose=verbose)
-                self = cls()
-                self.__setstate__(state_dict)
-                if hasattr(self, 'on_load'):
-                    self.on_load(table.depc)
-                return self
-
-            def _write_func(fpath, self, verbose=ut.VERBOSE):
-                if hasattr(self, 'on_save'):
-                    self.on_save(table.depc, fpath)
-                ut.save_data(fpath, self.__getstate__(), verbose=verbose, n=4)
-            return _read_func, _write_func
-
-        # Parse column datatypes
-        _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
-        for data_colx, (colname, coltype) in _iter:
-            colattr = ut.odict()
-            # Check column input subtypes
-            is_tuple     = isinstance(coltype, tuple)
-            is_func      = ut.is_func_or_method(coltype)
-            is_externtup = is_tuple and coltype[0] == 'extern'
-            is_functup   = is_tuple and ut.is_func_or_method(coltype[0])
-            # Check column input main types
-            is_normal   = coltype in lite.TYPE_TO_SQLTYPE
-            #is_normal   = not (is_tuple or is_func)
-            isnested   = is_tuple and not (is_func or is_externtup)
-            is_external = (is_func or is_functup or is_externtup)
-            # Switch on input types
-            colattr['colname'] = colname
-            colattr['coltype'] = coltype
-            colattr['data_colx'] = data_colx
-            if is_normal:
-                # Normal non-nested column
-                sqltype = lite.TYPE_TO_SQLTYPE[coltype]
-                colattr['intern_colname'] = colname
-                colattr['sqltype'] = sqltype
-                colattr['is_normal'] = is_normal
-            elif isnested:
-                # Nested non-function normal columns
-                colattr['isnested'] = isnested
-                nestattrs = colattr['nestattrs'] = []
-                for count, subtype in enumerate(coltype):
-                    nestattr = ut.odict()
-                    nestattrs.append(nestattr)
-                    flat_colname = '%s_%d' % (colname, count)
-                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
-                    nestattr['flat_colname'] = flat_colname
-                    nestattr['sqltype'] = sqltype
-            elif is_external:
-                # Nested external funcs
-                write_func = None
-                if is_externtup:
-                    read_func = coltype[1]
-                    if len(coltype) > 2:
-                        write_func = coltype[2]
-                elif is_functup:
-                    read_func = coltype[0]
-                else:
-                    read_func = coltype
-                intern_colname = colname + EXTERN_SUFFIX
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
-                colattr['is_external'] = True
-                colattr['intern_colname'] = intern_colname
-                colattr['write_func'] = write_func
-                colattr['read_func'] = read_func
-                colattr['sqltype'] = sqltype
-            else:
-                # External class column
-                assert (hasattr(coltype, '__getstate__') and
-                        hasattr(coltype, '__setstate__')), (
-                        'External classes must have __getstate__ and '
-                        '__setstate__ methods')
-                read_func, write_func = make_extern_io_funcs(coltype)
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
-                intern_colname = colname + EXTERN_SUFFIX
-                #raise AssertionError('external class columns')
-                colattr['is_external'] = True
-                colattr['is_external_class'] = True
-                colattr['coltype'] = coltype
-                colattr['intern_colname'] = intern_colname
-                colattr['write_func'] = write_func
-                colattr['read_func'] = read_func
-                colattr['sqltype'] = sqltype
-            data_col_attrs.append(colattr)
-        # Set new internal data properties of the table
-        table.data_col_attrs = data_col_attrs
-        table._assert_self()
-
-    def _update_internal_parentcol(table):
-        """
-        constructs the columns needed to represent relationship to parent
-
-        CommandLine:
-            python -m dtool.depcache_table --exec-_update_internal_parentcol --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> for table in ['vsone', 'multitest', 'spam', 'notch', 'vsmany', 'chip']: #depc.tables:
-            >>>     print('----')
-            >>>     table._update_internal_parentcol()
-            >>>     print(table)
-            >>>     print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs),))
-        """
-        parent_col_attrs = []
-
-        # Handle dependencies when a parent are pairwise between tables
-        ismulti_cols = {}
-        parent_id_prefixs1 = []
-        parent_id_prefixs2 = []
-        seen_ = ut.ddict(lambda: 1)
-
-        for parent_colx, col in enumerate(table.parent_tablenames):
-            colattr = ut.odict()
-            # Detect multicolumns
-            if col.endswith('*'):
-                ismulti = True
-                parent_table = col[:-1]
-                ismulti_cols[parent_table] = True
-            else:
-                ismulti = False
-                parent_table = col
-            colattr['col'] = col
-            colattr['ismulti'] = ismulti
-            colattr['parent_table'] = parent_table
-            colattr['parent_colx'] = parent_colx
-            parent_id_prefixs1.append(parent_table)
-            parent_col_attrs.append(colattr)
-
-        colhist = ut.dict_hist(parent_id_prefixs1)
-        for parent_colx, col in enumerate(parent_id_prefixs1):
-            colattr = parent_col_attrs[parent_colx]
-            if colhist[col] > 1:
-                # Duplicate column names recieve indicies
-                nwise_idx = seen_[col]
-                nwise_total = colhist[col]
-                prefix = col + str(nwise_idx)
-                seen_[col] += 1
-                colattr['isnwise'] = True
-                colattr['nwise_total'] = nwise_total
-                colattr['nwise_idx'] = nwise_idx
-            else:
-                prefix = col
-                colattr['isnwise'] = False
-            colattr['prefix'] = prefix
-            parent_id_prefixs2.append(prefix)
-
-        # Handle case when parent are a set of ids
-        for colattr, prefix in zip(parent_col_attrs, parent_id_prefixs2):
-            # HACK. ALL COLUMNS ARE MULTI
-            # FIXME: will bug one duplicate multi-indexes
-            column_ismulti = ismulti_cols.get(prefix, False)  # or (prefix.endswith('*'))
-            if column_ismulti:
-                # Case when dependencies are many to one
-                # hash of set items
-                colname = prefix + '_setuuid'
-                sqltype = 'TEXT NOT NULL'
-                extra_cols = [
-                    {'intern_colname': prefix + '_setsize', 'sqltype': 'INTEGER NOT NULL'},
-                    {'intern_colname': prefix + '_setfpath', 'sqltype': 'TEXT'},
-                ]
-                colattr['extra_cols'] = extra_cols
-            else:
-                # Normal case when dependencies are one to one
-                colname = prefix + '_rowid'
-                sqltype = 'INTEGER NOT NULL'
-            colattr['intern_colname'] = colname
-            colattr['sqltype'] = sqltype
-
-        parent_col_attrs = [ut.order_dict_by(colattr, ['intern_colname', 'sqltype'])
-                            for colattr in parent_col_attrs]
-        table.parent_col_attrs = parent_col_attrs
-
     # --- Standard Properties
 
     @property
@@ -572,39 +972,6 @@ class DependencyCacheTable(ut.NiceRepr):
     def internal_parent_col_attrs(table):
         flags = table.get_intern_col_attr('isparent')
         return ut.compress(table.internal_col_attrs, flags)
-
-    @ut.memoize
-    def requestable_col_attrs(table):
-        # Maps names of requestable columns to indicies of internal columns
-        requestable_col_attrs = {}
-        for colattr in table.internal_data_col_attrs:
-            rattr = {}
-            colname = colattr['intern_colname']
-            rattr['intern_colx'] = colattr['intern_colx']
-            rattr['intern_colname'] = colattr['intern_colname']
-            requestable_col_attrs[colname] = rattr
-
-        for colattr in table.data_col_attrs:
-            rattr = {}
-            if colattr.get('isnested'):
-                nest_internal_names = ut.take_column(colattr['nestattrs'], 'flat_colname')
-                nest_attrs = ut.dict_take(requestable_col_attrs, nest_internal_names)
-                rattr['intern_colname'] = nest_internal_names
-                rattr['intern_colx'] = ut.take_column(nest_attrs, 'intern_colx')
-                rattr['isnested'] = True
-            elif colattr.get('is_external'):
-                intern_attr = requestable_col_attrs[colattr['intern_colname']]
-                rattr['intern_colname'] = intern_attr['intern_colname']
-                rattr['intern_colx'] = intern_attr['intern_colx']
-                rattr['read_func'] = colattr['read_func']
-                rattr['write_func'] = colattr['write_func']
-                rattr['is_extern'] = True
-            else:
-                continue
-            colname = colattr['colname']
-            rattr['colname'] = colname
-            requestable_col_attrs[colname] = rattr
-        return requestable_col_attrs
 
     # --- / Standard Properties
 
@@ -638,12 +1005,6 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     @ut.memoize
-    def ismulti(table):
-        # TODO: or has multi parent
-        return any(table.get_parent_col_attr('ismulti'))
-
-    @property
-    @ut.memoize
     def parent(table):
         return ut.odict([(parent_colattr['parent_table'], parent_colattr)
                          for parent_colattr in table.parent_col_attrs])
@@ -674,186 +1035,6 @@ class DependencyCacheTable(ut.NiceRepr):
         return prefixes
 
     @property
-    def children(table):
-        import networkx as nx
-        graph = table.depc.explicit_graph
-        children_tablenames = nx.neighbors(graph, table.tablename)
-        return children_tablenames
-
-    @property
-    def ancestors(table):
-        import networkx as nx
-        graph = table.depc.explicit_graph
-        children_tablenames = nx.ancestors(graph, table.tablename)
-        return children_tablenames
-
-    @property
-    def paths_from_source(table):
-        import networkx as nx
-        graph = table.depc.explicit_graph
-        sources = ut.find_source_nodes(graph)
-        paths_from_source = ut.flatten([
-            list(nx.all_simple_paths(graph, a, table.tablename))
-            for a in sources])
-
-        #source = sources[0]
-        #G = graph
-        #target = table.tablename
-        #cutoff = len(G) - 1
-
-        #def _all_simple_paths_multigraph(G, source, target, cutoff=None):
-        #    # from networkx
-        #    if cutoff < 1:
-        #        return
-        #    visited = [source]
-        #    visited2 = [(source, 0)]
-        #    stack = [(v for u, v in G.edges(source))]
-
-        #    while stack:
-        #        children = stack[-1]
-        #        child = next(children, None)
-        #        if child is None:
-        #            stack.pop()
-        #            visited.pop()
-        #            visited2.pop()
-        #        elif len(visited) < cutoff:
-        #            if child == target:
-        #                #yield visited + [(target, 0)]
-        #                yield visited2 + [(target, 0)]
-        #            elif child not in visited:
-        #                visited.append(child)
-        #                visited2.append((child, 0))
-        #                stack.append((v for u, v in G.edges(child)))
-        #        else:
-        #            count = ([child] + list(children)).count(target)
-        #            for i in range(count):
-        #                #yield visited + [(target, i)]
-        #                yield visited2 + [(target, i)]
-        #            stack.pop()
-        #            visited.pop()
-        #            visited2.pop()
-        #list(_all_simple_paths_multigraph(G, source, target, cutoff))
-
-        return paths_from_source
-
-    @property
-    def path_multi_edges_from_source(table):
-        graph = table.depc.explicit_graph
-        paths_from_source = table.paths_from_source
-        paths_from_source2 = ut.unique(ut.lmap(tuple, paths_from_source))
-        path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
-
-        # expand paths with multi edge indexes
-        import copy
-        expanded_paths = []
-        for path in path_edges2:
-            all_paths = [[]]
-            for u, v in path:
-                mutli_edge_data = graph.edge[u][v]
-                items = list(mutli_edge_data.items())
-                K = len(items)
-                if len(items) == 1:
-                    path_iter = [all_paths]
-                    pass
-                elif len(items) > 1:
-                    path_iter = [[copy.copy(p) for p in all_paths]
-                                 for k_ in range(K)]
-                for (k, edge_data), paths in zip(items, path_iter):
-                    for p in paths:
-                        p.append((u, v, {k: edge_data}))
-                all_paths = ut.flatten(path_iter)
-            expanded_paths.extend(all_paths)
-
-        path_multiedges = [[(u, v, list(kd.keys())[0]) for u, v, kd in path]
-                           for path in expanded_paths]
-        #path_multiedges = expanded_paths
-        return path_multiedges
-
-    @property
-    def subgraph_split(table):
-        """
-        CommandLine:
-            python -m dtool.depcache_table --exec-subgraph_split --show
-
-        Example:
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
-            >>> depc = testdata_depc()
-            >>> tablename = 'multitest_score'
-            >>> table = depc[tablename]
-            >>> graph = table.depc.explicit_graph
-            >>> type_to_subgraphs = table.subgraph_split
-            >>> pt.show_nx(graph)
-            >>> for type_, subgraph in type_to_subgraphs.items():
-            >>>     pt.show_nx(subgraph)
-            >>>     pt.set_title(type_)
-            >>> ut.show_if_requested()
-            >>> pt.present()
-        """
-        # NEED TO SEPARATE SUBGRAPHS by edge type
-        #import networkx as nx
-        graph = table.depc.explicit_graph
-        path_edges = ut.lmap(tuple, table.path_multi_edges_from_source)
-        path2_pidx = ut.make_index_lookup(path_edges)
-
-        edge2_pidx = dict(ut.group_items(
-            *list(zip(*[(idx, edge) for path, idx in path2_pidx.items()
-                        for edge in path]))))
-
-        edges = set(ut.flatten(path_edges))
-
-        type_to_paths = ut.ddict(list)
-        type_to_pidxs = {}
-        for u, v, k in edges:
-            edge_data = graph.edge[u][v][k]
-            edge_type = edge_data['edge_type']
-            if edge_type != 'normal':
-                pidxs = edge2_pidx[(u, v, k)]
-                type_to_pidxs[edge_type] = pidxs
-                type_to_paths[edge_type].extend(ut.take(path_edges, pidxs))
-
-        type_to_subgraphs = {}
-        for type_, paths in type_to_paths.items():
-            sub_edges = ut.flatten(paths)
-            subgraph = ut.subgraph_from_edges(graph, sub_edges)
-            type_to_subgraphs[type_] = subgraph
-
-        use_normal = True
-        if use_normal:
-            normal_pidxs = ut.index_complement(
-                ut.flatten(type_to_pidxs.values()), len(path_edges))
-            paths = ut.take(path_edges, normal_pidxs)
-            sub_edges = ut.flatten(paths)
-            subgraph = ut.subgraph_from_edges(graph, sub_edges)
-            if len(subgraph.node) > 0:
-                type_to_subgraphs['normal'] = subgraph
-
-        #list(nx.all_simple_paths(type_to_subgraphs['normal'], ut.find_source_nodes(graph)[0], table.tablename))
-        #ut.level_order(type_to_subgraphs['normal'])
-
-        ##rgraph = graph.reverse()
-        #have_parents_of = ut.ddict(set)
-        #total_parents_of = {}
-        #for type_, paths in type_to_paths.items():
-        #    #if len(paths) > 1:
-        #    #    break
-        #    for path in paths:
-        #        for u, v, k in path:
-        #            colx = graph.pred[v][u][k]['parent_colx']
-        #            total = sum(ut.map_dict_vals(len, graph.pred[v]).values())
-        #            have_parents_of[v].add(colx)
-        #            total_parents_of[v] = total
-        #            print((colx, total, u, v))
-        #            #if edge_colx > 1:
-        #            #    break
-        #have_fractions = {key: (have_parents_of[key], total_parents_of[key])
-        #                  for key in  have_parents_of}
-
-        return type_to_subgraphs
-
-    @property
     def extern_columns(table):
         colnames = table.get_data_col_attr('colname')
         flags = table.get_data_col_attr('is_extern')
@@ -870,65 +1051,12 @@ class DependencyCacheTable(ut.NiceRepr):
 
     @property
     def parent_id_colnames(table):
-        return tuple([colattr['intern_colname'] for colattr in table.parent_col_attrs])
-
-    #@property
-    #def _table_colnames(table):
-    #    return
-
-    def print_schemadef(table):
-        print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
-
-    def print_configs(table):
-        """
-        CommandLine:
-            python -m dtool.depcache_table --exec-print_configs
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['chip']
-            >>> rowids = depc.get_rowids('spam', [1, 2])
-            >>> table.print_configs()
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['keypoint']
-            >>> config = table.configclass()
-            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
-            >>> config = table.configclass(adapt_shape=False)
-            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
-            >>> table.print_configs()
-        """
-        text = table.db.get_table_csv(CONFIG_TABLE,
-                                      params_iter=[(table.tablename,)],
-                                      andwhere_colnames=(CONFIG_TABLENAME,))
-        print(text)
-
-    def print_csv(table):
-        print(table.db.get_table_csv(table.tablename))
-
-    def new_request(table, qaids, daids, cfgdict=None):
-        request = table.depc.new_request(table.tablename, qaids, daids,
-                                         cfgdict=cfgdict)
-        return request
+        return tuple([colattr['intern_colname']
+                      for colattr in table.parent_col_attrs])
 
     def get_rowids_from_root(table, root_rowids, config=None):
         return table.depc.get_rowids(table.tablename, root_rowids,
                                      config=config)
-
-    @property
-    def configclass(table):
-        return table.depc.configclass_dict[table.tablename]
-
-    @property
-    def requestclass(table):
-        return table.depc.requestclass_dict.get(table.tablename, None)
 
     # ---------------------------
     # --- CONFIGURATION TABLE ---
@@ -982,8 +1110,6 @@ class DependencyCacheTable(ut.NiceRepr):
 
     def _get_all_rowids(table):
         pass
-
-    #def add_rows_from_multiparent(table, parent_rowids)
 
     def add_rows_from_parent(table, parent_ids_, preproc_args,
                              config=None, verbose=True, _debug=None):
@@ -1062,7 +1188,8 @@ class DependencyCacheTable(ut.NiceRepr):
             # TODO: Separate into func which can be specified as a callback.
             #colnames =
             intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
-            insertable_flags = [not colattr.get('isprimary') for colattr in table.internal_col_attrs]
+            insertable_flags = [not colattr.get('isprimary')
+                                for colattr in table.internal_col_attrs]
             colnames = tuple(ut.compress(intern_colnames, insertable_flags))
             for dirty_params_chunk in prog_iter:
                 # None data means that there was an error for a specific row
@@ -1186,11 +1313,12 @@ class DependencyCacheTable(ut.NiceRepr):
                                                        extern_fpaths,
                                                        extern_colnames,
                                                        extern_writers):
-                    print('WRITING %r' % (col,))
-                    print('fpath = %r' % (fpath,))
+                    # print('WRITING %r' % (col,))
+                    # print('fpath = %r' % (fpath,))
                     #print('fpath = %r' % (fpath,))
                     write_func(fpath, obj)
-                    ut.assert_exists(fpath, verbose=True)
+                    # ut.assert_exists(fpath, verbose=True)
+                    ut.assert_exists(fpath, verbose=False)
                     #verbose=True)
             except Exception as ex:
                 ut.printex(ex, 'write extern col error', keys=[

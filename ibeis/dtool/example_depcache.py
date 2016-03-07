@@ -380,15 +380,15 @@ def testdata_depc(fname=None):
             yield (nn1 + nn2,)
 
     @depc.register_preproc(
-        'multitest', ['chip*', 'keypoint', 'fgweight*', 'spam', 'notch', 'notch', 'notchpair', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
+        'multitest', ['keypoint', 'notch', 'notch', 'notchpair*', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
         #configclass=DummyIndexerConfig,
     )
-    def dummy_multitest(depc, parent_rowids_list, kp_rowids, fg_ids, spam_ids,
+    def dummy_multitest(depc, kp_rowids,
                         notch1, notch2, np, nnindexer, config=None):
         print('COMPUTING MULTITEST 1 ')
         #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for parent_rowids, kpids in zip(parent_rowids_list, kp_rowids):
-            yield ('cool multi object' + str(config) + ' ' + str(parent_rowids),)
+        for x in zip(kp_rowids):
+            yield ('cool multi object' + str(config) + ' ' + str(x),)
 
     # TEST MULTISET DEPENDENCIES
     @depc.register_preproc(
@@ -401,6 +401,16 @@ def testdata_depc(fname=None):
         for parent_rowids in zip(parent_rowids):
             yield (parent_rowids,)
 
+    # TEST MULTISET DEPENDENCIES
+    @depc.register_preproc(
+        'multitest_score_x', ['multitest_score', 'multitest_score'], ['score'], [int],  # [('extern', ut.load_data)],
+        #configclass=DummyIndexerConfig,
+    )
+    def dummy_multitest_score1(depc, x, y, config=None):
+        print('COMPUTING DEPENDENCY OF MULTITEST 1 ')
+        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+        for parent_rowids in zip(x):
+            yield (parent_rowids,)
     # REGISTER MATCHING ALGORITHMS
 
     @depc.register_preproc(tablename='neighbs', colnames=['qx2_idx', 'qx2_dist'],
@@ -411,6 +421,7 @@ def testdata_depc(fname=None):
         CommandLine:
             python -m dtool.base --exec-VsManySimilarityRequest
         """
+        print('Compute neighbs using qaids=%r and nnindexerid=%r' % (qaids, nnindexer_ids))
         #dummy_preproc_kpts
         for qaid in qaids:
             yield np.array([qaid]), np.array([nnindexer_ids])
