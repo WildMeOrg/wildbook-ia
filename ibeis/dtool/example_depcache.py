@@ -380,15 +380,14 @@ def testdata_depc(fname=None):
             yield (nn1 + nn2,)
 
     @depc.register_preproc(
-        'multitest', ['keypoint', 'notch', 'notch', 'notchpair*', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
+        'multitest', ['keypoint', 'notch', 'notch', 'fgweight*', 'notchpair*', 'notchpair*', 'notchpair', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
         #configclass=DummyIndexerConfig,
     )
-    def dummy_multitest(depc, kp_rowids,
-                        notch1, notch2, np, nnindexer, config=None):
+    def dummy_multitest(depc, *args, **kwargs):
         print('COMPUTING MULTITEST 1 ')
         #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for x in zip(kp_rowids):
-            yield ('cool multi object' + str(config) + ' ' + str(x),)
+        for x in zip(args):
+            yield ('cool multi object' + str(kwargs) + ' ' + str(x),)
 
     # TEST MULTISET DEPENDENCIES
     @depc.register_preproc(
@@ -406,25 +405,31 @@ def testdata_depc(fname=None):
         'multitest_score_x', ['multitest_score', 'multitest_score'], ['score'], [int],  # [('extern', ut.load_data)],
         #configclass=DummyIndexerConfig,
     )
-    def dummy_multitest_score1(depc, x, y, config=None):
-        print('COMPUTING DEPENDENCY OF MULTITEST 1 ')
-        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for parent_rowids in zip(x):
-            yield (parent_rowids,)
+    def multitest_score_x(depc, *args, **kwargs):
+        raise NotImplementedError('hack')
     # REGISTER MATCHING ALGORITHMS
 
     @depc.register_preproc(tablename='neighbs', colnames=['qx2_idx', 'qx2_dist'],
                            coltypes=[np.ndarray, np.ndarray],
-                           parents=['dummy_annot', 'nnindexer'])
-    def vsmany_matching2(depc, qaids, nnindexer_ids, config=None):
+                           parents=['keypoint', 'fgweight', 'nnindexer', 'nnindexer'])
+    def neighbs(depc, *args, **kwargs):
         """
         CommandLine:
             python -m dtool.base --exec-VsManySimilarityRequest
         """
-        print('Compute neighbs using qaids=%r and nnindexerid=%r' % (qaids, nnindexer_ids))
         #dummy_preproc_kpts
-        for qaid in qaids:
-            yield np.array([qaid]), np.array([nnindexer_ids])
+        for qaid in zip(args):
+            yield np.array([qaid]), np.array([qaid])
+
+    @depc.register_preproc(tablename='neighbs_score', colnames=['qx2_dist'],
+                           coltypes=[np.ndarray],
+                           parents=['neighbs'])
+    def neighbs_score(depc, *args, **kwargs):
+        """
+        CommandLine:
+            python -m dtool.base --exec-VsManySimilarityRequest
+        """
+        raise NotImplementedError('hack')
 
     @depc.register_preproc(
         tablename='vsmany', colnames='annotmatch', coltypes=DummyAnnotMatch,

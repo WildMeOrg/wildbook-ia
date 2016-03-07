@@ -344,3 +344,205 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
     #                                       andwhere_colnames, eager=eager,
     #                                       nInput=nInput)
     #    return flag_list
+
+
+        path2_pidx = ut.make_index_lookup(path_edges_nodata, dict_factory=ut.odict)
+        assert isinstance(path2_pidx, ut.odict)
+        # Build mapping from each edge to the paths that is a part of
+        pidx_list = ut.flatten([[idx] * len(path) for path, idx in path2_pidx.items()])
+        edge_list = ut.flatten(accum_path_edges)
+        edge_nodata_list = ut.flatten(path_edges_nodata)
+        edge_nodata_to_datas = ut.group_items(edge_list, edge_nodata_list)
+        # edge_hashable_list = [repr(edge) for edge in edge_list]
+        # unique_edge_flags1 = ut.flag_unique_items(edge_nodata_list)
+        # unique_edge_flags2 = ut.flag_unique_items(edge_hashable_list)
+        # assert unique_edge_flags2 == unique_edge_flags1
+        edge2_pidx = dict(ut.group_items(pidx_list, edge_nodata_list))
+        # unique_edges = list(set(edge_nodata_list))
+
+        type_to_paths = ut.ddict(list)
+        for edge_nodata, edges in edge_nodata_to_datas.items():
+            print('edge = %r' % (edge_nodata,))
+            u, v, k = edge_nodata
+            rinput_path_ids = ut.take_column(ut.take_column(edges, 3), 'rinput_path_id')
+            rinput_path_id = rinput_path_ids[0]
+            print('rinput_path_ids = %r' % (rinput_path_ids,))
+            # edge_data = graph.edge[u][v][k]
+            # local_input_id = edge_data['local_input_id']
+            # print('local_input_id = %r' % (local_input_id,))
+            pidxs = edge2_pidx[edge_nodata]
+            paths = ut.take(accum_path_edges, pidxs)
+            # Only take the path up to the current edge?
+            # paths = [path[:path.index(edge) + 1] for path in paths]
+            # print('paths = %s' % ut.repr3(paths, nl=2))
+            # print('--------')
+            type_to_paths[rinput_path_id].extend(paths)
+            # type_to_paths[local_input_id].extend(paths)
+            # type_to_pidxs[local_input_id] = pidxs
+            # edge_type = edge_data['edge_type']
+            # if edge_type != 'normal':
+            #     pidxs = edge2_pidx[(u, v, k)]
+            #     type_to_pidxs[edge_type] = pidxs
+            #     type_to_paths[edge_type].extend(ut.take(path_edges, pidxs))
+        # type_to_pidxs = {}
+
+        expanded_input_graph = {}
+        for type_, paths in type_to_paths.items():
+            sub_edges = ut.flatten(paths)
+            subgraph = ut.subgraph_from_edges(graph, sub_edges)
+            expanded_input_graph[type_] = subgraph
+
+        # use_normal = False
+        # if use_normal:
+        #     normal_pidxs = ut.index_complement(
+        #         ut.flatten(type_to_pidxs.values()), len(path_edges))
+        #     paths = ut.take(path_edges, normal_pidxs)
+        #     sub_edges = ut.flatten(paths)
+        #     subgraph = ut.subgraph_from_edges(graph, sub_edges)
+        #     if len(subgraph.node) > 0:
+        #         expanded_input_graph['normal'] = subgraph
+
+    @ut.memoize
+    def nonfinal_compute_order(table):
+        """
+        Returns which nodes to compute first, and what inputs are needed
+
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc()
+            >>> tablename = 'neighbs'
+            >>> tablename = 'multitest_score'
+            >>> table = depc[tablename]
+            >>> nonfinal_compute_order = table.nonfinal_compute_order()
+            >>> print(ut.repr3(nonfinal_compute_order))
+
+        """
+        import networkx as nx
+        expanded_input_graph = table.expanded_input_graph
+        composed_graph = nx.compose_all(expanded_input_graph.values())
+        #pt.show_nx(composed_graph)
+        topsort = nx.topological_sort(composed_graph)
+        type_to_dependlevels = ut.map_dict_vals(ut.level_order,
+                                                expanded_input_graph)
+        level_orders = type_to_dependlevels
+        # Find computation order for all dependencies
+        nonfinal_compute_order = ut.merge_level_order(level_orders, topsort)
+        return nonfinal_compute_order
+
+    @property
+    @ut.memoize
+    def expected_input_order(table):
+        """
+        Returns what input (to depc.get_rowids) ordering should be be in
+        parent_rowids
+        """
+        from six.moves import zip_longest
+        nonfinal_compute_order = table.nonfinal_compute_order()
+        expanded_input_graph = table.expanded_input_graph
+        hgroupids = ut.ddict(list)
+        for _tablename, order in reversed(nonfinal_compute_order):
+            if _tablename == table.depc.root:
+                continue
+            for t in order:
+                s = expanded_input_graph[t]
+                colxs = [y['parent_colx'] for x in s.pred[_tablename].values()
+                         for y in x.values()]
+                assert len(colxs) > 0
+                colx = min(colxs)
+                #order_colxs.append(colx)
+                hgroupids[t].append(colx)
+
+        hgroupids = dict(hgroupids)
+
+        keys = hgroupids.keys()
+        vals = hgroupids.values()
+        groupids = list(zip_longest(*vals, fillvalue=0))
+        hgroups = ut.hierarchical_group_items(keys, groupids)
+        fgroups = ut.flatten_dict_items(hgroups)
+        fkey_list = [int(''.join(map(str, key))) for key in fgroups.keys()]
+        fval_list = fgroups.values()
+
+        dupkeys = ut.find_duplicate_items(fkey_list)
+        assert len(dupkeys) == 0, 'cannot have duplicate orderings'
+
+        expected_input_order = ut.flatten(ut.sortedby(fval_list, fkey_list))
+        return expected_input_order
+
+        if False:
+            nodes = ut.all_nodes_between(graph, source, target)
+            tablegraph = graph.subgraph(nodes)
+            import plottool as pt
+            # pt.show_nx(tablegraph.reverse())
+            # sink = ut.find_sink_nodes(tablegraph)[0]
+            # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
+            G = tablegraph
+            source = ut.find_source_nodes(tablegraph)[0]
+            bfs_edges = list(ut.bfs_multi_edges(G, source, data=0, reverse=False))
+            print('bfs_edges = %r' % (bfs_edges,))
+            T = nx.MultiDiGraph()
+            T.add_node(source)
+            T.add_edges_from(bfs_edges)
+            pt.show_nx(T)
+
+            def find_suffix(k, d):
+                suffix = ''
+                if d['ismulti']:
+                    suffix += '_SET'
+                if k != 0:
+                    suffix += '_X' + str(k)
+                return suffix
+
+            G2 = nx.MultiDiGraph()
+            # for u, v, k, d in G.edges(keys=True, data=True):
+            edge_iter = ((u, v, k, d) for u in nx.topological_sort(G)[::-1] for v, kd in G[u].items() for k, d in kd.items())
+            edges = list(edge_iter)
+            for u, v, k, d in edges:
+                s0 = ''
+                # s0 = '_X0'
+                suffix = find_suffix(k, d)
+                if len(suffix) == 0:
+                    G2.add_edge(u + s0, v + s0, attr_dict=d)
+                else:
+                    G2.add_edge(u + suffix, v + s0, attr_dict=d)
+                    path_list = list(ut.all_multi_paths(G, source, u, data=True))
+                    for path in path_list:
+                        rpath = ut.reverse_path_edges(path)
+                        parent_suffix = suffix
+                        for redge in rpath:
+                            v2, u2, k2, d2 = redge
+                            u2 += parent_suffix
+                            parent_suffix += find_suffix(k2, d2)
+                            v2 += parent_suffix
+                            if not G2.has_edge(u2, v2):
+                                # if p2 not in G2.node:
+                                G2.add_edge(u2, v2)
+
+            pt.show_nx(G2)
+            pt.show_nx(G)
+
+        def compress_rinput_pathid(rinput_path_id):
+            prev = None  # rinput_path_id[0]
+            compressed = []
+            for item in rinput_path_id:
+                #if item != prev and not (item == '1' and prev == '2'):
+                #if item != prev:
+                compressed.append(item)
+                # else:
+                #     compressed.append(prev)
+                #prev = item
+            if len(compressed) > 1:
+                compressed = compressed[1:]
+            compressed = tuple(compressed)
+            return compressed
+        [[edge[3]['rinput_path_id'] for edge in path] for path in accum_path_edges]
+        x = [[compress_rinput_pathid(edge[3]['rinput_path_id']) for edge in path] for path in accum_path_edges]
+
+            >>> for type_, subgraph in expanded_input_graph.items():
+            >>>     inter.append_plot(ut.partial(pt.show_nx, subgraph,
+            >>>                                  title=type_))
+            >>> composed_graph = nx.compose_all(expanded_input_graph.values())
+            >>> inter.append_plot(ut.partial(pt.show_nx, composed_graph,
+            >>>                              title='composed'))
+        path_edges_nodata = ut.lmap(tuple, ut.lmap(ut.take_column, accum_path_edges, colx=slice(0, 3)))

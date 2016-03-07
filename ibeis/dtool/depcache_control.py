@@ -643,7 +643,7 @@ class _CoreDependencyCache(object):
             >>> tablename, = ut.dict_take(combos[index], keys)
 
         Setup:
-            >>> # ENABLE_GRID_DOCTEST
+            >>> # DISABLE_GRID_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
@@ -699,19 +699,19 @@ class _CoreDependencyCache(object):
             print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids),))
             print(' * config = %r' % (config,))
         table = depc[tablename]  # NOQA
-        expected_input_order = table.expected_input_order
-        compute_order = table.compute_order
-
-        if _debug:
-            print(' * expected_input_order = %s' % (expected_input_order,))
-            print(' * compute_order = %s' % (ut.repr3(compute_order),))
-        if len(expected_input_order) > 1:
-            assert ut.depth_atleast(root_rowids, 2), (
-                'expected_input_order = %r' % (expected_input_order,))
-
-        INDEXER_VERSION = True
+        INDEXER_VERSION = False
 
         if INDEXER_VERSION or tablename == 'neighbs':
+            expected_input_order = table.expected_input_order
+            compute_order = table.compute_order
+
+            if _debug:
+                print(' * expected_input_order = %s' % (expected_input_order,))
+                print(' * compute_order = %s' % (ut.repr3(compute_order),))
+            if len(expected_input_order) > 1:
+                assert ut.depth_atleast(root_rowids, 2), (
+                    'expected_input_order = %r' % (expected_input_order,))
+
             def handle_level(tablekey, input_names, rowid_lookup, _recompute,
                              level):
                 print('+--- HANDLE LEVEL %d -------' % (level,))
@@ -1054,11 +1054,11 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         # TODO: give different ids to multi edges
                         # edge_type_parts.append('multi_%s_%s' % (parentkey, tablekey))
                         edge_type_parts.append('multi')
-                        local_input_id = '*'
+                        local_input_id += '*'
                     if parent_data['isnwise']:
                         edge_type_parts.append('nwise_%s' % (
                              parent_data['nwise_idx'],))
-                        local_input_id = six.text_type(parent_data['nwise_idx'])
+                        local_input_id += six.text_type(parent_data['nwise_idx'])
                         # edge_type_parts.append('nwise_%s_%s_%s' % (
                         #     parentkey, tablekey, parent_data['nwise_idx'],))
                     edge_type_id = '_'.join(edge_type_parts)
