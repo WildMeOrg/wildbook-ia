@@ -28,6 +28,21 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     """
     Append a list of functions that draw plots and this interaction will plot
     them in appropriate subplots and let you click on them to zoom in.
+
+    CommandLine:
+        python -m plottool.interactions --exec-ExpandableInteraction --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.interactions import *  # NOQA
+        >>> import numpy as np
+        >>> import plottool as pt
+        >>> inter = pt.interactions.ExpandableInteraction()
+        >>> inter.append_plot(ut.partial(pt.plot_func, np.sin, stop=np.pi * 2))
+        >>> inter.append_plot(ut.partial(pt.plot_func, np.cos, stop=np.pi * 2))
+        >>> inter.append_plot(ut.partial(pt.plot_func, np.tan, stop=np.pi * 2))
+        >>> inter.start()
+        >>> pt.show_if_requested()
     """
     def __init__(self, fnum=None, _pnumiter=None, interactive=None, **kwargs):
         self.nRows = kwargs.get('nRows', None)
@@ -37,14 +52,12 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         self.interactive = interactive
         self.ishow_func_list = []
         self.func_list = []
-        if fnum is None:
-            fnum = pt.next_fnum()
-        self.fnum = fnum
+        self.fnum = pt.ensure_fnum(fnum)
 
         autostart = False
         super(ExpandableInteraction, self).__init__(autostart=autostart, **kwargs)
 
-    def append_plot(self, func, extra=None, pnum=None, ishow_func=None, px=None):
+    def append_plot(self, func, pnum=None, ishow_func=None, px=None):
         if pnum is None:
             if px is not None:
                 if isinstance(px, tuple):
@@ -66,7 +79,7 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         if not any(self.pnum_list) and self.nRows is None and self.nRows is None:
             # Hack if no pnum was given
             self.nRows, self.nCols = pt.get_square_row_cols(len(self.pnum_list))
-            pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols)
+            pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols, nSubplots=len(self.func_list))
             self.pnum_list = [pnum_() for _ in self.pnum_list]
 
         for index, (pnum, func) in enumerate(zip(self.pnum_list, self.func_list)):
@@ -122,3 +135,15 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 fig = pt.gcf()
                 pt.show_figure(fig)
                 #extra
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m plottool.interactions
+        python -m plottool.interactions --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

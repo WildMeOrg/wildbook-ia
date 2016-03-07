@@ -3511,7 +3511,7 @@ def draw_text_annotations(text_list,
 
 
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
-            ax=None, pos=None, img_dict=None, old=False, **kwargs):
+            ax=None, pos=None, img_dict=None, old=False, title=None, **kwargs):
     r"""
     Args:
         graph (networkx.Graph):
@@ -3593,6 +3593,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         imgdat = pt.netx_draw_images_at_positions(
             img_list, pos_list, zoom=zoom, frameon=frameon)
         plotinfo['imgdat'] = imgdat
+
+    if title is not None:
+        pt.set_title(title)
     return plotinfo
 
 
@@ -3788,7 +3791,7 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
 
         # endpoint1 = edge_verts[0]
         # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
-        if data.get('ismulti', False) or data.get('isnwise', False):
+        if data.get('ismulti', False) or data.get('isnwise', False) or data.get('local_input_id', False) :
             pt1 = np.array(arrow_patch.patchA.center)
             pt2 = np.array(arrow_patch.patchB.center)
             frac_thru = 4
@@ -3813,8 +3816,12 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
 
             font_prop = mpl.font_manager.FontProperties(family='monospace',
                                                         weight='light',
-                                                        size=18)
-            if data.get('ismulti', False):
+                                                        size=14)
+            if data.get('local_input_id', False):
+                text = data['local_input_id']
+                if text == '1':
+                    text = ''
+            elif data.get('ismulti', False):
                 text = '*'
             else:
                 text = str(data.get('nwise_idx', '!'))
@@ -3979,7 +3986,7 @@ def set_figsize(w, h, dpi):
     fig.set_dpi(dpi)
 
 
-def plot_func(funcs, start=0, stop=1, num=100):
+def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
     r"""
     plots a numerical function in a given range
 
@@ -4019,7 +4026,9 @@ def plot_func(funcs, start=0, stop=1, num=100):
     funcs  = [eval(func) if isinstance(func, six.string_types)
               else func for func in funcs]
     ydatas = [func(xdata) for func in funcs]
-    pt.multi_plot(xdata, ydatas, label_list=labels, marker='')  # yscale='log')
+    fnum = pt.ensure_fnum(fnum)
+    pt.multi_plot(xdata, ydatas, label_list=labels, marker='', fnum=fnum,
+                  pnum=pnum)  # yscale='log')
 
 
 if __name__ == '__main__':
