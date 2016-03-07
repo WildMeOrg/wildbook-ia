@@ -210,6 +210,8 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from guitool.api_tree_node import *  # NOQA
+        >>> import utool as ut
         >>> from guitool import api_tree_node  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
@@ -268,6 +270,8 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from guitool.api_tree_node import *  # NOQA
+        >>> import utool as ut
         >>> from guitool import api_tree_node  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))
@@ -317,9 +321,10 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
             list child_nodes
             TreeNode next_node
             list next_ids
-
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from guitool.api_tree_node import *  # NOQA
+        >>> import utool as ut
         >>> from guitool import api_tree_node  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, default='testdb1'))

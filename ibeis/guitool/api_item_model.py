@@ -1043,8 +1043,8 @@ def simple_thumbnail_widget():
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_item_widget import *  # NOQA
         >>> import guitool
+        >>> from guitool.api_item_model import *  # NOQA
         >>> guitool.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_thumbnail_widget()
         >>> ut.quit_if_noshow()

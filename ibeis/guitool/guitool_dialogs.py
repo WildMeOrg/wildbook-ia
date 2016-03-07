@@ -176,11 +176,7 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True):
     if directory_ is not None:
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(directory_))
     sidebar_urls.extend(list(map(QtCore.QUrl.fromUserInput, other_sidebar_dpaths)))
-<<<<<<< HEAD
     sidebar_urls = ut.unique(sidebar_urls)
-=======
-    sidebar_urls = ut.unique_ordered(sidebar_urls)
->>>>>>> 7a9dbd2491138cee582027d4a19416ad58d4168a
     print(sidebar_urls)
     qdlg.setSidebarUrls(sidebar_urls)
     return qdlg
