@@ -92,7 +92,8 @@ class _CoreDependencyCache(object):
     #@ut.apply_docstr(REG_PREPROC_DOC)
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, fname=None,
-                       configclass=None, requestclass=None, **kwargs):
+                       configclass=None, requestclass=None,
+                       **kwargs):
         """
         Registers a table with this dependency cache.
         Essentially passes args down to make a DependencyTable.
@@ -877,6 +878,9 @@ class _CoreDependencyCache(object):
             >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
             >>> print(result)
         """
+        if tablename == depc.root_tablename:
+            return depc.root_getters[colnames](root_rowids)
+            #pass
         _debug = depc._debug if _debug is None else _debug
         with ut.Indenter('[GetProp-%s]' % (tablename,), enabled=_debug):
             if _debug:
@@ -960,8 +964,10 @@ class _CoreDependencyCache(object):
         return num_deleted
 
     def get_uuids(depc, tablename, root_rowids, config=None):
+        """
         # TODO: Make uuids for dependant object based on root uuid and path of
         # construction.
+        """
         if tablename == depc.root:
             uuid_list = depc.get_root_uuid(root_rowids)
         return uuid_list
@@ -978,9 +984,11 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                  controller=None, default_fname=None,
                  #root_asobject=None,
                  get_root_uuid=None,
+                 root_getters=None,
                  use_globals=True):
         if default_fname is None:
             default_fname = ':memory:'
+        depc.root_getters = root_getters
         # Root of all dependencies
         depc.root_tablename = root_tablename
         # Directory all cachefiles are stored in
