@@ -4263,7 +4263,10 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     for exflags, idxs in zip(grouped_exemplars, groupxs):
         if not any(exflags):
             num_hacked += 1
-            new_flag_list[idxs[0]] = True
+            if len(idxs) > 0:
+                new_flag_list[idxs[0]] = True
+            if len(idxs) > 1:
+                new_flag_list[idxs[1]] = True
     print('(exemplars) num_hacked = %r' % (num_hacked,))
 
     if not dry_run:
@@ -4404,6 +4407,17 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         >>> result = sum(new_flag_list)
         >>> print(result)
         38
+
+    Ignore:
+        nids = ibs.get_annot_nids(new_aid_list)
+        uniquenids, groupxs = ut.group_indices(nids)
+        num_hacked = 0
+        grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
+        for exflags, idxs in zip(grouped_exemplars, groupxs):
+            if not any(exflags):
+                num_hacked += 1
+                new_flag_list[idxs[0]] = True
+        print('(exemplars) num_hacked = %r' % (num_hacked,))
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -4469,8 +4483,11 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         values = np.round(np.array(values), 3).tolist()
         weights = np.round(np.array(weights), 3).tolist()
         items = list(zip(values, weights, indices))
-        total_value, chosen_items = ut.knapsack(items, annots_per_view, method='iterative')
-        #total_value, chosen_items = ut.knapsack(items, annots_per_view, method='recursive')
+        try:
+            total_value, chosen_items = ut.knapsack(items, annots_per_view, method='recursive')
+        except Exception:
+            print('WARNING: iterative method does not work correctly, but stack too big for recrusive')
+            total_value, chosen_items = ut.knapsack(items, annots_per_view, method='iterative')
         chosen_indices = ut.get_list_column(chosen_items, 2)
         flags = [False] * len(aids)
         for index in chosen_indices:
@@ -4484,6 +4501,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         weights = [w + qual2_weight[qual] + exemplar_offset * isexemplar
                    for qual, isexemplar in zip(qualtexts, isexemplar_flags)]
         N = annots_per_view
+        maxweight = N  # NOQA
         flags = get_knapsack_flags(weights, N)
         # We like good more than ok, and junk is infeasible We prefer items that
         # had previously been exemplars Build input for knapsack
