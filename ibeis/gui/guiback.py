@@ -1076,7 +1076,7 @@ class MainWindowBackend(GUIBACK_BASE):
         qaid_list = back.ibs.get_valid_aids(**valid_kw)
         return qaid_list
 
-    def get_selected_daids(back, imgsetid=None, daids_mode=None):
+    def get_selected_daids(back, imgsetid=None, daids_mode=None, qaid_list=None):
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
         daids_mode_valid_kw_dict = {
             const.VS_EXEMPLARS_KEY: {
@@ -1088,6 +1088,17 @@ class MainWindowBackend(GUIBACK_BASE):
             'all': {
             }
         }
+        species = None
+        if qaid_list is None:
+            ibs = back.ibs
+            hist_ = ut.dict_hist(ibs.get_annot_species_texts(qaid_list))
+            if len(hist_) == 1:
+                # select the query species if there is only one
+                species = back.get_selected_species()
+
+        if species is None:
+            species = back.get_selected_species()
+
         valid_kw = {
             'species': back.get_selected_species(),
             'minqual':  'poor',
@@ -1256,7 +1267,7 @@ class MainWindowBackend(GUIBACK_BASE):
             #'prescore_method': 'csum',
             #'score_method': 'csum'
         }
-        query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)'
+        query_msg = 'Checking for MERGE cases (this is an exemplars-vs-exemplars query)'
         back.compute_queries(qaid_list=qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
                              query_msg=query_msg, cfgdict=cfgdict,
                              custom_qaid_list_title='Merge Candidates')
@@ -1357,7 +1368,7 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             print('Unknown daids_mode=%r' % (daids_mode,))
 
-        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode)
+        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=None)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
         if len(daid_list) == 0:

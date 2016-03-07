@@ -548,6 +548,13 @@ class IBEISController(BASE_CLASS):
         )
 
         # Initialize dependency cache
+        root_getters = {
+            'name': ibs.get_annot_names,
+            'bbox': ibs.get_annot_bboxes,
+            'species': ibs.get_annot_species,
+            'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
+            'occurrence_text': ibs.get_annot_occurrence_text,
+        }
         ibs.depc = dtool.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
@@ -555,6 +562,7 @@ class IBEISController(BASE_CLASS):
             cache_dpath=ibs.get_cachedir(),
             controller=ibs,
             get_root_uuid=ibs.get_annot_visual_uuids,
+            root_getters=root_getters,
         )
         # TODO: root_uuids should be specified as the
         # base_root_uuid plus a hash of the attributes that matter for the

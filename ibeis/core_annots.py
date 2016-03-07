@@ -902,7 +902,7 @@ def test_cut(ibs, parent_rowids_T, score_list2):
         grouping = ut.group_items(unique_aids, labels)
 
         if False:
-            vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
+            #vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
             vp2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts])
             for view, aids in vp2_aids.items():
                 print('---')
@@ -917,6 +917,7 @@ def test_cut(ibs, parent_rowids_T, score_list2):
                     labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, thresh)
                     grouping = ut.group_items(aids, labels)
                     diff = ut.compare_groupings(real_group, grouping.values())
+                    print('diff = %r' % (diff,))
                     #print('thresh = %r, diff=%r' % (thresh, diff))
                     #print('--')
 
