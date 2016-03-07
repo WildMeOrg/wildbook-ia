@@ -398,47 +398,8 @@ def unsupervised_similarity(ibs, aids):
     #gf_scores = sym_score_mat[nids[pos[1]] != nids[pos[0]]]
 
     cost_matrix = sym_score_mat - 50
-
-    def unsupervised_multicut_labeling(cost_matrix):
-        import opengm
-        import numpy as np
-        #import plottool as pt
-        from itertools import product
-        num_vars = len(cost_matrix)
-
-        # Enumerate undirected edges (node index pairs)
-        var_indices = np.arange(num_vars)
-        varindex_pairs = np.array(
-            [(a1, a2) for a1, a2 in product(var_indices, var_indices)
-             if a1 != a2 and a1 > a2], dtype=np.uint32)
-        varindex_pairs.sort(axis=1)
-
-        # Create nodes in the graphical model.  In this case there are <num_vars>
-        # nodes and each node can be assigned to one of <num_vars> possible labels
-        num_nodes = num_vars
-        space = np.full((num_nodes,), fill_value=num_vars, dtype=np.int)
-        gm = opengm.gm(space)
-
-        # Use one potts function for each edge
-        for varx1, varx2 in varindex_pairs:
-            cost = cost_matrix[varx1, varx2]
-            potts_func = opengm.PottsFunction((num_vars, num_vars), valueEqual=0, valueNotEqual=cost)
-            potts_func_id = gm.addFunction(potts_func)
-            var_indicies = np.array([varx1, varx2])
-            gm.addFactor(potts_func_id, var_indicies)
-
-        #pt.ensure_pylab_qt4()
-        #opengm.visualizeGm(gm=gm)
-
-        # Not sure what parameters are allowed to be passed here.
-        parameter = opengm.InfParam()
-        inf = opengm.inference.Multicut(gm, parameter=parameter)
-        inf.infer()
-        labels = inf.arg()
-        print(labels)
-        return labels
-
-    unsupervised_multicut_labeling(cost_matrix)
+    labels = vt.unsupervised_multicut_labeling(cost_matrix)
+    print('labels = %r' % (labels,))
 
     import hdbscan
     alg = hdbscan.HDBSCAN(metric='precomputed', min_cluster_size=1, p=1, gen_min_span_tree=1, min_samples=2)

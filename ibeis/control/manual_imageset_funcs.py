@@ -751,10 +751,11 @@ def update_imageset_info(ibs, imageset_rowid_list):
     gids_list = ut.compress(gids_list_, hasgids_list)
     imgsetid_list = ut.compress(imageset_rowid_list, hasgids_list)
     unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, gids_list)
-    imageset_end_time_posix_list = [max(unixtimes) for unixtimes in unixtimes_list]
+    # TODO: replace -1's with nans and do nanmin
     imageset_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
-    ibs.set_imageset_end_time_posix(imgsetid_list, imageset_end_time_posix_list)
+    imageset_end_time_posix_list = [max(unixtimes) for unixtimes in unixtimes_list]
     ibs.set_imageset_start_time_posix(imgsetid_list, imageset_start_time_posix_list)
+    ibs.set_imageset_end_time_posix(imgsetid_list, imageset_end_time_posix_list)
 
 
 @register_ibs_method

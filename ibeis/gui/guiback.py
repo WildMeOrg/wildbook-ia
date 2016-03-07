@@ -349,8 +349,19 @@ class MainWindowBackend(GUIBACK_BASE):
 
         kwargs['ranks_lt'] = kwargs.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
         kwargs['qreq_'] = kwargs.get('qreq_', qreq_)
+
+        #ibs.cfg.other_cfg.ranks_lt = 2
+        # Overwrite
+        ranks_lt = kwargs.pop('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2))
+        filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
+        if filter_reviewed is None:
+            # only filter big queries if not specified
+            filter_reviewed = len(cm_list) > 6
+
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                        callback=finished_review_callback,
+                                                       ranks_lt=ranks_lt,
+                                                       filter_reviewed=filter_reviewed,
                                                        **kwargs)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
@@ -1245,9 +1256,10 @@ class MainWindowBackend(GUIBACK_BASE):
             #'prescore_method': 'csum',
             #'score_method': 'csum'
         }
+        query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)'
         back.compute_queries(qaid_list=qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
-                             query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)',
-                             cfgdict=cfgdict, custom_qaid_list_title='Merge Candidates')
+                             query_msg=query_msg, cfgdict=cfgdict,
+                             custom_qaid_list_title='Merge Candidates')
 
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
@@ -1380,7 +1392,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 cm.imgsetid = imgsetid
         print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
         # Filter duplicate names if running vsexemplar
-        filter_duplicate_namepair_matches = daids_mode == const.VS_EXEMPLARS_KEY
+        filter_duplicate_namepair_matches = (daids_mode == const.VS_EXEMPLARS_KEY)
 
         back.review_queries(
             cm_list,
@@ -1426,9 +1438,19 @@ class MainWindowBackend(GUIBACK_BASE):
             return
         # daid list is computed inside the incremental query so there is
         # no need to specify it here
-        qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=False)
-        if any(back.ibs.get_annot_exemplar_flags(qaid_list)):
-            raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True. Run Help->Fix/Clean Database')
+        restrict_incremental_to_unknowns = back.ibs.cfg.other_cfg.ensure_attr('restrict_incremental_to_unknowns', True)
+        #restrict_incremental_to_unknowns = back.ibs.cfg.other_cfg.ensure_attr('restrict_incremental_to_unknowns', False)
+        #import utool
+        #utool.embed()
+        print('restrict_incremental_to_unknowns = %r' % (restrict_incremental_to_unknowns,))
+        if restrict_incremental_to_unknowns:
+            is_known = True
+        else:
+            is_known = None
+        qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=is_known)
+        if is_known:
+            if any(back.ibs.get_annot_exemplar_flags(qaid_list)):
+                raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True. Run Help->Fix/Clean Database')
         if len(qaid_list) == 0:
             msg = ut.codeblock(
                 '''
@@ -2198,6 +2220,15 @@ class MainWindowBackend(GUIBACK_BASE):
     def launch_ipy_notebook(back):
         from ibeis.templates import generate_notebook
         generate_notebook.autogen_ipynb(back.ibs, launch=True)
+
+    @slot_()
+    def update_source_install(back):
+        import ibeis
+        from os.path import dirname
+        repo_path = dirname(ut.truepath(ut.get_modpath_from_modname(ibeis, prefer_pkg=True)))
+        with ut.ChdirContext(repo_path):
+            command = ut.python_executable() + ' super_setup.py pull'
+            ut.cmd(command)
 
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):

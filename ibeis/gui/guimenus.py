@@ -378,6 +378,9 @@ def setup_developer_menu(mainwin, back):
     menu.newAction(
         text='Set Work Directory',
         slot_fn=back.set_workdir)
+    menu.newAction(
+        text='Update Source Install',
+        slot_fn=back.update_source_install)
     # TESTS
     mainwin.menuTests = guitool.newMenu(mainwin, menu, 'menuTests', 'Tests')
     mainwin.menuTests.newAction(

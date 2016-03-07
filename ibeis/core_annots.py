@@ -830,24 +830,23 @@ class VsOneRequest(dtool.base.VsOneSimilarityRequest):
 
     def postprocess_execute(request, parent_rowids, result_list):
         import ibeis
-        qaid_list, daid_list = list(zip(*parent_rowids))
         depc = request.depc
-        cm_list = []
+        ibs = depc.controller
+        qaid_list, daid_list = list(zip(*parent_rowids))
         unique_qaids, groupxs = ut.group_indices(qaid_list)
         grouped_daids = ut.apply_grouping(daid_list, groupxs)
 
-        ibs = depc.controller
         unique_qnids = ibs.get_annot_nids(unique_qaids)
         single_cm_list = ut.take_column(result_list, 1)
         grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
 
         _iter = zip(unique_qaids, unique_qnids, grouped_daids, grouped_cms)
-
+        cm_list = []
         for qaid, qnid, daids, cms in _iter:
             # Hacked in version of creating an annot match object
-            match = ibeis.ChipMatch.combine_cms(cms)
-            match.score_nsum(request)
-            cm_list.append(match)
+            chip_match = ibeis.ChipMatch.combine_cms(cms)
+            chip_match.score_maxcsum(request)
+            cm_list.append(chip_match)
 
         #import utool
         #utool.embed()
@@ -883,6 +882,45 @@ class VsOneConfig(dtool.Config):
     ]
 
 
+def test_cut(ibs, parent_rowids_T, score_list2):
+
+    unique_aids = ut.unique(ut.flatten(parent_rowids_T))
+    for view in ibs.get_annot_yaw_texts(unique_aids):
+
+        aid2_idx = ut.make_index_lookup(unique_aids)
+        #idx2_aid = ut.invert_dict(aid2_idx)
+        idx_pairs = np.array(ut.unflat_take(aid2_idx, zip(*parent_rowids_T)))
+        num = len(aid2_idx)
+        flat_idx = np.ravel_multi_index(idx_pairs.T, (num, num))
+        score_list2 = np.array(score_list2)
+        cost_matrix = np.zeros(num * num)
+        cost_matrix[flat_idx] = score_list2
+        cost_matrix = cost_matrix.reshape((num, num))
+        thresh = np.median(cost_matrix)
+        thresh = 20
+        labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
+        grouping = ut.group_items(unique_aids, labels)
+
+        if False:
+            vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
+            vp2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts])
+            for view, aids in vp2_aids.items():
+                print('---')
+                print('view = %r' % (view,))
+                idxs = ut.take(aid2_idx, aids)
+                if len(idxs) == 1:
+                    continue
+                real_group = ibs.group_annots_by_name(aids)[0]
+                sub_cost_matrix = cost_matrix[idxs].T[idxs].T
+                #ibs = ut.search_stack_for_localvar('ibs')
+                for thresh in [5, 7, 8, 9, 10, 11, 12, 13, 15, 20, 25, 30, 40, 50]:
+                    labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, thresh)
+                    grouping = ut.group_items(aids, labels)
+                    diff = ut.compare_groupings(real_group, grouping.values())
+                    #print('thresh = %r, diff=%r' % (thresh, diff))
+                    #print('--')
+
+
 @register_preproc(
     tablename='vsone', parents=['annotations', 'annotations'],
     colnames=['score', 'match'], coltypes=[float, ChipMatch],
@@ -894,16 +932,22 @@ def compute_one_vs_one(depc, qaids, daids, config):
     """
     CommandLine:
         python -m ibeis.core_annots --test-compute_one_vs_one --show
+        python -m ibeis.control.IBEISControl --test-show_depc_graph --show
+        python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> #ibs, depc, aid_list = testdata_core(size=5)
         >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
+        >>> #ibs, aid_list = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
+        >>> ibs, aid_list = ibeis.testdata_aids('testdb2', 'default:')
+        >>> _, aids = ut.items_sorted_by_value(ut.group_items(aid_list, ibs.get_annot_occurrence_text(aid_list)), key=len)[-1]
+        >>> aid_list = aids
         >>> depc = ibs.depc
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
         >>> config = request.config
+        >>> parent_rowids_T = request.parent_rowids_T
         >>> qaids, daids = request.parent_rowids_T
         >>> # Compute using request
         >>> print('...Test vsone cache')
@@ -1043,6 +1087,7 @@ def compute_neighbor_index(depc, fids_list, config):
 
     CommandLine:
         python -m ibeis.core_annots --exec-compute_neighbor_index --show
+        python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=neighbor_index
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1086,67 +1131,67 @@ def compute_neighbor_index(depc, fids_list, config):
 #class FeatNeighborConfig(dtool.Config)
 
 
-if False:
-    # NOT YET READY
-    @register_preproc(
-        tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
-        colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
-        #configclass=IndexerConfig,
-        chunksize=1, fname='neighbors',
-    )
-    def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
-        """
-        Args:
-            depc (dtool.DependencyCache):
-            aids_list (list):
-            config (dtool.Config):
+# NOT YET READY
+@register_preproc(
+    tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
+    colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
+    #configclass=IndexerConfig,
+    chunksize=1, fname='neighbors',
+)
+def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
+    """
+    Args:
+        depc (dtool.DependencyCache):
+        aids_list (list):
+        config (dtool.Config):
 
-        CommandLine:
-            python -m ibeis.core_annots --exec-compute_neighbor_index --show
+    CommandLine:
+        python -m ibeis.core_annots --exec-compute_neighbor_index --show
+        python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=feat_neighbs
 
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.core_annots import *  # NOQA
-            >>> #ibs, depc, aid_list = testdata_core(size=5)
-            >>> import ibeis
-            >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
-            >>> daid_list = qaid_list
-            >>> depc = ibs.depc
-            >>> index_config = ibs.depc['neighbor_index'].configclass()
-            >>> fid_list = depc.get_rowids('feat', qaid_list)
-            >>> indexer_rowid_list = ibs.depc.get_rowids('neighbor_index', [daid_list], index_config)
-            >>> config = ibs.depc['feat_neighbs'].configclass()
-            >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
-        """
-        print('[IBEIS] NEAREST NEIGHBORS')
-        #assert False
-        # do computation
-        #num_neighbors = (config['K'] + config['Knorm'])
-        ibs = depc.controller
-        num_neighbors = 1
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> #ibs, depc, aid_list = testdata_core(size=5)
+        >>> import ibeis
+        >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
+        >>> daid_list = qaid_list
+        >>> depc = ibs.depc
+        >>> index_config = ibs.depc['neighbor_index'].configclass()
+        >>> fid_list = depc.get_rowids('feat', qaid_list)
+        >>> indexer_rowid_list = ibs.depc.get_rowids('neighbor_index', [daid_list], index_config)
+        >>> config = ibs.depc['feat_neighbs'].configclass()
+        >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
+    """
+    print('[IBEIS] NEAREST NEIGHBORS')
+    #assert False
+    # do computation
+    #num_neighbors = (config['K'] + config['Knorm'])
+    ibs = depc.controller
+    num_neighbors = 1
 
-        #b = np.broadcast([1, 2, 3], [1])
-        #list(b)
-        #[(1, 1), (2, 1), (3, 1)]
+    #b = np.broadcast([1, 2, 3], [1])
+    #list(b)
+    #[(1, 1), (2, 1), (3, 1)]
 
-        # FIXME: not sure how depc should handle this case
-        # Maybe it groups by indexer_rowid_list and then goes from there.
-        indexer = depc.get_native('neighbor_index', indexer_rowid_list, 'indexer')[0]
-        qvecs_list = depc.get_native('feat', fid_list, 'vecs', eager=False, nInput=len(fid_list))
-        #qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
-        qaid_list = depc.get_ancestor_rowids('feat', fid_list)
+    # FIXME: not sure how depc should handle this case
+    # Maybe it groups by indexer_rowid_list and then goes from there.
+    indexer = depc.get_native('neighbor_index', indexer_rowid_list, 'indexer')[0]
+    qvecs_list = depc.get_native('feat', fid_list, 'vecs', eager=False, nInput=len(fid_list))
+    #qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
+    qaid_list = depc.get_ancestor_rowids('feat', fid_list)
 
-        ax2_encid = np.array(ibs.get_annot_encounter_text(indexer.ax2_aid))
+    ax2_encid = np.array(ibs.get_annot_encounter_text(indexer.ax2_aid))
 
-        for qaid, qfx2_vec in zip(qaid_list, qvecs_list):
-            qencid = ibs.get_annot_encounter_text([qaid])[0]
-            invalid_axs = np.where(ax2_encid == qencid)[0]
-            #indexer.ax2_aid[invalid_axs]
-            nnindxer = indexer
-            qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(qfx2_vec,
-                                                                       num_neighbors,
-                                                                       invalid_axs)
-            yield qfx2_idx, qfx2_dist
+    for qaid, qfx2_vec in zip(qaid_list, qvecs_list):
+        qencid = ibs.get_annot_encounter_text([qaid])[0]
+        invalid_axs = np.where(ax2_encid == qencid)[0]
+        #indexer.ax2_aid[invalid_axs]
+        nnindxer = indexer
+        qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(qfx2_vec,
+                                                                   num_neighbors,
+                                                                   invalid_axs)
+        yield qfx2_idx, qfx2_dist
 
 
 if __name__ == '__main__':

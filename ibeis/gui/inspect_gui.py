@@ -400,6 +400,39 @@ class QueryResultsWidget(APIItemWidget):
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
 
+    def set_query_results(qres_wgt, ibs, cm_list, name_scoring=False,
+                          qreq_=None, **kwargs):
+        print('[qres_wgt] set_query_results()')
+        tblnice = 'Query Results: ' + kwargs.get('query_title', '')
+        ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
+
+        qres_wgt.ibs = ibs
+        qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
+        qres_wgt.qreq_ = qreq_
+        qres_wgt.qres_api = make_qres_api(ibs, cm_list,
+                                          name_scoring=name_scoring,
+                                          qreq_=qreq_, **kwargs)
+        qres_wgt.update_checkboxes()
+
+        headers = qres_wgt.qres_api.make_headers(tblname='qres_api',
+                                                 tblnice=tblnice)
+
+        # HACK IN ROW SIZE
+        vertical_header = qres_wgt.view.verticalHeader()
+        vertical_header.setDefaultSectionSize(
+            qres_wgt.qres_api.get_thumb_size())
+
+        # super call
+        APIItemWidget.change_headers(qres_wgt, headers)
+        #qres_wgt.change_headers(headers)
+
+        # HACK IN COL SIZE
+        horizontal_header = qres_wgt.view.horizontalHeader()
+        for col, width in six.iteritems(qres_wgt.qres_api.col_width_dict):
+            #horizontal_header.defaultSectionSize()
+            index = qres_wgt.qres_api.col_name_list.index(col)
+            horizontal_header.resizeSection(index, width)
+
     @guitool.slot_()
     def closeEvent(qres_wgt, event):
         event.accept()
@@ -452,39 +485,6 @@ class QueryResultsWidget(APIItemWidget):
     def sizeHint(qres_wgt):
         # should eventually improve this to use the widths of the header columns
         return QtCore.QSize(1000, 500)
-
-    def set_query_results(qres_wgt, ibs, cm_list, name_scoring=False,
-                          qreq_=None, **kwargs):
-        print('[qres_wgt] set_query_results()')
-        tblnice = 'Query Results: ' + kwargs.get('query_title', '')
-        ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
-
-        qres_wgt.ibs = ibs
-        qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
-        qres_wgt.qreq_ = qreq_
-        qres_wgt.qres_api = make_qres_api(ibs, cm_list,
-                                          name_scoring=name_scoring,
-                                          qreq_=qreq_, **kwargs)
-        qres_wgt.update_checkboxes()
-
-        headers = qres_wgt.qres_api.make_headers(tblname='qres_api',
-                                                 tblnice=tblnice)
-
-        # HACK IN ROW SIZE
-        vertical_header = qres_wgt.view.verticalHeader()
-        vertical_header.setDefaultSectionSize(
-            qres_wgt.qres_api.get_thumb_size())
-
-        # super call
-        APIItemWidget.change_headers(qres_wgt, headers)
-        #qres_wgt.change_headers(headers)
-
-        # HACK IN COL SIZE
-        horizontal_header = qres_wgt.view.horizontalHeader()
-        for col, width in six.iteritems(qres_wgt.qres_api.col_width_dict):
-            #horizontal_header.defaultSectionSize()
-            index = qres_wgt.qres_api.col_name_list.index(col)
-            horizontal_header.resizeSection(index, width)
 
     def connect_signals_and_slots(qres_wgt):
         qres_wgt.view.clicked.connect(qres_wgt._on_click)
@@ -793,24 +793,6 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     return truth_color
 
 
-#def get_buttontup(ibs, qtindex):
-#    """
-#    helper for make_qres_api
-#    """
-#    model = qtindex.model()
-#    aid1 = model.get_header_data('qaid', qtindex)
-#    aid2 = model.get_header_data('aid', qtindex)
-#    truth = ibs.get_match_truth(aid1, aid2)
-#    truth_color = vh.get_truth_color(truth, base255=True,
-#                                        lighten_amount=0.35)
-#    truth_text = ibs.get_match_text(aid1, aid2)
-#    callback = partial(review_match, ibs, aid1, aid2)
-#    #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2,
-#    row, truth))
-#    buttontup = (truth_text, callback, truth_color)
-#    return buttontup
-
-
 def test_inspect_matches(ibs, qaid_list, daid_list):
     """
 
@@ -979,12 +961,6 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     # Get extra info
     (qaids, daids, scores, ranks) = candidate_matches
 
-    #opts = np.zeros(len(qaids))
-    # Define column information
-
-    # TODO: MAKE A PAIR IDER AND JUST USE EXISTING API_ITEM_MODEL FUNCTIONALITY
-    # TO GET THOSE PAIRWISE INDEXES
-
     RES_THUMB_TEXT = 'ResThumb'
     MATCH_THUMB_TEXT = 'MatchThumb'
 
@@ -1001,11 +977,6 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'qaid',
         'aid',
     ]
-    #if ut.is_developer():
-    #    pass
-    #    col_name_list.insert(2, 'd_nGt')
-    #    col_name_list.insert(2, 'q_nGt')
-    #    #col_name_list.insert(2, 'q_nGt')
 
     col_types_dict = dict([
         ('qaid',       int),

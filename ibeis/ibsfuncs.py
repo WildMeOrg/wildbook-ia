@@ -6725,7 +6725,7 @@ def get_annot_occurrence_text(ibs, aids):
     """ Occurrence identifier for annotations """
     imgset_ids = ibs.get_annot_imgsetids(aids)
     imgset_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
-    flags = [[text.startswith('occurrence') for text in texts]
+    flags = [[text.lower().startswith('occurrence') for text in texts]
              for texts in imgset_texts]
     _occur_texts = ut.zipcompress(imgset_texts, flags)
     _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
@@ -6934,19 +6934,31 @@ def compute_occurrences(ibs):
     """
     from ibeis.algo.preproc import preproc_occurrence
     print('[ibs] Computing and adding imagesets.')
-    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
-    # only cluster ungrouped images
+    # Only ungrouped images are clustered
     gid_list = ibs.get_ungrouped_gids()
+    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
         flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
             ibs, gid_list)
+        flat_imgsetids = np.array(flat_imgsetids)
+        flat_gids = np.array(flat_gids)
+        sortx = flat_imgsetids.argsort()
+        flat_imgsetids = flat_imgsetids[sortx]
+        flat_gids = flat_gids[sortx]
     valid_imgsetids = ibs.get_valid_imgsetids()
     imgsetid_offset = 0 if len(valid_imgsetids) == 0 else max(valid_imgsetids)
+
+    #imgset_to_gids = ut.group_items(flat_gids, flat_imgsetids)
+    #unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, imgset_to_gids.values())
+    #imgset_keys = imgset_to_gids.keys()
+    #imageset_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
+    #import utool
+    #utool.embed()
+
     # This way we can make sure that manually separated imagesets
-    flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
     # remain untouched, and ensure that new imagesets are created
+    flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
     imagesettext_list = ['Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset]
-    #print('imagesettext_list: %r; flat_gids: %r' % (imagesettext_list, flat_gids))
     print('[ibs] Finished computing, about to add imageset.')
     ibs.set_image_imagesettext(flat_gids, imagesettext_list)
     # HACK TO UPDATE IMAGESET POSIX TIMES

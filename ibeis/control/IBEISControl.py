@@ -306,6 +306,22 @@ class IBEISController(BASE_CLASS):
         """
         ibs.depc.show_graph(reduced=reduced)
 
+    def show_depc_table_input(ibs, tablename, reduced=False):
+        """
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis  # NOQA
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> tablename = ut.get_argval('--tablename')
+            >>> ibs.show_depc_table_input(tablename)
+            >>> ut.show_if_requested()
+        """
+        ibs.depc[tablename].show_input_graph()
+
     def get_cachestats_str(ibs):
         """
         Returns info about the underlying SQL cache memory
