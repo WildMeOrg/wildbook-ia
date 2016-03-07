@@ -2593,7 +2593,7 @@ def detect_write_detection_exmaples(ibs, SEED=23170):
 
     operating_dict = {
         'rcnn': 80,
-        'rf' : 80,
+        'rf' : 60,
         'yolo': 80,
     }
 
@@ -2604,6 +2604,9 @@ def detect_write_detection_exmaples(ibs, SEED=23170):
         test_gid_set = ibs_.get_imageset_gids(ibs_.get_imageset_imgsetids_from_text('TEST_SET'))
         random.shuffle(test_gid_set)
         test_gid_list = test_gid_set[:10]
+
+        if tag == 'gz':
+            test_gid_list[0] = test_gid_set[10]
 
         test_image_list = ibs_.get_images(test_gid_list)
         test_uuid_list = ibs_.get_image_uuids(test_gid_list)
