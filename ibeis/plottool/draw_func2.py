@@ -813,7 +813,49 @@ def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
 
 
 def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
+    r"""
+    Args:
+        nRows (None): (default = None)
+        nCols (None): (default = None)
+        base (int): (default = 0)
+        nSubplots (None): (default = None)
+        start (int): (default = 0)
+
+    Returns:
+        iterator: pnum_next
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-make_pnum_nextgen --show
+
+    GridParams:
+        >>> param_grid = dict(
+        >>>     nRows=[None, 3],
+        >>>     nCols=[None, 3],
+        >>>     nSubplots=[None, 9],
+        >>> )
+        >>> combos = ut.all_dict_combinations(param_grid)
+
+    GridExample:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> base, start = 0, 0
+        >>> pnum_next = make_pnum_nextgen(nRows, nCols, base, nSubplots, start)
+        >>> import itertools
+        >>> pnum_list = list( (pnum_next() for _ in itertools.count()) )
+        >>> print((nRows, nCols, nSubplots))
+        >>> result = ('pnum_list = %s' % (ut.repr2(pnum_list),))
+        >>> print(result)
+    """
     import functools
+    nRows, nCols = get_num_rc(nSubplots, nRows, nCols)
+
+    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base,
+                              nSubplots=nSubplots, start=start)
+    pnum_next = functools.partial(six.next, pnum_gen)
+    return pnum_next
+
+
+def get_num_rc(nSubplots=None, nRows=None, nCols=None):
     if nSubplots is None:
         if nRows is None:
             nRows = 1
@@ -823,15 +865,11 @@ def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
         if nRows is None and nCols is None:
             from plottool import plot_helpers
             nRows, nCols = plot_helpers.get_square_row_cols(nSubplots)
-        elif nRows is None:
-            nCols = np.ceil(nSubplots / nRows)
-        elif nCols is None:
-            nRows = np.ceil(nSubplots / nCols)
-
-    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base,
-                              nSubplots=nSubplots, start=start)
-    pnum_next = functools.partial(six.next, pnum_gen)
-    return pnum_next
+        elif nRows is not None:
+            nCols = int(np.ceil(nSubplots / nRows))
+        elif nCols is not None:
+            nRows = int(np.ceil(nSubplots / nCols))
+    return nRows, nCols
 
 
 def fnum_generator(base=1):
@@ -3699,7 +3737,7 @@ def nx_agraph_layout(graph, **kwargs):
 
 
 def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
-                  size_dict=None, hacknoedge=False, hacknonode=False):
+                  size_dict=None, hacknoedge=False, hacknonode=False, use_arc=True):
     """ fancy way to draw networkx graphs without using networkx """
     import plottool as pt
 
@@ -3772,6 +3810,9 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
 
         if (v, u) in seen:
             rad = seen[edge] * -1
+
+        if not use_arc:
+            rad = 0
 
         if data.get('implicit', False):
             alpha = .2

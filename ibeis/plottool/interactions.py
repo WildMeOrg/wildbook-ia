@@ -78,8 +78,11 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         fig = ih.begin_interaction('expandable', self.fnum)
         if not any(self.pnum_list) and self.nRows is None and self.nRows is None:
             # Hack if no pnum was given
-            self.nRows, self.nCols = pt.get_square_row_cols(len(self.pnum_list))
-            pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols, nSubplots=len(self.func_list))
+            self.nRows, self.nCols = pt.get_num_rc(len(self.pnum_list),
+                                                   nRows=self.nRows,
+                                                   nCols=self.nCols)
+            nSubplots = len(self.func_list)
+            pnum_ = pt.make_pnum_nextgen(self.nRows, self.nCols, nSubplots=nSubplots)
             self.pnum_list = [pnum_() for _ in self.pnum_list]
 
         for index, (pnum, func) in enumerate(zip(self.pnum_list, self.func_list)):
