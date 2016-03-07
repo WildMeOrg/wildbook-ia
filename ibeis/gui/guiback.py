@@ -2240,6 +2240,7 @@ class MainWindowBackend(GUIBACK_BASE):
         with ut.ChdirContext(repo_path):
             command = ut.python_executable() + ' super_setup.py pull'
             ut.cmd(command)
+        print('Done updating source install')
 
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):
