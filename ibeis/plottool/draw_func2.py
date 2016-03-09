@@ -230,7 +230,6 @@ class OffsetImage2(mpl.offsetbox.OffsetBox):
         #w /= dpi_cor
         #h /= dpi_cor
         #import utool
-        #utool.embed()
         #if self.axes:
         # Hack, find right axes
         ax = self.figure.axes[0]
@@ -460,7 +459,6 @@ def show_if_requested(N=1):
         dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
         fpath_strict = ut.truepath(fpath)
-        #ut.embed()
         SAVE_PARTS = ut.get_argflag('--saveparts')
         CLIP_WHITE = ut.get_argflag('--clipwhite')
 
@@ -471,8 +469,6 @@ def show_if_requested(N=1):
                 # For text objects, we need to draw the figure first, otherwise the extents
                 # are undefined.
                 items = []
-                #if len(axs) > 1:
-                #    ut.embed()
                 for ax in axs:
                     ax.figure.canvas.draw()  # FIXME; is this necessary?
                     items += ax.get_xticklabels() + ax.get_yticklabels()
@@ -1686,9 +1682,6 @@ def dark_background(ax=None, doubleit=False, force=False):
         >>> pt.dark_background()
         >>> ut.show_if_requested()
     """
-    #import utool
-    #utool.embed()
-
     def is_using_style(style):
         style_dict = mpl.style.library[style]
         return len(ut.dict_isect(style_dict, mpl.rcParams)) == len(style_dict)
@@ -2234,7 +2227,6 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
         ticks = np.linspace(mn, mx, len(ticklabels))
         cb.set_ticks(ticks)  # tick locations
         cb.set_ticklabels(ticklabels)
-        #utool.embed()
         #cb.ax.get_yticks()
         #cb.set_ticks(ticks)  # tick locations
         #cb.set_ticklabels(ticklabels)  # tick labels
@@ -2682,8 +2674,6 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         if len(img.shape) == 3 and (img.shape[2] == 3 or img.shape[2] == 4):
             # img is in a color format
             imgBGR = img
-            #import utool
-            #utool.embed()
 
             if imgBGR.dtype == np.float64:
                 if imgBGR.max() <= 1:
@@ -3149,7 +3139,6 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb', p=.5):
         gmag_ = gmag if gmag_is_01 else gmag / max(255.0, gmag.max())
         # Weights modify just value
         gmag_ = gmag_ ** p
-        #ut.embed()
         #SAT_CHANNEL = 1
         VAL_CHANNEL = 2
         #hsv_ori[:, :, SAT_CHANNEL] = gmag_
@@ -3549,7 +3538,8 @@ def draw_text_annotations(text_list,
 
 
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
-            ax=None, pos=None, img_dict=None, old=False, title=None, **kwargs):
+            ax=None, pos=None, img_dict=None, old=False, title=None,
+            layoutkw=None, **kwargs):
     r"""
     Args:
         graph (networkx.Graph):
@@ -3577,8 +3567,6 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         python -c "import pygraphviz; print(pygraphviz.__file__)"
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
-
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
@@ -3600,8 +3588,12 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         pt.figure(fnum=fnum, pnum=pnum)
         ax = pt.gca()
 
+    edge_pos = None
+
     if pos is None:
-        pos = get_nx_pos(graph, layout)
+        layout_dict = get_nx_layout(graph, layout, layoutkw=layoutkw)
+        pos = layout_dict['pos']
+        edge_pos = layout_dict['edge_pos']
 
     zoom = kwargs.pop('zoom', .4)
     frameon = kwargs.pop('frameon', True)
@@ -3612,7 +3604,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         #graph.edges(data=True) if 'label' in data}
         #nx.draw_networkx_edge_labels(graph, pos, edge_labels)
     else:
-        draw_network2(graph, pos, ax, **kwargs)
+        draw_network2(graph, pos, ax, edge_pos=edge_pos, **kwargs)
         ax.autoscale()
         ax.grid(False)
         pt.plt.axis('equal')
@@ -3628,6 +3620,12 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         node_list = graph.nodes()
         pos_list = ut.take(pos, node_list)
         img_list = ut.take(img_dict, node_list)
+        node_attrs = ut.dict_take(graph.node, node_list)
+        # Rename to node_scale?
+        shrink_list = np.array(ut.dict_take_column(node_attrs, 'scale',
+                                                   default=None))
+        img_list = [img if scale is None else vt.resize_image_by_scale(img, scale)
+                    for scale, img in zip(shrink_list, img_list)]
         imgdat = pt.netx_draw_images_at_positions(
             img_list, pos_list, zoom=zoom, frameon=frameon)
         plotinfo['imgdat'] = imgdat
@@ -3637,12 +3635,12 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
     return plotinfo
 
 
-def get_nx_pos(graph, layout):
+def get_nx_layout(graph, layout, layoutkw=None):
     import networkx as nx
     only_explicit = True
     if only_explicit:
         explicit_graph = graph.__class__()
-        explicit_nodes = graph.nodes(data=False)
+        explicit_nodes = graph.nodes(data=True)
         explicit_edges = [(n1, n2, data) for (n1, n2, data) in graph.edges(data=True)
                           if data.get('implicit', False) is not True]
         explicit_graph.add_nodes_from(explicit_nodes)
@@ -3651,26 +3649,23 @@ def get_nx_pos(graph, layout):
     else:
         layout_graph = graph
 
-    #bfs_order = 0
-    #if bfs_order:
-    #    source = ut.find_source_nodes(layout_graph)[0]
-    #    #bfs_tree = nx.bfs_tree(layout_graph, source)
-    #    bfs_tree = nx.dfs_tree(layout_graph, source)
-    #    layout_graph = bfs_tree
-    #    #bfs_shortpaths = nx.single_source_shortest_path(bfs_tree, source)
-    #    #node_levels = ut.map_dict_vals(len, bfs_shortpaths)
+    edge_pos = None
+    if layoutkw is None:
+        layoutkw = {}
 
-    if layout == 'pydot':
+    #print('layout = %r' % (layout,))
+    if layout == 'agraph':
+        pos, edge_pos = nx_agraph_layout(layout_graph, **layoutkw)
+    elif layout == 'pydot':
         pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
-    #elif layout == 'graphviz':
-    #    pos = nx.nx_agraph.graphviz_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
         pos = nx.nx_agraph.graphviz_layout(layout_graph)
     elif layout == 'pygraphviz':
         pos = nx.nx_agraph.pygraphviz_layout(layout_graph)
     elif layout == 'spring':
         _pos = nx.spectral_layout(layout_graph, scale=500)
-        pos = nx.fruchterman_reingold_layout(layout_graph, pos=_pos, scale=500, iterations=100)
+        pos = nx.fruchterman_reingold_layout(layout_graph, pos=_pos, scale=500,
+                                             iterations=100)
         pos = ut.map_dict_vals(lambda x: x * 500, pos)
     elif layout == 'circular':
         pos = nx.circular_layout(layout_graph, scale=100)
@@ -3678,15 +3673,12 @@ def get_nx_pos(graph, layout):
         pos = nx.spectral_layout(layout_graph, scale=500)
     elif layout == 'shell':
         pos = nx.shell_layout(layout_graph, scale=100)
-        #pos = ut.map_dict_vals(lambda x: x * 500, nx.spring_layout(layout_graph))
-        # same as nx.spring_layout
-    #elif layout == 'force' or layout == 'fruchterman_reingold':
-        # force-directed algo
-        #pos = ut.map_dict_vals(lambda x: x * 500,
-        #                       nx.fruchterman_reingold_layout(layout_graph))
     else:
         raise ValueError('Undefined layout = %r' % (layout,))
-    return pos
+    layout_dict = {}
+    layout_dict['pos'] = pos
+    layout_dict['edge_pos'] = edge_pos
+    return layout_dict
 
 
 def nx_agraph_layout(graph, **kwargs):
@@ -3708,18 +3700,104 @@ def nx_agraph_layout(graph, **kwargs):
     import pygraphviz
 
     node_pos = {}
-    ctrl_pts = []
+    edge_pos = {}
 
-    factor = kwargs.pop('factor', 60.0)
+    kwargs = kwargs.copy()
+    factor = kwargs.pop('factor', 1.0)
+    prog = kwargs.pop('prog', 'dot')
 
-    prog = kwargs.pop('prog', 'neato')
+    if True:
+        #kwargs['splines'] = kwargs.get('splines', 'none')
+        #kwargs['splines'] = kwargs.get('splines', 'line')
+        #kwargs['splines'] = kwargs.get('splines', 'polyline')
+        #kwargs['splines'] = kwargs.get('splines', 'curved')
+        #kwargs['splines'] = kwargs.get('splines', 'ortho')
+        kwargs['splines'] = kwargs.get('splines', 'spline')
+        kwargs['pack'] = kwargs.get('pack', True)
+        kwargs['packmode'] = kwargs.get('packmode', 'cluster')
+        #kwargs['pack'] = kwargs.get('pack', False)
+    if False:
+        #kwargs['dpi'] = kwargs.get('dpi', 1.0)
+        pass
+    if prog == 'dot':
+        #kwargs['rankdir'] = kwargs.get('rankdir', 'LR')
+        #kwargs['rankdir'] = kwargs.get('rankdir', 'TB')
+        kwargs['ranksep'] = kwargs.get('ranksep', 1.5 * factor)
+        kwargs['nodesep'] = kwargs.get('nodesep', 1.2 * factor)
+        kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
+        #kwargs['clusterrank'] = kwargs.get('clusterrank', 'global')
+    if prog != 'dot':
+        kwargs['overlap'] = kwargs.get('overlap', False)
+        kwargs['sep'] = kwargs.get('sep', 1 / 300.)
+        pass
+    if prog == 'neato':
+        #kwargs['diredgeconstraints'] = 'heir'
+        #kwargs['inputscale'] = kwargs.get('inputscale', 72)
+        #kwargs['Damping'] = kwargs.get('Damping', .1)
+        pass
+
+    #print('FINAL kwargs = %r' % (kwargs,))
+
     argparts = ['-G%s=%s' % (key, str(val).lower())
                 for key, val in kwargs.items()]
     args = ' '.join(argparts)
     # Convert to agraph format
-    agraph = nx.nx_agraph.to_agraph(graph)
+
+    #print('graph.node = %r' % (graph.node,))
+    graph_ = graph.copy()
+
+    # Reduce size to be in inches not pixels
+    # FIXME; make robust to param settings
+    # Hack to make the w/h of the node take thae max instead of
+    # dot which takes the minimum
+    shaped_nodes = [n for n, d in graph_.nodes(data=True) if 'width' in d]
+    node_attrs = ut.dict_take(graph_.node, shaped_nodes)
+    width_px = np.array(ut.take_column(node_attrs, 'width'))
+    height_px = np.array(ut.take_column(node_attrs, 'height'))
+    scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
+
+    dimsize_in = np.maximum(width_px, height_px) / 72.0 * scale
+    dimsize_in_dict = dict(zip(shaped_nodes, dimsize_in))
+
+    width_in = dimsize_in_dict
+    height_in = dimsize_in_dict
+
+    nx.set_node_attributes(graph_, 'width', width_in)
+    nx.set_node_attributes(graph_, 'height', height_in)
+    ut.nx_delete_node_attr(graph_, 'scale')
+
+    # Check for any nodes with groupids
+    node_to_groupid = nx.get_node_attributes(graph_, 'groupid')
+    if node_to_groupid:
+        groupid_to_nodes = ut.group_items(*zip(*node_to_groupid.items()))
+    else:
+        groupid_to_nodes = {}
+
+    # Initialize agraph format
+    agraph = nx.nx_agraph.to_agraph(graph_)
+
+    # Add subgraphs labels
+    for groupid, nodes in groupid_to_nodes.items():
+        subgraph_attrs = {}
+        #subgraph_attrs = dict(rankdir='LR')
+        #subgraph_attrs['rank'] = 'min'
+        subgraph_attrs['rank'] = 'source'
+        name = groupid
+        name = 'cluster_' + groupid
+        agraph.add_subgraph(nodes, name, **subgraph_attrs)
+
+    #print('args = %r' % (args,))
+    #print('prog = %r' % (prog,))
+    #print('BEFORE LAYOUT')
+    #print(agraph)
+
+    # Run layout
     agraph.layout(prog=prog, args=args)
-    for node in graph.nodes():
+
+    #print('AFTER LAYOUT')
+    #print(agraph)
+
+    for node in graph_.nodes():
         anode = pygraphviz.Node(agraph, node)
         try:
             xx, yy = anode.attr['pos'].split(',')
@@ -3727,17 +3805,20 @@ def nx_agraph_layout(graph, **kwargs):
         except:
             node_pos[node] = (0.0, 0.0)
 
-    for edge in graph.edges():
-        aedge = pygraphviz.Edge(agraph, edge[0], edge[1])
+    for edge in graph_.edges():
+        u, v = edge[0:2]
+        aedge = pygraphviz.Edge(agraph, u, v)
         edge_ctrlpts = np.array([tuple([float(f) for f in ea.split(',')])
                                  for ea in aedge.attr['pos'][2:].split(' ')])
         edge_ctrlpts /= factor
-        ctrl_pts.append(edge_ctrlpts)
-    return node_pos, ctrl_pts
+        edge_pos[edge] = edge_ctrlpts
+
+    return node_pos, edge_pos
 
 
 def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
-                  size_dict=None, hacknoedge=False, hacknonode=False, use_arc=True):
+                  hacknoedge=False, hacknonode=False,
+                  edge_pos=None, use_arc=True):
     """ fancy way to draw networkx graphs without using networkx """
     import plottool as pt
 
@@ -3758,15 +3839,17 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
         #node_color = pt.color_funcs.to_base255(node_color)
         xy = pos[n]
         patch_kw = dict(alpha=alpha, color=node_color)
+        scale = nattrs.get('scale', 1.0)
         if node_shape == 'circle':
             # radius = node_size / 100
-            radius = node_size / 50
+            radius = node_size / 50 * scale
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
         elif node_shape == 'rect' or node_shape == 'rhombus':
-            if size_dict is not None:
-                width, height = size_dict[n]
+            if 'width' in nattrs and 'height' in nattrs:
+                width = nattrs['width'] * scale
+                height = nattrs['height'] * scale
             else:
-                height = width = node_size / 50
+                height = width = (node_size / 50  * scale)
             angle = 0 if node_shape == 'rect' else 45
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             patch = mpl.patches.Rectangle(
@@ -3787,111 +3870,141 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
         node_patch_list.append(patch)
     ###
     # Draw Edges
-    seen = {}
-    edge_list = graph.edges(data=True)
-    for (u, v, data) in edge_list:
-        edge = (u, v)
-        #n1 = graph.node[u]['patch']
-        #n2 = graph.node[v]['patch']
-        n1 = patches[u]
-        n2 = patches[v]
+    if edge_pos is None:
+        # TODO: rectify with spline method
+        seen = {}
+        edge_list = graph.edges(data=True)
+        for (u, v, data) in edge_list:
+            edge = (u, v)
+            #n1 = graph.node[u]['patch']
+            #n2 = graph.node[v]['patch']
+            n1 = patches[u]
+            n2 = patches[v]
 
-        # Bend left / right depending on node positions
-        dir_ = np.sign(n1.center[0] - n2.center[0])
-        inc = dir_ * 0.1
-        rad = dir_ * 0.2
-        posA = list(n1.center)
-        posB = list(n2.center)
-        # Make duplicate edges more bendy to see them
-        if edge in seen:
-            posB[0] += 10
-            rad = seen[edge] + inc
-        seen[edge] = rad
+            # Bend left / right depending on node positions
+            dir_ = np.sign(n1.center[0] - n2.center[0])
+            inc = dir_ * 0.1
+            rad = dir_ * 0.2
+            posA = list(n1.center)
+            posB = list(n2.center)
+            # Make duplicate edges more bendy to see them
+            if edge in seen:
+                posB[0] += 10
+                rad = seen[edge] + inc
+            seen[edge] = rad
 
-        if (v, u) in seen:
-            rad = seen[edge] * -1
+            if (v, u) in seen:
+                rad = seen[edge] * -1
 
-        if not use_arc:
-            rad = 0
+            if not use_arc:
+                rad = 0
 
-        if data.get('implicit', False):
-            alpha = .2
-            color = pt.GREEN
-        else:
-            alpha = 0.5
-            color = pt.BLACK
-
-        color = data.get('color', color)
-
-        arrowstyle = '-' if not graph.is_directed() else '-|>'
-
-        arrow_patch = mpl.patches.FancyArrowPatch(
-            posA, posB, patchA=n1, patchB=n2,
-            arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
-            mutation_scale=10.0, lw=2, alpha=alpha, color=color)
-
-        # endpoint1 = edge_verts[0]
-        # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
-        if data.get('ismulti', False) or data.get('isnwise', False) or data.get('local_input_id', False) :
-            pt1 = np.array(arrow_patch.patchA.center)
-            pt2 = np.array(arrow_patch.patchB.center)
-            frac_thru = 4
-            edge_verts = arrow_patch.get_verts()
-            edge_verts = vt.unique_rows(edge_verts)
-            sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
-            if len(sorted_verts) <= 4:
-                mpl_bbox = arrow_patch.get_extents()
-                bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
-                endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
-                endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-                beta = (1 / frac_thru)
-                alpha = 1 - beta
-                text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+            if data.get('implicit', False):
+                alpha = .2
+                color = pt.GREEN
             else:
-                #print('sorted_verts = %r' % (sorted_verts,))
-                #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                #frac_thru = 3
-                frac_thru = 6
+                alpha = 0.5
+                color = pt.BLACK
 
-                text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
+            color = data.get('color', color)
 
-            font_prop = mpl.font_manager.FontProperties(family='monospace',
-                                                        weight='light',
-                                                        size=14)
-            if data.get('local_input_id', False):
-                text = data['local_input_id']
-                if text == '1':
-                    text = ''
-            elif data.get('ismulti', False):
-                text = '*'
-            else:
-                text = str(data.get('nwise_idx', '!'))
-            ax.annotate(text, xy=text_point1, xycoords='data', va='center',
-                        ha='center', fontproperties=font_prop)
-            #bbox=dict(boxstyle='round', fc=None, alpha=1.0))
-        if data.get('label', False):
-            pt1 = np.array(arrow_patch.patchA.center)
-            pt2 = np.array(arrow_patch.patchB.center)
-            frac_thru = 2
-            edge_verts = arrow_patch.get_verts()
-            edge_verts = vt.unique_rows(edge_verts)
-            sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
-            if len(sorted_verts) <= 4:
-                mpl_bbox = arrow_patch.get_extents()
-                bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
-                endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
-                endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-                print('sorted_verts = %r' % (sorted_verts,))
-                beta = (1 / frac_thru)
-                alpha = 1 - beta
-                text_point1 = (alpha * endpoint1) + (beta * endpoint2)
-            else:
-                text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-                ax.annotate(data['label'], xy=text_point1, xycoords='data',
-                            va='center', ha='center',
-                            bbox=dict(boxstyle='round', fc='w'))
-        #ax.add_patch(arrow_patch)
-        edge_patch_list.append(arrow_patch)
+            arrowstyle = '-' if not graph.is_directed() else '-|>'
+
+            arrow_patch = mpl.patches.FancyArrowPatch(
+                posA, posB, patchA=n1, patchB=n2,
+                arrowstyle=arrowstyle, connectionstyle='arc3,rad=%s' % rad,
+                mutation_scale=10.0, lw=2, alpha=alpha, color=color)
+
+            # endpoint1 = edge_verts[0]
+            # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
+            if (data.get('ismulti', False) or data.get('isnwise', False) or
+                 data.get('local_input_id', False)):
+                pt1 = np.array(arrow_patch.patchA.center)
+                pt2 = np.array(arrow_patch.patchB.center)
+                frac_thru = 4
+                edge_verts = arrow_patch.get_verts()
+                edge_verts = vt.unique_rows(edge_verts)
+                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+                if len(sorted_verts) <= 4:
+                    mpl_bbox = arrow_patch.get_extents()
+                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                    beta = (1 / frac_thru)
+                    alpha = 1 - beta
+                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+                else:
+                    #print('sorted_verts = %r' % (sorted_verts,))
+                    #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                    #frac_thru = 3
+                    frac_thru = 6
+
+                    text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
+
+                font_prop = mpl.font_manager.FontProperties(family='monospace',
+                                                            weight='light',
+                                                            size=14)
+                if data.get('local_input_id', False):
+                    text = data['local_input_id']
+                    if text == '1':
+                        text = ''
+                elif data.get('ismulti', False):
+                    text = '*'
+                else:
+                    text = str(data.get('nwise_idx', '!'))
+                ax.annotate(text, xy=text_point1, xycoords='data', va='center',
+                            ha='center', fontproperties=font_prop)
+                #bbox=dict(boxstyle='round', fc=None, alpha=1.0))
+            if data.get('label', False):
+                pt1 = np.array(arrow_patch.patchA.center)
+                pt2 = np.array(arrow_patch.patchB.center)
+                frac_thru = 2
+                edge_verts = arrow_patch.get_verts()
+                edge_verts = vt.unique_rows(edge_verts)
+                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+                if len(sorted_verts) <= 4:
+                    mpl_bbox = arrow_patch.get_extents()
+                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                    print('sorted_verts = %r' % (sorted_verts,))
+                    beta = (1 / frac_thru)
+                    alpha = 1 - beta
+                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+                else:
+                    text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                    ax.annotate(data['label'], xy=text_point1, xycoords='data',
+                                va='center', ha='center',
+                                bbox=dict(boxstyle='round', fc='w'))
+            #ax.add_patch(arrow_patch)
+            edge_patch_list.append(arrow_patch)
+
+    if edge_pos is not None:
+        for edge, pts in edge_pos.items():
+            data = graph.get_edge_data(*edge)
+            color = data.get('color', pt.BLACK)
+            offset = 1
+            #color = data.get('color', color)
+            start_point = pts[offset]
+            other_points = pts[offset + 1:].tolist()  # [0:3]
+            codes = [mpl.path.Path.MOVETO] + [mpl.path.Path.CURVE4] * len(other_points)
+            verts = [start_point] + other_points
+            path = mpl.path.Path(verts, codes)
+            patch = mpl.patches.PathPatch(path, facecolor='none', lw=1.6,
+                                          edgecolor=color,
+                                          joinstyle='bevel')
+            if graph.is_directed():
+                dxy = (np.array(other_points[-1]) - other_points[-2])
+                dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
+                dx, dy = dxy
+                rx, ry = other_points[-1][0], other_points[-1][1]
+                patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=.9,
+                                                length_includes_head=True,
+                                                color=color,
+                                                head_starts_at_zero=True)
+                ax.add_patch(patch1)
+            #patch = mpl.patches.PathPatch(path, facecolor='none', lw=1)
+            ax.add_patch(patch)
 
     use_collections = False
     if use_collections:

@@ -416,6 +416,8 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
             print('savekw = %r' % (savekw,))
             if fpath_clean.endswith('.png'):
                 savekw['transparent'] = True
+                savekw['edgecolor'] = 'none'
+                #savekw['axes.edgecolor'] = 'none'
             fig.savefig(fpath_clean, **savekw)
         else:
             if verbose > 0:

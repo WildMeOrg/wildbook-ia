@@ -113,14 +113,16 @@ def _init_mpl_rcparams():
     for key in mpl_keypress_shortcuts:
         mpl.rcParams[key] = ''
 
-    CUSTOM_GGPLOT = False
+    CUSTOM_GGPLOT = True
     if CUSTOM_GGPLOT:
         ggplot_style = style.library['ggplot']
         print('ggplot_style = %r' % (ggplot_style,))
         custom_gg = {
             'axes.axisbelow': True,
-            'axes.edgecolor': 'white',
+            #'axes.edgecolor': 'white',
             'axes.facecolor': '#E5E5E5',
+            'axes.edgecolor': 'none',
+            #'axes.facecolor': 'white',
             'axes.grid': True,
             'axes.labelcolor': '#555555',
             'axes.labelsize': 'large',
