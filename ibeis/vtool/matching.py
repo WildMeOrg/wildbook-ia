@@ -17,6 +17,10 @@ PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
 
+class MatchingError(Exception):
+    pass
+
+
 class SingleMatch(ut.NiceRepr):
 
     def __init__(self, matches, metadata):
@@ -277,80 +281,105 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
             flann2 = vt.flann_cache(vecs2, flann_params=flann_params, verbose=verbose)
 
     try:
-        num_neighbors = K + Knorm
-        fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann1, vecs2, num_neighbors, checks)
-        #fx2_to_fx1, _fx2_to_dist = flann1.nn_index(vecs2, num_neighbors=K, checks=checks)
+        try:
+            num_neighbors = K + Knorm
+            fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann1, vecs2, num_neighbors, checks)
+            #fx2_to_fx1, _fx2_to_dist = flann1.nn_index(vecs2, num_neighbors=K, checks=checks)
+            if symmetric:
+                fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(flann2, vecs1, K, checks)
+
+        except pyflann.FLANNException:
+            print('vecs1.shape = %r' % (vecs1.shape,))
+            print('vecs2.shape = %r' % (vecs2.shape,))
+            print('vecs1.dtype = %r' % (vecs1.dtype,))
+            print('vecs2.dtype = %r' % (vecs2.dtype,))
+            raise
         if symmetric:
-            fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(flann2, vecs1, K, checks)
+            is_symmetric = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2)
+            fx2_to_fx1 = fx2_to_fx1.compress(is_symmetric, axis=0)
+            fx2_to_dist = fx2_to_dist.compress(is_symmetric, axis=0)
 
-    except pyflann.FLANNException:
-        print('vecs1.shape = %r' % (vecs1.shape,))
-        print('vecs2.shape = %r' % (vecs2.shape,))
-        print('vecs1.dtype = %r' % (vecs1.dtype,))
-        print('vecs2.dtype = %r' % (vecs2.dtype,))
-        raise
+        assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
 
-    if symmetric:
-        is_symmetric = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2)
-        fx2_to_fx1 = fx2_to_fx1.compress(is_symmetric, axis=0)
-        fx2_to_dist = fx2_to_dist.compress(is_symmetric, axis=0)
+        fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
+        fm_ORIG = np.vstack((fx1_match, fx2_match)).T
+        fs_ORIG = 1 - np.divide(match_dist, norm_dist)
+        # APPLY RATIO TEST
+        fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_match, fx1_match, fx1_norm,
+                                                 match_dist, norm_dist,
+                                                 ratio_thresh)
 
-    assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
+        # SPATIAL VERIFICATION FILTER
+        #with ut.EmbedOnException():
+        match_weights = np.ones(len(fm_RAT))
+        svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh,
+                                           dlen_sqrd2, match_weights=match_weights,
+                                           refine_method=refine_method)
+        if svtup is not None:
+            (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
+        else:
+            H_RAT = np.eye(3)
+            homog_inliers = []
+        fm_RAT_SV = fm_RAT.take(homog_inliers, axis=0)
+        fs_RAT_SV = fs_RAT.take(homog_inliers, axis=0)
+        fm_norm_RAT_SV = fm_norm_RAT[homog_inliers]
 
-    fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
-    fm_ORIG = np.vstack((fx1_match, fx2_match)).T
-    fs_ORIG = 1 - np.divide(match_dist, norm_dist)
-    # APPLY RATIO TEST
-    fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_match, fx1_match, fx1_norm,
-                                             match_dist, norm_dist,
-                                             ratio_thresh)
-    # SPATIAL VERIFICATION FILTER
-    #with ut.EmbedOnException():
-    match_weights = np.ones(len(fm_RAT))
-    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh,
-                                       dlen_sqrd2, match_weights=match_weights,
-                                       refine_method=refine_method)
-    if svtup is not None:
-        (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
-    else:
-        H_RAT = np.eye(3)
-        homog_inliers = []
-    fm_RAT_SV = fm_RAT.take(homog_inliers, axis=0)
-    fs_RAT_SV = fs_RAT.take(homog_inliers, axis=0)
-    fm_norm_RAT_SV = fm_norm_RAT[homog_inliers]
+        top_percent = .5
+        top_idx = ut.take_percentile(fx2_to_dist.T[0].argsort(), top_percent)
+        fm_TOP = fm_ORIG.take(top_idx, axis=0)
+        fs_TOP = fx2_to_dist.T[0].take(top_idx)
+        #match_weights = np.ones(len(fm_TOP))
+        #match_weights = (np.exp(fs_TOP) / np.sqrt(np.pi * 2))
+        match_weights = 1 - fs_TOP
+        #match_weights = np.ones(len(fm_TOP))
+        svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_TOP, sver_xy_thresh,
+                                           dlen_sqrd2, match_weights=match_weights,
+                                           refine_method=refine_method)
+        if svtup is not None:
+            (homog_inliers, homog_errors, H_TOP) = svtup[0:3]
+            np.sqrt(homog_errors[0] / dlen_sqrd2)
+        else:
+            H_TOP = np.eye(3)
+            homog_inliers = []
+        fm_TOP_SV = fm_TOP.take(homog_inliers, axis=0)
+        fs_TOP_SV = fs_TOP.take(homog_inliers, axis=0)
 
-    top_percent = .5
-    top_idx = ut.take_percentile(fx2_to_dist.T[0].argsort(), top_percent)
-    fm_TOP = fm_ORIG.take(top_idx, axis=0)
-    fs_TOP = fx2_to_dist.T[0].take(top_idx)
-    #match_weights = np.ones(len(fm_TOP))
-    #match_weights = (np.exp(fs_TOP) / np.sqrt(np.pi * 2))
-    match_weights = 1 - fs_TOP
-    #match_weights = np.ones(len(fm_TOP))
-    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_TOP, sver_xy_thresh,
-                                       dlen_sqrd2, match_weights=match_weights,
-                                       refine_method=refine_method)
-    if svtup is not None:
-        (homog_inliers, homog_errors, H_TOP) = svtup[0:3]
-        np.sqrt(homog_errors[0] / dlen_sqrd2)
-    else:
-        H_TOP = np.eye(3)
-        homog_inliers = []
-    fm_TOP_SV = fm_TOP.take(homog_inliers, axis=0)
-    fs_TOP_SV = fs_TOP.take(homog_inliers, axis=0)
+        matches = {
+            'ORIG'   : MatchTup2(fm_ORIG, fs_ORIG),
+            'RAT'    : MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT),
+            'RAT+SV' : MatchTup3(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV),
+            'TOP'    : MatchTup2(fm_TOP, fs_TOP),
+            'TOP+SV' : MatchTup2(fm_TOP_SV, fs_TOP_SV),
+        }
+        output_metdata = {
+            'H_RAT': H_RAT,
+            'H_TOP': H_TOP,
+        }
 
-    matches = {
-        'ORIG'   : MatchTup2(fm_ORIG, fs_ORIG),
-        'RAT'    : MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT),
-        'RAT+SV' : MatchTup3(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV),
-        'TOP'    : MatchTup2(fm_TOP, fs_TOP),
-        'TOP+SV' : MatchTup2(fm_TOP_SV, fs_TOP_SV),
-    }
-    output_metdata = {
-        'H_RAT': H_RAT,
-        'H_TOP': H_TOP,
-    }
+    except MatchingError:
+        fm_ERR = np.empty((0, 2), dtype=np.int32)
+        fs_ERR = np.empty((0, 1), dtype=np.float32)
+        H_ERR = np.eye(3)
+        matches = {
+            'ORIG'   : MatchTup2(fm_ERR, fs_ERR),
+            'RAT'    : MatchTup3(fm_ERR, fs_ERR, fm_ERR),
+            'RAT+SV' : MatchTup3(fm_ERR, fs_ERR, fm_ERR),
+            'TOP'    : MatchTup2(fm_ERR, fs_ERR),
+            'TOP+SV' : MatchTup2(fm_ERR, fs_ERR),
+        }
+        output_metdata = {
+            'H_RAT': H_ERR,
+            'H_TOP': H_ERR,
+        }
+
     return matches, output_metdata
+
+
+def empty_neighbors(num_vecs=0, K=0):
+    shape = (num_vecs, K)
+    fx2_to_fx1 = np.empty(shape, dtype=np.int32)
+    _fx2_to_dist_sqrd = np.empty(shape, dtype=np.float64)
+    return fx2_to_fx1, _fx2_to_dist_sqrd
 
 
 def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
@@ -359,13 +388,21 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
     between 0 and 1 using sifts uint8 trick
     """
     import vtool as vt
-    fx2_to_fx1, _fx2_to_dist_sqrd = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    if K == 0:
+        (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(len(vecs2), 0)
+    elif len(vecs2) == 0:
+        (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(0, K)
+    elif K > flann.get_indexed_shape()[0]:
+        # Corner case, may be better to throw an assertion error
+        raise MatchingError('not enough database features')
+        #(fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(len(vecs2), 0)
+    else:
+        fx2_to_fx1, _fx2_to_dist_sqrd = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
     _fx2_to_dist = np.sqrt(_fx2_to_dist_sqrd.astype(np.float64))
-    fx2_to_dist = np.divide(_fx2_to_dist, PSEUDO_MAX_DIST)  # normalized dist
+    # normalized dist
+    fx2_to_dist = np.divide(_fx2_to_dist, PSEUDO_MAX_DIST)
     fx2_to_fx1 = vt.atleast_nd(fx2_to_fx1, 2)
     fx2_to_dist = vt.atleast_nd(fx2_to_dist, 2)
-    #fx2_to_dist = np.divide(_fx2_to_dist.astype(np.float64),
-    #PSEUDO_MAX_DIST_SQRD)  # squared normalized dist
     return fx2_to_fx1, fx2_to_dist
 
 
