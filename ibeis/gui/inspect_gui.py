@@ -918,7 +918,7 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
 
 
 def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
-                  filter_reviewed=None,
+                  filter_reviewed=False,
                   filter_duplicate_namepair_matches=False,
                   qreq_=None,
                   ):
@@ -946,12 +946,12 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         print('[inspect] make_qres_api')
     #ibs.cfg.other_cfg.ranks_lt = 2
     # Overwrite
-    ranks_lt_ = ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2)
-    filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
-    if filter_reviewed is None:
-        # only filter big queries if not specified
-        filter_reviewed = len(cm_list) > 6
-    ranks_lt = ranks_lt if ranks_lt is not None else ranks_lt_
+    #ranks_lt_ = ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2)
+    #filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
+    #if filter_reviewed is None:
+    #    # only filter big queries if not specified
+    #    filter_reviewed = len(cm_list) > 6
+    #ranks_lt = ranks_lt if ranks_lt is not None else ranks_lt_
 
     candidate_matches = get_automatch_candidates(
         cm_list, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs,

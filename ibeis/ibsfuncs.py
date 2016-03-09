@@ -6928,6 +6928,24 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
 
 
 @register_ibs_method
+def temp_group_annot_occurrences(ibs, aid_list):
+    """
+    """
+    from ibeis.algo.preproc import preproc_occurrence
+    gid_list = ibs.get_annot_gids(aid_list)
+    import vtool as vt
+    gid2_aid = ut.group_items(aid_list, gid_list)
+    unique_gids, groupxs = vt.group_indices(np.array(gid_list))
+    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+    with ut.Timer('computing imagesets'):
+        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+            ibs, gid_list)
+        occurid2_gid = ut.group_items(flat_gids, flat_imgsetids)
+        occurid2_aids = ut.map_dict_vals(ut.flatten, ut.map_dict_vals(ut.partial(ut.take, gid2_aid), occurid2_gid))
+    return occurid2_aids
+
+
+@register_ibs_method
 def compute_occurrences(ibs):
     """
     Clusters ungrouped images into imagesets representing occurrences

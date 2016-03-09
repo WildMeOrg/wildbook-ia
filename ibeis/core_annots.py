@@ -901,7 +901,7 @@ def test_cut(ibs, parent_rowids_T, score_list2):
         labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
         grouping = ut.group_items(unique_aids, labels)
 
-        if False:
+        if True:
             #vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
             vp2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts])
             for view, aids in vp2_aids.items():
@@ -917,8 +917,7 @@ def test_cut(ibs, parent_rowids_T, score_list2):
                     labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, thresh)
                     grouping = ut.group_items(aids, labels)
                     diff = ut.compare_groupings(real_group, grouping.values())
-                    print('diff = %r' % (diff,))
-                    #print('thresh = %r, diff=%r' % (thresh, diff))
+                    print('thresh = %r, diff=%r' % (thresh, diff))
                     #print('--')
 
 
@@ -935,6 +934,26 @@ def compute_one_vs_one(depc, qaids, daids, config):
         python -m ibeis.core_annots --test-compute_one_vs_one --show
         python -m ibeis.control.IBEISControl --test-show_depc_graph --show
         python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
+
+    Ignore:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids('PZ_Master1', 'default:')
+        >>> occurid2_aids = ibs.temp_group_annot_occurrences(aid_list)
+        >>> aids_list = [np.unique(aids) for aids in occurid2_aids.values()]
+        >>> aids_list = [aids for aids in aids_list if len(aids) > 1 and len(aids) < 100]
+
+        depc = ibs.depc
+
+        progiter = ut.ProgIter(aids_list, freq=1)
+        for aids in progiter:
+            request = depc.new_request('vsone', aids, aids, {'dim_size': 450})
+            qaids, daids = request.parent_rowids_T
+            config = request.config
+            parent_rowids_T = request.parent_rowids_T
+            rawres_list2 = request.execute(postprocess=False)
+            #score_list2 = ut.take_column(rawres_list2, 0)
+            #test_cut(ibs, parent_rowids_T, score_list2)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1005,6 +1024,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
 
     #all_aids = np.unique(ut.flatten([qaids, daids]))
     verbose = False
+    #yeild_ = []
     for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
                                    lbl='compute vsone'):
         annot1 = qaid_to_annot[qaid]
@@ -1040,6 +1060,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
             request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
             match.ishow_analysis(request)
         #match = SingleMatch_IBEIS(qaid, daid, score, fm)
+        #yeild_.append((score, match))
         yield (score, match)
 
 

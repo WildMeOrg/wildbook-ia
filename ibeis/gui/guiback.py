@@ -357,7 +357,10 @@ class MainWindowBackend(GUIBACK_BASE):
         if filter_reviewed is None:
             # only filter big queries if not specified
             filter_reviewed = len(cm_list) > 6
-
+        print('REVIEW QUERIES')
+        print('**kwargs = %s' % (ut.repr3(kwargs),))
+        print('filter_reviewed = %s' % (filter_reviewed,))
+        print('ranks_lt = %s' % (ranks_lt,))
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                        callback=finished_review_callback,
                                                        ranks_lt=ranks_lt,
