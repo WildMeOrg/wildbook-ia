@@ -201,7 +201,7 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> import plottool as pt
         >>> import vtool as vt
         >>> pt.ensure_pylab_qt4()
-        >>> p_list = np.array([[23., 27.], [7., 14.]])# [14, 11], [8, 7], [23, 21]], dtype=np.float)
+        >>> p_list = np.array([[23., 27.], [7., 14.], [14, 11], [8, 7], [23, 21]], dtype=np.float)
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro')
         >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
         >>> close_pts = np.array([closest_point_on_bbox(p, bbox) for p in p_list])
@@ -209,28 +209,30 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> for x, y in list(zip(p_list, close_pts)):
         >>>     z = np.array(list(zip(x, y)))
         >>>     pt.plt.plot(z[0], z[1], 'r--')
-        >>>     pt.plt.plot(z[1], 'go')
         >>> bbox_verts = np.array(vt.verts_from_bbox(bbox, close=True))
         >>> pt.plt.plot(bbox_verts.T[0], bbox_verts.T[1], 'b-')
         >>> pt.plt.xlim(0, 30)
         >>> pt.plt.ylim(0, 30)
         >>> ut.show_if_requested()
     """
-    de = (dx, dy) = e2 - e1  # shift e1 to origin
-    pv = p - e1  # make point vector wrt orgin
+    #import vtool as vt
+    # shift e1 to origin
+    de = (dx, dy) = e2 - e1
+    # make point vector wrt orgin
+    pv = p - e1
+    # Project pv onto de
     mag = np.linalg.norm(de)
-    t = pv.dot(de) / mag
-    perp = (-dy, dx)
-
-    dist = (dy * pv[0] - dx * pv[1])
-    # line segment bounds
-    #if t < 0:
-    #    new_pt = e1
-    #elif t > 1:
-    #    new_pt = e2
-    #else:
-    new_pt = e1 + t * de
-    return new_pt
+    pt_on_line_ = pv.dot(de / mag) * de / mag
+    # Check if normalized dot product is between 0 and 1
+    # Determines if pt is between 0,0 and de
+    t = de.dot(pt_on_line_) / mag ** 2
+    if t < 0:
+        pt_on_line = e1
+    elif t > 1:
+        pt_on_line = e2
+    else:
+        pt_on_line = pt_on_line_ + e1
+    return pt_on_line
 
 
 def closest_point_on_bbox(p, bbox):
