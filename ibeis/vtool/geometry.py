@@ -191,6 +191,21 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
 
 
 def closest_point_on_line_segment(p, e1, e2):
+    """
+    >>> import plottool as pt
+    >>> pt.ensure_pylab_qt4()
+    >>> p_list = np.array([[19, 7], [7, 14], [14, 11], [8, 7], [23, 21]], dtype=np.float)
+    >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro')
+    >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
+    >>> close_pts = np.array([closest_point_on_bbox(p, bbox) for p in p_list])
+    >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx')
+    >>> for x, y in list(zip(p_list, close_pts)):
+    >>>     pt.plt.plot(x, y, 'r--')
+    >>> bbox_verts = np.array(vt.verts_from_bbox(bbox, close=True))
+    >>> pt.plt.plot(bbox_verts.T[0], bbox_verts.T[1], 'b-')
+    >>> pt.plt.xlim(0, 30)
+    >>> pt.plt.ylim(0, 30)
+    """
     de = (dx, dy) = e2 - e1  # shift e1 to origin
     pv = p - e1  # make point vector wrt orgin
     mag = np.linalg.norm(de)
@@ -206,12 +221,31 @@ def closest_point_on_line_segment(p, e1, e2):
 
 
 def closest_point_on_bbox(p, bbox):
+    """
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> p_list = np.array([[19, 7], [7, 14], [14, 11], [8, 7], [23, 21]], dtype=np.float)
+        >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
+        >>> [closest_point_on_bbox(p, bbox) for p in p_list]
+    """
     import vtool as vt
     bbox_verts = np.array(vt.verts_from_bbox(bbox, close=True))
     candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(bbox_verts)]
     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
     new_pts = candidates[dists.argmin()]
     return new_pts
+
+
+def bbox_from_xywh(xy, wh, xy_rel_pos=[0, 0]):
+    """ need to specify xy_rel_pos if xy is not in tl already """
+    to_tlx = xy_rel_pos[0] * wh[0]
+    to_tly = xy_rel_pos[1] * wh[1]
+    tl_x = xy[0] - to_tlx
+    tl_y = xy[1] - to_tly
+    bbox = [tl_x, tl_y, wh[0], wh[1]]
+    return bbox
 
 
 if __name__ == '__main__':
