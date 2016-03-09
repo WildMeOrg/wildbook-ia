@@ -87,6 +87,8 @@ def REGISTER_SQLITE3_TYPES():
                 register_adapter(dtype, long)
             elif six.PY3:
                 register_adapter(dtype, int)
+        register_adapter(np.float32, float)
+        register_adapter(np.float64, float)
 
     def _read_dict_from_sqlite3(blob):
         return ut.from_json(blob)
@@ -98,9 +100,11 @@ def REGISTER_SQLITE3_TYPES():
         def _write_dict_to_sqlite3(dict_):
             return ut.to_json(dict_)
 
-    # Tell SQL how to deal with numpy arrays
     def register_numpy():
-        """ Utility function allowing numpy arrays to be stored as raw blob data """
+        """
+        Tell SQL how to deal with numpy arrays
+        Utility function allowing numpy arrays to be stored as raw blob data
+        """
         if VERBOSE_SQL:
             print('Register NUMPY with SQLite3')
         register_converter('NUMPY', _read_numpy_from_sqlite3)
@@ -139,6 +143,8 @@ REGISTER_SQLITE3_TYPES()
 TYPE_TO_SQLTYPE = {
     np.ndarray: 'NDARRAY',
     uuid.UUID: 'UUID',
+    np.float32: 'REAL',
+    np.float64: 'REAL',
     float: 'REAL',
     int: 'INTEGER',
     str: 'TEXT',

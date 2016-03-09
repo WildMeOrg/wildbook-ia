@@ -100,8 +100,13 @@ class SQLExecutionContext(object):
         try:
             context.cur.execute(context.operation, params)
         except lite.Error as ex:
+            print('Reporting SQLite Error')
             print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
+            if ex.message.find('probably unsupported type') > -1:
+                print('given param types = ' + ut.list_str(ut.lmap(type, params)))
+                tablename = context.operation_type.split(' ')[-1]
+                print('exepcted param types = ' + ut.list_str(context.db.get_column_types(tablename)))
             raise
         return context._results_gen()
 
@@ -1397,7 +1402,6 @@ class SQLDatabaseController(object):
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
         #print('Setting metadata_key from %s to %s' % (ut.list_str(id_iter), ut.list_str(val_iter)))
-        #ut.embed()
         db.set(METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
 
     def rename_column(db, tablename, colname_old, colname_new):
@@ -1582,7 +1586,6 @@ class SQLDatabaseController(object):
             val = db.get_metadata_val(key, eval_=True, default=None)
             print(key)
             if val is not None:
-                #ut.embed()
                 line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
         dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
         if dependsmap is not None:
@@ -2043,7 +2046,6 @@ class SQLDatabaseController(object):
                 assert len(dependtup) == 3, 'must be 3 for now'
                 (extern_tablename, extern_primary_colnames, extern_superkey_colnames) = dependtup
                 if extern_primary_colnames is None:
-                    #ut.embed()
                     # INFER PRIMARY COLNAMES
                     extern_primary_colnames = db.get_table_primarykey_colnames(extern_tablename)
                 if extern_superkey_colnames is None:
