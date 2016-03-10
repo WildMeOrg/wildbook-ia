@@ -325,15 +325,21 @@ def get_undirected_edge_ids(directed_edges):
         >>> print(result)
         edgeid_list = [0 0 1 2 3 1 1]
     """
-    import vtool as vt
+    #import vtool as vt
+    undirected_edges = to_undirected_edges(directed_edges)
+    edgeid_list = compute_unique_data_ids(undirected_edges)
+    return edgeid_list
+
+
+def to_undirected_edges(directed_edges):
     assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
     #flipped = qaid_arr < daid_arr
     flipped = directed_edges.T[0] < directed_edges.T[1]
     # standardize edge order
     edges_dupl = directed_edges.copy()
     edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
-    edgeid_list = vt.compute_unique_data_ids(edges_dupl)
-    return edgeid_list
+    undirected_edges = edges_dupl
+    return undirected_edges
 
 
 def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
