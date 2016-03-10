@@ -496,8 +496,8 @@ def dump_all_queries2(ibs):
         fpath     = join(dump_dir, ('topscore=%r -- qcid=%r' % (topscore, qres.qcid)))
         fpath_aug = join(dump_dir, ('topscore=%r -- qcid=%r' % (topscore, qres.qcid))) + title_aug
 
-        fpath_clean = df2.sanatize_img_fpath(fpath)
-        fpath_aug_clean = df2.sanatize_img_fpath(fpath_aug)
+        fpath_clean = df2.sanitize_img_fpath(fpath)
+        fpath_aug_clean = df2.sanitize_img_fpath(fpath_aug)
         print('----')
         print(fpath_clean)
         print(fpath_clean)

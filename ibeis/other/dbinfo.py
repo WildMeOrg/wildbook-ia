@@ -706,7 +706,7 @@ def latex_dbstats(ibs_list, **kwargs):
         >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
         >>> ibs_list = [ibeis.opendb(db=db) for db in db_list]
         >>> tabular_str = latex_dbstats(ibs_list)
-        >>> tabular_cmd = ut.latex_newcommand(ut.latex_sanatize_command_name('DatabaseInfo'), tabular_str)
+        >>> tabular_cmd = ut.latex_newcommand(ut.latex_sanitize_command_name('DatabaseInfo'), tabular_str)
         >>> ut.copy_text_to_clipboard(tabular_cmd)
         >>> write_fpath = ut.get_argval('--write', type_=str, default=None)
         >>> if write_fpath is not None:

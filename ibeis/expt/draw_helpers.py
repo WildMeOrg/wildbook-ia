@@ -68,7 +68,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
 
         _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels) + '_' + str(case_idx)
         #print('_cmdname = %r' % (_cmdname,))
-        cmdname = ut.latex_sanatize_command_name(_cmdname)
+        cmdname = ut.latex_sanitize_command_name(_cmdname)
         label_str = cmdname
         if len(caption_prefix) == 0:
             caption_str = ut.escape_latex('Casetags: ' +
