@@ -2215,6 +2215,7 @@ class MainWindowBackend(GUIBACK_BASE):
             screengrab_dpath = './screenshots'
             ut.ensuredir(screengrab_dpath)
         screengrab_dpath = ut.truepath(screengrab_dpath)
+        screengrab_fname = ut.sanitize_filename(screengrab_fname)
         fpath_base = join(screengrab_dpath, screengrab_fname)
         fpath_fmt = fpath_base + '_%d.jpg'
         screengrab_fpath = ut.get_nonconflicting_path(fpath_fmt)

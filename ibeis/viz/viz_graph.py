@@ -580,9 +580,10 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         def plot(self, fnum, pnum):
             from ibeis.viz.viz_graph import viz_netx_chipgraph
             self.update_netx_graph()
-            self.pos = viz_netx_chipgraph(self.ibs, self.graph,
-                                          fnum=self.fnum, with_images=self.with_images,
-                                          zoom=zoom, prog=prog, **kwargs)
+            self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
+                                               fnum=self.fnum,
+                                               with_images=self.with_images,
+                                               zoom=zoom, prog=prog, **kwargs)
             self.ax = pt.gca()
 
             # FIXME: this doesn't work anymore
@@ -640,6 +641,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             print('aid2 = %r' % (aid2,))
             print('aid1 = %r' % (aid1,))
 
+        @ut.debug_function_exceptions
         def on_click_inside(self, event, ax):
             self.ax = ax
             self.event = event
@@ -647,8 +649,11 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             #print(ax)
             #print(event.x)
             #print(event.y)
-            aids = list(self.pos.keys())
-            pos_list = ut.dict_take(self.pos, aids)
+            pos = self.plotinfo['pos']
+            aids = list(pos.keys())
+            pos_list = ut.dict_take(pos, aids)
+
+            # TODO: FIXME
             #x = 10
             #y = 10
             import numpy as np  # NOQA
