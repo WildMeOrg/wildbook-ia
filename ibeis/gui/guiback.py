@@ -1092,20 +1092,23 @@ class MainWindowBackend(GUIBACK_BASE):
             }
         }
         species = None
-        if qaid_list is None:
+        if qaid_list is not None:
             ibs = back.ibs
             hist_ = ut.dict_hist(ibs.get_annot_species_texts(qaid_list))
+            print('hist_ = %r' % (hist_,))
             if len(hist_) == 1:
                 # select the query species if there is only one
-                species = back.get_selected_species()
+                species = hist_.keys()[0]
 
         if species is None:
             species = back.get_selected_species()
 
         valid_kw = {
-            'species': back.get_selected_species(),
             'minqual':  'poor',
         }
+        if species != const.UNKNOWN:
+            # Query everything if you don't know the species
+            valid_kw['species'] = species
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',
             const.INTRA_OCCUR_KEY: 'intra_occurrence',
@@ -1322,8 +1325,8 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         imgsetid = back._eidfromkw(kwargs)
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
+        print('\n')
         print('------')
-        print('\n\n')
         print('[back] compute_queries: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode))
         print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
         print('[back] use_visual_selection        = %r' % (use_visual_selection,))
@@ -1371,7 +1374,7 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             print('Unknown daids_mode=%r' % (daids_mode,))
 
-        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=None)
+        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaid_list)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
         if len(daid_list) == 0:

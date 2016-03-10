@@ -704,7 +704,7 @@ def review_tagged_splits():
         >>> nids = [split_nids[0]]
         >>> selected_aids = np.unique(problem_aids.ravel()).tolist()
         >>> selected_aids = [] if ut.get_argflag('--noselect') else  selected_aids
-        >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids, prog='dot', rankdir='LR')
         >>> ut.show_if_requested()
 
         rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
@@ -778,7 +778,11 @@ def review_tagged_joins():
         >>> from ibeis.viz import viz_graph
         >>> nids = join_nids[0]
         >>> selected_aids = np.unique(problem_aid_pairs.ravel()).tolist()
-        >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
+        >>> ut.flatten(ibs.get_name_aids(nids))
+        >>> aids = ibs.sample_annots_general(ut.flatten(ibs.get_name_aids(nids)), sample_per_name=4, verbose=True)
+        >>> aids = ut.unique(aids + selected_aids)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+        >>> #self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
         >>> ut.show_if_requested()
 
         rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])

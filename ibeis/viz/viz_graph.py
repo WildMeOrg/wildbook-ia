@@ -83,10 +83,10 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
     #graph = nx.Graph()
     #node = graph.add_node(img)
     # FDSFDS!!!
-    netx_graph = make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list)
+    graph = make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list)
     fnum = None
     zoom = kwargs.get('zoom', .4)
-    viz_netx_chipgraph(ibs, netx_graph, fnum=fnum, with_images=True, zoom=zoom)
+    viz_netx_chipgraph(ibs, graph, fnum=fnum, with_images=True, zoom=zoom)
 
 
 def make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list):
@@ -102,8 +102,8 @@ def make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list):
     edges = list(zip(aid1_list, aid2_list, score_list))
     node_lbls = [('aid', 'int')]
     edge_lbls = [('weight', 'float')]
-    netx_graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
-    return netx_graph
+    graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
+    return graph
 
 
 def get_name_rowid_edges_from_nids(ibs, nids):
@@ -170,8 +170,8 @@ def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     edges = list(zip(aids1, aids2, *edge_vals))
     node_lbls = [('aid', 'int')]
     edge_lbls = [('weight', 'float')]
-    netx_graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
-    return netx_graph
+    graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
+    return graph
 
 
 def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
@@ -181,18 +181,21 @@ def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
                   for ntup in iter(nodes)]
     netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})
                   for etup in iter(edges)]
-    netx_graph = nx.DiGraph()
-    netx_graph.add_nodes_from(netx_nodes)
-    netx_graph.add_edges_from(netx_edges)
-    return netx_graph
+    graph = nx.DiGraph()
+    graph.add_nodes_from(netx_nodes)
+    graph.add_edges_from(netx_edges)
+    import plottool as pt
+    nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE)
+    return graph
 
 
-def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
-                       layout=None, zoom=ZOOM, prog='neato'):
+def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
+                       layout=None, zoom=ZOOM, prog='neato', as_directed=False,
+                       **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        netx_graph (nx.DiGraph):
+        graph (nx.DiGraph):
         fnum (int):  figure number(default = None)
         with_images (bool): (default = False)
         zoom (float): (default = 0.4)
@@ -212,7 +215,7 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
         >>> fnum = None
         >>> with_images = True
         >>> zoom = 0.4
-        >>> #pos = viz_netx_chipgraph(ibs, netx_graph, fnum, with_images, zoom)
+        >>> #pos = viz_netx_chipgraph(ibs, graph, fnum, with_images, zoom)
         >>> make_name_graph_interaction(ibs, None, ibs.get_valid_aids()[0:1])
         >>> #make_name_graph_interaction(ibs, nid_list)
         >>> ut.show_if_requested()
@@ -223,7 +226,7 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
     ax = pt.gca()
 
-    aid_list = netx_graph.nodes()
+    aid_list = graph.nodes()
 
     IMPLICIT_LAYOUT = len(set(ibs.get_annot_nids(aid_list))) != 1
     # FIXME
@@ -241,7 +244,7 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
         implicit_netx_graph.add_nodes_from(aid_list)
         implicit_netx_graph.add_edges_from(list(zip(aids1, aids2)))
     else:
-        pos = nx.nx_agraph.graphviz_layout(netx_graph)
+        pos = nx.nx_agraph.graphviz_layout(graph)
 
     #layout = 'spring' #layout = 'spectral' #layout = 'circular'
     #layout = 'shell' #layout = 'pydot' #layout = 'graphviz'
@@ -255,10 +258,10 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
         spantree_aids2_ = []
 
         # Get tentative node positions
-        initial_pos = pt.get_nx_layout(netx_graph.to_undirected(), 'graphviz')['pos']
+        initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['pos']
 
         # Add edges between all names
-        aug_digraph = netx_graph.copy()
+        aug_digraph = graph.copy()
         # Change all weights in initial graph to be small (likely to be part of mst)
         nx.set_edge_attributes(aug_digraph, 'weight', .0001)
         aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
@@ -283,8 +286,8 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
                 redge = edge[::-1]
                 #attr_dict = {'implicit': True, 'color': pt.DARK_ORANGE}
                 attr_dict = {'color': pt.DARK_ORANGE}
-                if not (netx_graph.has_edge(*edge) or netx_graph.has_edge(*redge)):
-                    netx_graph.add_edge(*redge, attr_dict=attr_dict)
+                if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
+                    graph.add_edge(*redge, attr_dict=attr_dict)
 
             if len(mst_edges) > 0:
                 min_aids1_, min_aids2_ = ut.list_transpose(mst_edges)
@@ -311,41 +314,20 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
         size_dict = {aid: size for aid, size in zip(aid_list, size_list)}
         img_dict = None
 
-    #factor = 72.0
-    #factor = 1.0
-    nx.set_node_attributes(netx_graph, 'width',
+    nx.set_node_attributes(graph, 'width',
                            ut.map_dict_vals(lambda x: x[0], size_dict))
-    nx.set_node_attributes(netx_graph, 'height',
+    nx.set_node_attributes(graph, 'height',
                            ut.map_dict_vals(lambda x: x[1], size_dict))
-    nx.set_node_attributes(netx_graph, 'shape', 'box')
-
-    # Delete weights
-    #ut.nx_delete_node_attr(netx_graph, 'color')
-    #ut.nx_delete_edge_attr(netx_graph, 'weight')
-
-    #hacky_layout = layout == 'agraph'
-    #if hacky_layout:
-    #    #ut.editfile( nx.nx_agraph.__file__[:-1])
-    #    #import utool
-    #    #utool.embed()
-    #    #gvkw = dict(overlap=False,
-    #    #            Damping=.1, splines='curved', sep=(75 / 300), esep=.08,
-    #    #            dpi=1.0)
-    #    #gvkw['prog'] = 'fdp' #gvkw['prog'] = 'dot' #gvkw['prog'] = 'twopi'
-    #    #gvkw['overlap'] = 'prism' #gvkw['overlap'] = 'voronoi'
-    #    #gvkw['overlap'] = 'vpsc' #gvkw['overlap'] = 'ipsep' #gvkw['pack'] =
-    #    #True #gvkw['pad'] = 10
-    #    #layoutkw = {}
-    #    #layoutkw['prog'] = prog
-    #    #pos, ctrl_pts = pt.nx_agraph_layout(netx_graph, factor=factor, **gvkw)
-    #    #print('pos = %r' % (pos,))
+    nx.set_node_attributes(graph, 'shape', 'box')
 
     zoom = 1.0
     old = False
+    #as_directed = True
 
     layoutkw = {'prog': prog}
+    layoutkw.update(kwargs)
 
-    plotinfo = pt.show_nx(netx_graph,
+    plotinfo = pt.show_nx(graph,
                           ax=ax,
                           node_shape='rect',
                           #pos=pos,
@@ -357,32 +339,9 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False,
                           hacknonode=bool(with_images),
                           #hacknoedge=hacky_layout,
                           frameon=False,
-                          old=old, layoutkw=layoutkw)
-    #print('plotinfo = %r' % (plotinfo,))
-    #from matplotlib.path import Path
-    #import matplotlib.patches as patches
-
-    #if hacky_layout:
-    #    for pts in ctrl_pts:
-    #        offset = 1
-    #        start_point = pts[offset]
-    #        other_points = pts[offset + 1:].tolist()  # [0:3]
-    #        codes = [Path.MOVETO] + [Path.CURVE4] * len(other_points)
-    #        verts = [start_point] + other_points
-    #        path = Path(verts, codes)
-    #        patch = patches.PathPatch(path, facecolor='none', lw=2, edgecolor=pt.BLACK,
-    #                                  joinstyle='bevel')
-    #        dxy = (np.array(other_points[-1]) - other_points[-2])
-    #        dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
-    #        dx, dy = dxy
-    #        rx, ry = other_points[-1][0], other_points[-1][1]
-    #        patch1 = patches.FancyArrow(rx, ry, dx, dy, width=.9,
-    #                                    length_includes_head=True,
-    #                                    color='black',
-    #                                    head_starts_at_zero=True)
-    #        ax.add_patch(patch1)
-    #        #patch = patches.PathPatch(path, facecolor='none', lw=1)
-    #        ax.add_patch(patch)
+                          old=old,
+                          layoutkw=layoutkw,
+                          as_directed=as_directed)
 
     pos = plotinfo['pos']
 
@@ -475,7 +434,7 @@ def special_viewpoint_graph():
         [backleft[0], left_aids[0]][::-1],
     ])
     pt.ensure_pylab_qt4()
-    graph = netx_graph = view_graph  # NOQA
+    graph = graph = view_graph  # NOQA
     #graph = graph.to_undirected()
 
     nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE)
@@ -522,7 +481,7 @@ def special_viewpoint_graph():
 
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
-                                zoom=ZOOM, with_all=True):
+                                zoom=ZOOM, with_all=True, prog='neato', **kwargs):
     """
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_Master1 \
@@ -612,20 +571,21 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.get_name_aids(nids)
             else:
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
-            self.netx_graph = make_netx_graph_from_aids(ibs, aids_list)
+            self.graph = make_netx_graph_from_aids(ibs, aids_list)
             # TODO: allow for a subset of grouped aids to be shown
-            #self.netx_graph = make_netx_graph_from_nids(ibs, nids)
-            self._aids2 = self.netx_graph.nodes()
+            #self.graph = make_netx_graph_from_nids(ibs, nids)
+            self._aids2 = self.graph.nodes()
             self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 
         def plot(self, fnum, pnum):
             from ibeis.viz.viz_graph import viz_netx_chipgraph
             self.update_netx_graph()
-            self.pos = viz_netx_chipgraph(self.ibs, self.netx_graph,
+            self.pos = viz_netx_chipgraph(self.ibs, self.graph,
                                           fnum=self.fnum, with_images=self.with_images,
-                                          zoom=zoom)
+                                          zoom=zoom, prog=prog, **kwargs)
             self.ax = pt.gca()
 
+            # FIXME: this doesn't work anymore
             for aid in self.selected_aids:
                 self.highlight_aid(aid)
                 pass

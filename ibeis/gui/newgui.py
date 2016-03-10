@@ -796,6 +796,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if isinstance(imgsetid, six.string_types):
             # Hack
             imagesettext = imgsetid
+            imgsetid = ibswgt.ibs.get_imageset_imgsetids_from_text(imagesettext)
         else:
             imagesettext = ibswgt.ibs.get_imageset_text(imgsetid)
         #ibswgt.back.select_imgsetid(imgsetid)

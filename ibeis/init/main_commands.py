@@ -70,7 +70,12 @@ def preload_commands(dbdir, **kwargs):
 
 
 def postload_commands(ibs, back):
-    """ Postload commands deal with a specific ibeis database """
+    """
+    Postload commands deal with a specific ibeis database
+
+    ibeis --query 1 --db PZ_MTEST
+
+    """
     if ut.NOT_QUIET:
         print('\n[main_cmd] postload_commands')
     if params.args.view_database_directory:
@@ -93,20 +98,22 @@ def postload_commands(ibs, back):
         ibs.delete_cache(delete_chips=True, delete_imagesets=True)
     if params.args.delete_query_cache:
         ibs.delete_qres_cache()
+    if params.args.set_all_species is not None:
+        ibs._overwrite_all_annot_species_to(params.args.set_all_species)
+    if params.args.dump_schema:
+        ibs.db.print_schema()
+    # DEPRICATE
     if params.args.set_notes is not None:
         ibs.set_dbnotes(params.args.set_notes)
     if params.args.set_aids_as_hard is not None:
         aid_list = params.args.set_aids_as_hard
         ibs.set_annot_is_hard(aid_list, [True] * len(aid_list))
-    if params.args.set_all_species is not None:
-        ibs._overwrite_all_annot_species_to(params.args.set_all_species)
-    if params.args.dump_schema:
-        ibs.db.print_schema()
+    #/DEPRICATE
 
     if ut.get_argflag('--ipynb'):
         back.launch_ipy_notebook()
 
-    select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid',), None)
+    select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid', '--occur'), None)
     if select_imgsetid is not None:
         print('\n+ --- CMD SELECT EID=%r ---' % (select_imgsetid,))
         # Whoa: this doesnt work. weird.
@@ -169,46 +176,47 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--start-web'):
         back.start_web_server_parallel()
 
-    #screengrab_fpath = ut.get_argval('--screengrab')
-    #if screengrab_fpath:
-    #    from guitool.__PYQT__.QtGui import QPixmap
-    #    from PyQt4.QtTest import QTest
-    #    from PyQt4.QtCore import Qt
-    #    fpath = ut.truepath(screengrab_fpath)
-    #    import guitool
-    #    #ut.embed()
-    #    timer2 = guitool.__PYQT__.QtCore.QTimer()
-    #    done = [1000]
-    #    def delayed_screenshot_func():
-    #        if done[0] == 500:
-    #            #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
-    #            print('Mouseclick')
-    #            QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)
-    #            # This works
-    #            #QTest.mouseClick(back.front.import_button, Qt.LeftButton)
-    #        if done[0] == 1:
-    #            timer2.stop()
-    #            print('screengrab to %r' % (fpath,))
-    #            screenimg = QPixmap.grabWindow(back.mainwin.winId())
-    #            screenimg.save(fpath, 'jpg')
-    #            ut.startfile(fpath)
-    #            print('lub dub2')
-    #        done[0] -= 1
-    #        return None
-    #    CLICK_FILE_MENU = True
-    #    if CLICK_FILE_MENU:
-    #        #ut.embed()
-    #        #QTest::keyClick(menu, Qt::Key_Down)
-    #        pass
-    #    timer2.delayed_screenshot_func = delayed_screenshot_func
-    #    timer2.timeout.connect(timer2.delayed_screenshot_func)
-    #    timer2.start(1)
-    #    back.mainwin.timer2 = timer2
-    #    guitool.activate_qwindow(back.mainwin)
-    #    #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
-    #    #ut.startfile(fpath)
-    #    #ut.embed()
-    #    pass
+    screengrab_fpath = ut.get_argval('--screengrab')
+    if screengrab_fpath:
+        from guitool.__PYQT__.QtGui import QPixmap
+        from PyQt4.QtTest import QTest
+        from PyQt4.QtCore import Qt
+        fpath = ut.truepath(screengrab_fpath)
+        import guitool
+        #ut.embed()
+        timer2 = guitool.__PYQT__.QtCore.QTimer()
+        done = [1000]
+        def delayed_screenshot_func():
+            if done[0] == 500:
+                #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
+                print('Mouseclick')
+                QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)
+                # This works
+                #QTest.mouseClick(back.front.import_button, Qt.LeftButton)
+            if done[0] == 1:
+                timer2.stop()
+                print('screengrab to %r' % (fpath,))
+                screenimg = QPixmap.grabWindow(back.mainwin.winId())
+                screenimg.save(fpath, 'jpg')
+                ut.startfile(fpath)
+                print('lub dub2')
+            done[0] -= 1
+            return None
+        CLICK_FILE_MENU = True
+        if CLICK_FILE_MENU:
+            #ut.embed()
+            #QTest::keyClick(menu, Qt::Key_Down)
+            pass
+        timer2.delayed_screenshot_func = delayed_screenshot_func
+        timer2.timeout.connect(timer2.delayed_screenshot_func)
+        timer2.start(1)
+        back.mainwin.timer2 = timer2
+        guitool.activate_qwindow(back.mainwin)
+        #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, 'jpg')
+        #ut.startfile(fpath)
+        #ut.embed()
+        pass
+
     if params.args.postload_exit:
         print('[main_cmd] postload exit')
         sys.exit(0)
