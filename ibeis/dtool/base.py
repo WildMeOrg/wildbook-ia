@@ -525,7 +525,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         >>> assert len(results) == 5, 'incorrect num output'
         >>> assert len(results2) == 10, 'incorrect num output'
     """
-    _symmetric = True
+    _symmetric = False
 
     @classmethod
     def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
