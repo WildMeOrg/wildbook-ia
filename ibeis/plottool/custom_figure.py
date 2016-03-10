@@ -413,7 +413,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
                 print(']pt.save_figure] fpath_clean = %s' % (fpath_clean, ))
                 print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
             # savekw['bbox_inches'] = 'tight'
-            print('savekw = %r' % (savekw,))
+            #print('savekw = %r' % (savekw,))
             if fpath_clean.endswith('.png'):
                 savekw['transparent'] = True
                 savekw['edgecolor'] = 'none'
