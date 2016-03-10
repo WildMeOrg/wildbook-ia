@@ -73,7 +73,8 @@ def postload_commands(ibs, back):
     """
     Postload commands deal with a specific ibeis database
 
-    ibeis --query 1 --db PZ_MTEST
+    ibeis --db PZ_MTEST --occur "*All Images" --query 1
+    ibeis --db PZ_MTEST --occur "*All Images" --query-intra
 
     """
     if ut.NOT_QUIET:
@@ -141,6 +142,9 @@ def postload_commands(ibs, back):
         import ibeis.gui.guiheaders as gh
         back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name,
                                                     allow_table_change=True)
+
+    if ut.get_argflag(('--intra-occur-query', '--query-intra-occur', '--query-intra')):
+        back.special_query_funcs['intra_occurrence'](cfgdict={'use_k_padding': False})
 
     qaid_list = ut.get_argval(('--query-aid', '--query'), type_=list, default=None)
 

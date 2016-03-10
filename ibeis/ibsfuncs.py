@@ -1019,7 +1019,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
 
         toremove_aids = ut.flatten(dupaids_list)
         print('About to delete toremove_aids=%r' % (toremove_aids,))
-        if ut.are_you_sure():
+        if ut.are_you_sure('About to delete %r aids' % (len(toremove_aids))):
             ibs.delete_annots(toremove_aids)
 
             aid_list = ibs.get_valid_aids()

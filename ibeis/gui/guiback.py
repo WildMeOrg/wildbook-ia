@@ -141,12 +141,13 @@ class MainWindowBackend(GUIBACK_BASE):
         back.sel_nids = []
         back.sel_gids = []
         back.sel_cm = []
-        if ut.is_developer():
-            back.daids_mode = const.INTRA_OCCUR_KEY
-        else:
-            back.daids_mode = const.VS_EXEMPLARS_KEY
+        #if ut.is_developer():
+        #    back.daids_mode = const.INTRA_OCCUR_KEY
+        #else:
+        back.daids_mode = const.VS_EXEMPLARS_KEY
         #back.imageset_query_results = ut.ddict(dict)
-
+        # used to store partials defined in the frontend
+        back.special_query_funcs = {}
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
         back.front = back.mainwin.ibswgt
@@ -737,8 +738,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def unset_names(back, aid_list):
-        print('[back] unset_names')
-        if not back.are_you_sure():
+        msg = ('[back] unsetting %d names' % (len(aid_list)))
+        print(msg)
+        if not back.are_you_sure(msg):
             return
         back.ibs.set_annot_names(aid_list, [const.UNKNOWN] * len(aid_list))
         back.front.update_tables()
@@ -1609,7 +1611,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def redownload_detection_models(back):
         from ibeis import ibsfuncs
         print('[back] redownload_detection_models')
-        if not back.are_you_sure():
+        if not back.are_you_sure('[back] redownload_detection_models'):
             return
         ibsfuncs.redownload_detection_models(back.ibs)
 
@@ -1618,7 +1620,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
-        if not back.are_you_sure():
+        if not back.are_you_sure('[back] delete_cache'):
             return
         back.ibs.delete_cache()
         print('[back] finished delete_cache')
@@ -1628,8 +1630,9 @@ class MainWindowBackend(GUIBACK_BASE):
     @backreport
     def delete_thumbnails(back):
         """ Help -> Delete Thumbnails """
-        print('[back] delete_thumbnails')
-        if not back.are_you_sure():
+        msg = ('[back] delete_thumbnails')
+        print(msg)
+        if not back.are_you_sure(msg):
             return
         back.ibs.delete_thumbnails()
         print('[back] finished delete_thumbnails')
@@ -1638,8 +1641,8 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def delete_global_prefs(back):
-        print('[back] delete_global_prefs')
-        if not back.are_you_sure():
+        msg = ('[back] delete_global_prefs')
+        if not back.are_you_sure(msg):
             return
         ut.delete(ut.get_app_resource_dir('ibeis', 'global_cache'))
         pass
@@ -1647,7 +1650,8 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def delete_queryresults_dir(back):
-        print('[back] delete_queryresults_dir')
+        msg = ('[back] delete_queryresults_dir')
+        print(msg)
         if not back.are_you_sure(use_msg=('Are you sure you want to delete the '
                                           'cached query results?')):
             return
@@ -2189,14 +2193,37 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     def take_screenshot(back):
         """ dev command only """
+        print('[back] TAKING SCREENSHOT')
         from guitool.__PYQT__.QtGui import QPixmap
-        print('TAKING SCREENSHOT')
         #screengrab_fpath = ut.truepath('~/latex/ibeis_userguide/figures/filemenu.jpg')
-        screengrab_dpath = ut.truepath(ut.get_argval('--screengrab_dpath', type_=str, default='.'))
-        screengrab_fname = ut.get_argval('--screengrab_fname', type_=str, default='screenshot')
-        screengrab_fpath = ut.get_nonconflicting_path(join(screengrab_dpath, screengrab_fname + '_%d.jpg'))
-        screenimg = QPixmap.grabWindow(back.mainwin.winId())
+
+        # Find the focused window
+        app = guitool.get_qtapp()
+        widget = app.focusWidget()
+        if widget is None or widget == 0:
+            widget = back.mainwin
+        window = widget.window()
+        win_title = window.windowTitle()
+        window_id = window.winId()
+
+        # Resolve screengrab path
+        screengrab_dpath = ut.get_argval('--screengrab_dpath', type_=str, default=None)
+        screengrab_fname = ut.get_argval('--screengrab_fname', type_=str, default=None)
+        if screengrab_fname is None:
+            screengrab_fname = win_title
+        if screengrab_dpath is None:
+            screengrab_dpath = './screenshots'
+            ut.ensuredir(screengrab_dpath)
+        screengrab_dpath = ut.truepath(screengrab_dpath)
+        fpath_base = join(screengrab_dpath, screengrab_fname)
+        fpath_fmt = fpath_base + '_%d.jpg'
+        screengrab_fpath = ut.get_nonconflicting_path(fpath_fmt)
+
+        # Grab image in window
+        screenimg = QPixmap.grabWindow(window_id)
+        # Save image to disk
         screenimg.save(screengrab_fpath, 'jpg')
+        print('saved screengrab to %r' % (screengrab_fpath,))
         if ut.get_argflag('--diskshow'):
             ut.startfile(screengrab_fpath)
 

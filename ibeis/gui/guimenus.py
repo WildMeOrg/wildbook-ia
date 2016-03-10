@@ -464,7 +464,8 @@ def setup_developer_menu(mainwin, back):
     menu.newAction(
         name='takeScreenshot',
         text='Take Screenshot',
-        shortcut='Ctrl+]',
+        #shortcut='Ctrl+]',
+        shortcut='Ctrl+K',
         slot_fn=back.take_screenshot)
     setup_depricated_menu(mainwin, back)
 

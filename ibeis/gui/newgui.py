@@ -469,13 +469,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                       ibswgt.back.change_detection_species,
                                       fontkw=primary_fontkw)
 
+        # Define special intra-occurrence function
+        ibswgt.back.special_query_funcs['intra_occurrence'] = ut.overrideable_partial(
+            back.compute_queries, query_is_known=None,
+            daids_mode=const.INTRA_OCCUR_KEY,
+            use_prioritized_name_subset=False,
+            cfgdict={'can_match_samename': False, 'use_k_padding': False})
+
         ibswgt.batch_intra_occurrence_query_button = _NEWBUT(
             'Intra Occurrrence',
-            functools.partial(
-                back.compute_queries, query_is_known=None,
-                daids_mode=const.INTRA_OCCUR_KEY,
-                use_prioritized_name_subset=False,
-                cfgdict={'can_match_samename': False, 'use_k_padding': False}),
+            ibswgt.back.special_query_funcs['intra_occurrence'],
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
