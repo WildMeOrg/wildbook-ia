@@ -3604,7 +3604,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         #graph.edges(data=True) if 'label' in data}
         #nx.draw_networkx_edge_labels(graph, pos, edge_labels)
     else:
-        draw_network2(graph, pos, ax, edge_pos=edge_pos, **kwargs)
+        splines = layout_dict['splines']
+        draw_network2(graph, pos, ax, edge_pos=edge_pos, splines=splines,
+                      **kwargs)
         ax.autoscale()
         ax.grid(False)
         pt.plt.axis('equal')
@@ -3650,12 +3652,16 @@ def get_nx_layout(graph, layout, layoutkw=None):
         layout_graph = graph
 
     edge_pos = None
+    splines = 'line'
     if layoutkw is None:
         layoutkw = {}
 
     #print('layout = %r' % (layout,))
     if layout == 'agraph':
-        pos, edge_pos = nx_agraph_layout(layout_graph, **layoutkw)
+        agraph_pos_info = nx_agraph_layout(layout_graph, **layoutkw)
+        pos = agraph_pos_info['node_pos']
+        edge_pos = agraph_pos_info['edge_pos']
+        splines = agraph_pos_info['splines']
     elif layout == 'pydot':
         pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
@@ -3678,6 +3684,7 @@ def get_nx_layout(graph, layout, layoutkw=None):
     layout_dict = {}
     layout_dict['pos'] = pos
     layout_dict['edge_pos'] = edge_pos
+    layout_dict['splines'] = splines
     return layout_dict
 
 
@@ -3706,44 +3713,70 @@ def nx_agraph_layout(graph, **kwargs):
     factor = kwargs.pop('factor', 1.0)
     prog = kwargs.pop('prog', 'dot')
 
+    class GraphVizConfig(object):
+        # TODO: make a gridsearchable config for layouts
+        def get_param_info_list(self):
+            param_info_list = [
+                # GENERAL
+                ut.ParamInfo('splines', 'spline', valid_values=[
+                    'none', 'line', 'polyline', 'curved', 'ortho', 'spline']),
+                ut.ParamInfo('pack', True),
+                ut.ParamInfo('packmode', 'cluster'),
+                #ut.ParamInfo('nodesep', ?),
+                # NOT DOT
+                ut.ParamInfo('overlap', 'prism', valid_values=[
+                    'true', 'false', 'prism', 'ipsep']),
+                ut.ParamInfo('sep', 1 / 8),
+                ut.ParamInfo('esep', 1 / 8),  # stricly  less than sep
+                # NEATO ONLY
+                ut.ParamInfo('mode', 'major', valid_values=['heir', 'KK', 'ipsep']),
+                #kwargs['diredgeconstraints'] = 'heir'
+                #kwargs['inputscale'] = kwargs.get('inputscale', 72)
+                #kwargs['Damping'] = kwargs.get('Damping', .1)
+                # DOT ONLY
+                ut.ParamInfo('rankdir', 'LR', valid_values=['LR', 'RL', 'TB', 'BT']),
+                ut.ParamInfo('ranksep', 2.5),
+                ut.ParamInfo('nodesep', 2.0),
+                ut.ParamInfo('clusterrank', 'local', valid_values=['local', 'global'])
+                # OUTPUT ONLY
+                #kwargs['dpi'] = kwargs.get('dpi', 1.0)
+            ]
+            return param_info_list
+
     if True:
-        #kwargs['splines'] = kwargs.get('splines', 'none')
-        #kwargs['splines'] = kwargs.get('splines', 'line')
-        #kwargs['splines'] = kwargs.get('splines', 'polyline')
-        #kwargs['splines'] = kwargs.get('splines', 'curved')
-        #kwargs['splines'] = kwargs.get('splines', 'ortho')
+        #kwargs['ratio'] = .1
+        #kwargs['size'] = '10,5!'
+        #kwargs['landscape'] = 'true'
         kwargs['splines'] = kwargs.get('splines', 'spline')
-        kwargs['pack'] = kwargs.get('pack', True)
+        #kwargs['splines'] = kwargs.get('splines', 'curved')
+        kwargs['pack'] = kwargs.get('pack', 'true')
         kwargs['packmode'] = kwargs.get('packmode', 'cluster')
-        #kwargs['pack'] = kwargs.get('pack', False)
-    if False:
-        #kwargs['dpi'] = kwargs.get('dpi', 1.0)
-        pass
     if prog == 'dot':
-        #kwargs['rankdir'] = kwargs.get('rankdir', 'LR')
-        #kwargs['rankdir'] = kwargs.get('rankdir', 'TB')
+        #kwargs['ranksep'] = kwargs.get('ranksep', 2.5 * factor)
+        #kwargs['nodesep'] = kwargs.get('nodesep', 2 * factor)
         kwargs['ranksep'] = kwargs.get('ranksep', 1.5 * factor)
-        kwargs['nodesep'] = kwargs.get('nodesep', 1.2 * factor)
+        #kwargs['rankdir'] = kwargs.get('rankdir', 'LR')
+        kwargs['nodesep'] = kwargs.get('nodesep', 1 * factor)
         kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
-        #kwargs['clusterrank'] = kwargs.get('clusterrank', 'global')
     if prog != 'dot':
-        kwargs['overlap'] = kwargs.get('overlap', False)
-        kwargs['sep'] = kwargs.get('sep', 1 / 300.)
-        pass
+        kwargs['overlap'] = kwargs.get('overlap', 'prism')
+        kwargs['sep'] = kwargs.get('sep', 1 / 8.)
+        kwargs['esep'] = kwargs.get('esep', (1 / 8) * .8)
+        #assert kwargs['esep']  < kwargs['sep']
     if prog == 'neato':
-        #kwargs['diredgeconstraints'] = 'heir'
-        #kwargs['inputscale'] = kwargs.get('inputscale', 72)
-        #kwargs['Damping'] = kwargs.get('Damping', .1)
+        kwargs['mode'] = 'major'
+        if kwargs['mode'] == 'ipsep':
+            pass
+            #kwargs['overlap'] = 'ipsep'
         pass
 
-    #print('FINAL kwargs = %r' % (kwargs,))
+    splines = kwargs['splines']
 
-    argparts = ['-G%s=%s' % (key, str(val).lower())
+    argparts = ['-G%s=%s' % (key, str(val))
                 for key, val in kwargs.items()]
     args = ' '.join(argparts)
+    print('args = %r' % (args,))
     # Convert to agraph format
-
-    #print('graph.node = %r' % (graph.node,))
     graph_ = graph.copy()
 
     # Reduce size to be in inches not pixels
@@ -3756,7 +3789,8 @@ def nx_agraph_layout(graph, **kwargs):
     height_px = np.array(ut.take_column(node_attrs, 'height'))
     scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
 
-    dimsize_in = np.maximum(width_px, height_px) / 72.0 * scale
+    dimsize_in = np.maximum(width_px, height_px)
+    dimsize_in = dimsize_in / 72.0 * scale
     dimsize_in_dict = dict(zip(shaped_nodes, dimsize_in))
 
     width_in = dimsize_in_dict
@@ -3779,6 +3813,7 @@ def nx_agraph_layout(graph, **kwargs):
     # Add subgraphs labels
     for groupid, nodes in groupid_to_nodes.items():
         subgraph_attrs = {}
+        # TODO: subgraph attrs
         #subgraph_attrs = dict(rankdir='LR')
         #subgraph_attrs['rank'] = 'min'
         subgraph_attrs['rank'] = 'source'
@@ -3808,16 +3843,31 @@ def nx_agraph_layout(graph, **kwargs):
     for edge in graph_.edges():
         u, v = edge[0:2]
         aedge = pygraphviz.Edge(agraph, u, v)
-        edge_ctrlpts = np.array([tuple([float(f) for f in ea.split(',')])
-                                 for ea in aedge.attr['pos'][2:].split(' ')])
-        edge_ctrlpts /= factor
-        edge_pos[edge] = edge_ctrlpts
+        #apos = aedge.attr['pos'][2:]
+        apos = aedge.attr['pos']
+        strpos_list = apos.split(' ')
+        strtup_list = [ea.split(',') for ea in strpos_list]
+        try:
+            edge_ctrlpts = [tuple([float(f) for f in ea if f not in 'es']) for ea in strtup_list]
+            edge_ctrlpts = np.array(edge_ctrlpts)
+            edge_ctrlpts /= factor
+            edge_pos[edge] = edge_ctrlpts
+        except Exception:
+            print(apos)
+            raise
 
-    return node_pos, edge_pos
+    agraph_pos_info = dict(
+        node_pos=node_pos,
+        splines=splines,
+        edge_pos=edge_pos
+    )
+
+    return agraph_pos_info
 
 
 def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
-                  hacknoedge=False, hacknonode=False,
+                  hacknoedge=False, hacknonode=False, splines='line',
+                  as_directed=None,
                   edge_pos=None, use_arc=True):
     """ fancy way to draw networkx graphs without using networkx """
     import plottool as pt
@@ -3826,6 +3876,7 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
     edge_patch_list = []
 
     patches = {}
+    size_dict = {}
 
     ###
     # Draw nodes
@@ -3850,6 +3901,7 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
                 height = nattrs['height'] * scale
             else:
                 height = width = (node_size / 50  * scale)
+            size_dict[n] = (width, height)
             angle = 0 if node_shape == 'rect' else 45
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             patch = mpl.patches.Rectangle(
@@ -3978,22 +4030,74 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
                                 bbox=dict(boxstyle='round', fc='w'))
             #ax.add_patch(arrow_patch)
             edge_patch_list.append(arrow_patch)
-
-    if edge_pos is not None:
+    elif edge_pos is not None:
+        # NEW WAY OF DRAWING EDGEES
+        if as_directed is None:
+            as_directed = graph.is_directed()
         for edge, pts in edge_pos.items():
             data = graph.get_edge_data(*edge)
             color = data.get('color', pt.BLACK)
-            offset = 1
+
+            offset = 1 if graph.is_directed() else 0
             #color = data.get('color', color)
             start_point = pts[offset]
             other_points = pts[offset + 1:].tolist()  # [0:3]
-            codes = [mpl.path.Path.MOVETO] + [mpl.path.Path.CURVE4] * len(other_points)
+            end_point = np.array(other_points[-1])
             verts = [start_point] + other_points
+
+            xy1 = pos[edge[0]]
+            wh1 = size_dict[edge[0]]
+
+            xy2 = pos[edge[1]]
+            wh2 = size_dict[edge[1]]
+
+            bbox1 = vt.bbox_from_xywh(xy1, wh1, [.5, .5])
+            bbox2 = vt.bbox_from_xywh(xy2, wh2, [.5, .5])
+
+            #bbox1_verts = np.array(vt.verts_from_bbox(bbox1, close=True))
+            #pt.plt.plot(bbox1_verts.T[0], bbox1_verts.T[1], 'b-')
+            #bbox2_verts = np.array(vt.verts_from_bbox(bbox2, close=True))
+            #pt.plt.plot(bbox2_verts.T[0], bbox2_verts.T[1], 'b-')
+
+            close_point1 = vt.closest_point_on_bbox(start_point, bbox1)
+            close_point2 = vt.closest_point_on_bbox(end_point, bbox2)
+            #print('edge = %r' % (edge,))
+            #print('pts = %r' % (pts,))
+            #print('close_point1 = %r' % (close_point1,))
+            #print('close_point2 = %r' % (close_point2,))
+
+            MOVETO = mpl.path.Path.MOVETO
+            LINETO = mpl.path.Path.LINETO
+
+            if splines in ['line', 'polyline', 'ortho']:
+                CODE = LINETO
+            elif splines == 'curved':
+                #CODE = mpl.path.Path.CURVE3
+                CODE = mpl.path.Path.CURVE3
+            elif splines == 'spline':
+                CODE = mpl.path.Path.CURVE4
+            else:
+                raise AssertionError('splines = %r' % (splines,))
+
+            # Force edge to touch node.
+            #pt.plt.plot(close_point1[0], close_point1[1], 'go')
+            #pt.plt.plot(close_point2[0], close_point2[1], 'gx')
+            #pt.plt.plot(start_point[0], start_point[1], 'rx')
+            #pt.plt.plot(other_points[0][0], other_points[0][1], 'b-x')
+            if as_directed:
+                verts = [close_point1, start_point] + other_points
+                codes = [MOVETO, LINETO] + [CODE] * len(other_points)
+            else:
+                verts = [close_point1, start_point] + other_points + [close_point2]
+                codes = [MOVETO, LINETO] + [CODE] * len(other_points) + [LINETO]
+            #verts = [start_point] + other_points
+            #codes = [MOVETO] + [LINETO] * len(other_points)
+
             path = mpl.path.Path(verts, codes)
-            patch = mpl.patches.PathPatch(path, facecolor='none', lw=1.6,
+            patch = mpl.patches.PathPatch(path, facecolor='none', lw=1.5,
                                           edgecolor=color,
                                           joinstyle='bevel')
-            if graph.is_directed():
+            if as_directed:
                 dxy = (np.array(other_points[-1]) - other_points[-2])
                 dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
                 dx, dy = dxy
