@@ -1074,8 +1074,9 @@ class MainWindowBackend(GUIBACK_BASE):
             imgsetid=imgsetid,
             minqual=minqual,
             is_known=is_known,
-            species=species,
         )
+        if species != const.UNKNOWN:
+            valid_kw['species'] = species
         qaid_list = back.ibs.get_valid_aids(**valid_kw)
         return qaid_list
 
@@ -1095,7 +1096,8 @@ class MainWindowBackend(GUIBACK_BASE):
         if qaid_list is not None:
             ibs = back.ibs
             hist_ = ut.dict_hist(ibs.get_annot_species_texts(qaid_list))
-            print('hist_ = %r' % (hist_,))
+            print('[back] len(qaid_list)=%r' % (len(qaid_list)))
+            print('[back] hist_ = %r' % (hist_,))
             if len(hist_) == 1:
                 # select the query species if there is only one
                 species = hist_.keys()[0]
