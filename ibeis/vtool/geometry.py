@@ -198,24 +198,28 @@ def closest_point_on_line_segment(p, e1, e2):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.geometry import *  # NOQA
-        >>> import plottool as pt
         >>> import vtool as vt
-        >>> pt.ensure_pylab_qt4()
-        >>> p_list = np.array([[23., 27.], [7., 14.], [14, 11], [8, 7], [23, 21]], dtype=np.float)
-        >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro')
+        >>> rng = np.random.RandomState(0)
+        >>> p_list = rng.rand(64, 2) * 20 + 5
         >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
-        >>> close_pts = np.array([closest_point_on_bbox(p, bbox) for p in p_list])
-        >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx')
+        >>> verts_ = np.array(vt.verts_from_bbox(bbox, close=True))
+        >>> R = vt.rotation_around_bbox_mat3x3(vt.TAU / 3, bbox)
+        >>> verts = vt.transform_points_with_homography(R, verts_.T).T
+        >>> close_pts = np.array([closest_point_on_verts(p, verts) for p in p_list])
+        >>> import plottool as pt
+        >>> pt.ensure_pylab_qt4()
+        >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
+        >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
         >>> for x, y in list(zip(p_list, close_pts)):
         >>>     z = np.array(list(zip(x, y)))
         >>>     pt.plt.plot(z[0], z[1], 'r--')
-        >>> bbox_verts = np.array(vt.verts_from_bbox(bbox, close=True))
-        >>> pt.plt.plot(bbox_verts.T[0], bbox_verts.T[1], 'b-')
+        >>> pt.plt.legend()
+        >>> pt.plt.plot(verts.T[0], verts.T[1], 'b-')
         >>> pt.plt.xlim(0, 30)
         >>> pt.plt.ylim(0, 30)
+        >>> pt.plt.axis('equal')
         >>> ut.show_if_requested()
     """
-    #import vtool as vt
     # shift e1 to origin
     de = (dx, dy) = e2 - e1
     # make point vector wrt orgin
@@ -235,6 +239,14 @@ def closest_point_on_line_segment(p, e1, e2):
     return pt_on_line
 
 
+def closest_point_on_verts(p, verts):
+    import vtool as vt
+    candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
+    dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
+    new_pts = candidates[dists.argmin()]
+    return new_pts
+
+
 def closest_point_on_bbox(p, bbox):
     """
 
@@ -246,10 +258,8 @@ def closest_point_on_bbox(p, bbox):
         >>> [closest_point_on_bbox(p, bbox) for p in p_list]
     """
     import vtool as vt
-    bbox_verts = np.array(vt.verts_from_bbox(bbox, close=True))
-    candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(bbox_verts)]
-    dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
-    new_pts = candidates[dists.argmin()]
+    verts = np.array(vt.verts_from_bbox(bbox, close=True))
+    new_pts = closest_point_on_verts(p, verts)
     return new_pts
 
 

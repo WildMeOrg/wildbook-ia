@@ -436,6 +436,11 @@ def remove_homogenous_coordinate(_xyzs):
 
 
 def transform_points_with_homography(H, _xys):
+    """
+    Args:
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
+        _xys (ndarray[ndim=2]): (N x 2) array
+    """
     xyz  = add_homogenous_coordinate(_xys)
     xyz_t = matrix_multiply(H, xyz)
     xy_t  = remove_homogenous_coordinate(xyz_t)
