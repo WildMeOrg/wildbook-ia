@@ -1071,13 +1071,52 @@ def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
     return pts
 
 
-def unsupervised_multicut_labeling(cost_matrix_, thresh=0):
+def unsupervised_multicut_labeling(cost_matrix, thresh=0):
+    """
+    Notes:
+        requires CPLEX
+
+        >>> # synthetic data
+        >>> import vtool as vt
+        >>> size = 100
+        >>> thresh = 50
+        >>> np.random.randint(0, 1)
+        >>> np.zeros((size, size))
+        >>> #np.random.rand(size, size)
+        >>> size = 45
+        >>> size = 10
+        >>> rng = np.random.RandomState(443284320)
+        >>> separation = 1.10
+        >>> separation = 5.0
+        >>> for size in [45]:
+        >>>     aids = np.arange(size)
+        >>>     encounter_lbls = rng.randint(0, size, size)
+        >>>     grid1 = np.tile(encounter_lbls, (size, 1))
+        >>>     is_match = grid1.T == grid1
+        >>>     good_pos = np.where(is_match)
+        >>>     bad_pos = np.where(~is_match)
+        >>>     cost_matrix = np.empty((size, size))
+        >>>     cost_matrix[good_pos] = rng.randn(len(good_pos[0])) + separation
+        >>>     cost_matrix[bad_pos] = rng.randn(len(bad_pos[0])) - separation
+        >>>     cost_matrix[np.diag_indices_from(cost_matrix)] = np.inf
+        >>>     thresh = 0
+        >>>     labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
+        >>>     diff = ut.compare_groupings(
+        >>>         list(ut.group_items(aids, encounter_lbls).values()),
+        >>>         list(ut.group_items(aids, labels).values()))
+        >>>     print('diff = %r' % (diff,))
+
+        gm, = ut.exec_func_src(vt.unsupervised_multicut_labeling, key_list=['gm'], sentinal='inf = opengm')
+        parameter = opengm.InfParam()
+        %timeit opengm.inference.Multicut(gm, parameter=parameter).infer()
+
+    """
     import opengm
     import numpy as np
     #import plottool as pt
     from itertools import product
-    cost_matrix = cost_matrix_ - thresh
-    num_vars = len(cost_matrix)
+    cost_matrix_ = cost_matrix - thresh
+    num_vars = len(cost_matrix_)
 
     # Enumerate undirected edges (node index pairs)
     var_indices = np.arange(num_vars)
@@ -1094,7 +1133,7 @@ def unsupervised_multicut_labeling(cost_matrix_, thresh=0):
 
     # Use one potts function for each edge
     for varx1, varx2 in varindex_pairs:
-        cost = cost_matrix[varx1, varx2]
+        cost = cost_matrix_[varx1, varx2]
         potts_func = opengm.PottsFunction((num_vars, num_vars), valueEqual=0, valueNotEqual=cost)
         potts_func_id = gm.addFunction(potts_func)
         var_indicies = np.array([varx1, varx2])
