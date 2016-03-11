@@ -512,7 +512,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         >>> # ENABLE_DOCTEST
         >>> from dtool.base import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
-        >>> qaid_list = [1, 2]
+        >>> qaid_list = [1, 2, 3, 5]
         >>> daid_list = [2, 3, 4]
         >>> depc = testdata_depc()
         >>> request = depc.new_request('vsone', qaid_list, daid_list)
@@ -525,20 +525,62 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         >>> assert len(results) == 5, 'incorrect num output'
         >>> assert len(results2) == 10, 'incorrect num output'
     """
+    _symmetric = False
+
     @classmethod
     def new(cls, depc, qaid_list, daid_list, cfgdict=None, tablename=None):
+        parent_rowids = cls.make_parent_rowids(qaid_list, daid_list)
         parent_rowids = list(ut.product_nonsame(qaid_list, daid_list))
         request = cls.static_new(cls, depc, parent_rowids, cfgdict, tablename)
         request.qaids = safeop(np.array, qaid_list)
         request.daids = safeop(np.array, daid_list)
         return request
 
+    @staticmethod
+    def make_parent_rowids(qaid_list, daid_list):
+        return list(ut.product_nonsame(qaid_list, daid_list))
+
     @property
     def parent_rowids_T(request):
         return ut.list_transpose(request.parent_rowids)
 
+    def execute(request, parent_rowids=None, use_cache=None, postprocess=True):
+        """ HACKY REIMPLEMENTATION """
+        ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
+        table = request.depc[request.tablename]
+        if use_cache is None:
+            use_cache = not ut.get_argflag('--nocache')
+        if parent_rowids is None:
+            parent_rowids = request.parent_rowids
+
+        # vsone hack (i,j) same as (j,i)
+        if request._symmetric:
+            import vtool as vt
+            directed_edges = np.array(parent_rowids)
+            undirected_edges = vt.to_undirected_edges(directed_edges)
+            edge_ids = vt.compute_unique_data_ids(undirected_edges)
+            unique_rows, unique_rowx, inverse_idx = np.unique(edge_ids, return_index=True, return_inverse=True)
+            parent_rowids_ = ut.take(parent_rowids, unique_rowx)
+        else:
+            parent_rowids_ = parent_rowids
+
+        # Compute and cache any uncomputed results
+        rowids = table.get_rowid(parent_rowids_, config=request,
+                                 recompute=not use_cache)
+        # Load all results
+        result_list = table.get_row_data(rowids)
+
+        if request._symmetric:
+            result_list = ut.take(result_list, inverse_idx)
+
+        if postprocess and hasattr(request, 'postprocess_execute'):
+            print('Converting results')
+            result_list = request.postprocess_execute(parent_rowids, result_list)
+            pass
+        return result_list
+
     def execute_subset(request, qaids, use_cache=None):
-        subparent_rowids = list(ut.product_nonsame(qaids, request.daids))
+        subparent_rowids = request.make_parent_rowids(qaids, request.daids)
         results = request.execute(subparent_rowids, use_cache)
         return results
 
