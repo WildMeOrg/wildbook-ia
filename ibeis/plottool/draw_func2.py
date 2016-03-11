@@ -3759,7 +3759,7 @@ def nx_agraph_layout(graph, **kwargs):
         kwargs['nodesep'] = kwargs.get('nodesep', 1 * factor)
         kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
     if prog != 'dot':
-        kwargs['overlap'] = kwargs.get('overlap', 'prism')
+        kwargs['overlap'] = kwargs.get('overlap', 'false')
         kwargs['sep'] = kwargs.get('sep', 1 / 8.)
         kwargs['esep'] = kwargs.get('esep', (1 / 8) * .8)
         #assert kwargs['esep']  < kwargs['sep']
