@@ -1185,7 +1185,6 @@ def get_image_gps(ibs, gid_list):
 @register_api('/api/image/lat/', methods=['GET'])
 def get_image_lat(ibs, gid_list):
     r"""
-    Auto-docstr for 'get_image_lat'
 
     RESTful:
         Method: GET
@@ -1200,7 +1199,6 @@ def get_image_lat(ibs, gid_list):
 @register_api('/api/image/lon/', methods=['GET'])
 def get_image_lon(ibs, gid_list):
     r"""
-    Auto-docstr for 'get_image_lon'
 
     RESTful:
         Method: GET
@@ -1525,7 +1523,6 @@ def delete_images(ibs, gid_list, trash_images=True):
         Method: DELETE
         URL:    /api/image/
 
-
     Example:
         >>> # UNPORTED_DOCTEST
         >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
@@ -1560,7 +1557,6 @@ def delete_images(ibs, gid_list, trash_images=True):
         >>> assert cid not in all_cids, "cid %r still exists" % cid
         >>> assert not utool.checkpath(gthumbpath), "Thumbnail still exists"
         >>> assert not utool.checkpath(athumbpath), "ANNOTATION Thumbnail still exists"
-
     """
     if ut.NOT_QUIET:
         print('[ibs] deleting %d images' % len(gid_list))
@@ -1910,7 +1906,6 @@ def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
 
 def testdata_ibs():
     r"""
-    Auto-docstr for 'testdata_ibs'
     """
     import ibeis
     ibs = ibeis.opendb('testdb1')

@@ -4256,18 +4256,19 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         new_flag_list = [0] * len(new_nonexemplar_aids) + [1] * len(new_exemplar_aids)
 
     # Hack ensure each name has at least 1 exemplar
-    nids = ibs.get_annot_nids(new_aid_list)
-    uniquenids, groupxs = ut.group_indices(nids)
-    num_hacked = 0
-    grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
-    for exflags, idxs in zip(grouped_exemplars, groupxs):
-        if not any(exflags):
-            num_hacked += 1
-            if len(idxs) > 0:
-                new_flag_list[idxs[0]] = True
-            if len(idxs) > 1:
-                new_flag_list[idxs[1]] = True
-    print('(exemplars) num_hacked = %r' % (num_hacked,))
+    if False:
+        nids = ibs.get_annot_nids(new_aid_list)
+        uniquenids, groupxs = ut.group_indices(nids)
+        num_hacked = 0
+        grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
+        for exflags, idxs in zip(grouped_exemplars, groupxs):
+            if not any(exflags):
+                num_hacked += 1
+                if len(idxs) > 0:
+                    new_flag_list[idxs[0]] = True
+                if len(idxs) > 1:
+                    new_flag_list[idxs[1]] = True
+        print('(exemplars) num_hacked = %r' % (num_hacked,))
 
     if not dry_run:
         ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)

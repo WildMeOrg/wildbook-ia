@@ -225,7 +225,6 @@ def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
 @register_api('/api/contributor/new_temp/', methods=['POST'])
 def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=False):
     r"""
-    Auto-docstr for 'add_new_temp_contributor'
 
     RESTful:
         Method: POST
@@ -343,7 +342,6 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
 @register_api('/api/contributor/all_uncontributed_images/', methods=['GET'])
 def get_all_uncontributed_images(ibs):
     r"""
-    Auto-docstr for 'get_all_uncontributed_images'
 
     RESTful:
         Method: GET
@@ -367,7 +365,6 @@ def get_all_uncontributed_images(ibs):
 @register_api('/api/contributor/all_uncontributed_configs/', methods=['GET'])
 def get_all_uncontributed_configs(ibs):
     r"""
-    Auto-docstr for 'get_all_uncontributed_configs'
 
     RESTful:
         Method: GET
@@ -389,7 +386,6 @@ def get_all_uncontributed_configs(ibs):
 @register_api('/api/config/contributor_unassigned/', methods=['PUT'])
 def set_config_contributor_unassigned(ibs, contrib_rowid):
     r"""
-    Auto-docstr for 'set_config_contributor_unassigned'
 
     RESTful:
         Method: PUT
@@ -404,7 +400,6 @@ def set_config_contributor_unassigned(ibs, contrib_rowid):
 @register_ibs_method
 def ensure_imageset_configs_populated(ibs):
     r"""
-    Auto-docstr for 'ensure_imageset_configs_populated'
     """
     imgsetid_list = ibs.get_valid_imgsetids()
     config_rowid_list = ibs.get_imageset_configid(imgsetid_list)
@@ -498,7 +493,6 @@ FEATWEIGHT_ROWID             = 'featweight_rowid'
 
 def testdata_ibs():
     r"""
-    Auto-docstr for 'testdata_ibs'
     """
     import ibeis
     ibs = ibeis.opendb('testdb1')
@@ -950,7 +944,6 @@ def get_valid_contrib_rowids(ibs):
 @register_api('/api/metadata/value/', methods=['GET'])
 def get_metadata_value(ibs, metadata_key_list, db):
     r"""
-    Auto-docstr for 'get_metadata_value'
 
     RESTful:
         Method: GET
@@ -968,7 +961,6 @@ def get_metadata_value(ibs, metadata_key_list, db):
 @register_api('/api/metadata/rowid_from_metadata_key/', methods=['GET'])
 def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     r"""
-    Auto-docstr for 'get_metadata_rowid_from_metadata_key'
 
     RESTful:
         Method: GET
@@ -1113,7 +1105,6 @@ def _init_burned_in_species(ibs):
 @register_ibs_method
 def _load_named_config(ibs, cfgname=None):
     r"""
-    Auto-docstr for '_load_named_config'
     """
     # TODO: update cfgs between versions
     # Try to load previous config otherwise default
@@ -1172,7 +1163,6 @@ def _default_config(ibs, cfgname=None, new=True):
 #def set_query_cfg(ibs, query_cfg):
 #    r"""
 #    DEPRICATE
-#    Auto-docstr for 'set_query_cfg'
 
 #    RESTful:
 #        Method: PUT
@@ -1205,7 +1195,6 @@ def update_query_cfg(ibs, **kwargs):
 @register_api('/api/config/valid_rowids/', methods=['GET'])
 def get_valid_configids(ibs):
     r"""
-    Auto-docstr for 'get_valid_configids'
 
     RESTful:
         Method: GET
