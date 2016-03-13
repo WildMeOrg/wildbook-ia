@@ -3548,10 +3548,6 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         fnum (int):  figure number(default = None)
         pnum (tuple):  plot number(default = None)
 
-    CommandLine:
-        python -m plottool.draw_func2 --exec-show_nx --show
-        python -m dtool --tf DependencyCache.make_graph --show
-
     Ignore:
         http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
         pip uninstall pydot
@@ -3567,6 +3563,10 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         python -c "import pygraphviz; print(pygraphviz.__file__)"
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
+    CommandLine:
+        python -m plottool.draw_func2 --exec-show_nx --show
+        python -m dtool --tf DependencyCache.make_graph --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
@@ -3574,11 +3574,14 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         >>> graph = nx.DiGraph()
         >>> graph.add_nodes_from(['a', 'b', 'c', 'd'])
         >>> graph.add_edges_from({'a': 'b', 'b': 'c', 'b': 'd', 'c': 'd'}.items())
+        >>> nx.set_node_attributes(graph, 'shape', 'rect')
+        >>> nx.set_node_attributes(graph, 'image', {'a': ut.grab_test_imgpath('carl.jpg')})
+        >>> nx.set_node_attributes(graph, 'image', {'d': ut.grab_test_imgpath('lena.png')})
+        >>> #nx.set_node_attributes(graph, 'height', 100)
         >>> with_labels = True
-        >>> node_size = 1100
         >>> fnum = None
         >>> pnum = None
-        >>> e = show_nx(graph, with_labels, node_size, fnum, pnum)
+        >>> e = show_nx(graph, with_labels, fnum, pnum, layout='agraph')
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -3588,48 +3591,78 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         pt.figure(fnum=fnum, pnum=pnum)
         ax = pt.gca()
 
-    edge_pos = None
+    if img_dict is None:
+        print('img_dict = %r' % (img_dict,))
+        img_dict = nx.get_node_attributes(graph, 'image')
+        print('img_dict = %r' % (img_dict,))
+        for node in img_dict.keys():
+            nattr = graph.node[node]
+            if 'width' not in nattr:
+                img_fpath = nattr['image']
+                width, height = vt.image.open_image_size(img_fpath)
+                # nx.set_node_attributes(graph, 'width', {node: width})
+                # nx.set_node_attributes(graph, 'height', {node: height})
+                # nx.set_node_attributes(graph, 'width', {node: width / 72.0})
+                # nx.set_node_attributes(graph, 'height', {node: height / 72.0})
 
-    if pos is None:
+    node_pos = pos
+    edge_pos = None
+    layout_dict = {}
+    if node_pos is None:
         layout_dict = get_nx_layout(graph, layout, layoutkw=layoutkw)
-        pos = layout_dict['pos']
+        node_pos = layout_dict['node_pos']
         edge_pos = layout_dict['edge_pos']
 
-    zoom = kwargs.pop('zoom', .4)
+    # zoom = kwargs.pop('zoom', .4)
+    node_size = layout_dict['node_size']
     frameon = kwargs.pop('frameon', True)
     if old:
-        node_size = kwargs.get('node_size', 1100)
-        nx.draw(graph, pos=pos, ax=ax, with_labels=with_labels, node_size=node_size)
+        pass
+        # node_size = kwargs.get('node_size', 1100)
+        # nx.draw(graph, pos=node_pos, ax=ax, with_labels=with_labels, node_size=node_size)
         #edge_labels = {(v1, v2): data['label'] for v1, v2, data in
         #graph.edges(data=True) if 'label' in data}
         #nx.draw_networkx_edge_labels(graph, pos, edge_labels)
     else:
         splines = layout_dict['splines']
-        draw_network2(graph, pos, ax, edge_pos=edge_pos, splines=splines,
-                      **kwargs)
-        ax.autoscale()
+        draw_network2(graph, node_pos, ax, edge_pos=edge_pos, splines=splines,
+                      node_size=node_size, **kwargs)
         ax.grid(False)
         pt.plt.axis('equal')
+
+        half_size_arr = np.array(ut.take(node_size, graph.nodes())) / 2.
+        pos_arr = np.array(ut.take(node_pos, graph.nodes()))
+
+        ax.autoscale()
+        ax.autoscale_view(True, True, True)
+
+        # autoscale does not seem to work
+        ul_pos = pos_arr - half_size_arr
+        br_pos = pos_arr + half_size_arr
+        xmin, ymin = ul_pos.min(axis=0)
+        xmax, ymax = br_pos.max(axis=0)
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
         #pt.plt.axis('off')
         ax.set_xticks([])
         ax.set_yticks([])
 
     plotinfo = {
-        'pos': pos,
+        'pos': node_pos,
     }
 
-    if img_dict is not None:
-        node_list = graph.nodes()
-        pos_list = ut.take(pos, node_list)
+    if img_dict is not None and len(img_dict) > 0:
+        node_list = img_dict.keys()
+        pos_list = ut.take(node_pos, node_list)
         img_list = ut.take(img_dict, node_list)
+        size_list = ut.take(node_size, node_list)
         node_attrs = ut.dict_take(graph.node, node_list)
         # Rename to node_scale?
         shrink_list = np.array(ut.dict_take_column(node_attrs, 'scale',
                                                    default=None))
         img_list = [img if scale is None else vt.resize_image_by_scale(img, scale)
                     for scale, img in zip(shrink_list, img_list)]
-        imgdat = pt.netx_draw_images_at_positions(
-            img_list, pos_list, zoom=zoom, frameon=frameon)
+        imgdat = pt.netx_draw_images_at_positions(img_list, pos_list, size_list, frameon=frameon)
         plotinfo['imgdat'] = imgdat
 
     if title is not None:
@@ -3651,40 +3684,39 @@ def get_nx_layout(graph, layout, layoutkw=None):
     else:
         layout_graph = graph
 
-    edge_pos = None
-    splines = 'line'
     if layoutkw is None:
         layoutkw = {}
+    layout_info = {}
 
     #print('layout = %r' % (layout,))
     if layout == 'agraph':
-        agraph_pos_info = nx_agraph_layout(layout_graph, **layoutkw)
-        pos = agraph_pos_info['node_pos']
-        edge_pos = agraph_pos_info['edge_pos']
-        splines = agraph_pos_info['splines']
+        # PREFERED LAYOUT WITH MOST CONTROL
+        layout_info = nx_agraph_layout(layout_graph, **layoutkw)
+        node_pos = layout_info['node_pos']
     elif layout == 'pydot':
-        pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
+        node_pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
     elif layout == 'graphviz':
-        pos = nx.nx_agraph.graphviz_layout(layout_graph)
+        node_pos = nx.nx_agraph.graphviz_layout(layout_graph)
     elif layout == 'pygraphviz':
-        pos = nx.nx_agraph.pygraphviz_layout(layout_graph)
+        node_pos = nx.nx_agraph.pygraphviz_layout(layout_graph)
     elif layout == 'spring':
         _pos = nx.spectral_layout(layout_graph, scale=500)
-        pos = nx.fruchterman_reingold_layout(layout_graph, pos=_pos, scale=500,
-                                             iterations=100)
-        pos = ut.map_dict_vals(lambda x: x * 500, pos)
+        node_pos = nx.fruchterman_reingold_layout(layout_graph, pos=_pos,
+                                                  scale=500, iterations=100)
+        node_pos = ut.map_dict_vals(lambda x: x * 500, node_pos)
     elif layout == 'circular':
-        pos = nx.circular_layout(layout_graph, scale=100)
+        node_pos = nx.circular_layout(layout_graph, scale=100)
     elif layout == 'spectral':
-        pos = nx.spectral_layout(layout_graph, scale=500)
+        node_pos = nx.spectral_layout(layout_graph, scale=500)
     elif layout == 'shell':
-        pos = nx.shell_layout(layout_graph, scale=100)
+        node_pos = nx.shell_layout(layout_graph, scale=100)
     else:
         raise ValueError('Undefined layout = %r' % (layout,))
     layout_dict = {}
-    layout_dict['pos'] = pos
-    layout_dict['edge_pos'] = edge_pos
-    layout_dict['splines'] = splines
+    layout_dict['node_pos'] = layout_info.get('node_pos', node_pos)
+    layout_dict['edge_pos'] = layout_info.get('edge_pos', None)
+    layout_dict['splines'] = layout_info.get('splines', 'line')
+    layout_dict['node_size'] = layout_info.get('node_size', None)
     return layout_dict
 
 
@@ -3707,6 +3739,7 @@ def nx_agraph_layout(graph, **kwargs):
     import pygraphviz
 
     node_pos = {}
+    node_size = {}
     edge_pos = {}
 
     kwargs = kwargs.copy()
@@ -3823,14 +3856,15 @@ def nx_agraph_layout(graph, **kwargs):
 
     #print('args = %r' % (args,))
     #print('prog = %r' % (prog,))
-    #print('BEFORE LAYOUT')
-    #print(agraph)
 
     # Run layout
+    print('BEFORE LAYOUT')
+    print(agraph)
     agraph.layout(prog=prog, args=args)
 
-    #print('AFTER LAYOUT')
-    #print(agraph)
+    agraph.draw('foobar.png')
+    print('AFTER LAYOUT')
+    print(agraph)
 
     for node in graph_.nodes():
         anode = pygraphviz.Node(agraph, node)
@@ -3839,6 +3873,9 @@ def nx_agraph_layout(graph, **kwargs):
             node_pos[node] = np.array((float(xx), float(yy))) / factor
         except:
             node_pos[node] = (0.0, 0.0)
+        height = float(anode.attr['height']) * 72.0 / factor
+        width = float(anode.attr['width']) * 72.0 / factor
+        node_size[node] = width, height
 
     for edge in graph_.edges():
         u, v = edge[0:2]
@@ -3848,6 +3885,7 @@ def nx_agraph_layout(graph, **kwargs):
         strpos_list = apos.split(' ')
         strtup_list = [ea.split(',') for ea in strpos_list]
         try:
+            # FIXME: not sure I'm parsing this correctly
             edge_ctrlpts = [tuple([float(f) for f in ea if f not in 'es']) for ea in strtup_list]
             edge_ctrlpts = np.array(edge_ctrlpts)
             edge_ctrlpts /= factor
@@ -3856,69 +3894,78 @@ def nx_agraph_layout(graph, **kwargs):
             print(apos)
             raise
 
-    agraph_pos_info = dict(
+    layout_info = dict(
         node_pos=node_pos,
         splines=splines,
-        edge_pos=edge_pos
+        edge_pos=edge_pos,
+        node_size=node_size,
     )
 
-    return agraph_pos_info
+    return layout_info
 
 
-def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
+def draw_network2(graph, node_pos, ax,
                   hacknoedge=False, hacknonode=False, splines='line',
-                  as_directed=None,
-                  edge_pos=None, use_arc=True):
-    """ fancy way to draw networkx graphs without using networkx """
+                  as_directed=None, edge_pos=None, node_size=None, use_arc=True):
+    """
+    fancy way to draw networkx graphs without directly using networkx
+    """
     import plottool as pt
 
     node_patch_list = []
     edge_patch_list = []
 
     patches = {}
-    size_dict = {}
+
+    def get_node_size(graph, node):
+        if node_size is not None and node in node_size:
+            return node_size[node]
+        nattrs = graph.node[node]
+        scale = nattrs.get('scale', 1.0)
+        if 'width' in nattrs and 'height' in nattrs:
+            width = nattrs['width'] * scale
+            height = nattrs['height'] * scale
+        elif 'radius' in nattrs:
+            width = height = nattrs['radius'] * scale
+        else:
+            if 'image' in nattrs:
+                img_fpath = nattrs['image']
+                width, height = vt.image.open_image_size(img_fpath)
+            else:
+                height = width = 1100 / 50 * scale
+        return width, height
 
     ###
     # Draw nodes
-    for n, nattrs in graph.nodes(data=True):
+    for node, nattrs in graph.nodes(data=True):
         # shape = nattrs.get('shape', 'circle')
         label = nattrs.get('label', None)
         alpha = nattrs.get('alpha', .5)
-        node_color = nattrs.get('color', None)
-        if node_color is None:
-            node_color = pt.NEUTRAL_BLUE
-        #node_color = pt.color_funcs.to_base255(node_color)
-        xy = pos[n]
-        patch_kw = dict(alpha=alpha, color=node_color)
-        scale = nattrs.get('scale', 1.0)
+        node_color = nattrs.get('color', pt.NEUTRAL_BLUE)
+        xy = node_pos[node]
+        if 'image' in nattrs:
+            alpha_ = 0.0
+        else:
+            alpha_ = alpha
+        patch_kw = dict(alpha=alpha_, color=node_color)
+        node_shape = nattrs.get('shape', 'circle')
         if node_shape == 'circle':
-            # radius = node_size / 100
-            radius = node_size / 50 * scale
+            radius = get_node_size(graph, node)[0]
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
-        elif node_shape == 'rect' or node_shape == 'rhombus':
-            if 'width' in nattrs and 'height' in nattrs:
-                width = nattrs['width'] * scale
-                height = nattrs['height'] * scale
-            else:
-                height = width = (node_size / 50  * scale)
-            size_dict[n] = (width, height)
+        elif node_shape in ['rect', 'rhombus']:
+            width, height = get_node_size(graph, node)
             angle = 0 if node_shape == 'rect' else 45
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             patch = mpl.patches.Rectangle(
                 xy_bl, width, height, angle=angle, **patch_kw)
             patch.center = xy
-        # elif shape == 'star':
-        #     pass
-        patches[n] = patch
-        #graph.node[n]['patch'] = patch
-        x, y = pos[n]
-        text = n
+        patches[node] = patch
+        x, y = node_pos[node]
+        text = node
         if label is not None:
             text += ': ' + str(label)
         if not hacknonode:
             pt.ax_absolute_text(x, y, text, ha='center', va='center')
-
-        #ax.add_patch(patch)
         node_patch_list.append(patch)
     ###
     # Draw Edges
@@ -4031,6 +4078,7 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
             #ax.add_patch(arrow_patch)
             edge_patch_list.append(arrow_patch)
     elif edge_pos is not None:
+        print('edge_pos = %r' % (edge_pos,))
         # NEW WAY OF DRAWING EDGEES
         if as_directed is None:
             as_directed = graph.is_directed()
@@ -4045,11 +4093,10 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
             end_point = np.array(other_points[-1])
             verts = [start_point] + other_points
 
-            xy1 = pos[edge[0]]
-            wh1 = size_dict[edge[0]]
-
-            xy2 = pos[edge[1]]
-            wh2 = size_dict[edge[1]]
+            xy1 = node_pos[edge[0]]
+            xy2 = node_pos[edge[1]]
+            wh1 = get_node_size(graph, edge[0])
+            wh2 = get_node_size(graph, edge[0])
 
             bbox1 = vt.bbox_from_xywh(xy1, wh1, [.5, .5])
             bbox2 = vt.bbox_from_xywh(xy2, wh2, [.5, .5])
@@ -4079,17 +4126,26 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
             else:
                 raise AssertionError('splines = %r' % (splines,))
 
+            force_touch_bbox = False
+            if force_touch_bbox:
+                astart_code = LINETO
+            else:
+                astart_code = MOVETO
+
             # Force edge to touch node.
             #pt.plt.plot(close_point1[0], close_point1[1], 'go')
             #pt.plt.plot(close_point2[0], close_point2[1], 'gx')
             #pt.plt.plot(start_point[0], start_point[1], 'rx')
             #pt.plt.plot(other_points[0][0], other_points[0][1], 'b-x')
-            if as_directed:
-                verts = [close_point1, start_point] + other_points
-                codes = [MOVETO, LINETO] + [CODE] * len(other_points)
-            else:
-                verts = [close_point1, start_point] + other_points + [close_point2]
-                codes = [MOVETO, LINETO] + [CODE] * len(other_points) + [LINETO]
+
+            verts = [start_point] + other_points
+            codes = [astart_code] + [CODE] * len(other_points)
+            if force_touch_bbox:
+                verts = [close_point1] + verts
+                codes = [MOVETO] + codes
+                if not as_directed:
+                    verts = verts + [close_point2]
+                    codes = codes + [LINETO]
             #verts = [start_point] + other_points
             #codes = [MOVETO] + [LINETO] * len(other_points)
 
@@ -4130,7 +4186,7 @@ def draw_network2(graph, pos, ax, node_size=1100, node_shape='circle',
                 ax.add_patch(patch)
 
 
-def netx_draw_images_at_positions(img_list, pos_list, zoom=.4, frameon=True):
+def netx_draw_images_at_positions(img_list, pos_list, node_size, frameon=True):
     """
     Overlays images on a networkx graph
 
@@ -4143,7 +4199,7 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4, frameon=True):
 
     TODO: look into DraggableAnnotation
     """
-    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+    # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
     print('[viz_graph] drawing %d images' % len(img_list))
     # Thumb stackartist
     import plottool as pt
@@ -4151,26 +4207,32 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4, frameon=True):
     artist_list = []
     offset_img_list = []
 
-    bboxkw = dict(
-        xycoords='data',
-        boxcoords='offset points',
-        #boxcoords='data',
-        pad=0.25, frameon=frameon,
-        # frameon=False, bboxprops=dict(fc="cyan"),
-        # arrowprops=dict(arrowstyle="->"))
-    )
-    for pos, img in zip(pos_list, img_list):
+    # bboxkw = dict(
+    #     xycoords='data',
+    #     boxcoords='offset points',
+    #     #boxcoords='data',
+    #     pad=0.25, frameon=frameon,
+    #     # frameon=False, bboxprops=dict(fc="cyan"),
+    #     # arrowprops=dict(arrowstyle="->"))
+    # )
+    for pos, img, size in zip(pos_list, img_list, node_size):
         x, y = pos
-        height, width = img.shape[0:2]
+        if isinstance(img, six.string_types):
+            img = cv2.cvtColor(vt.imread(img), cv2.COLOR_BGR2RGB)
+        if size is not None:
+            width, height = size
+        else:
+            width, height = vt.get_size(img)
         #print('height = %r' % (height,))
         #print('width = %r' % (width,))
         if False:
             # THIS DOES NOT DO WHAT I WANT
             # Scales the image with data coords
-            offset_img = OffsetImage(img, zoom=zoom)
-            artist = AnnotationBbox(offset_img, (x, y), xybox=(-0., 0.), **bboxkw)
-            offset_img_list.append(offset_img)
-            artist_list.append(artist)
+            # offset_img = OffsetImage(img, zoom=zoom)
+            # artist = AnnotationBbox(offset_img, (x, y), xybox=(-0., 0.), **bboxkw)
+            # offset_img_list.append(offset_img)
+            # artist_list.append(artist)
+            pass
 
         #offset_img = None
 

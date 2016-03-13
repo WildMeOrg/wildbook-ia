@@ -115,8 +115,8 @@ def _init_mpl_rcparams():
 
     CUSTOM_GGPLOT = True
     if CUSTOM_GGPLOT:
-        ggplot_style = style.library['ggplot']
-        print('ggplot_style = %r' % (ggplot_style,))
+        ggplot_style = style.library['ggplot']  # NOQA
+        # print('ggplot_style = %r' % (ggplot_style,))
         custom_gg = {
             'axes.axisbelow': True,
             #'axes.edgecolor': 'white',
