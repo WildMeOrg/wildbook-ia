@@ -210,13 +210,13 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> nid_list = ibs.get_valid_nids()[0:5]
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> nid_list = ibs.get_valid_nids()[0:10]
         >>> fnum = None
         >>> with_images = True
         >>> zoom = 0.4
         >>> #pos = viz_netx_chipgraph(ibs, graph, fnum, with_images, zoom)
-        >>> make_name_graph_interaction(ibs, None, ibs.get_valid_aids()[0:1])
+        >>> make_name_graph_interaction(ibs, nid_list, prog='neato')
         >>> #make_name_graph_interaction(ibs, nid_list)
         >>> ut.show_if_requested()
     """
@@ -258,7 +258,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
         spantree_aids2_ = []
 
         # Get tentative node positions
-        initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['pos']
+        initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['node_pos']
 
         # Add edges between all names
         aug_digraph = graph.copy()
@@ -296,31 +296,36 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
 
     #with_images = True
 
-    target_size = (300, 300)
+    # target_size = (300, 300)
     #target_size = (220, 220)
     #target_size = (100, 100)
 
     if with_images:
-        import cv2
-        img_list = ibs.get_annot_chips(aid_list)
-        img_list = [vt.resize_thumb(img, target_size) for img in img_list]
-        img_list = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in img_list]
-        size_dict = {aid: vt.get_size(img) for aid, img in zip(aid_list, img_list)}
-        img_dict = {aid: img for aid, img in zip(aid_list, img_list)}
+        imgpath_list = ibs.depc.get_property('chips', aid_list, 'img',
+                                             config=dict(dim_size=300), read_extern=False)
+        # img_list = ibs.get_annot_chips(aid_list)
+        # img_list = [vt.resize_thumb(img, target_size) for img in img_list]
+        # img_list = [vt.cvt_BGR2RGB(img) for img in img_list]
+        # size_dict = {aid: vt.get_size(img) for aid, img in zip(aid_list, img_list)}
+        # img_dict = {aid: img for aid, img in zip(aid_list, img_list)}
+        # import utool
+        # utool.embed()
+        # imgpath_list = ibs.get_annot_chip_fpath(aid_list)
+        nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
     else:
-        csize_list = ibs.get_annot_chip_sizes(aid_list)
-        size_list = [vt.resized_dims_and_ratio(size, target_size)[0]
-                     for size in csize_list]
-        size_dict = {aid: size for aid, size in zip(aid_list, size_list)}
-        img_dict = None
+        pass
+        # csize_list = ibs.get_annot_chip_sizes(aid_list)
+        # size_list = [vt.resized_dims_and_ratio(size, target_size)[0]
+        #              for size in csize_list]
+        # size_dict = {aid: size for aid, size in zip(aid_list, size_list)}
+        # img_dict = None
 
-    nx.set_node_attributes(graph, 'width',
-                           ut.map_dict_vals(lambda x: x[0], size_dict))
-    nx.set_node_attributes(graph, 'height',
-                           ut.map_dict_vals(lambda x: x[1], size_dict))
-    nx.set_node_attributes(graph, 'shape', 'box')
+    # nx.set_node_attributes(graph, 'width',
+    #                        ut.map_dict_vals(lambda x: x[0], size_dict))
+    # nx.set_node_attributes(graph, 'height',
+    #                        ut.map_dict_vals(lambda x: x[1], size_dict))
+    nx.set_node_attributes(graph, 'shape', 'rect')
 
-    zoom = 1.0
     old = False
     #as_directed = True
 
@@ -329,19 +334,12 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
 
     plotinfo = pt.show_nx(graph,
                           ax=ax,
-                          node_shape='rect',
-                          #pos=pos,
-                          img_dict=img_dict,
+                          # img_dict=img_dict,
                           layout=layout,
-                          #node_size=50,
-                          #zoom=0.5,
-                          zoom=zoom,
-                          hacknonode=bool(with_images),
-                          #hacknoedge=hacky_layout,
-                          frameon=False,
-                          old=old,
+                          # hacknonode=bool(with_images),
                           layoutkw=layoutkw,
-                          as_directed=as_directed)
+                          as_directed=as_directed
+                          )
 
     pos = plotinfo['pos']
 
