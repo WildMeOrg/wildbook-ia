@@ -936,7 +936,7 @@ class DependencyCacheTable(_TableHelper):
     # ----------------------
 
     def _get_all_rowids(table):
-        pass
+        return table.db.get_all_rowids(table.tablename)
 
     def add_rows_from_parent(table, parent_ids_, preproc_args,
                              config=None, verbose=True, _debug=None):
