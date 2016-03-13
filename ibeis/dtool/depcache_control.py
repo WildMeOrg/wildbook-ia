@@ -628,9 +628,9 @@ class _CoreDependencyCache(object):
                 pt.set_title(key)
 
         CommandLine:
-            python -m dtool.depcache_control --exec-get_rowids --show
-            python -m dtool.depcache_control --dump-get_rowids --show
-            python -m dtool.depcache_control --exec-get_rowids:0 --show
+            python -m dtool.depcache_control --exec-get_rowids
+            python -m dtool.depcache_control --dump-get_rowids
+            python -m dtool.depcache_control --exec-get_rowids:0
 
         GridParams:
             >>> param_grid = dict(
@@ -1193,7 +1193,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                         #G_tr[new_parent][v][0]['is_multi'] = True
                         print("NEW MULTI")
                         print((new_parent, v))
-                        nx.set_edge_attributes(G_tr, 'ismulti', {(new_parent, v, 0): True})
+                        nx.set_edge_attributes(G_tr, 'ismulti',
+                                               {(new_parent, v, 0): True})
                         #print(v)
             else:
                 G_tr.add_edges_from(multi_data_edges)
