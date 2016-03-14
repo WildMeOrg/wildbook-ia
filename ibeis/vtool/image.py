@@ -902,14 +902,9 @@ def make_channels_comparable(img1, img2):
     return img1, img2
 
 
-def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
-    """
-    converts a list of images from <src_colorspace> to <colorspace>
-    """
+def _lookup_colorspace_code(colorspace, src_colorspace='BGR'):
     src_colorspace = src_colorspace.upper()
     colorspace = colorspace.upper()
-    if colorspace == src_colorspace:
-        return image_list
     prefix = 'COLOR_' + src_colorspace + '2'
     valid_dst_colorspaces = [
         key.replace(prefix, '')
@@ -919,17 +914,39 @@ def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
     else:
         key = prefix + colorspace
         code = cv2.__dict__[key]
-        if isinstance(image_list, np.ndarray):
-            # Be more efficient if using numpy arrays
-            if colorspace == 'GRAY' and src_colorspace != 'GRAY':
-                image_list2 = np.empty(image_list.shape[0:3], dtype=image_list.dtype)
-            else:
-                image_list2 = np.empty(image_list.shape, dtype=image_list.dtype)
-            for index in range(len(image_list2)):
-                cv2.cvtColor(image_list[index], code, dst=image_list2[index])
+    return code
+
+
+def convert_colorspace(img, colorspace, src_colorspace='BGR'):
+    src_colorspace = src_colorspace.upper()
+    colorspace = colorspace.upper()
+    if colorspace == src_colorspace:
+        return img
+    code = _lookup_colorspace_code(colorspace, src_colorspace)
+    img2 = cv2.cvtColor(img, code)
+    return img2
+
+
+def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
+    """
+    converts a list of images from <src_colorspace> to <colorspace>
+    """
+    src_colorspace = src_colorspace.upper()
+    colorspace = colorspace.upper()
+    if colorspace == src_colorspace:
+        return image_list
+    code = _lookup_colorspace_code(colorspace, src_colorspace)
+    if isinstance(image_list, np.ndarray):
+        # Be more efficient if using numpy arrays
+        if colorspace == 'GRAY' and src_colorspace != 'GRAY':
+            image_list2 = np.empty(image_list.shape[0:3], dtype=image_list.dtype)
         else:
-            # If python list use comprehension
-            image_list2 = [cv2.cvtColor(img, code) for img in image_list]
+            image_list2 = np.empty(image_list.shape, dtype=image_list.dtype)
+        for index in range(len(image_list2)):
+            cv2.cvtColor(image_list[index], code, dst=image_list2[index])
+    else:
+        # If python list use comprehension
+        image_list2 = [cv2.cvtColor(img, code) for img in image_list]
     return image_list2
 
 
