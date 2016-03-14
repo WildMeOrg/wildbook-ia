@@ -177,9 +177,11 @@ class DuplicateUUIDException(WebException):
                    'duplicate_query_uuids=%s\n') % (
                        ut.repr3(qdup_pos_map, nl=1),
                        ut.repr3(ddup_pos_map, nl=1))
+        qdup_pos_map_ = { str(k): v for k, v in qdup_pos_map.iteritems() }
+        ddup_pos_map_ = { str(k): v for k, v in ddup_pos_map.iteritems() }
         rawreturn = {
-            'qdup_pos_map' : qdup_pos_map,
-            'ddup_pos_map' : ddup_pos_map,
+            'qdup_pos_map' : qdup_pos_map_,
+            'ddup_pos_map' : ddup_pos_map_,
         }
         code = 601
         super(DuplicateUUIDException, self).__init__(message, rawreturn, code)
