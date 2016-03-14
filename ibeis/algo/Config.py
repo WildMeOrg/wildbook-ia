@@ -1212,7 +1212,7 @@ class OccurrenceConfig(ConfigBase):
             ut.ParamInfo('min_imgs_per_occurrence', 1, 'minper='),
             ut.ParamInfo('cluster_algo', 'agglomerative', ''),
             ut.ParamInfo('quantile', .01, 'quant', hideif=lambda cfg: cfg['cluster_algo'] != 'meanshift'),
-            ut.ParamInfo('seconds_thresh', 60, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
+            ut.ParamInfo('seconds_thresh', 600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
             ut.ParamInfo('use_gps', False, hideif=False),
         ]
         return param_info_list

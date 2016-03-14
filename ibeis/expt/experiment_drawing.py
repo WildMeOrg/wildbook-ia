@@ -713,7 +713,10 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
 
     icon = ibs.get_database_icon()
     if icon is not None:
-        pt.overlay_icon(icon, bbox_alignment=(0, 0))
+        #ax = pt.gca()
+        #ax.get_xlim()
+        pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
+        #ax.get_ylim()
 
     fig = pt.gcf()
     #import utool as ut
