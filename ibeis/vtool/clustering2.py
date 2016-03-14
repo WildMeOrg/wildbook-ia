@@ -357,9 +357,7 @@ def akmeans_iterations(data, centroids, max_iters,
     ) % (data.shape, nCentroids, max_iters,
          ave_unchanged_thresh, ave_unchanged_iterwin))
     sys.stdout.flush()
-    _mark, _end = utool.log_progress('Akmeans: ', max_iters)
-    for count in range(0, max_iters):
-        _mark(count)
+    for count in ut.ProgIter(range(0, max_iters), nTotal=max_iters, lbl='Akmeans: '):
         # 1) Assign each datapoint to the nearest centroid
         datax2_centroidx = approximate_assignments(centroids, data, 1, flann_params)
         # 2) Compute new centroids based on assignments
@@ -372,7 +370,6 @@ def akmeans_iterations(data, centroids, max_iters,
             break
         else:
             datax2_centroidx_old = datax2_centroidx
-    _end()
     return centroids
 
 
