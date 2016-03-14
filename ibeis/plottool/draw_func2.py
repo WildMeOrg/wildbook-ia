@@ -275,8 +275,7 @@ class OffsetImage2(mpl.offsetbox.OffsetBox):
 
 
 def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
-
-                 max_dsize=None):
+                 max_asize=None, max_dsize=None, as_artist=True):
     """
     Overlay a species icon
 
@@ -305,8 +304,10 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         >>> coords = (0, 0)
         >>> coord_type = 'axes'
         >>> bbox_alignment = (0, 0)
-        >>> max_dsize = (128, None)
-        >>> result = overlay_icon(icon, coords, coord_type, bbox_alignment, max_dsize)
+        >>> max_dsize = None  # (128, None)
+        >>> max_asize = (60, 40)
+        >>> result = overlay_icon(icon, coords, coord_type, bbox_alignment,
+        >>>                       max_asize, max_dsize)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -319,19 +320,10 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         # hack because icon is probably a url
         icon_url = icon
         icon = vt.imread(ut.grab_file_url(icon_url))
-        if max_dsize is not None:
-            icon = vt.resize_to_maxdims(icon, max_dsize)
-            icon.shape
-    # print('icon.shape = %r' % (icon.shape,))
+    if max_dsize is not None:
+        icon = vt.resize_to_maxdims(icon, max_dsize)
+    icon = vt.convert_colorspace(icon, 'RGB', 'BGR')
 
-    icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
-    # Hack while I am trying to get constant size images working
-    if ut.get_argval('--save'):
-        zoom = 1.0
-    else:
-        zoom = .5
-
-    imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
     #imagebox = OffsetImage2(icon, zoom=.3)
     if coord_type == 'axes':
         xlim = ax.get_xlim()
@@ -353,14 +345,46 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
     #'figure points' #'figure pixels' #'figure fraction' #'axes points'
     #'axes pixels' #'axes fraction' #'data' #'offset points' #'polar'
 
-    ab = mpl.offsetbox.AnnotationBbox(
-        imagebox, xy,
-        xybox=(0., 0.),
-        xycoords='data',
-        #xycoords='axes fraction',
-        boxcoords="offset points",
-        box_alignment=bbox_alignment, pad=0.0)
-    ax.add_artist(ab)
+    if not as_artist:
+        img_size = vt.get_size(icon)
+        if max_asize is not None:
+            dsize, ratio = vt.resized_dims_and_ratio(img_size, max_asize)
+            width, height = dsize
+        else:
+            width, height = img_size
+        x1 = xy[0] + width * bbox_alignment[0]
+        y1 = xy[1] + height * bbox_alignment[1]
+        x2 = xy[0] + width * (1 - bbox_alignment[0])
+        y2 = xy[1] + height * (1 - bbox_alignment[1])
+
+        ax = plt.gca()
+        prev_aspect = ax.get_aspect()
+        # FIXME: adjust aspect ratio of extent to match the axes
+        print('icon.shape = %r' % (icon.shape,))
+        print('prev_aspect = %r' % (prev_aspect,))
+        extent = [x1, x2, y1, y2]
+        print('extent = %r' % (extent,))
+        ax.imshow(icon, extent=extent)
+        print('current_aspect = %r' % (ax.get_aspect(),))
+        ax.set_aspect(prev_aspect)
+        print('current_aspect = %r' % (ax.get_aspect(),))
+        #x - width // 2, x + width // 2,
+        #y - height // 2, y + height // 2])
+    else:
+        # Hack while I am trying to get constant size images working
+        if ut.get_argval('--save'):
+            zoom = 1.0
+        else:
+            zoom = .5
+        imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
+        ab = mpl.offsetbox.AnnotationBbox(
+            imagebox, xy,
+            xybox=(0., 0.),
+            xycoords='data',
+            #xycoords='axes fraction',
+            boxcoords="offset points",
+            box_alignment=bbox_alignment, pad=0.0)
+        ax.add_artist(ab)
 
 
 def update_figsize():

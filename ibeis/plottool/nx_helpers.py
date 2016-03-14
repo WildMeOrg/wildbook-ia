@@ -697,6 +697,7 @@ def netx_draw_images_at_positions(img_list, pos_list, node_size, frameon=True):
         # Ties the image to data coords
         pt.plt.imshow(img, extent=[x - width // 2, x + width // 2,
                                    y - height // 2, y + height // 2])
+        #, aspect='auto')
 
     for artist in artist_list:
         ax.add_artist(artist)
