@@ -1383,7 +1383,6 @@ class ChipMatch(_ChipMatchVisualization,
             >>> result = ('out = %s' % (ut.repr2(out),))
             >>> print(result)
         """
-        # flags = vt.index_to_boolmask(idx_list, cm.num_daids)
         if inplace:
             out = cm
         else:

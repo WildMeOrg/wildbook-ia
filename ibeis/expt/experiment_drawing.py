@@ -612,7 +612,10 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --show
         ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --noexample
 
-        ibeis -e draw_cases --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] -f :fail=True,index=0:3,sortdsc=gfscore,max_pername=1,without_tag=scenerymatch --show
+        ibeis -e draw_cases --db GZ_ALL -a ctrl \
+            -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] \
+            -f :fail=True,index=0:3,sortdsc=gfscore,max_pername=1,without_tag=scenerymatch,require_all_cfg=True \
+            --show
 
 
     Example:

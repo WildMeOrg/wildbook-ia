@@ -626,7 +626,9 @@ class TestResult(object):
             >>> # SLOW_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
+            >>> #ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'], t=['default:dim_size:[450,550]'])
+            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl:size=10'], t=['default:dim_size=[450,550]'])
+            >>> #ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl:size=10'], t=['default:dim_size=450', 'default:dim_size=550'])
             >>> cfg_lbls = testres.get_short_cfglbls()
             >>> result = ('cfg_lbls = %s' % (ut.list_str(cfg_lbls),))
             >>> print(result)
@@ -653,7 +655,7 @@ class TestResult(object):
             p_label_groups = []
             for groupx in p_groupxs:
                 pcfg_list = ut.take(testres.cfgx2_pcfg, groupx)
-                varied_lbls = cfghelpers.get_varied_cfg_lbls(pcfg_list, mainkey='_cfgstr')
+                varied_lbls = ut.get_varied_cfg_lbls(pcfg_list, mainkey='_cfgstr')
                 p_label_groups.append(varied_lbls)
             pcfg_lbls = vt.invert_apply_grouping(p_label_groups, p_groupxs)
 
@@ -1069,7 +1071,7 @@ class TestResult(object):
         CommandLine:
             python -m ibeis --tf TestResult.case_sample2
             python -m ibeis --tf TestResult.case_sample2:0
-            python -m ibeis --tf TestResult.case_sample2:1 --db PZ_Master1 --filt :min_tags=1
+            python -m ibeis --tf TestResult.case_sample2:1 --db GZ_ALL --filt :min_tags=1
             python -m ibeis --tf TestResult.case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
 
             python -m ibeis --tf TestResult.case_sample2:2 --db PZ_Master1
@@ -1127,10 +1129,10 @@ class TestResult(object):
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
-            >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'], qaid_override=12)
+            >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'], qaid_override=[12])
             >>> filt_cfg = ':disagree=True,index=0:8,min_gtscore=.00001,require_all_cfg=True'
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
-            >>> case_pos_list = testres.case_sample2(filt_cfg)
+            >>> case_pos_list = testres.case_sample2(filt_cfg, verbose=True)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
             >>> print(result)
             >>> # Extra stuff
@@ -1197,6 +1199,7 @@ class TestResult(object):
                 flags = np.logical_not(flags)
             return flags
 
+        # List of rules that can filter results
         rule_list = [
             ('disagree', lambda val: cols_disagree(prop2_mat['is_failure'], val)),
             ('fail',     prop2_mat['is_failure']),
@@ -1233,16 +1236,12 @@ class TestResult(object):
         rule_list.append(('max_gf_td', rule_dict['max_gf_timedelta']))
         rule_list.append(('min_gf_td', rule_dict['min_gf_timedelta']))
 
-        filt_cfg = filt_cfg.copy()
-
-        #timedelta_keys = [
-        #    'min_gf_timedelta',
-        #    'max_gf_timedelta',
-        #]
-        #for tdkey in timedelta_keys:
+        filt_cfg = copy.deepcopy(filt_cfg)
 
         # hack to convert to seconds
         for tdkey in filt_cfg.keys():
+            #timedelta_keys = ['min_gf_timedelta', 'max_gf_timedelta']
+            #for tdkey in timedelta_keys:
             if tdkey.endswith('_timedelta'):
                 filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
 
@@ -1253,7 +1252,16 @@ class TestResult(object):
             num_valid = is_valid.sum()
             print('  * num_valid = %r' % (num_valid,))
 
-        filt_cfg = copy.deepcopy(filt_cfg)
+        # Pop other non-rule config options
+        allcfg = filt_cfg.pop('allcfg', None)
+        orderby = filt_cfg.pop('orderby', None)
+        reverse = filt_cfg.pop('reverse', None)
+        sortasc = filt_cfg.pop('sortasc', None)
+        sortdsc = filt_cfg.pop('sortdsc', filt_cfg.pop('sortdesc', None))
+        max_pername = filt_cfg.pop('max_pername', None)
+        require_all_cfg = filt_cfg.pop('require_all_cfg', None)
+        index = filt_cfg.pop('index', None)
+        ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
 
         # Remove test cases that do not meet the criteria
         for key, rule in rule_list:
@@ -1282,7 +1290,6 @@ class TestResult(object):
 
         # HACK:
         # If one config for a row passes the filter then all configs should pass
-        allcfg = filt_cfg.pop('allcfg', None)
         if allcfg:
             is_valid = np.logical_or(np.logical_or.reduce(is_valid.T)[:, None], is_valid)
             is_valid = np.logical_and(is_valid, participates)
@@ -1290,10 +1297,6 @@ class TestResult(object):
         qx_list, cfgx_list = np.nonzero(is_valid)
 
         # Determine a good ordering of the test cases
-        orderby = filt_cfg.pop('orderby', None)
-        reverse = filt_cfg.pop('reverse', None)
-        sortasc = filt_cfg.pop('sortasc', None)
-        sortdsc = filt_cfg.pop('sortdsc', filt_cfg.pop('sortdesc', None))
         if sortdsc is not None:
             assert orderby is None, 'use orderby or sortasc'
             assert reverse is None, 'reverse does not work with sortdsc'
@@ -1307,31 +1310,35 @@ class TestResult(object):
         else:
             reverse = False
         if orderby is not None:
-            if orderby == 'gtscore':
-                order_values = truth2_prop['gt']['score']
-            elif orderby == 'gfscore':
-                order_values = truth2_prop['gf']['score']
-            if orderby == 'gtscore':
-                order_values = truth2_prop['gt']['score']
-            elif orderby == 'gfscore':
-                order_values = truth2_prop['gf']['score']
-            else:
-                if orderby.startswith('gt_'):
-                    order_values = truth2_prop['gt'][orderby[3:]]
-                elif orderby.startswith('gt'):
-                    order_values = truth2_prop['gt'][orderby[2:]]
-                elif orderby.startswith('gf_'):
-                    order_values = truth2_prop['gt'][orderby[3:]]
-                elif orderby.startswith('gf'):
-                    order_values = truth2_prop['gt'][orderby[2:]]
-                else:
-                    raise NotImplementedError('Unknown orerby=%r' % (orderby,))
+            #if orderby == 'gtscore':
+            #    order_values = truth2_prop['gt']['score']
+            #elif orderby == 'gfscore':
+            #    order_values = truth2_prop['gf']['score']
+            #else:
+            import re
+            order_values = None
+            for prefix_pattern in ['^gt_?', '^gf_?']:
+                prefix_match = re.match(prefix_pattern, orderby)
+                if prefix_match is not None:
+                    truth = prefix_pattern[1:3]
+                    propname = orderby[prefix_match.end():]
+                    if verbose:
+                        print('Ordering by truth=%s propname=%s' % (truth, propname))
+                    order_values = truth2_prop[truth][propname]
+                    break
+            if order_values is None:
+                raise NotImplementedError('Unknown orerby=%r' % (orderby,))
         else:
             order_values = np.arange(is_valid.size).reshape(is_valid.shape)
 
         # Convert mask into indicies
         flat_order = order_values[is_valid]
         # Flat sorting indeices in a matrix
+        if verbose:
+            if verbose:
+                print('Reversing ordering (descending)')
+            else:
+                print('Normal ordering (ascending)')
         if reverse:
             sortx = flat_order.argsort()[::-1]
         else:
@@ -1339,9 +1346,10 @@ class TestResult(object):
         qx_list = qx_list.take(sortx, axis=0)
         cfgx_list = cfgx_list.take(sortx, axis=0)
 
-        max_pername = filt_cfg.pop('max_pername', None)
         # Return at most ``max_pername`` annotation examples per name
         if max_pername is not None:
+            if verbose:
+                print('Returning at most %d cases per name ' % (max_pername,))
             # FIXME: multiple configs
             _qaid_list = np.take(qaids, qx_list)
             _qnid_list = ibs.get_annot_nids(_qaid_list)
@@ -1354,40 +1362,65 @@ class TestResult(object):
             _qx_list = qx_list[_valid_idxs]
             _cfgx_list = cfgx_list[_valid_idxs]
             _valid_index = np.vstack((_qx_list, _cfgx_list)).T
-            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, hack=True)
+            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, isflat=False)
             qx_list = _qx_list
             cfgx_list = _cfgx_list
 
-        require_all_cfg = filt_cfg.pop('require_all_cfg', None)
         if require_all_cfg:
+            if verbose:
+                prev_num_valid = is_valid.sum()
+                print('Enforcing that all configs must pass filters')
+                print('  * prev_num_valid = %r' % (prev_num_valid,))
             qx2_valid_cfgs = ut.group_items(cfgx_list, qx_list)
             hasall_cfg = [len(qx2_valid_cfgs[qx]) == testres.nConfig for qx in qx_list]
             _qx_list = qx_list.compress(hasall_cfg)
             _cfgx_list = cfgx_list.compress(hasall_cfg)
             _valid_index = np.vstack((_qx_list, _cfgx_list)).T
-            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, hack=True)
+            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, isflat=False)
             qx_list = _qx_list
             cfgx_list = _cfgx_list
+            if verbose:
+                num_passed = flags.sum()
+                num_valid = is_valid.sum()
+                print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
+                print('  * num_valid = %r' % (num_valid,))
 
-        if return_mask:
-            return is_valid
-        else:
-            index = filt_cfg.pop('index', None)
-            if index is not None:
-                if verbose:
-                    print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
-                if isinstance(index, six.string_types):
-                    index = ut.smart_cast(index, slice)
-                qx_list = ut.take(qx_list, index)
-                cfgx_list = ut.take(cfgx_list, index)
+        if index is not None:
+            if verbose:
+                print('Taking index=%r sample from len(qx_list) = %r' % (index, len(qx_list),))
+                print('  * prev_num_valid = %r' % (prev_num_valid,))
+            if isinstance(index, six.string_types):
+                index = ut.smart_cast(index, slice)
+            _qx_list = ut.take(qx_list, index)
+            _cfgx_list = ut.take(cfgx_list, index)
+            _valid_index = np.vstack((_qx_list, _cfgx_list)).T
+            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, isflat=False)
+            qx_list = _qx_list
+            cfgx_list = _cfgx_list
+            if verbose:
+                num_passed = flags.sum()
+                num_valid = is_valid.sum()
+                print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
+                print('  * num_valid = %r' % (num_valid,))
 
-            ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
+        if len(filt_cfg) > 0:
+            raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg.keys()))
 
-            if len(filt_cfg) > 0:
-                raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg.keys()))
-
+        if not return_mask:
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
-            return case_pos_list
+            case_identifier = case_pos_list
+        else:
+            if verbose:
+                print('Converting cases indicies to a 2d-mask')
+            case_identifier = is_valid
+        if verbose:
+            print('Finished case filtering')
+            print('Final case stats:')
+            qx_hist = ut.dict_hist(qx_list)
+            print('config per query stats: %r' % (ut.get_stats_str(qx_hist.values()),))
+            print('query per config stats: %r' % (ut.get_stats_str(ut.dict_hist(cfgx_list).values()),))
+
+        return case_identifier
 
     def get_truth2_prop(testres, qaids=None, join_acfg=False):
         r"""
