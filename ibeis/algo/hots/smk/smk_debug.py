@@ -1005,7 +1005,6 @@ def query_smk_test(annots_df, invindex, qreq_):
     smk_alpha     = qreq_.qparams.smk_alpha
     smk_thresh    = qreq_.qparams.smk_thresh
     lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
-    #mark, end_ = ut.log_progress(lbl, len(qaids), freq=1, with_time=True, backspace=False)
     withinfo = True
     for qaid in ut.ProgressIter(enumerate(qaids), lbl=lbl, freq=1):
         daid2_score, daid2_chipmatch = smk_match.query_inverted_index(

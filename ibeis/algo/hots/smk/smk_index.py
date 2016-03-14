@@ -317,9 +317,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
     if not ut.QUIET:
         print('[smk_index.idf] +--- Start Compute IDF')
     if ut.VERBOSE or verbose:
-        mark, end_ = ut.log_progress('[smk_index.idf] Word IDFs: ',
-                                        len(wx_series), freq=50,
-                                        with_time=WITH_TOTALTIME)
+        print('[smk_index.idf] Word IDFs: ')
 
     idxs_list, aids_list = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
 
@@ -332,7 +330,6 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
     else:
         raise AssertionError('unknown option vocab_weighting=%r' % vocab_weighting)
     if ut.VERBOSE or verbose:
-        end_()
         print('[smk_index.idf] L___ End Compute IDF')
     wx2_idf = dict(zip(wx_series, idf_list))
     return wx2_idf
@@ -578,10 +575,8 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         assert idx2_vec.shape[0] == idx2_aid.shape[0]
     # Prealloc output
     if ut.VERBOSE or verbose:
-        #print('[smk_index.rvec] Residual Vectors for %d words. aggregate=%r' %
-        #      (len(wx2_idxs), aggregate,))
         lbl = '[smk_index.rvec] agg rvecs' if aggregate else '[smk_index.rvec] nonagg rvecs'
-        mark, end_ = ut.log_progress(lbl, len(wx2_idxs), freq=50, with_time=True)
+        print(lbl)
     if ut.DEBUG2:
         from ibeis.algo.hots.smk import smk_debug
         smk_debug.check_wx2_idxs(wx2_idxs, len(words))
@@ -618,7 +613,6 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
         from ibeis.algo.hots.smk import smk_debug
         smk_debug.check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
     if ut.VERBOSE or verbose:
-        end_()
         print('[smk_index.rvec] L___ End Compute Residuals')
     return wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws, wx2_flags
 
@@ -680,9 +674,6 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
         print('\n[smk_index.sccw] +--- Start Compute Data Self Consistency Weight')
     if verbose_:
         print('[smk_index.sccw] Compute SCCW smk_alpha=%r, smk_thresh=%r: ' % (smk_alpha, smk_thresh))
-        mark1, end1_ = ut.log_progress(
-            '[smk_index.sccw] SCCW group (by present words): ', len(wx2_drvecs),
-            freq=100, with_time=WITH_TOTALTIME)
 
     # Group by daids first and then by word index
     # Get list of aids and rvecs w.r.t. words (ie one item per word)
@@ -738,9 +729,6 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
     subgrouped_idfs   = _scalar_subgroup_by_wx(wx2_idf, wxs_perword_perannot)
 
     if verbose_:
-        end1_()
-        mark2, end2_ = ut.log_progress(lbl='[smk_index.sccw] SCCW Sum (over daid): ',
-                                        total=len(unique_aids), freq=100, with_time=WITH_TOTALTIME)
         progiter = ut.ProgressIter(lbl='[smk_index.sccw] SCCW Sum (over daid): ',
                                    total=len(unique_aids), freq=10, with_time=WITH_TOTALTIME)
     else:
@@ -758,7 +746,6 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
     daid2_sccw = dict(zip(unique_aids, sccw_list))
 
     if verbose_:
-        end2_()
         print('[smk_index.sccw] L___ End Compute Data SCCW\n')
 
     return daid2_sccw
@@ -780,9 +767,6 @@ def OLD_compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_dmaws,
             print('\n[smk_index.sccw] +--- Start Compute Data Self Consistency Weight')
         if ut.VERBOSE or verbose:
             print('[smk_index.sccw] Compute SCCW smk_alpha=%r, smk_thresh=%r: ' % (smk_alpha, smk_thresh))
-            mark1, end1_ = ut.log_progress(
-                '[smk_index.sccw] SCCW group (by present words): ', len(wx_sublist),
-                freq=100, with_time=WITH_TOTALTIME)
         # Get list of aids and rvecs w.r.t. words
         aids_list   = [wx2_aids[wx] for wx in wx_sublist]
         rvecs_list1 = [wx2_drvecs[wx] for wx in wx_sublist]
@@ -793,15 +777,10 @@ def OLD_compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_dmaws,
         # Group by daids first and then by word index
         daid2_wx2_drvecs = clustertool.double_group(wx_sublist, aids_list, rvecs_list1)
 
-        if ut.VERBOSE or verbose:
-            end1_()
-
         # For every daid, compute its sccw using pregrouped rvecs
         # Summation over words for each aid
         if ut.VERBOSE or verbose:
-            mark2, end2_ = ut.log_progress(
-                '[smk_index.sccw] SCCW Sum (over daid): ', len(daid2_wx2_drvecs),
-                freq=25, with_time=WITH_TOTALTIME)
+            print('[smk_index.sccw] SCCW Sum (over daid): ')
         # Get lists w.r.t daids
         aid_list = list(daid2_wx2_drvecs.keys())
         # list of mappings from words to rvecs foreach daid
@@ -821,6 +800,5 @@ def OLD_compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_dmaws,
 
         daid2_sccw = dict(zip(aid_list, sccw_list))
     if ut.VERBOSE or verbose:
-        end2_()
         print('[smk_index.sccw] L___ End Compute Data SCCW\n')
     return daid2_sccw

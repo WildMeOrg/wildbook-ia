@@ -1761,7 +1761,7 @@ def ensure_unix_gpaths(gpath_list):
 def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.IBEISController):  ibeis controller object
         aid_list (list):  list of annotation rowids
         default (bool): (default = False)
 
@@ -1827,6 +1827,11 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     key = 'gname'
     if kwargs.get(key, default):
         vals_list += [ibs.get_annot_image_names(aid_list)]
+        key_list += [key]
+
+    key = 'bbox'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_bboxes(aid_list)]
         key_list += [key]
 
     key = 'yawtext'

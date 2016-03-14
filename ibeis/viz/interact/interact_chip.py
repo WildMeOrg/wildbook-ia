@@ -133,6 +133,14 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             return ret
         return _wrp
 
+    def newplot_wrp(func):
+        def _wrp():
+            import plottool as pt
+            ret = func()
+            pt.draw()
+            return ret
+        return _wrp
+
     @refresh_wrp
     def toggle_exemplar_func():
         new_flag = not is_exemplar
@@ -194,8 +202,8 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     if True:
         from ibeis import viz
         callback_list.append(
-            ('View detection chip (probability) [dev]',
-             refresh_wrp(lambda: viz.show_probability_chip(
+            ('Show foreground mask',
+             newplot_wrp(lambda: viz.show_probability_chip(
                  ibs, aid, config2_=config2_))),
         )
 

@@ -609,7 +609,10 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf --db PZ_Master1 --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
 
-        python -m ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --show
+        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --show
+        ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --noexample
+
+        ibeis -e draw_cases --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] -f :fail=True,index=0:3,sortdsc=gfscore,max_pername=1,without_tag=scenerymatch --show
 
 
     Example:
@@ -936,6 +939,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # FIXME: make save work
     cfgx2_qreq_ = testres.cfgx2_qreq_
     SHOW = ut.get_argflag('--show')
+    cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
     filt_cfg = f
     if case_pos_list is None:
         case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
@@ -1021,6 +1025,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         _iter = ut.InteractiveIter(qx_list, enabled=SHOW, custom_actions=custom_actions)
     else:
         _iter = ut.ProgIter(qx_list, lbl='drawing cases')
+
     for count, qx in enumerate(_iter):
         cfgxs = qx2_cfgxs[qx]
         qreq_list = ut.take(cfgx2_qreq_, cfgxs)
@@ -1028,7 +1033,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
-        # TODO: use chip_match
         qaid = qaids[qx]
         cm_list = [qreq_.execute_subset(qaids=[qaid])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
@@ -1074,7 +1078,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
             analysis_fpath = join(individ_results_dpath, qres_fname)
             if SHOW or show_in_notebook or not ut.checkpath(analysis_fpath):
-                bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
+                bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (
+                    count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
                 print('bar_label = %r' % (bar_label,))
                 if show_in_notebook:
                     # hack to show vertical line in notebook
@@ -1100,7 +1105,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                             fig.set_size_inches(*figsize)
                             fig.set_dpi(256)
                         pt.plt.show()
-                cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
                 if cmdaug is not None:
                     # Hack for candidacy
                     analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))

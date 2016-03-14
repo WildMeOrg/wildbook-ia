@@ -126,9 +126,7 @@ def match_kernel_L1(qindex, invindex, qparams):
     qflags_list = [ wx2_qflags[wx] for wx in common_wxs]
     dmaws_list  = None
     if utool.VERBOSE:
-        mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
-                                        flushfreq=100, writefreq=25,
-                                        with_totaltime=True)
+        print('[smk_core] query words')
     #--------
     retL0 = match_kernel_L0(qrvecs_list, drvecs_list, qflags_list, dflags_list,
                             qmaws_list, dmaws_list, smk_alpha, smk_thresh,
@@ -140,7 +138,6 @@ def match_kernel_L1(qindex, invindex, qparams):
     retL1 = (daid2_totalscore, common_wxs, scores_list, daids_list)
     #--------
     if utool.VERBOSE:
-        end_()
         print('[smk_core] Matched %d daids. nAssign=%r' %
               (len(daid2_totalscore.keys()), qparams.nAssign))
     return retL1

@@ -2,21 +2,21 @@
 from __future__ import absolute_import, division, print_function
 #import six
 from six.moves import zip, range, map  # NOQA
-import utool
+import utool as ut
 import numpy as np
 from ibeis.algo.hots.smk import smk_index
 from ibeis.algo.hots.smk import smk_repr
 from ibeis.algo.hots.smk import smk_core
 #from six.moves import zip
 #from ibeis.algo.hots.hstypes import INTEGER_TYPE
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_match]')
+(print, rrr, profile) = ut.inject2(__name__, '[smk_match]')
 
 
-DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
+DEBUG_SMK = ut.DEBUG2 or ut.get_argflag('--debug-smk')
 
 
-@utool.indent_func('[smk_query]')
-#@utool.memprof
+@ut.indent_func('[smk_query]')
+#@ut.memprof
 @profile
 def execute_smk_L5(qreq_):
     """
@@ -66,7 +66,7 @@ def execute_smk_L5(qreq_):
         python dev.py -t smk_8k --allgt --db PZ_Mothers --index 20:30 --vh
         python dev.py -t smk_8k_compare --allgt --db PZ_Mothers --index 20:30 --view-hard
     """
-    memtrack = utool.MemoryTracker('[SMK ENTRY]')
+    memtrack = ut.MemoryTracker('[SMK ENTRY]')
     qaids = qreq_.get_external_qaids()
     ibs   = qreq_.ibs
     # Params
@@ -79,10 +79,10 @@ def execute_smk_L5(qreq_):
 
     # Execute smk for each query
     memtrack.report('[SMK QREQ INITIALIZED]')
-    print('[SMK_MEM] invindex is using ' + utool.get_object_size_str(invindex))
-    print('[SMK_MEM] qreq_ is using ' + utool.get_object_size_str(qreq_))
+    print('[SMK_MEM] invindex is using ' + ut.get_object_size_str(invindex))
+    print('[SMK_MEM] qreq_ is using ' + ut.get_object_size_str(qreq_))
 
-    if utool.DEBUG2:
+    if ut.DEBUG2:
         from ibeis.algo.hots.smk import smk_debug
         smk_debug.invindex_dbgstr(invindex)
 
@@ -91,7 +91,7 @@ def execute_smk_L5(qreq_):
     return qaid2_scores, qaid2_chipmatch
 
 
-#@utool.memprof
+#@ut.memprof
 def prepare_qreq(qreq_, annots_df, memtrack):
     """ Called if pipeline did not setup qreq correctly """
     print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')
@@ -125,20 +125,16 @@ def execute_smk_L4(annots_df, qaids, invindex, qparams, withinfo):
     """
     # Progress
     lbl = 'ASMK query: ' if qparams.aggregate else 'SMK query: '
-    logkw = dict(flushfreq=1, writefreq=1, with_totaltime=True, backspace=False)
-    mark, end_ = utool.log_progress(lbl, len(qaids), **logkw)
     # Output
     qaid2_chipmatch = {}
     qaid2_scores    = {}
     # Foreach query annotation
-    for count, qaid in enumerate(qaids):
-        mark(count)
+    for count, qaid in enumerate(ut.ProgIter(qaids, lbl=lbl, freq=1)):
         tup = execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo)
         daid2_score, daid2_chipmatch = tup
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
         #memtrack.report('[SMK SINGLE QUERY]')
-    end_()
     if DEBUG_SMK:
         from ibeis.algo.hots.smk import smk_debug
         smk_debug.check_qaid2_chipmatch(qaid2_chipmatch, qaids)
@@ -166,7 +162,7 @@ def execute_smk_L3(annots_df, qaid, invindex, qparams, withinfo=True):
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel_L2(qindex, invindex, qparams, withinfo)  # 54 %
     # Prevent self matches
     allow_self_match = qparams.allow_self_match
-    #utool.get_argflag('--self-match')
+    #ut.get_argflag('--self-match')
     if (not allow_self_match) and qaid in daid2_totalscore:
         # If we cannot do self-matches
         daid2_totalscore[qaid] = 0

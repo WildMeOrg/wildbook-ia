@@ -395,10 +395,21 @@ class QueryVerificationInteraction(AbstractInteraction):
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
                     from ibeis.viz.interact import interact_chip
+                    import guitool
                     height = self.fig.canvas.geometry().height()
                     qpoint = guitool.newQPoint(event.x, height - event.y)
-                    interact_chip.show_annot_context_menu(
-                        self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
+                    if self.qreq_ is None:
+                        config2_ = None
+                    else:
+                        if aid in self.qreq_.qaids:
+                            config2_ = self.qreq_.query_config2_
+                        else:
+                            config2_ = self.qreq_.data_config2_
+                    callback_list = interact_chip.build_annot_context_options(
+                        self.ibs, aid, refresh_func=self.show_page, config2_=config2_)
+                    guitool.popup_menu(self.fig.canvas, qpoint, callback_list)
+                    #interact_chip.show_annot_context_menu(
+                    #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #self.show_page()
                     #ibs.print_annotation_table()
                 print(ut.dict_str(event.__dict__))
