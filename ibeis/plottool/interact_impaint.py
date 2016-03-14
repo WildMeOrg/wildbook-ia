@@ -3,7 +3,7 @@
 helpers for painting on top of images for groundtruthing
 
 References:
-    http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
+    http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv-update-image
     http://stackoverflow.com/questions/34933254/force-matplotlib-to-block-in-a-pyqt-thread-process
     http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
     http://stackoverflow.com/questions/22410663/block-qmainwindow-while-child-widget-is-alive-pyqt
@@ -42,12 +42,29 @@ class PaintInteraction(PAINTER_BASE):
         self.mask = mask
         self.img = img
         self.brush_size = 75
-        self.bg_color = (255, 255, 255)
-        self.fg_color = (0, 0, 0)
+        import plottool as pt
+        self.valid_colors1 = ut.odict([
+            #('background', (255 * pt.BLACK).tolist()),
+            ('scenery', (255 * pt.BLACK).tolist()),
+            ('photobomb', (255 * pt.RED).tolist()),
+        ])
+        self.valid_colors2 = ut.odict([
+            ('foreground', (255 * pt.WHITE).tolist()),
+        ])
+        self.color1_idx = 0
+        self.color1 = self.valid_colors1['scenery']
+        self.color2 = self.valid_colors2['foreground']
         self.background = None
         self.last_stroke = None
         self.finished_callback = None
         self._imshow_running = True
+
+    def update_title(self):
+        import plottool as pt
+        key = (self.valid_colors1.keys())[self.color1_idx]
+        pt.plt.title('Click on the image to draw. exit to finish.\n'
+                     'Right click erases, scroll wheel resizes.'
+                     't changes current_color=%r' % (key,))
 
     def static_plot(self, fnum=None, pnum=(1, 1, 1)):
         import plottool as pt
@@ -56,7 +73,7 @@ class PaintInteraction(PAINTER_BASE):
         #self.ax.imshow(mask, interpolation='nearest', alpha=0.6)
         pt.imshow(self.img, ax=self.ax, interpolation='nearest', alpha=1)
         pt.imshow(self.mask, ax=self.ax, interpolation='nearest', alpha=0.6)
-        pt.plt.title('Click on the image to draw. exit to finish')
+        self.update_title()
         self.ax.grid(False)
 
     def update_image(self):
@@ -99,21 +116,22 @@ class PaintInteraction(PAINTER_BASE):
         center = (x, y)
         radius = int(self.brush_size / 2)
         thickness = -1
-        cv2.circle(self.mask, center, radius, color, thickness)
+        color_bgr = color[0:3][::-1]
+        cv2.circle(self.mask, center, radius, color_bgr, thickness)
         if self.last_stroke is not None:
             if self.last_stroke[0] == color:
                 old_center = self.last_stroke[1]
                 line_thickness = int(self.brush_size)
-                cv2.line(self.mask, center, old_center, color, line_thickness)
+                cv2.line(self.mask, center, old_center, color_bgr, line_thickness)
         self.last_stroke = (color, (x, y))
 
     def on_click_inside(self, event, ax):
         x = int(math.floor(event.xdata))
         y = int(math.floor(event.ydata))
         if(event.button == self.LEFT_BUTTON):
-            self.apply_stroke(x, y, self.fg_color)
+            self.apply_stroke(x, y, self.color1)
         if(event.button == self.RIGHT_BUTTON):
-            self.apply_stroke(x, y, self.bg_color)
+            self.apply_stroke(x, y, self.color2)
         self.update_image()
         #self.draw()
         #self.print_status()
@@ -121,6 +139,17 @@ class PaintInteraction(PAINTER_BASE):
     def on_scroll(self, event):
         self.brush_size = max(self.brush_size + event.step, 1)
         print('self.brush_size = %r' % (self.brush_size,))
+
+    def on_key_press(self, event):
+        if event.key == 't':
+            print('toggle color')
+            self.color1_idx = (self.color1_idx + 1) % len(self.valid_colors1)
+            key = (self.valid_colors1.keys())[self.color1_idx]
+            self.color1 = self.valid_colors1[key]
+            print('self.color1_idx = %r' % (self.color1_idx,))
+            print('key = %r' % (key,))
+            self.update_title()
+            self.draw()
 
     def on_drag_stop(self, event):
         self.last_stroke = None
@@ -130,9 +159,9 @@ class PaintInteraction(PAINTER_BASE):
         x = int(math.floor(event.xdata))
         y = int(math.floor(event.ydata))
         if(event.button == self.LEFT_BUTTON):
-            self.apply_stroke(x, y, self.fg_color)
+            self.apply_stroke(x, y, self.color1)
         elif(event.button == self.RIGHT_BUTTON):
-            self.apply_stroke(x, y, self.bg_color)
+            self.apply_stroke(x, y, self.color2)
         self.update_image()
         #self.do_blit()
         #self.draw()
