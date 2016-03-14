@@ -100,7 +100,7 @@ def print_latexsum(ibs, testres, verbose=True):
     tabular_str = ut.util_latex.make_score_tabular(
         row_lbls, col_lbls, cfgscores, **tabular_kwargs)
     #latex_formater.render(tabular_str)
-    cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + '_' + cmdaug + 'Table')
+    cmdname = ut.latex_sanitize_command_name('Expmt' + ibs.get_dbname() + '_' + cmdaug + 'Table')
     tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
     print(tabular_str2)
     return tabular_str2

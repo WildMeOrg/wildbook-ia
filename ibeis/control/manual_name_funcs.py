@@ -41,9 +41,6 @@ NAME_TEMP_FLAG  = 'name_temp_flag'
 
 
 def testdata_ibs(defaultdb='testdb1'):
-    r"""
-    Auto-docstr for 'testdata_ibs'
-    """
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     config2_ = None  # qreq_.qparams
@@ -140,7 +137,6 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
 @register_api('/api/name/sanitize/', methods=['PUT'])
 def sanitize_name_texts(ibs, name_text_list):
     r"""
-    Auto-docstr for 'sanitize_name_texts'
 
     RESTful:
         Method: PUT
@@ -1086,7 +1082,6 @@ def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'
 @register_api('/api/name/sex_text/', methods=['GET'])
 def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
     r"""
-    Auto-docstr for 'get_name_sex_text'
 
     RESTful:
         Method: GET
@@ -1101,7 +1096,6 @@ def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
 @register_api('/api/name/sex_text/', methods=['PUT'])
 def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
     r"""
-    Auto-docstr for 'set_name_sex_text'
 
     RESTful:
         Method: PUT
@@ -1115,7 +1109,6 @@ def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
 @register_api('/api/name/age_months_est_min/', methods=['GET'])
 def get_name_age_months_est_min(ibs, name_rowid_list):
     r"""
-    Auto-docstr for 'get_name_age_months_est_min'
 
     RESTful:
         Method: GET
@@ -1130,7 +1123,6 @@ def get_name_age_months_est_min(ibs, name_rowid_list):
 @register_api('/api/name/age_months_est_max/', methods=['GET'])
 def get_name_age_months_est_max(ibs, name_rowid_list):
     r"""
-    Auto-docstr for 'get_name_age_months_est_max'
 
     RESTful:
         Method: GET
@@ -1145,7 +1137,6 @@ def get_name_age_months_est_max(ibs, name_rowid_list):
 @register_api('/api/name/imgsetids/', methods=['GET'])
 def get_name_imgsetids(ibs, nid_list):
     r"""
-    Auto-docstr for 'get_name_imgsetids'
 
     RESTful:
         Method: GET

@@ -262,8 +262,6 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
 @register_api('/api/imageset/fraction_annotmatch_reviewed/', methods=['GET'])
 def get_imageset_fraction_annotmatch_reviewed(ibs, imgsetid_list):
     r"""
-    Auto-docstr for 'get_imageset_fraction_annotmatch_reviewed'
-
     RESTful:
         Method: GET
         URL:    /api/imageset/fraction_annotmatch_reviewed/
@@ -297,8 +295,6 @@ def get_imageset_custom_filtered_aids(ibs, imgsetid_list):
 @register_api('/api/imageset/fraction_imgs_reviewed/', methods=['GET'])
 def get_imageset_fraction_imgs_reviewed(ibs, imgsetid_list):
     r"""
-    Auto-docstr for 'get_imageset_fraction_imgs_reviewed'
-
     RESTful:
         Method: GET
         URL:    /api/imageset/fraction_imgs_reviewed/
@@ -316,8 +312,6 @@ def get_imageset_fraction_imgs_reviewed(ibs, imgsetid_list):
 @register_api('/api/imageset/percent_names_with_exemplar_str/', methods=['GET'])
 def get_imageset_percent_names_with_exemplar_str(ibs, imgsetid_list):
     r"""
-    Auto-docstr for 'get_imageset_percent_names_with_exemplar_str'
-
     RESTful:
         Method: GET
         URL:    /api/imageset/percent_names_with_exemplar_str/
@@ -333,8 +327,6 @@ def get_imageset_percent_names_with_exemplar_str(ibs, imgsetid_list):
 @register_api('/api/imageset/percent_imgs_reviewed_str/', methods=['GET'])
 def get_imageset_percent_imgs_reviewed_str(ibs, imgsetid_list):
     r"""
-    Auto-docstr for 'get_imageset_percent_imgs_reviewed_str'
-
     RESTful:
         Method: GET
         URL:    /api/imageset/percent_imgs_reviewed_str/
@@ -350,8 +342,6 @@ def get_imageset_percent_imgs_reviewed_str(ibs, imgsetid_list):
 @register_api('/api/imageset/percent_annotmatch_reviewed_str/', methods=['GET'])
 def get_imageset_percent_annotmatch_reviewed_str(ibs, imgsetid_list):
     r"""
-    Auto-docstr for 'get_imageset_percent_annotmatch_reviewed_str'
-
     RESTful:
         Method: GET
         URL:    /api/imageset/percent_annotmatch_reviewed_str/
@@ -1301,7 +1291,6 @@ def set_imageset_smart_xml_fnames(ibs, imageset_rowid_list, imageset_smart_xml_f
 
 def testdata_ibs():
     r"""
-    Auto-docstr for 'testdata_ibs'
     """
     import ibeis
     ibs = ibeis.opendb('testdb1')

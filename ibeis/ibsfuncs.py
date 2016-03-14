@@ -1019,7 +1019,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
 
         toremove_aids = ut.flatten(dupaids_list)
         print('About to delete toremove_aids=%r' % (toremove_aids,))
-        if ut.are_you_sure():
+        if ut.are_you_sure('About to delete %r aids' % (len(toremove_aids))):
             ibs.delete_annots(toremove_aids)
 
             aid_list = ibs.get_valid_aids()
@@ -4307,18 +4307,19 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         new_flag_list = [0] * len(new_nonexemplar_aids) + [1] * len(new_exemplar_aids)
 
     # Hack ensure each name has at least 1 exemplar
-    nids = ibs.get_annot_nids(new_aid_list)
-    uniquenids, groupxs = ut.group_indices(nids)
-    num_hacked = 0
-    grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
-    for exflags, idxs in zip(grouped_exemplars, groupxs):
-        if not any(exflags):
-            num_hacked += 1
-            if len(idxs) > 0:
-                new_flag_list[idxs[0]] = True
-            if len(idxs) > 1:
-                new_flag_list[idxs[1]] = True
-    print('(exemplars) num_hacked = %r' % (num_hacked,))
+    if False:
+        nids = ibs.get_annot_nids(new_aid_list)
+        uniquenids, groupxs = ut.group_indices(nids)
+        num_hacked = 0
+        grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
+        for exflags, idxs in zip(grouped_exemplars, groupxs):
+            if not any(exflags):
+                num_hacked += 1
+                if len(idxs) > 0:
+                    new_flag_list[idxs[0]] = True
+                if len(idxs) > 1:
+                    new_flag_list[idxs[1]] = True
+        print('(exemplars) num_hacked = %r' % (num_hacked,))
 
     if not dry_run:
         ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
@@ -6976,6 +6977,24 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         ibs.set_imageset_end_time_posix([imgsetid], [end_time])
     # Complete
     print('[ibs] ...Done processing Patrol XML file')
+
+
+@register_ibs_method
+def temp_group_annot_occurrences(ibs, aid_list):
+    """
+    """
+    from ibeis.algo.preproc import preproc_occurrence
+    gid_list = ibs.get_annot_gids(aid_list)
+    import vtool as vt
+    gid2_aid = ut.group_items(aid_list, gid_list)
+    unique_gids, groupxs = vt.group_indices(np.array(gid_list))
+    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
+    with ut.Timer('computing imagesets'):
+        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+            ibs, gid_list)
+        occurid2_gid = ut.group_items(flat_gids, flat_imgsetids)
+        occurid2_aids = ut.map_dict_vals(ut.flatten, ut.map_dict_vals(ut.partial(ut.take, gid2_aid), occurid2_gid))
+    return occurid2_aids
 
 
 @register_ibs_method

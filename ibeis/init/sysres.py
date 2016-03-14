@@ -473,6 +473,25 @@ def ensure_pz_mtest():
     if nid is not None:
         ibs.set_name_texts([nid], ['lostname'])
 
+    # Remove old imagesets and update to new special ones
+    all_imgset_ids = ibs.get_valid_imgsetids()
+    special_imgset_ids = ibs.get_special_imgsetids()
+    other_imgset_ids = ut.setdiff(all_imgset_ids, special_imgset_ids)
+    ibs.delete_imagesets(other_imgset_ids)
+    ibs.set_exemplars_from_quality_and_viewpoint()
+    ibs.update_all_image_special_imageset()
+
+    occurrence_gids = [2, 9, 12, 16, 25, 26, 29, 30, 32, 33, 35, 46, 47, 52,
+                       57, 61, 66, 70, 71, 73, 74, 76, 77, 78, 79, 87, 88, 90,
+                       96, 97, 103, 106, 108, 110, 112, 113]
+
+    other_gids = ut.setdiff(ibs.get_valid_gids(), occurrence_gids)
+    other_gids1 = other_gids[0::2]
+    other_gids2 = other_gids[1::2]
+    ibs.set_image_imagesettext(occurrence_gids, ['Occurrence 1'] * len(occurrence_gids))
+    ibs.set_image_imagesettext(other_gids1, ['Occurrence 2'] * len(other_gids1))
+    ibs.set_image_imagesettext(other_gids2, ['Occurrence 3'] * len(other_gids2))
+
     # hack in some tags
     print('Hacking in some tags')
     foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74, 80, 83, 91, 97, 103, 107, 109, 119]

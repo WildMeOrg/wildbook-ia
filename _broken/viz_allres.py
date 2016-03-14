@@ -99,7 +99,7 @@ def save_if_requested(ibs, subdir):
     #print('[viz] Dumping Image')
     fpath = ibs.dirs.result_dir
     if not subdir is None:
-        subdir = utool.sanatize_fname2(subdir)
+        subdir = utool.sanitize_fname2(subdir)
         fpath = join(fpath, subdir)
         utool.ensurepath(fpath)
     df2.save_figure(fpath=fpath, usetitle=True)

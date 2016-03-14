@@ -885,41 +885,75 @@ class VsOneConfig(dtool.Config):
 def test_cut(ibs, parent_rowids_T, score_list2):
 
     unique_aids = ut.unique(ut.flatten(parent_rowids_T))
-    for view in ibs.get_annot_yaw_texts(unique_aids):
+    #for view in set(ibs.get_annot_yaw_texts(unique_aids)):
+    #    aid2_idx = ut.make_index_lookup(unique_aids)
+    #    #idx2_aid = ut.invert_dict(aid2_idx)
+    #    idx_pairs = np.array(ut.unflat_take(aid2_idx, zip(*parent_rowids_T)))
+    #    num = len(aid2_idx)
+    #    flat_idx = np.ravel_multi_index(idx_pairs.T, (num, num))
+    #    score_list2 = np.array(score_list2)
+    #    cost_matrix = np.zeros(num * num)
+    #    cost_matrix[flat_idx] = score_list2
+    #    cost_matrix = cost_matrix.reshape((num, num))
+    #    thresh = np.median(cost_matrix)
+    #    thresh = 20
+    #    labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
+    #    grouping = ut.group_items(unique_aids, labels)
 
+    if True:
+        #vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
         aid2_idx = ut.make_index_lookup(unique_aids)
-        #idx2_aid = ut.invert_dict(aid2_idx)
-        idx_pairs = np.array(ut.unflat_take(aid2_idx, zip(*parent_rowids_T)))
         num = len(aid2_idx)
+        idx_pairs = np.array(ut.unflat_take(aid2_idx, zip(*parent_rowids_T)))
         flat_idx = np.ravel_multi_index(idx_pairs.T, (num, num))
         score_list2 = np.array(score_list2)
         cost_matrix = np.zeros(num * num)
         cost_matrix[flat_idx] = score_list2
         cost_matrix = cost_matrix.reshape((num, num))
-        thresh = np.median(cost_matrix)
-        thresh = 20
-        labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
-        grouping = ut.group_items(unique_aids, labels)
+
+        vp2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts])
+
+        for view, aids in vp2_aids.items():
+            print('---')
+            print('view = %r' % (view,))
+            print('len(aids) = %r' % (len(aids),))
+            idxs = ut.take(aid2_idx, aids)
+            if len(idxs) == 1:
+                continue
+            real_group = ibs.group_annots_by_name(aids)[0]
+            sub_cost_matrix = cost_matrix[idxs].T[idxs].T
+            #ibs = ut.search_stack_for_localvar('ibs')
+            for thresh in [5, 7, 10, 15, 25, 50]:
+                labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, thresh)
+                grouping = ut.group_items(aids, labels)
+                diff = ut.compare_groupings(real_group, grouping.values())
+                print('thresh = %r, diff=%r' % (thresh, diff))
+                #print('--')
 
         if False:
-            #vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
-            vp2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts])
-            for view, aids in vp2_aids.items():
-                print('---')
-                print('view = %r' % (view,))
-                idxs = ut.take(aid2_idx, aids)
-                if len(idxs) == 1:
-                    continue
-                real_group = ibs.group_annots_by_name(aids)[0]
-                sub_cost_matrix = cost_matrix[idxs].T[idxs].T
-                #ibs = ut.search_stack_for_localvar('ibs')
-                for thresh in [5, 7, 8, 9, 10, 11, 12, 13, 15, 20, 25, 30, 40, 50]:
-                    labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, thresh)
-                    grouping = ut.group_items(aids, labels)
-                    diff = ut.compare_groupings(real_group, grouping.values())
-                    print('diff = %r' % (diff,))
-                    #print('thresh = %r, diff=%r' % (thresh, diff))
-                    #print('--')
+            # synthetic data
+            size = 100
+            thresh = 50
+            np.random.randint(0, 1)
+            np.zeros((size, size))
+            #np.random.rand(size, size)
+            size = 40
+            for size in range(2, 100):
+                aids = np.arange(size)
+                encounter_lbls = np.random.randint(0, size, size)
+                grid1 = np.tile(encounter_lbls, (size, 1))
+                is_match = grid1.T == grid1
+                good_pos = np.where(is_match)
+                bad_pos = np.where(~is_match)
+                sub_cost_matrix = np.empty((size, size))
+                sub_cost_matrix[good_pos] = np.random.randn(len(good_pos[0])) + 20
+                sub_cost_matrix[bad_pos] = np.random.randn(len(bad_pos[0])) - 20
+                sub_cost_matrix[np.diag_indices_from(sub_cost_matrix)] = np.inf
+                labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, 0)
+                diff = ut.compare_groupings(
+                    list(ut.group_items(aids, encounter_lbls).values()),
+                    list(ut.group_items(aids, labels).values()))
+                print('diff = %r' % (diff,))
 
 
 @register_preproc(
@@ -936,6 +970,31 @@ def compute_one_vs_one(depc, qaids, daids, config):
         python -m ibeis.control.IBEISControl --test-show_depc_graph --show
         python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
 
+    Ignore:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids('PZ_Master1', 'default:')
+        >>> occurid2_aids = ibs.temp_group_annot_occurrences(aid_list)
+        >>> aids_list = [np.unique(aids) for aids in occurid2_aids.values()]
+        >>> aids_list = [aids for aids in aids_list if len(aids) > 1 and len(aids) < 100]
+
+
+        aids = ut.sortedby([a.tolist() for a in aids_list], ut.lmap(len, aids_list))[-1]
+
+        depc = ibs.depc
+
+        progiter = ut.ProgIter(aids_list, freq=1)
+        for aids in progiter:
+            request = depc.new_request('vsone', aids, aids, {'dim_size': 450})
+            qaids, daids = request.parent_rowids_T
+            config = request.config
+            parent_rowids_T = request.parent_rowids_T
+            rawres_list2 = request.execute(postprocess=False)
+            #score_list2 = ut.take_column(rawres_list2, 0)
+            ut.list_T = ut.list_transpose
+            #test_cut(ibs, parent_rowids_T, score_list2)
+            # x = 44
+            #test_cut(ibs, ut.list_T(ut.list_T(parent_rowids_T)[0:x]), score_list2[0:x])
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
@@ -1005,6 +1064,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
 
     #all_aids = np.unique(ut.flatten([qaids, daids]))
     verbose = False
+    #yeild_ = []
     for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
                                    lbl='compute vsone'):
         annot1 = qaid_to_annot[qaid]
@@ -1040,6 +1100,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
             request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
             match.ishow_analysis(request)
         #match = SingleMatch_IBEIS(qaid, daid, score, fm)
+        #yeild_.append((score, match))
         yield (score, match)
 
 

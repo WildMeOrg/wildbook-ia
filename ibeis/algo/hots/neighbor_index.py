@@ -569,7 +569,7 @@ class NeighborIndex(object):
         """
         if K == 0:
             (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(len(qfx2_vec), 0)
-        if K > nnindexer.num_indexed or K == 0:
+        elif K > nnindexer.num_indexed:
             # If we want more points than there are in the database
             # FLANN will raise an exception. This corner case
             # will hopefully only be hit if using the multi-indexer
@@ -586,6 +586,7 @@ class NeighborIndex(object):
                 # perform nearest neighbors
                 (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
                     qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
+                # TODO: catch case where K < dbsize
             except pyflann.FLANNException as ex:
                 ut.printex(ex, 'probably misread the cached flann_fpath=%r' %
                            (nnindexer.flann_fpath,))

@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Functions for chips:
-    to work on autogeneration
-
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_chip_funcs
 sh Tgen.sh --key chip
 
+python -m utool.util_inspect --exec-check_module_usage --pat="manual_chip_funcs.py"
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np  # NOQA
@@ -224,10 +222,10 @@ def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True,
 @register_api('/api/annot_chip/rowids_/', methods=['GET'])
 def get_annot_chip_rowids_(ibs, aid_list, config2_=None, eager=True, nInput=None):
     r"""
-    equivalent to get_annot_chip_rowids_ except ensure is constrained
+    equivalent to ge t_annot_chip_rowids_ except ensure is constrained
     to be False.
 
-    Also you save a stack frame because get_annot_chip_rowids just
+    Also you save a stack frame because ge t_annot_chip_rowids just
     calls this function if ensure is False
 
     TemplateInfo:
@@ -348,7 +346,7 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
         [(545, 372), (603, 336), (520, 390)]
     """
     cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
-    chipsz_list = ibs.get_chip_sizes(cid_list)
+    chipsz_list  = ibs.dbcache.get(const.CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
     return chipsz_list
 
 
@@ -456,7 +454,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     #if not isiterable:
     #   aid_list = [aid_list]
     # HACK TO MAKE CHIPS COMPUTE
-    #cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)  # NOQA
+    #cid_list = ibs.get _annot_chip_rowids(aid_list, ensure=True)  # NOQA
     #thumbsize = 256
     if thumbsize is None:
         thumbsize = ibs.cfg.other_cfg.thumb_size
@@ -474,20 +472,20 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     return thumbtup_list
 
 
-@register_ibs_method
-@accessor_decors.deleter
-@register_api('/api/annot_chip/thumbs/', methods=['DELETE'])
-def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
-    r"""
-    Removes chip thumbnails from disk
+# @register_ibs_method
+# @accessor_decors.deleter
+# @register_api('/api/annot_chip/thumbs/', methods=['DELETE'])
+# def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
+#     r"""
+#     Removes chip thumbnails from disk
 
-    RESTful:
-        Method: DELETE
-        URL:    /api/annot_chip/thumbs/
-    """
-    thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
-    ut.remove_existing_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
+#     RESTful:
+#         Method: DELETE
+#         URL:    /api/annot_chip/thumbs/
+#     """
+#     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
+#     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
+#     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
 
 
 @register_ibs_method
@@ -539,23 +537,23 @@ def _get_all_chip_rowids(ibs):
     return all_chip_rowids
 
 
-@register_ibs_method
-@accessor_decors.ider
-@register_api('/api/chip/', methods=['GET'])
-def get_valid_cids(ibs, config2_=None):
-    r"""
-    Valid chip rowids of the current configuration
+# @register_ibs_method
+# @accessor_decors.ider
+# @register_api('/api/chip/', methods=['GET'])
+# def get_valid_cids(ibs, config2_=None):
+#     r"""
+#     Valid chip rowids of the current configuration
 
-    RESTful:
-        Method: GET
-        URL:    /api/chip/
-    """
-    # FIXME: configids need reworking
-    chip_config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
-    #cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))  # big big I belive
-    cid_list = ibs.dbcache.get_all_rowids_where(
-        const.CHIP_TABLE, 'config_rowid=?', (chip_config_rowid,))
-    return cid_list
+#     RESTful:
+#         Method: GET
+#         URL:    /api/chip/
+#     """
+#     # FIXME: configids need reworking
+#     chip_config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
+#     #cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))  # big big I belive
+#     cid_list = ibs.dbcache.get_all_rowids_where(
+#         const.CHIP_TABLE, 'config_rowid=?', (chip_config_rowid,))
+#     return cid_list
 
 
 @register_ibs_method
@@ -581,7 +579,10 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
     aid_list = ibs.get_chip_aids(cid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     ibs.delete_image_thumbs(gid_list)
-    ibs.delete_annot_chip_thumbs(aid_list)
+    # ibs.delete_annot_chip_thumbs(aid_list)
+    thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
+    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
+    ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
     ibs.delete_features(fid_list, config2_=config2_)
     # Delete chips from sql
     ibs.dbcache.delete_rowids(const.CHIP_TABLE, cid_list)
@@ -592,7 +593,6 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
 @register_api('/api/chip/aids/', methods=['GET'])
 def get_chip_aids(ibs, cid_list):
     r"""
-    Auto-docstr for 'get_chip_aids'
 
     RESTful:
         Method: GET
@@ -662,7 +662,7 @@ def get_chip_config_rowid(ibs, config2_=None):
     make it more ibeisy
 
     TemplateInfo:
-        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_chip_config_rowid\>'
+        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_chip_ config_rowid\>'
         Tcfg_rowid_getter
         leaf = chip
 
@@ -701,21 +701,20 @@ def get_chip_detectpaths(ibs, cid_list):
     return new_gfpath_list
 
 
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/chip/uris/', methods=['GET'])
-def get_chip_uris(ibs, cid_list):
-    r"""
+# @register_ibs_method
+# @accessor_decors.getter_1to1
+# @register_api('/api/chip/uris/', methods=['GET'])
+# def get_chip_uris(ibs, cid_list):
+#     r"""
+#     Returns:
+#         chip_uri_list (list): a list of chip paths by their aid
 
-    Returns:
-        chip_uri_list (list): a list of chip paths by their aid
-
-    RESTful:
-        Method: GET
-        URL:    /api/chip/uris/
-    """
-    chip_uri_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_uri',), cid_list)
-    return chip_uri_list
+#     RESTful:
+#         Method: GET
+#         URL:    /api/chip/uris/
+#     """
+#     chip_uri_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_uri',), cid_list)
+#     return chip_uri_list
 
 
 @register_ibs_method
@@ -736,7 +735,8 @@ def get_chip_fpath(ibs, cid_list, check_external_storage=False):
     if check_external_storage:
         chip_fpath_list = check_chip_external_storage(ibs, cid_list)
     else:
-        chip_uri_list = ibs.get_chip_uris(cid_list)
+        # chip_uri_list = ibs.get_chip_uris(cid_list)
+        chip_uri_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_uri',), cid_list)
         chipdir = ibs.get_chipdir()
         chip_fpath_list = [
             None if chip_uri is None else ut.unixjoin(chipdir, chip_uri)
@@ -759,20 +759,19 @@ def check_chip_external_storage(ibs, cid_list):
     return chip_fpath_list
 
 
-@register_ibs_method
-@accessor_decors.getter_1to1
-#@cache_getter('const.CHIP_TABLE', 'chip_size')
-@register_api('/api/chip/sizes/', methods=['GET'])
-def get_chip_sizes(ibs, cid_list):
-    r"""
-    Auto-docstr for 'get_chip_sizes'
+# @register_ibs_method
+# @accessor_decors.getter_1to1
+# #@cache_getter('const.CHIP_TABLE', 'chip_size')
+# @register_api('/api/chip/sizes/', methods=['GET'])
+# def get_chip_sizes(ibs, cid_list):
+#     r"""
 
-    RESTful:
-        Method: GET
-        URL:    /api/chip/sizes/
-    """
-    chipsz_list  = ibs.dbcache.get(const.CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
-    return chipsz_list
+#     RESTful:
+#         Method: GET
+#         URL:    /api/chip/sizes/
+#     """
+#     chipsz_list  = ibs.dbcache.get(const.CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
+#     return chipsz_list
 
 
 @register_ibs_method
@@ -792,7 +791,7 @@ def get_chips(ibs, cid_list, ensure=True, verbose=False, eager=True, config2_=No
         URL:    /api/annot/<aid>
 
     CommandLine:
-        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_chips\>'
+        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get _chips\>'
 
     Returns:
         list: chip_list
@@ -827,7 +826,6 @@ def get_chips(ibs, cid_list, ensure=True, verbose=False, eager=True, config2_=No
 
 def testdata_ibs():
     r"""
-    Auto-docstr for 'testdata_ibs'
     """
     import ibeis
     ibs = ibeis.opendb('testdb1')
