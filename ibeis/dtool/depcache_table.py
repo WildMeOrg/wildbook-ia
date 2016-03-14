@@ -206,6 +206,7 @@ class _TableHelper(ut.NiceRepr):
         Example:
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
+            >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
             >>> depc = testdata_depc()
             >>> tablename = 'neighbs_score'
