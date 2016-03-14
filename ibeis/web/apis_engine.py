@@ -297,7 +297,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         jobid = ibs.start_identify_annots(**payload)
     """
     # Check UUIDs
-    ibs.web_check_uuids(None, qannot_uuid_list, dannot_uuid_list)
+    ibs.web_check_uuids([], qannot_uuid_list, dannot_uuid_list)
 
     #import ibeis
     #from ibeis.web import apis_engine
