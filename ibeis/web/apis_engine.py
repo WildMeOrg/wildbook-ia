@@ -175,7 +175,9 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
         >>> try:
         >>>     web_check_uuids(ibs, [1, 2, 3], qannot_uuid_list,
         >>>                     dannot_uuid_list)
-        >>> except controller_inject.WebMissingUUIDException:
+        >>> except controller_inject.WebMissingUUIDException as ex:
+        >>>     import utool
+        >>>     utool.embed()
         >>>     pass
         >>> else:
         >>>     raise AssertionError('Should have gotten WebMissingUUIDException')
