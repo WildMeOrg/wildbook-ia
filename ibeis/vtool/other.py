@@ -222,8 +222,10 @@ def get_consec_endpoint(consec_index_list, endpoint):
             return consec_index
 
 
-def index_to_boolmask(index_list, maxval=None, hack=False):
+def index_to_boolmask(index_list, maxval=None, isflat=True):
     r"""
+    transforms a list of indicies into a boolean mask
+
     Args:
         index_list (ndarray):
         maxval (None): (default = None)
@@ -243,7 +245,7 @@ def index_to_boolmask(index_list, maxval=None, hack=False):
         >>> import vtool as vt
         >>> index_list = np.array([(0, 0), (1, 1), (2, 1)])
         >>> maxval = (3, 3)
-        >>> mask = vt.index_to_boolmask(index_list, maxval, hack=True)
+        >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=False)
         >>> result = ('mask =\n%s' % (str(mask.astype(np.uint8)),))
         >>> print(result)
         [[1 0 0]
@@ -256,7 +258,7 @@ def index_to_boolmask(index_list, maxval=None, hack=False):
         >>> import vtool as vt
         >>> index_list = np.array([0, 1, 4])
         >>> maxval = 5
-        >>> mask = vt.index_to_boolmask(index_list, maxval, hack=False)
+        >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=True)
         >>> result = ('mask = %s' % (str(mask.astype(np.uint8)),))
         >>> print(result)
         mask = [1 1 0 0 1]
@@ -266,7 +268,8 @@ def index_to_boolmask(index_list, maxval=None, hack=False):
     if maxval is None:
         maxval = index_list.max()
     mask = np.zeros(maxval, dtype=np.bool)
-    if hack:
+    if not isflat:
+        # assumes non-flat
         mask.__setitem__(tuple(index_list.T), True)
         #mask.__getitem__(tuple(index_list.T))
     else:
