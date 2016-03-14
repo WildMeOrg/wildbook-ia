@@ -22,6 +22,7 @@ CONFIG_ROWID     = 'config_rowid'
 CONFIG_HASHID    = 'config_hashid'
 CONFIG_TABLENAME = 'config_tablename'  # tablename associated with config
 CONFIG_STRID     = 'config_strid'
+CONFIG_DICT      = 'config_dict'
 
 
 if ut.is_developer():
@@ -30,6 +31,8 @@ else:
     GRACE_PERIOD = 0
 #ALLOW_NONE_YIELD = False
 ALLOW_NONE_YIELD = True
+
+STORE_CFGDICT = False
 
 
 def predrop_grace_period(tablename, seconds=None):
@@ -74,6 +77,7 @@ def make_extern_io_funcs(table, cls):
 
 def ensure_config_table(db):
     """ SQL definition of configuration table. """
+    #from dtool import base
     config_addtable_kw = ut.odict(
         [
             ('tablename', CONFIG_TABLE,),
@@ -82,13 +86,14 @@ def ensure_config_table(db):
                 (CONFIG_HASHID, 'TEXT'),
                 (CONFIG_TABLENAME, 'TEXT'),
                 (CONFIG_STRID, 'TEXT'),
-            ],),
+            ] +
+                ([(CONFIG_DICT, 'DICT')] if STORE_CFGDICT else [])
+            ),
             ('docstr', 'table for algo configurations'),
             ('superkeys', [(CONFIG_HASHID,)]),
             ('dependson', [])
         ]
     )
-
     if not db.has_table(CONFIG_TABLE):
         db.add_table(**config_addtable_kw)
     else:
@@ -549,7 +554,8 @@ class DependencyCacheTable(_TableHelper):
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
-                 chunksize=None, isinteractive=False, default_to_unpack=False):
+                 chunksize=None, isinteractive=False, default_to_unpack=False,
+                 default_onthefly=False):
         """ recieves kwargs from depc._register_prop """
         try:
             table.db = None
@@ -576,6 +582,7 @@ class DependencyCacheTable(_TableHelper):
         table.subproperties = {}
         table.chunksize = chunksize
         table._asobject = asobject
+        table.default_onthefly = default_onthefly
         # SQL Internals
         table.parent_col_attrs = None
         table.data_col_attrs = None
@@ -890,7 +897,43 @@ class DependencyCacheTable(_TableHelper):
     # --- CONFIGURATION TABLE ---
     # ---------------------------
 
+    def get_row_cfgid(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+        """
+        config_rowids = table.get_internal_columns(rowid_list, (CONFIG_ROWID,))
+        return config_rowids
+
+    #def get_row_configs(table, rowid_list):
+    #    """
+    #    >>> from dtool.depcache_table import *  # NOQA
+    #    """
+    #    config_rowids = table.get_row_cfgid(rowid_list)
+    #    return table.get_config_from_rowid(config_rowids)
+    #    #return cfgdict_list
+
+    def get_row_cfghashid(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+        """
+        config_rowids = table.get_row_cfgid(rowid_list)
+        config_hashids = table.get_config_hashid(config_rowids)
+        return config_hashids
+
+    def get_row_cfgstr(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+        """
+        config_rowids = table.get_row_cfgid(rowid_list)
+        cfgstr_list = table.db.get(
+            CONFIG_TABLE, colnames=(CONFIG_STRID,), id_iter=config_rowids,
+            id_colname=CONFIG_ROWID)
+        return cfgstr_list
+
     def get_config_rowid(table, config=None, _debug=None):
+        """
+        RAW CONFIG TABLE FUNC
+        """
         if isinstance(config, int):
             config_rowid = config
         else:
@@ -898,19 +941,35 @@ class DependencyCacheTable(_TableHelper):
         return config_rowid
 
     def get_config_hashid(table, config_rowid_list):
+        """
+        RAW CONFIG TABLE FUNC
+        """
         hashid_list = table.db.get(
             CONFIG_TABLE, colnames=(CONFIG_HASHID,), id_iter=config_rowid_list,
             id_colname=CONFIG_ROWID)
         return hashid_list
 
     def get_config_rowid_from_hashid(table, config_hashid_list):
+        """
+        RAW CONFIG TABLE FUNC
+        """
         config_rowid_list = table.db.get(
             CONFIG_TABLE, colnames=(CONFIG_ROWID,),
             id_iter=config_hashid_list,
             id_colname=CONFIG_HASHID)
         return config_rowid_list
 
+    def get_config_from_rowid(table, config_rowids):
+        assert STORE_CFGDICT
+        cfgdict_list = table.db.get(
+            CONFIG_TABLE, colnames=(CONFIG_DICT,), id_iter=config_rowids,
+            id_colname=CONFIG_ROWID)
+        return [table.configclass(**dict_) for dict_ in cfgdict_list]
+
     def add_config(table, config, _debug=None):
+        """
+        RAW CONFIG TABLE FUNC
+        """
         try:
             # assume config is AlgoRequest or TableConfig
             config_strid = config.get_cfgstr()
@@ -921,8 +980,16 @@ class DependencyCacheTable(_TableHelper):
             print('config_strid = %r' % (config_strid,))
             print('config_hashid = %r' % (config_hashid,))
         get_rowid_from_superkey = table.get_config_rowid_from_hashid
-        colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID,)
-        param_list = [(config_hashid, table.tablename, config_strid,)]
+        if STORE_CFGDICT:
+            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID, CONFIG_DICT)
+            if hasattr(config, 'config'):
+                # Hack for requests
+                config = config.config
+            cfgdict = config.__getstate__()
+            param_list = [(config_hashid, table.tablename, config_strid, cfgdict)]
+        else:
+            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID)
+            param_list = [(config_hashid, table.tablename, config_strid)]
         config_rowid_list = table.db.add_cleanly(
             CONFIG_TABLE, colnames, param_list,
             get_rowid_from_superkey)
@@ -999,8 +1066,14 @@ class DependencyCacheTable(_TableHelper):
             # hack out config if given a request
             config_ = config.config if hasattr(config, 'config') else config
             # call registered worker function
-            proptup_gen = table.preproc_func(table.depc, *argsT,
-                                             config=config_)
+            onthefly = None
+            if table.default_onthefly or onthefly:
+                assert not table.ismulti, ('cannot onthefly multi tables')
+                proptup_gen = [tuple([None] * len(table.data_col_attrs))
+                               for _ in range(len(dirty_parent_ids))]
+            else:
+                proptup_gen = table.preproc_func(table.depc, *argsT,
+                                                 config=config_)
             #proptup_gen = list(proptup_gen)
             # Append rowids and rectify nested and external columns
             dirty_params_iter = table.prepare_storage(
@@ -1177,6 +1250,67 @@ class DependencyCacheTable(_TableHelper):
         ]
         return fname_list
 
+    def _rectify_ids(table, parent_rowids):
+        if ALLOW_NONE_YIELD:
+            # Force entire row to be none if any are none
+            anyNone_flags = [x is None or any(ut.flag_None_items(x))
+                             for x in parent_rowids]
+            idxs2 = ut.where(anyNone_flags)
+            idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
+            valid_parent_ids_ = ut.take(parent_rowids, idxs1)
+        else:
+            valid_parent_ids_ = parent_rowids
+
+        preproc_args = valid_parent_ids_
+        if table.ismulti:
+            # Convert any parent-id containing multiple values into a hash of uuids
+            multi_parent_flags = table.get_parent_col_attr('ismulti')
+            num_parents = len(multi_parent_flags)
+            multi_parent_colxs = ut.where(multi_parent_flags)
+            normal_colxs = ut.index_complement(multi_parent_colxs, num_parents)
+            multi_parents = [ut.apply_grouping(ids_, multi_parent_colxs)
+                             for ids_ in valid_parent_ids_]
+            normal_parents = [ut.apply_grouping(ids_, normal_colxs)
+                              for ids_ in valid_parent_ids_]
+            # TODO: give each table a uuid getter function that derives from
+            # get_root_uuids
+            multicol_tables = ut.take(table.parents(), multi_parent_colxs)
+            parent_uuid_getters = [table.depc.get_root_uuid
+                                   if col == table.depc.root else ut.identity
+                                   for col in multicol_tables]
+            #parent_uuid_getters = [table.depc.get_root_uuid for idx in
+            #table.multi_parent_colxs]
+            #[table.depc[col].get_internal_columns([2, 3], (CONFIG_ROWID,)) for
+            #col in multicol_tables]
+            parent_uuids_list = [[uuid_getter(ids_) for uuid_getter, ids_ in
+                                  zip(parent_uuid_getters, ids_tup)]
+                                 for ids_tup in multi_parents]
+            multiset_uuid_list = [[ut.hashable_to_uuid(uuids)
+                                   for uuids in parent_uuids_tup]
+                                  for parent_uuids_tup in parent_uuids_list]
+            # preproc args are usually the same as parent ids.  Model tables
+            # are the exception.
+            #parent_num = len(parent_rowids)
+            #parent_ids_ = [(multiset_uuid, parent_num)]
+            #parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
+            parent_ids_ = [
+                tuple(ut.ungroup(
+                    [uuids, normalids],
+                    [multi_parent_colxs, normal_colxs],
+                    num_parents - 1))
+                for uuids, normalids in zip(multiset_uuid_list, normal_parents)
+            ]
+        else:
+            parent_ids_ = valid_parent_ids_
+        return parent_ids_, preproc_args, idxs1, idxs2
+
+    def _unrectify_ids(table, rowid_list_, parent_rowids, idxs1, idxs2):
+        if ALLOW_NONE_YIELD:
+            rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
+        else:
+            rowid_list = rowid_list_
+        return rowid_list
+
     def get_rowid(table, parent_rowids, config=None, ensure=True, eager=True,
                   nInput=None, recompute=False, _debug=None):
         r"""
@@ -1200,7 +1334,7 @@ class DependencyCacheTable(_TableHelper):
             python -m dtool.depcache_table --exec-get_rowid
 
         Example5:
-            >>> # ENABLE_DOCTEST
+            >>> # DISABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> # Test get behavior for multi (model) tables
@@ -1222,72 +1356,26 @@ class DependencyCacheTable(_TableHelper):
         """
         _debug = table.depc._debug if _debug is None else _debug
         if _debug:
-            print('[deptbl.get_rowid] Lookup %s rowids from superkey with %d parent' % (
-                table.tablename, len(parent_rowids)))
+            print('[deptbl.get_rowid] Get %s rowids via %d parent superkeys' %
+                  (table.tablename, len(parent_rowids)))
             if _debug > 1:
                 print('[deptbl.get_rowid] config = %r' % (config,))
                 print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
-        if ALLOW_NONE_YIELD:
-            # Force entire row to be none if any are none
-            anyNone_flags = [x is None or any(ut.flag_None_items(x))
-                             for x in parent_rowids]
-            idxs2 = ut.where(anyNone_flags)
-            idxs1 = ut.index_complement(idxs2, len_=len(parent_rowids))
-            valid_parent_ids_ = ut.take(parent_rowids, idxs1)
-        else:
-            valid_parent_ids_ = parent_rowids
-
-        preproc_args = valid_parent_ids_
-
-        if table.ismulti:
-            # Convert any parent-id containing multiple values into a hash of uuids
-            multi_parent_flags = table.get_parent_col_attr('ismulti')
-            num_parents = len(multi_parent_flags)
-            multi_parent_colxs = ut.where(multi_parent_flags)
-            normal_colxs = ut.index_complement(multi_parent_colxs, num_parents)
-            multi_parents = [ut.apply_grouping(ids_, multi_parent_colxs) for ids_ in valid_parent_ids_]
-            normal_parents = [ut.apply_grouping(ids_, normal_colxs) for ids_ in valid_parent_ids_]
-            # TODO: give each table a uuid getter function that derives from get_root_uuids
-            multicol_tables = ut.take(table.parents(), multi_parent_colxs)
-            parent_uuid_getters = [table.depc.get_root_uuid if col == table.depc.root else ut.identity
-                                   for col in multicol_tables]
-            #parent_uuid_getters = [table.depc.get_root_uuid for idx in table.multi_parent_colxs]
-            #[table.depc[col].get_internal_columns([2, 3], (CONFIG_ROWID,)) for col in multicol_tables]
-            parent_uuids_list = [[uuid_getter(ids_) for uuid_getter, ids_ in
-                                  zip(parent_uuid_getters, ids_tup)]
-                                 for ids_tup in multi_parents]
-            multiset_uuid_list = [[ut.hashable_to_uuid(uuids) for uuids in parent_uuids_tup]
-                                  for parent_uuids_tup in parent_uuids_list]
-            # preproc args are usually the same as parent ids.  Model tables
-            # are the exception.
-            #parent_num = len(parent_rowids)
-            #parent_ids_ = [(multiset_uuid, parent_num)]
-            #parent_ids_ = [(multiset_uuid,) for multiset_uuid in multiset_uuid_list]
-            parent_ids_ = [tuple(
-                ut.ungroup([uuids, normalids], [multi_parent_colxs, normal_colxs], num_parents - 1))
-                for uuids, normalids in zip(multiset_uuid_list, normal_parents)
-            ]
-        else:
-            parent_ids_ = valid_parent_ids_
-
+        parent_ids_, preproc_args, idxs1, idxs2 = table._rectify_ids(parent_rowids)
         if recompute:
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None)
             table.delete_rows(rowid_list_)
-
         if ensure or recompute:
             rowid_list_ = table.add_rows_from_parent(
                 parent_ids_, preproc_args, config=config)
         else:
             rowid_list_ = table._get_rowid(
                 parent_ids_, config=config, eager=eager, nInput=nInput)
-
-        if ALLOW_NONE_YIELD:
-            rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
-        else:
-            rowid_list = rowid_list_
+        rowid_list = table._unrectify_ids(rowid_list_, parent_rowids, idxs1,
+                                          idxs2)
         return rowid_list
 
     def _get_rowid(table, parent_ids_, config=None, eager=True, nInput=None,
@@ -1497,11 +1585,46 @@ class DependencyCacheTable(_TableHelper):
         ####
         # Read data stored in SQL
         # FIXME: understand unpack_scalars and keepwrap
-        eager = True
-        nInput = None
-        raw_prop_list = table.get_internal_columns(
-            nonNone_tbl_rowids, flat_intern_colnames, eager, nInput,
-            unpack_scalars=True, keepwrap=True)
+        if table.default_onthefly:
+            assert STORE_CFGDICT
+            parent_rowids = table.get_internal_columns(nonNone_tbl_rowids,
+                                                       table.parent_id_colnames,
+                                                       unpack_scalars=True,
+                                                       keepwrap=False)
+            # TODO; groupby config
+            config_rowids = table.get_row_cfgid(nonNone_tbl_rowids)
+            unique_cfgids, groupxs = ut.group_indices(config_rowids)
+            unique_configs = table.get_config_from_rowid(unique_cfgids)
+            togroup_args = [parent_rowids]
+            unique_args_list = [unique_configs]
+            #raw_prop_lists = []
+            #func = ut.partial(table.preproc_func, table.depc)
+            def groupmap_func(group_args, unique_args):
+                config_ = unique_args[0]
+                argsT = group_args
+                propgen = table.preproc_func(table.depc, *argsT, config=config_)
+                return list(propgen)
+
+            def grouped_map(groupmap_func, groupxs, togroup_args, unique_args_list):
+                # TODO; genralize to utool
+                grouped_args_list = [ut.apply_grouping(togroup, groupxs) for
+                                     togroup in togroup_args]
+                group_ret_list = []
+                for group_args, unique_args in zip(grouped_args_list,
+                                                     unique_args_list):
+                    group_ret = groupmap_func(group_args, unique_args)
+                    group_ret_list.append(group_ret)
+                ret_list = ut.ungroup(group_ret_list, groupxs)
+                return ret_list
+
+            raw_prop_list = grouped_map(groupmap_func, groupxs, togroup_args,
+                                        unique_args_list)
+        else:
+            eager = True
+            nInput = None
+            raw_prop_list = table.get_internal_columns(
+                nonNone_tbl_rowids, flat_intern_colnames, eager, nInput,
+                unpack_scalars=True, keepwrap=True)
         ####
         # Read data specified by any external columns
         prop_listT = list(zip(*raw_prop_list))

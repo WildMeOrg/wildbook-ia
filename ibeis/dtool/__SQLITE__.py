@@ -123,11 +123,12 @@ def REGISTER_SQLITE3_TYPES():
         if VERBOSE_SQL:
             print('Register DICT with SQLite3')
         register_converter('DICT', _read_dict_from_sqlite3)
-        register_adapter(uuid.UUID, _write_dict_to_sqlite3)
+        register_adapter(dict, _write_dict_to_sqlite3)
 
     register_numpy_dtypes()
     register_numpy()
     register_uuid()
+    register_dict()
 REGISTER_SQLITE3_TYPES()
 
 
@@ -148,7 +149,8 @@ TYPE_TO_SQLTYPE = {
     float: 'REAL',
     int: 'INTEGER',
     str: 'TEXT',
-    bool: 'INTEGER'
+    bool: 'INTEGER',
+    dict: 'DICT',
 }
 
 if six.PY2:

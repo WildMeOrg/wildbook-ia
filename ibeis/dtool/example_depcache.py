@@ -302,6 +302,7 @@ def testdata_depc(fname=None):
 
     @depc.register_preproc(
         'keypoint', ['chip'], ['kpts', 'num'], [np.ndarray, int],
+        #default_onthefly=True,
         configclass=DummyKptsConfig,
         docstr='Used to store individual chip features (ellipses)',)
     def dummy_preproc_kpts(depc, chip_rowids, config=None):

@@ -268,7 +268,7 @@ class _CoreDependencyCache(object):
 
     def get_dependants(depc, tablename):
         """
-        gets level dependences table to the leaves
+        gets level dependences table to the leaves. ie anscestors
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -278,6 +278,7 @@ class _CoreDependencyCache(object):
             >>> tablename = 'chip'
             >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
             >>> print(result)
+
             [
                 ['chip'],
                 ['keypoint'],
@@ -563,34 +564,32 @@ class _CoreDependencyCache(object):
                 config_ = configclass(**config)
         return config_
 
-    def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
-                             eager, nInput, config, recompute, recompute_all,
-                             _debug):
-
-        config_ = depc._ensure_config(tablekey, config)
-
-        table = depc[tablekey]
+    def _get_parent_rowids(depc, table, rowid_dict):
+        # FIXME to handle multiedges correctly
         parent_rowidsT = ut.dict_take(rowid_dict,
                                       table.parent_id_tablenames)
         if table.ismulti:
             parent_rowids = parent_rowidsT
         else:
             parent_rowids = ut.list_transpose(parent_rowidsT)
+        return parent_rowids
 
+    def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
+                             eager, nInput, config, recompute, recompute_all,
+                             _debug):
+        table = depc[tablekey]
+        config_ = depc._ensure_config(tablekey, config)
+        parent_rowids = depc._get_parent_rowids(table, rowid_dict)
         if _debug:
             print('   * tablekey = %r' % (tablekey,))
             print('   * config_ = %r' % (config_,))
-            print('   * parent_rowids = %s' %
-                  (ut.trunc_repr(parent_rowids),))
-
+            print('   * parent_rowids = %s' % (ut.trunc_repr(parent_rowids),))
         _recompute = recompute_all or (tablekey == tablename and recompute)
-
         child_rowids = table.get_rowid(
             parent_rowids, config=config_, eager=eager, nInput=nInput,
             ensure=ensure, recompute=_recompute)
         if _debug:
-            print('   * child_rowids = %s' %
-                  (ut.trunc_repr(child_rowids),))
+            print('   * child_rowids = %s' % (ut.trunc_repr(child_rowids),))
         return child_rowids
 
     # -----------------------------
@@ -833,11 +832,24 @@ class _CoreDependencyCache(object):
         anscestor_rowids = list(rowid_dict[anscestor_tablename])
         return anscestor_rowids
 
+    def _get_parent_input(depc, tablename, root_rowids, config, ensure=True,
+                          _debug=None, recompute=False, recompute_all=False,
+                          eager=True, nInput=None):
+        # Get ancestor rowids that are descendants of root
+        table = depc[tablename]
+        rowid_dict = depc.get_all_descendant_rowids(
+            tablename, root_rowids, config=config, ensure=ensure,
+            eager=eager, nInput=nInput, recompute=recompute,
+            recompute_all=recompute_all, _debug=ut.countdown_flag(_debug),
+            levels_up=1)
+        parent_rowids = depc._get_parent_rowids(table, rowid_dict)
+        return parent_rowids
+
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
                      ensure=True, _debug=None, recompute=False,
-                     recompute_all=False, read_extern=True, eager=True,
-                     nInput=None):
+                     recompute_all=False, eager=True, nInput=None,
+                     read_extern=True, onthefly=False):
         """
         Primary function to load or compute values in the dependency cache.
 
@@ -888,12 +900,29 @@ class _CoreDependencyCache(object):
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
                 print(' * colnames = %r' % (colnames,))
                 print(' * config = %r' % (config,))
-            # Vectorized get of properties
-            tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config,
-                                         ensure=ensure, _debug=_debug,
-                                         eager=eager, recompute=recompute,
-                                         recompute_all=recompute_all,
-                                         nInput=nInput)
+
+            if False:
+                recompute_ = recompute or recompute_all
+
+                parent_rowids = depc._get_parent_input(
+                    tablename, root_rowids, config, ensure=True, _debug=None,
+                    recompute=False, recompute_all=False, eager=True,
+                    nInput=None)
+                config_ = depc._ensure_config(tablename, config)
+                #if onthefly:
+                #    pass
+                table = depc[tablename]
+                tbl_rowids = table.get_rowid(
+                    parent_rowids, config=config_, eager=eager, nInput=nInput,
+                    ensure=ensure, recompute=recompute_)
+            else:
+                # Vectorized get of properties
+                tbl_rowids = depc.get_rowids(tablename, root_rowids,
+                                             config=config, ensure=ensure,
+                                             _debug=_debug, eager=eager,
+                                             recompute=recompute,
+                                             recompute_all=recompute_all,
+                                             nInput=nInput)
             if _debug:
                 print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
             table = depc[tablename]

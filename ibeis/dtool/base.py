@@ -518,12 +518,12 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         >>> request = depc.new_request('vsone', qaid_list, daid_list)
         >>> results = request.execute()
         >>> # Test that adding a query / data id only recomputes necessary items
-        >>> request2 = depc.new_request('vsone', qaid_list + [3], daid_list + [5])
+        >>> request2 = depc.new_request('vsone', qaid_list + [4], daid_list + [5])
         >>> results2 = request2.execute()
         >>> print('results = %r' % (results,))
         >>> print('results2 = %r' % (results2,))
-        >>> assert len(results) == 5, 'incorrect num output'
-        >>> assert len(results2) == 10, 'incorrect num output'
+        >>> ut.assert_eq(len(results), 10, 'incorrect num output')
+        >>> ut.assert_eq(len(results2), 16, 'incorrect num output')
     """
     _symmetric = False
 

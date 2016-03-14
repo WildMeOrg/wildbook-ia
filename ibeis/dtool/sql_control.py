@@ -1083,12 +1083,13 @@ class SQLDatabaseController(object):
             superkeys (list or None): list of tuples of column names which
                 uniquely identifies a rowid
         """
+        if len(coldef_list) == 0 or coldef_list is None:
+            raise AssertionError('table %s is not given any columns' % (tablename,))
         bad_kwargs = set(metadata_keyval.keys()) - set(db.table_metadata_keys)
         assert len(bad_kwargs) == 0, (
             'keyword args specified that are not metadata keys=%r' % (
                 bad_kwargs,))
         assert tablename is not None, 'tablename must be given'
-        assert coldef_list is not None, 'tablename must be given'
         if ut.DEBUG2:
             print('[sql] schema ensuring tablename=%r' % tablename)
         if ut.VERBOSE:
@@ -1465,9 +1466,12 @@ class SQLDatabaseController(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> result = ibs.db.get_schema_current_autogeneration_str('')
+            >>> from dtool.sql_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
+            >>> result = db.get_schema_current_autogeneration_str('')
             >>> print(result)
         """
         db_version_current = db.get_db_version()
@@ -1667,12 +1671,13 @@ class SQLDatabaseController(object):
         Example0:
             >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> tablename = ut.get_argval('--tablename', type_=str, default='lblimage')
-            >>> result = ut.list_str(ibs.db.get_table_superkey_colnames(tablename), nl=False)
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> db = depc['chip'].db
+            >>> superkeys = db.get_table_superkey_colnames('chip')
+            >>> result = ut.list_str(superkeys, nl=False)
             >>> print(result)
-            [('lbltype_rowid', 'lblimage_value')]
+            [('dummy_annot_rowid', 'config_rowid')]
         """
         assert tablename in db.get_table_names(), (
             'tablename=%r is not a part of this database' % (tablename,))
@@ -1731,11 +1736,13 @@ class SQLDatabaseController(object):
         Example0:
             >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> tablename = ut.get_argval('--tablename', type_=str, default='contributors')
-            >>> docstr = ibs.db.get_table_docstr(tablename)
-            >>> print(docstr)
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
+            >>> result = db.get_table_docstr(tablename)
+            >>> print(result)
+            Used to store individual chip features (ellipses)
         """
         docstr = db.get_metadata_val(tablename + '_docstr')
         #where_clause = 'metadata_key=?'
@@ -1774,20 +1781,19 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> db = ibeis.opendb(defaultdb='testdb1').db
-            >>> tablename = ut.get_argval('--tablename', type_=str, default=ibeis.const.NAME_TABLE)
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
             >>> colrichinfo_list = db.get_columns(tablename)
             >>> result = ('colrichinfo_list = %s' % (ut.list_str(colrichinfo_list),))
             >>> print(result)
             colrichinfo_list = [
-                (0, 'name_rowid', 'INTEGER', 0, None, 1),
-                (1, 'name_uuid', 'UUID', 1, None, 0),
-                (2, 'name_text', 'TEXT', 1, None, 0),
-                (3, 'name_note', 'TEXT', 0, None, 0),
-                (4, 'name_temp_flag', 'INTEGER', 0, '0', 0),
-                (5, 'name_alias_text', 'TEXT', 0, None, 0),
-                (6, 'name_sex', 'INTEGER', 0, '-1', 0),
+                (0, 'keypoint_rowid', 'INTEGER', 0, None, 1),
+                (1, 'chip_rowid', 'INTEGER', 1, None, 0),
+                (2, 'config_rowid', 'INTEGER', 0, '0', 0),
+                (3, 'kpts', 'NDARRAY', 0, None, 0),
+                (4, 'num', 'INTEGER', 0, None, 0),
             ]
         """
         # check if the table exists first. Throws an error if it does not exist.
@@ -1847,15 +1853,11 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> # build test data
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> db = ibs.db
-            >>> tablename = ibeis.const.ANNOTATION_TABLE
-            >>> exclude_columns = []
-            >>> # execute function
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
             >>> column_list, column_names = db.get_table_column_data(tablename)
-            >>> # verify results
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
@@ -1891,63 +1893,21 @@ class SQLDatabaseController(object):
             python -m dtool.sql_control --exec-make_json_table_definition
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> db = ibs.db
-            >>> # TODO: define heirarchy
-            >>> tablename = ibs.const.ANNOTATION_TABLE
-            >>> annot_table_def = db.make_json_table_definition(tablename)
-            >>> tablename = ibs.const.IMAGE_TABLE
-            >>> image_table_def = db.make_json_table_definition(tablename)
-            >>> print('annot_attrs = %s' % (ut.repr2(annot_table_def, nl=True),))
-            >>> print('image_attrs = %s' % (ut.repr2(image_table_def, nl=True),))
-
-        Ignore:
-            annot_table_def = {
-                'annot_rowid': 'INTEGER',
-                'annot_uuid': 'UUID',
-                'annot_xtl': 'INTEGER',
-                'annot_ytl': 'INTEGER',
-                'annot_width': 'INTEGER',
-                'annot_height': 'INTEGER',
-                'annot_theta': 'REAL',
-                'annot_num_verts': 'INTEGER',
-                'annot_verts': 'TEXT',
-                'annot_yaw': 'REAL',
-                'annot_detect_confidence': 'REAL',
-                'annot_exemplar_flag': 'INTEGER',
-                'annot_note': 'TEXT',
-                'annot_visual_uuid': 'UUID',
-                'annot_semantic_uuid': 'UUID',
-                'annot_quality': 'INTEGER',
-                'annot_age_months_est_min': 'INTEGER',
-                'annot_age_months_est_max': 'INTEGER',
-                'annot_tags': 'TEXT',
-                'species_text': 'DATA',
-                'name_text': 'DATA',
-                'image_uuid': 'DATA',
-            }
-            image_table_def = {
-                'image_rowid': 'INTEGER',
-                'image_uuid': 'UUID',
-                'image_uri': 'TEXT',
-                'image_ext': 'TEXT',
-                'image_original_name': 'TEXT',
-                'image_width': 'INTEGER',
-                'image_height': 'INTEGER',
-                'image_time_posix': 'INTEGER',
-                'image_gps_lat': 'REAL',
-                'image_gps_lon': 'REAL',
-                'image_toggle_enabled': 'INTEGER',
-                'image_toggle_reviewed': 'INTEGER',
-                'image_note': 'TEXT',
-                'image_timedelta_posix': 'INTEGER',
-                'image_original_path': 'TEXT',
-                'image_location_code': 'TEXT',
-                'contributor_tag': 'DATA',
-                'party_tag': 'DATA',
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
+            >>> table_def = db.make_json_table_definition(tablename)
+            >>> result = ('table_def = %s' % (ut.repr2(table_def, nl=True),))
+            >>> print(result)
+            table_def = {
+                'keypoint_rowid': 'INTEGER',
+                'chip_rowid': 'INTEGER',
+                'config_rowid': 'INTEGER',
+                'kpts': 'NDARRAY',
+                'num': 'INTEGER',
             }
         """
         new_transferdata = db.get_table_new_transferdata(tablename)
@@ -1987,6 +1947,24 @@ class SQLDatabaseController(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
+            >>> tablename_list = db.get_table_names()
+            >>> colrichinfo_list = db.get_columns(tablename)
+            >>> for tablename in tablename_list:
+            ...     new_transferdata = db.get_table_new_transferdata(tablename)
+            ...     column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
+            ...     print('tablename = %r' % (tablename,))
+            ...     print('colnames = ' + ut.list_str(column_names))
+            ...     print('extern_colx_list = ' + ut.list_str(extern_colx_list))
+            ...     print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            ...     print('L___')
+
+        Example:
+            >>> # SLOW_DOCTEST
+            >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
@@ -2002,7 +1980,7 @@ class SQLDatabaseController(object):
             ...     print('L___')
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
