@@ -1993,11 +1993,12 @@ def plot_distrobutions(distro_dict):
 
 
 @register_ibs_method
-def detect_rf_test_set_sweep(ibs):
+def detect_rf_test_set_sweep(ibs, db_check=True):
     from ibeis.algo.detect import randomforest  # NOQA
     from os.path import abspath, expanduser, join, exists
 
-    assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
+    if db_check:
+        assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
 
     species = 'zebra_plains' if ibs.dbname == 'PZ_Paper' else 'zebra_grevys'
     trees_path = abspath(join(ibs.treesdir, species))
@@ -2250,7 +2251,7 @@ def detect_precision_recall_algo(ibs, algo, **kwargs):
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     sweep_dict_dict = {}
-    skipped, errored = 0, 0
+    processed, skipped, errored = 0, 0, 0
     for sweep_filepath in sweep_filepath_list:
         sweep_path, sweep_filename = split(sweep_filepath)
         uuid_ = uuid.UUID(sweep_filename.split('.JPG')[0])
@@ -2261,6 +2262,7 @@ def detect_precision_recall_algo(ibs, algo, **kwargs):
         try:
             sweep_dict = detect_parse_sweep(sweep_filepath)
             sweep_dict_dict[uuid_] = sweep_dict
+            processed += 1
         except ValueError:
             # print('Skipping: Incomplete sweep file')
             errored += 1
@@ -2271,6 +2273,7 @@ def detect_precision_recall_algo(ibs, algo, **kwargs):
             continue
         # print('Parsed: %r' % (sweep_filepath, ))
         # print(sweep_dict)
+    print('Processed: %d' % (processed, ))
     print('Skipped: %d' % (skipped, ))
     print('Errored: %d' % (errored, ))
     assert errored == 0
@@ -2427,25 +2430,25 @@ def detect_precision_recall_algo_average2(ibs, algo, species, **kwargs):
     performance_dict = {}
     print('Processing IOU + P/R Curves...')
     for uuid in uuid_list:
-        print('    %r' % (uuid, ))
         gt_list = gt_dict[uuid]
+
         if uuid in sweep_dict_dict:
             sweep_dict = sweep_dict_dict[uuid]
+            temp = {}
             for index in sweep_dict:
                 pred_list = sweep_dict[index]
                 overlap = detect_overlap(gt_list, pred_list)
                 pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-                pr = np.around(pr, decimals=2)
                 re = np.around(re, decimals=2)
+                if re not in temp or temp[re] < pr:
+                    temp[re] = pr
+            for re, pr in temp.iteritems():
                 if re not in performance_dict:
                     performance_dict[re] = []
                 performance_dict[re].append(pr)
-                # if pr not in performance_dict:
-                #     performance_dict[pr] = []
-                # performance_dict[pr].append(re)
     print('...complete')
 
-    for re in performance_dict:
+    for re in sorted(performance_dict.keys()):
         temp = performance_dict[re]
         performance_dict[re] = sum(temp) / len(temp)
     return performance_dict
@@ -2458,12 +2461,8 @@ def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
         x_axis = []
         y_axis = []
         for _ in sorted(dict_.keys()):
-            if algo == 'yolo':
-                x_axis.append( _ / 100.0 )
-                y_axis.append(dict_[_])
-            else:
-                x_axis.append( _ / 100.0 )
-                y_axis.append(dict_[_])
+            x_axis.append( _ / 100.0 )
+            y_axis.append(dict_[_])
         return x_axis, y_axis
 
     pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
@@ -2492,15 +2491,18 @@ def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
 def detect_precision_recall_algo_plot2(ibs, algo, species, color, **kwargs):
     import matplotlib.pyplot as plt
 
-    def axes(dict_):
+    def axes(pr_dict, re_dict, algo):
         x_axis = []
         y_axis = []
-        for _ in sorted(dict_.keys()):
-            x_axis.append(_)
-            y_axis.append(dict_[_])
+        for _ in sorted(re_dict.keys(), reverse=True):
+            re, pr = re_dict[_], pr_dict[_]
+            x_axis.append(re)
+            y_axis.append(pr)
+
         return x_axis, y_axis
 
-    performance_dict = detect_precision_recall_algo_average2(ibs, algo, species, **kwargs)
+    # performance_dict = detect_precision_recall_algo_average2(ibs, algo, species, **kwargs)
+    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
 
     algo_dict = {
         'rf'   : 'HF',
@@ -2516,8 +2518,8 @@ def detect_precision_recall_algo_plot2(ibs, algo, species, color, **kwargs):
     species = species_dict[species]
 
     # Plot curves
-    x_axis, y_axis = axes(performance_dict)
-    plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
+    x_axis, y_axis = axes(pr_dict, re_dict, algo)
+    plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s (%s)' % (algo, species, ))
 
 
 @register_ibs_method
@@ -2562,7 +2564,7 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsiz
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
     # plt.show()
-    plt.savefig('/Users/bluemellophone/Dropbox/Shared/Chuck WACV/resources/precision-recall.png', bbox_inches='tight')
+    plt.savefig('/Users/bluemellophone/Desktop/precision-recall.png', bbox_inches='tight')
 
 
 @register_ibs_method
@@ -2631,6 +2633,55 @@ def detect_write_detection_exmaples(ibs, SEED=23170):
                 write_filepath = join(write_path, algo, '%s%d.jpg' % (tag, index, ))
                 print(write_filepath)
                 cv2.imwrite(write_filepath, test_image)
+
+
+@register_ibs_method
+def detect_write_detection_all(ibs):
+    from os.path import abspath, join
+    import cv2
+
+    def _resize(image, t_width=None, t_height=None):
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+        height, width = image.shape[:2]
+        if t_width is None and t_height is None:
+            return image
+        elif t_width is not None and t_height is not None:
+            pass
+        elif t_width is None:
+            t_width = (width / height) * float(t_height)
+        elif t_height is None:
+            t_height = (height / width) * float(t_width)
+        t_width, t_height = float(t_width), float(t_height)
+        t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
+        assert t_width > 0 and t_height > 0, 'target size too small'
+        assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
+        # interpolation = cv2.INTER_LANCZOS4
+        interpolation = cv2.INTER_LINEAR
+        return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
+
+    test_gid_list = ibs.get_valid_gids()
+    test_image_list = ibs.get_images(test_gid_list)
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    write_path = abspath('/Users/bluemellophone/Desktop/')
+    print(write_path)
+    # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
+    for index, (test_gid, test_uuid, test_image) in enumerate(zip(test_gid_list, test_uuid_list, test_image_list)):
+        height_old, width_old, channels_old = test_image.shape
+        test_image = _resize(test_image, t_width=600)
+        height_, width_, channels_ = test_image.shape
+        rescale = width_ / width_old
+        aid_list = ibs.get_image_aids(test_gid)
+        annot_list = ibs.get_annot_bboxes(aid_list)
+        for xtl, ytl, width, height in annot_list:
+            xbr = int((xtl + width) * rescale)
+            ybr = int((ytl + height) * rescale)
+            xtl = int(xtl * rescale)
+            ytl = int(ytl * rescale)
+            cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
+        write_filepath = join(write_path, '%d.jpg' % (index, ))
+        print(write_filepath)
+        cv2.imwrite(write_filepath, test_image)
 
 
 @register_ibs_method
