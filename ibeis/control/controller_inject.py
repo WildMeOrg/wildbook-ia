@@ -139,24 +139,51 @@ except AttributeError:
         raise
 
 
-class WebException(Exception):
-    def __init__(self, message, code=400):
+class WebException(Exception, ut.NiceRepr):
+    def __init__(self, message, rawreturn=None, code=400):
         self.code = code
         self.message = message
+        self.rawreturn = rawreturn
 
-    def __str__(self):
-        args = (self.__class__.__name__, self.code, self.message, )
-        return repr('<%s | %r: %r>' % args)
+    def get_rawreturn(self, debug_stack_trace=False):
+        if self.rawreturn is None:
+            if debug_stack_trace:
+                return str(traceback.format_exc())
+            else:
+                return ''
+        else:
+            return self.rawreturn
+
+    def __nice__(self):
+        args = (self.code, self.message, )
+        return '(%r: %r)' % args
 
 
 class WebMissingUUIDException(WebException):
     def __init__(self, missing_image_uuid_list=[], missing_annot_uuid_list=[]):
         args = (len(missing_image_uuid_list), len(missing_annot_uuid_list), )
         message = 'Missing image and/or annotation UUIDs (%d, %d)' % args
+        rawreturn = {
+            'missing_image_uuid_list' : missing_image_uuid_list,
+            'missing_annot_uuid_list' : missing_annot_uuid_list,
+        }
         code = 600
-        WebException.__init__(self, message, code)
-        self.missing_image_uuid_list = missing_image_uuid_list
-        self.missing_annot_uuid_list = missing_annot_uuid_list
+        super(WebMissingUUIDException, self).__init__(message, rawreturn, code)
+
+
+class DuplicateUUIDException(WebException):
+    def __init__(self, qdup_pos_map={}, ddup_pos_map={}):
+        message = ('Some UUIDs are specified more than once at positions:\n'
+                   'duplicate_data_uuids=%s\n'
+                   'duplicate_query_uuids=%s\n') % (
+                       ut.repr3(qdup_pos_map, nl=1),
+                       ut.repr3(ddup_pos_map, nl=1))
+        rawreturn = {
+            'qdup_pos_map' : qdup_pos_map,
+            'ddup_pos_map' : ddup_pos_map,
+        }
+        code = 601
+        super(DuplicateUUIDException, self).__init__(message, rawreturn, code)
 
 
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
@@ -273,7 +300,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     except TypeError:
         try:
             output = func(ibs=ibs, **kwargs)
-        except WebMissingUUIDException:
+        except WebException:
             raise
         except Exception as ex2:
             msg_list = []
@@ -516,20 +543,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
 
                         resp_tup = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message = resp_tup
-                    except WebMissingUUIDException as uuidex:
-                        rawreturn = {
-                            'missing_image_uuid_list' : uuidex.missing_image_uuid_list,
-                            'missing_annot_uuid_list' : uuidex.missing_annot_uuid_list,
-                        }
-                        success = False
-                        code = uuidex.code
-                        message = uuidex.message
-                        jQuery_callback = None
                     except WebException as webex:
                         ut.printex(webex)
-                        rawreturn = ''
-                        if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
-                            rawreturn = str(traceback.format_exc())
+                        rawreturn = webex.get_rawreturn(
+                            DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE)
                         success = False
                         code = webex.code
                         message = webex.message

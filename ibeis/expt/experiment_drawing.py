@@ -29,6 +29,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show --cmd
         python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
+        python -m ibeis --tf draw_annot_scoresep --db GZ_ALL -a timectrl -t best:K=1,resize_dim=[root_area,width] --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA

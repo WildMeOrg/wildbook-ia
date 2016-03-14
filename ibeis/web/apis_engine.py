@@ -146,10 +146,44 @@ def initialize_job_manager(ibs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/check_uuids/', methods=['GET', 'POST'])
-def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
+def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_list=[]):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        image_uuid_list (list): (default = [])
+        qannot_uuid_list (list): (default = [])
+        dannot_uuid_list (list): (default = [])
+
+    CommandLine:
+        python -m ibeis.web.apis_engine --exec-web_check_uuids --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.apis_engine import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> image_uuid_list = []
+        >>> qannot_uuid_list = ibs.get_annot_uuids([1, 1, 2, 3, 2, 4])
+        >>> dannot_uuid_list = ibs.get_annot_uuids([1, 2, 3])
+        >>> try:
+        >>>     web_check_uuids(ibs, image_uuid_list, qannot_uuid_list,
+        >>>                     dannot_uuid_list)
+        >>> except controller_inject.DuplicateUUIDException:
+        >>>     pass
+        >>> else:
+        >>>     raise AssertionError('Should have gotten DuplicateUUIDException')
+        >>> try:
+        >>>     web_check_uuids(ibs, [1, 2, 3], qannot_uuid_list,
+        >>>                     dannot_uuid_list)
+        >>> except controller_inject.WebMissingUUIDException:
+        >>>     pass
+        >>> else:
+        >>>     raise AssertionError('Should have gotten WebMissingUUIDException')
+        >>> print('Successfully reported errors')
+    """
     # Unique list
     image_uuid_list = list(set(image_uuid_list))
-    annot_uuid_list = list(set(annot_uuid_list))
+    annot_uuid_list = list(set(qannot_uuid_list + dannot_uuid_list))
     # Check for all annot UUIDs exist
     missing_image_uuid_list = ibs.get_image_missing_uuid(image_uuid_list)
     missing_annot_uuid_list = ibs.get_annot_missing_uuid(annot_uuid_list)
@@ -159,6 +193,10 @@ def web_check_uuids(ibs, image_uuid_list=[], annot_uuid_list=[]):
             'missing_annot_uuid_list' : missing_annot_uuid_list,
         }
         raise controller_inject.WebMissingUUIDException(**kwargs)
+    qdup_pos_map = ut.find_duplicate_items(dannot_uuid_list)
+    ddup_pos_map = ut.find_duplicate_items(qannot_uuid_list)
+    if len(ddup_pos_map) + len(qdup_pos_map) > 0:
+        raise controller_inject.DuplicateUUIDException(qdup_pos_map, qdup_pos_map)
 
 
 @register_ibs_method
@@ -259,8 +297,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         jobid = ibs.start_identify_annots(**payload)
     """
     # Check UUIDs
-    combined_annot_uuid_list = qannot_uuid_list + dannot_uuid_list
-    ibs.web_check_uuids(annot_uuid_list=combined_annot_uuid_list)
+    ibs.web_check_uuids(None, qannot_uuid_list, dannot_uuid_list)
 
     #import ibeis
     #from ibeis.web import apis_engine
