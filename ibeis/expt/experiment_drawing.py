@@ -29,8 +29,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show --cmd
         python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
-        python -m ibeis --tf draw_annot_scoresep --db GZ_ALL -a timectrl -t best:K=1,resize_dim=[root_area,width] --show
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -611,14 +609,16 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf --db PZ_Master1 --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
 
+        python -m ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --show
+
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
-        >>> do_per_annot = not ut.get_argflag('--do-per-name')
-        >>> result = draw_rank_cdf(ibs, testres, do_per_annot=do_per_annot)
+        >>> kwargs = ut.argparse_funckw(draw_rank_cdf)
+        >>> result = draw_rank_cdf(ibs, testres, **kwargs)
         >>> ut.show_if_requested()
         >>> print(result)
     """

@@ -1124,6 +1124,11 @@ class ChipConfig(ConfigBase):
                       cc_cfg.dim_size <= 0)
             chip_cfgstr += (['szorig'] if isOrig else
                             ['sz%r' % cc_cfg.dim_size])
+            if cc_cfg.resize_dim == 'root_area':
+                pass
+                #chip_cfgstr += ['a']
+            if cc_cfg.resize_dim == 'width':
+                chip_cfgstr += ['w']
             chip_cfgstr_list = ['_CHIP(', (','.join(chip_cfgstr)), ')']
         else:
             chip_cfgstr_list = []
