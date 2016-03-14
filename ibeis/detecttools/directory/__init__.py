@@ -22,9 +22,13 @@ class Directory(object):
         _kwargs(kwargs, 'include_hidden', False)
         _kwargs(kwargs, 'exclude_file_extensions', [])
         _kwargs(kwargs, 'recursive', False)
+        _kwargs(kwargs, 'absolute', True)
 
         if(kwargs['include_file_extensions'] == 'images'):
             kwargs['include_file_extensions'] = ['jpg', 'jpeg', 'png', 'tiff']
+
+        if kwargs['absolute']:
+            directory_path = os.path.abspath(os.path.expanduser(directory_path))
 
         if not os.path.exists(directory_path):
             raise Exception('DIRECTORY_EXISTENCE', 'The directory path you specified [' + directory_path + '] does not exist.')
