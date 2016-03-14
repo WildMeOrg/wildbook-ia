@@ -139,7 +139,7 @@ except AttributeError:
         raise
 
 
-class WebException(Exception, ut.NiceRepr):
+class WebException(ut.NiceRepr, Exception):
     def __init__(self, message, rawreturn=None, code=400):
         self.code = code
         self.message = message
@@ -155,8 +155,7 @@ class WebException(Exception, ut.NiceRepr):
             return self.rawreturn
 
     def __nice__(self):
-        args = (self.code, self.message, )
-        return '(%r: %r)' % args
+        return '(%r: %r)' % (self.code, self.message,)
 
 
 class WebMissingUUIDException(WebException):
