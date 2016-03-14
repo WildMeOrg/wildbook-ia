@@ -575,7 +575,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         pt.adjust_subplots2(use_argv=True)
 
 
-def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True):
+def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True, draw_icon=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -719,7 +719,6 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         #ax.get_xlim()
         pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
         #ax.get_ylim()
-
     fig = pt.gcf()
     #import utool as ut
     # HACK FOR FIGSIZE
