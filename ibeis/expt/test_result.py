@@ -1276,12 +1276,14 @@ class TestResult(object):
                 self.prev_num_valid = num_valid
 
             def print_post(self, is_valid, flags, msg):
-                num_passed = flags.sum()
+                if flags is not None:
+                    num_passed = flags.sum()
                 num_valid = is_valid.sum()
                 num_invalidated = self.prev_num_valid - num_valid
                 print(msg)
                 if num_invalidated == 0:
-                    print('  * num_passed = %r' % (num_passed,))
+                    if flags is not None:
+                        print('  * num_passed = %r' % (num_passed,))
                     print('  * num_invalided = %r' % (num_invalidated,))
                 else:
                     print('  * prev_num_valid = %r' % (self.prev_num_valid,))
@@ -1421,14 +1423,10 @@ class TestResult(object):
             qx_list = _qx_list
             cfgx_list = _cfgx_list
             if verbose:
-                num_valid = is_valid.sum()
-                print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
-                print('  * num_valid = %r' % (num_valid,))
+                verbinfo.print_post(is_valid, None,
+                                    'Enforcing that all configs must pass filters')
 
         if index is not None:
-            if verbose:
-                print('Taking index=%r sample from len(qx_list) = %r' % (index, len(qx_list),))
-                print('  * prev_num_valid = %r' % (prev_num_valid,))
             if isinstance(index, six.string_types):
                 index = ut.smart_cast(index, slice)
             _qx_list = ut.take(qx_list, index)
@@ -1438,9 +1436,10 @@ class TestResult(object):
             qx_list = _qx_list
             cfgx_list = _cfgx_list
             if verbose:
-                num_valid = is_valid.sum()
-                print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
-                print('  * num_valid = %r' % (num_valid,))
+                verbinfo.print_post(
+                    is_valid, None,
+                    'Taking index=%r sample from len(qx_list) = %r' % (
+                        index, len(qx_list),))
 
         if not return_mask:
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
