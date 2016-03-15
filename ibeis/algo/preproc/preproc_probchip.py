@@ -71,8 +71,8 @@ def postprocess_dev():
         chip_fpath = ibs.get_annot_chip_fpath(aid)
         probchip_fpath = ibs.get_annot_probchip_fpath(aid)
 
-        chip_img = cv2.imread(chip_fpath)
-        probchip_img = cv2.imread(probchip_fpath, flags=cv2.IMREAD_GRAYSCALE)
+        chip_img = vt.imread(chip_fpath)
+        probchip_img = vt.imread(probchip_fpath, grayscale=True)
 
         label_values = [cv2.GC_BGD, cv2.GC_PR_BGD, cv2.GC_PR_FGD, cv2.GC_FGD]
 

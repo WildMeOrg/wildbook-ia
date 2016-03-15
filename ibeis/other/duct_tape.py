@@ -42,30 +42,6 @@ def fix_compname_configs(ibs):
             params=(rowid,))
 
 
-def fix_image_orientation(ibs, gid_list=None):
-    import vtool as vt
-    from ibeis.web.appfuncs import open_oriented_image
-    import cv2
-
-    if gid_list is None:
-        gid_list = ibs.get_valid_gids()
-
-    for gid in gid_list:
-        image_path = ibs.get_image_paths(gid)
-
-        _image = vt.imread(image_path)
-        height, width, channels = _image.shape
-
-        # Check for orientation
-        _image_temp = open_oriented_image(image_path, ignore_resize=True)
-        height_temp, width_temp, channels_temp = _image_temp.shape
-        if height != height_temp or width != width_temp or channels != channels_temp:
-            # Fix file on disk
-            cv2.imwrite(image_path, _image_temp)
-            aid_list = ibs.get_image_aids(gid)
-            ibs.delete_annot_chips(aid_list)
-
-
 def remove_database_slag(ibs,
                          delete_empty_names=False,
                          delete_empty_imagesets=False,

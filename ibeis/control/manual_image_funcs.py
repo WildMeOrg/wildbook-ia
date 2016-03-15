@@ -296,7 +296,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
     colnames = ('image_uuid', 'image_uri', 'image_uri_original', 'image_original_name',
                 'image_ext', 'image_width', 'image_height',
                 'image_time_posix', 'image_gps_lat',
-                'image_gps_lon', 'image_note',)
+                'image_gps_lon', 'image_orientation', 'image_note',)
     # <DEBUG>
     debug = False
     if debug:
@@ -673,8 +673,18 @@ def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
 
 
 @register_ibs_method
+def imread(ibs, gid, force_orient=False):
+    orient = ibs.get_image_orientation(gid)
+    orient = orient if force_orient else False
+    print('Orient for gid %d: %r' % (gid, orient, ))
+    gpath = ibs.get_image_paths(gid)
+    image = vt.imread(gpath, orient=orient)
+    return image
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
-def get_images(ibs, gid_list):
+def get_images(ibs, gid_list, **kwargs):
     r"""
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
@@ -708,9 +718,7 @@ def get_images(ibs, gid_list):
         >>> print(result)
         (715, 1047, 3)
     """
-    from vtool import image as gtool
-    gpath_list = ibs.get_image_paths(gid_list)
-    image_list = [gtool.imread(gpath) for gpath in gpath_list]
+    image_list = [ibs.imread(gid, **kwargs) for gid in gid_list]
     return image_list
 
 
@@ -1206,6 +1214,36 @@ def get_image_lon(ibs, gid_list):
     """
     lon_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lon',), gid_list)
     return lon_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/orientation/', methods=['GET'])
+def get_image_orientation(ibs, gid_list):
+    r"""
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/orientation/
+    """
+    orient_list = ibs.db.get(const.IMAGE_TABLE, ('image_orientation',), gid_list)
+    return orient_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/orientation_str/', methods=['GET'])
+def get_image_orientation_str(ibs, gid_list):
+    r"""
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/orientation_str/
+    """
+    from vtool.exif import ORIENTATION_DICT
+    orient_list = ibs.get_image_orientation(gid_list)
+    orient_str = [ ORIENTATION_DICT[orient] for orient in orient_list ]
+    return orient_str
 
 
 @register_ibs_method

@@ -1367,6 +1367,13 @@ def update_1_5_1(db, ibs=None):
     )
 
 
+def update_1_5_2(db, ibs=None):
+    # Add orientation to images
+    db.modify_table(const.IMAGE_TABLE, (
+        (12, 'image_orientation', 'INTEGER DEFAULT 0', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1407,6 +1414,7 @@ VALID_VERSIONS = ut.odict([
     ('1.4.9',    (pre_1_4_9,            update_1_4_9,       post_1_4_9          )),
     ('1.5.0',    (None,                 update_1_5_0,       None                )),
     ('1.5.1',    (None,                 update_1_5_1,       None                )),
+    ('1.5.2',    (None,                 update_1_5_2,       None                )),
 ])
 """
 SeeAlso:

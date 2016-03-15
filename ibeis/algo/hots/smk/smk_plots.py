@@ -301,7 +301,7 @@ def make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath):
         #df2.rrr()
         fpath_list = ut.ls(dpath)
         fname_list = [basename(fpath_) for fpath_ in fpath_list]
-        patch_list = [gtool.imread(fpath_) for fpath_ in fpath_list]
+        patch_list = [vt.imread(fpath_) for fpath_ in fpath_list]
         # color each patch by nid
         nid_list = [int(parse.parse('{}_nid={nid}_{}', fname)['nid']) for fname in fname_list]
         nid_set = set(nid_list)

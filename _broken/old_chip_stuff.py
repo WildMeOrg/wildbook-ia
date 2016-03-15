@@ -106,7 +106,7 @@ def add_annot_chips_params_gen(ibs, aid_list, qreq_=None):
         cfpath_list = make_annot_cfpath_list(ibs, aid_list)
         chip_config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
         for cfpath, aid in zip(cfpath_list, aid_list):
-            pil_chip = gtool.open_pil_image(cfpath)
+            pil_chip = vt.open_pil_image(cfpath)
             width, height = pil_chip.size
             if ut.DEBUG2:
                 print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))

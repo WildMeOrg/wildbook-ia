@@ -7,7 +7,7 @@ from flask import request, make_response, current_app
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
-
+import vtool as vt
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -23,6 +23,7 @@ def set_cookie():
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
 def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
     ibs = current_app.ibs
+    gid = int(gid)
     thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     if thumbnail:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
@@ -37,16 +38,21 @@ def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
             import os
             os.remove(gpath)
             gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+        image = vt.imread(gpath)
     else:
-        gpath = ibs.get_image_paths(gid)
-    return appf.return_src(gpath)
+        print(gid)
+        image = ibs.imread(gid)
+    image_src = appf.embed_image_html(image, target_width=200)
+    return image_src
 
 
 @register_route('/ajax/annotation/src/<aid>/', methods=['GET'])
 def annotation_src(aid=None):
     ibs = current_app.ibs
     gpath = ibs.get_annot_chip_fpath(aid)
-    return appf.return_src(gpath)
+    image = vt.imread(gpath)
+    image_src = appf.embed_image_html(image, target_width=200)
+    return image_src
 
 
 if __name__ == '__main__':

@@ -136,7 +136,7 @@
     if(!contains(loading, gid) && loading.length <= buffer)
     {
       // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
-      request = $.ajax( "/ajax/image/src/" + gid )
+      request = $.ajax( "/ajax/image/src/" + gid + "?thumbnail=true")
       .done(function( response ) {
         // Load SRC into Image
         $(element).attr('src', response);

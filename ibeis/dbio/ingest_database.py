@@ -20,6 +20,7 @@ from os.path import relpath, dirname, exists, join, realpath, basename
 from ibeis import ibsfuncs
 from ibeis import constants as const
 import utool as ut
+import vtool as vt
 import parse
 
 
@@ -744,7 +745,6 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         >>>
         #>>> ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)
     """
-    from PIL import Image
     print('Loading Oxford Style Images from: ' + dbdir)
 
     def _parse_oxsty_gtfname(gt_fname):
@@ -775,7 +775,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
                 else:
                     # Get annotation width / height
                     gpath = join(img_dpath, gname)
-                    (w, h) = Image.open(gpath).size
+                    h, w, c = vt.imread(gpath, orient='auto').shape
                     bbox = [0, 0, w, h]
                 oxsty_annot_info = (gname, bbox)
                 oxsty_annot_info_list.append(oxsty_annot_info)

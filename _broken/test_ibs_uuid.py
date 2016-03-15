@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
 from PIL import Image
 from ibeis.algo.preproc import preproc_image
 from uuid import UUID
@@ -10,15 +9,16 @@ from vtool.tests import grabdata
 import hashlib
 import multiprocessing
 import numpy as np
-import utool
+import utool as ut
+import vtool as vt  # NOQA
 import uuid
 import PIL
 import cv2
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_UUID]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[TEST_UUID]')
 
-MACHINE_NAME = utool.get_computer_name()
+MACHINE_NAME = ut.get_computer_name()
 
-TEST_TARGETS = utool.ddict(lambda: utool.ddict(dict))
+TEST_TARGETS = ut.ddict(lambda: ut.ddict(dict))
 
 # ---------------
 # DEPENDS['C:\\Python27\\Lib\\site-packages\\PIL\\_imaging.pyd']['Ooo']
@@ -954,15 +954,15 @@ writeln = lines.append
 
 
 def print_var(key, indent='    '):
-    locals_ = utool.get_parent_locals()
-    val = utool.truncate_str(repr(str(locals_[key])), maxlen=64)
+    locals_ = ut.get_parent_locals()
+    val = ut.truncate_str(repr(str(locals_[key])), maxlen=64)
     line = indent + '%r: r%s,' % (key, val)
     writeln(line)
 
 
 def get_gpath_from_key(key):
     if key.find('http') != -1:
-        gpath = utool.grab_file_url(key)
+        gpath = ut.grab_file_url(key)
     else:
         gpath = grabdata.get_test_gpaths(names=key)[0]
     return gpath
@@ -972,11 +972,11 @@ def test_uuid(key):
     print('\n\n-----------------------')
     print('[TEST_UUID] TESTING: %r' % key)
     gpath = get_gpath_from_key(key)
-    npimg2 = cv2.imread(gpath)
-    npshape = npimg2.shape
-    npsum = npimg2.sum()
+    # npimg2 = vt.imread(gpath)
+    # npshape = npimg2.shape
+    # npsum = npimg2.sum()
 
-    pil_img = Image.open(gpath)
+    pil_img = Image.open(gpath)  # NOQA
     uuid1 = preproc_image.get_image_uuid(pil_img)
     npimg = np.asarray(pil_img)
     img_bytes_ = npimg.ravel()[::64].tostring()
@@ -985,8 +985,8 @@ def test_uuid(key):
     hashbytes_16 = hashbytes_20[0:16]
     uuid_ = uuid.UUID(bytes=hashbytes_16)
 
-    sum_ = npimg.sum()
-    size = pil_img.size
+    # sum_ = npimg.sum()
+    # size = pil_img.size
 
     test_varnames = [
         'gpath',
@@ -1013,7 +1013,7 @@ def test_uuid(key):
         assert uuid1 == target_uuid, 'uuid and target_uuid do not match'
         assert uuid_ == uuid1, 'uuid_ does not match uuid1'
     except Exception as ex:
-        utool.printex(ex)
+        ut.printex(ex)
         return False
     return True
 
@@ -1023,26 +1023,26 @@ def test_specs():
         print('Image.PILLOW_VERSION: %r' % Image.PILLOW_VERSION)
         assert Image.PILLOW_VERSION == '2.4.0'
     except Exception as ex:
-        utool.printex(ex)
+        ut.printex(ex)
         pass
     if len(PIL.__path__) > 1:
         writeln('# WARNING THERE ARE MULTIPLE PILS! %r ' % PIL.__path__)
     for pil_path in PIL.__path__:
         writeln('# Listing libraries in %r' % (pil_path))
-        lib_list = utool.ls_libs(pil_path)
+        lib_list = ut.ls_libs(pil_path)
         for libpath in lib_list:
-            depend_out = utool.get_dynlib_dependencies(libpath)
+            depend_out = ut.get_dynlib_dependencies(libpath)
             writeln('# ---------------')
             writeln('# DEPENDS[%r][%r]' % (libpath, MACHINE_NAME))
-            writeln(utool.indentjoin(depend_out.splitlines(), '\n# ').strip())
+            writeln(ut.indentjoin(depend_out.splitlines(), '\n# ').strip())
     cv2_file = cv2.__file__
-    cv2_depends = utool.get_dynlib_dependencies(cv2_file)
-    cv2_version = cv2.__version__
+    cv2_depends = ut.get_dynlib_dependencies(cv2_file)
+    # cv2_version = cv2.__version__
     writeln('# ---------------')
     writeln('# DEPENDS[%r][%r]' % (cv2_file, MACHINE_NAME))
-    writeln(utool.indentjoin(cv2_depends.splitlines(), '\n# ').strip())
-    pillow_version = Image.PILLOW_VERSION
-    pil_version = PIL.VERSION
+    writeln(ut.indentjoin(cv2_depends.splitlines(), '\n# ').strip())
+    # pillow_version = Image.PILLOW_VERSION
+    # pil_version = PIL.VERSION
     writeln('SPECS = {}')
     writeln('SPECS[%r] = {' % (MACHINE_NAME))
     print_var('cv2_version')
@@ -1065,7 +1065,7 @@ def TEST_UUID():
     #    flag = test_uuid(key)
     #    test_image_passed[key] = flag
 
-    ## Write out all that buffered info
+    # # Write out all that buffered info
     #sys.stdout.write('\n'.join(lines) + '\n')
     #sys.stdout.flush()
 
@@ -1075,7 +1075,7 @@ def TEST_UUID():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = utool.run_test(TEST_UUID)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
+    test_locals = ut.run_test(TEST_UUID)
+    execstr = ut.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
-    exec(utool.ipython_execstr())
+    exec(ut.ipython_execstr())

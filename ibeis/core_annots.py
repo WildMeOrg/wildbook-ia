@@ -157,9 +157,9 @@ def compute_chip(depc, aid_list, config=None):
     cfpath_list = [ut.unixjoin(chip_dpath, chip_fname)
                    for chip_fname in cfname_list]
 
-    gfpath_list = ibs.get_annot_image_paths(aid_list)
-    bbox_list   = ibs.get_annot_bboxes(aid_list)
-    theta_list  = ibs.get_annot_thetas(aid_list)
+    gid_list   = ibs.get_annot_gids(aid_list)
+    bbox_list  = ibs.get_annot_bboxes(aid_list)
+    theta_list = ibs.get_annot_thetas(aid_list)
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
 
     # Checks
@@ -193,7 +193,7 @@ def compute_chip(depc, aid_list, config=None):
     M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
               bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)]
 
-    arg_iter = zip(cfpath_list, gfpath_list, newsize_list, M_list)
+    arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
     arg_list = list(arg_iter)
 
     flags = cv2.INTER_LANCZOS4
@@ -201,9 +201,9 @@ def compute_chip(depc, aid_list, config=None):
     warpkw = dict(flags=flags, borderMode=borderMode)
 
     for tup in ut.ProgIter(arg_list, lbl='computing chips'):
-        cfpath, gfpath, new_size, M = tup
+        cfpath, gid, new_size, M = tup
         # Read parent image
-        imgBGR = vt.imread(gfpath)
+        imgBGR = ibs.imread(gid)
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
         width, height = vt.get_size(chipBGR)

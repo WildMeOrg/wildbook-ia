@@ -6,12 +6,10 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import zipfile
 import time
-from PIL import Image
 import cStringIO as StringIO
 from flask import request, current_app, send_file
 from ibeis.control import controller_inject
 import utool as ut
-from ibeis.web import appfuncs as appf
 print, rrr, profile = ut.inject2(__name__, '[apis]')
 
 
@@ -30,6 +28,7 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
         Method: GET
         URL:    /api/image/src/<gid>/
     """
+    from PIL import Image  # NOQA
     thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     ibs = current_app.ibs
     if thumbnail:
@@ -42,7 +41,7 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     else:
         gpath = ibs.get_image_paths(gid)
 
-    image = appf.open_oriented_image(gpath)
+    image = ibs.imread(gid)
     image_pil = Image.fromarray(image)
     img_io = StringIO.StringIO()
     image_pil.save(img_io, 'JPEG', quality=100)

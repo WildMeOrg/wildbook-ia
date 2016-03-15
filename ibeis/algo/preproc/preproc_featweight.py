@@ -3,17 +3,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # Python
 from six.moves import zip, range, map  # NOQA
 # UTool
-import utool
 import utool as ut
-import vtool.patch as vtpatch
-import vtool.image as vtimage  # NOQA
 import vtool as vt
 #import vtool.image as vtimage
 import numpy as np
 from ibeis.algo.preproc import preproc_probchip
 from os.path import exists
 # Inject utool functions
-(print, rrr, profile) = utool.inject2(__name__, '[preproc_featweight]')
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_featweight]')
 
 
 def test_featweight_worker():
@@ -36,7 +33,7 @@ def test_featweight_worker():
                                                                       lazy=lazy,
                                                                       config2_=config2_)
     print('probchip_fpath_list = %r' % (probchip_fpath_list,))
-    probchip_list       = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
+    probchip_list       = [vt.imread(fpath, grayscale=True) if exists(fpath) else None
                            for fpath in probchip_fpath_list]
 
     _iter = list(zip(aid_list, kpts_list, probchip_list, chipsize_list))
@@ -115,7 +112,7 @@ def gen_featweight_worker(tup):
     Ignore::
         import plottool as pt
         pt.imshow(probchip_list[0])
-        patch_list = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts[0:1]]
+        patch_list = [vt.patch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts[0:1]]
         patch_ = patch_list[0].copy()
         patch = patch_
         patch = patch_[-20:, :20, 0]
@@ -164,10 +161,10 @@ def gen_featweight_worker(tup):
     else:
         sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
         kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
-        #vtpatch.get_warped_patches()
-        patch_list  = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
+        #vt.patch.get_warped_patches()
+        patch_list  = [vt.patch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
                        for kp in kpts_]
-        weight_list = [vtpatch.gaussian_average_patch(patch) for patch in patch_list]
+        weight_list = [vt.patch.gaussian_average_patch(patch) for patch in patch_list]
         #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         weights = np.array(weight_list, dtype=np.float32)
     return (aid, weights)
@@ -198,19 +195,19 @@ def compute_fgweights(ibs, aid_list, config2_=None):
 
     #if ut.DEBUG2:
     #    from PIL import Image
-    #    probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
+    #    probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]  # NOQA
     #    #with ut.embed_on_exception_context:
     #    # does not need to happen anymore
     #    assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list, config2_=config2_)
     # Force grayscale reading of chips
-    probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
+    probchip_list = [vt.imread(fpath, grayscale=True) if exists(fpath) else None
                      for fpath in probchip_fpath_list]
 
     print('[preproc_featweight.compute_fgweights] Computing %d fgweights' % (nTasks,))
     arg_iter = zip(aid_list, kpts_list, probchip_list, chipsize_list)
-    featweight_gen = utool.generate(gen_featweight_worker, arg_iter,
+    featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
                                     nTasks=nTasks, ordered=True, freq=10)
     featweight_param_list = list(featweight_gen)
     #arg_iter = zip(aid_list, kpts_list, probchip_list)

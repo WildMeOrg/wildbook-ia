@@ -14,7 +14,7 @@ def print_ascii_graph(model_):
 
     python -c
     """
-    from PIL import Image
+    from PIL import Image  # NOQA
     from six.moves import StringIO
     #import networkx as netx
     import copy
@@ -28,7 +28,7 @@ def print_ascii_graph(model_):
     sio = StringIO()
     sio.write(png_str)
     sio.seek(0)
-    pil_img = Image.open(sio)
+    pil_img = Image.open(sio)  # NOQA
     print('pil_img.size = %r' % (pil_img.size,))
     #def print_ascii_image(pil_img):
     #    img2txt = ut.import_module_from_fpath('/home/joncrall/venv/bin/img2txt.py')

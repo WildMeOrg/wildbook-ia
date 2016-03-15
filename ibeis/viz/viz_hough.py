@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import vtool as vt
 from ibeis.viz import viz_helpers as vh
-from vtool import image as gtool
 from ibeis.algo.detect import randomforest
 from os.path import splitext
 from plottool import viz_image2
@@ -29,7 +29,7 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     results_list = list(randomforest.detect_gpath_list_with_species(ibs, src_gpath_list, species, **config))  # NOQA
     # Get path
     hough_gpath = hough_gpath_list[0]
-    img = gtool.imread(hough_gpath)
+    img = vt.imread(hough_gpath)
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)
     return fig, ax
 
@@ -58,7 +58,7 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None, **kw
     fnum = pt.ensure_fnum(fnum)
     title = 'Probability Chip: ' + ', '.join(vh.get_annot_text(ibs, [aid], True))
     hough_cpath = ibs.get_annot_probchip_fpath(aid, config2_=config2_)
-    img = gtool.imread(hough_cpath)
+    img = vt.imread(hough_cpath)
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)
     return fig, ax
 

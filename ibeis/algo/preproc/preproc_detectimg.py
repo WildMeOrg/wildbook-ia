@@ -9,21 +9,21 @@ import vtool as vt
 
 def gen_detectimg_and_write(tup):
     """ worker function for parallel generator """
-    gid, gfpath, new_gfpath, new_size = tup
+    gid, gfpath, new_gfpath, new_size, orient = tup
     #print('[preproc] writing detectimg: %r' % new_gfpath)
-    img = vt.imread(gfpath)
+    img = vt.imread(gfpath, orient=orient)
     new_img = vt.resize(img, new_size)
     vt.imwrite(new_gfpath, new_img)
     return gid, new_gfpath
 
 
 def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
-                        newsize_list, nImgs=None):
+                        newsize_list, orient_list, nImgs=None):
     """ Resizes images and yeilds results asynchronously  """
     # Compute and write detectimg in asychronous process
     if nImgs is None:
         nImgs = len(gid_list)
-    arg_iter = zip(gid_list, gfpath_list, new_gfpath_list, newsize_list)
+    arg_iter = zip(gid_list, gfpath_list, new_gfpath_list, newsize_list, orient_list)
     arg_list = list(arg_iter)
     # THis probably wont work for the same reason gen_chip wont work
     return ut.util_parallel.generate(gen_detectimg_and_write, arg_list, force_serial=True)
@@ -89,10 +89,12 @@ def compute_and_write_detectimg(ibs, gid_list):
     gfpath_list  = ibs.get_image_paths(gid_list)
     gsize_list   = ibs.get_image_sizes(gid_list)
     newsize_list = vt.get_scaled_sizes_with_area(target_area, gsize_list)
+    orient_list  = ibs.get_image_orientation(gid_list)
     # Define "Asynchronous" generator
     print('[preproc_detectimg] Computing %d imgs asynchronously' % (len(gfpath_list)))
     detectimg_async_iter = gen_detectimg_async(gid_list, gfpath_list,
-                                               new_gfpath_list, newsize_list)
+                                               new_gfpath_list, newsize_list,
+                                               orient_list)
     for gid, new_gfpath in detectimg_async_iter:
         # print('Wrote detectimg: %r' % new_gfpath)
         pass

@@ -92,10 +92,10 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False, check_orientation=False):
+def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
     import random
     from datetime import date
-    from ibeis.web.appfuncs import open_oriented_image
+
     current_year = date.today().year
     # target_size = 900
     information = {
@@ -134,7 +134,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
-        if len(aid_list) > 0:
+        if len(aid_list) > -1:
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
@@ -142,16 +142,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 
-            _image = vt.imread(image_path)
+            _image = ibs.imread(gid)
             height, width, channels = _image.shape
-
-            if check_orientation:
-                # Check for orientation
-                _image_temp = open_oriented_image(image_path, ignore_resize=True)
-                height_temp, width_temp, channels_temp = _image_temp.shape
-                if height != height_temp or width != width_temp or channels != channels_temp:
-                    print('FOUND BAD IMAGE')
-                    ut.embed()
 
             if width > height:
                 ratio = height / width
@@ -915,12 +907,12 @@ def check_annot_size(ibs):
 def check_exif_data(ibs, gid_list):
     """ TODO CALL SCRIPT """
     import vtool.exif as exif
-    from PIL import Image
+    from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
     exif_dict_list = []
     for ix in ut.ProgressIter(range(len(gpath_list)), lbl='checking exif: '):
         gpath = gpath_list[ix]
-        pil_img = Image.open(gpath, 'r')
+        pil_img = Image.open(gpath, 'r')  # NOQA
         exif_dict = exif.get_exif_dict(pil_img)
         exif_dict_list.append(exif_dict)
         #if len(exif_dict) > 0:
@@ -1089,10 +1081,10 @@ def fix_exif_data(ibs, gid_list):
         >>> print(result)
     """
     import vtool as vt
-    from PIL import Image
+    from PIL import Image  # NOQA
     gpath_list = ibs.get_image_paths(gid_list)
 
-    pil_img_gen = (Image.open(gpath, 'r') for gpath in gpath_list)
+    pil_img_gen = (Image.open(gpath, 'r') for gpath in gpath_list)  # NOQA
 
     exif_dict_list = [
         vt.get_exif_dict(pil_img)
@@ -2572,31 +2564,33 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsiz
     plt.savefig('/Users/bluemellophone/Desktop/precision-recall.png', bbox_inches='tight')
 
 
+def _resize(image, t_width=None, t_height=None):
+    import cv2
+    print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+    height, width = image.shape[:2]
+    if t_width is None and t_height is None:
+        return image
+    elif t_width is not None and t_height is not None:
+        pass
+    elif t_width is None:
+        t_width = (width / height) * float(t_height)
+    elif t_height is None:
+        t_height = (height / width) * float(t_width)
+    t_width, t_height = float(t_width), float(t_height)
+    t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
+    assert t_width > 0 and t_height > 0, 'target size too small'
+    assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
+    # interpolation = cv2.INTER_LANCZOS4
+    interpolation = cv2.INTER_LINEAR
+    return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
+
+
 @register_ibs_method
 def detect_write_detection_exmaples(ibs, SEED=23170):
     from os.path import abspath, expanduser, join
     import ibeis
     import random
     import cv2
-
-    def _resize(image, t_width=None, t_height=None):
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
-        height, width = image.shape[:2]
-        if t_width is None and t_height is None:
-            return image
-        elif t_width is not None and t_height is not None:
-            pass
-        elif t_width is None:
-            t_width = (width / height) * float(t_height)
-        elif t_height is None:
-            t_height = (height / width) * float(t_width)
-        t_width, t_height = float(t_width), float(t_height)
-        t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
-        assert t_width > 0 and t_height > 0, 'target size too small'
-        assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
-        # interpolation = cv2.INTER_LANCZOS4
-        interpolation = cv2.INTER_LINEAR
-        return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
 
     operating_dict = {
         'rcnn': 80,
@@ -2644,25 +2638,6 @@ def detect_write_detection_exmaples(ibs, SEED=23170):
 def detect_write_detection_all(ibs):
     from os.path import abspath, join
     import cv2
-
-    def _resize(image, t_width=None, t_height=None):
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
-        height, width = image.shape[:2]
-        if t_width is None and t_height is None:
-            return image
-        elif t_width is not None and t_height is not None:
-            pass
-        elif t_width is None:
-            t_width = (width / height) * float(t_height)
-        elif t_height is None:
-            t_height = (height / width) * float(t_width)
-        t_width, t_height = float(t_width), float(t_height)
-        t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
-        assert t_width > 0 and t_height > 0, 'target size too small'
-        assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
-        # interpolation = cv2.INTER_LANCZOS4
-        interpolation = cv2.INTER_LINEAR
-        return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
 
     test_gid_list = ibs.get_valid_gids()
     test_image_list = ibs.get_images(test_gid_list)
@@ -3358,8 +3333,8 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
 
 def draw_thumb_helper(tup):
-    thumb_path, thumbsize, gpath, bbox_list, theta_list = tup
-    img = vt.imread(gpath)  # time consuming
+    thumb_path, thumbsize, gpath, orient, bbox_list, theta_list = tup
+    img = vt.imread(gpath, orient=orient)  # time consuming
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
     max_dsize = (thumbsize, thumbsize)
@@ -3437,6 +3412,7 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
     Does not use any caching
     """
     gpath_list = ibs.get_image_paths(gid_list_)
+    orient_list = ibs.get_image_orientation(gid_list_)
     aids_list = ibs.get_image_aids(gid_list_)
     if draw_annots:
         bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
@@ -3444,9 +3420,9 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
     else:
         bboxes_list = [ [] for aids in aids_list ]
         thetas_list = [ [] for aids in aids_list ]
-    args_list = [(thumb_path, thumbsize, gpath, bbox_list, theta_list)
-                 for thumb_path, gpath, bbox_list, theta_list in
-                 zip(thumbpath_list_, gpath_list, bboxes_list, thetas_list)]
+    args_list = [(thumb_path, thumbsize, gpath, orient, bbox_list, theta_list)
+                 for thumb_path, gpath, orient, bbox_list, theta_list in
+                 zip(thumbpath_list_, gpath_list, orient_list, bboxes_list, thetas_list)]
 
     # Execute all tasks in parallel
     genkw = {

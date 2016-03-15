@@ -13,7 +13,6 @@ from ibeis.web import appfuncs as appf
 from ibeis.web import routes_ajax
 import utool as ut
 
-
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
@@ -621,8 +620,8 @@ def turk_detection():
     display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
     if not finished:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-        image = appf.open_oriented_image(gpath)
-        image_src = appf.embed_image_html(image, filter_width=False)
+        image = ibs.imread(gid)
+        image_src = appf.embed_image_html(image)
         # Get annotations
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
@@ -680,8 +679,8 @@ def turk_detection_dynamic():
     gid = request.args.get('gid', None)
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-    image = appf.open_oriented_image(gpath)
-    image_src = appf.embed_image_html(image, filter_width=False)
+    image = ibs.imread(gid)
+    image_src = appf.embed_image_html(image)
     # Get annotations
     width, height = ibs.get_image_sizes(gid)
     aid_list = ibs.get_image_aids(gid)
@@ -748,7 +747,7 @@ def turk_viewpoint():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = appf.open_oriented_image(gpath)
+        image     = ibs.imread(gid)
         image_src = appf.embed_image_html(image)
         species   = ibs.get_annot_species_texts(aid)
     else:
@@ -836,7 +835,7 @@ def turk_quality():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = appf.open_oriented_image(gpath)
+        image     = ibs.imread(gid)
         image_src = appf.embed_image_html(image)
     else:
         gid       = None
@@ -915,7 +914,7 @@ def turk_additional():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = appf.open_oriented_image(gpath)
+        image     = ibs.imread(gid)
         image_src = appf.embed_image_html(image)
     else:
         gid       = None

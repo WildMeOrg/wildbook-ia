@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from PIL import Image
-import numpy as np
 import cStringIO as StringIO
 import flask
 import random
-import cv2
+from ibeis import ibsfuncs
 from ibeis.constants import TAU
 from flask import request, current_app
 from os.path import join, dirname, abspath  # NOQA
@@ -40,37 +38,7 @@ class NavbarClass(object):
             yield link == _link[0], link, nice
 
 
-ORIENTATIONS = {   # used in apply_orientation
-    2: (Image.FLIP_LEFT_RIGHT,),
-    3: (Image.ROTATE_180,),
-    4: (Image.FLIP_TOP_BOTTOM,),
-    5: (Image.FLIP_LEFT_RIGHT, Image.ROTATE_90),
-    6: (Image.ROTATE_270,),
-    7: (Image.FLIP_LEFT_RIGHT, Image.ROTATE_270),
-    8: (Image.ROTATE_90,)
-}
-
-
 def resize_via_web_parameters(image):
-    def _resize(image, t_width=None, t_height=None):
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
-        height, width = image.shape[:2]
-        if t_width is None and t_height is None:
-            return image
-        elif t_width is not None and t_height is not None:
-            pass
-        elif t_width is None:
-            t_width = (width / height) * float(t_height)
-        elif t_height is None:
-            t_height = (height / width) * float(t_width)
-        t_width, t_height = float(t_width), float(t_height)
-        t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
-        assert t_width > 0 and t_height > 0, 'target size too small'
-        assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
-        # interpolation = cv2.INTER_LANCZOS4
-        interpolation = cv2.INTER_LINEAR
-        return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
-
     w_pix = request.args.get('resize_pix_w',      request.form.get('resize_pix_w',      None ))
     h_pix = request.args.get('resize_pix_h',      request.form.get('resize_pix_h',      None ))
     w_per = request.args.get('resize_per_w',      request.form.get('resize_per_w',      None ))
@@ -96,59 +64,20 @@ def resize_via_web_parameters(image):
     if h_per:
         h_pix = float(h_per) * image.shape[0]
     # Perform resize
-    return _resize(image, t_width=w_pix, t_height=h_pix)
+    return ibsfuncs._resize(image, t_width=w_pix, t_height=h_pix)
 
 
-def open_oriented_image(im_path, ignore_resize=False):
-    im = Image.open(im_path)
-    if hasattr(im, '_getexif'):
-        exif = im._getexif()
-        if exif is not None and 274 in exif:
-            orientation = exif[274]
-            im = apply_orientation(im, orientation)
-    img = np.asarray(im).astype(np.uint8)
-    if img.ndim == 2:
-        img = img[:, :, np.newaxis]
-        img = np.tile(img, (1, 1, 3))
-    elif img.shape[2] == 4:
-        img = img[:, :, :3]
-    # Check for passed in resize parameters
-    if not ignore_resize:
-        img = resize_via_web_parameters(img)
-    return img
-
-
-def apply_orientation(im, orientation):
-    """
-    This script handles the skimage exif problem.
-    """
-    if orientation in ORIENTATIONS:
-        for method in ORIENTATIONS[orientation]:
-            im = im.transpose(method)
-    return im
-
-
-def embed_image_html(image, filter_width=True):
+def embed_image_html(imgBGR, target_width=TARGET_WIDTH):
     """ Creates an image embedded in HTML base64 format. """
-    image_pil = Image.fromarray(image)
-    width, height = image_pil.size
-    if filter_width:
-        _height = int(TARGET_WIDTH / 2)
-        _width = int((float(_height) / height) * width)
-    else:
-        _width = int(TARGET_WIDTH)
-        _height = int((float(_width) / width) * height)
-    image_pil = image_pil.resize((_width, _height))
+    import cv2
+    from PIL import Image
+    imgBGR = ibsfuncs._resize(imgBGR, target_width)
+    imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
+    pil_img = Image.fromarray(imgRGB)
     string_buf = StringIO.StringIO()
-    image_pil.save(string_buf, format='jpeg')
+    pil_img.save(string_buf, format='jpeg')
     data = string_buf.getvalue().encode('base64').replace('\n', '')
     return 'data:image/jpeg;base64,' + data
-
-
-def return_src(gpath):
-    image = open_oriented_image(gpath)
-    image_src = embed_image_html(image, filter_width=True)
-    return image_src
 
 
 def check_valid_function_name(string):

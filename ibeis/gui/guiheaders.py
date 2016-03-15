@@ -71,6 +71,7 @@ def make_table_declarations(ibs):
             'reviewed',  # detection reviewed flag is not fullyused
             'datetime',
             'gps',
+            'orientation',
             'party_tag',
             'contributor_tag',
             #'gdconf',
@@ -272,6 +273,7 @@ def make_table_declarations(ibs):
         ('ext',         (str,      'EXT')),
         ('thumb',       ('PIXMAP', 'Thumb')),
         ('gps',         (str,      'GPS')),
+        ('orientation', (str,      'Orientation')),
         ('imageset_processed_flag',       (bool,      'Processed')),
         ('imageset_shipped_flag',         (bool,      'Commited')),
         ('imageset_start_datetime',     (str,      'Start Time')),
@@ -384,20 +386,21 @@ def make_ibeis_headers_dict(ibs):
     # Image Iders/Setters/Getters
     iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
-        'gid'        : lambda gids: gids,
-        'imgsetid'        : ibs.get_image_imgsetids,
-        'imagesettext'    : partial_imap_1to1(ut.tupstr, ibs.get_image_imagesettext),
-        'reviewed'   : ibs.get_image_reviewed,
-        'img_gname'  : ibs.get_image_gnames,
-        'nAids'      : ibs.get_image_num_annotations,
-        'unixtime'   : ibs.get_image_unixtime,
-        'datetime'   : ibs.get_image_datetime,
-        'gdconf'     : ibs.get_image_detect_confidence,
-        'imgnotes'   : ibs.get_image_notes,
-        'image_uuid' : ibs.get_image_uuids,
-        'ext'        : ibs.get_image_exts,
-        'thumb'      : ibs.get_image_thumbtup,
-        'gps'        : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
+        'gid'          : lambda gids: gids,
+        'imgsetid'     : ibs.get_image_imgsetids,
+        'imagesettext' : partial_imap_1to1(ut.tupstr, ibs.get_image_imagesettext),
+        'reviewed'     : ibs.get_image_reviewed,
+        'img_gname'    : ibs.get_image_gnames,
+        'nAids'        : ibs.get_image_num_annotations,
+        'unixtime'     : ibs.get_image_unixtime,
+        'datetime'     : ibs.get_image_datetime,
+        'gdconf'       : ibs.get_image_detect_confidence,
+        'imgnotes'     : ibs.get_image_notes,
+        'image_uuid'   : ibs.get_image_uuids,
+        'ext'          : ibs.get_image_exts,
+        'thumb'        : ibs.get_image_thumbtup,
+        'gps'          : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
+        'orientation'  : ibs.get_image_orientation_str,
     }
     infer_unspecified_getters(IMAGE_TABLE, 'image')
     setters[IMAGE_TABLE] = {

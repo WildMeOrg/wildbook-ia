@@ -152,7 +152,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
     image = appf.open_oriented_image(gpath)
-    image_src = appf.embed_image_html(image, filter_width=False)
+    image_src = appf.embed_image_html(image)
     width, height = ibs.get_image_sizes(gid)
 
     annotation_list = []

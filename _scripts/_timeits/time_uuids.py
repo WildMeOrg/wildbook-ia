@@ -46,7 +46,7 @@ def get_image_uuid(img_bytes_):
 
 @profile
 def make_uuid_PIL_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     img_bytes_ = pil_img.tobytes()
     uuid_ = get_image_uuid(img_bytes_)
@@ -55,7 +55,7 @@ def make_uuid_PIL_bytes(gpath):
 
 @profile
 def make_uuid_NUMPY_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     np_img = np.asarray(pil_img)
     np_flat = np_img.ravel()
@@ -66,7 +66,7 @@ def make_uuid_NUMPY_bytes(gpath):
 
 @profile
 def make_uuid_NUMPY_STRIDE_16_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     np_img = np.asarray(pil_img)
     np_flat = np_img.ravel()[::16]
@@ -77,7 +77,7 @@ def make_uuid_NUMPY_STRIDE_16_bytes(gpath):
 
 @profile
 def make_uuid_NUMPY_STRIDE_64_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
     uuid_ = get_image_uuid(img_bytes_)
@@ -86,7 +86,7 @@ def make_uuid_NUMPY_STRIDE_64_bytes(gpath):
 
 @profile
 def make_uuid_CONTIG_NUMPY_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     np_img = np.asarray(pil_img)
     np_flat = np_img.ravel().tostring()
@@ -98,7 +98,7 @@ def make_uuid_CONTIG_NUMPY_bytes(gpath):
 
 @profile
 def make_uuid_CONTIG_NUMPY_STRIDE_16_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     np_img = np.asarray(pil_img)
     np_contig = np.ascontiguousarray(np_img.ravel()[::16])
@@ -109,7 +109,7 @@ def make_uuid_CONTIG_NUMPY_STRIDE_16_bytes(gpath):
 
 @profile
 def make_uuid_CONTIG_NUMPY_STRIDE_64_bytes(gpath):
-    pil_img = Image.open(gpath, 'r')
+    pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
     img_bytes_ = np.ascontiguousarray(np.asarray(pil_img).ravel()[::64]).tostring()
     uuid_ = get_image_uuid(img_bytes_)

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from PIL import Image
 from os.path import splitext, basename
 import warnings  # NOQA
 import vtool.exif as vtexif
@@ -27,8 +26,9 @@ def parse_exif(pil_img):
     # TODO: More tags
     # (mainly the orientation tag)
     lat, lon = vtexif.get_lat_lon(exif_dict)
+    orient = vtexif.get_orientation(exif_dict)
     time = vtexif.get_unixtime(exif_dict)
-    return time, lat, lon
+    return time, lat, lon, orient
 
 
 def get_standard_ext(gpath):
@@ -72,9 +72,11 @@ def parse_imageinfo(gpath):
     # Parse arguments from tuple
     #print('[ginfo] gpath=%r' % gpath)
     # Try to open the image
+    from PIL import Image  # NOQA
     with warnings.catch_warnings(record=True) as w:
         try:
-            pil_img = Image.open(gpath, 'r')  # Open PIL Image
+            # Open image with Exif support
+            pil_img = Image.open(gpath, 'r')  # NOQA
         except IOError as ex:
             print('[preproc] IOError: %s' % (str(ex),))
             return None
@@ -88,7 +90,9 @@ def parse_imageinfo(gpath):
             print('Warnings issued by %r' % (gpath,))
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
-    time, lat, lon = parse_exif(pil_img)  # Read exif tags
+    time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
+    if orient in [6, 8]:
+        width, height = height, width
     # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
     image_uuid = ut.get_file_uuid(gpath)  # Read file ]-hash-> guid = gid
     #orig_gpath = gpath
@@ -108,6 +112,7 @@ def parse_imageinfo(gpath):
         time,
         lat,
         lon,
+        orient,
         notes
     )
     #print('[ginfo] %r %r' % (image_uuid, orig_gname))

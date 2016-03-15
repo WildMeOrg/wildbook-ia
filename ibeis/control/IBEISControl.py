@@ -496,13 +496,13 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.5.1'
+            ibs.db_version_expected = '1.5.2'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.1')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.2')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = dtool.SQLDatabaseController(
@@ -995,7 +995,7 @@ class IBEISController(BASE_CLASS):
                 ibs.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
             }.get(species, None)
             if url is not None:
-                icon = vt.imread(ut.grab_file_url(url))
+                icon = vt.imread(ut.grab_file_url(url), orient='auto')
             else:
                 # HACK: (this should probably be a db setting)
                 # use an specific aid to get the icon
