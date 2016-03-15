@@ -31,7 +31,7 @@ def paint_button(painter, option, text='button', pressed=True, bgcolor=None,
     else:
         opt.state = QtGui.QStyle.State_Enabled | QtGui.QStyle.State_Raised
 
-    #style = QtGui.QApplication.style()
+    #style = QtGui.Q Application.style()
     style = button.style()
     style.drawControl(QtGui.QStyle.CE_PushButton, opt, painter, button)
 

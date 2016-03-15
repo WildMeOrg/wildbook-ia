@@ -373,8 +373,18 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
 
 #if __name__ == '__main__':
     #import sys
-    #app = QtGui.QApplication(sys.argv)
+    #app = guitoo.ensure_qtapp()
     #widget = DummyWidget()
     #widget.show()
     #widget.raise_()
     #sys.exit(app.exec_())
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m guitool.guitool_tables
+        python -m guitool.guitool_tables --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

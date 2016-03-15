@@ -21,6 +21,22 @@ def get_qtapp():
     return QAPP
 
 
+class GuitoolApplication(QtGui.QApplication):
+    """
+    http://codeprogress.com/python/libraries/pyqt/showPyQTExample.php?index=378&key=QApplicationKeyPressGlobally
+    """
+
+    def __init__(self, args):
+        super(GuitoolApplication, self).__init__(args)
+
+    def notify(self, receiver, event):
+        if(event.type() == QtCore.QEvent.KeyPress):
+            QtGui.QMessageBox.information(
+                None, "Received Key Press Event!!", "You Pressed: " + event.text())
+        # Call Base Class Method to Continue Normal Event Processing
+        return super(GuitoolApplication, self).notify(receiver, event)
+
+
 def ensure_qtapp():
     global IS_ROOT_WINDOW
     global QAPP
@@ -30,7 +46,7 @@ def ensure_qtapp():
     if parent_qapp is None:  # if not in qtconsole
         if not QUIET:
             print('[guitool] Init new QApplication')
-        QAPP = QtGui.QApplication(sys.argv)
+        QAPP = GuitoolApplication(sys.argv)
         #print('QAPP = %r' % QAPP)
         assert QAPP is not None
         IS_ROOT_WINDOW = True

@@ -116,6 +116,7 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
         action.setToolTip(action_tooltip)
     if action_shortcut is not None:
         action.setShortcut(action_shortcut)
+        print('<%s>.setShortcut(%r)' % (action_name, action_shortcut,))
     if slot_fn is not None:
         action.triggered.connect(slot_fn)
     return action
@@ -703,7 +704,7 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
 #def make_qstyle():
 #    style_factory = QtGui.QStyleFactory()
 #    style = style_factory.create('cleanlooks')
-#    #app_style = QtGui.QApplication.style()
+#    #app_style = QtGui.Q Application.style()
 
 
 def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
