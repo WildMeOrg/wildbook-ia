@@ -124,3 +124,4 @@ test_times.txt.backup
 clean_profile.txt
 
 Experiments-*.ipynb
+test_graphviz_draw.png
