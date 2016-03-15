@@ -1318,15 +1318,15 @@ def delete_cachedir(ibs):
     (does not remove chips)
     """
     print('[ibs] delete_cachedir')
-    # Need to close dbcache before restarting
-    ibs._close_sqldbcache()
+    # Need to close depc before restarting
+    ibs._close_depcache()
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
     ut.delete(cachedir)
     print('[ibs] finished delete cachedir')
     # Reinit cache
     ibs.ensure_directories()
-    ibs._init_sqldbcache()
+    ibs._init_depcache()
 
 
 @register_ibs_method

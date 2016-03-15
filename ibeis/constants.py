@@ -83,7 +83,6 @@ SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 class PATH_NAMES(object):
     """ Path names for internal IBEIS database """
     sqldb      = '_ibeis_database.sqlite3'
-    sqldbcache = '_ibeis_database_cache.sqlite3'
     _ibsdb     = '_ibsdb'
     cache      = '_ibeis_cache'
     backups    = '_ibeis_backups'

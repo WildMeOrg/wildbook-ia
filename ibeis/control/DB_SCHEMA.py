@@ -1475,8 +1475,8 @@ def __test_db_version_table_constraints():
 
     ibs1.db.close()
     ibs2.db.close()
-    ibs1.dbcache.close()
-    ibs2.dbcache.close()
+    ibs1.depc.close()
+    ibs2.depc.close()
 
     del ibs1
     del ibs2

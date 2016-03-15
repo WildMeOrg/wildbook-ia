@@ -6,7 +6,6 @@ from ibeis.algo.preproc import preproc_annot
 from ibeis.algo.preproc import preproc_detectimg
 from ibeis.algo.preproc import preproc_image
 from ibeis.algo.preproc import preproc_occurrence
-from ibeis.algo.preproc import preproc_probchip
 from ibeis.algo.preproc import preproc_residual
 from ibeis.algo.preproc import preproc_rvec
 import utool
@@ -66,7 +65,6 @@ def reload_subs(verbose=True):
     get_rrr(preproc_detectimg)(verbose=verbose)
     get_rrr(preproc_image)(verbose=verbose)
     get_rrr(preproc_occurrence)(verbose=verbose)
-    get_rrr(preproc_probchip)(verbose=verbose)
     get_rrr(preproc_residual)(verbose=verbose)
     get_rrr(preproc_rvec)(verbose=verbose)
     rrr(verbose=verbose)
@@ -82,12 +80,11 @@ IMPORT_TUPLES = [
     ('preproc_detectimg', None),
     ('preproc_image', None),
     ('preproc_occurrence', None),
-    ('preproc_probchip', None),
     ('preproc_residual', None),
     ('preproc_rvec', None),
 ]
 """
 Regen Command:
     cd /home/joncrall/code/ibeis/ibeis/algo/preproc
-    makeinit.py --modname=ibeis.algo.preproc
+    makeinit.py --modname=ibeis.algo.preproc --write
 """
