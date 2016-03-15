@@ -52,6 +52,8 @@ import uuid  # NOQA
 import itertools
 import numpy as np
 import functools
+import shelve
+from os.path import join
 from functools import partial
 from ibeis.control import accessor_decors, controller_inject
 print, rrr, profile = ut.inject2(__name__, '[apis_engine]')
@@ -906,6 +908,9 @@ def collector_loop():
         if VERBOSE_JOBS:
             print('connect collect_url2  = %r' % (collect_url2,))
 
+        shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
+        ut.delete(shelve_path)
+        ut.ensuredir(shelve_path)
         collecter_data = {}
         awaiting_data = {}
 
@@ -924,12 +929,31 @@ def collector_loop():
                 # From the Queue
                 jobid = collect_request['jobid']
                 awaiting_data[jobid] = collect_request['text']
+                # Make waiting lock
+                lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
+                ut.touch(lock_filepath)
             elif action == 'store':
                 # From the Engine
                 engine_result = collect_request['engine_result']
                 callback_url = collect_request['callback_url']
                 jobid = engine_result['jobid']
-                collecter_data[jobid] = engine_result
+
+                # OLD METHOD
+                # collecter_data[jobid] = engine_result
+                collecter_data[jobid] = engine_result['exec_status']
+
+                # NEW METHOD
+                shelve_filepath = join(shelve_path, '%s.shelve' % (jobid, ))
+                shelf = shelve.open(shelve_filepath, writeback=True)
+                try:
+                    shelf[str('result')] = engine_result
+                finally:
+                    shelf.close()
+
+                # Delete the lock
+                lock_filepath = join(shelve_path, '%s.lock' % (jobid, ))
+                ut.delete(lock_filepath)
+
                 if callback_url is not None:
                     if VERBOSE_JOBS:
                         print('calling callback_url')
@@ -948,9 +972,8 @@ def collector_loop():
                 # From a Client
                 jobid = collect_request['jobid']
                 if jobid in collecter_data:
-                    engine_result = collecter_data[jobid]
                     reply['jobstatus'] = 'completed'
-                    reply['exec_status'] = engine_result['exec_status']
+                    reply['exec_status'] = collecter_data[jobid]
                 elif jobid in awaiting_data:
                     reply['jobstatus'] = 'working'
                 else:
@@ -961,7 +984,17 @@ def collector_loop():
                 # From a Client
                 jobid = collect_request['jobid']
                 try:
-                    engine_result = collecter_data[jobid]
+                    # OLD METHOD
+                    # engine_result = collecter_data[jobid]
+
+                    # NEW METHOD
+                    shelve_filepath = join(shelve_path, 'jobid-%04d.shelve' % (jobid, ))
+                    shelf = shelve.open(shelve_filepath)
+                    try:
+                        engine_result = shelf[str('result')]
+                    finally:
+                        shelf.close()
+
                     json_result = engine_result['json_result']
                     reply['jobid'] = jobid
                     reply['status'] = 'ok'
