@@ -988,7 +988,7 @@ def collector_loop():
                     # engine_result = collecter_data[jobid]
 
                     # NEW METHOD
-                    shelve_filepath = join(shelve_path, 'jobid-%04d.shelve' % (jobid, ))
+                    shelve_filepath = join(shelve_path, '%s.shelve' % (jobid, ))
                     shelf = shelve.open(shelve_filepath)
                     try:
                         engine_result = shelf[str('result')]
