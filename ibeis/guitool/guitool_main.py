@@ -28,14 +28,22 @@ class GuitoolApplication(QtGui.QApplication):
 
     def __init__(self, args):
         super(GuitoolApplication, self).__init__(args)
+        self.log_keys = False
+        self.keylog = []
 
     def notify(self, receiver, event):
         if(event.type() == QtCore.QEvent.KeyPress):
-            pass
+            if self.log_keys:
+                key = event.text()
+                print('key = %r' % (key,))
+                self.keylog.append(key)
             #QtGui.QMessageBox.information(
             #    None, "Received Key Press Event!!", "You Pressed: " + event.text())
         # Call Base Class Method to Continue Normal Event Processing
         return super(GuitoolApplication, self).notify(receiver, event)
+
+    def start_keylog(self):
+        self.log_keys = True
 
 
 def ensure_qtapp():
@@ -77,11 +85,11 @@ def activate_qwindow(qwin):
 
 def qtapp_loop_nonblocking(qwin=None, **kwargs):
     global QAPP
-    from IPython.lib.inputhook import enable_qt4
+    #from IPython.lib.inputhook import enable_qt4
     from IPython.lib.guisupport import start_event_loop_qt4
     if not QUIET:
         print('[guitool] Starting ipython qt4 hook')
-    enable_qt4()
+    #enable_qt4()
     start_event_loop_qt4(QAPP)
 
 
