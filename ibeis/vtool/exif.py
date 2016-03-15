@@ -328,7 +328,7 @@ def get_orientation_str(exif_dict):
         >>>     orient_str = get_orientation_str(exif_dict)
         >>>     result.append(orient_str)
         >>> print(result)
-        ['Normal', '90 Counter-Clockwise', '90 Clockwise']
+        ['Normal', '90 Clockwise', '90 Counter-Clockwise']
 
     Ignore:
         ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)

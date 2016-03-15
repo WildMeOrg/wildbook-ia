@@ -231,7 +231,7 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
     else:
         try:
             if orient in ['auto', 'on', True] and not force_opencv:
-                print('[vt.imread] USING PIL')
+                # print('[vt.imread] USING PIL')
                 # If we want to open with auto orient, only open once with PIL
                 # Otherwise, open with OpenCV (faster) and reorient if given the
                 # known orientation of the image
@@ -239,7 +239,7 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
                     imgBGR = fix_orient_pil_img(pil_img, grayscale=grayscale,
                                                 orient='auto')
             else:
-                print('[vt.imread] USING OpenCV')
+                # print('[vt.imread] USING OpenCV')
                 if flags is None:
                     flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
                 # TODO cv2.IMREAD_UNCHANGED
