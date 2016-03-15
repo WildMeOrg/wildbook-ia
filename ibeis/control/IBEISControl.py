@@ -58,7 +58,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.tag_funcs',
     'ibeis.ibsfuncs',
     'ibeis.init.filter_annots',
-    'ibeis.control._autogen_featweight_funcs',
+    'ibeis.control.manual_featweight_funcs',
     'ibeis.control._autogen_party_funcs',
     'ibeis.control._autogen_annotmatch_funcs',
     'ibeis.control.manual_ibeiscontrol_funcs',

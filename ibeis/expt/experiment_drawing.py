@@ -614,8 +614,12 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
 
         ibeis -e draw_cases --db GZ_ALL -a ctrl \
             -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] \
-            -f :fail=True,index=0:3,sortdsc=gfscore,max_pername=1,without_tag=scenerymatch,require_all_cfg=True \
+            -f :fail=True,index=0:3,sortdsc=gfscore,without_tag=scenerymatch,require_all_cfg=True \
             --show
+
+    Ignore:
+        [qreq_.query_config2_.chip_cfgstr for qreq_ in testres.cfgx2_qreq_]
+
 
 
     Example:

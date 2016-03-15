@@ -906,7 +906,7 @@ class FeatureWeightConfig(ConfigBase):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.Config import *  # NOQA
-        >>> featweight_cfg = FeatureWeightConfig(featweight_detector='rf',
+        >>> featweight_cfg = FeatureWeightConfig(fw_detector='rf',
         >>>                                      featweight_enabled=True)
         >>> result = featweight_cfg.get_cfgstr()
         >>> print(result)
@@ -927,8 +927,8 @@ class FeatureWeightConfig(ConfigBase):
         #featweight_cfg.featweight_enabled = False
         featweight_cfg.featweight_enabled = True
         featweight_cfg.featweight_species  = 'uselabel'
-        #featweight_cfg.featweight_detector = 'rf'
-        featweight_cfg.featweight_detector = 'cnn'
+        #featweight_cfg.fw_detector = 'rf'
+        featweight_cfg.fw_detector = 'cnn'
         featweight_cfg.update(**kwargs)
 
     def make_feasible(featweight_cfg):
@@ -948,7 +948,7 @@ class FeatureWeightConfig(ConfigBase):
                 featweight_cfgstrs.extend([
                     '_FEATWEIGHT(ON',
                     ',' + featweight_cfg.featweight_species,
-                    ',' + featweight_cfg.featweight_detector,
+                    ',' + featweight_cfg.fw_detector,
                     ')'])
         _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
         featweight_cfgstrs.extend(_cfgstrlist)
@@ -1096,7 +1096,8 @@ class ChipConfig(ConfigBase):
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
         cc_cfg.dim_size    = 450
-        cc_cfg.resize_dim  = 'root_area'
+        #cc_cfg.resize_dim  = 'area'
+        cc_cfg.resize_dim  = 'width'
         cc_cfg.grabcut     = False
         cc_cfg.histeq      = False
         cc_cfg.adapteq     = False
@@ -1124,7 +1125,7 @@ class ChipConfig(ConfigBase):
                       cc_cfg.dim_size <= 0)
             chip_cfgstr += (['szorig'] if isOrig else
                             ['sz%r' % cc_cfg.dim_size])
-            if cc_cfg.resize_dim == 'root_area':
+            if cc_cfg.resize_dim == 'area':
                 pass
                 #chip_cfgstr += ['a']
             if cc_cfg.resize_dim == 'width':

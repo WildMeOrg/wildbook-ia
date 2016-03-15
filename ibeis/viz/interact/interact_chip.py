@@ -283,6 +283,9 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     def print_annot_info():
         print('[interact_chip] Annotation Info = ' + ut.obj_str(annot_info, nl=4))
+        print('config2_ = %r' % (config2_,))
+        if config2_ is not None:
+            print('config2_.__dict__ = %s' % (ut.repr3(config2_.__dict__),))
 
     callback_list += [
         ('dev print annot info', print_annot_info),
@@ -294,7 +297,12 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             print('aid = %r' % (aid,))
             print('config2_ = %r' % (config2_,))
         def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
+            #import plottool as pt
+            #pt.plt.ioff()
+            # TODO need to disable matplotlib callbacks?
+            # Causes can't re-enter readline error
             ut.embed()
+            #pt.plt.ion()
             pass
         callback_list += [
             ('dev chip context embed', dev_embed),

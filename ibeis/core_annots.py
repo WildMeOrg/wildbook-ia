@@ -83,11 +83,14 @@ def testdata_core(defaultdb='testdb1', size=2):
 
 class ChipConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('resize_dim', 'width',
-                     valid_values=['area', 'width', 'height', 'diag', 'maxwh'],
-                     hideif=lambda cfg: cfg['dim_size'] is None),
+        ut.ParamInfo(
+            'resize_dim', 'width',
+            #'resize_dim', 'area',
+            valid_values=['area', 'width', 'height', 'diag', 'maxwh'],
+            hideif=lambda cfg: cfg['dim_size'] is None),
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
-        ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
+        #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
+        ut.ParamInfo('dim_size', 700, 'sz', hideif=None),
         ut.ParamInfo('preserve_aspect', True, hideif=True),
         ut.ParamInfo('histeq', False, hideif=False),
         ut.ParamInfo('pad', 0, hideif=0),
@@ -101,6 +104,7 @@ class ChipConfig(dtool.Config):
     coltypes=[('extern', vt.imread), int, int, np.ndarray],
     configclass=ChipConfig,
     fname='chipcache4',
+    rm_extern_on_delete=True,
     chunksize=256,
 )
 def compute_chip(depc, aid_list, config=None):
@@ -118,6 +122,7 @@ def compute_chip(depc, aid_list, config=None):
     CommandLine:
         python -m ibeis.core_annots --exec-compute_chip --show
         python -m ibeis.core_annots --exec-compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
+        python -m ibeis.core_annots --exec-compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
         python -m ibeis.core_annots --exec-compute_chip --show --db humpbacks
 
     Example:
@@ -169,14 +174,14 @@ def compute_chip(depc, aid_list, config=None):
 
     scale_func_dict = {
         'width': vt.get_scaled_size_with_width,
-        'root_area': vt.get_scaled_size_with_area,
+        'area': vt.get_scaled_size_with_area,  # actually root area
     }
     scale_func = scale_func_dict[resize_dim]
 
     if dim_size is None:
         newsize_list = bbox_size_list
     else:
-        if resize_dim == 'root_area':
+        if resize_dim == 'area':
             dim_size = dim_size ** 2
         newsize_list = [scale_func(dim_size, w, h) for (w, h) in bbox_size_list]
 
@@ -310,15 +315,15 @@ class ProbchipConfig(dtool.Config):
     # TODO: incorporate into base
     _named_defaults = {
         'rf': {
-            'detector': 'rf',
+            'fw_detector': 'rf',
             'smooth_thresh': None,
             'smooth_ksize': None,
         }
     }
     _param_info_list = [
         #ut.ParamInfo('preserve_aspect', True, hideif=True),
-        ut.ParamInfo('detector', 'cnn'),
-        ut.ParamInfo('dim_size', 256),
+        ut.ParamInfo('fw_detector', 'cnn'),
+        ut.ParamInfo('fw_dim_size', 256),
         ut.ParamInfo('smooth_thresh', 20),
         ut.ParamInfo('smooth_ksize', 20, hideif=lambda cfg: cfg['smooth_thresh'] is None),
         #ut.ParamInfo('ext', '.png'),
@@ -341,8 +346,8 @@ def compute_probchip(depc, aid_list, config=None):
 
     CommandLine:
         python -m ibeis.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
-        python -m ibeis.core_annots --test-compute_probchip --show --detector=cnn
-        python -m ibeis.core_annots --test-compute_probchip --show --detector=rf --smooth_thresh=None
+        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=cnn
+        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=rf --smooth_thresh=None
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -350,7 +355,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> import ibeis
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
-        >>> config = ProbchipConfig.from_argv_dict(detector='rf', smooth_thresh=None)
+        >>> config = ProbchipConfig.from_argv_dict(fw_detector='rf', smooth_thresh=None)
         >>> probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
@@ -360,19 +365,21 @@ def compute_probchip(depc, aid_list, config=None):
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
         >>> ut.show_if_requested()
     """
+    print('[core] COMPUTING FEATWEIGHTS')
+    print('config = %r' % (config,))
     import vtool as vt
 
     ibs = depc.controller
 
-    # Use the labeled species for the detector
+    # Use the labeled species for the fw_detector
     species_list = ibs.get_annot_species_texts(aid_list)
 
-    detector = config['detector']
-    dim_size = config['dim_size']
+    fw_detector = config['fw_detector']
+    dim_size = config['fw_dim_size']
     smooth_thresh = config['smooth_thresh']
     smooth_ksize = config['smooth_ksize']
 
-    if detector == 'rf':
+    if fw_detector == 'rf':
         pad = 64
     else:
         pad = 0
@@ -414,14 +421,14 @@ def compute_probchip(depc, aid_list, config=None):
     _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
                         lbl='probchip for species', enabled=ut.VERBOSE)
 
-    if detector == 'rf':
+    if fw_detector == 'rf':
         for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
             if len(aids) == 0:
                 continue
             rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
                          smooth_thresh, smooth_ksize)
             grouped_probchip_fpath_list.append(probchip_fpaths)
-    elif detector == 'cnn':
+    elif fw_detector == 'cnn':
         for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
             if len(aids) == 0:
                 continue
@@ -429,7 +436,7 @@ def compute_probchip(depc, aid_list, config=None):
                           smooth_thresh, smooth_ksize)
             grouped_probchip_fpath_list.append(probchip_fpaths)
     else:
-        raise NotImplementedError('unknown detector=%r' % (detector,))
+        raise NotImplementedError('unknown fw_detector=%r' % (fw_detector,))
 
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
@@ -618,7 +625,7 @@ def compute_feats(depc, cid_list, config=None):
     nInput = len(cid_list)
     hesaff_params  = config.get_hesaff_params()
     feat_type      = config['feat_type']
-    maskmethod       = config['maskmethod']
+    maskmethod     = config['maskmethod']
 
     ut.assert_all_not_None(cid_list, 'cid_list')
     chip_fpath_list = depc.get_native('chips', cid_list, 'img', read_extern=False)
@@ -1130,130 +1137,132 @@ class IndexerConfig(dtool.Config):
         return flann_params
 
 
-@register_preproc(
-    #tablename='neighbor_index', parents=['annotations*'],
-    #tablename='neighbor_index', parents=['annotations'],
-    tablename='neighbor_index', parents=['feat*'],
-    #tablename='neighbor_index', parents=['feat'],
-    colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
-    #ismulti=True,
-    configclass=IndexerConfig,
-    chunksize=1, fname='indexer',
-)
-def compute_neighbor_index(depc, fids_list, config):
-    """
-    Args:
-        depc (dtool.DependencyCache):
-        fids_list (list):
-        config (dtool.Config):
+if False:
+    @register_preproc(
+        #tablename='neighbor_index', parents=['annotations*'],
+        #tablename='neighbor_index', parents=['annotations'],
+        tablename='neighbor_index', parents=['feat*'],
+        #tablename='neighbor_index', parents=['feat'],
+        colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
+        #ismulti=True,
+        configclass=IndexerConfig,
+        chunksize=1, fname='indexer',
+    )
+    def compute_neighbor_index(depc, fids_list, config):
+        """
+        Args:
+            depc (dtool.DependencyCache):
+            fids_list (list):
+            config (dtool.Config):
 
-    CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=neighbor_index
+        CommandLine:
+            python -m ibeis.core_annots --exec-compute_neighbor_index --show
+            python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=neighbor_index
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
-        >>> depc = ibs.depc
-        >>> fid_list = depc.get_rowids('feat', aid_list)
-        >>> aids_list = tuple([aid_list])
-        >>> fids_list = tuple([fid_list])
-        >>> # Compute directly from function
-        >>> config = ibs.depc['neighbor_index'].configclass()
-        >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
-        >>> nnindexer1 = result1[0][0]
-        >>> # Compute using depcache
-        >>> result2 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
-        >>> #result3 = ibs.depc.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
-        >>> print(result2)
-        >>> print(result3)
-        >>> assert result2[0] is not result3[0]
-        >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
-        >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
-    """
-    print('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
-    # TODO: allow augment
-    assert len(fids_list) == 1, 'only working with one indexer at a time'
-    fid_list = fids_list[0]
-    aid_list = depc.get_root_rowids('feat', fid_list)
-    flann_params = config.get_flann_params()
-    cfgstr = config.get_cfgstr()
-    verbose = True
-    nnindexer = neighbor_index.NeighborIndex2(flann_params, cfgstr)
-    # Initialize neighbor with unindexed data
-    support = nnindexer.get_support(depc, aid_list, config)
-    nnindexer.init_support(aid_list, *support, verbose=verbose)
-    nnindexer.config = config
-    nnindexer.reindex()
-    yield (nnindexer,)
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.core_annots import *  # NOQA
+            >>> import ibeis
+            >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+            >>> depc = ibs.depc
+            >>> fid_list = depc.get_rowids('feat', aid_list)
+            >>> aids_list = tuple([aid_list])
+            >>> fids_list = tuple([fid_list])
+            >>> # Compute directly from function
+            >>> config = ibs.depc['neighbor_index'].configclass()
+            >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
+            >>> nnindexer1 = result1[0][0]
+            >>> # Compute using depcache
+            >>> result2 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
+            >>> #result3 = ibs.depc.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
+            >>> print(result2)
+            >>> print(result3)
+            >>> assert result2[0] is not result3[0]
+            >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
+            >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
+        """
+        print('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
+        # TODO: allow augment
+        assert len(fids_list) == 1, 'only working with one indexer at a time'
+        fid_list = fids_list[0]
+        aid_list = depc.get_root_rowids('feat', fid_list)
+        flann_params = config.get_flann_params()
+        cfgstr = config.get_cfgstr()
+        verbose = True
+        nnindexer = neighbor_index.NeighborIndex2(flann_params, cfgstr)
+        # Initialize neighbor with unindexed data
+        support = nnindexer.get_support(depc, aid_list, config)
+        nnindexer.init_support(aid_list, *support, verbose=verbose)
+        nnindexer.config = config
+        nnindexer.reindex()
+        yield (nnindexer,)
 
 
 #class FeatNeighborConfig(dtool.Config)
 
 
-# NOT YET READY
-@register_preproc(
-    tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
-    colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
-    #configclass=IndexerConfig,
-    chunksize=1, fname='neighbors',
-)
-def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
-    """
-    Args:
-        depc (dtool.DependencyCache):
-        aids_list (list):
-        config (dtool.Config):
+if False:
+    # NOT YET READY
+    @register_preproc(
+        tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
+        colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
+        #configclass=IndexerConfig,
+        chunksize=1, fname='neighbors',
+    )
+    def compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config):
+        """
+        Args:
+            depc (dtool.DependencyCache):
+            aids_list (list):
+            config (dtool.Config):
 
-    CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=feat_neighbs
+        CommandLine:
+            python -m ibeis.core_annots --exec-compute_neighbor_index --show
+            python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=feat_neighbs
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> #ibs, depc, aid_list = testdata_core(size=5)
-        >>> import ibeis
-        >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
-        >>> daid_list = qaid_list
-        >>> depc = ibs.depc
-        >>> index_config = ibs.depc['neighbor_index'].configclass()
-        >>> fid_list = depc.get_rowids('feat', qaid_list)
-        >>> indexer_rowid_list = ibs.depc.get_rowids('neighbor_index', [daid_list], index_config)
-        >>> config = ibs.depc['feat_neighbs'].configclass()
-        >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
-    """
-    print('[IBEIS] NEAREST NEIGHBORS')
-    #assert False
-    # do computation
-    #num_neighbors = (config['K'] + config['Knorm'])
-    ibs = depc.controller
-    num_neighbors = 1
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.core_annots import *  # NOQA
+            >>> #ibs, depc, aid_list = testdata_core(size=5)
+            >>> import ibeis
+            >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
+            >>> daid_list = qaid_list
+            >>> depc = ibs.depc
+            >>> index_config = ibs.depc['neighbor_index'].configclass()
+            >>> fid_list = depc.get_rowids('feat', qaid_list)
+            >>> indexer_rowid_list = ibs.depc.get_rowids('neighbor_index', [daid_list], index_config)
+            >>> config = ibs.depc['feat_neighbs'].configclass()
+            >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
+        """
+        print('[IBEIS] NEAREST NEIGHBORS')
+        #assert False
+        # do computation
+        #num_neighbors = (config['K'] + config['Knorm'])
+        ibs = depc.controller
+        num_neighbors = 1
 
-    #b = np.broadcast([1, 2, 3], [1])
-    #list(b)
-    #[(1, 1), (2, 1), (3, 1)]
+        #b = np.broadcast([1, 2, 3], [1])
+        #list(b)
+        #[(1, 1), (2, 1), (3, 1)]
 
-    # FIXME: not sure how depc should handle this case
-    # Maybe it groups by indexer_rowid_list and then goes from there.
-    indexer = depc.get_native('neighbor_index', indexer_rowid_list, 'indexer')[0]
-    qvecs_list = depc.get_native('feat', fid_list, 'vecs', eager=False, nInput=len(fid_list))
-    #qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
-    qaid_list = depc.get_ancestor_rowids('feat', fid_list)
+        # FIXME: not sure how depc should handle this case
+        # Maybe it groups by indexer_rowid_list and then goes from there.
+        indexer = depc.get_native('neighbor_index', indexer_rowid_list, 'indexer')[0]
+        qvecs_list = depc.get_native('feat', fid_list, 'vecs', eager=False, nInput=len(fid_list))
+        #qvecs_list = depc.get('feat', qaid_list, 'vecs', config, eager=False, nInput=len(qaid_list))
+        qaid_list = depc.get_ancestor_rowids('feat', fid_list)
 
-    ax2_encid = np.array(ibs.get_annot_encounter_text(indexer.ax2_aid))
+        ax2_encid = np.array(ibs.get_annot_encounter_text(indexer.ax2_aid))
 
-    for qaid, qfx2_vec in zip(qaid_list, qvecs_list):
-        qencid = ibs.get_annot_encounter_text([qaid])[0]
-        invalid_axs = np.where(ax2_encid == qencid)[0]
-        #indexer.ax2_aid[invalid_axs]
-        nnindxer = indexer
-        qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(qfx2_vec,
-                                                                   num_neighbors,
-                                                                   invalid_axs)
-        yield qfx2_idx, qfx2_dist
+        for qaid, qfx2_vec in zip(qaid_list, qvecs_list):
+            qencid = ibs.get_annot_encounter_text([qaid])[0]
+            invalid_axs = np.where(ax2_encid == qencid)[0]
+            #indexer.ax2_aid[invalid_axs]
+            nnindxer = indexer
+            qfx2_idx, qfx2_dist, iter_count = nnindxer.conditional_knn(qfx2_vec,
+                                                                       num_neighbors,
+                                                                       invalid_axs)
+            yield qfx2_idx, qfx2_dist
 
 
 if __name__ == '__main__':

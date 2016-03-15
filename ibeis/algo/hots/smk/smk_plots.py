@@ -545,7 +545,6 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
                            show_words=False,
                            show_analysis=True,
                            show_aveprecision=True,
-                           show_featweights=True,
                            qfx2_closest_k_list=None,
                            show_word_correct_assignments=False,
                            qres_list=None):
@@ -655,14 +654,6 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
         lbl = 'Correct Words ' + qres.make_smaller_title() + '\n Yellow means the word contains a correct match in the word\'s invindex. Blue is the opposite.'
         fnum = _plot(hascorrectmatch_, fnum=fnum, lbl=lbl, colortype='custom', reverse_cmap=False)
 
-    # Feature Weight Plots
-    if show_featweights:
-        from ibeis.algo.preproc import preproc_featweight
-        featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
-        # plot rf feature weights
-        detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()
-        fnum = _plot(featweights, fnum=fnum, lbl='Feature Weights ' + detect_cfgstr, colortype='score')
-
     # Word Metric Plots
     for count, metrickey in enumerate(metric_keys):
         if isinstance(metrickey, tuple):
@@ -759,7 +750,6 @@ def main_options():
         show_words=False,
         show_analysis=True,
         show_aveprecision=False,
-        show_featweights=False,
         show_word_correct_assignments=True,
         metric_keys=metric_keys,
         K_list=[2, 4, 10],

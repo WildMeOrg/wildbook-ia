@@ -490,17 +490,6 @@ def setup_refresh_menu(mainwin, back):
         text='Reconnect Controller',
         slot_fn=back.reconnect_controller)
     menu.addSeparator()  # ---------
-    menu.newAction(
-        name='actionPrecomputeANNOTATIONFeatures',
-        text='Precompute Chips/Features',
-        #shortcut='Ctrl+Return',
-        slot_fn=back.compute_feats)
-    menu.newAction(
-        name='actionPrecomputeThumbnails',
-        text='Precompute Thumbnails',
-        slot_fn=back.compute_thumbs)
-    # ---------
-    menu.addSeparator()
     # ---------
     menu.newAction(
         name='actionRedownload_Detection_Models',

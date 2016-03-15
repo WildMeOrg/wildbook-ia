@@ -1051,24 +1051,6 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             raise ValueError('Detector not recognized')
 
-    @blocking_slot()
-    def compute_feats(back, refresh=True, **kwargs):
-        """ Batch -> Precompute Feats"""
-        print('[back] compute_feats')
-        imgsetid = back._eidfromkw(kwargs)
-        ibsfuncs.compute_all_features(back.ibs, imgsetid=imgsetid)
-        if refresh:
-            back.front.update_tables()
-
-    @blocking_slot()
-    def compute_thumbs(back, refresh=True, **kwargs):
-        """ Batch -> Precompute Thumbs"""
-        print('[back] compute_thumbs')
-        imgsetid = back._eidfromkw(kwargs)
-        back.ibs.preprocess_image_thumbs(imgsetid=imgsetid)
-        if refresh:
-            back.front.update_tables()
-
     def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None):
         species = back.get_selected_species()
 
