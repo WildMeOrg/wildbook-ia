@@ -3470,8 +3470,8 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
     if zlabel is not None:
         ax.set_zlabel(zlabel, **zlabelkw)
     use_darkbackground = dark
-    if use_darkbackground is None:
-        use_darkbackground = not ut.get_argflag('--save')
+    #if use_darkbackground is None:
+    #    use_darkbackground = not ut.get_argflag('--save')
     if use_darkbackground:
         dark_background()
     return ax
