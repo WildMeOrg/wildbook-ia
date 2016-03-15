@@ -11,7 +11,7 @@ import utool
 #import time
 #from six.moves import zip
 from os.path import exists
-from vtool import image as gtool
+import vtool as vt
 #from vtool import linalg, geometry
 from vtool import geometry
 #from multiprocessing import Process
@@ -31,7 +31,7 @@ MAX_NUM_THUMB_THREADS = 1
 def read_thumb_size(thumb_path):
     if VERBOSE_THUMB:
         print('[ThumbDelegate] Reading thumb size')
-    npimg = gtool.imread(thumb_path, delete_if_corrupted=True)
+    npimg = vt.imread(thumb_path, delete_if_corrupted=True)
     (height, width) = npimg.shape[0:2]
     del npimg
     return width, height
@@ -89,7 +89,7 @@ def read_thumb_as_qimg(thumb_path):
     #    # Reading the npimage and then handing it off to Qt causes a memory
     #    # leak. The numpy array probably is never unallocated because qt doesn't
     #    # own it and it never loses its reference count
-    #    #npimg = gtool.imread(thumb_path, delete_if_corrupted=True)
+    #    #npimg = vt.imread(thumb_path, delete_if_corrupted=True)
     #    #print('npimg.dtype = %r, %r' % (npimg.shape, npimg.dtype))
     #    #npimg   = cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
     #    #format_ = QtGui.QImage.Format_ARGB32
@@ -216,8 +216,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                     print('[thumb_delegate] no data')
                 return
             (thumb_path, img_path, img_size, bbox_list, theta_list) = data
-            invalid = (thumb_path is None or img_path is None or bbox_list is None
-                       or img_size is None)
+            invalid = (thumb_path is None or img_path is None or bbox_list is None or img_size is None)
             if invalid:
                 print('[thumb_delegate] something is wrong')
                 return
@@ -369,9 +368,9 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
     """
     theta_list = [theta_list] if not utool.is_listlike(theta_list) else theta_list
     max_dsize = (thumbsize, thumbsize)
-    dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
+    dsize, sx, sy = vt.image.resized_clamped_thumb_dims(img_size, max_dsize)
     # Compute new verts list
-    new_verts_list = list(gtool.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
+    new_verts_list = list(vt.image.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
     return dsize, new_verts_list
 
 
@@ -404,7 +403,7 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
     """
     orange_bgr = (0, 128, 255)
     # imread causes a MEMORY LEAK most likely!
-    img = gtool.imread(img_path)  # Read Image (.0424s) <- Takes most time!
+    img = vt.imread(img_path)  # Read Image (.0424s) <- Takes most time!
     #if False:
     #    #http://stackoverflow.com/questions/9794019/convert-numpy-array-to-pyside-qpixmap
     #    # http://kogs-www.informatik.uni-hamburg.de/~meine/software/vigraqt/qimage2ndarray.py
@@ -417,7 +416,7 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
     #    #result = result[:, :result_shape[1]]
     #    #result = result[..., :3]
     #    #img = result
-    thumb = gtool.resize(img, dsize)  # Resize to thumb dims (.0015s)
+    thumb = vt.image.resize(img, dsize)  # Resize to thumb dims (.0015s)
     del img
     # Draw bboxes on thumb (not image)
     for new_verts in new_verts_list:
@@ -471,7 +470,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         thumb = make_thread_thumb(thread.img_path, dsize, new_verts_list)
         if thread.thumb_would_not_be_visible():
             return
-        gtool.imwrite(thread.thumb_path, thumb)
+        vt.image.imwrite(thread.thumb_path, thumb)
         del thumb
         if thread.thumb_would_not_be_visible():
             return
@@ -568,7 +567,7 @@ def simple_thumbnail_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'rowid'
-    get_thumb_size = lambda: 128
+    get_thumb_size = lambda: 128  # NOQA
     col_width_dict = {}
     col_bgrole_dict = {}
 
