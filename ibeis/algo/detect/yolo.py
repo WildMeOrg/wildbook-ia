@@ -59,14 +59,11 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-            if orient == 6:
-                full_w, full_h = ibs.get_image_sizes(gid)
-                result['xtl'], result['ytl'] = full_w - result['ytl'] - result['height'], result['xtl']
-                result['width'], result['height'] = result['height'], result['width']
-            if orient == 8:
-                full_w, full_h = ibs.get_image_sizes(gid)
-                result['xtl'], result['ytl'] = result['ytl'], full_h - result['xtl'] - result['width']
-                result['width'], result['height'] = result['height'], result['width']
+            bbox = (result['xtl'], result['ytl'], result['width'], result['height'], )
+            bbox_list = [ bbox ]
+            bbox_list = ibs.fix_horizontal_bounding_boxes_to_orient(gid, bbox_list)
+            bbox = bbox_list[0]
+            result['xtl'], result['ytl'], result['width'], result['height'] = bbox
         yield (gid, gpath, result_list)
 
 

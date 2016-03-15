@@ -670,6 +670,15 @@ def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
 
 @register_ibs_method
 @accessor_decors.setter
+def _set_image_sizes(ibs, gid_list, width_list, height_list):
+    colnames = ('image_width', 'image_height',)
+    val_list = zip(width_list, height_list)
+    id_iter = ((gid,) for gid in gid_list)
+    ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
 @register_api('/api/image/orientation/', methods=['PUT'])
 def set_image_orientation(ibs, gid_list, orientation_list):
     r"""
@@ -677,6 +686,18 @@ def set_image_orientation(ibs, gid_list, orientation_list):
         Method: PUT
         URL:    /api/image/orientation/
     """
+    # # FIXME: is this correct?
+    # current_list = ibs.get_image_orientation(gid_list)
+    # zipped = zip(gid_list, current_list, orientation_list)
+    # for gid, current, orientation in zipped:
+    #     if current in [1] and orientation in [6, 8]:
+    #         # Fix orientation
+    #         width, height = ibs.get_image_sizes(gid)
+    #         ibs._set_image_sizes(gid, height, width)
+    #         aid_list = ibs.get_image_aids(gid)
+    #         bbox_list = ibs.get_annot_bboxes(aid_list)
+    #         bbox_list_ = ibs.fix_horizontal_bounding_boxes_to_orient(gid, bbox_list)
+    #         ibs.set_annot_bboxes(aid_list, bbox_list_)
     colnames = ('image_orientation',)
     val_list = ((orientation,) for orientation in orientation_list)
     id_iter = ((gid,) for gid in gid_list)

@@ -3439,6 +3439,27 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
 
 
 @register_ibs_method
+def fix_horizontal_bounding_boxes_to_orient(ibs, gid, bbox_list):
+    orient = ibs.get_image_orientation(gid)
+    bbox_list_ = []
+    for bbox in bbox_list:
+        (xtl, ytl, width, height) = bbox
+        if orient == 6:
+            full_w, full_h = ibs.get_image_sizes(gid)
+            xtl, ytl = full_w - ytl - height, xtl
+            width, height = height, width
+        elif orient == 8:
+            full_w, full_h = ibs.get_image_sizes(gid)
+            xtl, ytl = ytl, full_h - xtl - width
+            width, height = height, width
+        else:
+            pass
+        bbox_ = (xtl, ytl, width, height)
+        bbox_list_.append(bbox_)
+    return bbox_list_
+
+
+@register_ibs_method
 def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
     r"""
     This function is probably the fastest of its siblings

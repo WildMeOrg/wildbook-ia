@@ -1376,26 +1376,8 @@ def update_1_5_2(db, ibs=None):
 
 def post_1_5_2(db, ibs=None, verbose=False):
     if ibs is not None:
-        from PIL import Image  # NOQA
-        from ibeis.algo.preproc.preproc_image import parse_exif
-
-        def _parse_orient(gpath):
-            if verbose:
-                print('[db_update (1.5.2)]     Parsing: %r' % (gpath, ))
-            pil_img = Image.open(gpath, 'r')  # NOQA
-            time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
-            return orient
-
-        # Get images without orientations and add to the database
-        gid_list = ibs.get_valid_gids()
-        orient_list = ibs.get_image_orientation(gid_list)
-        zipped = zip(gid_list, orient_list)
-        gid_list_ = [ gid for gid, orient in zipped if orient == 0 ]
-        print('[db_update (1.5.2)] Parsing Exif orientations for %d images' % (len(gid_list_, )))
-
-        gpath_list_ = ibs.get_image_paths(gid_list_)
-        orient_list_ = [ _parse_orient(gpath) for gpath in gpath_list_ ]
-        ibs.set_image_orientation(gid_list_, orient_list_)
+        from ibeis.other.duct_tape import parse_and_update_image_exif_orientations
+        parse_and_update_image_exif_orientations(ibs, verbose=verbose)
 
 
 # ========================

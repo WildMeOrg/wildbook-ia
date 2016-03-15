@@ -14,7 +14,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # =======================
 
 
-VERSION_CURRENT = '1.5.1'
+VERSION_CURRENT = '1.5.2'
 
 
 def update_current(db, ibs=None):
