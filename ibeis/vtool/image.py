@@ -12,6 +12,7 @@ except ImportError as ex:
     cv2 = None
 from vtool import linalg
 from vtool import geometry
+from vtool import exif
 import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[img]', DEBUG=False)
@@ -60,32 +61,32 @@ EXIF_TAG_DATETIME = 'DateTimeOriginal'
 #cv2.IMREAD_UNCHANGED
 
 
-def imread_remote_s3(img_fpath, grayscale=False):
-    import cv2
+def imread_remote_s3(img_fpath, **kwargs):
     import utool as ut
-    import numpy as np
+    # import numpy as np
+    # import cv2
+    import io
     try:
         s3_dict = ut.s3_str_decode_to_dict(img_fpath)
         contents = ut.read_s3_contents(**s3_dict)
-        btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
-        imgBGR = cv2.imdecode(btyedata, -1)
+        # btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
+        # imgBGR = cv2.imdecode(btyedata, -1)
+        with io.BytesIO(contents) as image_file:
+            with Image.open(image_file) as pil_img:
+                imgBGR = fix_orient_pil_img(pil_img, **kwargs)
     except AttributeError:
         pass
     return imgBGR
 
 
-def imread_remote_url(img_fpath, grayscale=False):
+def imread_remote_url(img_fpath, **kwargs):
     from six.moves import urllib
     import io
     addinfourl = urllib.request.urlopen(img_fpath)
     try:
         with io.BytesIO(addinfourl.read()) as image_file:
             with Image.open(image_file) as pil_img:
-                if grayscale:
-                    pil_img.convert('LA')
-                else:
-                    imgRGB = np.array(pil_img)
-                    imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
+                imgBGR = fix_orient_pil_img(pil_img, **kwargs)
     except IOError:
         pass
     finally:
@@ -166,7 +167,8 @@ def montage(img_list, dsize, rng=np.random):
     return dst
 
 
-def imread(img_fpath, delete_if_corrupted=False, grayscale=False, flags=None):
+def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
+           flags=None, force_opencv=False):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.
 
@@ -223,15 +225,25 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, flags=None):
         (2736, 3648, 3)
     """
     if img_fpath.startswith('http://') or img_fpath.startswith('https://'):
-        imgBGR = imread_remote_url(img_fpath, grayscale=grayscale)
+        imgBGR = imread_remote_url(img_fpath, grayscale=grayscale, orient=orient)
     elif img_fpath.startswith('s3://'):
-        imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale)
+        imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale, orient=orient)
     else:
         try:
-            if flags is None:
-                flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
-            # TODO cv2.IMREAD_UNCHANGED
-            imgBGR = cv2.imread(img_fpath, flags=flags)
+            if orient in ['auto', 'on', True] and not force_opencv:
+                # print('[vt.imread] USING PIL')
+                # If we want to open with auto orient, only open once with PIL
+                # Otherwise, open with OpenCV (faster) and reorient if given the
+                # known orientation of the image
+                with Image.open(img_fpath) as pil_img:
+                    imgBGR = fix_orient_pil_img(pil_img, grayscale=grayscale,
+                                                orient='auto')
+            else:
+                # print('[vt.imread] USING OpenCV')
+                if flags is None:
+                    flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
+                # TODO cv2.IMREAD_UNCHANGED
+                imgBGR = cv2.imread(img_fpath, flags=flags)
 
         except cv2.error as cv2ex:
             ut.printex(cv2ex, iswarning=True)
@@ -266,7 +278,41 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, flags=None):
                     print('[gtool] deleting corrupted image')
                     ut.delete(img_fpath)
                 raise IOError(msg)
+        if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
+            print('[vt.imread] Applying orientation %r' % (orient, ))
+            imgBGR = fix_orientation(imgBGR, orient)
     return imgBGR
+
+
+def fix_orient_pil_img(pil_img, grayscale=False, orient=False):
+    if orient == 'auto':
+        exif_dict = exif.get_exif_dict(pil_img)
+        orient = exif.get_orientation(exif_dict)
+    np_img = np.array(pil_img)
+    if grayscale:
+        imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2GRAY)
+    else:
+        imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+    if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
+        imgBGR = fix_orientation(imgBGR, orient)
+    return imgBGR
+
+
+def fix_orientation(imgBGR, orient, fallback=True):
+    assert not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT
+    orient_ = exif.ORIENTATION_DICT[orient]
+    if orient_ == exif.ORIENTATION_000:
+        return imgBGR
+    elif orient_ == exif.ORIENTATION_090:
+        return rotate_image(imgBGR, TAU * 0.25)
+    elif orient_ == exif.ORIENTATION_180:
+        return rotate_image(imgBGR, TAU * 0.50)
+    elif orient_ == exif.ORIENTATION_270:
+        return rotate_image(imgBGR, TAU * 0.75)
+    elif fallback:
+        return imgBGR
+    else:
+        raise IOError('Could not fix the image orientation')
 
 
 def imwrite_fallback(img_fpath, imgBGR):
@@ -387,11 +433,6 @@ def subpixel_values(img, pts):
     # Perform the bilinear interpolation
     subpxl_vals = (wa * Ia) + (wb * Ib) + (wc * Ic) + (wd * Id)
     return subpxl_vals
-
-
-def open_pil_image(image_fpath):
-    pil_img = Image.open(image_fpath)
-    return pil_img
 
 
 def open_image_size(image_fpath):
@@ -529,16 +570,6 @@ def warpHomog(img, Homog, dsize):
     """
     warped_img = cv2.warpPerspective(img, Homog, tuple(dsize), **CV2_WARP_KWARGS)
     return warped_img
-
-
-def print_image_checks(img_fpath):
-    hasimg = ut.checkpath(img_fpath, verbose=True)
-    if hasimg:
-        _tup = (img_fpath, ut.filesize_str(img_fpath))
-        print('[io] Image %r (%s) exists. Is it corrupted?' % _tup)
-    else:
-        print('[io] Image %r does not exists ' (img_fpath,))
-    return hasimg
 
 
 def resize(img, dsize, interpolation=None):

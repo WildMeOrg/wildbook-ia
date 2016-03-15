@@ -13,7 +13,7 @@ from PIL import Image
 #from utool import util_progress
 import utool as ut
 from utool import util_time
-from vtool import image as gtool
+from vtool import image_shared
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[exif]', DEBUG=False)
 
@@ -29,6 +29,25 @@ GPS_TAG_TO_GPSID  = {val: key for (key, val) in six.iteritems(GPSTAGS)}
 GPSINFO_CODE = EXIF_TAG_TO_TAGID['GPSInfo']
 DATETIMEORIGINAL_TAGID = EXIF_TAG_TO_TAGID['DateTimeOriginal']
 SENSITIVITYTYPE_CODE = 34864  # UNSUPPORTED BY PIL
+
+ORIENTATION_CODE = EXIF_TAG_TO_TAGID['Orientation']
+ORIENTATION_UNDEFINED = 'UNDEFINED'
+ORIENTATION_000 = 'Normal'
+ORIENTATION_090 = '90 Clockwise'
+ORIENTATION_180 = 'Upside-Down'
+ORIENTATION_270 = '90 Counter-Clockwise'
+
+ORIENTATION_DICT = {
+    0: ORIENTATION_UNDEFINED,
+    1: ORIENTATION_000,
+    2: None,  # Flip Left-to-Right
+    3: ORIENTATION_180,
+    4: None,  # Flip Top-to-Bottom
+    5: None,  # Flip Left-to-Right then Rotate 90
+    6: ORIENTATION_090,
+    7: None,  # Flip Left-to-Right then Rotate 270
+    8: ORIENTATION_270,
+}
 
 
 @profile
@@ -135,7 +154,7 @@ def read_exif(fpath, tag=None):
             return 'No EXIF Data'
     except IOError as ex:
         print('Caught IOError: %r' % (ex,))
-        gtool.print_image_checks(fpath)
+        image_shared.print_image_checks(fpath)
         raise
         return {} if tag is None else None
     if tag is None:
@@ -245,6 +264,82 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
     return default
 
 
+def get_orientation(exif_dict, default=0):
+    r"""
+    Returns the image orientation, if available, from the provided
+    exif_data2 (obtained through exif_data2 above)
+
+    CommandLine:
+        python -m vtool.exif --test-get_orientation
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.exif import *  # NOQA
+        >>> from os.path import join
+        >>> import numpy as np
+        >>> url = 'https://www.dropbox.com/s/k0yx43yrv3fqdck/orientation.zip'
+        >>> images_path = ut.grab_zipped_url(url)
+        >>> result = []
+        >>> for index in range(3):
+        >>>     image_filename = 'orientation_%05d.JPG' % (index + 1, )
+        >>>     pil_img = Image.open(join(images_path, image_filename))
+        >>>     exif_dict = get_exif_dict(pil_img)
+        >>>     orient = get_orientation(exif_dict)
+        >>>     result.append(orient)
+        >>> print(result)
+        [1, 6, 8]
+
+    Ignore:
+        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
+        exif_dict[ORIENTATION_CODE]
+        PIL.ExifTags.TAGS[ORIENTATION_CODE]
+    """
+    if ORIENTATION_CODE in exif_dict:
+        orient = exif_dict[ORIENTATION_CODE]
+        if orient in ORIENTATION_DICT:
+            if ORIENTATION_DICT[orient] is None:
+                raise NotImplementedError('Orientation not defined')
+            default = orient
+        else:
+            raise AssertionError('Unrecognized orientation in Exif')
+    return default
+
+
+def get_orientation_str(exif_dict):
+    r"""
+    Returns the image orientation strings, if available, from the provided
+    exif_data2 (obtained through exif_data2 above)
+
+    CommandLine:
+        python -m vtool.exif --test-get_orientation_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.exif import *  # NOQA
+        >>> from os.path import join
+        >>> import numpy as np
+        >>> url = 'https://www.dropbox.com/s/k0yx43yrv3fqdck/orientation.zip'
+        >>> images_path = ut.grab_zipped_url(url)
+        >>> result = []
+        >>> for index in range(3):
+        >>>     image_filename = 'orientation_%05d.JPG' % (index + 1, )
+        >>>     pil_img = Image.open(join(images_path, image_filename))
+        >>>     exif_dict = get_exif_dict(pil_img)
+        >>>     orient_str = get_orientation_str(exif_dict)
+        >>>     result.append(orient_str)
+        >>> print(result)
+        ['Normal', '90 Clockwise', '90 Counter-Clockwise']
+
+    Ignore:
+        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
+        exif_dict[ORIENTATION_CODE]
+        PIL.ExifTags.TAGS[ORIENTATION_CODE]
+    """
+    orient = get_orientation(exif_dict)
+    orient_str = ORIENTATION_DICT[orient]
+    return orient_str
+
+
 def get_unixtime(exif_dict, default=-1):
     """
     TODO: Exif.Image.TimeZoneOffset
@@ -289,8 +384,7 @@ def parse_exif_unixtime(image_fpath):
 
         1325369249.0
     """
-    import vtool.image as gtool
-    pil_img = gtool.open_pil_image(image_fpath)
+    pil_img = image_shared.open_pil_image(image_fpath)
     exif_dict = get_exif_dict(pil_img)
     unixtime = get_unixtime(exif_dict)
     return unixtime
