@@ -234,7 +234,7 @@ def gridsearch_chipextract():
     pt.iup()
 
 
-def get_scaled_size_with_width(target_width, w, h):
+def get_scaled_size_with_width(target_width, w, h, tol=0):
     """
     returns new_size which scales (w, h) as close to target_width as possible
     and maintains aspect ratio
@@ -242,47 +242,84 @@ def get_scaled_size_with_width(target_width, w, h):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.chip import *  # NOQA
-        >>> # build test data
         >>> target_width = 128
-        >>> w = 600
-        >>> h = 400
-        >>> # execute function
+        >>> w, h = 600, 400
         >>> new_size = get_scaled_size_with_width(target_width, w, h)
-        >>> # verify results
-        >>> result = str(new_size)
+        >>> result1 = str(new_size)
+        >>> wh_list = [(10, 10), (100, 100), (150, 150), (125, 125), (175, 175), (200, 200)]
+        >>> tol = 32
+        >>> result2 = [get_scaled_size_with_width(target_width, wh[0], wh[1], tol)
+        >>>            for wh in wh_list]
+        >>> result = str(result1) + '\n' + str(result2)
         >>> print(result)
         (128, 85)
+        [(96, 96), (100, 100), (150, 150), (125, 125), (160, 160), (160, 160)]
     """
-    wt = target_width
-    sf = wt / w
-    ht = sf * h
-    new_size = (int(round(wt)), int(round(ht)))
+    target_low = target_width - tol
+    target_high = target_width + tol
+    if tol > 0 and w > target_low and w  < target_high:
+        new_size = (w, h)
+    else:
+        if w < target_low:
+            target = target_low
+        else:
+            target = target_high
+        wt = target
+        sf = wt / w
+        ht = sf * h
+        new_size = (int(round(wt)), int(round(ht)))
     return new_size
 
 
-def get_scaled_size_with_area(target_area, w, h):
+def get_scaled_size_with_area(target_area, w, h, tol=0):
     """
     returns new_size which scales (w, h) as close to target_area as possible and
     maintains aspect ratio
 
+    Ignore:
+        np.array(result2).prod(axis=1)
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.chip import *  # NOQA
-        >>> # build test data
-        >>> target_area = 800 ** 2
-        >>> w = 600
-        >>> h = 400
-        >>> # execute function
+        >>> target_area = 128 ** 2
+        >>> w, h = 600, 400
         >>> new_size = get_scaled_size_with_area(target_area, w, h)
-        >>> # verify results
-        >>> result = str(new_size)
+        >>> result1 = str(new_size)
+        >>> wh_list = [(10, 10), (100, 100), (150, 150), (125, 125), (175, 175), (200, 200)]
+        >>> tol = 32
+        >>> result2 = [get_scaled_size_with_area(target_area, wh[0], wh[1], tol)
+        >>>            for wh in wh_list]
+        >>> result = str(result1) + '\n' + str(result2)
         >>> print(result)
         (980, 653)
     """
-    ht = np.sqrt(target_area * h / w)
-    wt = w * ht / h
-    new_size = (int(round(wt)), int(round(ht)))
+    target_low = target_area - tol
+    target_high = target_area + tol
+    area = w * h
+    if tol > 0 and area > target_low and area  < target_high:
+        new_size = (w, h)
+    else:
+        if area < target_low:
+            target = target_low
+        else:
+            target = target_high
+        ht = np.sqrt(target * h / w)
+        wt = w * ht / h
+        new_size = (int(round(wt)), int(round(ht)))
     return new_size
+
+
+def get_scaled_size_with_dlen(target_dlen, w, h):
+    """
+    returns new_size which scales (w, h) as close to target_dlen as possible
+    and maintains aspect ratio
+    """
+    #ht = np.sqrt(target_area * h / w)
+    #wt = w * ht / h
+    #new_size = (int(round(wt)), int(round(ht)))
+    raise NotImplementedError()
+    #return new_size
 
 
 def get_scaled_sizes_with_area(target_area, size_list):

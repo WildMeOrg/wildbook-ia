@@ -25,7 +25,7 @@ def adapteq_fn(chipBGR):
 
 
 def histeq_fn(chipBGR):
-    """ Histogram equalization of a grayscale image. from  _tpl/other """
+    """ Histogram equalization of a grayscale image. """
     chipLAB = cv2.cvtColor(chipBGR, cv2.COLOR_BGR2LAB)
     chipLAB[:, :, 0] = cv2.equalizeHist(chipLAB[:, :, 0])
     chipBGR = cv2.cvtColor(chipLAB, cv2.COLOR_LAB2BGR)
