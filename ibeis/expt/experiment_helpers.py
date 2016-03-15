@@ -76,7 +76,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='humpbacks')
-        >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average', 'default:K=[1,4]']
+        >>> test_cfg_name_list = ['default:pipeline_root=BC_DTW,decision=average,crop_dim_size=[960,500]', 'default:K=[1,4]']
         >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
         >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))
@@ -158,6 +158,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     cfgdict_list = ut.compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.compress(_pipecfg_list, _flag_list)
     if ut.NOT_QUIET:
+        #for cfg in _pipecfg_list:
+        #    print(cfg.get_cfgstr())
+        #    print(cfg)
         print('[harn.help] return %d / %d unique pipeline configs from: %r' %
               (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list))
 
