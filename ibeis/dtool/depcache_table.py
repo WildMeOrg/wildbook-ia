@@ -35,6 +35,12 @@ ALLOW_NONE_YIELD = True
 STORE_CFGDICT = False
 
 
+class ExternalStorageException(Exception):
+    """ Indicates a missing external file """
+    def __init__(self, *args, **kwargs):
+        super(ExternalStorageException, self).__init__(*args, **kwargs)
+
+
 def predrop_grace_period(tablename, seconds=None):
     """ Hack that gives the user some time to abort deleting everything """
     global GRACE_PERIOD
@@ -555,7 +561,7 @@ class DependencyCacheTable(_TableHelper):
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, isinteractive=False, default_to_unpack=False,
-                 default_onthefly=False):
+                 default_onthefly=False, rm_extern_on_delete=False):
         """ recieves kwargs from depc._register_prop """
         try:
             table.db = None
@@ -588,6 +594,7 @@ class DependencyCacheTable(_TableHelper):
         table.data_col_attrs = None
         table.internal_col_attrs = None
         table.sqldb_fpath = None
+        table.rm_extern_on_delete = rm_extern_on_delete
         # Update internals
         table._update_internal_parentcol()
         table._update_internal_datacol()
@@ -1401,7 +1408,7 @@ class DependencyCacheTable(_TableHelper):
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
-    def delete_rows(table, rowid_list, delete_extern=False, verbose=None):
+    def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
         """
         CommandLine:
             python -m dtool.depcache_table --exec-delete_rows
@@ -1439,10 +1446,13 @@ class DependencyCacheTable(_TableHelper):
         #from dtool.algo.preproc import preproc_feat
         if table.on_delete is not None:
             table.on_delete()
+        if delete_extern is None:
+            delete_extern = table.rm_extern_on_delete
         if ut.NOT_QUIET:
             print('Requested delete of %d rows from %s' % (
                 len(rowid_list), table.tablename))
             print('delete_extern = %r' % (delete_extern,))
+        depc = table.depc
 
         # TODO:
         # REMOVE EXTERNAL FILES
@@ -1471,9 +1481,11 @@ class DependencyCacheTable(_TableHelper):
                 andwhere_colnames = parent_colnames
                 params_iter = ((rowid,) for rowid in rowid_list)
                 params_iter = list(params_iter)
-                child_rowids = table.db.get_where2(child_table.tablename,
-                                                   colnames, params_iter,
-                                                   andwhere_colnames)
+                child_db = depc[child_table.tablename].db
+                child_unflat_rowids = child_db.get_where2(
+                    child_table.tablename, colnames, params_iter,
+                    andwhere_colnames, unpack_scalars=False, keepwrap=False)
+                child_rowids = ut.flatten(child_unflat_rowids)
                 return child_rowids
 
             for child in table.children:
@@ -1497,7 +1509,7 @@ class DependencyCacheTable(_TableHelper):
 
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
                      read_extern=True, extra_tries=1, eager=True,
-                     nInput=None):
+                     nInput=None, ensure=True):
         r"""
         colnames = ('mask', 'size')
         FIXME: unpacking is confusing with sql controller
@@ -1625,54 +1637,59 @@ class DependencyCacheTable(_TableHelper):
             raw_prop_list = table.get_internal_columns(
                 nonNone_tbl_rowids, flat_intern_colnames, eager, nInput,
                 unpack_scalars=True, keepwrap=True)
-        ####
-        # Read data specified by any external columns
-        prop_listT = list(zip(*raw_prop_list))
-        for extern_colx, read_func in extern_resolve_colxs:
-            if _debug:
-                print('[deptbl.get_row_data] read_func = %r' % (read_func,))
-            data_list = []
-            failed_list = []
-            for uri in prop_listT[extern_colx]:
-                # FIXME: only do this for a localpath
-                uri_full = join(table.depc.cache_dpath, uri)
-                try:
-                    if read_extern:
-                        data = read_func(uri_full)
-                    else:
-                        ut.assertpath(uri_full)
-                        data = uri_full
-                except Exception as ex:
-                    ut.printex(ex, 'failed to load external data',
-                               iswarning=(extra_tries > 0),
-                               keys=['extra_tries', 'uri', 'uri_full',
-                                     (exists, 'uri_full'), 'read_func'])
 
-                    if extra_tries == 0:
-                        raise
-                    failed_list.append(True)
-                    data = None
-                else:
-                    failed_list.append(False)
-                data_list.append(data)
-            if any(failed_list):
-                # FIXME: should directly recompute the data in the rows
-                # rather than deleting the rowids.  Need the parent ids and
-                # config to do that.
-                failed_rowids = ut.compress(nonNone_tbl_rowids, failed_list)
-                table.delete_rows(failed_rowids, delete_extern=False)
-                raise Exception('Non existant data on disk. Need to recompute rows')
-            prop_listT[extern_colx] = data_list
-        ####
-        # Unflatten data into any given nested structure
-        nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
-        for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
-            nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
-        prop_list = list(zip(*nested_proplistT))
-        ####
-        # Unpack single column datas if requested
-        if unpack_columns:
-            prop_list = [None if p is None else p[0] for p in prop_list]
+        if len(raw_prop_list) > 0:
+            ####
+            # Read data specified by any external columns
+            prop_listT = list(zip(*raw_prop_list))
+            for extern_colx, read_func in extern_resolve_colxs:
+                if _debug:
+                    print('[deptbl.get_row_data] read_func = %r' % (read_func,))
+                data_list = []
+                failed_list = []
+                for uri in prop_listT[extern_colx]:
+                    # FIXME: only do this for a localpath
+                    uri_full = join(table.depc.cache_dpath, uri)
+                    try:
+                        if read_extern:
+                            data = read_func(uri_full)
+                        else:
+                            if ensure:
+                                ut.assertpath(uri_full)
+                            data = uri_full
+                    except Exception as ex:
+                        ut.printex(ex, 'failed to load external data',
+                                   iswarning=(extra_tries > 0),
+                                   keys=['extra_tries', 'uri', 'uri_full',
+                                         (exists, 'uri_full'), 'read_func'])
+                        if extra_tries == 0:
+                            raise
+                        failed_list.append(True)
+                        data = None
+                    else:
+                        failed_list.append(False)
+                    data_list.append(data)
+                if any(failed_list):
+                    # FIXME: should directly recompute the data in the rows
+                    # rather than deleting the rowids.  Need the parent ids and
+                    # config to do that.
+                    failed_rowids = ut.compress(nonNone_tbl_rowids, failed_list)
+                    table.delete_rows(failed_rowids, delete_extern=None)
+                    raise ExternalStorageException('Non existant data on disk. Need to recompute rows')
+                    #raise Exception('Non existant data on disk. Need to recompute rows')
+                prop_listT[extern_colx] = data_list
+            ####
+            # Unflatten data into any given nested structure
+            nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
+            for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
+                nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
+            prop_list = list(zip(*nested_proplistT))
+            ####
+            # Unpack single column datas if requested
+            if unpack_columns:
+                prop_list = [None if p is None else p[0] for p in prop_list]
+        else:
+            prop_list = []
 
         if ALLOW_NONE_YIELD:
             prop_list = ut.ungroup(
@@ -1687,6 +1704,7 @@ class DependencyCacheTable(_TableHelper):
             id_colname=table.rowid_colname, eager=eager, nInput=nInput,
             unpack_scalars=unpack_scalars, keepwrap=keepwrap)
         return prop_list
+
 
 
 if __name__ == '__main__':

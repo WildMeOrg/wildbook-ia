@@ -811,11 +811,19 @@ class _CoreDependencyCache(object):
                 # THen get self rowids for debugging ease
 
                 # Compute everything from the root to the requested table
-                rowid_dict = depc.get_all_descendant_rowids(
-                    tablename, root_rowids, config=config, ensure=ensure,
-                    eager=eager, nInput=nInput, recompute=recompute,
-                    recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
-                rowid_list = rowid_dict[tablename]
+                try:
+                    rowid_dict = depc.get_all_descendant_rowids(
+                        tablename, root_rowids, config=config, ensure=ensure,
+                        eager=eager, nInput=nInput, recompute=recompute,
+                        recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
+                    rowid_list = rowid_dict[tablename]
+                except depcache_table.ExternalStorageException:
+                    print('EXTERNAL EXCEPTION One retry in get_rowids')
+                    rowid_dict = depc.get_all_descendant_rowids(
+                        tablename, root_rowids, config=config, ensure=ensure,
+                        eager=eager, nInput=nInput, recompute=recompute,
+                        recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
+                    rowid_list = rowid_dict[tablename]
         if _debug:
             print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
@@ -849,7 +857,7 @@ class _CoreDependencyCache(object):
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
                      ensure=True, _debug=None, recompute=False,
                      recompute_all=False, eager=True, nInput=None,
-                     read_extern=True, onthefly=False):
+                     read_extern=True, onthefly=False, num_retries=1):
         """
         Primary function to load or compute values in the dependency cache.
 
@@ -901,35 +909,49 @@ class _CoreDependencyCache(object):
                 print(' * colnames = %r' % (colnames,))
                 print(' * config = %r' % (config,))
 
-            if False:
-                recompute_ = recompute or recompute_all
+            try:
+                if False:
+                    recompute_ = recompute or recompute_all
 
-                parent_rowids = depc._get_parent_input(
-                    tablename, root_rowids, config, ensure=True, _debug=None,
-                    recompute=False, recompute_all=False, eager=True,
-                    nInput=None)
-                config_ = depc._ensure_config(tablename, config)
-                #if onthefly:
-                #    pass
+                    parent_rowids = depc._get_parent_input(
+                        tablename, root_rowids, config, ensure=True, _debug=None,
+                        recompute=False, recompute_all=False, eager=True,
+                        nInput=None)
+                    config_ = depc._ensure_config(tablename, config)
+                    #if onthefly:
+                    #    pass
+                    table = depc[tablename]
+                    tbl_rowids = table.get_rowid(
+                        parent_rowids, config=config_, eager=eager, nInput=nInput,
+                        ensure=ensure, recompute=recompute_)
+                else:
+                    # Vectorized get of properties
+                    tbl_rowids = depc.get_rowids(tablename, root_rowids,
+                                                 config=config, ensure=ensure,
+                                                 _debug=_debug, eager=eager,
+                                                 recompute=recompute,
+                                                 recompute_all=recompute_all,
+                                                 nInput=nInput)
+                if _debug:
+                    print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
                 table = depc[tablename]
-                tbl_rowids = table.get_rowid(
-                    parent_rowids, config=config_, eager=eager, nInput=nInput,
-                    ensure=ensure, recompute=recompute_)
-            else:
-                # Vectorized get of properties
-                tbl_rowids = depc.get_rowids(tablename, root_rowids,
-                                             config=config, ensure=ensure,
-                                             _debug=_debug, eager=eager,
-                                             recompute=recompute,
-                                             recompute_all=recompute_all,
-                                             nInput=nInput)
-            if _debug:
-                print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
-            table = depc[tablename]
-            prop_list = table.get_row_data(tbl_rowids, colnames,
-                                           read_extern=read_extern,
-                                           _debug=_debug, eager=eager,
-                                           nInput=nInput)
+                prop_list = table.get_row_data(tbl_rowids, colnames,
+                                               read_extern=read_extern,
+                                               _debug=_debug, eager=eager,
+                                               ensure=ensure, nInput=nInput)
+            except depcache_table.ExternalStorageException:
+                print('!!* Hit ExternalStorageException')
+                if num_retries == 0:
+                    raise
+                else:
+                    prop_list = depc.get_property(tablename, root_rowids,
+                                                  colnames=colnames,
+                                                  config=config, ensure=ensure,
+                                                  _debug=_debug, eager=eager,
+                                                  nInput=nInput,
+                                                  read_extern=read_extern,
+                                                  onthefly=onthefly,
+                                                  num_retries=num_retries - 1)
             if _debug:
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
@@ -987,7 +1009,7 @@ class _CoreDependencyCache(object):
         Deletes the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
         """
-        rowid_list = depc.get_rowids(root_rowids, config=config, ensure=False)
+        rowid_list = depc.get_rowids(tablename, root_rowids, config=config, ensure=False)
         table = depc[tablename]
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
