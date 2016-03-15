@@ -31,8 +31,9 @@ class GuitoolApplication(QtGui.QApplication):
 
     def notify(self, receiver, event):
         if(event.type() == QtCore.QEvent.KeyPress):
-            QtGui.QMessageBox.information(
-                None, "Received Key Press Event!!", "You Pressed: " + event.text())
+            pass
+            #QtGui.QMessageBox.information(
+            #    None, "Received Key Press Event!!", "You Pressed: " + event.text())
         # Call Base Class Method to Continue Normal Event Processing
         return super(GuitoolApplication, self).notify(receiver, event)
 
