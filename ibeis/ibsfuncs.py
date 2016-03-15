@@ -3334,7 +3334,9 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
 def draw_thumb_helper(tup):
     thumb_path, thumbsize, gpath, orient, bbox_list, theta_list = tup
-    img = vt.imread(gpath, orient=orient)  # time consuming
+    # time consuming
+    # img = vt.imread(gpath, orient=orient)
+    img = vt.imread(gpath)
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
     max_dsize = (thumbsize, thumbsize)

@@ -68,13 +68,10 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
     from ibeis.algo.detect import randomforest  # NOQA
     if isinstance(gid_list, int):
         gid_list = [gid_list]
-    print('TYPE:' + str(type(gid_list)))
-    print('GID_LIST:' + ut.truncate_str(str(gid_list)))
     detect_gen = randomforest.detect_gid_list_with_species(
         ibs, gid_list, species, **kwargs)
     # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
     # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
-    print('TYPE:' + str(type(detect_gen)))
     aids_list = []
     for gid, (gpath, result_list) in zip(gid_list, detect_gen):
         aids = []
@@ -326,8 +323,6 @@ def detect_cnn_yolo(ibs, gid_list, **kwargs):
     from ibeis.algo.detect import yolo  # NOQA
     if isinstance(gid_list, int):
         gid_list = [gid_list]
-    print('TYPE:' + str(type(gid_list)))
-    print('GID_LIST:' + ut.truncate_str(str(gid_list)))
     detect_result_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
     detect_result_list = list(detect_result_gen)
     aids_list = ibs.commit_detection_results(detect_result_list)

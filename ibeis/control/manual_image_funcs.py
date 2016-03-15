@@ -668,15 +668,31 @@ def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
 
 
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/orientation/', methods=['PUT'])
+def set_image_orientation(ibs, gid_list, orientation_list):
+    r"""
+    RESTful:
+        Method: PUT
+        URL:    /api/image/orientation/
+    """
+    colnames = ('image_orientation',)
+    val_list = ((orientation,) for orientation in orientation_list)
+    id_iter = ((gid,) for gid in gid_list)
+    ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
+
+
 #
 # GETTERS::IMAGE_TABLE
 
 
 @register_ibs_method
-def imread(ibs, gid, force_orient=False):
+def imread(ibs, gid, force_orient=False, verbose=False):
     orient = ibs.get_image_orientation(gid)
     orient = orient if force_orient else False
-    print('Orient for gid %d: %r' % (gid, orient, ))
+    if verbose:
+        print('Orient for gid %d: %r' % (gid, orient, ))
     gpath = ibs.get_image_paths(gid)
     image = vt.imread(gpath, orient=orient)
     return image

@@ -45,18 +45,28 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         neww_list = [vt.open_image_size(gpath)[0] for gpath in gpath_list]
         oldw_list = [oldw for (oldw, oldh) in ibs.get_image_sizes(gid_list)]
         downsample_list = [oldw / neww for oldw, neww in zip(oldw_list, neww_list)]
+        orient_list = [1] * len(gid_list)
     else:
         gpath_list = ibs.get_image_paths(gid_list)
         downsample_list = [None] * len(gpath_list)
+        orient_list = ibs.get_image_orientation(gid_list)
     # Run detection
     results_iter = detect(gpath_list, **kwargs)
     # Upscale the results
-    for downsample, gid, (gpath, result_list) in zip(downsample_list, gid_list, results_iter):
+    for downsample, gid, orient, (gpath, result_list) in zip(downsample_list, gid_list, orient_list, results_iter):
         # Upscale the results back up to the original image size
-        if downsample is not None and downsample != 1.0:
-            for result in result_list:
+        for result in result_list:
+            if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
+            if orient == 6:
+                full_w, full_h = ibs.get_image_sizes(gid)
+                result['xtl'], result['ytl'] = full_w - result['ytl'] - result['height'], result['xtl']
+                result['width'], result['height'] = result['height'], result['width']
+            if orient == 8:
+                full_w, full_h = ibs.get_image_sizes(gid)
+                result['xtl'], result['ytl'] = result['ytl'], full_h - result['xtl'] - result['width']
+                result['width'], result['height'] = result['height'], result['width']
         yield (gid, gpath, result_list)
 
 

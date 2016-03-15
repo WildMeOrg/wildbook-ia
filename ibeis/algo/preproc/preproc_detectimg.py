@@ -11,7 +11,8 @@ def gen_detectimg_and_write(tup):
     """ worker function for parallel generator """
     gid, gfpath, new_gfpath, new_size, orient = tup
     #print('[preproc] writing detectimg: %r' % new_gfpath)
-    img = vt.imread(gfpath, orient=orient)
+    # img = vt.imread(gfpath, orient=orient)
+    img = vt.imread(gfpath)
     new_img = vt.resize(img, new_size)
     vt.imwrite(new_gfpath, new_img)
     return gid, new_gfpath

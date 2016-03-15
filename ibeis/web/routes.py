@@ -12,6 +12,7 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
 from ibeis.web import routes_ajax
 import utool as ut
+import vtool as vt
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -747,7 +748,7 @@ def turk_viewpoint():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = ibs.imread(gid)
+        image     = vt.imread(gpath)
         image_src = appf.embed_image_html(image)
         species   = ibs.get_annot_species_texts(aid)
     else:
@@ -835,7 +836,7 @@ def turk_quality():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = ibs.imread(gid)
+        image     = vt.imread(gpath)
         image_src = appf.embed_image_html(image)
     else:
         gid       = None
@@ -914,7 +915,7 @@ def turk_additional():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = ibs.imread(gid)
+        image     = vt.imread(gpath)
         image_src = appf.embed_image_html(image)
     else:
         gid       = None
@@ -933,8 +934,9 @@ def turk_additional():
             quality_text_list,
             yaw_text_list,
         ))
-
         name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
+    else:
+        name_aid_combined_list = []
     return appf.template('turk', 'additional',
                          imgsetid=imgsetid,
                          gid=gid,
