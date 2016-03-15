@@ -496,13 +496,13 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.5.2'
+            ibs.db_version_expected = '1.5.1'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.2')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.1')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = dtool.SQLDatabaseController(
