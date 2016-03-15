@@ -2400,10 +2400,7 @@ class SQLDatabaseController(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> tablename = ut.get_argval('--tablename', type_=str, default='names')
-            >>> db = ibs.db
+            >>> ut.exec_funckw(db.get_table_csv, globals())
             >>> exclude_columns = []
             >>> csv_table = db.get_table_csv(tablename, exclude_columns)
             >>> # verify results

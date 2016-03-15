@@ -32,7 +32,7 @@ else:
 #ALLOW_NONE_YIELD = False
 ALLOW_NONE_YIELD = True
 
-STORE_CFGDICT = False
+STORE_CFGDICT = True
 
 
 class ExternalStorageException(Exception):
@@ -904,6 +904,48 @@ class DependencyCacheTable(_TableHelper):
     # --- CONFIGURATION TABLE ---
     # ---------------------------
 
+    def get_row_parent_rowid_map(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+
+        parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
+        key = parent_rowid_dict.keys()[0]
+        val = parent_rowid_dict.values()[0]
+        """
+        parent_rowids = table.get_internal_columns(rowid_list, table.parent_id_colnames,
+                                                   unpack_scalars=True,
+                                                   keepwrap=True)
+        parent_rowid_dict = dict(zip(table.parent_id_tablenames, ut.list_transpose(parent_rowids)))
+        return parent_rowid_dict
+
+    def get_config_history(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+
+        parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
+        key = parent_rowid_dict.keys()[0]
+        val = parent_rowid_dict.values()[0]
+        """
+        tbl_cfgids = table.get_row_cfgid(rowid_list)
+        cfgid2_rowids = ut.group_items(rowid_list, tbl_cfgids)
+        unique_cfgids = cfgid2_rowids.keys()
+        unique_configs = table.get_config_from_rowid(unique_cfgids)
+        print('unique_configs = %r' % (unique_configs,))
+
+        parent_rowids = table.get_internal_columns(rowid_list, table.parent_id_colnames,
+                                                   unpack_scalars=True,
+                                                   keepwrap=True)
+        ret_list = [unique_configs]
+        depc = table.depc
+        for tblname, ids in zip(table.parent_id_tablenames,
+                                ut.list_transpose(parent_rowids)):
+            if tblname == depc.root:
+                continue
+            parent_tbl = depc[tblname]
+            ancestor_configs = parent_tbl.get_config_history(ids)
+            ret_list.extend(ancestor_configs)
+        return ret_list
+
     def get_row_cfgid(table, rowid_list):
         """
         >>> from dtool.depcache_table import *  # NOQA
@@ -911,13 +953,13 @@ class DependencyCacheTable(_TableHelper):
         config_rowids = table.get_internal_columns(rowid_list, (CONFIG_ROWID,))
         return config_rowids
 
-    #def get_row_configs(table, rowid_list):
-    #    """
-    #    >>> from dtool.depcache_table import *  # NOQA
-    #    """
-    #    config_rowids = table.get_row_cfgid(rowid_list)
-    #    return table.get_config_from_rowid(config_rowids)
-    #    #return cfgdict_list
+    def get_row_configs(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+        """
+        config_rowids = table.get_row_cfgid(rowid_list)
+        return table.get_config_from_rowid(config_rowids)
+        #return cfgdict_list
 
     def get_row_cfghashid(table, rowid_list):
         """
@@ -1033,13 +1075,13 @@ class DependencyCacheTable(_TableHelper):
         num_dirty = sum(isdirty_list)
         num_total = len(parent_ids_)
 
-        fmtstr = '[deptbl.add] Add %d / %d new props to %r for config_rowid=%r'
         if num_dirty > 0:
             with ut.Indenter('[ADD]', enabled=_debug):
                 if verbose or _debug:
-                    tup = (num_dirty, num_total, table.tablename,
-                           config_rowid)
-                    print(fmtstr % tup)
+                    tup = (num_dirty, num_total, table.tablename,)
+                    print('[deptbl.add] Add %d / %d new props to %r' % tup)
+                    print('[deptbl.add]  * config_rowid = %r' % (config_rowid,))
+                    print('[deptbl.add]  * config = %s' % (config,))
                 table._compute_dirty_rows(parent_ids_, preproc_args,
                                           config_rowid, isdirty_list, config)
                 if verbose or _debug:
@@ -1704,7 +1746,6 @@ class DependencyCacheTable(_TableHelper):
             id_colname=table.rowid_colname, eager=eager, nInput=nInput,
             unpack_scalars=unpack_scalars, keepwrap=keepwrap)
         return prop_list
-
 
 
 if __name__ == '__main__':

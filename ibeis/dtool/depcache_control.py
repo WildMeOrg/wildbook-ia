@@ -158,6 +158,10 @@ class _CoreDependencyCache(object):
         table = depc.cachetable_dict[tablename]
         table.subproperties[propname] = preproc_func
 
+    def close(depc):
+        for fname, db in depc.fname_to_db.items():
+            db.close()
+
     @profile
     def initialize(depc, _debug=None):
         """

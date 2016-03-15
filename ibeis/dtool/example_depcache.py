@@ -582,7 +582,7 @@ def test_getters(depc):
 def dummy_example_depcacahe():
     r"""
     CommandLine:
-        python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
+        python -m dtool.example_depcache --exec-dummy_example_depcacahe
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -643,6 +643,17 @@ def dummy_example_depcacahe():
 
     req = depc.new_request('vsmany', root_rowids, root_rowids, {})
     req.execute()
+
+    #ut.InstanceList(
+    db = list(depc.fname_to_db.values())[0]
+    #db_list = ut.InstanceList(depc.fname_to_db.values())
+    #db_list.print_table_csv('config', exclude_columns='config_strid')
+
+    print('config table')
+    column_list, column_names = db.get_table_column_data(tablename,
+                                                         ['config_strid'])
+    print('\n'.join([ut.hz_str(*list(ut.interleave((r, [', '] * (len(r) - 1)))))
+                     for r in list(zip(*[[ut.repr3(r, nl=2) for r in col] for col in column_list]))]))
 
     return depc
 

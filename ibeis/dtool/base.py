@@ -15,6 +15,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     """
     def __init__(cfg, **kwargs):
+        cfg._parent = None
         cfg.initialize_params(**kwargs)
 
     def __nice__(cfg):
