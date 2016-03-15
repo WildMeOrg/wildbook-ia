@@ -17,7 +17,8 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
                     image_height_list, image_orig_name_list=None, image_ext_list=None,
                     image_time_posix_list=None, image_gps_lat_list=None,
-                    image_gps_lon_list=None, image_notes_list=None, **kwargs):
+                    image_gps_lon_list=None, image_orientation_list=None,
+                    image_notes_list=None, **kwargs):
     """
     REST:
         Method: POST
@@ -68,6 +69,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         image_time_posix_list (list of int): list of image's POSIX timestamps
         image_gps_lat_list (list of float): list of image's GPS latitude values
         image_gps_lon_list (list of float): list of image's GPS longitude values
+        image_orientation_list (list of int): list of image's orientation flags
         image_notes_list (list of str) : optional list of any related notes with
             the images
         **kwargs : key-value pairs passed to the ibs.add_images() function.
@@ -148,6 +150,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             int(_resolve(image_time_posix_list, default=-1)),
             float(_resolve(image_gps_lat_list, default=-1.0)),
             float(_resolve(image_gps_lon_list, default=-1.0)),
+            int(_resolve(image_orientation_list, default=0)),
             _resolve(image_notes_list),
         )
         return param_tup
