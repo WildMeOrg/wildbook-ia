@@ -83,18 +83,21 @@ def testdata_core(defaultdb='testdb1', size=2):
 
 class ChipConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo(
-            'resize_dim', 'width',
-            #'resize_dim', 'area',
-            valid_values=['area', 'width', 'height', 'diag', 'maxwh'],
-            hideif=lambda cfg: cfg['dim_size'] is None),
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
         #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
         ut.ParamInfo('dim_size', 700, 'sz', hideif=None),
+        ut.ParamInfo(
+            'resize_dim', 'width', '',
+            #'resize_dim', 'area', '',
+            valid_values=['area', 'width', 'height', 'diag', 'maxwh'],
+            hideif=lambda cfg: cfg['dim_size'] is None),
+        ut.ParamInfo('dim_tol', 0, 'tol', hideif=0),
         ut.ParamInfo('preserve_aspect', True, hideif=True),
         ut.ParamInfo('histeq', False, hideif=False),
+        ut.ParamInfo('adapteq', False, hideif=False),
+        ut.ParamInfo('histeq_thresh', False, hideif=False),
         ut.ParamInfo('pad', 0, hideif=0),
-        ut.ParamInfo('ext', '.png'),
+        ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
 
 
@@ -129,15 +132,92 @@ def compute_chip(depc, aid_list, config=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> defaultdb = 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc
         >>> config = ChipConfig.from_argv_dict(dim_size=None)
         >>> aid_list = ibs.get_valid_aids()[0:8]
-        >>> chips = depc.get_property('chips', aid_list, 'img', config)
+        >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
+        >>> iteract_obj.start()
         >>> pt.show_if_requested()
+
+    Ignore:
+        from ibeis.core_annots import *  # NOQA
+        import plottool as pt
+        pt.ensure_pylab_qt4()
+        import ibeis
+        defaultdb = 'GZ_ALL'
+        ibs = ibeis.opendb(defaultdb=defaultdb)
+        depc = ibs.depc
+        config = ChipConfig.from_argv_dict(dim_size='256')
+        aid_list = ibs.get_valid_aids()
+
+        chips_orig = depc.get_property('chips', aid_list, 'img', config={})
+        chips_aeq = depc.get_property('chips', aid_list, 'img', config={'adapteq': True})
+        chips_heq = depc.get_property('chips', aid_list, 'img', config={'histeq': True})
+
+        nfeats_hteq = ibs.depc.get('feat', aid_list, 'num_feats', config={'histeq': True})
+        nfeats_ateq = ibs.depc.get('feat', aid_list, 'num_feats', config={'adapteq': True})
+        nfeats_orig = ibs.depc.get('feat', aid_list, 'num_feats')
+        nfeats_hteq = np.array(nfeats_hteq)
+        nfeats_ateq = np.array(nfeats_ateq)
+        nfeats_orig = np.array(nfeats_orig)
+
+        sortx = np.array(nfeats_orig).argsort()
+        sortx = np.array(nfeats_hteq).argsort()
+        sortx = np.array(nfeats_ateq).argsort()
+
+        aids = ut.take(aid_list, sortx)
+        chips_bad = ut.take(chips, sortx)
+
+        iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips_bad, nPerPage=15)
+        iteract_obj.start()
+
+        chips_good = ut.take(chips, sortx[::-1])
+        iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips_good, nPerPage=15)
+        iteract_obj.start()
+
+        x = sklearn.cluster.KMeans(2)
+        x.fit(np.nan_to_num(measures))
+
+        import vtool.quality_classifier
+        from vtool.quality_classifier import contrast_measures
+        chips128 = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
+        gray_chips = [vt.convert_colorspace(x, 'GRAY') for x in ut.ProgIter(chips128)]
+        measures = list(ut.generate(contrast_measures, gray_chips))
+        measures = np.array(measures)
+        measures = np.nan_to_num(measures)
+        y = measures.T[3]
+        sortx = y.argsort()
+        ys = y.take(sortx)
+
+
+        pca = sklearn.decomposition.PCA(2)
+        pca.fit(measures)
+        pca.fit(measures)
+        pca.transform(measures)
+
+        svc = sklearn.svm.LinearSVC()
+        svc.fit(measures, nfeats_orig > 500)
+        svc.predict(measures) == (nfeats_orig > 500)
+
+        svr = sklearn.svm.LinearSVR()
+        svr.fit(measures, nfeats_orig)
+        svr.predict(measures)
+
+        depc['feat'].get_config_history(z1)
+        depc['feat'].get_config_history(z2)
+        pt.plt.plot(nfeats_hteq[sortx], 'x')
+        pt.plt.plot(nfeats_orig[sortx], '.')
+        pt.plt.plot(nfeats_ateq[sortx], 'o')
+
+        z1 = ibs.depc.get_rowids('feat', aid_list, config={'histeq': True})
+        z2 = ibs.depc.get_rowids('feat', aid_list)
+        assert len(set(z1).intersection(z2)) == 0
+
     """
     print('Preprocess Chips')
     print('config = %r' % (config,))
@@ -150,6 +230,7 @@ def compute_chip(depc, aid_list, config=None):
     ext = config['ext']
     pad = config['pad']
     dim_size = config['dim_size']
+    dim_tol = config['dim_tol']
     resize_dim = config['resize_dim']
 
     cfghashid = config.get_hashid()
@@ -183,7 +264,8 @@ def compute_chip(depc, aid_list, config=None):
     else:
         if resize_dim == 'area':
             dim_size = dim_size ** 2
-        newsize_list = [scale_func(dim_size, w, h) for (w, h) in bbox_size_list]
+            dim_tol = dim_tol ** 2
+        newsize_list = [scale_func(dim_size, w, h, dim_tol) for (w, h) in bbox_size_list]
 
     if pad > 0:
         halfoffset_ms = (pad, pad)
@@ -205,12 +287,21 @@ def compute_chip(depc, aid_list, config=None):
     borderMode = cv2.BORDER_CONSTANT
     warpkw = dict(flags=flags, borderMode=borderMode)
 
+    filterfn_list = []
+    from vtool import image_filters
+    if config['histeq']:
+        filterfn_list.append(image_filters.histeq_fn)
+    if config['adapteq']:
+        filterfn_list.append(image_filters.adapteq_fn)
+
     for tup in ut.ProgIter(arg_list, lbl='computing chips'):
         cfpath, gfpath, new_size, M = tup
         # Read parent image
         imgBGR = vt.imread(gfpath)
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
+        for filtfn in filterfn_list:
+            chipBGR = filtfn(chipBGR)
         width, height = vt.get_size(chipBGR)
         #yield (chipBGR, width, height, M)
         # Write chip to disk
@@ -322,10 +413,10 @@ class ProbchipConfig(dtool.Config):
     }
     _param_info_list = [
         #ut.ParamInfo('preserve_aspect', True, hideif=True),
-        ut.ParamInfo('fw_detector', 'cnn'),
-        ut.ParamInfo('fw_dim_size', 256),
-        ut.ParamInfo('smooth_thresh', 20),
-        ut.ParamInfo('smooth_ksize', 20, hideif=lambda cfg: cfg['smooth_thresh'] is None),
+        ut.ParamInfo('fw_detector', 'cnn', 'detector='),
+        ut.ParamInfo('fw_dim_size', 256, 'sz'),
+        ut.ParamInfo('smooth_thresh', 20, 'thresh='),
+        ut.ParamInfo('smooth_ksize', 20, 'ksz=', hideif=lambda cfg: cfg['smooth_thresh'] is None),
         #ut.ParamInfo('ext', '.png'),
     ]
     #_sub_config_list = [
@@ -503,7 +594,6 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> import plottool as pt
-        >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = ChipConfig.from_argv_dict()
         >>> probchip_config = ProbchipConfig(smooth_thresh=None)
@@ -538,7 +628,7 @@ class FeatConfig(dtool.Config):
         >>> feat_cfg = FeatConfig()
         >>> result = str(feat_cfg)
         >>> print(result)
-        <FeatConfig(hesaff+sift,scale_max=40)>
+        <FeatConfig(hesaff+sift,scale_max=50)>
     """
 
     def get_param_info_list(self):
@@ -724,7 +814,9 @@ def gen_feat_worker(tup):
 
 
 class FeatWeightConfig(dtool.Config):
-    _param_info_list = []
+    _param_info_list = [
+        ut.ParamInfo('featweight_enabled', True, 'enabled='),
+    ]
 
 
 @register_preproc(

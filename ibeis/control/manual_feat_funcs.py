@@ -175,7 +175,8 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:3]
-        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True)
+        >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
+        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True, config2_=config2_)
         >>> print('nFeats_list = %r' % (nFeats_list,))
         >>> assert len(nFeats_list) == 3
         >>> ut.assert_inbounds(nFeats_list[0], 1200, 1258)

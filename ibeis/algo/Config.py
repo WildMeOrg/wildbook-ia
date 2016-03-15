@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Algorithm and behavior configurations are stored here.  These classes are based
-off of the utool.Preference.Pref class which really needs a good overhaul
-
-NEED TO REDO THESE CONFIGURATIONS.
-Flat definitions? Then link dependencies?
+DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import copy
-import dtool
+#import dtool
 from os.path import join
 from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
@@ -910,6 +906,7 @@ class FeatureWeightConfig(ConfigBase):
         >>>                                      featweight_enabled=True)
         >>> result = featweight_cfg.get_cfgstr()
         >>> print(result)
+
         _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
         _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
@@ -921,70 +918,51 @@ class FeatureWeightConfig(ConfigBase):
             name='featweight_cfg')
         # Featweights depend on features
         featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
+        featweight_cfg.initialize_params()
         # Feature weights depend on the detector, but we only need to mirror
         # some parameters because featweight_cfg should not use the detect_cfg
         # object
         #featweight_cfg.featweight_enabled = False
-        featweight_cfg.featweight_enabled = True
-        featweight_cfg.featweight_species  = 'uselabel'
+        #featweight_cfg.featweight_enabled = True
+        #featweight_cfg.featweight_species  = 'uselabel'
         #featweight_cfg.fw_detector = 'rf'
-        featweight_cfg.fw_detector = 'cnn'
+        #featweight_cfg.fw_detector = 'cnn'
         featweight_cfg.update(**kwargs)
 
     def make_feasible(featweight_cfg):
         #featweight_cfg.featweight_enabled = False
         pass
 
-    def get_cfgstr_list(featweight_cfg, **kwargs):
-        featweight_cfg.make_feasible()
-        featweight_cfgstrs = []
-        if kwargs.get('use_featweight', True):
-            if featweight_cfg.featweight_enabled is not True:
-                if featweight_cfg.featweight_enabled == 'ERR':
-                    featweight_cfgstrs.extend(['_FEATWEIGHT(ERR)'])
-                else:
-                    featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
-            else:
-                featweight_cfgstrs.extend([
-                    '_FEATWEIGHT(ON',
-                    ',' + featweight_cfg.featweight_species,
-                    ',' + featweight_cfg.fw_detector,
-                    ')'])
-        _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
-        featweight_cfgstrs.extend(_cfgstrlist)
-        return featweight_cfgstrs
-
-
-#@six.add_metaclass(ConfigMetaclass)
-class FeatureConfig2(dtool.Config):
-    """
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> feat_cfg = FeatureConfig2()
-        >>> result = str(feat_cfg)
-        >>> print(result)
-        <FeatureConfig2(hesaff+sift,scale_max=40)>
-    """
-
     def get_param_info_list(self):
-        import pyhesaff
-        default_keys = list(pyhesaff.get_hesaff_default_params().keys())
-        default_items = list(pyhesaff.get_hesaff_default_params().items())
-        param_info_list = [
-            ut.ParamInfo('feat_type', 'hesaff+sift', ''),
-        ]
-        param_info_dict = {
-            name: ut.ParamInfo(name, default, hideif=default)
-            for name, default in default_items
-        }
-        param_info_dict['scale_max'].default = 40
-        param_info_list += ut.dict_take(param_info_dict, default_keys)
-        return param_info_list
+        from ibeis import core_annots
+        return core_annots.ProbchipConfig._param_info_list + core_annots.FeatWeightConfig._param_info_list
+
+    #def get_cfgstr_list(featweight_cfg, **kwargs):
+    #    featweight_cfg.make_feasible()
+    #    featweight_cfgstrs = []
+    #    if kwargs.get('use_featweight', True):
+    #        if featweight_cfg.featweight_enabled is not True:
+    #            if featweight_cfg.featweight_enabled == 'ERR':
+    #                featweight_cfgstrs.extend(['_FEATWEIGHT(ERR)'])
+    #            else:
+    #                featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
+    #        else:
+    #            featweight_cfgstrs.extend([
+    #                '_FEATWEIGHT(ON',
+    #                ',' + featweight_cfg.featweight_species,
+    #                ',' + featweight_cfg.fw_detector,
+    #                ')'])
+    #    _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
+    #    featweight_cfgstrs.extend(_cfgstrlist)
+    #    return featweight_cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)
 class FeatureConfig(ConfigBase):
     """
     Feature configuration object.
+
+    TODO depcirate for core_annots.FeatConfig
 
     CommandLine:
         python -m ibeis.algo.Config --test-FeatureConfig
@@ -996,98 +974,37 @@ class FeatureConfig(ConfigBase):
         >>> feat_cfg = Config.FeatureConfig()
         >>> result = (feat_cfg.get_cfgstr())
         >>> print(result)
-        _FEAT(hesaff+sift_)_CHIP(sz450)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo import Config  # NOQA
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> feat_cfg = Config.FeatureConfig(rotation_invariance=True)
-        >>> result = (feat_cfg.get_cfgstr())
-        >>> print(result)
-        _FEAT(hesaff+sift_rotation_invariance=True)_CHIP(sz450)
+        >>> #assert result.startswith('_FEAT(hesaff+sift_)_CHIP')
+        _Feat(hesaff+sift,scale_max=50)
     """
     def __init__(feat_cfg, **kwargs):
         # Features depend on chips
-        import pyhesaff
+        #import pyhesaff
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg._chip_cfg = ChipConfig(**kwargs)
-        feat_cfg.feat_type = 'hesaff+sift'
-        feat_cfg.bgmethod = None
-        feat_cfg._param_list = list(six.iteritems(
-            pyhesaff.get_hesaff_default_params()))
-
-        for type_, name, default, doc in feat_cfg._iterparams():
-            setattr(feat_cfg, name, default)
-
-        #feat_cfg.affine_invariance = False  # 9001 # 80
-        #feat_cfg.rotation_invariance = True  # 9001 # 80
-
-        """
-        # TODO:
-            multiple features (lists of features to use)
-            per-chip filtering based on decision (this probably should belong
-                to chip cfg)
-            optional mask
-        """
-
-        feat_cfg.use_adaptive_scale = False  # 9001 # 80
-        feat_cfg.nogravity_hack = False  # 9001 # 80
+        feat_cfg.initialize_params()
+        #feat_cfg.feat_type = 'hesaff+sift'
+        #feat_cfg.bgmethod = None
+        #feat_cfg._param_list = list(six.iteritems(
+        #    pyhesaff.get_hesaff_default_params()))
+        #for type_, name, default, doc in feat_cfg._iterparams():
+        #    setattr(feat_cfg, name, default)
+        #feat_cfg.use_adaptive_scale = False  # 9001 # 80
+        #feat_cfg.nogravity_hack = False  # 9001 # 80
         feat_cfg.update(**kwargs)
 
-    def _iterparams(feat_cfg):
-        """ DEPRICATE """
-        for name, default in feat_cfg._param_list:
-            type_ = None
-            doc = None
-            yield (type_, name, default, doc)
+    def get_param_info_list(self):
+        from ibeis import core_annots
+        return core_annots.FeatConfig().get_param_info_list()
+
+    def get_config_name(self):
+        return 'Feat'
 
     def get_hesaff_params(feat_cfg):
-        dict_args = {
-            name: feat_cfg[name]
-            for type_, name, default, doc in feat_cfg._iterparams()
-        }
-        return dict_args
-
-    def get_cfgstr_list(feat_cfg, **kwargs):
-        if kwargs.get('use_feat', True):
-            import pyhesaff
-            feat_cfgstrs = ['_FEAT(']
-            feat_cfgstrs += [feat_cfg.feat_type]
-            feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
-            feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
-            if feat_cfg.bgmethod is not None:
-                feat_cfgstrs += [',bg=%s' % (feat_cfg.bgmethod)]
-            # TODO: Named Tuple
-            alias = {
-                'numberOfScales': 'nScales',
-                'edgeEigValRat': 'EdgeEigvRat',
-                'maxIterations': 'nIter',
-            }
-            ignore = []
-            ignore_if_default = set(pyhesaff.get_hesaff_default_params().keys())
-            def _gen():
-                for param in feat_cfg._iterparams():
-                    # a parameter is a type, name, default value, and docstring
-                    (type_, name, default, doc) = param
-                    if name in ignore:
-                        continue
-                    val = feat_cfg[name]
-                    if name in ignore_if_default and val == default:
-                        continue
-                    if isinstance(val, float):
-                        valstr = '%.2f' % val
-                    else:
-                        valstr = str(val)
-                    namestr = alias.get(name, name)
-                    str_ = namestr + '=' + valstr
-                    yield str_
-            feat_cfgstrs.append('_' + ',' .join(list(_gen())))
-            feat_cfgstrs.append(')')
-        else:
-            feat_cfgstrs = []
-        feat_cfgstrs.extend(feat_cfg._chip_cfg.get_cfgstr_list(**kwargs))
-        return feat_cfgstrs
+        import pyhesaff
+        default_keys = list(pyhesaff.get_hesaff_default_params().keys())
+        hesaff_param_dict = ut.dict_subset(feat_cfg, default_keys)
+        return hesaff_param_dict
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -1095,45 +1012,23 @@ class ChipConfig(ConfigBase):
     """ ChipConfig """
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
-        cc_cfg.dim_size    = 450
-        #cc_cfg.resize_dim  = 'area'
-        cc_cfg.resize_dim  = 'width'
-        cc_cfg.grabcut     = False
-        cc_cfg.histeq      = False
-        cc_cfg.adapteq     = False
-        cc_cfg.region_norm = False
-        cc_cfg.rank_eq     = False
-        cc_cfg.local_eq    = False
-        cc_cfg.maxcontrast = False
-        cc_cfg.chipfmt     = '.png'
+        cc_cfg.initialize_params()
+        #cc_cfg.dim_size    = 450
+        ##cc_cfg.resize_dim  = 'area'
+        #cc_cfg.resize_dim  = 'width'
+        #cc_cfg.grabcut     = False
+        #cc_cfg.histeq      = False
+        #cc_cfg.adapteq     = False
+        #cc_cfg.region_norm = False
+        #cc_cfg.rank_eq     = False
+        #cc_cfg.local_eq    = False
+        #cc_cfg.maxcontrast = False
+        #cc_cfg.chipfmt     = '.png'
         cc_cfg.update(**kwargs)
 
-    def get_cfgstr_list(cc_cfg, **kwargs):
-        if kwargs.get('use_chip', True):
-            chip_cfgstr = []
-            #assert cc_cfg.chipfmt[0] == '.'
-            chip_cfgstr += [cc_cfg.chipfmt[1:].lower()] * (
-                cc_cfg.chipfmt != '.png')
-            chip_cfgstr += ['histeq']  * cc_cfg.histeq
-            chip_cfgstr += ['adapteq'] * cc_cfg.adapteq
-            chip_cfgstr += ['grabcut'] * cc_cfg.grabcut
-            chip_cfgstr += ['regnorm'] * cc_cfg.region_norm
-            chip_cfgstr += ['rankeq']  * cc_cfg.rank_eq
-            chip_cfgstr += ['localeq'] * cc_cfg.local_eq
-            chip_cfgstr += ['maxcont'] * cc_cfg.maxcontrast
-            isOrig = (cc_cfg.dim_size is None or
-                      cc_cfg.dim_size <= 0)
-            chip_cfgstr += (['szorig'] if isOrig else
-                            ['sz%r' % cc_cfg.dim_size])
-            if cc_cfg.resize_dim == 'area':
-                pass
-                #chip_cfgstr += ['a']
-            if cc_cfg.resize_dim == 'width':
-                chip_cfgstr += ['w']
-            chip_cfgstr_list = ['_CHIP(', (','.join(chip_cfgstr)), ')']
-        else:
-            chip_cfgstr_list = []
-        return chip_cfgstr_list
+    def get_param_info_list(self):
+        from ibeis import core_annots
+        return core_annots.ChipConfig._param_info_list
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -1183,31 +1078,6 @@ class OccurrenceConfig(ConfigBase):
         >>> occur_cfg = OccurrenceConfig()
         >>> print(occur_cfg.get_cfgstr())
     """
-    # valid_cluster_algos = ['meanshift', 'agglomerative']
-
-    # def __init__(occur_cfg, **kwargs):
-    #     super(OccurrenceConfig, occur_cfg).__init__(name='occur_cfg')
-    #     occur_cfg.min_imgs_per_occurrence = 1
-    #     #occur_cfg.cluster_algo = 'meanshift'  # [agglomerative]
-    #     occur_cfg.cluster_algo = 'agglomerative'
-    #     occur_cfg.quantile = .01  # depends meanshift
-    #     occur_cfg.seconds_thresh = 60    # depends agglomerative
-    #     occur_cfg.use_gps = False
-
-    # def get_cfgstr_list(occur_cfg):
-    #     occur_cfgstrs = []
-    #     if occur_cfg.cluster_algo == 'meanshift':
-    #         occur_cfgstrs.append('ms')
-    #         occur_cfgstrs.append('quant_%r' % occur_cfg.quantile)
-    #     elif occur_cfg.cluster_algo == 'agglomerative':
-    #         occur_cfgstrs.append('agg')
-    #         occur_cfgstrs.append('sec_%r' % occur_cfg.seconds_thresh)
-    #     if occur_cfg.use_gps:
-    #         occur_cfgstrs.append('gps')
-
-    #     occur_cfgstrs.append(str(occur_cfg.min_imgs_per_occurrence))
-    #     return ['_OCCUR(', ','.join(occur_cfgstrs), ')']
-
     def __init__(occur_cfg, **kwargs):
         super(OccurrenceConfig, occur_cfg).__init__(name='occur_cfg')
         occur_cfg.initialize_params()

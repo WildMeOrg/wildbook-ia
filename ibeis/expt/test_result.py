@@ -701,6 +701,20 @@ class TestResult(object):
             cfg_lbls = group_lbls
         return cfg_lbls
 
+    def get_varied_labels(testres):
+        varied_pcfgs = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg, checkname=True)
+        varied_acfgs = ut.get_varied_cfg_lbls(testres.cfgx2_acfg, checkname=True)
+        def combo_lbls(lbla, lblp):
+            parts = []
+            if lbla != ':' and lbla:
+                parts.append(lbla)
+            if lblp != ':' and lblp:
+                parts.append(lblp)
+            return '+'.join(parts)
+
+        varied_lbls = [combo_lbls(lbla, lblp) for lblp, lbla in zip(varied_acfgs, varied_pcfgs)]
+        return varied_lbls
+
     def make_figtitle(testres, plotname='', filt_cfg=None):
         """
         Helper for consistent figure titles
@@ -1191,12 +1205,16 @@ class TestResult(object):
             """
             is_success = prop2_mat['is_success']
             """
-            sums = mat.sum(axis=1)
             nCols = mat.shape[1]
-            flags1d = np.logical_and(sums  > 0, sums < nCols)
-            flags = np.tile(flags1d[:, None], (1, 2))
+            sums = mat.sum(axis=1)
+            # Find out which rows have different values
+            disagree_flags1d = np.logical_and(sums > 0, sums < nCols)
+            disagree_flags2d = np.tile(disagree_flags1d[:, None], (1, nCols))
             if not val:
-                flags = np.logical_not(flags)
+                # User asked for rows that agree
+                flags = np.logical_not(disagree_flags2d)
+            else:
+                flags = disagree_flags2d
             return flags
 
         # List of rules that can filter results
@@ -1236,57 +1254,80 @@ class TestResult(object):
         rule_list.append(('max_gf_td', rule_dict['max_gf_timedelta']))
         rule_list.append(('min_gf_td', rule_dict['min_gf_timedelta']))
 
-        filt_cfg = copy.deepcopy(filt_cfg)
+        filt_cfg_ = copy.deepcopy(filt_cfg)
 
         # hack to convert to seconds
-        for tdkey in filt_cfg.keys():
+        for tdkey in filt_cfg_.keys():
             #timedelta_keys = ['min_gf_timedelta', 'max_gf_timedelta']
             #for tdkey in timedelta_keys:
             if tdkey.endswith('_timedelta'):
-                filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
+                filt_cfg_[tdkey] = ut.ensure_timedelta(filt_cfg_[tdkey])
+
+        class VerbFilterInfo(object):
+            def __init__(self):
+                self.prev_num_valid = None
+
+            def print_pre(self, is_valid, filt_cfg_):
+                num_valid = is_valid.sum()
+                print('[testres] Sampling from is_valid.size=%r with filt=%r' %
+                      (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg_)))
+                print('  * is_valid.shape = %r' % (is_valid.shape,))
+                print('  * num_valid = %r' % (num_valid,))
+                self.prev_num_valid = num_valid
+
+            def print_post(self, is_valid, flags, msg):
+                num_passed = flags.sum()
+                num_valid = is_valid.sum()
+                num_invalidated = self.prev_num_valid - num_valid
+                print(msg)
+                if num_invalidated == 0:
+                    print('  * num_passed = %r' % (num_passed,))
+                    print('  * num_invalided = %r' % (num_invalidated,))
+                else:
+                    print('  * prev_num_valid = %r' % (self.prev_num_valid,))
+                    print('  * num_valid = %r' % (num_valid,))
+                    #print('  * is_valid.shape = %r' % (is_valid.shape,))
+                self.prev_num_valid = num_valid
+
+        verbinfo = VerbFilterInfo()
 
         if verbose:
-            print('[testres] Sampling from is_valid.size=%r with filt=%r' %
-                  (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
-            print('  * is_valid.shape = %r' % (is_valid.shape,))
-            num_valid = is_valid.sum()
-            print('  * num_valid = %r' % (num_valid,))
+            verbinfo.print_pre(is_valid, filt_cfg_)
 
+        # Pop irrelevant info
+        ut.delete_keys(filt_cfg_, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
         # Pop other non-rule config options
-        allcfg = filt_cfg.pop('allcfg', None)
-        orderby = filt_cfg.pop('orderby', None)
-        reverse = filt_cfg.pop('reverse', None)
-        sortasc = filt_cfg.pop('sortasc', None)
-        sortdsc = filt_cfg.pop('sortdsc', filt_cfg.pop('sortdesc', None))
-        max_pername = filt_cfg.pop('max_pername', None)
-        require_all_cfg = filt_cfg.pop('require_all_cfg', None)
-        index = filt_cfg.pop('index', None)
-        ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
+        allcfg = filt_cfg_.pop('allcfg', None)
+        orderby = filt_cfg_.pop('orderby', None)
+        reverse = filt_cfg_.pop('reverse', None)
+        sortasc = filt_cfg_.pop('sortasc', None)
+        sortdsc = filt_cfg_.pop('sortdsc', filt_cfg_.pop('sortdesc', None))
+        max_pername = filt_cfg_.pop('max_pername', None)
+        require_all_cfg = filt_cfg_.pop('require_all_cfg', None)
+        index = filt_cfg_.pop('index', None)
+        # Pop all chosen rules
+        rule_value_list = [filt_cfg_.pop(key, None) for key, rule in rule_list]
 
-        # Remove test cases that do not meet the criteria
-        for key, rule in rule_list:
-            val = filt_cfg.pop(key, None)
-            if val is not None:
-                if isinstance(rule, np.ndarray):
-                    # When a rule is an ndarray it must have boolean values
-                    flags = rule == val
-                else:
-                    flags = rule(val)
-                # HACK: flags are force to be false for non-participating cases
-                flags = np.logical_and(flags, participates)
-                if verbose:
-                    prev_num_valid = is_valid.sum()
-                # TODO: generalize to satisfiablility formula
-                is_valid = np.logical_and(is_valid, flags)
-                if verbose:
-                    print('  * is_valid.shape = %r' % (is_valid.shape,))
-                    print('SampleRule: %s = %r' % (key, val))
-                    num_passed = flags.sum()
-                    num_valid = is_valid.sum()
-                    print('  * num_passed = %r' % (num_passed,))
-                    print('  * prev_num_valid = %r' % (prev_num_valid,))
-                    print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
-                    print('  * num_valid = %r' % (num_valid,))
+        # Assert that only valid configurations were given
+        if len(filt_cfg_) > 0:
+            raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg_.keys()))
+
+        # Remove test cases that do not satisfy chosen rules
+        chosen_rule_idxs = ut.where([val is not None for val in rule_value_list])
+        chosen_rules = ut.take(rule_list, chosen_rule_idxs)
+        chosen_vals = ut.take(rule_value_list, chosen_rule_idxs)
+        for (key, rule), val in zip(chosen_rules, chosen_vals):
+            if isinstance(rule, np.ndarray):
+                # When a rule is an ndarray it must have boolean values
+                flags = rule == val
+            else:
+                flags = rule(val)
+            # HACK: flags are forced to be false for non-participating cases
+            flags = np.logical_and(flags, participates)
+            # conjunctive normal form of satisfiability
+            is_valid = np.logical_and(is_valid, flags)
+            if verbose:
+                verbinfo.print_post(is_valid, flags, 'SampleRule: %s = %r' % (key, val))
 
         # HACK:
         # If one config for a row passes the filter then all configs should pass
@@ -1380,7 +1421,6 @@ class TestResult(object):
             qx_list = _qx_list
             cfgx_list = _cfgx_list
             if verbose:
-                num_passed = flags.sum()
                 num_valid = is_valid.sum()
                 print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
                 print('  * num_valid = %r' % (num_valid,))
@@ -1398,13 +1438,9 @@ class TestResult(object):
             qx_list = _qx_list
             cfgx_list = _cfgx_list
             if verbose:
-                num_passed = flags.sum()
                 num_valid = is_valid.sum()
                 print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
                 print('  * num_valid = %r' % (num_valid,))
-
-        if len(filt_cfg) > 0:
-            raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg.keys()))
 
         if not return_mask:
             case_pos_list = np.vstack((qx_list, cfgx_list)).T
@@ -1866,7 +1902,7 @@ class TestResult(object):
             print('%2d) success = %r/%r = %.2f%% -- %s' % (
                 cfgx, success.sum(), len(success), percent, pipelbl))
 
-    def print_config_overlap(testres):
+    def print_config_overlap(testres, with_plot=True):
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         qx2_gt_ranks = truth2_prop['gt']['rank']
         qx2_success = (qx2_gt_ranks == 0)
@@ -1876,24 +1912,42 @@ class TestResult(object):
         print('Config Overlap')
 
         # Matrix version
-        disjoint_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
-        disjoint_mat2 = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
+        #disjoint_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
+        #improves_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
+        isect_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
+        union_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
         for cfgx1 in range(testres.nConfig):
             for cfgx2 in range(testres.nConfig):
                 if cfgx1 == cfgx2:
+                    success_qx1 = np.where(qx2_success.T[cfgx1])[0]
+                    isect_mat[cfgx1][cfgx2] = len(success_qx1)
+                    union_mat[cfgx1][cfgx2] = len(success_qx1)
                     continue
                 success_qx1 = np.where(qx2_success.T[cfgx1])[0]
                 success_qx2 = np.where(qx2_success.T[cfgx2])[0]
-                union_ = np.union1d(success_qx1, success_qx2),
+                union_ = np.union1d(success_qx1, success_qx2)
                 isect_ = np.intersect1d(success_qx1, success_qx2)
-                disjoints = np.setdiff1d(union_, isect_)
-                disjoint_mat[cfgx1][cfgx2] = len(disjoints)
-                disjoint2 = np.setdiff1d(success_qx2, isect_)
-                disjoint_mat2[cfgx2][cfgx1] = len(disjoint2)
+                #disjoints = np.setdiff1d(union_, isect_)
+                #disjoint_mat[cfgx1][cfgx2] = len(disjoints)
+                isect_mat[cfgx1][cfgx2] = len(isect_)
+                union_mat[cfgx1][cfgx2] = len(union_)
+                #improves = np.setdiff1d(success_qx2, isect_)
+                #improves_mat[cfgx2][cfgx1] = len(improves)
+
+        n_success_list = np.array([qx2_success.T[cfgx1].sum() for cfgx1 in range(testres.nConfig)])
+        improves_mat = n_success_list[:, None] - isect_mat
+
+        disjoint_mat = union_mat - isect_mat
+        print('n_success_list = %r' % (n_success_list,))
+        print('union_mat =\n%s' % (union_mat,))
+        print('isect_mat =\n%s' % (isect_mat,))
         print('cfgx1 and cfgx2 have <x> not in common')
         print('disjoint_mat =\n%s' % (disjoint_mat,))
         print('cfgx1 helps cfgx2 by <x>')
-        print('disjoint_mat2 =\n%s' % (disjoint_mat2,))
+        print('improves_mat =\n%s' % (improves_mat,))
+        print('improves_mat.sum(axis=1) = \n%s' % (improves_mat.sum(axis=1),))
+        bestx_by_improves = improves_mat.sum(axis=1).argmax()
+        print('bestx_by_improves = %r' % (bestx_by_improves,))
 
         # Numbered version
         print('best_cfgx = %r' % (best_cfgx,))
@@ -1907,6 +1961,81 @@ class TestResult(object):
             print('cfgx %d) has %d success cases that that the best config does not have -- %s' % (cfgx, qx2_othersuccess.sum(), pipelbl))
 
         qx2_success.T[cfgx]
+
+        if with_plot:
+            #y = None
+            #for x in qx2_gt_ranks:
+            #    x = np.minimum(x, 3)
+            #    z =  (x.T - x[:, None])
+            #    if np.any(z):
+            #        print(z)
+            #    if y is None:
+            #        y = z
+            #    else:
+            #        y += z
+
+            if False:
+                # Chip size stats
+                ave_dlen = [np.sqrt(np.array(testres.ibs.get_annot_chip_dlensqrd(  # NOQA
+                    testres.qaids, config2_=qreq_.query_config2_))).mean()
+                    for qreq_ in testres.cfgx2_qreq_]
+
+                ave_width = [np.array(testres.ibs.get_annot_chip_sizes(  # NOQA
+                    testres.qaids, config2_=qreq_.query_config2_))[:, 0].mean()
+                    for qreq_ in testres.cfgx2_qreq_]
+
+            import plottool as pt
+            #pt.plt.imshow(-y, interpolation='none', cmap='hot')
+            #pt.plt.colorbar()
+
+            def label_ticks():
+                import plottool as pt
+                ax = pt.gca()
+                labels = testres.get_varied_labels()
+                ax.set_xticks(list(range(len(labels))))
+                ax.set_xticklabels([lbl[0:100] for lbl in labels])
+                [lbl.set_rotation(-25) for lbl in ax.get_xticklabels()]
+                [lbl.set_horizontalalignment('left') for lbl in ax.get_xticklabels()]
+
+                #xgrid, ygrid = np.meshgrid(range(len(labels)), range(len(labels)))
+                #pt.plot_surface3d(xgrid, ygrid, disjoint_mat)
+                ax.set_yticks(list(range(len(labels))))
+                ax.set_yticklabels([lbl[0:100] for lbl in labels])
+                [lbl.set_horizontalalignment('right') for lbl in ax.get_yticklabels()]
+                [lbl.set_verticalalignment('center') for lbl in ax.get_yticklabels()]
+                #[lbl.set_rotation(20) for lbl in ax.get_yticklabels()]
+
+            pt.figure(fnum=pt.next_fnum())
+            import plottool as pt
+            pt.plt.imshow(union_mat, interpolation='none', cmap='hot')
+            pt.plt.colorbar()
+            pt.set_title('union mat: cfg<x> and cfg<y> have <z> success cases in in total')
+            label_ticks()
+            label_ticks()
+
+            pt.figure(fnum=pt.next_fnum())
+            import plottool as pt
+            pt.plt.imshow(isect_mat, interpolation='none', cmap='hot')
+            pt.plt.colorbar()
+            pt.set_title('isect mat: cfg<x> and cfg<y> have <z> success cases in common')
+            label_ticks()
+
+            pt.figure(fnum=pt.next_fnum())
+            import plottool as pt
+            pt.plt.imshow(disjoint_mat, interpolation='none', cmap='hot')
+            pt.plt.colorbar()
+            pt.set_title('disjoint mat (union - isect): cfg<x> and cfg<y> have <z> success cases not in common')
+
+            #xgrid, ygrid = np.meshgrid(range(len(labels)), range(len(labels)))
+            #pt.plot_surface3d(xgrid, ygrid, improves_mat)
+
+            pt.figure(fnum=pt.next_fnum())
+            import plottool as pt
+            pt.plt.imshow(improves_mat, interpolation='none', cmap='hot')
+            pt.plt.colorbar()
+            pt.set_title('improves mat (diag.T - isect): cfg<x> got <z> qaids that cfg <y> missed')
+            label_ticks()
+            #pt.colorbar(np.unique(y))
 
     def load_full_chipmatch_results(testres):
         #cfgx2_qres

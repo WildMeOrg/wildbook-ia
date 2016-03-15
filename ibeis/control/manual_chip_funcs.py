@@ -41,35 +41,6 @@ NEW_DEPC = True
 
 
 @register_ibs_method
-@register_api('/api/annot_chip/rowids/', methods=['GET'])
-def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True, nInput=None, extra_tries=1, check_external_storage=False):
-    r"""
-    chip_rowid_list <- annot.chip.rowids[aid_list]
-
-    get chip rowids of annot under the current state configuration
-    if ensure is True, this function is equivalent to add_annot_chips
-
-    Args:
-        aid_list (list):
-        ensure (bool): default false
-
-    Returns:
-        list: chip_rowid_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> ibs, config2_ = testdata_ibs()
-        >>> aid_list = ibs._get_all_aids()
-        >>> ensure = False
-        >>> chip_rowid_list = ibs.get_annot_chip_rowids(aid_list, config2_, ensure)
-        >>> assert len(chip_rowid_list) == len(aid_list)
-    """
-    return ibs.depc.get_rowids('chips', aid_list, config=config2_,
-                               ensure=ensure, eager=eager)
-
-
-@register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot_chip/fpath/', methods=['GET'])
 def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
@@ -98,7 +69,7 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot_chip/', methods=['GET'])
-def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False, eager=True):
+def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, eager=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -124,14 +95,14 @@ def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False, ea
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:5]
-        >>> ensure = True
-        >>> config2_ = None
-        >>> chip_list = get_annot_chips(ibs, aid_list, ensure, config2_)
+        >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
+        >>> chip_list = get_annot_chips(ibs, aid_list, config2_)
         >>> chip_sum_list = list(map(np.sum, chip_list))
         >>> ut.assert_almost_eq(chip_sum_list, [96053500, 65152954, 67223241, 109358624, 73995960], 2000)
         >>> print(chip_sum_list)
     """
-    return ibs.depc.get('chips', aid_list, 'img', config=config2_, ensure=ensure)
+    return ibs.depc.get('chips', aid_list, 'img', config=config2_,
+                        ensure=ensure)
 
 
 @register_ibs_method
@@ -163,8 +134,9 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:3]
         >>> ensure = True
+        >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> # execute function
-        >>> chipsz_list = get_annot_chip_sizes(ibs, aid_list, ensure)
+        >>> chipsz_list = get_annot_chip_sizes(ibs, aid_list, ensure, config2_=config2_)
         >>> # verify results
         >>> result = str(chipsz_list)
         >>> print(result)
@@ -195,13 +167,10 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> config2_ = None
-        >>> # execute function
+        >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlensqrd(aid_list, config2_=config2_)
-        >>> # verify results
         >>> result = str(topx2_dlen_sqrd)
         >>> print(result)
         [435409, 476505, 422500, 422500, 422500, 437924, 405000, 405000, 447805, 420953, 405008, 406265, 512674]

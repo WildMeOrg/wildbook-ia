@@ -338,19 +338,19 @@ def compute_all_chips(ibs, **kwargs):
     """
     print('[ibs] compute_all_chips')
     aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.get_annot_chip_rowids(aid_list)
+    cid_list = ibs.depc.get_rowids('chips', aid_list)
     return cid_list
 
 
 @register_ibs_method
 def ensure_annotation_data(ibs, aid_list, chips=True, feats=True,
                            featweights=False):
-    if chips or feats or featweights:
-        cid_list = ibs.get_annot_chip_rowids(aid_list)
-    if feats or featweights:
-        fid_list = ibs.get_annot_feat_rowids(cid_list)
     if featweights:
-        featweight_rowid_list = ibs.get_annot_featweight_rowids(fid_list)  # NOQA
+        ibs.depc.get_rowids('featweight', aid_list)
+    elif feats:
+        ibs.depc.get_rowids('feat', aid_list)
+    elif chips:
+        ibs.depc.get_rowids('chips', aid_list)
 
 
 @register_ibs_method
@@ -1383,7 +1383,6 @@ def delete_all_features(ibs):
 def delete_all_chips(ibs):
     print('[ibs] delete_all_chips')
     ut.ensuredir(ibs.chipdir)
-    #all_cids = ibs._get_all_chip_rowids()
     ibs.delete_annot_chipl(ibs.get_valid_aids())
     ut.delete(ibs.chipdir)
     ut.ensuredir(ibs.chipdir)
