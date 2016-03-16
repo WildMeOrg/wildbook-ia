@@ -208,15 +208,21 @@ class _CoreDependencyCache(object):
         depc.w = InjectedDepc()
         d = depc.d
         w = depc.w
+        inject_patterns = [
+            ('get_{tablename}_rowids', depc.get_rowids),
+            ('get_{tablename}_config_history', depc.get_config_history),
+        ]
         for table in depc.cachetable_dict.values():
-            attrname = 'get_{tablename}_rowids'.format(tablename=table.tablename)
-            get_rowids = ut.partial(depc.get_rowids, table.tablename)
-            wobj = InjectedDepc()
-            # Set flat version
-            setattr(d, attrname, get_rowids)
-            # Set nested version
-            setattr(w, table.tablename, wobj)
-            setattr(wobj, 'get_rowids', get_rowids)
+            for dfmtstr, func in inject_patterns:
+                funcname = ut.get_funcname(func)
+                attrname = dfmtstr.format(tablename=table.tablename)
+                get_rowids = ut.partial(func, table.tablename)
+                wobj = InjectedDepc()
+                # Set flat version
+                setattr(d, attrname, get_rowids)
+                # Set nested version
+                setattr(w, table.tablename, wobj)
+                setattr(wobj, funcname, func)
 
     # -----------------------------
     # GRAPH INSPECTION
@@ -813,14 +819,27 @@ class _CoreDependencyCache(object):
                              enabled=_debug):
                 # TODO: Get nonself rowids first
                 # THen get self rowids for debugging ease
-
-                # Compute everything from the root to the requested table
                 try:
-                    rowid_dict = depc.get_all_descendant_rowids(
-                        tablename, root_rowids, config=config, ensure=ensure,
-                        eager=eager, nInput=nInput, recompute=recompute,
-                        recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
-                    rowid_list = rowid_dict[tablename]
+                    if False:
+                        recompute_ = recompute or recompute_all
+                        parent_rowids = depc._get_parent_input(
+                            tablename, root_rowids, config, ensure=True, _debug=None,
+                            recompute=False, recompute_all=False, eager=True,
+                            nInput=None)
+                        config_ = depc._ensure_config(tablename, config)
+                        #if onthefly:
+                        #    pass
+                        table = depc[tablename]
+                        rowid_list = table.get_rowid(
+                            parent_rowids, config=config_, eager=eager, nInput=nInput,
+                            ensure=ensure, recompute=recompute_)
+                    else:
+                        # Compute everything from the root to the requested table
+                        rowid_dict = depc.get_all_descendant_rowids(
+                            tablename, root_rowids, config=config, ensure=ensure,
+                            eager=eager, nInput=nInput, recompute=recompute,
+                            recompute_all=recompute_all, _debug=ut.countdown_flag(_debug))
+                        rowid_list = rowid_dict[tablename]
                 except depcache_table.ExternalStorageException:
                     print('EXTERNAL EXCEPTION One retry in get_rowids')
                     rowid_dict = depc.get_all_descendant_rowids(
@@ -874,13 +893,6 @@ class _CoreDependencyCache(object):
             root_rowids (List[int]): ids of the root object
             colnames (None): desired property (default = None)
             config (None): (default = None)
-            ensure (bool): eager evaluation if True(default = True)
-            _debug (None): (default = None)
-            recompute (bool): (default = False)
-            recompute_all (bool): (default = False)
-            read_extern (bool): (default = True)
-            eager (bool): (default = True)
-            nInput (None): (default = None)
 
         Returns:
             list: prop_list
@@ -913,22 +925,8 @@ class _CoreDependencyCache(object):
                 print(' * colnames = %r' % (colnames,))
                 print(' * config = %r' % (config,))
 
-            try:
-                if False:
-                    recompute_ = recompute or recompute_all
-
-                    parent_rowids = depc._get_parent_input(
-                        tablename, root_rowids, config, ensure=True, _debug=None,
-                        recompute=False, recompute_all=False, eager=True,
-                        nInput=None)
-                    config_ = depc._ensure_config(tablename, config)
-                    #if onthefly:
-                    #    pass
-                    table = depc[tablename]
-                    tbl_rowids = table.get_rowid(
-                        parent_rowids, config=config_, eager=eager, nInput=nInput,
-                        ensure=ensure, recompute=recompute_)
-                else:
+            for trynum in range(num_retries):
+                try:
                     # Vectorized get of properties
                     tbl_rowids = depc.get_rowids(tablename, root_rowids,
                                                  config=config, ensure=ensure,
@@ -936,29 +934,36 @@ class _CoreDependencyCache(object):
                                                  recompute=recompute,
                                                  recompute_all=recompute_all,
                                                  nInput=nInput)
-                if _debug:
-                    print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
-                table = depc[tablename]
-                prop_list = table.get_row_data(tbl_rowids, colnames,
-                                               read_extern=read_extern,
-                                               _debug=_debug, eager=eager,
-                                               ensure=ensure, nInput=nInput)
-            except depcache_table.ExternalStorageException:
-                print('!!* Hit ExternalStorageException')
-                if num_retries == 0:
-                    raise
+                    if _debug:
+                        print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
+                    table = depc[tablename]
+                    prop_list = table.get_row_data(tbl_rowids, colnames,
+                                                   read_extern=read_extern,
+                                                   _debug=_debug, eager=eager,
+                                                   ensure=ensure, nInput=nInput)
+                except depcache_table.ExternalStorageException:
+                    print('!!* Hit ExternalStorageException')
+                    if trynum == num_retries - 1:
+                        raise
                 else:
-                    prop_list = depc.get_property(tablename, root_rowids,
-                                                  colnames=colnames,
-                                                  config=config, ensure=ensure,
-                                                  _debug=_debug, eager=eager,
-                                                  nInput=nInput,
-                                                  read_extern=read_extern,
-                                                  onthefly=onthefly,
-                                                  num_retries=num_retries - 1)
+                    break
             if _debug:
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
+
+    def get_config_history(depc, tablename, root_rowids, config=None):
+        # Vectorized get of properties
+        tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config)
+        return depc[tablename].get_config_history(tbl_rowids)
+
+    def _parse_sqlkw(kwargs):
+        default_sqlkw = dict(
+            _debug=None, ensure=True, recompute=False, recompute_all=False,
+            eager=True, nInput=None, read_extern=True, onthefly=False,
+        )
+        otherkw = kwargs.copy()
+        sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
+        return sqlkw, otherkw
 
     get = get_property
 
