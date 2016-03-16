@@ -133,8 +133,6 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     if annote and not kwargs.get('nokpts', False):
         # Get and draw keypoints
         if 'color' not in kwargs:
-            #from ibeis.algo.preproc import preproc_featweight
-            #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
             if weight_label == 'fg_weights':
                 if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
                     weight_label = 'fg_weights'
@@ -208,33 +206,6 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     return fig, ax
 
 
-#if __name__ == '__main__':
-#    """
-#    CommandLine:
-#         python ibeis/viz/viz_chip.py
-#    """
-#    #from plottool.viz_keypoints import _annotate_kpts
-#    from ibeis.viz.viz_chip import *  # NOQA
-#    import ibeis
-#    ibs = ibeis.opendb('PZ_MTEST')
-#    aid = ibs.get_valid_aids()[0]
-#    in_image = False
-#    annote = True
-#    kpts = ibs.get_annot_kpts(aid)
-#    kwargs = {}
-#    #from ibeis.algo.preproc import preproc_featweight
-#    #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]
-#    #color = featweights
-#    #import numpy as np
-#    # plot rf feature weights
-#    #detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()
-#    #color = np.array([pt.ORANGE] * len(kpts))
-#    #color = np.array(np.random.rand(len(kpts), 3))
-#    #kwargs = {'kpt1s': [kpts], 'color': color}
-#    show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
-#    if not ut.get_argflag('--noshow'):
-#        execstr = pt.present()
-#        exec(execstr)
 if __name__ == '__main__':
     """
     CommandLine:

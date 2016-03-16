@@ -294,7 +294,7 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         >>> from ibeis.algo.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> config2_ = ibs.new_query_params({'featweight_detector': 'cnn'})
+        >>> config2_ = ibs.new_query_params({'fw_detector': 'cnn'})
         >>> lazy = True
         >>> aid_list = ibs.get_valid_aids()
         >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
@@ -365,11 +365,11 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
 
 def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, species):
     if config2_ is None:
-        featweight_detector = ibs.cfg.featweight_cfg.featweight_detector
+        fw_detector = ibs.cfg.featweight_cfg.fw_detector
     else:
-        featweight_detector = config2_.get('featweight_detector')
+        fw_detector = config2_.get('fw_detector')
 
-    if featweight_detector == 'rf':
+    if fw_detector == 'rf':
         (extramargin_fpath_list,
          probchip_extramargin_fpath_list,
          halfoffset_cs_list,
@@ -397,7 +397,7 @@ def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, speci
             half_w, half_h = halfmargin
             probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
             vt.imwrite(probchip_fpath, probchip)
-    elif featweight_detector == 'cnn':
+    elif fw_detector == 'cnn':
         # dont use extrmargin here (for now)
         chip_fpath_list = ibs.get_annot_chip_fpath(dirty_aids, config2_=config2_)
         mask_gen = ibs.generate_species_background_mask(chip_fpath_list, species)
@@ -407,7 +407,7 @@ def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, speci
                 probchip = postprocess_mask(probchip)
                 vt.imwrite(probchip_fpath, probchip)
     else:
-        raise NotImplementedError('bad featweight_detector=%r' % (featweight_detector,))
+        raise NotImplementedError('bad fw_detector=%r' % (fw_detector,))
 
 
 def postprocess_mask(mask):

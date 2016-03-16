@@ -228,7 +228,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 200, 300)
+        >>> ut.assert_inbounds(weights1.sum(), 100, 300)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -243,7 +243,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 2700, 4000)
+        >>> ut.assert_inbounds(weights1.sum(), 1500, 4500)
     """
     Knorm = qreq_.qparams.Knorm
     normalizer_rule  = qreq_.qparams.normalizer_rule
@@ -301,7 +301,7 @@ def apply_normweight(normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> from ibeis.algo.hots import nn_weights
-        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
+        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name', 'dim_size': 450, 'resize_dim': 'area'}
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qaid = qreq_.get_external_qaids()[0]

@@ -632,9 +632,6 @@ def print_results(ibs, testres):
 
     ut.argv_flag_dec_true(testres.print_percent_identification_success)()
 
-    if testres.nConfig > 1:
-        ut.argv_flag_dec_true(testres.print_config_overlap)()
-
     sumstrs = []
     sumstrs.append('')
     sumstrs.append('||===========================')

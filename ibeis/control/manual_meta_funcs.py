@@ -793,6 +793,8 @@ def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
     r"""
     Gets an algorithm configuration as a string
 
+    DEPRICATE
+
     RESTful:
         Method: GET
         URL:    /api/contributor/config_rowid_from_suffix/
@@ -806,23 +808,10 @@ def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
 
     CommandLine:
         python -m ibeis.control.manual_meta_funcs --exec-get_config_rowid_from_suffix
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> ibs.print_config_table()
-        >>> cfgsuffix_list = '_CHIP(sz450)'
-        >>> config_rowid_list = get_config_rowid_from_suffix(ibs, cfgsuffix_list)
-        >>> result = ('config_rowid_list = %s' % (str(config_rowid_list),))
-        >>> print(result)
-        >>> assert config_rowid_list > 0, 'bad config_rowid_list=%r' % (config_rowid_list,)
     """
     # FIXME: This is causing a crash when converting old hotspotter databses.
     # probably because the superkey changed
     # SEE DBSchema.
-
     # TODO: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     config_rowid_list = ibs.db.get(const.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 

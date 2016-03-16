@@ -34,7 +34,8 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     return fig, ax
 
 
-def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None, **kwargs):
+def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None,
+                          blend=False, **kwargs):
     """
     TODO: allow species override in controller
 
@@ -52,24 +53,27 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None, **kw
         >>> fnum = 1
         >>> species = None
         >>> aid = aid_list[0]
-        >>> fig, ax = show_probability_chip(ibs, aid, species, fnum, **kwargs)
+        >>> fig, ax = show_probability_chip(ibs, aid, species, fnum, blend=True, **kwargs)
         >>> ut.show_if_requested()
     """
     fnum = pt.ensure_fnum(fnum)
     title = 'Probability Chip: ' + ', '.join(vh.get_annot_text(ibs, [aid], True))
     hough_cpath = ibs.get_annot_probchip_fpath(aid, config2_=config2_)
     img = vt.imread(hough_cpath)
+    if blend:
+        chip = ibs.get_annot_chips(aid, config2_=config2_)
+        img = vt.blend_images_multiply(chip, vt.resize_mask(img, chip))
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)
     return fig, ax
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m ibeis.viz.viz_hough
         python -m ibeis.viz.viz_hough --allexamples
-        python -m ibeis.viz.viz_hough --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA ut.doctest_funcs()
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

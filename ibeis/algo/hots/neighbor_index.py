@@ -681,7 +681,7 @@ class NeighborIndex(object):
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
             >>> import ibeis
             >>> cfgdict = dict(fg_on=False)
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False')
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False,dim_size=450,resize_dim=area')
             >>> qreq_.load_indexer()
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(
@@ -693,7 +693,7 @@ class NeighborIndex(object):
             >>> assert qfx2_aid.shape[1] == num_neighbors
             >>> result = ('qfx2_aid.shape = %r' % (qfx2_aid.shape,))
             >>> print(result)
-            qfx2_aid.shape = (1257, 4)
+            qfx2_aid.shape = (1237, 4)
         """
         qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
         qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)

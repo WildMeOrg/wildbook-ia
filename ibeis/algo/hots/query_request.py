@@ -69,7 +69,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
-        >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'featweight_detector': 'rf'}
+        >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'fw_detector': 'rf'}
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Check Results
@@ -892,6 +892,7 @@ class QueryRequest(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # Delete chips (accidentally) then try to run a query
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')

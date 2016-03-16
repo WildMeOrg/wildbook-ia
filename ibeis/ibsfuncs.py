@@ -308,19 +308,13 @@ def filter_junk_annotations(ibs, aid_list):
     Returns:
         list: filtered_aid_list
 
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-filter_junk_annotations
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> filtered_aid_list = filter_junk_annotations(ibs, aid_list)
-        >>> # verify results
         >>> result = str(filtered_aid_list)
         >>> print(result)
     """
@@ -336,61 +330,19 @@ def compute_all_chips(ibs, **kwargs):
     """
     print('[ibs] compute_all_chips')
     aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.add_annot_chips(aid_list)
+    cid_list = ibs.depc.get_rowids('chips', aid_list)
     return cid_list
-
-
-@register_ibs_method
-def compute_all_features(ibs, **kwargs):
-    """
-    Executes lazy evaluation of all chips and features
-    """
-    cid_list = ibs.compute_all_chips(**kwargs)
-    print('[ibs] compute_all_features')
-    fid_list = ibs.add_chip_feat(cid_list)
-    return fid_list
-
-
-@register_ibs_method
-def compute_all_featweights(ibs, **kwargs):
-    """
-    Executes lazy evaluation of all chips and features
-    """
-    fid_list = ibs.compute_all_features(**kwargs)
-    print('[ibs] compute_all_featweights')
-    featweight_rowid_list = ibs.add_feat_featweights(fid_list)
-    return featweight_rowid_list
-
-
-@register_ibs_method
-def precompute_all_annot_dependants(ibs, **kwargs):
-    ibs.compute_all_featweights(**kwargs)
-
-
-@register_ibs_method
-def recompute_fgweights(ibs, aid_list=None):
-    """ delete all feature weights and then recompute them """
-    # Delete all featureweights
-    if aid_list is None:
-        aid_list = ibs.get_valid_aids()
-        featweight_rowid_list = ibs._get_all_featweight_rowids()
-    else:
-        featweight_rowid_list = ibs.get_annot_featweight_rowids(aid_list)
-    ibs.delete_featweight(featweight_rowid_list)
-    #ibs.delete_annot_featweight(aid_list)
-    # Recompute current featureweights
-    ibs.get_annot_fgweights(aid_list, ensure=True)
 
 
 @register_ibs_method
 def ensure_annotation_data(ibs, aid_list, chips=True, feats=True,
                            featweights=False):
-    if chips or feats or featweights:
-        cid_list = ibs.add_annot_chips(aid_list)
-    if feats or featweights:
-        fid_list = ibs.add_chip_feat(cid_list)
     if featweights:
-        featweight_rowid_list = ibs.add_feat_featweights(fid_list)  # NOQA
+        ibs.depc.get_rowids('featweight', aid_list)
+    elif feats:
+        ibs.depc.get_rowids('feat', aid_list)
+    elif chips:
+        ibs.depc.get_rowids('chips', aid_list)
 
 
 @register_ibs_method
@@ -772,14 +724,13 @@ def check_annot_consistency(ibs, aid_list=None):
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
-    cfpath_list = ibs.get_chip_fpath(cid_list)
+    cfpath_list = ibs.get_annot_chip_fpath(aid_list, ensure=False)
     valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
     invalid_list = [flag is False for flag in valid_chip_list]
-    invalid_cids = ut.compress(cid_list, invalid_list)
-    if len(invalid_cids) > 0:
-        print('found %d inconsistent chips attempting to fix' % len(invalid_cids))
-        ibs.delete_chips(invalid_cids, verbose=True)
+    invalid_aids = ut.compress(aid_list, invalid_list)
+    if len(invalid_aids) > 0:
+        print('found %d inconsistent chips attempting to fix' % len(invalid_aids))
+        ibs.delete_annot_chips(invalid_aids)
     ibs.check_chip_existence(aid_list=aid_list)
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     exemplar_flag = ibs.get_annot_exemplar_flags(aid_list)
@@ -1359,15 +1310,15 @@ def delete_cachedir(ibs):
     (does not remove chips)
     """
     print('[ibs] delete_cachedir')
-    # Need to close dbcache before restarting
-    ibs._close_sqldbcache()
+    # Need to close depc before restarting
+    ibs._close_depcache()
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
     ut.delete(cachedir)
     print('[ibs] finished delete cachedir')
     # Reinit cache
     ibs.ensure_directories()
-    ibs._init_sqldbcache()
+    ibs._init_depcache()
 
 
 @register_ibs_method
@@ -1424,8 +1375,7 @@ def delete_all_features(ibs):
 def delete_all_chips(ibs):
     print('[ibs] delete_all_chips')
     ut.ensuredir(ibs.chipdir)
-    all_cids = ibs._get_all_chip_rowids()
-    ibs.delete_chips(all_cids)
+    ibs.delete_annot_chipl(ibs.get_valid_aids())
     ut.delete(ibs.chipdir)
     ut.ensuredir(ibs.chipdir)
     print('[ibs] finished delete_all_chips')
@@ -4799,16 +4749,15 @@ def report_sightings_str(ibs, **kwargs):
 @register_ibs_method
 def check_chip_existence(ibs, aid_list=None):
     aid_list = ibs.get_valid_aids()
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
-    chip_fpath_list = ibs.get_chip_fpath(cid_list)
+    chip_fpath_list = ibs.get_annot_chip_fpath(aid_list)
     flag_list = [
         True if chip_fpath is None else exists(chip_fpath)
         for chip_fpath in chip_fpath_list
     ]
-    cid_kill_list = ut.filterfalse_items(cid_list, flag_list)
-    if len(cid_kill_list) > 0:
-        print('found %d inconsistent chips attempting to fix' % len(cid_kill_list))
-    ibs.delete_chips(cid_kill_list)
+    aid_kill_list = ut.filterfalse_items(aid_list, flag_list)
+    if len(aid_kill_list) > 0:
+        print('found %d inconsistent chips attempting to fix' % len(aid_kill_list))
+    ibs.delete_annot_chips(aid_kill_list)
 
 
 @register_ibs_method

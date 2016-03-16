@@ -36,7 +36,7 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         python -m ibeis.algo.preproc.preproc_feat --test-generate_feat_properties:1
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_feat import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -77,7 +77,7 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         >>> print(result)
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_feat import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')

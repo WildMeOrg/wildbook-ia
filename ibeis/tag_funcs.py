@@ -945,7 +945,7 @@ def get_annot_annotmatch_tags(ibs, aid_list):
 
 @register_ibs_method
 @profile
-def get_annot_all_tags(ibs, aid_list):
+def get_annot_all_tags(ibs, aid_list=None):
     """
     CommandLine:
         python -m ibeis.tag_funcs --exec-get_annot_all_tags --db GZ_Master1
@@ -960,6 +960,9 @@ def get_annot_all_tags(ibs, aid_list):
         >>> tag_hist = ut.dict_hist(all_tags)
         >>> ut.print_dict(tag_hist)
     """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+
     annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
     annot_tags_list = ibs.get_annot_case_tags(aid_list)
     both_tags_list = list(map(ut.unique_ordered, map(ut.flatten,

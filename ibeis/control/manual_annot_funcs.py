@@ -364,13 +364,13 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> name_list2 = ibs.get_annot_names(aid_list)
         >>> print('Ensure=False. Should get back None chip fpaths')
         >>> chip_fpaths2 = ibs.get_annot_chip_fpath(aid_list, ensure=False)
-        >>> assert [fpath is None for fpath in chip_fpaths2]
+        >>> assert [fpath is None for fpath in chip_fpaths2], 'should not have fpaths'
         >>> print('Ensure=True. Should get back None chip fpaths')
         >>> chip_fpaths = ibs.get_annot_chip_fpath(aid_list, ensure=True)
-        >>> assert all([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
-        >>> assert len(aid_list) == num_add
-        >>> assert len(vert_list2[0]) == 4
-        >>> assert bbox_list2 == bbox_list
+        >>> assert all([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths]), 'paths should exist'
+        >>> ut.assert_eq(len(aid_list), num_add)
+        >>> ut.assert_eq(len(vert_list2[0]), 4)
+        >>> assert bbox_list2 == bbox_list, 'bboxes are unequal'
         >>> # Be sure to remove test annotation
         >>> # if this test fails a resetdbs might be nessary
         >>> result = ''
@@ -2603,7 +2603,6 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
 
 
 # PROBCHIP
-# TODO: autogenerate probchip stuff
 
 @register_ibs_method
 @accessor_decors.getter_1to1
@@ -2632,21 +2631,19 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> config2_ = ibs.new_query_params({'featweight_detector': 'cnn'})
+        >>> aid_list = ibs.get_valid_aids()[0:10]
+        >>> config2_ = ibs.new_query_params({'fw_detector': 'cnn'})
         >>> probchip_fpath_list = get_annot_probchip_fpath(ibs, aid_list, config2_)
         >>> result = ('probchip_fpath_list = %s' % (str(probchip_fpath_list),))
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list, nPerPage=4)
+        >>> iteract_obj.start()
         >>> ut.show_if_requested()
     """
-    # FIXME: this is implemented very poorly. Caches not robust. IE they are
-    # never invalidated. Not all config information is passed through
-    from ibeis.algo.preproc import preproc_probchip
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(
-        ibs, aid_list, config2_=config2_)
+    probchip_fpath_list = ibs.depc.get('probchip', aid_list, 'img',
+                                       config=config2_, read_extern=False)
     return probchip_fpath_list
 
 

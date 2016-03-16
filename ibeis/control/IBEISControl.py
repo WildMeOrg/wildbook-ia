@@ -58,7 +58,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.tag_funcs',
     'ibeis.ibsfuncs',
     'ibeis.init.filter_annots',
-    'ibeis.control._autogen_featweight_funcs',
+    'ibeis.control.manual_featweight_funcs',
     'ibeis.control._autogen_party_funcs',
     'ibeis.control._autogen_annotmatch_funcs',
     'ibeis.control.manual_ibeiscontrol_funcs',
@@ -451,7 +451,7 @@ class IBEISController(BASE_CLASS):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
         ibs._init_sqldbcore(request_dbversion=request_dbversion)
-        ibs._init_sqldbcache()
+        ibs._init_depcache()
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs._init_rowid_constants()
@@ -516,37 +516,12 @@ class IBEISController(BASE_CLASS):
             DB_SCHEMA,
             verbose=ut.VERBOSE,
         )
-        #print(ibs.sqldbcache_fname)
         #import sys
         #sys.exit(1)
 
     @profile
-    def _init_sqldbcache(ibs):
+    def _init_depcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
-        from ibeis.control import _sql_helpers
-        from ibeis.control import DBCACHE_SCHEMA
-        # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.4'
-        # Test a new schema if developer
-        new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
-            ibs.get_dbname(), ibs.get_cachedir(),
-            ibs.sqldbcache_fname, ibs.dbcache_version_expected,
-            version_next='1.0.4')
-        ibs.dbcache_version_expected = new_version
-        ibs.sqldbcache_fname = new_fname
-        # Create cache sql database
-        ibs.dbcache = dtool.SQLDatabaseController(
-            ibs.get_cachedir(), ibs.sqldbcache_fname,
-            text_factory=const.__STR__)
-        _sql_helpers.ensure_correct_version(
-            ibs,
-            ibs.dbcache,
-            ibs.dbcache_version_expected,
-            DBCACHE_SCHEMA,
-            dobackup=False,  # Everything in dbcache can be regenerated.
-            verbose=ut.VERBOSE,
-        )
-
         # Initialize dependency cache
         root_getters = {
             'name': ibs.get_annot_names,
@@ -569,7 +544,6 @@ class IBEISController(BASE_CLASS):
         # requested computation.
         ibs.depc.initialize()
         if False:
-
             ibs.image_depc = dtool.DependencyCache(
                 root_tablename=const.IMAGE_TABLE,
                 default_fname=const.IMAGE_TABLE + '_depcache',
@@ -578,14 +552,13 @@ class IBEISController(BASE_CLASS):
                 get_root_uuid=ibs.get_image_uuids,
             )
 
-    def _close_sqldbcache(ibs):
-        ibs.dbcache.close()
-        ibs.dbcache = None
+    def _close_depcache(ibs):
+        ibs.depc.close()
+        ibs.depc = None
 
     def disconnect_sqldatabase(ibs):
         print('disconnecting from sql database')
-        ibs.dbcache.close()
-        ibs.dbcache = None
+        ibs._close_depcache()
         ibs.db.close()
         ibs.db = None
 
@@ -639,7 +612,6 @@ class IBEISController(BASE_CLASS):
         ibs.workdir  = ut.truepath(workdir)
         ibs.dbname = dbname
         ibs.sqldb_fname = PATH_NAMES.sqldb
-        ibs.sqldbcache_fname = PATH_NAMES.sqldbcache
 
         # Make sure you are not nesting databases
         assert PATH_NAMES._ibsdb != ut.dirsplit(ibs.workdir), \
@@ -718,12 +690,6 @@ class IBEISController(BASE_CLASS):
         Returns:
             path (str): path of the sqlite3 core database file """
         return ibs.db.fpath
-
-    def get_db_cache_path(ibs):
-        """
-        Returns:
-            path (str): path of the sqlite3 cache database file """
-        return ibs.dbcache.fpath
 
     def get_trashdir(ibs):
         return ibs.trashdir

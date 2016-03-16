@@ -435,7 +435,7 @@ config_overlap = ('# Configuration Overlap (Safely Ignored)', ut.codeblock(
     r'''
     # STARTBLOCK
     # How well do different configurations compliment each other?
-    testres.print_config_overlap()
+    testres.print_config_overlap(with_plot=True)
     # ENDBLOCK
     '''
 ))
