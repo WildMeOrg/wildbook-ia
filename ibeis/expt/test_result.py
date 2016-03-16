@@ -1979,6 +1979,10 @@ class TestResult(object):
                     testres.qaids, config2_=qreq_.query_config2_))).mean()
                     for qreq_ in testres.cfgx2_qreq_]
 
+                ave_width_inimg = [np.array(testres.ibs.get_annot_bboxes(  # NOQA
+                    testres.qaids, config2_=qreq_.query_config2_))[:, 2 + 0].mean()
+                    for qreq_ in testres.cfgx2_qreq_]
+
                 ave_width = [np.array(testres.ibs.get_annot_chip_sizes(  # NOQA
                     testres.qaids, config2_=qreq_.query_config2_))[:, 0].mean()
                     for qreq_ in testres.cfgx2_qreq_]

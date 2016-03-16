@@ -123,10 +123,10 @@ def compute_chip(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_chip --show
-        python -m ibeis.core_annots --exec-compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
-        python -m ibeis.core_annots --exec-compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
-        python -m ibeis.core_annots --exec-compute_chip --show --db humpbacks
+        ibeis --tf compute_chip --show
+        ibeis --tf compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
+        ibeis --tf compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
+        ibeis --tf compute_chip --show --db humpbacks
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -140,43 +140,52 @@ def compute_chip(depc, aid_list, config=None):
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
-        >>> iteract_obj.start()
+        >>> #interact_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)
+        >>> import ibeis.viz.interact.interact_chip
+        >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
+        >>> interact_obj.start()
         >>> pt.show_if_requested()
 
     Ignore:
-        from ibeis.core_annots import *  # NOQA
         import plottool as pt
         pt.ensure_pylab_qt4()
+
+        from ibeis.core_annots import *  # NOQA
         import ibeis
         defaultdb = 'GZ_ALL'
         ibs = ibeis.opendb(defaultdb=defaultdb)
-        depc = ibs.depc
-        config = ChipConfig.from_argv_dict(dim_size='256')
         aid_list = ibs.get_valid_aids()
+        depc = ibs.depc
 
         chips_orig = depc.get_property('chips', aid_list, 'img', config={})
+
         chips_aeq = depc.get_property('chips', aid_list, 'img', config={'adapteq': True})
         chips_heq = depc.get_property('chips', aid_list, 'img', config={'histeq': True})
 
-        nfeats_hteq = ibs.depc.get('feat', aid_list, 'num_feats', config={'histeq': True})
-        nfeats_ateq = ibs.depc.get('feat', aid_list, 'num_feats', config={'adapteq': True})
-        nfeats_orig = ibs.depc.get('feat', aid_list, 'num_feats')
-        nfeats_hteq = np.array(nfeats_hteq)
-        nfeats_ateq = np.array(nfeats_ateq)
-        nfeats_orig = np.array(nfeats_orig)
+
+        import pyhesaff
+        nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_kpts_in_image, chips_orig)))
+        nkpts_list = np.array(nkpts_list)
+
+        nfeats_orig = np.array(ibs.depc.get('feat', aid_list, 'num_feats'))
+        nfeats_hteq = np.array(ibs.depc.get('feat', aid_list, 'num_feats', config={'histeq': True}))
+        nfeats_ateq = np.array(ibs.depc.get('feat', aid_list, 'num_feats', config={'adapteq': True}))
 
         sortx = np.array(nfeats_orig).argsort()
         sortx = np.array(nfeats_hteq).argsort()
         sortx = np.array(nfeats_ateq).argsort()
 
         aids = ut.take(aid_list, sortx)
+        chips = chips_orig
         chips_bad = ut.take(chips, sortx)
+        chips_good = ut.take(chips, sortx[::-1])
+
+        import ibeis.viz.interact.interact_chip
+        ibeis.viz.interact.interact_chip.interact_multichips(ibs, aids)
 
         iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips_bad, nPerPage=15)
         iteract_obj.start()
 
-        chips_good = ut.take(chips, sortx[::-1])
         iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips_good, nPerPage=15)
         iteract_obj.start()
 
@@ -195,10 +204,17 @@ def compute_chip(depc, aid_list, config=None):
         ys = y.take(sortx)
 
 
-        pca = sklearn.decomposition.PCA(2)
+        pca = sklearn.decomposition.PCA(1)
         pca.fit(measures)
-        pca.fit(measures)
-        pca.transform(measures)
+        pca_measure = pca.transform(measures)
+        nfeats_white = (nfeats_orig - nfeats_orig.mean()) / nfeats_orig.std()
+        pca_white = (pca_measure - pca_measure.mean()) / pca_measure.std()
+        sortx = nfeats_white.argsort()
+        pt.plt.plot(pca_white[sortx], 'x')
+        pt.plt.plot(nfeats_white[sortx], '.')
+
+
+        pyhesaff.detect_kpts_in_image
 
         svc = sklearn.svm.LinearSVC()
         svc.fit(measures, nfeats_orig > 500)

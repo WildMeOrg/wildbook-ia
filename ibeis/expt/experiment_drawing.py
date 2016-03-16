@@ -630,6 +630,9 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
             -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
              default:K=1,resize_dim=[area],dim_size=[450,550,600,650]
 
+        ibeis draw_rank_cdf --db GZ_ALL -a ctrl -t default --show
+        ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
+
 
     Ignore:
         [qreq_.query_config2_.chip_cfgstr for qreq_ in testres.cfgx2_qreq_]
@@ -934,7 +937,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
 
         # Show disagreement cases
-        ibeis --tf draw_match_cases --db PZ_MTEST -a default \
+        ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
@@ -967,7 +970,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     qx_list, cfgx_list = case_pos_list.T
     # Get configs needed for each query
     qx2_cfgxs = ut.group_items(cfgx_list, qx_list)
-    import utool
 
     show_kwargs = {
         'N': 3,

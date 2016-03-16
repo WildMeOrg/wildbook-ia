@@ -41,6 +41,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> iteract_obj = interact_multichips(ibs, aid_list)
+        >>> iteract_obj.start()
         >>> result = ('iteract_obj = %s' % (str(iteract_obj),))
         >>> print(result)
         >>> ut.show_if_requested()
@@ -48,15 +49,17 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
     # FIXME: needs to be flushed out a little
     import plottool as pt
     show_chip_list = [
-        partial(viz.show_chip, ibs, aid, ell=0, pts=0, config2_=config2_)
+        partial(viz.show_chip, ibs, aid, config2_=config2_)
         for aid in aid_list
     ]
+    vizkw = dict(ell=0, pts=1)
     context_option_funcs = [
         partial(build_annot_context_options, ibs, aid, config2_=config2_)
         for aid in aid_list
     ]
     iteract_obj = pt.interact_multi_image.MultiImageInteraction(
-        show_chip_list, context_option_funcs=context_option_funcs, **kwargs)
+        show_chip_list, context_option_funcs=context_option_funcs,
+        vizkw=vizkw, **kwargs)
     return iteract_obj
 
 
@@ -193,18 +196,23 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         )
 
     if True:
-        # Edit mask
-        callback_list.append(
-            ('Edit mask',
-             partial(ibs.depc.get_property, 'annotmask', aid, recompute=True))
-        )
-
-    if True:
         from ibeis import viz
         callback_list.append(
             ('Show foreground mask',
              newplot_wrp(lambda: viz.show_probability_chip(
                  ibs, aid, config2_=config2_))),
+        )
+        callback_list.append(
+            ('Show foreground mask (blended)',
+             newplot_wrp(lambda: viz.show_probability_chip(
+                 ibs, aid, config2_=config2_, blend=True))),
+        )
+
+    if True:
+        # Edit mask
+        callback_list.append(
+            ('Edit mask',
+             partial(ibs.depc.get_property, 'annotmask', aid, recompute=True))
         )
 
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]

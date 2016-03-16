@@ -1471,17 +1471,17 @@ class MainWindowBackend(GUIBACK_BASE):
         back.front.set_table_tab(NAMES_TREE)
         iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
 
-    @blocking_slot()
-    def review_detections(back, **kwargs):
-        from plottool.interact_multi_image import MultiImageInteraction
-        imgsetid = back.get_selected_imgsetid()
-        ibs = back.ibs
-        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        gpath_list = ibs.get_image_paths(gid_list)
-        bboxes_list = ibs.get_image_annotation_bboxes(gid_list)
-        thetas_list = ibs.get_image_annotation_thetas(gid_list)
-        multi_image_interaction = MultiImageInteraction(gpath_list, bboxes_list=bboxes_list, thetas_list=thetas_list)
-        back.multi_image_interaction = multi_image_interaction
+    #@blocking_slot()
+    #def review_detections(back, **kwargs):
+    #    from plottool.interact_multi_image import MultiImageInteraction
+    #    imgsetid = back.get_selected_imgsetid()
+    #    ibs = back.ibs
+    #    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    #    gpath_list = ibs.get_image_paths(gid_list)
+    #    bboxes_list = ibs.get_image_annotation_bboxes(gid_list)
+    #    thetas_list = ibs.get_image_annotation_thetas(gid_list)
+    #    multi_image_interaction = MultiImageInteraction(gpath_list, bboxes_list=bboxes_list, thetas_list=thetas_list)
+    #    back.multi_image_interaction = multi_image_interaction
 
     @blocking_slot()
     def compute_occurrences(back, refresh=True):
