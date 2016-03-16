@@ -116,7 +116,7 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
         action.setToolTip(action_tooltip)
     if action_shortcut is not None:
         action.setShortcut(action_shortcut)
-        print('<%s>.setShortcut(%r)' % (action_name, action_shortcut,))
+        #print('<%s>.setShortcut(%r)' % (action_name, action_shortcut,))
     if slot_fn is not None:
         action.triggered.connect(slot_fn)
     return action
