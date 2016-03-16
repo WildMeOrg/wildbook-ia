@@ -278,6 +278,7 @@ def get_scaled_size_with_area(target_area, w, h, tol=0):
 
     Ignore:
         np.array(result2).prod(axis=1)
+        np.array(wh_list).prod(axis=1)
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -287,7 +288,7 @@ def get_scaled_size_with_area(target_area, w, h, tol=0):
         >>> new_size = get_scaled_size_with_area(target_area, w, h)
         >>> result1 = str(new_size)
         >>> wh_list = [(10, 10), (100, 100), (150, 150), (125, 125), (175, 175), (200, 200)]
-        >>> tol = 32
+        >>> tol = 32 ** 2
         >>> result2 = [get_scaled_size_with_area(target_area, wh[0], wh[1], tol)
         >>>            for wh in wh_list]
         >>> result = str(result1) + '\n' + str(result2)
