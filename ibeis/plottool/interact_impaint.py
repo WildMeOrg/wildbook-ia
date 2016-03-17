@@ -12,7 +12,6 @@ References:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import matplotlib.pyplot as plt
-#import matplotlib.image as mpimg
 import numpy as np
 import vtool as vt
 from plottool import abstract_interaction
@@ -227,7 +226,7 @@ def draw_demo():
         python -m plottool.interact_impaint --exec-draw_demo --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from plottool.interact_impaint import *  # NOQA
         >>> result = draw_demo()
         >>> print(result)

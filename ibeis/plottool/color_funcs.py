@@ -31,6 +31,15 @@ def to_base255(color01):
     return color255
 
 
+def ensure_base255(color):
+    try:
+        assert_base01(color)
+    except AssertionError:
+        return color
+    else:
+        return to_base255(color)
+
+
 def brighten_rgb(rgb, amount):
     hue_adjust = 0.0
     sat_adjust = amount

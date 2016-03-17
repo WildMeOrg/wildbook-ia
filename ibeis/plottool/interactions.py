@@ -140,6 +140,54 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 #extra
 
 
+def zoom_factory(ax, zoomable_list, base_scale=1.1):
+    """
+    References:
+        https://gist.github.com/tacaswell/3144287
+    """
+    def zoom_fun(event):
+        #print('zooming')
+        # get the current x and y limits
+        cur_xlim = ax.get_xlim()
+        cur_ylim = ax.get_ylim()
+        xdata = event.xdata  # get event x location
+        ydata = event.ydata  # get event y location
+        if xdata is None or ydata is None:
+            return
+        if event.button == 'up':
+            # deal with zoom in
+            scale_factor = 1 / base_scale
+        elif event.button == 'down':
+            # deal with zoom out
+            scale_factor = base_scale
+        else:
+            raise NotImplementedError('event.button=%r' % (event.button,))
+            # deal with something that should never happen
+            scale_factor = 1
+            print(event.button)
+        for zoomable in zoomable_list:
+            zoom = zoomable.get_zoom()
+            new_zoom = zoom / (scale_factor ** (1.2))
+            zoomable.set_zoom(new_zoom)
+        # Get distance from the cursor to the edge of the figure frame
+        x_left = xdata - cur_xlim[0]
+        x_right = cur_xlim[1] - xdata
+        y_top = ydata - cur_ylim[0]
+        y_bottom = cur_ylim[1] - ydata
+        ax.set_xlim([xdata - x_left * scale_factor, xdata + x_right * scale_factor])
+        ax.set_ylim([ydata - y_top * scale_factor, ydata + y_bottom * scale_factor])
+
+        # ----
+        ax.figure.canvas.draw()  # force re-draw
+
+    fig = ax.get_figure()  # get the figure of interest
+    # attach the call back
+    fig.canvas.mpl_connect('scroll_event', zoom_fun)
+
+    #return the function
+    return zoom_fun
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

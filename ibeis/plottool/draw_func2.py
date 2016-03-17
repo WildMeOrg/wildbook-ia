@@ -37,7 +37,6 @@ from plottool import color_funcs as color_fns  # NOQA
 from plottool import custom_constants  # NOQA
 from plottool import custom_figure
 from plottool import fig_presenter
-from plottool import nx_helpers
 #from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 #from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDSTO BE PARTITIONED
 #from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
@@ -3610,12 +3609,6 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
     fnum = pt.ensure_fnum(fnum)
     pt.multi_plot(xdata, ydatas, label_list=labels, marker='', fnum=fnum,
                   pnum=pnum)  # yscale='log')
-
-
-show_nx = nx_helpers.show_nx
-zoom_factory = nx_helpers.zoom_factory
-netx_draw_images_at_positions = nx_helpers.netx_draw_images_at_positions
-get_nx_layout = nx_helpers.get_nx_layout
 
 
 if __name__ == '__main__':
