@@ -7,7 +7,6 @@ import utool as ut
 ut.noinject(__name__, '[ibeis.control.__init__]', DEBUG=False)
 
 
-from ibeis.control import DBCACHE_SCHEMA
 from ibeis.control import DB_SCHEMA
 from ibeis.control import IBEISControl
 from ibeis.control import _sql_helpers
@@ -20,7 +19,6 @@ print, print_, printDBG, rrr, profile = utool.inject(
 def reload_subs(verbose=True):
     """ Reloads ibeis.control and submodules """
     rrr(verbose=verbose)
-    getattr(DBCACHE_SCHEMA, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(DB_SCHEMA, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(IBEISControl, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(SQLDatabaseControl, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -30,7 +28,6 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('DBCACHE_SCHEMA', None, False),
     ('DB_SCHEMA', None, False),
     ('IBEISControl', None, False),
     ('_sql_helpers', None, False),

@@ -259,14 +259,13 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> #impossible_to_match = len(correct_indices) > 0
                 """
                 y = """
-                >>> from ibeis.algo.preproc import preproc_probchip
                 >>> from os.path import exists
                 >>> import vtool as vt
                 >>> import vtool.patch as vtpatch
                 >>> import vtool.image as vtimage  # NOQA
                 >>> chip_list = ibs.get_annot_chips([aid])
                 >>> kpts_list = ibs.get_annot_kpts([aid])
-                >>> probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, [aid])
+                >>> probchip_fpath_list = ibs.get_probchip_fpath(aid)
                 >>> probchip_list = [vt.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
                 >>> kpts  = kpts_list[0]
                 >>> probchip = probchip_list[0]
@@ -280,8 +279,6 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> pt.imshow(patch * 255)
                 >>> pt.update()
                 >>> vt.gaussian_average_patch(patch)
-
-
                 >>> cm.ishow_top(ibs, annot_mode=1)
                 """
                 y

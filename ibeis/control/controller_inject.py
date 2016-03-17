@@ -797,12 +797,6 @@ def make_ibs_register_decorator(modname):
     return CLASS_INJECT_KEY, register_ibs_method
 
 
-class ExternalStorageException(Exception):
-    """ TODO move to a common place for templated SQL functions """
-    def __init__(self, *args, **kwargs):
-        super(ExternalStorageException, self).__init__(*args, **kwargs)
-
-
 _decors = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
 register_preproc = _decors['preproc']
 register_subprop = _decors['subprop']

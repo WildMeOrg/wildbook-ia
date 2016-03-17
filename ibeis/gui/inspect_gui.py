@@ -201,10 +201,13 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             pt.update()
 
         options += [
-            ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
-                                      ibs, aid1, aid2, qreq_=qreq_)),
-            ('Run Vsone(vt)', partial(vsone_single_hack,
-                                      ibs, aid1, aid2, qreq_=qreq_)),
+            ('VsOne', [
+                ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
+                                          ibs, aid1, aid2, qreq_=qreq_)),
+                ('Run Vsone(vt)', partial(vsone_single_hack,
+                                          ibs, aid1, aid2, qreq_=qreq_)),
+            ]
+            )
         ]
     with_vsmany = True
     if with_vsmany:

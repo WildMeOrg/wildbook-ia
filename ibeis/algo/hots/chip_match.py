@@ -2427,6 +2427,7 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
         >>>                             TRUNCATE_UUIDS=False, MAX_FNAME_LEN=200)
         >>> result = fname
         >>> print(result)
+
         qaid=18_cm_cvgrsbnffsgifyom_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
     """
     if qauuid is None:

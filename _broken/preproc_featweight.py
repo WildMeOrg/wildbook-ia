@@ -20,7 +20,7 @@ def test_featweight_worker():
     python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show --cnn
     """
     import ibeis
-    qreq_ = ibeis.main_helpers.testdata_qreq_(defaultdb='PZ_MTEST', p=['default:featweight_detector=cnn'], qaid_override=[1])
+    qreq_ = ibeis.main_helpers.testdata_qreq_(defaultdb='PZ_MTEST', p=['default:fw_detector=cnn'], qaid_override=[1])
     ibs = qreq_.ibs
     config2_ = qreq_.qparams
     lazy = True
@@ -105,7 +105,7 @@ def gen_featweight_worker(tup):
         python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_featweight import *  # NOQA
         >>> test_featweight_worker()
 
@@ -232,11 +232,11 @@ def generate_featweight_properties(ibs, feat_rowid_list, config2_=None):
         python -m ibeis.algo.preproc.preproc_featweight --test-generate_featweight_properties
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> config2_ = ibs.new_query_params(dict(fg_on=True, featweight_detector='rf'))
+        >>> config2_ = ibs.new_query_params(dict(fg_on=True, fw_detector='rf'))
         >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=True)
         >>> #fid_list = ibs.get_valid_fids()[1:2]

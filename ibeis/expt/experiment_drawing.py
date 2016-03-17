@@ -609,13 +609,34 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf --db PZ_Master1 --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
 
-        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --show
-        ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] --noexample
+        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,area],dim_size=[450,550] --show
+        ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl:size=100 -t default:K=1,resize_dim=[width,area],dim_size=[450,550] --noexample
 
-        ibeis -e draw_cases --db GZ_ALL -a ctrl \
-            -t default:K=1,resize_dim=[width,root_area],dim_size=[450,550] \
-            -f :fail=True,index=0:3,sortdsc=gfscore,max_pername=1,without_tag=scenerymatch,require_all_cfg=True \
+        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl \
+            -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
+             default:K=1,resize_dim=[area],dim_size=[450,550,600,650] \
             --show
+
+        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl \
+            -t default:K=1,resize_dim=[width],dim_size=[700,750] \
+            --show
+
+        ibeis --tf draw_match_cases --db GZ_ALL -a ctrl \
+            -t default:K=1,resize_dim=[width],dim_size=[700,750] \
+            -f :sortdsc=gfscore,without_tag=scenerymatch,disagree=True \
+            --show
+
+        ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl \
+            -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
+             default:K=1,resize_dim=[area],dim_size=[450,550,600,650]
+
+        ibeis draw_rank_cdf --db GZ_ALL -a ctrl -t default --show
+        ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
+
+
+    Ignore:
+        [qreq_.query_config2_.chip_cfgstr for qreq_ in testres.cfgx2_qreq_]
+
 
 
     Example:
@@ -916,7 +937,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
 
         # Show disagreement cases
-        ibeis --tf draw_match_cases --db PZ_MTEST -a default \
+        ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
@@ -965,7 +986,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     show_kwargs['fastmode'] = True
     #show_kwargs['with_figtitle'] = show_in_notebook
     if annot_modes is None:
-        annot_modes = [1]
+        annot_modes = [0]
     #annot_modes = [0]
     #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
@@ -1041,7 +1062,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
         truth2_prop, prop2_mat = testres.get_truth2_prop()
 
-        if ut.VERBOSE:
+        if True or ut.VERBOSE:
             print('qaid = %r' % (qaid,))
             print('qx = %r' % (qx,))
             print('cfgxs = %r' % (cfgxs,))
