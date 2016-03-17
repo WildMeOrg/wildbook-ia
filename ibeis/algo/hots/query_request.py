@@ -143,10 +143,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     # HACK FOR DEPC REQUESTS including flukes
     if isinstance(cfg, dtool.Config):
         tablename = cfg.get_config_name()
-        requestclass = ibs.depc.requestclass_dict[tablename]
+        requestclass = ibs.depc_annot.requestclass_dict[tablename]
         cfgdict = dict(cfg.parse_items())
         qreq_ = request = requestclass.new(  # NOQA
-            ibs.depc, qaid_list, daid_list, cfgdict, tablename=tablename)
+            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
     else:
         #if cfgdict.get('pipeline_root', None)
         DYNAMIC_K = False

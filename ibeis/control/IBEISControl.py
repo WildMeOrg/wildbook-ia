@@ -255,7 +255,7 @@ class IBEISController(BASE_CLASS):
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
-        ibs.depc = None
+        ibs.depc_annot = None
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         # observer_weakref_list keeps track of the guibacks connected to this
@@ -304,7 +304,7 @@ class IBEISController(BASE_CLASS):
             >>> ibs.show_depc_graph(reduced=reduced)
             >>> ut.show_if_requested()
         """
-        ibs.depc.show_graph(reduced=reduced)
+        ibs.depc_annot.show_graph(reduced=reduced)
 
     def show_depc_table_input(ibs, tablename, reduced=False):
         """
@@ -320,7 +320,7 @@ class IBEISController(BASE_CLASS):
             >>> ibs.show_depc_table_input(tablename)
             >>> ut.show_if_requested()
         """
-        ibs.depc[tablename].show_input_graph()
+        ibs.depc_annot[tablename].show_input_graph()
 
     def get_cachestats_str(ibs):
         """
@@ -530,7 +530,8 @@ class IBEISController(BASE_CLASS):
             'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
-        ibs.depc = dtool.DependencyCache(
+        ibs.depc_annot
+        ibs.depc_annot = dtool.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
             default_fname=const.ANNOTATION_TABLE + '_depcache',
@@ -539,10 +540,12 @@ class IBEISController(BASE_CLASS):
             get_root_uuid=ibs.get_annot_visual_uuids,
             root_getters=root_getters,
         )
+        # backwards compatibility
+        ibs.depc_annot = ibs.depc_annot
         # TODO: root_uuids should be specified as the
         # base_root_uuid plus a hash of the attributes that matter for the
         # requested computation.
-        ibs.depc.initialize()
+        ibs.depc_annot.initialize()
         if False:
             ibs.image_depc = dtool.DependencyCache(
                 root_tablename=const.IMAGE_TABLE,
@@ -553,8 +556,8 @@ class IBEISController(BASE_CLASS):
             )
 
     def _close_depcache(ibs):
-        ibs.depc.close()
-        ibs.depc = None
+        ibs.depc_annot.close()
+        ibs.depc_annot = None
 
     def disconnect_sqldatabase(ibs):
         print('disconnecting from sql database')

@@ -52,7 +52,7 @@ Setup:
     >>> import ibeis
     >>> import plottool as pt
     >>> ibs = ibeis.opendb('testdb1')
-    >>> depc = ibs.depc
+    >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -75,7 +75,7 @@ def testdata_core(defaultdb='testdb1', size=2):
     import ibeis
     # import plottool as pt
     ibs = ibeis.opendb(defaultdb=defaultdb)
-    depc = ibs.depc
+    depc = ibs.depc_annot
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list,
                              default=ibs.get_valid_aids()[0:size])
     return ibs, depc, aid_list
@@ -134,7 +134,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> import ibeis
         >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
-        >>> depc = ibs.depc
+        >>> depc = ibs.depc_annot
         >>> config = ChipConfig.from_argv_dict(dim_size=None)
         >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
@@ -155,7 +155,7 @@ def compute_chip(depc, aid_list, config=None):
         defaultdb = 'GZ_ALL'
         ibs = ibeis.opendb(defaultdb=defaultdb)
         aid_list = ibs.get_valid_aids()
-        depc = ibs.depc
+        depc = ibs.depc_annot
 
         chips_orig = depc.get_property('chips', aid_list, 'img', config={})
 
@@ -167,9 +167,9 @@ def compute_chip(depc, aid_list, config=None):
         nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_kpts_in_image, chips_orig)))
         nkpts_list = np.array(nkpts_list)
 
-        nfeats_orig = np.array(ibs.depc.get('feat', aid_list, 'num_feats'))
-        nfeats_hteq = np.array(ibs.depc.get('feat', aid_list, 'num_feats', config={'histeq': True}))
-        nfeats_ateq = np.array(ibs.depc.get('feat', aid_list, 'num_feats', config={'adapteq': True}))
+        nfeats_orig = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats'))
+        nfeats_hteq = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats', config={'histeq': True}))
+        nfeats_ateq = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats', config={'adapteq': True}))
 
         sortx = np.array(nfeats_orig).argsort()
         sortx = np.array(nfeats_hteq).argsort()
@@ -230,8 +230,8 @@ def compute_chip(depc, aid_list, config=None):
         pt.plt.plot(nfeats_orig[sortx], '.')
         pt.plt.plot(nfeats_ateq[sortx], 'o')
 
-        z1 = ibs.depc.get_rowids('feat', aid_list, config={'histeq': True})
-        z2 = ibs.depc.get_rowids('feat', aid_list)
+        z1 = ibs.depc_annot.get_rowids('feat', aid_list, config={'histeq': True})
+        z2 = ibs.depc_annot.get_rowids('feat', aid_list)
         assert len(set(z1).intersection(z2)) == 0
 
     """
@@ -259,9 +259,9 @@ def compute_chip(depc, aid_list, config=None):
     cfpath_list = [ut.unixjoin(chip_dpath, chip_fname)
                    for chip_fname in cfname_list]
 
-    gid_list   = ibs.get_annot_gids(aid_list)
-    bbox_list  = ibs.get_annot_bboxes(aid_list)
-    theta_list = ibs.get_annot_thetas(aid_list)
+    gfpath_list = ibs.get_annot_image_paths(aid_list)
+    bbox_list   = ibs.get_annot_bboxes(aid_list)
+    theta_list  = ibs.get_annot_thetas(aid_list)
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
 
     # Checks
@@ -296,7 +296,7 @@ def compute_chip(depc, aid_list, config=None):
     M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
               bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)]
 
-    arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
+    arg_iter = zip(cfpath_list, gfpath_list, newsize_list, M_list)
     arg_list = list(arg_iter)
 
     flags = cv2.INTER_LANCZOS4
@@ -311,9 +311,9 @@ def compute_chip(depc, aid_list, config=None):
         filterfn_list.append(image_filters.adapteq_fn)
 
     for tup in ut.ProgIter(arg_list, lbl='computing chips'):
-        cfpath, gid, new_size, M = tup
+        cfpath, gfpath, new_size, M = tup
         # Read parent image
-        imgBGR = ibs.imread(gid)
+        imgBGR = vt.imread(gfpath)
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
         for filtfn in filterfn_list:
@@ -613,8 +613,8 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         >>> ibs, depc, aid_list = testdata_core()
         >>> config = ChipConfig.from_argv_dict()
         >>> probchip_config = ProbchipConfig(smooth_thresh=None)
-        >>> chip = ibs.depc.get('chips', aid_list, 'img', config)[0]
-        >>> mask = ibs.depc.get('probchip', aid_list, 'img', probchip_config)[0]
+        >>> chip = ibs.depc_annot.get('chips', aid_list, 'img', config)[0]
+        >>> mask = ibs.depc_annot.get('probchip', aid_list, 'img', probchip_config)[0]
         >>> mask2 = postprocess_mask(mask)
         >>> ut.quit_if_noshow()
         >>> fnum = 1
@@ -792,9 +792,9 @@ def gen_feat_worker(tup):
         >>> aid = aid_list[0]
         >>> config = {}
         >>> feat_config = FeatConfig.from_argv_dict()
-        >>> chip_fpath = ibs.depc.get('chips', aid_list[0], 'img', config=config, read_extern=False)
+        >>> chip_fpath = ibs.depc_annot.get('chips', aid_list[0], 'img', config=config, read_extern=False)
         >>> maskmethod = ut.get_argval('--maskmethod', type_=str, default='cnn')
-        >>> probchip_fpath = ibs.depc.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['maskmethod'] == 'cnn' else None
+        >>> probchip_fpath = ibs.depc_annot.get('probchip', aid_list[0], 'img', config=config, read_extern=False) if feat_config['maskmethod'] == 'cnn' else None
         >>> hesaff_params = feat_config.asdict()
         >>> # Exec function source
         >>> tup = (chip_fpath, probchip_fpath, hesaff_params)
@@ -1096,7 +1096,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
 
         aids = ut.sortedby([a.tolist() for a in aids_list], ut.lmap(len, aids_list))[-1]
 
-        depc = ibs.depc
+        depc = ibs.depc_annot
 
         progiter = ut.ProgIter(aids_list, freq=1)
         for aids in progiter:
@@ -1119,7 +1119,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> ibs, aid_list = ibeis.testdata_aids('testdb2', 'default:')
         >>> _, aids = ut.items_sorted_by_value(ut.group_items(aid_list, ibs.get_annot_occurrence_text(aid_list)), key=len)[-1]
         >>> aid_list = aids
-        >>> depc = ibs.depc
+        >>> depc = ibs.depc_annot
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
         >>> config = request.config
         >>> parent_rowids_T = request.parent_rowids_T
@@ -1272,17 +1272,17 @@ if False:
             >>> from ibeis.core_annots import *  # NOQA
             >>> import ibeis
             >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
-            >>> depc = ibs.depc
+            >>> depc = ibs.depc_annot
             >>> fid_list = depc.get_rowids('feat', aid_list)
             >>> aids_list = tuple([aid_list])
             >>> fids_list = tuple([fid_list])
             >>> # Compute directly from function
-            >>> config = ibs.depc['neighbor_index'].configclass()
+            >>> config = ibs.depc_annot['neighbor_index'].configclass()
             >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
             >>> nnindexer1 = result1[0][0]
             >>> # Compute using depcache
-            >>> result2 = ibs.depc.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
-            >>> #result3 = ibs.depc.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
+            >>> result2 = ibs.depc_annot.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
+            >>> #result3 = ibs.depc_annot.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
             >>> print(result2)
             >>> print(result3)
             >>> assert result2[0] is not result3[0]
@@ -1335,11 +1335,11 @@ if False:
             >>> import ibeis
             >>> ibs, qaid_list = ibeis.testdata_aids('seaturtles')
             >>> daid_list = qaid_list
-            >>> depc = ibs.depc
-            >>> index_config = ibs.depc['neighbor_index'].configclass()
+            >>> depc = ibs.depc_annot
+            >>> index_config = ibs.depc_annot['neighbor_index'].configclass()
             >>> fid_list = depc.get_rowids('feat', qaid_list)
-            >>> indexer_rowid_list = ibs.depc.get_rowids('neighbor_index', [daid_list], index_config)
-            >>> config = ibs.depc['feat_neighbs'].configclass()
+            >>> indexer_rowid_list = ibs.depc_annot.get_rowids('neighbor_index', [daid_list], index_config)
+            >>> config = ibs.depc_annot['feat_neighbs'].configclass()
             >>> compute_feature_neighbors(depc, fid_list, indexer_rowid_list, config)
         """
         print('[IBEIS] NEAREST NEIGHBORS')

@@ -330,7 +330,7 @@ def compute_all_chips(ibs, **kwargs):
     """
     print('[ibs] compute_all_chips')
     aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.depc.get_rowids('chips', aid_list)
+    cid_list = ibs.depc_annot.get_rowids('chips', aid_list)
     return cid_list
 
 
@@ -338,11 +338,11 @@ def compute_all_chips(ibs, **kwargs):
 def ensure_annotation_data(ibs, aid_list, chips=True, feats=True,
                            featweights=False):
     if featweights:
-        ibs.depc.get_rowids('featweight', aid_list)
+        ibs.depc_annot.get_rowids('featweight', aid_list)
     elif feats:
-        ibs.depc.get_rowids('feat', aid_list)
+        ibs.depc_annot.get_rowids('feat', aid_list)
     elif chips:
-        ibs.depc.get_rowids('chips', aid_list)
+        ibs.depc_annot.get_rowids('chips', aid_list)
 
 
 @register_ibs_method
@@ -6569,12 +6569,12 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
     metadata = ut.LazyDict({
         'aid': aid,
         'name': lambda: ibs.get_annot_names(aid),
-        'rchip_fpath': lambda: ibs.depc.get('chips', aid, 'img', config, read_extern=False),
-        'rchip': lambda: ibs.depc.get('chips', aid, 'img', config),
-        'vecs': lambda:  ibs.depc.get('feat', aid, 'vecs', config),
-        'kpts': lambda:  ibs.depc.get('feat', aid, 'kpts', config),
-        'dlen_sqrd': lambda: ibs.depc['chips'].subproperties['dlen_sqrd'](
-            ibs.depc, [aid], config)[0],
+        'rchip_fpath': lambda: ibs.depc_annot.get('chips', aid, 'img', config, read_extern=False),
+        'rchip': lambda: ibs.depc_annot.get('chips', aid, 'img', config),
+        'vecs': lambda:  ibs.depc_annot.get('feat', aid, 'vecs', config),
+        'kpts': lambda:  ibs.depc_annot.get('feat', aid, 'kpts', config),
+        'dlen_sqrd': lambda: ibs.depc_annot['chips'].subproperties['dlen_sqrd'](
+            ibs.depc_annot, [aid], config)[0],
         #get_annot_chip_dlensqrd([aid], config=config)[0],
         'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
     })

@@ -58,11 +58,11 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
     """
     import dtool
     try:
-        return ibs.depc.get('chips', aid_list, 'img', config=config2_,
+        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
                             ensure=ensure, read_extern=False)
     except dtool.ExternalStorageException:
         # TODO; this check might go in dtool itself
-        return ibs.depc.get('chips', aid_list, 'img', config=config2_,
+        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
                             ensure=ensure, read_extern=False)
 
 
@@ -101,7 +101,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
         >>> ut.assert_almost_eq(chip_sum_list, [96053500, 65152954, 67223241, 109358624, 73995960], 2000)
         >>> print(chip_sum_list)
     """
-    return ibs.depc.get('chips', aid_list, 'img', config=config2_,
+    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
                         ensure=ensure)
 
 
@@ -142,7 +142,7 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
         >>> print(result)
         [(545, 372), (603, 336), (520, 390)]
     """
-    return ibs.depc.get('chips', aid_list, ('width', 'height'), config=config2_, ensure=ensure)
+    return ibs.depc_annot.get('chips', aid_list, ('width', 'height'), config=config2_, ensure=ensure)
 
 
 @register_ibs_method
@@ -276,7 +276,7 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
-    ibs.depc.delete_property('chips', aid_list, config=config2_)
+    ibs.depc_annot.delete_property('chips', aid_list, config=config2_)
     return
 
 
@@ -345,7 +345,7 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
 #    """
 #    if NEW_DEPC:
 #        raise NotImplementedError('')
-#        #ibs.depc['chips'].delete_rows('chips', cid_list)
+#        #ibs.depc_annot['chips'].delete_rows('chips', cid_list)
 #    aid_list = ibs.dbcache.get(const.CHIP_TABLE, (ANNOT_ROWID,), cid_list)
 #    return aid_list
 

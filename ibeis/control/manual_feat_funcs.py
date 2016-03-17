@@ -61,13 +61,13 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d annots leaf nodes' % len(aid_list))
-    return ibs.depc.delete_property('feat', aid_list, config=config2_)
+    return ibs.depc_annot.delete_property('feat', aid_list, config=config2_)
 
 
 @register_ibs_method
 @getter_1to1
 def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None, extra_tries=1):
-    return ibs.depc.get_rowids('feat', aid_list, config=config2_,
+    return ibs.depc_annot.get_rowids('feat', aid_list, config=config2_,
                                ensure=ensure, eager=eager)
 
 
@@ -136,7 +136,7 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.get_external_query_config2(), ori=True, fnum=2)
         >>> ut.show_if_requested()
     """
-    return ibs.depc.get('feat', aid_list, 'kpts', config=config2_,
+    return ibs.depc_annot.get('feat', aid_list, 'kpts', config=config2_,
                                ensure=ensure, eager=eager)
 
 
@@ -148,7 +148,7 @@ def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
     Returns:
         vecs_list (list): annotation descriptor vectors
     """
-    return ibs.depc.get('feat', aid_list, 'vecs', config=config2_,
+    return ibs.depc_annot.get('feat', aid_list, 'vecs', config=config2_,
                                ensure=ensure, eager=eager)
 
 
@@ -183,7 +183,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> ut.assert_inbounds(nFeats_list[1],  910,  922)
         >>> ut.assert_inbounds(nFeats_list[2], 1300, 1343)
     """
-    return ibs.depc.get('feat', aid_list, 'num_feats', config=config2_,
+    return ibs.depc_annot.get('feat', aid_list, 'num_feats', config=config2_,
                         ensure=ensure, eager=eager)
 
 

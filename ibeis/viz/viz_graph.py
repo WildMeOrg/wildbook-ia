@@ -301,7 +301,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
     #target_size = (100, 100)
 
     if with_images:
-        imgpath_list = ibs.depc.get_property('chips', aid_list, 'img',
+        imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
                                              config=dict(dim_size=300), read_extern=False)
         # img_list = ibs.get_annot_chips(aid_list)
         # img_list = [vt.resize_thumb(img, target_size) for img in img_list]
