@@ -188,9 +188,160 @@ def get_nx_layout(graph, layout, layoutkw=None):
 
 
 def nx_agraph_layout(graph, inplace=False, **kwargs):
-    """
+    r"""
     References:
         http://www.graphviz.org/doc/info/attrs.html
+
+
+    Ignore:
+        # Parse param definitions;
+        text = ut.readfrom(ut.truepath('~/rawhtml.txt'))
+        import re
+        subrepl_list = [
+            ('<TR>', r'\n\n'),
+            ('<\/TR>', r'\n\n'),
+            ('<A HREF=.*?>', r''),
+            ('<A NAME=.*?>', r''),
+            ('<\/A>', ''),
+            (ut.negative_lookbehind('\n') + '\n' + ut.negative_lookahead('\n'), ''),
+            ('<TD ALIGN="CENTER">', r'<TD>'),
+            (' *, *', r' | '),
+            ('<\/TD>\n*<TD>', ', '),
+            ('<TD>\n*<\TD>', ', '),
+            ('^<TD>', ''),
+            ('<\/TD>', ''),
+            ('<BR>', ''),
+            ('<BR>', ''),
+            ('<TABLE ALIGN=CENTER>', ''),
+            ('<TH.*\n', ''),
+            ('</TABLE>', ''),
+        ]
+        new_text = text
+        for sub, repl in subrepl_list:
+            new_text = re.sub(sub, repl, new_text, flags=re.MULTILINE)
+        new_text = new_text.replace('&#60;', '<')
+        new_text = new_text.replace('&#62;', '>')
+        new_text = ut.remove_doublenewlines(new_text)
+        print(new_text)
+        row_list = [r.split(',') for r in new_text.split('\n') if r]
+        row_list = [[c.strip() for c in r] for r in row_list]
+
+        column_lbls = ['Name', 'Used By', 'Type', 'Default', 'Minimum', 'Notes']
+        column_list = ut.listT(row_list)
+
+        csv_str = (ut.make_standard_csv(column_list, column_lbls))
+        ut.writeto('tmp.csv', csv_str)
+        df = pandas.read_csv('tmp.csv')
+
+        usedby = [''.join(sorted(tags)) for tags in df['Used By'].tolist()]
+        df['Used By'][:] = usedby
+
+        minim = ['-' if tags is np.nan else tags for tags in df['Minimum'].tolist()]
+        df['Minimum'][:] = minim
+        print(df.to_string())
+
+        notes = ['' if tags is np.nan else tags.replace(' only', '').strip() for tags in df['Notes'].tolist()]
+        unique_tags = ut.unique(ut.flatten([t.strip().split('|') for t in notes]))
+        unique_tags = ut.unique([t.strip().replace('not ', '') for t in unique_tags])
+        valid_progs = ut.unique([t for t in unique_tags if t])
+        #df['Notes'][:] = notes
+        #print(df.to_string())
+
+        flags = ['N' in tags for tags in df['Used By'].tolist()]
+        sortx = ut.argsort(flags)[::-1]
+        idx = ut.where(flags)
+        df_nodes = df.take(idx)
+
+        progs = ['dot', 'neato', 'svg', 'postscript', 'map', 'patchwork', 'write']
+
+        def expand_tags(tag):
+            extag = [t.strip() for t in tag.split('|')]
+            if len(''.join(extag)) == 0:
+                extag = valid_progs
+            extag2 = []
+            remove_tags = []
+            for t in extag:
+                if t.startswith('not '):
+                    remove = t[4:]
+                    remove_tags.append(remove)
+                else:
+                    extag2.append(t)
+            extag2.extend(ut.setdiff(valid_progs, remove_tags))
+            return extag
+
+        def usedby(df, opts):
+            notes = df['Notes'].tolist()
+            notes = ['' if t is np.nan else t for t in notes]
+            notes = [t.replace(' only', '').strip() for t in notes]
+            extags = [expand_tags(t) for t in notes]
+            flag_list = [[prog in exts for exts in extags] for prog in opts]
+            flags = ut.or_lists(*flag_list)
+            hasany_idx = ut.where(flags)
+            subdf = df.take(hasany_idx)
+            return subdf
+
+        def print_useful(df):
+            print(df.sort(['Used By', 'Notes', 'Name']).to_string())
+
+        # In the Used By field, the characters E, N, G, S and C represent edges,
+        # nodes, the root graph, subgraphs and cluster subgraphs, respectively.
+        #T his field indicates which graph component uses the attribute.
+
+        # At present, most device-independent units are either inches or points,
+        # which we take as 72 points per inch.
+
+
+        df_nd = usedby(df, ['neato', 'dot'])
+        print_useful(df_nd)
+
+        dotneato_nodes = df_nodes.take(idx2)
+
+        dotneato_nodes = df.take(idx2)
+
+        print(df_.to_string())
+        print(dotneato_nodes.sort('Used By').to_string())
+
+        Node Props:
+            colorscheme    CEGN           string                                       ""              NaN
+              fontcolor    CEGN            color                                    black              NaN
+               fontname    CEGN           string                            "Times-Roman"              NaN
+               fontsize    CEGN           double                                     14.0              NaN
+                  label    CEGN        lblString           "&#92;N" (nodes)"" (otherwise)              NaN
+              nojustify    CEGN             bool                                    false              NaN
+                  style    CEGN            style                                       ""              NaN
+                  color     CEN   colorcolorList                                    black              NaN
+              fillcolor     CEN   colorcolorList          lightgrey(nodes)black(clusters)              NaN
+                  layer     CEN       layerRange                                       ""              NaN
+               penwidth     CEN           double                                      1.0              NaN
+           radientangle     CGN              int                                       ""              NaN
+               labelloc     CGN           string  "t"(clusters)"b"(root graphs)"c"(nodes)              NaN
+                 margin     CGN      doublepoint                       <device-dependent>              NaN
+                  sortv     CGN              int                                        0              NaN
+            peripheries      CN              int          shape default(nodes)1(clusters)              NaN
+              showboxes     EGN              int                                        0         dot only
+                comment     EGN           string                                       ""              NaN
+                    pos      EN  pointsplineType                                      NaN              NaN
+                 xlabel      EN        lblString                                       ""              NaN
+               ordering      GN           string                                       ""         dot only
+                  group       N           string                                       ""         dot only
+                    pin       N             bool                                    false fdp | neato only
+             distortion       N           double                                      0.0              NaN
+              fixedsize       N       boolstring                                    false              NaN
+                 height       N           double                                      0.5              NaN
+                  image       N           string                                       ""              NaN
+             imagescale       N       boolstring                                    false              NaN
+            orientation       N           double                                      0.0              NaN
+                regular       N             bool                                    false              NaN
+           samplepoints       N              int      8(output)20(overlap and image maps)              NaN
+                  shape       N            shape                                  ellipse              NaN
+              shapefile       N           string                                       ""              NaN
+                  sides       N              int                                        4              NaN
+                   skew       N           double                                      0.0              NaN
+                  width       N           double                                     0.75              NaN
+                      z       N           double                                      0.0              NaN
+
+
+
     """
     import networkx as nx
     import pygraphviz
@@ -240,8 +391,8 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
         #kwargs['ratio'] = .1
         #kwargs['size'] = '10,5!'
         #kwargs['landscape'] = 'true'
-        # kwargs['splines'] = kwargs.get('splines', 'spline')
-        kwargs['splines'] = kwargs.get('splines', 'polyline')
+        kwargs['splines'] = kwargs.get('splines', 'spline')
+        #kwargs['splines'] = kwargs.get('splines', 'polyline')
         kwargs['pack'] = kwargs.get('pack', 'true')
         kwargs['packmode'] = kwargs.get('packmode', 'cluster')
     if prog == 'dot':
@@ -421,7 +572,7 @@ def draw_network2(graph, node_pos, ax,
         text = node
         if label is not None:
             text += ': ' + str(label)
-        if not hacknonode:
+        if not hacknonode and 'image' not in nattrs:
             pt.ax_absolute_text(x, y, text, ha='center', va='center')
         node_patch_list.append(patch)
     ###
@@ -582,7 +733,7 @@ def draw_network2(graph, node_pos, ax,
             else:
                 raise AssertionError('splines = %r' % (splines,))
 
-            print('CODE = %r' % (CODE,))
+            #print('CODE = %r' % (CODE,))
             force_touch_bbox = False
             if force_touch_bbox:
                 astart_code = LINETO
@@ -709,7 +860,7 @@ def netx_draw_images_at_positions(img_list, pos_list, node_size, frameon=True):
     return imgdat
 
 
-def zoom_factory(ax, offset_img_list, base_scale=1.1):
+def zoom_factory(ax, zoomable_list, base_scale=1.1):
     """
     TODO: make into interaction
 
@@ -736,9 +887,10 @@ def zoom_factory(ax, offset_img_list, base_scale=1.1):
             # deal with something that should never happen
             scale_factor = 1
             print(event.button)
-        for offset_img in offset_img_list:
-            zoom = offset_img.get_zoom()
-            offset_img.set_zoom(zoom / (scale_factor ** (1.2)))
+        for zoomable in zoomable_list:
+            zoom = zoomable.get_zoom()
+            new_zoom = zoom / (scale_factor ** (1.2))
+            zoomable.set_zoom(new_zoom)
         # Get distance from the cursor to the edge of the figure frame
         x_left = xdata - cur_xlim[0]
         x_right = cur_xlim[1] - xdata

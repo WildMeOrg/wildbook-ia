@@ -46,7 +46,8 @@ class MultiImageInteraction(BASE_CLASS):
 
     def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
                  thetas_list=None, verts_list=None, gid_list=None, nImgs=None,
-                 fnum=None, context_option_funcs=None, xlabel_list=None, **kwargs):
+                 fnum=None, context_option_funcs=None, xlabel_list=None,
+                 vizkw=None, **kwargs):
         # TODO: overlay function or draw function using a metadata object
         print('Creating multi-image interaction')
         #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None,
@@ -67,6 +68,8 @@ class MultiImageInteraction(BASE_CLASS):
             self.gid_list = None
         else:
             self.gid_list = gid_list
+
+        self.vizkw = vizkw
 
         self.nImgs = nImgs
         self.nPerPage = min(nPerPage, nImgs)
@@ -148,14 +151,21 @@ class MultiImageInteraction(BASE_CLASS):
         px = index - self.start_index
         gpath      = self.gpath_list[index]
 
-        _vizkw = {
+        if self.vizkw is None:
+            _vizkw = {}
+        else:
+            _vizkw = self.vizkw.copy()
+
+        _vizkw.update({
             'fnum': self.fnum,
             'pnum': self.pnum_(px),
-        }
+        })
 
         if ut.is_funclike(gpath):
+            showfunc = gpath
+            # HACK
             # override of plot image function
-            gpath(**_vizkw)
+            showfunc(**_vizkw)
             import plottool as pt
             ax = pt.gca()
         else:
@@ -204,46 +214,47 @@ class MultiImageInteraction(BASE_CLASS):
         self.plot_image(index)
         self.draw()
 
-    def on_click(self, event):
-        #don't do other stuff if we clicked a button
-        #point = (event.x, event.y)
-        #if (self.next_ax.contains_point(point) or
-        #    self.prev_ax.contains_point(point)):
-            #print('in button click')
-            #return
-        if not ih.clicked_inside_axis(event):
-            return
-        ax = event.inaxes
+    def on_click_inside(self, event, ax):
         index = ph.get_plotdat(ax, 'index')
         print('index = %r' % (index,))
         if index is not None:
-            if self.context_option_funcs is not None:
-                if event.button == 3:
+            if self.MOUSE_BUTTONS[event.button] == 'right':
+                if self.context_option_funcs is not None:
+                    #if event.button == 3:
                     options = self.context_option_funcs[index]()
                     self.show_popup_menu(options, event)
-            else:
+            elif self.MOUSE_BUTTONS[event.button] == 'left':
                 #bbox_list  = ph.get_plotdat(ax, 'bbox_list')
                 gpath = self.gpath_list[index]
-                bbox_list = self.bboxes_list[index]
-                print('Bbox of figure: %r' % (bbox_list,))
-                theta_list = self.thetas_list[index]
-                print('theta_list = %r' % (theta_list,))
-                #img = mpimg.imread(gpath)
-                if isinstance(gpath, six.string_types):
-                    img = vt.imread(gpath)
+                if ut.is_funclike(gpath):
+                    print('gpath_isfunklike')
+                    print('gpath = %r' % (gpath,))
+                    import plottool as pt
+                    fnum = pt.next_fnum()
+                    gpath(fnum=fnum)
+                    df2.update()
                 else:
-                    img = gpath
-                fnum = df2.next_fnum()
-                mc = interact_annotations.ANNOTATIONInteraction(
-                    img, index, self.update_images, bbox_list=bbox_list,
-                    theta_list=theta_list, fnum=fnum)
-                self.mc = mc
-                # """wait for accept
-                # have a flag to tell if a bbox has been changed, on the bbox
-                # list that is brought it" on accept: viz_image2.show_image
-                # callback
-                # """
-                df2.update()
+                    bbox_list = self.bboxes_list[index]
+                    print('Bbox of figure: %r' % (bbox_list,))
+                    theta_list = self.thetas_list[index]
+                    print('theta_list = %r' % (theta_list,))
+                    #img = mpimg.imread(gpath)
+                    if isinstance(gpath, six.string_types):
+                        img = vt.imread(gpath)
+                    else:
+                        img = gpath
+                    fnum = df2.next_fnum()
+                    mc = interact_annotations.ANNOTATIONInteraction(
+                        img, index, self.update_images, bbox_list=bbox_list,
+                        theta_list=theta_list, fnum=fnum)
+                    mc.start()
+                    self.mc = mc
+                    # """wait for accept
+                    # have a flag to tell if a bbox has been changed, on the bbox
+                    # list that is brought it" on accept: viz_image2.show_image
+                    # callback
+                    # """
+                    df2.update()
             print('Clicked: ax: num=%r' % index)
 
     def on_key_press(self, event):

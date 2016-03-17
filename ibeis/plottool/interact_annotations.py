@@ -385,7 +385,7 @@ def test_interact_annots():
 
 # TODO: incorporate this
 AbstractInteraction = abstract_interaction.AbstractInteraction
-BASE_CLASS = abstract_interaction.AbstractInteraction
+BASE_CLASS = AbstractInteraction
 #BASE_CLASS = object
 
 
