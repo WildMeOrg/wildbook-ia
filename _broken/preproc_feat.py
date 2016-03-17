@@ -198,7 +198,7 @@ def extract_hesaff_sift_feats(chip_fpath_list, probchip_fpath_list, hesaff_param
 #    Must take in one argument to be used by multiprocessing.map_async
 #    """
 #    cid, cpath, hesaff_params = tup
-#    kpts, vecs = pyhesaff.detect_kpts(cpath, **hesaff_params)
+#    kpts, vecs = pyhesaff.detect_feats(cpath, **hesaff_params)
 #    return (cid, len(kpts), kpts, vecs)
 
 
@@ -254,7 +254,7 @@ def gen_feat_worker(tup):
         masked_chip = (chip * (probchip[:, :, None].astype(np.float32) / 255)).astype(np.uint8)
     else:
         masked_chip = chip
-    kpts, vecs = pyhesaff.detect_kpts_in_image(masked_chip, **hesaff_params)
+    kpts, vecs = pyhesaff.detect_feats_in_image(masked_chip, **hesaff_params)
     num_kpts = kpts.shape[0]
     return (num_kpts, kpts, vecs)
 
@@ -266,7 +266,7 @@ def gen_feat_worker_old(tup):
     """
     #import vtool as vt
     chip_fpath, probchip_fpath, hesaff_params = tup
-    kpts, vecs = pyhesaff.detect_kpts(chip_fpath, **hesaff_params)
+    kpts, vecs = pyhesaff.detect_feats(chip_fpath, **hesaff_params)
     return (kpts.shape[0], kpts, vecs)
 
 
@@ -275,7 +275,7 @@ def gen_feat_openmp(cid_list, chip_fpath_list, hesaff_params):
     Compute features in parallel on the C++ side, return generator here
     """
     print('Detecting %r features in parallel: ' % len(cid_list))
-    kpts_list, desc_list = pyhesaff.detect_kpts_list(chip_fpath_list, **hesaff_params)
+    kpts_list, desc_list = pyhesaff.detect_feats_list(chip_fpath_list, **hesaff_params)
     for cid, kpts, vecs in zip(cid_list, kpts_list, desc_list):
         nFeat = len(kpts)
         yield cid, nFeat, kpts, vecs

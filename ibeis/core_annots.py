@@ -164,7 +164,7 @@ def compute_chip(depc, aid_list, config=None):
 
 
         import pyhesaff
-        nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_kpts_in_image, chips_orig)))
+        nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_feats_in_image, chips_orig)))
         nkpts_list = np.array(nkpts_list)
 
         nfeats_orig = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats'))
@@ -214,7 +214,7 @@ def compute_chip(depc, aid_list, config=None):
         pt.plt.plot(nfeats_white[sortx], '.')
 
 
-        pyhesaff.detect_kpts_in_image
+        pyhesaff.detect_feats_in_image
 
         svc = sklearn.svm.LinearSVC()
         svc.fit(measures, nfeats_orig > 500)
@@ -824,7 +824,7 @@ def gen_feat_worker(tup):
         masked_chip = (chip * (probchip[:, :, None].astype(np.float32) / 255)).astype(np.uint8)
     else:
         masked_chip = chip
-    kpts, vecs = pyhesaff.detect_kpts_in_image(masked_chip, **hesaff_params)
+    kpts, vecs = pyhesaff.detect_feats_in_image(masked_chip, **hesaff_params)
     num_kpts = kpts.shape[0]
     return (num_kpts, kpts, vecs)
 

@@ -32,7 +32,7 @@ def TEST_PARALLEL():
     }
 
     with utool.Timer('c++ parallel'):
-        kpts_list, desc_list = pyhesaff.detect_kpts_list(gpath_list, **hesaff_kwargs)
+        kpts_list, desc_list = pyhesaff.detect_feats_list(gpath_list, **hesaff_kwargs)
 
     # Run parallel tasks
     @utool.indent_func('[test_task]')
@@ -46,7 +46,7 @@ def TEST_PARALLEL():
         msg = 'processing tasks in %s' % ('serial' if num_procs == 1 else
                                           str(num_procs) + '-parallel')
         with utool.Timer(msg):
-            result_list = util_parallel.process(pyhesaff.detect_kpts, args_list, hesaff_kwargs)
+            result_list = util_parallel.process(pyhesaff.detect_feats, args_list, hesaff_kwargs)
         print_test_results(result_list)
         return result_list
     run_parallel_task()
