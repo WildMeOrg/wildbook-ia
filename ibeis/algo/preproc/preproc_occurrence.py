@@ -33,31 +33,31 @@ def ibeis_compute_occurrences(ibs, gid_list):
 
         TODO: FIXME: good example of autogen doctest return failure
 
-    Ignore:
-        >>> import ibeis
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-        >>> ibs = ibeis.opendb(defaultdb='lynx')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> filter_kw = {}
-        >>> filter_kw['been_adjusted'] = True
-        >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
-        >>> gid_list = ibs.get_annot_gids(aid_list_)
-        >>> flat_imgsetids, flat_gids = ibeis_compute_occurrences(ibs, gid_list)
-        >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
-        >>> metric = list(map(len, aids_list))
-        >>> sortx = ut.list_argsort(metric)[::-1]
-        >>> index = sortx[1]
-        >>> #gids = occur_gids[index]
-        >>> aids = aids_list[index]
-        >>> gids = list(set(ibs.get_annot_gids(aids)))
-        >>> print('len(aids) = %r' % (len(aids),))
-        >>> ut.quit_if_noshow()
-        >>> from ibeis.viz import viz_graph
-        >>> import plottool as pt
-        >>> #pt.imshow(bigimg)
-        >>> #bigimg = vt.stack_image_recurse(img_list)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
-        >>> ut.show_if_requested()
+    #Ignore:
+    #    >>> import ibeis
+    #    >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+    #    >>> ibs = ibeis.opendb(defaultdb='lynx')
+    #    >>> aid_list = ibs.get_valid_aids()
+    #    >>> filter_kw = {}
+    #    >>> filter_kw['been_adjusted'] = True
+    #    >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
+    #    >>> gid_list = ibs.get_annot_gids(aid_list_)
+    #    >>> flat_imgsetids, flat_gids = ibeis_compute_occurrences(ibs, gid_list)
+    #    >>> aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())
+    #    >>> metric = list(map(len, aids_list))
+    #    >>> sortx = ut.list_argsort(metric)[::-1]
+    #    >>> index = sortx[1]
+    #    >>> #gids = occur_gids[index]
+    #    >>> aids = aids_list[index]
+    #    >>> gids = list(set(ibs.get_annot_gids(aids)))
+    #    >>> print('len(aids) = %r' % (len(aids),))
+    #    >>> ut.quit_if_noshow()
+    #    >>> from ibeis.viz import viz_graph
+    #    >>> import plottool as pt
+    #    >>> #pt.imshow(bigimg)
+    #    >>> #bigimg = vt.stack_image_recurse(img_list)
+    #    >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+    #    >>> ut.show_if_requested()
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -81,7 +81,7 @@ def ibeis_compute_occurrences(ibs, gid_list):
         >>> import plottool as pt
         >>> #pt.imshow(bigimg)
         >>> #bigimg = vt.stack_image_recurse(img_list)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False, prog='dot')
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False, prog='neato')
         >>> ut.show_if_requested()
     """
     occur_cfgstr = ibs.cfg.occur_cfg.get_cfgstr()
@@ -149,7 +149,7 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
         >>> import plottool as pt
         >>> #pt.imshow(bigimg)
         >>> #aids = ibs.group_annots_by_name(aids)[0][0]
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False, prog='dot')
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False, prog='neato')
         >>> ut.show_if_requested()
 
         ibs.unflat_map(ibs.get_annot_case_tags, aids_list)

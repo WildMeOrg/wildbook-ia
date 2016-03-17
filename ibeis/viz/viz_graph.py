@@ -252,25 +252,28 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
         layout = 'agraph'
     print('layout = %r' % (layout,))
 
-    with_nid_edges = True
+    with_nid_edges = False
     if with_nid_edges:
         spantree_aids1_ = []
         spantree_aids2_ = []
-
-        # Get tentative node positions
-        initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['node_pos']
 
         # Add edges between all names
         aug_digraph = graph.copy()
         # Change all weights in initial graph to be small (likely to be part of mst)
         nx.set_edge_attributes(aug_digraph, 'weight', .0001)
         aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
-        # Weight edges in the MST based on tenative distances
-        edge_pts1 = ut.dict_take(initial_pos, aids1)
-        edge_pts2 = ut.dict_take(initial_pos, aids2)
-        edge_pts1 = vt.atleast_nd(np.array(edge_pts1, dtype=np.int32), 2)
-        edge_pts2 = vt.atleast_nd(np.array(edge_pts2, dtype=np.int32), 2)
-        edge_weights = vt.L2(edge_pts1, edge_pts2)
+        if True:
+            # Weight edges in the MST based on tenative distances
+            # Get tentative node positions
+            initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['node_pos']
+            #initial_pos = pt.get_nx_layout(graph.to_undirected(), 'agraph')['node_pos']
+            edge_pts1 = ut.dict_take(initial_pos, aids1)
+            edge_pts2 = ut.dict_take(initial_pos, aids2)
+            edge_pts1 = vt.atleast_nd(np.array(edge_pts1, dtype=np.int32), 2)
+            edge_pts2 = vt.atleast_nd(np.array(edge_pts2, dtype=np.int32), 2)
+            edge_weights = vt.L2(edge_pts1, edge_pts2)
+        else:
+            edge_weights = [.2] * len(aids1)
         # Create implicit fully connected (by name) graph
         aug_edges = [(a1, a2, {'weight': w})
                       for a1, a2, w in zip(aids1, aids2, edge_weights)]
@@ -285,7 +288,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
             for edge in mst_edges:
                 redge = edge[::-1]
                 #attr_dict = {'implicit': True, 'color': pt.DARK_ORANGE}
-                attr_dict = {'color': pt.DARK_ORANGE}
+                attr_dict = {'color': pt.DARK_ORANGE[0:3]}
                 if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
                     graph.add_edge(*redge, attr_dict=attr_dict)
 
@@ -302,7 +305,8 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
 
     if with_images:
         imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
-                                             config=dict(dim_size=300), read_extern=False)
+                                                   config=dict(dim_size=200),
+                                                   read_extern=False)
         # img_list = ibs.get_annot_chips(aid_list)
         # img_list = [vt.resize_thumb(img, target_size) for img in img_list]
         # img_list = [vt.cvt_BGR2RGB(img) for img in img_list]
@@ -314,16 +318,22 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
         nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
     else:
         pass
-        # csize_list = ibs.get_annot_chip_sizes(aid_list)
-        # size_list = [vt.resized_dims_and_ratio(size, target_size)[0]
-        #              for size in csize_list]
-        # size_dict = {aid: size for aid, size in zip(aid_list, size_list)}
+        #csize_list = ibs.get_annot_chip_sizes(aid_list)
+        #size_list = [vt.resized_dims_and_ratio(size, target_size)[0]
+        #             for size in csize_list]
+        #size_dict = {aid: size for aid, size in zip(aid_list, size_list)}
         # img_dict = None
 
-    # nx.set_node_attributes(graph, 'width',
-    #                        ut.map_dict_vals(lambda x: x[0], size_dict))
-    # nx.set_node_attributes(graph, 'height',
-    #                        ut.map_dict_vals(lambda x: x[1], size_dict))
+    #csize_list = ibs.get_annot_chip_sizes(aid_list, config2_=dict(dim_size=200, resize_dim='area'))
+    #print('csize_list = %r' % (csize_list,))
+    #size_dict = {aid: size for aid, size in zip(aid_list, csize_list)}
+
+    #scale_list = np.array(ut.dict_take_column(node_attrs, 'scale',
+    #                                          default=None))
+    #nx.set_node_attributes(graph, 'width',
+    #                       ut.map_dict_vals(lambda x: .1 * x[0], size_dict))
+    #nx.set_node_attributes(graph, 'height',
+    #                       ut.map_dict_vals(lambda x: .1 * x[1], size_dict))
     nx.set_node_attributes(graph, 'shape', 'rect')
 
     old = False
@@ -331,6 +341,9 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
 
     layoutkw = {'prog': prog}
     layoutkw.update(kwargs)
+
+    if prog == 'neato':
+        graph = graph.to_undirected()
 
     plotinfo = pt.show_nx(graph,
                           ax=ax,
@@ -348,28 +361,21 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
         edge_pts2_ = np.array(ut.dict_take(pos, spantree_aids2_))
         segments = list(zip(edge_pts1_, edge_pts2_))
         #pt.distinct_colors
-        color_list = pt.DARK_ORANGE
+        color_list = pt.DARK_ORANGE[0:3]
         #color_list = pt.BLACK
         import matplotlib as mpl
         line_group = mpl.collections.LineCollection(segments, color=color_list,
                                                     alpha=.3, lw=4)
         ax.add_collection(line_group)
 
+    offset_img_list = []
     if with_images:
         offset_img_list = plotinfo['imgdat']['offset_img_list']
         artist_list = plotinfo['imgdat']['artist_list']
-
-        # TODO: move this to the interaction
-        def _onresize(event):
-            print('foo' + ut.get_timestamp())
-
-        #pt.interact_helpers.connect_callback(fig, 'resize_event', _onresize)
-        pt.zoom_factory(ax, offset_img_list)
-
         for artist, aid in zip(artist_list, aid_list):
             pt.set_plotdat(artist, 'aid', aid)
-    else:
-        pt.zoom_factory(ax, [])
+    # TODO; make part of interaction
+    pt.zoom_factory(ax, offset_img_list)
     #pt.plt.tight_layout()
     ax.autoscale()
     return plotinfo
@@ -420,9 +426,9 @@ def special_viewpoint_graph():
     nx.set_node_attributes(right_graph, 'groupid', 'right')
     nx.set_node_attributes(left_graph, 'groupid', 'left')
 
-    nx.set_node_attributes(right_graph, 'scale', .8)
-    nx.set_node_attributes(left_graph, 'scale', .8)
-    back_graph.node[back[0]]['scale'] = 1.3
+    #nx.set_node_attributes(right_graph, 'scale', .2)
+    #nx.set_node_attributes(left_graph, 'scale', .2)
+    #back_graph.node[back[0]]['scale'] = 2.3
 
     nx.set_node_attributes(back_graph, 'groupid', 'back')
 
@@ -435,9 +441,9 @@ def special_viewpoint_graph():
     graph = graph = view_graph  # NOQA
     #graph = graph.to_undirected()
 
-    nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE)
+    nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE[0:3])
     #nx.set_edge_attributes(graph, 'color', pt.BLACK)
-    nx.set_edge_attributes(graph, 'color', {edge: pt.LIGHT_BLUE for edge in back_edges})
+    nx.set_edge_attributes(graph, 'color', {edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
 
     #pt.close_all_figures();
     viz_netx_chipgraph(ibs, graph, with_images=1, prog='dot')
