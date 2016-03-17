@@ -12,6 +12,7 @@ from six.moves import zip, range
 from os.path import join, exists
 from dtool import __SQLITE__ as lite
 import networkx as nx
+import re
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
 
 
@@ -114,7 +115,7 @@ def ensure_config_table(db):
 
 
 @ut.reloadable_class
-class _TableHelper(ut.NiceRepr):
+class _TableGeneralHelper(ut.NiceRepr):
     """ helper """
 
     def __nice__(table):
@@ -122,6 +123,57 @@ class _TableHelper(ut.NiceRepr):
         num_cols = len(table.data_colnames)
         return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
                                        False and table.ismulti else '', num_cols)
+
+    def _assert_self(table):
+        assert len(table.data_colnames) == len(table.data_coltypes), (
+            'specify same number of colnames and coltypes')
+        if table.preproc_func is not None:
+            # Check that preproc_func has a valid signature
+            # ie (depc, parent_ids, config)
+            argspec = ut.get_func_argspec(table.preproc_func)
+            args = argspec.args
+            if argspec.varargs and argspec.keywords:
+                assert len(args) == 1, (
+                    'varargs and kwargs must have one arg for depcache')
+            else:
+                if len(args) < 3:
+                    print('args = %r' % (args,))
+                    msg = (
+                        'preproc_func=%r for table=%s must have a '
+                        'depcache arg, at least one parent rowid arg, '
+                        'and a config arg') % (
+                            table.preproc_func, table.tablename,)
+                    raise AssertionError(msg)
+                rowid_args = args[1:-1]
+                if len(rowid_args) != len(table.parents()):
+                    print('table.preproc_func = %r' %
+                          (table.preproc_func,))
+                    print('args = %r' % (args,))
+                    print('rowid_args = %r' % (rowid_args,))
+                    msg = (
+                        ('preproc function for table=%s must have as many '
+                         'rowids %d args as parent %d') % (
+                            table.tablename, len(rowid_args),
+                             len(table.parents()))
+                    )
+                    raise AssertionError(msg)
+        extern_class_colattrs = [colattr for colattr in table.data_col_attrs
+                                 if colattr.get('is_external_class')]
+        for colattr in extern_class_colattrs:
+            cls = colattr['coltype']
+            # Check external column class funcs
+            argspec = ut.get_func_argspec(cls.__init__)
+            if argspec.defaults is not None:
+                num_nondefault = len(argspec.args) - len(argspec.defaults)
+            else:
+                num_nondefault = len(argspec.args)
+            if num_nondefault > 1:
+                msg = ut.codeblock(
+                    '''
+                    External args must be able to be constructed without any
+                    args. IE: You need a default __init__(self) method
+                    ''')
+                raise AssertionError(msg)
 
     #@property
     #def _table_colnames(table):
@@ -527,177 +579,6 @@ class _TableHelper(ut.NiceRepr):
             for colattr in parent_col_attrs]
         table.parent_col_attrs = parent_col_attrs
 
-
-@ut.reloadable_class
-class DependencyCacheTable(_TableHelper):
-    r"""
-    An individual node in the dependency graph.
-
-    Attributes:
-        db (dtool.SQLDatabaseController): pointer to underlying database
-        depc (dtool.DependencyCache): pointer to parent cache
-        tablename (str): name of the table
-        docstr (str): documentation for table
-        parent_tablenames (str): parent tables in depcache
-        data_colnames (List[str]): columns produced by preproc_func
-        data_coltypes (List[str]): column SQL types produced by preproc_func
-        preproc_func (func): worker function
-
-    CommandLine:
-        python -m dtool.depcache_table --exec-DependencyCacheTable
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from dtool.depcache_table import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
-        >>> depc = testdata_depc()
-        >>> print(depc['vsmany'])
-        >>> print(depc['spam'])
-        >>> print(depc['vsone'])
-        >>> print(depc['nnindexer'])
-    """
-
-    def __init__(table, depc=None, parent_tablenames=None, tablename=None,
-                 data_colnames=None, data_coltypes=None, preproc_func=None,
-                 docstr='no docstr', fname=None, asobject=False,
-                 chunksize=None, isinteractive=False, default_to_unpack=False,
-                 default_onthefly=False, rm_extern_on_delete=False):
-        """ recieves kwargs from depc._register_prop """
-        try:
-            table.db = None
-        except Exception:
-            # HACK: jedi type hinting. Need to have non-obvious condition
-            from dtool.sql_control import SQLDatabaseController
-            table.db = SQLDatabaseController()
-        table.fpath_to_db = {}
-        import re
-        assert re.search('[0-9]', tablename) is None, (
-            'tablename=%r cannot contain numbers' % (tablename,))
-
-        table.parent_tablenames = parent_tablenames
-        table.tablename = tablename
-        table.data_colnames = tuple(data_colnames)
-        table.data_coltypes = data_coltypes
-        table.preproc_func = preproc_func
-        table.on_delete = None
-        table.isinteractive = isinteractive
-        table.default_to_unpack = default_to_unpack
-        table.docstr = docstr
-        table.fname = fname
-        table.depc = depc
-        table.subproperties = {}
-        table.chunksize = chunksize
-        table._asobject = asobject
-        table.default_onthefly = default_onthefly
-        # SQL Internals
-        table.parent_col_attrs = None
-        table.data_col_attrs = None
-        table.internal_col_attrs = None
-        table.sqldb_fpath = None
-        table.rm_extern_on_delete = rm_extern_on_delete
-        # Update internals
-        table._update_internal_parentcol()
-        table._update_internal_datacol()
-        table._update_internal_allcol()
-        # Check for errors
-        table._assert_self()
-
-    @profile
-    def initialize(table, _debug=None):
-        """
-        Ensures the SQL schema for this cache table
-        """
-        table.db = table.depc.fname_to_db[table.fname]
-        #print('Checking sql for table=%r' % (table.tablename,))
-        if not table.db.has_table(table.tablename):
-            if _debug or ut.VERBOSE:
-                print('Initializing table=%r' % (table.tablename,))
-            new_state = table.get_addtable_kw()
-            table.db.add_table(**new_state)
-        else:
-            # TODO: Check for table modifications
-            new_state = table.get_addtable_kw()
-            try:
-                current_state = table.db.get_table_autogen_dict(table.tablename)
-            except Exception as ex:
-                strict = True
-                ut.printex(ex, 'TABLE %s IS CORRUPTED' % (table.tablename,),
-                           iswarning=not strict)
-                if strict:
-                    raise
-                table.clear_table()
-                current_state = table.db.get_table_autogen_dict(table.tablename)
-
-            if current_state['coldef_list'] != new_state['coldef_list']:
-                print('WARNING TABLE IS MODIFIED')
-                if predrop_grace_period(table.tablename):
-                    table.clear_table()
-                else:
-                    raise NotImplementedError('Need to be able to modify tables')
-
-    def _assert_self(table):
-        assert len(table.data_colnames) == len(table.data_coltypes), (
-            'specify same number of colnames and coltypes')
-        if table.preproc_func is not None:
-            # Check that preproc_func has a valid signature
-            # ie (depc, parent_ids, config)
-            argspec = ut.get_func_argspec(table.preproc_func)
-            args = argspec.args
-            if argspec.varargs and argspec.keywords:
-                assert len(args) == 1, (
-                    'varargs and kwargs must have one arg for depcache')
-            else:
-                if len(args) < 3:
-                    print('args = %r' % (args,))
-                    msg = (
-                        'preproc_func=%r for table=%s must have a '
-                        'depcache arg, at least one parent rowid arg, '
-                        'and a config arg') % (
-                            table.preproc_func, table.tablename,)
-                    raise AssertionError(msg)
-                rowid_args = args[1:-1]
-                if len(rowid_args) != len(table.parents()):
-                    print('table.preproc_func = %r' %
-                          (table.preproc_func,))
-                    print('args = %r' % (args,))
-                    print('rowid_args = %r' % (rowid_args,))
-                    msg = (
-                        ('preproc function for table=%s must have as many '
-                         'rowids %d args as parent %d') % (
-                            table.tablename, len(rowid_args),
-                             len(table.parents()))
-                    )
-                    raise AssertionError(msg)
-        extern_class_colattrs = [colattr for colattr in table.data_col_attrs
-                                 if colattr.get('is_external_class')]
-        for colattr in extern_class_colattrs:
-            cls = colattr['coltype']
-            # Check external column class funcs
-            argspec = ut.get_func_argspec(cls.__init__)
-            if argspec.defaults is not None:
-                num_nondefault = len(argspec.args) - len(argspec.defaults)
-            else:
-                num_nondefault = len(argspec.args)
-            if num_nondefault > 1:
-                msg = ut.codeblock(
-                    '''
-                    External args must be able to be constructed without any
-                    args. IE: You need a default __init__(self) method
-                    ''')
-                raise AssertionError(msg)
-
-    def get_addtable_kw(table):
-        coldef_list = [(colattr['intern_colname'], colattr['sqltype'])
-                       for colattr in table.internal_col_attrs]
-        add_table_kw = ut.odict([
-            ('tablename', table.tablename,),
-            ('coldef_list', coldef_list,),
-            ('docstr', table.docstr,),
-            ('superkeys', [table.superkey_colnames],),
-            ('dependson', table.parents()),
-        ])
-        return add_table_kw
-
     def _update_internal_allcol(table):
         r"""
         Build column definitions convinient for sql
@@ -803,106 +684,22 @@ class DependencyCacheTable(_TableHelper):
 
         table.internal_col_attrs = internal_col_attrs
 
-    # --- Standard Properties
+    def _get_addtable_kw(table):
+        coldef_list = [(colattr['intern_colname'], colattr['sqltype'])
+                       for colattr in table.internal_col_attrs]
+        add_table_kw = ut.odict([
+            ('tablename', table.tablename,),
+            ('coldef_list', coldef_list,),
+            ('docstr', table.docstr,),
+            ('superkeys', [table.superkey_colnames],),
+            ('dependson', table.parents()),
+        ])
+        return add_table_kw
 
-    @property
-    def internal_data_col_attrs(table):
-        flags = table.get_intern_col_attr('isdata')
-        return ut.compress(table.internal_col_attrs, flags)
 
-    @property
-    def internal_parent_col_attrs(table):
-        flags = table.get_intern_col_attr('isparent')
-        return ut.compress(table.internal_col_attrs, flags)
-
-    # --- / Standard Properties
-
-    @ut.memoize
-    def get_parent_col_attr(table, key):
-        return ut.dict_take_column(table.parent_col_attrs, key)
-
-    @ut.memoize
-    def get_intern_data_col_attr(table, key):
-        return ut.dict_take_column(table.internal_data_col_attrs, key)
-
-    @ut.memoize
-    def get_intern_parent_col_attr(table, key):
-        return ut.dict_take_column(table.internal_parent_col_attrs, key)
-
-    @ut.memoize
-    def get_intern_col_attr(table, key):
-        return ut.dict_take_column(table.internal_col_attrs, key)
-
-    @ut.memoize
-    def get_data_col_attr(table, key):
-        return ut.dict_take_column(table.data_col_attrs, key)
-
-    def clear_table(table):
-        """
-        Deletes all data in this table
-        """
-        print('Clearing data in %r' % (table,))
-        table.db.drop_table(table.tablename)
-        table.db.add_table(**table.get_addtable_kw())
-
-    @property
-    @ut.memoize
-    def parent(table):
-        return ut.odict([(parent_colattr['parent_table'], parent_colattr)
-                         for parent_colattr in table.parent_col_attrs])
-        #return tuple([parent_colattr['parent_table']
-        #              for parent_colattr in table.parent_col_attrs])
-
-    @ut.memoize
-    def parents(table, data=None):
-        if data:
-            return [(parent_colattr['parent_table'], parent_colattr)
-                    for parent_colattr in table.parent_col_attrs]
-        else:
-            return [parent_colattr['parent_table']
-                    for parent_colattr in table.parent_col_attrs]
-
-    @property
-    @ut.memoize
-    def parent_id_tablenames(table):
-        tablenames = tuple([parent_colattr['parent_table']
-                            for parent_colattr in table.parent_col_attrs])
-        return tablenames
-
-    @property
-    @ut.memoize
-    def parent_id_prefix(table):
-        prefixes = tuple([parent_colattr['prefix']
-                          for parent_colattr in table.parent_col_attrs])
-        return prefixes
-
-    @property
-    def extern_columns(table):
-        colnames = table.get_data_col_attr('colname')
-        flags = table.get_data_col_attr('is_extern')
-        return ut.compress(colnames, flags)
-
-    @property
-    def rowid_colname(table):
-        """ rowid of this table used by other dependant tables """
-        return table.tablename + '_rowid'
-
-    @property
-    def superkey_colnames(table):
-        return table.parent_id_colnames + (CONFIG_ROWID,)
-
-    @property
-    def parent_id_colnames(table):
-        return tuple([colattr['intern_colname']
-                      for colattr in table.parent_col_attrs])
-
-    def get_rowids_from_root(table, root_rowids, config=None):
-        return table.depc.get_rowids(table.tablename, root_rowids,
-                                     config=config)
-
-    # ---------------------------
-    # --- CONFIGURATION TABLE ---
-    # ---------------------------
+@ut.reloadable_class
+class _TableConfigHelper(object):
+    """ helper for configuration table """
 
     def get_row_parent_rowid_map(table, rowid_list):
         """
@@ -1048,119 +845,10 @@ class DependencyCacheTable(_TableHelper):
             #print('config_rowid = %r' % (config_rowid,))
         return config_rowid
 
-    # ----------------------
-    # --- GETTERS NATIVE ---
-    # ----------------------
 
-    def _get_all_rowids(table):
-        return table.db.get_all_rowids(table.tablename)
-
-    def add_rows_from_parent(table, parent_ids_, preproc_args,
-                             config=None, verbose=True, _debug=None):
-        """
-        Lazy addition
-        """
-        _debug = table.depc._debug if _debug is None else _debug
-        # Get requested configuration id
-        config_rowid = table.get_config_rowid(config)
-
-        initial_rowid_list = table._get_rowid(parent_ids_, config=config)
-
-        if table.depc._debug:
-            print('[deptbl.add] initial_rowid_list = %s' %
-                  (ut.trunc_repr(initial_rowid_list),))
-            print('[deptbl.add] config_rowid = %r' % (config_rowid,))
-        # Get corresponding "dirty" parent rowids
-        isdirty_list = ut.flag_None_items(initial_rowid_list)
-        num_dirty = sum(isdirty_list)
-        num_total = len(parent_ids_)
-
-        if num_dirty > 0:
-            with ut.Indenter('[ADD]', enabled=_debug):
-                if verbose or _debug:
-                    tup = (num_dirty, num_total, table.tablename,)
-                    print('[deptbl.add] Add %d / %d new props to %r' % tup)
-                    print('[deptbl.add]  * config_rowid = %r' % (config_rowid,))
-                    print('[deptbl.add]  * config = %s' % (config,))
-                table._compute_dirty_rows(parent_ids_, preproc_args,
-                                          config_rowid, isdirty_list, config)
-                if verbose or _debug:
-                    print('[deptbl.add] finished add')
-                # Dverything is clean in the database, now get correct order.
-                rowid_list = table._get_rowid(parent_ids_, config=config)
-        else:
-            rowid_list = initial_rowid_list
-        if _debug:
-            print('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
-        return rowid_list
-
-    def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
-                            isdirty_list, config, verbose=True):
-        """
-        Does work of computing and caching dirty rowids
-        >>> from dtool.depcache_table import *  # NOQA
-        """
-        dirty_parent_ids  = ut.compress(parent_ids_, isdirty_list)
-        dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
-        # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
-        try:
-            # Pack arguments into column-wise order to send to the func
-            argsT = zip(*dirty_preproc_args)
-            argsT = list(argsT)  # TODO: remove
-            if table._asobject:
-                # Convinience
-                argsT = [table.depc.get_obj(parent, rowids)
-                         for parent, rowids in zip(table.parents(),
-                                                   dirty_parent_ids)]
-            # hack out config if given a request
-            config_ = config.config if hasattr(config, 'config') else config
-            # call registered worker function
-            onthefly = None
-            if table.default_onthefly or onthefly:
-                assert not table.ismulti, ('cannot onthefly multi tables')
-                proptup_gen = [tuple([None] * len(table.data_col_attrs))
-                               for _ in range(len(dirty_parent_ids))]
-            else:
-                proptup_gen = table.preproc_func(table.depc, *argsT,
-                                                 config=config_)
-            #proptup_gen = list(proptup_gen)
-            # Append rowids and rectify nested and external columns
-            dirty_params_iter = table.prepare_storage(
-                dirty_parent_ids, proptup_gen, dirty_preproc_args,
-                config_rowid, config_)
-            #dirty_params_iter = list(dirty_params_iter)
-            # Break iterator into chunks
-            chunksize = ut.ifnone(len(dirty_parent_ids), table.chunksize)
-            nInput = len(dirty_parent_ids)
-            # Report computation progress
-            prog_iter = ut.ProgChunks(dirty_params_iter, chunksize, nInput,
-                                      lbl='add %s chunk' % (table.tablename))
-            # TODO: Separate into func which can be specified as a callback.
-            #colnames =
-            intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
-            insertable_flags = [not colattr.get('isprimary')
-                                for colattr in table.internal_col_attrs]
-            colnames = tuple(ut.compress(intern_colnames, insertable_flags))
-            for dirty_params_chunk in prog_iter:
-                # None data means that there was an error for a specific row
-                if ALLOW_NONE_YIELD:
-                    dirty_params_chunk = ut.filter_Nones(dirty_params_chunk)
-                nInput = len(dirty_params_chunk)
-                table.db._add(table.tablename, colnames, dirty_params_chunk,
-                              nInput=nInput)
-        except Exception as ex:
-            ut.printex(ex, 'error in add_rowids', keys=[
-                'table',
-                'table.parents()',
-                'parent_ids_',
-                'config',
-                'argsT',
-                'config_rowid',
-                'dirty_parent_ids',
-                'table.preproc_func'
-                'preproc_args',
-            ])
-            raise
+@ut.reloadable_class
+class _TableComputeHelper(object):
+    """ helper for computing functions """
 
     def prepare_storage(table, dirty_parent_ids, proptup_gen,
                         dirty_preproc_args, config_rowid, config):
@@ -1251,7 +939,6 @@ class DependencyCacheTable(_TableHelper):
         ]
 
         for data, extern_fpaths in zip(proptup_gen, extern_fpaths_list):
-            pass
             if ALLOW_NONE_YIELD and data is None:
                 yield None
                 continue
@@ -1259,20 +946,13 @@ class DependencyCacheTable(_TableHelper):
             extern_data = ut.take(data, idxs1)
             # Write external data to disk
             try:
-                for obj, fpath, col, write_func in zip(extern_data,
-                                                       extern_fpaths,
-                                                       extern_colnames,
-                                                       extern_writers):
-                    # print('WRITING %r' % (col,))
-                    # print('fpath = %r' % (fpath,))
-                    #print('fpath = %r' % (fpath,))
+                _iter = zip(extern_data, extern_fpaths, extern_colnames,
+                            extern_writers)
+                for obj, fpath, col, write_func in _iter:
                     write_func(fpath, obj)
-                    # ut.assert_exists(fpath, verbose=True)
                     ut.assert_exists(fpath, verbose=False)
-                    #verbose=True)
             except Exception as ex:
-                ut.printex(ex, 'write extern col error', keys=[
-                    'config_rowid', 'data'])
+                ut.printex(ex, 'external write', keys=['config_rowid', 'data'])
                 raise
             # Return path instead of data
             grouped_items = [extern_fpaths, normal_data]
@@ -1298,6 +978,328 @@ class DependencyCacheTable(_TableHelper):
             for rowids in parent_rowids
         ]
         return fname_list
+
+    def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
+                            isdirty_list, config, verbose=True):
+        """
+        Does work of computing and caching dirty rowids
+        >>> from dtool.depcache_table import *  # NOQA
+        """
+        dirty_parent_ids  = ut.compress(parent_ids_, isdirty_list)
+        dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
+        # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
+        try:
+            # Pack arguments into column-wise order to send to the func
+            argsT = zip(*dirty_preproc_args)
+            argsT = list(argsT)  # TODO: remove
+            if table._asobject:
+                # Convinience
+                argsT = [table.depc.get_obj(parent, rowids)
+                         for parent, rowids in zip(table.parents(),
+                                                   dirty_parent_ids)]
+            # hack out config if given a request
+            config_ = config.config if hasattr(config, 'config') else config
+            # call registered worker function
+            onthefly = None
+            if table.default_onthefly or onthefly:
+                assert not table.ismulti, ('cannot onthefly multi tables')
+                proptup_gen = [tuple([None] * len(table.data_col_attrs))
+                               for _ in range(len(dirty_parent_ids))]
+            else:
+                proptup_gen = table.preproc_func(table.depc, *argsT,
+                                                 config=config_)
+            #proptup_gen = list(proptup_gen)
+            # Append rowids and rectify nested and external columns
+            dirty_params_iter = table.prepare_storage(
+                dirty_parent_ids, proptup_gen, dirty_preproc_args,
+                config_rowid, config_)
+            #dirty_params_iter = list(dirty_params_iter)
+            # Break iterator into chunks
+            chunksize = ut.ifnone(len(dirty_parent_ids), table.chunksize)
+            nInput = len(dirty_parent_ids)
+            # Report computation progress
+            prog_iter = ut.ProgChunks(dirty_params_iter, chunksize, nInput,
+                                      lbl='add %s chunk' % (table.tablename))
+            # TODO: Separate into func which can be specified as a callback.
+            #colnames =
+            intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
+            insertable_flags = [not colattr.get('isprimary')
+                                for colattr in table.internal_col_attrs]
+            colnames = tuple(ut.compress(intern_colnames, insertable_flags))
+            for dirty_params_chunk in prog_iter:
+                # None data means that there was an error for a specific row
+                if ALLOW_NONE_YIELD:
+                    dirty_params_chunk = ut.filter_Nones(dirty_params_chunk)
+                nInput = len(dirty_params_chunk)
+                table.db._add(table.tablename, colnames, dirty_params_chunk,
+                              nInput=nInput)
+        except Exception as ex:
+            ut.printex(ex, 'error in add_rowids', keys=[
+                'table', 'table.parents()', 'parent_ids_', 'config', 'argsT',
+                'config_rowid', 'dirty_parent_ids', 'table.preproc_func'
+                'preproc_args',
+            ])
+            raise
+
+
+@ut.reloadable_class
+class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfigHelper):
+    r"""
+    An individual node in the dependency graph.
+
+    Attributes:
+        db (dtool.SQLDatabaseController): pointer to underlying database
+        depc (dtool.DependencyCache): pointer to parent cache
+        tablename (str): name of the table
+        docstr (str): documentation for table
+        parent_tablenames (str): parent tables in depcache
+        data_colnames (List[str]): columns produced by preproc_func
+        data_coltypes (List[str]): column SQL types produced by preproc_func
+        preproc_func (func): worker function
+
+    CommandLine:
+        python -m dtool.depcache_table --exec-DependencyCacheTable
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.depcache_table import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> print(depc['vsmany'])
+        >>> print(depc['spam'])
+        >>> print(depc['vsone'])
+        >>> print(depc['nnindexer'])
+    """
+
+    def __init__(table, depc=None, parent_tablenames=None, tablename=None,
+                 data_colnames=None, data_coltypes=None, preproc_func=None,
+                 docstr='no docstr', fname=None, asobject=False,
+                 chunksize=None, isinteractive=False, default_to_unpack=False,
+                 default_onthefly=False, rm_extern_on_delete=False):
+        """ recieves kwargs from depc._register_prop """
+        try:
+            table.db = None
+        except Exception:
+            # HACK: jedi type hinting. Need to have non-obvious condition
+            from dtool.sql_control import SQLDatabaseController
+            table.db = SQLDatabaseController()
+        table.fpath_to_db = {}
+        assert re.search('[0-9]', tablename) is None, (
+            'tablename=%r cannot contain numbers' % (tablename,))
+        # parent depcache
+        table.depc = depc
+        # Definitions
+        table.tablename = tablename
+        table.docstr = docstr
+        table.parent_tablenames = parent_tablenames
+        table.data_colnames = tuple(data_colnames)
+        table.data_coltypes = data_coltypes
+        table.preproc_func = preproc_func
+        table.fname = fname
+        # Behavior
+        table.on_delete = None
+        table.default_to_unpack = default_to_unpack
+
+        table.store_modification_time = True
+        # Use the filesystem to accomplish this
+        #table.store_access_time = True
+        #table.store_create_time = True
+        #table.store_delete_time = True
+
+        table.chunksize = chunksize
+        # Developmental properties
+        table.subproperties = {}
+        table.isinteractive = isinteractive
+        table._asobject = asobject
+        table.default_onthefly = default_onthefly
+        # SQL Internals
+        table.parent_col_attrs = None
+        table.data_col_attrs = None
+        table.internal_col_attrs = None
+        table.sqldb_fpath = None
+        table.rm_extern_on_delete = rm_extern_on_delete
+        # Update internals
+        table._update_internal_parentcol()
+        table._update_internal_datacol()
+        table._update_internal_allcol()
+        # Check for errors
+        table._assert_self()
+
+    @profile
+    def initialize(table, _debug=None):
+        """
+        Ensures the SQL schema for this cache table
+        """
+        table.db = table.depc.fname_to_db[table.fname]
+        #print('Checking sql for table=%r' % (table.tablename,))
+        if not table.db.has_table(table.tablename):
+            if _debug or ut.VERBOSE:
+                print('Initializing table=%r' % (table.tablename,))
+            new_state = table._get_addtable_kw()
+            table.db.add_table(**new_state)
+        else:
+            # TODO: Check for table modifications
+            new_state = table._get_addtable_kw()
+            try:
+                current_state = table.db.get_table_autogen_dict(table.tablename)
+            except Exception as ex:
+                strict = True
+                ut.printex(ex, 'TABLE %s IS CORRUPTED' % (table.tablename,),
+                           iswarning=not strict)
+                if strict:
+                    raise
+                table.clear_table()
+                current_state = table.db.get_table_autogen_dict(table.tablename)
+
+            if current_state['coldef_list'] != new_state['coldef_list']:
+                print('WARNING TABLE IS MODIFIED')
+                if predrop_grace_period(table.tablename):
+                    table.clear_table()
+                else:
+                    raise NotImplementedError('Need to be able to modify tables')
+
+    # --- Standard Properties
+
+    @property
+    def internal_data_col_attrs(table):
+        flags = table.get_intern_col_attr('isdata')
+        return ut.compress(table.internal_col_attrs, flags)
+
+    @property
+    def internal_parent_col_attrs(table):
+        flags = table.get_intern_col_attr('isparent')
+        return ut.compress(table.internal_col_attrs, flags)
+
+    # --- / Standard Properties
+
+    @ut.memoize
+    def get_parent_col_attr(table, key):
+        return ut.dict_take_column(table.parent_col_attrs, key)
+
+    @ut.memoize
+    def get_intern_data_col_attr(table, key):
+        return ut.dict_take_column(table.internal_data_col_attrs, key)
+
+    @ut.memoize
+    def get_intern_parent_col_attr(table, key):
+        return ut.dict_take_column(table.internal_parent_col_attrs, key)
+
+    @ut.memoize
+    def get_intern_col_attr(table, key):
+        return ut.dict_take_column(table.internal_col_attrs, key)
+
+    @ut.memoize
+    def get_data_col_attr(table, key):
+        return ut.dict_take_column(table.data_col_attrs, key)
+
+    def clear_table(table):
+        """
+        Deletes all data in this table
+        """
+        print('Clearing data in %r' % (table,))
+        table.db.drop_table(table.tablename)
+        table.db.add_table(**table._get_addtable_kw())
+
+    @property
+    @ut.memoize
+    def parent(table):
+        return ut.odict([(parent_colattr['parent_table'], parent_colattr)
+                         for parent_colattr in table.parent_col_attrs])
+        #return tuple([parent_colattr['parent_table']
+        #              for parent_colattr in table.parent_col_attrs])
+
+    @ut.memoize
+    def parents(table, data=None):
+        if data:
+            return [(parent_colattr['parent_table'], parent_colattr)
+                    for parent_colattr in table.parent_col_attrs]
+        else:
+            return [parent_colattr['parent_table']
+                    for parent_colattr in table.parent_col_attrs]
+
+    @property
+    @ut.memoize
+    def parent_id_tablenames(table):
+        tablenames = tuple([parent_colattr['parent_table']
+                            for parent_colattr in table.parent_col_attrs])
+        return tablenames
+
+    @property
+    @ut.memoize
+    def parent_id_prefix(table):
+        prefixes = tuple([parent_colattr['prefix']
+                          for parent_colattr in table.parent_col_attrs])
+        return prefixes
+
+    @property
+    def extern_columns(table):
+        colnames = table.get_data_col_attr('colname')
+        flags = table.get_data_col_attr('is_extern')
+        return ut.compress(colnames, flags)
+
+    @property
+    def rowid_colname(table):
+        """ rowid of this table used by other dependant tables """
+        return table.tablename + '_rowid'
+
+    @property
+    def superkey_colnames(table):
+        return table.parent_id_colnames + (CONFIG_ROWID,)
+
+    @property
+    def parent_id_colnames(table):
+        return tuple([colattr['intern_colname']
+                      for colattr in table.parent_col_attrs])
+
+    def get_rowids_from_root(table, root_rowids, config=None):
+        return table.depc.get_rowids(table.tablename, root_rowids,
+                                     config=config)
+
+    # ----------------------
+    # --- GETTERS NATIVE ---
+    # ----------------------
+
+    def _get_all_rowids(table):
+        return table.db.get_all_rowids(table.tablename)
+
+    def add_rows_from_parent(table, parent_ids_, preproc_args,
+                             config=None, verbose=True, _debug=None):
+        """
+        Lazy addition
+        """
+        _debug = table.depc._debug if _debug is None else _debug
+        # Get requested configuration id
+        config_rowid = table.get_config_rowid(config)
+
+        initial_rowid_list = table._get_rowid(parent_ids_, config=config)
+
+        if table.depc._debug:
+            print('[deptbl.add] initial_rowid_list = %s' %
+                  (ut.trunc_repr(initial_rowid_list),))
+            print('[deptbl.add] config_rowid = %r' % (config_rowid,))
+        # Get corresponding "dirty" parent rowids
+        isdirty_list = ut.flag_None_items(initial_rowid_list)
+        num_dirty = sum(isdirty_list)
+        num_total = len(parent_ids_)
+
+        if num_dirty > 0:
+            with ut.Indenter('[ADD]', enabled=_debug):
+                if verbose or _debug:
+                    tup = (num_dirty, num_total, table.tablename,)
+                    print('[deptbl.add] Add %d / %d new props to %r' % tup)
+                    print('[deptbl.add]  * config_rowid = %r' % (config_rowid,))
+                    print('[deptbl.add]  * config = %s' % (config,))
+                table._compute_dirty_rows(parent_ids_, preproc_args,
+                                          config_rowid, isdirty_list, config)
+                if verbose or _debug:
+                    print('[deptbl.add] finished add')
+                # Dverything is clean in the database, now get correct order.
+                rowid_list = table._get_rowid(parent_ids_, config=config)
+        else:
+            rowid_list = initial_rowid_list
+        if _debug:
+            print('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
+        return rowid_list
 
     def _rectify_ids(table, parent_rowids):
         if ALLOW_NONE_YIELD:
