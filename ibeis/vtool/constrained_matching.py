@@ -294,6 +294,7 @@ def compute_forgroundness(fpath1, kpts1, species='zebra_plains'):
         weights = np.array(weight_list, dtype=np.float32)
         fgweights_list.append(weights)
     fgweights = fgweights_list[0]
+    detector.free_forest(forest)
     return fgweights
 
 
