@@ -72,7 +72,7 @@ def make_kpts_coverage_mask(
         >>> import pyhesaff
         >>> #img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
+        >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
         >>> kpts = kpts[::10]
         >>> chip = vt.imread(img_fpath)
         >>> chipsize = chip.shape[0:2][::-1]
@@ -155,7 +155,7 @@ def warp_patch_onto_kpts(
         >>> import vtool as vt
         >>> import pyhesaff
         >>> img_fpath    = ut.grab_test_imgpath('carl.jpg')
-        >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
+        >>> (kpts, vecs) = pyhesaff.detect_feats(img_fpath)
         >>> kpts = kpts[::15]
         >>> chip = vt.imread(img_fpath)
         >>> chipshape = chip.shape

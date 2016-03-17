@@ -54,12 +54,12 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
     """
     import pyhesaff
     if feat_type == 'hesaff+sift':
-        #(kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
-        (kpts, vecs) = pyhesaff.detect_kpts2(img_or_fpath, **kwargs)
+        #(kpts, vecs) = pyhesaff.detect_feats(img_fpath, **kwargs)
+        (kpts, vecs) = pyhesaff.detect_feats2(img_or_fpath, **kwargs)
     elif feat_type == 'hesaff+siam128':
         # hacky
         from ibeis_cnn import _plugin
-        (kpts, sift) = pyhesaff.detect_kpts2(img_or_fpath, **kwargs)
+        (kpts, sift) = pyhesaff.detect_feats2(img_or_fpath, **kwargs)
         if isinstance(img_or_fpath, six.string_types):
             import vtool as vt
             img_or_fpath = vt.imread(img_or_fpath)
