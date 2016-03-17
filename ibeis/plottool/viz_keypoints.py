@@ -13,7 +13,7 @@ def testdata_kpts():
     import pyhesaff
     img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='star.png'))
     kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
-    (kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
+    (kpts, vecs) = pyhesaff.detect_feats(img_fpath, **kwargs)
     imgBGR = vt.imread(img_fpath)
     return kpts, vecs, imgBGR
 
