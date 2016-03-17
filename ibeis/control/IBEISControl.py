@@ -694,6 +694,15 @@ class IBEISController(BASE_CLASS):
             path (str): path of the sqlite3 core database file """
         return ibs.db.fpath
 
+    def get_db_cache_path(ibs):
+        """
+        Returns:
+            path (str): path of the sqlite3 cache database file """
+        return ibs.dbcache.fpath
+
+    def get_shelves_path(ibs):
+        return join(ibs.get_cachedir(), 'shelves')
+
     def get_trashdir(ibs):
         return ibs.trashdir
 
