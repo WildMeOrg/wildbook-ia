@@ -533,7 +533,7 @@ class IBEISController(BASE_CLASS):
             'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
-        ibs.depc - ibs.depc_annot
+        ibs.depc = ibs.depc_annot
         ibs.depc_annot = dtool.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,
