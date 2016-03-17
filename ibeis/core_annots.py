@@ -472,6 +472,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> import plottool as pt
         >>> xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
+        >>> iteract_obj.start()
         >>> ut.show_if_requested()
     """
     print('[core] COMPUTING FEATWEIGHTS')
@@ -646,7 +647,7 @@ class FeatConfig(dtool.Config):
         >>> feat_cfg = FeatConfig()
         >>> result = str(feat_cfg)
         >>> print(result)
-        <FeatConfig(hesaff+sift,scale_max=50)>
+        <FeatConfig(hesaff+sift)>
     """
 
     def get_param_info_list(self):
@@ -661,7 +662,7 @@ class FeatConfig(dtool.Config):
             name: ut.ParamInfo(name, default, hideif=default)
             for name, default in default_items
         }
-        param_info_dict['scale_max'].default = 50
+        param_info_dict['scale_max'].default = -1
         param_info_list += ut.dict_take(param_info_dict, default_keys)
         return param_info_list
 
