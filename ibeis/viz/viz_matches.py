@@ -31,7 +31,7 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
             rchip1 = qreq_.get_fmatch_overlayed_chip(qaid, config=query_config2_)
             draw_fmatches = False
         else:
-            rchip1 = ibs.depc.get_property('chips', qaid, 'img', config=query_config2_)
+            rchip1 = ibs.depc_annot.get_property('chips', qaid, 'img', config=query_config2_)
             draw_fmatches = False
     else:
         rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
@@ -53,10 +53,10 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
     if (not tblhack or tblhack == 'BC_DTW') and getattr(qreq_, '_isnewreq', None):
         if hasattr(qreq_, 'get_fmatch_overlayed_chip') and draw_fmatches and draw_fmatches != 'hackoff':
             rchip2_list = qreq_.get_fmatch_overlayed_chip(aid_list, config=data_config2_)
-            #rchip2_list = ibs.depc.get_property('chips', aid_list, 'img', config=data_config2_)
+            #rchip2_list = ibs.depc_annot.get_property('chips', aid_list, 'img', config=data_config2_)
             draw_fmatches = False
         else:
-            rchip2_list = ibs.depc.get_property('chips', aid_list, 'img', config=data_config2_)
+            rchip2_list = ibs.depc_annot.get_property('chips', aid_list, 'img', config=data_config2_)
             draw_fmatches = False
         #vh.get_chips(ibs, aid_list, config2_=data_config2_)
     else:

@@ -141,7 +141,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     if ibs is None:
         configclass_list = [Config.QueryConfig] * len(_pcfgdict_list)
     else:
-        root_to_config = ibs.depc.configclass_dict
+        root_to_config = ibs.depc_annot.configclass_dict
         configclass_list = [
             root_to_config.get(_cfgdict.get('pipeline_root', 'vsmany'),
                                Config.QueryConfig)

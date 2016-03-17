@@ -212,7 +212,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         # Edit mask
         callback_list.append(
             ('Edit mask',
-             partial(ibs.depc.get_property, 'annotmask', aid, recompute=True))
+             partial(ibs.depc_annot.get_property, 'annotmask', aid, recompute=True))
         )
 
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]

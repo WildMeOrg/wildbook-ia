@@ -36,12 +36,12 @@ NEW_DEPC = True
 @register_ibs_method
 def get_annot_featweight_rowids(ibs, aid_list, config2_=None, ensure=True,
                                 eager=True, nInput=None):
-    return ibs.depc.get_rowids('featweight', aid_list, config=config2_)
+    return ibs.depc_annot.get_rowids('featweight', aid_list, config=config2_)
 
 
 @register_ibs_method
 def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
-    return ibs.depc.get('featweight', aid_list, 'fwg', config=config2_)
+    return ibs.depc_annot.get('featweight', aid_list, 'fwg', config=config2_)
 
 
 if __name__ == '__main__':

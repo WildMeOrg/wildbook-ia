@@ -140,11 +140,11 @@ fluke_select = ('# Humpback Select',  ut.codeblock(
     from ibeis_flukematch.plugin import *  # NOQA
     ibs = ibeis.opendb(defaultdb='humpbacks')
     all_aids = ibs.get_valid_aids()
-    isvalid = ibs.depc.get_property('Has_Notch', all_aids, 'flag')
+    isvalid = ibs.depc_annot.get_property('Has_Notch', all_aids, 'flag')
     aid_list = ut.compress(all_aids, isvalid)
     # Tag the appropriate annots
     ibs.append_annot_case_tags(aid_list, ['hasnotch'] * len(aid_list))
-    #depc = ibs.depc
+    #depc = ibs.depc_annot
     #qaid_override = aid_list[0:5]
     #daid_override = aid_list[0:7]
     #print(qaid_override)

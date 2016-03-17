@@ -78,7 +78,7 @@ from ibeis.algo.preproc.old_chip_preproc import *  # NOQA
 #         >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
 #         >>> import ibeis
 #         >>> ibs = ibeis.opendb('testdb1')
-#         >>> depc = ibs.depc
+#         >>> depc = ibs.depc_annot
 #         >>> depc.print_all_tables()
 #         >>> aid_list = ibs.get_valid_aids()[0:2]
 #         >>> chip_config = ChipConfig(dim_size=None)
@@ -180,7 +180,7 @@ from ibeis.algo.preproc.old_chip_preproc import *  # NOQA
 #         >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
 #         >>> import ibeis
 #         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-#         >>> depc = ibs.depc
+#         >>> depc = ibs.depc_annot
 #         >>> #config = ChipConfig(dim_size=None)
 #         >>> config = None  # ChipConfig(dim_size=None)
 #         >>> aid_list = ibs.get_valid_aids()[0:20]

@@ -1610,7 +1610,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     val_iter = ((yaw, ) for yaw in yaw_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_YAW,), val_iter, id_iter)
     ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc.notify_root_changed(aid_list, 'yaws')
+    ibs.depc_annot.notify_root_changed(aid_list, 'yaws')
 
 
 @register_ibs_method
@@ -2403,7 +2403,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     ibs.update_annot_semantic_uuids(aid_list)
     # TODO: flag name rowid update
     # TODO: flag when the actual name changes as well?
-    ibs.depc.notify_root_changed(aid_list, 'name')
+    ibs.depc_annot.notify_root_changed(aid_list, 'name')
 
 
 @register_ibs_method
@@ -2509,7 +2509,7 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
     colnames = (SPECIES_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
     ibs.update_annot_semantic_uuids(aid_list)
-    ibs.depc.notify_root_changed(aid_list, 'species')
+    ibs.depc_annot.notify_root_changed(aid_list, 'species')
 
 
 @register_ibs_method
@@ -2562,7 +2562,7 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
     ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc.notify_root_changed(aid_list, 'theta')
+    ibs.depc_annot.notify_root_changed(aid_list, 'theta')
 
 
 @register_ibs_method
@@ -2599,7 +2599,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
     ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc.notify_root_changed(aid_list, 'verts')
+    ibs.depc_annot.notify_root_changed(aid_list, 'verts')
 
 
 # PROBCHIP
@@ -2642,7 +2642,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         >>> iteract_obj.start()
         >>> ut.show_if_requested()
     """
-    probchip_fpath_list = ibs.depc.get('probchip', aid_list, 'img',
+    probchip_fpath_list = ibs.depc_annot.get('probchip', aid_list, 'img',
                                        config=config2_, read_extern=False)
     return probchip_fpath_list
 
