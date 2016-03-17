@@ -527,7 +527,7 @@ class JobBackend(object):
             self.engine_queue_proc = _spawner(engine_queue_loop)
             self.collect_queue_proc = _spawner(collect_queue_loop)
         if self.spawn_collector:
-            self.collect_proc = _spawner(collector_loop)
+            self.collect_proc = _spawner(collector_loop, dbdir)
         if self.spawn_engine:
             self.engine_procs = [_spawner(engine_loop, i, dbdir)
                                   for i in range(self.num_engines)]
@@ -895,10 +895,11 @@ def engine_loop(id_, dbdir=None):
             print('Exiting engine loop')
 
 
-def collector_loop():
+def collector_loop(dbdir):
     """
     Service that stores completed algorithm results
     """
+    import ibeis
     print = partial(ut.colorprint, color='yellow')
     with ut.Indenter('[collect] '):
 
@@ -908,9 +909,12 @@ def collector_loop():
         if VERBOSE_JOBS:
             print('connect collect_url2  = %r' % (collect_url2,))
 
-        shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+        # shelve_path = join(ut.get_shelves_dir(appname='ibeis'), 'engine')
+        shelve_path = ibs.get_shelves_path()
         ut.delete(shelve_path)
         ut.ensuredir(shelve_path)
+
         collecter_data = {}
         awaiting_data = {}
 
