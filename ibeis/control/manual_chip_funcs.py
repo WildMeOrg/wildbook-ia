@@ -59,11 +59,11 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
     import dtool
     try:
         return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                            ensure=ensure, read_extern=False)
+                                  ensure=ensure, read_extern=False)
     except dtool.ExternalStorageException:
         # TODO; this check might go in dtool itself
         return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                            ensure=ensure, read_extern=False)
+                                  ensure=ensure, read_extern=False)
 
 
 @register_ibs_method
@@ -102,7 +102,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
         >>> print(chip_sum_list)
     """
     return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                        ensure=ensure)
+                              ensure=ensure)
 
 
 @register_ibs_method

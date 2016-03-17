@@ -243,7 +243,7 @@ class IBEISController(BASE_CLASS):
     #-------------------------------
 
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
-                 request_dbversion=None):
+                 request_dbversion=None, force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
@@ -258,6 +258,9 @@ class IBEISController(BASE_CLASS):
         ibs.depc_annot = None
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
+        if force_serial is None:
+            force_serial = not ut.in_main_process()
+        ibs.force_serial = force_serial
         # observer_weakref_list keeps track of the guibacks connected to this
         # controller
         ibs.observer_weakref_list = []
@@ -530,7 +533,7 @@ class IBEISController(BASE_CLASS):
             'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
-        ibs.depc - ibs.depc_annot
+        ibs.depc = ibs.depc_annot
         ibs.depc_annot = dtool.DependencyCache(
             #root_tablename='annot',   # const.ANNOTATION_TABLE
             root_tablename=const.ANNOTATION_TABLE,

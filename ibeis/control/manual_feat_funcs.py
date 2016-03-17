@@ -180,7 +180,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> print('nFeats_list = %r' % (nFeats_list,))
         >>> assert len(nFeats_list) == 3
         >>> ut.assert_inbounds(nFeats_list[0], 1200, 1258)
-        >>> ut.assert_inbounds(nFeats_list[1],  910,  922)
+        >>> ut.assert_inbounds(nFeats_list[1],  900,  922)
         >>> ut.assert_inbounds(nFeats_list[2], 1300, 1343)
     """
     return ibs.depc_annot.get('feat', aid_list, 'num_feats', config=config2_,

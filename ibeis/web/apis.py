@@ -41,7 +41,7 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     else:
         gpath = ibs.get_image_paths(gid)
 
-    image = ibs.imread(gid)
+    image = ibs.get_images(gid)
     image_pil = Image.fromarray(image)
     img_io = StringIO.StringIO()
     image_pil.save(img_io, 'JPEG', quality=100)

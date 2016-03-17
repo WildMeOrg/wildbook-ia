@@ -709,19 +709,8 @@ def set_image_orientation(ibs, gid_list, orientation_list):
 
 
 @register_ibs_method
-def imread(ibs, gid, force_orient=False, verbose=False):
-    orient = ibs.get_image_orientation(gid)
-    orient = orient if force_orient else False
-    if verbose:
-        print('Orient for gid %d: %r' % (gid, orient, ))
-    gpath = ibs.get_image_paths(gid)
-    image = vt.imread(gpath, orient=orient)
-    return image
-
-
-@register_ibs_method
 @accessor_decors.getter_1to1
-def get_images(ibs, gid_list, **kwargs):
+def get_images(ibs, gid_list, force_orient=False, **kwargs):
     r"""
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
@@ -755,7 +744,11 @@ def get_images(ibs, gid_list, **kwargs):
         >>> print(result)
         (715, 1047, 3)
     """
-    image_list = [ibs.imread(gid, **kwargs) for gid in gid_list]
+    orient_list = ibs.get_image_orientation(gid_list)
+    orient_list = [ orient if force_orient else False for orient in orient_list ]
+    gpath_list = ibs.get_image_paths(gid_list)
+    zipped = zip(gpath_list, orient_list)
+    image_list = [ vt.imread(gpath, orient=orient) for gpath, orient in zipped ]
     return image_list
 
 

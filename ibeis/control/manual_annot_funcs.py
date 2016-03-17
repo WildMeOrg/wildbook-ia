@@ -2643,7 +2643,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         >>> ut.show_if_requested()
     """
     probchip_fpath_list = ibs.depc_annot.get('probchip', aid_list, 'img',
-                                       config=config2_, read_extern=False)
+                                             config=config2_, read_extern=False)
     return probchip_fpath_list
 
 

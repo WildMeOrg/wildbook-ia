@@ -41,7 +41,7 @@ def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
         image = vt.imread(gpath)
     else:
         print(gid)
-        image = ibs.imread(gid)
+        image = ibs.get_images(gid)
     image_src = appf.embed_image_html(image, target_width=200)
     return image_src
 
