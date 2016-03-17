@@ -164,7 +164,7 @@ def compute_chip(depc, aid_list, config=None):
 
 
         import pyhesaff
-        nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_kpts_in_image, chips_orig)))
+        nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_kpts_in_image, chips_orig, force_serial=ibs.force_serial)))
         nkpts_list = np.array(nkpts_list)
 
         nfeats_orig = np.array(ibs.depc.get('feat', aid_list, 'num_feats'))
@@ -196,7 +196,7 @@ def compute_chip(depc, aid_list, config=None):
         from vtool.quality_classifier import contrast_measures
         chips128 = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
         gray_chips = [vt.convert_colorspace(x, 'GRAY') for x in ut.ProgIter(chips128)]
-        measures = list(ut.generate(contrast_measures, gray_chips))
+        measures = list(ut.generate(contrast_measures, gray_chips, force_serial=ibs.force_serial))
         measures = np.array(measures)
         measures = np.nan_to_num(measures)
         y = measures.T[3]
@@ -313,7 +313,7 @@ def compute_chip(depc, aid_list, config=None):
     for tup in ut.ProgIter(arg_list, lbl='computing chips'):
         cfpath, gid, new_size, M = tup
         # Read parent image
-        imgBGR = ibs.imread(gid)
+        imgBGR = ibs.get_images(gid)
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
         for filtfn in filterfn_list:
@@ -748,6 +748,7 @@ def compute_feats(depc, cid_list, config=None):
         if ut.VERYVERBOSE:
             print('full_params = ' + ut.dict_str())
 
+    ibs = depc.controller
     if feat_type == 'hesaff+sift':
         # Multiprocessing parallelization
         dictargs_iter = (hesaff_params for _ in range(nInput))
@@ -755,12 +756,12 @@ def compute_feats(depc, cid_list, config=None):
         # eager evaluation.
         # TODO: Check if there is any benefit to just passing in the iterator.
         arg_list = list(arg_iter)
-        featgen = ut.util_parallel.generate(gen_feat_worker, arg_list, nTasks=nInput, freq=10, ordered=True)
+        featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput, freq=10,
+                              ordered=True, force_serial=ibs.force_serial)
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
         assert maskmethod is None, 'not implemented'
         assert False, 'not implemented'
-        ibs = depc.controller
         featgen = _plugin.generate_siam_l2_128_feats(ibs, cid_list, config=config)
     else:
         raise AssertionError('unknown feat_type=%r' % (feat_type,))
@@ -872,8 +873,10 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     kpts_list = depc.get_native('feat', fid_list, 'kpts')
     # Force grayscale reading of chips
     arg_iter = zip(kpts_list, probchip_list, chipsize_list)
-    #featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
-    #nTasks=nTasks, ordered=True, freq=10)
+    # ibs = depc.controller
+    # featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
+    #                               nTasks=nTasks, ordered=True, freq=10,
+    #                               force_serial=ibs.force_serial)
     featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
                                  nTasks=nTasks, ordered=True, freq=10,
                                  force_serial=True)

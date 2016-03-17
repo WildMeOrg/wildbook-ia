@@ -27,7 +27,7 @@ def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
     arg_iter = zip(gid_list, gfpath_list, new_gfpath_list, newsize_list, orient_list)
     arg_list = list(arg_iter)
     # THis probably wont work for the same reason gen_chip wont work
-    return ut.util_parallel.generate(gen_detectimg_and_write, arg_list, force_serial=True)
+    return ut.generate(gen_detectimg_and_write, arg_list, force_serial=True)
 
 
 def get_image_detectimg_fpath_list(ibs, gid_list):

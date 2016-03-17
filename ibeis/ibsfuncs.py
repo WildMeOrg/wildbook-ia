@@ -142,7 +142,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 
-            _image = ibs.imread(gid)
+            _image = ibs.get_images(gid)
             height, width, channels = _image.shape
 
             if width > height:
@@ -3382,7 +3382,7 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
         'chunksize': chunksize,
         'freq': 50,
         #'adjust': True,
-        #'force_serial': True,
+        'force_serial': ibs.force_serial,
     }
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
     ut.evaluate_generator(gen)

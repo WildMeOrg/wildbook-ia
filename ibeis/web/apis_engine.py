@@ -826,7 +826,7 @@ def engine_loop(id_, dbdir=None):
             print('connect engine_url2 = %r' % (engine_url2,))
         assert dbdir is not None
         #ibs = ibeis.opendb(dbname)
-        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False)
+        ibs = ibeis.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         engine_rout_sock = ctx.socket(zmq.ROUTER)
         engine_rout_sock.connect(engine_url2)
