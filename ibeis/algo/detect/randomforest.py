@@ -165,7 +165,8 @@ def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
         iter
     """
     tree_path_list = _get_models(ibs, species)
-    return detect(ibs, gpath_list, tree_path_list, **kwargs)
+    results_iter = detect(ibs, gpath_list, tree_path_list, **kwargs)
+    return results_iter
 
 
 def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
@@ -273,6 +274,7 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     # Run detection
     detector = pyrf.Random_Forest_Detector(verbose=verbose)
     forest = detector.forest(tree_path_list)
+    raise RuntimeError('This detector implementation leaks memory')
     results_iter = detector.detect(forest, gpath_list, **kwargs)
     return results_iter
 
