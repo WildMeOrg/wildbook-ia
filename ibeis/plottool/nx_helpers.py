@@ -455,7 +455,7 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
     agraph.layout(prog=prog, args=args)
     agraph.draw('test_graphviz_draw.png')
     # print('AFTER LAYOUT')
-    print(agraph)
+    #print(agraph)
     #ratio_scale = 2.0
     ratio_scale = 1.0
 
@@ -721,8 +721,8 @@ def draw_network2(graph, node_pos, ax,
             #if offset == 1:
             #    verts = [start_point[0]] + verts
             #    codes = [MOVETO] + codes
-            print('verts = %r' % (verts,))
-            print('codes = %r' % (codes,))
+            #print('verts = %r' % (verts,))
+            #print('codes = %r' % (codes,))
 
             # HACK THE ENDPOINTS TO TOUCH THE BOUNDING BOXES
             if not as_directed:
