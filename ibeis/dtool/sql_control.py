@@ -57,7 +57,8 @@ class SQLExecutionContext(object):
 
     """
     def __init__(context, db, operation, nInput=None, auto_commit=True,
-                 start_transaction=False, keepwrap=False, verbose=VERBOSE_SQL):
+                 start_transaction=False, keepwrap=False, verbose=VERBOSE_SQL, tablename=None):
+        context.tablename = None
         context.auto_commit = auto_commit
         context.db = db
         context.operation = operation
@@ -104,9 +105,18 @@ class SQLExecutionContext(object):
             print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
             if ex.message.find('probably unsupported type') > -1:
-                print('given param types = ' + ut.list_str(ut.lmap(type, params)))
-                tablename = context.operation_type.split(' ')[-1]
-                print('exepcted param types = ' + ut.list_str(context.db.get_column_types(tablename)))
+                print('ERR REPORT: given param types = ' + ut.list_str(ut.lmap(type, params)))
+                if context.tablename is None:
+                    if context.operation_type.startswith('SELECT'):
+                        tablename = ut.str_between(context.operation, 'FROM', 'WHERE').strip()
+                    else:
+                        tablename = context.operation_type.split(' ')[-1]
+                else:
+                    tablename = context.tablename
+                try:
+                    print('ERR REPORT: exepcted param types = ' + ut.list_str(context.db.get_column_types(tablename)))
+                except Exception as ex:
+                    pass
             raise
         return context._results_gen()
 
