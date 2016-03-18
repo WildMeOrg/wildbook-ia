@@ -101,7 +101,8 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
 
         self.button_row = self.newHWidget()
         self.button_row.addNewButton('Cancel', clicked=self.press_cancel)
-        self.button_row.addNewButton('Create in a different directory', clicked=self.create_in_customdir)
+        self.button_row.addNewButton('Create in a different directory',
+                                     clicked=self.create_in_customdir)
         self.button_row.addWidget(self.create_in_workdir_but)
 
         self.update_state()

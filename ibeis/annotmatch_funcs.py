@@ -287,26 +287,27 @@ def get_annotmatch_subgraph(ibs):
     # (dont show all the aids if you dont have to)
     thresh = .5
     flags = edge_props['weight'] > thresh
-    aids1 = ut.compress(aids1, flags)
-    aids2 = ut.compress(aids2, flags)
-    edge_props = {key: ut.compress(val, flags) for key, val in edge_props.items()}
+    aids1_ = ut.compress(aids1, flags)
+    aids2_ = ut.compress(aids2, flags)
+    chosen_props = ut.dict_subset(edge_props, ['weight'])
+    edge_props = ut.map_dict_vals(ut.partial(ut.compress, flag_list=flags), chosen_props)
 
     edge_keys = list(edge_props.keys())
     edge_vals = ut.dict_take(edge_props, edge_keys)
+    edge_attr_list = [dict(zip(edge_keys, vals_)) for vals_ in zip(*edge_vals)]
 
-    unique_aids = list(set(aids1 + aids2))
-
+    unique_aids = list(set(aids1_ + aids2_))
     # Make a graph between the chips
-    nodes = list(zip(unique_aids))
-    edges = list(zip(aids1, aids2, *edge_vals))
-    node_lbls = [('aid', 'int')]
-    edge_lbls = [('weight', 'float')]
+    nodes = unique_aids
+    edges = list(zip(aids1_, aids2_, edge_attr_list))
+    import networkx as nx
+    graph = nx.DiGraph()
+    graph.add_nodes_from(nodes)
+    graph.add_edges_from(edges)
     from ibeis.viz import viz_graph
-    netx_graph = viz_graph.make_netx_graph(nodes, edges, node_lbls, edge_lbls)
     fnum = None
     #zoom = kwargs.get('zoom', .4)
-    zoom = .4
-    viz_graph.viz_netx_chipgraph(ibs, netx_graph, fnum=fnum, with_images=True, zoom=zoom)
+    viz_graph.viz_netx_chipgraph(ibs, graph, fnum=fnum, with_images=True, augment_graph=False)
 
 
 @register_ibs_method
@@ -704,17 +705,12 @@ def review_tagged_splits():
         >>> nids = [split_nids[0]]
         >>> selected_aids = np.unique(problem_aids.ravel()).tolist()
         >>> selected_aids = [] if ut.get_argflag('--noselect') else  selected_aids
-        >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids, prog='dot', rankdir='LR')
+        >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids, prog='dot', rankdir='LR', augment_graph=False)
         >>> ut.show_if_requested()
 
         rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
         ibs.get_annotmatch_prop('SplitCase', rowids)
-
         #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
-
-        viz_graph.viz_netx_chipgraph(ibs, netx_graph, with_images=True)
-        import plottool as pt
-        pt.iup()
     """
     pass
 
@@ -787,12 +783,7 @@ def review_tagged_joins():
 
         rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
         ibs.get_annotmatch_prop('SplitCase', rowids)
-
         #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
-
-        viz_graph.viz_netx_chipgraph(ibs, netx_graph, with_images=True)
-        import plottool as pt
-        pt.iup()
     """
     pass
 

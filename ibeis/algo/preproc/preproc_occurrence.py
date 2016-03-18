@@ -81,7 +81,9 @@ def ibeis_compute_occurrences(ibs, gid_list):
         >>> import plottool as pt
         >>> #pt.imshow(bigimg)
         >>> #bigimg = vt.stack_image_recurse(img_list)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False, prog='neato')
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
+        >>>                                              with_all=False,
+        >>>                                              prog='neato')
         >>> ut.show_if_requested()
     """
     occur_cfgstr = ibs.cfg.occur_cfg.get_cfgstr()
@@ -149,7 +151,9 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
         >>> import plottool as pt
         >>> #pt.imshow(bigimg)
         >>> #aids = ibs.group_annots_by_name(aids)[0][0]
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False, prog='neato')
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
+        >>>                                              with_all=False,
+        >>>                                              prog='neato')
         >>> ut.show_if_requested()
 
         ibs.unflat_map(ibs.get_annot_case_tags, aids_list)

@@ -15,113 +15,14 @@ import numpy as np  # NOQA
 #from os.path import join
 try:
     import networkx as nx
-    #if ut.WIN32:
-    #    # Make sure graphviz is in the path
-    #    win32_graphviz_bin_paths = [
-    #        r'C:\Program Files (x86)\Graphviz2.38\bin',
-    #        r'C:\Program Files\Graphviz2.38\bin',
-    #    ]
-    #    found_dot_exe = False
-    #    for path in win32_graphviz_bin_paths:
-    #        if ut.checkpath(path):
-    #            if ut.checkpath(join(path, 'dot.exe')):
-    #                sys.path.append(path)
-    #                found_dot_exe = True
-    #                break
-    #    assert found_dot_exe, 'could not find graphviz'
 except ImportError as ex:
     ut.printex(ex, 'Cannot import networkx. pip install networkx', iswarning=True)
-#import itertools
-
-
-ZOOM = ut.get_argval('--zoom', type_=float, default=.4)
-
-
-def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
-    r"""
-
-    CommandLine:
-        python -m ibeis --tf show_chipmatch_graph:0 --show
-        python -m ibeis --tf show_chipmatch_graph:1 --show
-        python -m ibeis --tf show_chipmatch_graph:1 --show --zoom=.15
-        python -m ibeis --tf show_chipmatch_graph:1 --zoom=.25 --save foo.jpg --diskshow --figsize=12,6 --dpath=. --dpi=280
-
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 2, 3, 4, 5, 6, 7, 18])
-        >>> [cm.score_nsum(qreq_) for cm in cm_list]
-        >>> ut.quit_if_noshow()
-        >>> daid = cm.get_groundtruth_daids()[0]
-        >>> zoom = ut.get_argval('--zoom', float, .4)
-        >>> show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)
-        >>> #cm.show_single_annotmatch(qreq_, daid)
-        >>> ut.show_if_requested()
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> #ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list='all')
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list='all')
-        >>> [cm.score_nsum(qreq_) for cm in cm_list]
-        >>> ut.quit_if_noshow()
-        >>> daid = cm.get_groundtruth_daids()[0]
-        >>> zoom = ut.get_argval('--zoom', float, .4)
-        >>> show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)
-        >>> #cm.show_single_annotmatch(qreq_, daid)
-        >>> ut.show_if_requested()
-    """
-    pass
-    # breaking
-    num = 3
-    qaid_list   = [cm.qaid for cm in cm_list]
-    daids_list  = [cm.get_top_aids(num).tolist() for cm in cm_list]
-    scores_list = [cm.get_annot_scores(daids) for cm, daids in zip(cm_list, daids_list)]
-    #graph = nx.Graph()
-    #node = graph.add_node(img)
-    # FDSFDS!!!
-    graph = make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list)
-    fnum = None
-    zoom = kwargs.get('zoom', .4)
-    viz_netx_chipgraph(ibs, graph, fnum=fnum, with_images=True, zoom=zoom)
-
-
-def make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list):
-    print('make_ibeis_matching_graph')
-    aid1_list = ut.flatten([[qaid] * len(daids)
-                            for qaid, daids in zip(qaid_list, daids_list)])
-    aid2_list = ut.flatten(daids_list)
-    unique_aids = list(set(aid2_list + qaid_list))
-    score_list = ut.flatten(scores_list)
-
-    # Make a graph between the chips
-    nodes = list(zip(unique_aids))
-    edges = list(zip(aid1_list, aid2_list, score_list))
-    node_lbls = [('aid', 'int')]
-    edge_lbls = [('weight', 'float')]
-    graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
-    return graph
 
 
 def get_name_rowid_edges_from_nids(ibs, nids):
     aids_list = ibs.get_name_aids(nids)
     import itertools
     unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
-    #if full:
-    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-    aids1 = ut.get_list_column(aid_pairs, 0)
-    aids2 = ut.get_list_column(aid_pairs, 1)
-    return aids1, aids2
-
-
-def get_name_rowid_edges_from_aids2(ibs, aids_list):
-    # grouped version
-    import itertools
-    unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
-    #if full:
     aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
     aids1 = ut.get_list_column(aid_pairs, 0)
     aids2 = ut.get_list_column(aid_pairs, 1)
@@ -133,65 +34,163 @@ def get_name_rowid_edges_from_aids(ibs, aid_list):
     #aids_list = ibs.get_name_aids(nids)
     import itertools
     unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
-    #if full:
     aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
     aids1 = ut.get_list_column(aid_pairs, 0)
     aids2 = ut.get_list_column(aid_pairs, 1)
     return aids1, aids2
 
 
-def make_netx_graph_from_aids(ibs, aids_list, full=False):
-    #aids_list, nid_list = ibs.group_annots_by_name(aid_list)
-    unique_aids = list(ut.flatten(aids_list))
-    aids1, aids2 = get_name_rowid_edges_from_aids2(ibs, aids_list)
-    if not full:
-        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
-        annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
-        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
-        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
-    return make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
-
-
 def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     # Enumerate annotmatch properties
     import numpy as np  # NOQA
-    rng = np.random.RandomState(0)
-    edge_props = {
-        'weight': rng.rand(len(aids1)),
-        #'reviewer_confidence': rng.rand(len(aids1)),
-        #'algo_confidence': rng.rand(len(aids1)),
-    }
-    edge_keys = list(edge_props.keys())
-    edge_vals = ut.dict_take(edge_props, edge_keys)
+    #rng = np.random.RandomState(0)
+    #edge_props = {
+    #    'weight': rng.rand(len(aids1)),
+    #    #'reviewer_confidence': rng.rand(len(aids1)),
+    #    #'algo_confidence': rng.rand(len(aids1)),
+    #}
+    #edge_keys = list(edge_props.keys())
+    #edge_vals = ut.dict_take(edge_props, edge_keys)
     if unique_aids is None:
         unique_aids = list(set(aids1 + aids2))
     # Make a graph between the chips
     nodes = list(zip(unique_aids))
-    edges = list(zip(aids1, aids2, *edge_vals))
+    edges = list(zip(aids1, aids2))
+    #, *edge_vals))
     node_lbls = [('aid', 'int')]
-    edge_lbls = [('weight', 'float')]
-    graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
-    return graph
+    #edge_lbls = [('weight', 'float')]
 
-
-def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
-    print('make_netx_graph')
     # Make a graph between the chips
     netx_nodes = [(ntup[0], {key[0]: val for (key, val) in zip(node_lbls, ntup[1:])})
                   for ntup in iter(nodes)]
-    netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})
-                  for etup in iter(edges)]
+    netx_edges = [(etup[0], etup[1], {}) for etup in iter(edges)]
+    #netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})
+    #              for etup in iter(edges)]
     graph = nx.DiGraph()
     graph.add_nodes_from(netx_nodes)
     graph.add_edges_from(netx_edges)
-    import plottool as pt
-    nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE)
+    #import plottool as pt
+    #nx.set_edge_attributes(graph, 'color', pt.DARK_ORANGE)
     return graph
 
 
-def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
-                       layout=None, zoom=ZOOM, prog='neato', as_directed=False,
-                       **kwargs):
+def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aids_list (list):
+        full (bool): (default = False)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_graph import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids_list = [[1, 2, 3, 4], [5, 6, 7]]
+        >>> only_reviewed_matches = True
+        >>> graph = make_netx_graph_from_aid_groups(ibs, aids_list, full)
+        >>> list(nx.connected_components(graph.to_undirected()))
+    """
+    #aids_list, nid_list = ibs.group_annots_by_name(aid_list)
+    unique_aids = list(ut.flatten(aids_list))
+
+    # grouped version
+    import itertools
+    unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
+    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+    aids1 = ut.get_list_column(aid_pairs, 0)
+    aids2 = ut.get_list_column(aid_pairs, 1)
+
+    if only_reviewed_matches:
+        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+        annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
+        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
+        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
+
+    graph = make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
+    unique_nids = ibs.get_annot_nids(unique_aids)
+    nx.set_node_attributes(graph, 'nid', dict(zip(unique_aids, unique_nids)))
+
+    import itertools
+    import plottool as pt
+
+    def ensure_names_are_connected(graph):
+        aug_graph = graph.copy().to_undirected()
+        unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
+        aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+        aug_graph.add_edges_from(aid_pairs)
+        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
+            for edge in mst_sub_graph.edges():
+                redge = edge[::-1]
+                if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
+                    graph.add_edge(*redge, attr_dict={})
+    ensure_names_are_connected(graph)
+
+    # Color edges by nid
+    def color_by_nids(graph):
+        node_to_nid = nx.get_node_attributes(graph, 'nid')
+        unique_nids = ut.unique(node_to_nid.values())
+        nid_to_color = dict(zip(unique_nids, pt.distinct_colors(len(unique_nids))))
+        edge_aids = graph.edges()
+        edge_nids = ut.unflat_take(node_to_nid, edge_aids)
+        flags = [nids[0] == nids[1] for nids in edge_nids]
+        flagged_edge_aids = ut.compress(edge_aids, flags)
+        flagged_edge_nids = ut.compress(edge_nids, flags)
+        flagged_edge_colors = [nid_to_color[nids[0]] for nids in flagged_edge_nids]
+        edge_to_color = dict(zip(flagged_edge_aids, flagged_edge_colors))
+        node_to_color = ut.map_dict_vals(ut.partial(ut.take, nid_to_color), node_to_nid)
+        nx.set_edge_attributes(graph, 'color', edge_to_color)
+        nx.set_node_attributes(graph, 'color', node_to_color)
+    color_by_nids(graph)
+
+    return graph
+
+
+def augment_graph_mst(ibs, graph):
+    import plottool as pt
+    #spantree_aids1_ = []
+    #spantree_aids2_ = []
+    # Add edges between all names
+    aid_list = graph.nodes()
+    aug_digraph = graph.copy()
+    # Change all weights in initial graph to be small (likely to be part of mst)
+    nx.set_edge_attributes(aug_digraph, 'weight', .0001)
+    aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
+    if False:
+        # Weight edges in the MST based on tenative distances
+        # Get tentative node positions
+        initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['node_pos']
+        #initial_pos = pt.get_nx_layout(graph.to_undirected(), 'agraph')['node_pos']
+        edge_pts1 = ut.dict_take(initial_pos, aids1)
+        edge_pts2 = ut.dict_take(initial_pos, aids2)
+        edge_pts1 = vt.atleast_nd(np.array(edge_pts1, dtype=np.int32), 2)
+        edge_pts2 = vt.atleast_nd(np.array(edge_pts2, dtype=np.int32), 2)
+        edge_weights = vt.L2(edge_pts1, edge_pts2)
+    else:
+        edge_weights = [1.0] * len(aids1)
+    # Create implicit fully connected (by name) graph
+    aug_edges = [(a1, a2, {'weight': w})
+                  for a1, a2, w in zip(aids1, aids2, edge_weights)]
+    aug_digraph.add_edges_from(aug_edges)
+
+    # Determine which edges need to be added to
+    # make original graph connected by name
+    aug_graph = aug_digraph.to_undirected()
+    for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+        mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
+        mst_edges = mst_sub_graph.edges()
+        for edge in mst_edges:
+            redge = edge[::-1]
+            #attr_dict = {'color': pt.DARK_ORANGE[0:3]}
+            attr_dict = {'color': pt.BLACK[0:3]}
+            if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
+                graph.add_edge(*redge, attr_dict=attr_dict)
+
+
+def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
+                       zoom=None, prog='neato', as_directed=False,
+                       augment_graph=True, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -206,6 +205,11 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
     CommandLine:
         python -m ibeis --tf viz_netx_chipgraph --show
 
+    Cand:
+        ibeis review_tagged_joins --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
+        ibeis compute_occurrence_groups --save figures4/occurgraph.png --figsize=40,40 --clipwhite --diskshow
+        ~/code/ibeis/ibeis/algo/preproc/preproc_occurrence.py
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
@@ -215,9 +219,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
         >>> fnum = None
         >>> with_images = True
         >>> zoom = 0.4
-        >>> #pos = viz_netx_chipgraph(ibs, graph, fnum, with_images, zoom)
         >>> make_name_graph_interaction(ibs, nid_list, prog='neato')
-        >>> #make_name_graph_interaction(ibs, nid_list)
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -227,117 +229,19 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
     ax = pt.gca()
 
     aid_list = graph.nodes()
-
-    IMPLICIT_LAYOUT = len(set(ibs.get_annot_nids(aid_list))) != 1
-    # FIXME
-    #print('zoom = %r' % (zoom,))
-
-    if IMPLICIT_LAYOUT:
-        # HACK:
-        # Use name edge to make pos (very bad)
-        aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
-        netx_graph_hack = make_netx_graph_from_aidpairs(ibs, aids1, aids2,
-                                                        unique_aids=aid_list)
-        pos = nx.nx_agraph.graphviz_layout(netx_graph_hack)
-
-        implicit_netx_graph = nx.Graph()
-        implicit_netx_graph.add_nodes_from(aid_list)
-        implicit_netx_graph.add_edges_from(list(zip(aids1, aids2)))
-    else:
-        pos = nx.nx_agraph.graphviz_layout(graph)
-
-    #layout = 'spring' #layout = 'spectral' #layout = 'circular'
-    #layout = 'shell' #layout = 'pydot' #layout = 'graphviz'
     if layout is None:
         layout = 'agraph'
     print('layout = %r' % (layout,))
 
-    with_nid_edges = False
-    if with_nid_edges:
-        spantree_aids1_ = []
-        spantree_aids2_ = []
-
-        # Add edges between all names
-        aug_digraph = graph.copy()
-        # Change all weights in initial graph to be small (likely to be part of mst)
-        nx.set_edge_attributes(aug_digraph, 'weight', .0001)
-        aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)
-        if True:
-            # Weight edges in the MST based on tenative distances
-            # Get tentative node positions
-            initial_pos = pt.get_nx_layout(graph.to_undirected(), 'graphviz')['node_pos']
-            #initial_pos = pt.get_nx_layout(graph.to_undirected(), 'agraph')['node_pos']
-            edge_pts1 = ut.dict_take(initial_pos, aids1)
-            edge_pts2 = ut.dict_take(initial_pos, aids2)
-            edge_pts1 = vt.atleast_nd(np.array(edge_pts1, dtype=np.int32), 2)
-            edge_pts2 = vt.atleast_nd(np.array(edge_pts2, dtype=np.int32), 2)
-            edge_weights = vt.L2(edge_pts1, edge_pts2)
-        else:
-            edge_weights = [.2] * len(aids1)
-        # Create implicit fully connected (by name) graph
-        aug_edges = [(a1, a2, {'weight': w})
-                      for a1, a2, w in zip(aids1, aids2, edge_weights)]
-        aug_digraph.add_edges_from(aug_edges)
-
-        # Determine which edges need to be added to
-        # make original graph connected by name
-        aug_graph = aug_digraph.to_undirected()
-        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
-            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
-            mst_edges = mst_sub_graph.edges()
-            for edge in mst_edges:
-                redge = edge[::-1]
-                #attr_dict = {'implicit': True, 'color': pt.DARK_ORANGE}
-                attr_dict = {'color': pt.DARK_ORANGE[0:3]}
-                if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
-                    graph.add_edge(*redge, attr_dict=attr_dict)
-
-            if len(mst_edges) > 0:
-                min_aids1_, min_aids2_ = ut.list_transpose(mst_edges)
-                spantree_aids1_.extend(min_aids1_)
-                spantree_aids2_.extend(min_aids2_)
-
-    #with_images = True
-
-    # target_size = (300, 300)
-    #target_size = (220, 220)
-    #target_size = (100, 100)
+    if False and augment_graph:
+        augment_graph_mst(ibs, graph)
 
     if with_images:
         imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
                                                    config=dict(dim_size=200),
                                                    read_extern=False)
-        # img_list = ibs.get_annot_chips(aid_list)
-        # img_list = [vt.resize_thumb(img, target_size) for img in img_list]
-        # img_list = [vt.cvt_BGR2RGB(img) for img in img_list]
-        # size_dict = {aid: vt.get_size(img) for aid, img in zip(aid_list, img_list)}
-        # img_dict = {aid: img for aid, img in zip(aid_list, img_list)}
-        # import utool
-        # utool.embed()
-        # imgpath_list = ibs.get_annot_chip_fpath(aid_list)
         nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
-    else:
-        pass
-        #csize_list = ibs.get_annot_chip_sizes(aid_list)
-        #size_list = [vt.resized_dims_and_ratio(size, target_size)[0]
-        #             for size in csize_list]
-        #size_dict = {aid: size for aid, size in zip(aid_list, size_list)}
-        # img_dict = None
-
-    #csize_list = ibs.get_annot_chip_sizes(aid_list, config2_=dict(dim_size=200, resize_dim='area'))
-    #print('csize_list = %r' % (csize_list,))
-    #size_dict = {aid: size for aid, size in zip(aid_list, csize_list)}
-
-    #scale_list = np.array(ut.dict_take_column(node_attrs, 'scale',
-    #                                          default=None))
-    #nx.set_node_attributes(graph, 'width',
-    #                       ut.map_dict_vals(lambda x: .1 * x[0], size_dict))
-    #nx.set_node_attributes(graph, 'height',
-    #                       ut.map_dict_vals(lambda x: .1 * x[1], size_dict))
     nx.set_node_attributes(graph, 'shape', 'rect')
-
-    old = False
-    #as_directed = True
 
     layoutkw = {'prog': prog}
     layoutkw.update(kwargs)
@@ -354,20 +258,6 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
                           as_directed=as_directed
                           )
 
-    pos = plotinfo['pos']
-
-    if old and with_nid_edges:
-        edge_pts1_ = np.array(ut.dict_take(pos, spantree_aids1_))
-        edge_pts2_ = np.array(ut.dict_take(pos, spantree_aids2_))
-        segments = list(zip(edge_pts1_, edge_pts2_))
-        #pt.distinct_colors
-        color_list = pt.DARK_ORANGE[0:3]
-        #color_list = pt.BLACK
-        import matplotlib as mpl
-        line_group = mpl.collections.LineCollection(segments, color=color_list,
-                                                    alpha=.3, lw=4)
-        ax.add_collection(line_group)
-
     offset_img_list = []
     if with_images:
         offset_img_list = plotinfo['imgdat']['offset_img_list']
@@ -382,7 +272,6 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False,
 
 
 def special_viewpoint_graph():
-
     r"""
     CommandLine:
         python -m ibeis.viz.viz_graph --exec-special_viewpoint_graph --show
@@ -446,15 +335,13 @@ def special_viewpoint_graph():
     nx.set_edge_attributes(graph, 'color', {edge: pt.LIGHT_BLUE[0:3] for edge in back_edges})
 
     #pt.close_all_figures();
-    viz_netx_chipgraph(ibs, graph, with_images=1, prog='dot')
+    viz_netx_chipgraph(ibs, graph, with_images=1, prog='dot', augment_graph=False)
+
     if False:
         """
         #view_graph = left_graph
-
         pt.close_all_figures(); viz_netx_chipgraph(ibs, view_graph, with_images=0, prog='neato')
-
         #viz_netx_chipgraph(ibs, view_graph, layout='pydot', with_images=False)
-
         #back_graph = make_name_graph_interaction(ibs, aids=back, with_all=False)
 
         aids = left_aids + back + backleft + backright + right_aids
@@ -485,53 +372,11 @@ def special_viewpoint_graph():
 
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
-                                zoom=ZOOM, with_all=True, prog='neato', **kwargs):
+                                with_all=True, **kwargs):
     """
     CommandLine:
-        python -m ibeis --tf make_name_graph_interaction --db PZ_Master1 \
-            --aids 2068 1003 --show
-
-        python -m ibeis --tf make_name_graph_interaction --db testdb1 --show
-
-        python -m ibeis --tf make_name_graph_interaction --db PZ_Master1 \
-            --aids 2068 1003 1342 758 --show
-        python -m ibeis --tf make_name_graph_interaction --db PZ_Master1
-        --aids 758 1342 --show
-
-        python -m ibeis --tf make_name_graph_interaction --db PZ_Master1
-        --aids 2068 1003 --show
-        python -m ibeis --tf make_name_graph_interaction --aids 3 --show
-
-        python -m ibeis --tf make_name_graph_interaction --aids 193 194 195 196 --show
-        --db WD_Siva
-
-        python -m ibeis --tf make_name_graph_interaction --aids 792 --show
-        --db GZ_ALL --no-with-all
-
-        python -m ibeis --tf make_name_graph_interaction --aids=788,789,790,791
-        --show --db GZ_ALL --no-with-all
-        python -m ibeis --tf make_name_graph_interaction --aids=782,783,792
-        --show --db GZ_ALL --no-with-all
-
-
-        Ignore:
-            from ibeis.viz.viz_graph import *  # NOQA
-            import ibeis
-            import plottool as pt
-            aids = [2068, 1003]
-            defaultdb = 'PZ_Master1'
-            ibs = ibeis.opendb(defaultdb=defaultdb)
-
-            left_view = ibs.filter_annots_general(view='left')
-            right_view = ibs.filter_annots_general(view='right')
-            nid2_left = ut.group_items(left_view, ibs.get_annot_nids(left_view))
-            nid2_right = ut.group_items(right_view, ibs.get_annot_nids(right_view))
-
-            nids = ut.intersect_ordered(nid2_left.keys(), nid2_right.keys())
-            aids_list = ibs.get_name_aids(nids)
-            for nid, aids in zip(nids, aids_list):
-                print(nid)
-                ibs.print_annot_stats(aids)
+        python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
+            --aids=1,2,3,4,5,6,7,8,9 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -575,7 +420,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.get_name_aids(nids)
             else:
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
-            self.graph = make_netx_graph_from_aids(ibs, aids_list)
+            self.graph = make_netx_graph_from_aid_groups(ibs, aids_list)
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
             self._aids2 = self.graph.nodes()
@@ -587,7 +432,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
                                                fnum=self.fnum,
                                                with_images=self.with_images,
-                                               zoom=zoom, prog=prog, **kwargs)
+                                               **kwargs)
             self.ax = pt.gca()
 
             # FIXME: this doesn't work anymore
@@ -602,7 +447,14 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             index = self.aid2_index[aid]
             try:
                 artist = ax.artists[index]
-                artist.patch.set_facecolor(color)
+                import matplotlib as mpl
+                if isinstance(artist, mpl.patches.Rectangle):
+                    patch = artist
+                    patch.set_facecolor(color)
+                    patch.set_edgecolor(color)
+                else:
+                    artist.patch.set_facecolor(color)
+                    artist.patch.set_edgecolor(color)
             except IndexError:
                 pass
 
@@ -666,7 +518,6 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             pos_list = np.array(pos_list)
             index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
             print('dist = %r' % (dist,))
-
             aid = aids[index]
             context_shown = False
 
