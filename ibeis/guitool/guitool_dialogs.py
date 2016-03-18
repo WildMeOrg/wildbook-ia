@@ -26,9 +26,9 @@ def _guitool_cache_read(key, **kwargs):
 def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
     """ Prompt user for conformation before changing something """
     msg = 'Are you sure?' if msg is None else msg
-    print('[guitool] Asking User if sure')
-    print('[guitool] title = %s' % (title,))
-    print('[guitool] msg =\n%s' % (msg,))
+    print('[gt] Asking User if sure')
+    print('[gt] title = %s' % (title,))
+    print('[gt] msg =\n%s' % (msg,))
     if ut.get_argflag('-y') or ut.get_argflag('--yes'):
         # DONT ASK WHEN SPECIFIED
         return True
@@ -76,7 +76,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> print(result)
     """
     if ut.VERBOSE:
-        print('[*guitools] user_option:\n %r: %s' % (title, msg))
+        print('[gt] user_option:\n %r: %s' % (title, msg))
     # Recall decision
     cache_id = title + msg
     if use_cache:
@@ -105,10 +105,10 @@ def user_option(parent=None, msg='msg', title='user_option',
         reply = options[optx]
     except KeyError as ex:
         # This should be unreachable code.
-        print('[*guitools] USER OPTION EXCEPTION !')
-        print('[*guitools] optx = %r' % optx)
-        print('[*guitools] options = %r' % options)
-        print('[*guitools] ex = %r' % ex)
+        print('[gt] USER OPTION EXCEPTION !')
+        print('[gt] optx = %r' % optx)
+        print('[gt] options = %r' % options)
+        print('[gt] ex = %r' % ex)
         raise
     # Remember decision if caching is on
     if use_cache and dontPrompt.isChecked():
@@ -153,7 +153,7 @@ def user_input(parent=None, msg='msg', title='user_input'):
 
 
 def user_info(parent=None, msg='msg', title='user_info'):
-    print('[dlg.user_info] title=%r, msg=%r' % (title, msg))
+    print('[gt] dlg.user_info title=%r, msg=%r' % (title, msg))
     msgbox = _newMsgBox(msg, title, parent)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
@@ -177,8 +177,27 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True):
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(directory_))
     sidebar_urls.extend(list(map(QtCore.QUrl.fromUserInput, other_sidebar_dpaths)))
     sidebar_urls = ut.unique(sidebar_urls)
-    print(sidebar_urls)
+    #print('sidebar_urls = %r' % (sidebar_urls,))
     qdlg.setSidebarUrls(sidebar_urls)
+    return qdlg
+
+
+def newDirectoryDialog(caption='Select Directory', directory=None,
+                       other_sidebar_dpaths=[], use_sidebar_cwd=True):
+    # hack to fix the dialog window on ubuntu
+    if 'ubuntu' in platform.platform().lower():
+        qopt = QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontUseNativeDialog
+    else:
+        qopt = QtGui.QFileDialog.ShowDirsOnly
+    if directory is None:
+        directory = '.'
+    qtkw = {
+        'caption': caption,
+        'options': qopt,
+        'directory': directory
+    }
+    qdlg = newFileDialog(directory, other_sidebar_dpaths, use_sidebar_cwd)
+    qdlg.getExistingDirectory(None, **qtkw)
     return qdlg
 
 
@@ -212,7 +231,7 @@ def select_directory(caption='Select Directory', directory=None,
         >>> result = str(dpath)
         >>> print(result)
     """
-    print('[guitool] select_directory(caption=%r, directory=%r)' % (caption, directory))
+    print('[gt] select_directory(caption=%r, directory=%r)' % (caption, directory))
     if directory is None:
         directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
     else:
@@ -229,13 +248,14 @@ def select_directory(caption='Select Directory', directory=None,
     }
     qdlg = newFileDialog(directory_, other_sidebar_dpaths, use_sidebar_cwd)
     dpath = str(qdlg.getExistingDirectory(None, **qtkw))
-    print('dpath = %r' % dpath)
+    print('[gt] dialog returned dpath = %r' % dpath)
     if dpath == '' or dpath is None:
         dpath = None
+        print('[gt] Cancel Select')
         return dpath
     else:
         _guitool_cache_write(SELDIR_CACHEID, dirname(dpath))
-    print('Selected Directory: %r' % dpath)
+    print('[gt] Selected Directory: %r' % dpath)
     return dpath
 
 
@@ -278,7 +298,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
         >>> result = str(dpath)
         >>> print(result)
     """
-    print(caption)
+    #print(caption)
     if directory is None:
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
     #qdlg = QtGui.QFileDialog()
@@ -288,7 +308,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
     else:
         qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
     file_list = list(map(str, qfile_list))
-    print('Selected %d files' % len(file_list))
+    print('[gt] Selected %d files' % len(file_list))
     _guitool_cache_write(SELDIR_CACHEID, directory)
     return file_list
 
@@ -422,6 +442,8 @@ def build_nested_qmenu(widget, context_options, name=None):
 
 def popup_menu(widget, pos, context_options):
     r"""
+    For (right-click) context menus
+
     Args:
         widget (QWidget):
         pos (QPoint):

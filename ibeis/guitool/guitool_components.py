@@ -408,7 +408,7 @@ def newTextEdit(parent, label=None, visible=True, label_pos='above'):
 def newLineEdit(parent, text=None, enabled=True, align='center',
                 textChangedSlot=None, textEditedSlot=None,
                 editingFinishedSlot=None, visible=True, readOnly=False,
-                fontkw={}):
+                verticalStretch=0, fontkw={}):
     """ This is a text line
 
     Example:
@@ -424,7 +424,9 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
         >>> print(result)
     """
     widget = QtGui.QLineEdit(parent)
-    sizePolicy = newSizePolicy(widget, verticalStretch=1)
+    sizePolicy = newSizePolicy(widget,
+                               verticalSizePolicy=QSizePolicy.Fixed,
+                               verticalStretch=verticalStretch)
     widget.setSizePolicy(sizePolicy)
     if text is not None:
         widget.setText(text)
@@ -445,91 +447,163 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     return widget
 
 
-def newWidget(parent, orientation=Qt.Vertical,
+def newWidget(parent=None, orientation=Qt.Vertical,
               verticalSizePolicy=QSizePolicy.Expanding,
               horizontalSizePolicy=QSizePolicy.Expanding,
-              verticalStretch=1):
+              verticalStretch=1, special_layout=None):
     r"""
     Args:
-        parent (?):
+        parent (QWidget):
         orientation (Orientation): (default = 2)
         verticalSizePolicy (Policy): (default = 7)
         horizontalSizePolicy (Policy): (default = 7)
         verticalStretch (int): (default = 1)
 
     Returns:
-        ?: widget
+        QWidget: widget
 
     CommandLine:
         python -m guitool.guitool_components newWidget --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
-        >>> # build test data
         >>> import guitool
+        >>> import guitool as gt
         >>> guitool.ensure_qtapp()
-        >>> parent = None
-        >>> orientation = 2
-        >>> verticalSizePolicy = 7
-        >>> horizontalSizePolicy = 7
-        >>> verticalStretch = 1
-        >>> widget = newWidget(parent, orientation, verticalSizePolicy, horizontalSizePolicy, verticalStretch)
+        >>> ut.exec_funckw(newWidget, globals())
+        >>> widget = newWidget(parent)
+        >>> widget.addWidget(gt.newButton(
+        >>>     widget, 'Print Hi', lambda: print('hi')))
+        >>> widget.addWidget(gt.newButton(
+        >>>     widget, 'Popup Hi', lambda: gt.user_info(widget, 'hi')))
+        >>> #widget.addRow('input 1', gt.newLineEdit(widget))
+        >>> #widget.addRow('input 2', gt.newComboBox(widget, ['one', 'two']))
         >>> widget.show()
-        >>> widget.resize(200, 200)
-        >>> # verify results
+        >>> widget.resize(int(ut.PHI * 500), 500)
         >>> ut.quit_if_noshow()
-        >>> guitool.qtapp_loop(qwin=widget, freq=10)
+        >>> gt.qtapp_loop(qwin=widget, freq=10)
     """
-    widget = QtGui.QWidget(parent)
-
-    sizePolicy = newSizePolicy(widget,
-                               horizontalSizePolicy=horizontalSizePolicy,
-                               verticalSizePolicy=verticalSizePolicy,
-                               verticalStretch=1)
-    widget.setSizePolicy(sizePolicy)
-    if orientation == Qt.Vertical:
-        layout = QtGui.QVBoxLayout(widget)
-    elif orientation == Qt.Horizontal:
-        layout = QtGui.QHBoxLayout(widget)
-    else:
-        raise NotImplementedError('orientation')
-    # Black magic
-    widget._guitool_layout = layout
-    widget.addWidget = widget._guitool_layout.addWidget
-    widget.addLayout = widget._guitool_layout.addLayout
-    setattr(widget, '_guitool_sizepolicy', sizePolicy)
+    #widget = QtGui.QWidget(parent)
+    #if special_layout is None:
+    widget = GuitoolWidget(parent, orientation, verticalSizePolicy,
+                           horizontalSizePolicy, verticalStretch)
+    #sizePolicy = newSizePolicy(widget,
+    #                           horizontalSizePolicy=horizontalSizePolicy,
+    #                           verticalSizePolicy=verticalSizePolicy,
+    #                           verticalStretch=verticalStretch)
+    #widget.setSizePolicy(sizePolicy)
+    #if orientation == Qt.Vertical:
+    #    layout = QtGui.QVBoxLayout(widget)
+    #elif orientation == Qt.Horizontal:
+    #    layout = QtGui.QHBoxLayout(widget)
+    #else:
+    #    raise NotImplementedError('orientation')
+    ## Black magic
+    #widget._guitool_layout = layout
+    #widget.addWidget = widget._guitool_layout.addWidget
+    #widget.addLayout = widget._guitool_layout.addLayout
+    #setattr(widget, '_guitool_sizepolicy', sizePolicy)
+    #elif special_layout == 'form':
+    #    import utool
+    #    utool.embed()
+    #    layout = QtGui.QFormLayout(widget)
+    #    widget.addItem = layout.addItem
+    #    widget.addRow = layout.addRow
+    #    widget.addWidget = layout.addWidget
+    #    widget.addChildWidget = layout.addChildWidget
     return widget
 
 
-def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
-    """ wrapper around QtGui.QFont """
-    #fontname = 'Courier New'
-    #pointSize = 8
-    #weight = -1
-    #italic = False
-    font = QtGui.QFont(fontname, pointSize=pointSize, weight=weight, italic=italic)
-    return font
+class GuitoolWidget(QtGui.QWidget):
+    closed = QtCore.pyqtSignal()
 
+    def __init__(self, parent=None, orientation=Qt.Vertical,
+                 verticalSizePolicy=QSizePolicy.Expanding,
+                 horizontalSizePolicy=QSizePolicy.Expanding,
+                 verticalStretch=0, **kwargs):
+        super(GuitoolWidget, self).__init__(parent)
+        sizePolicy = newSizePolicy(self,
+                                   horizontalSizePolicy=horizontalSizePolicy,
+                                   verticalSizePolicy=verticalSizePolicy,
+                                   verticalStretch=verticalStretch)
+        self.setSizePolicy(sizePolicy)
+        if orientation == Qt.Vertical:
+            layout = QtGui.QVBoxLayout(self)
+        elif orientation == Qt.Horizontal:
+            layout = QtGui.QHBoxLayout(self)
+        else:
+            raise NotImplementedError('orientation')
+        self._guitool_layout = layout
+        #self.addWidget = self._guitool_layout.addWidget
+        #self.addLayout = self._guitool_layout.addLayout
+        setattr(self, '_guitool_sizepolicy', sizePolicy)
+        # Black magic
+        #self.newButton = ut.partial(newButton, self)
+        #self.newLineEdit = ut.partial(newLineEdit, self)
+        #self.newComboBox = ut.partial(newComboBox, self)
+        #self.newLabel = ut.partial(newLabel, self)
+        #self.newWidget = ut.partial(newWidget, self)
 
-def adjust_font(widget, bold=False, pointSize=None, italic=False):
-    if bold or pointSize is not None:
-        font = widget.font()
-        font.setBold(bold)
-        font.setItalic(italic)
-        if pointSize is not None:
-            font.setPointSize(pointSize)
-        widget.setFont(font)
+        guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label']
+        # Creates addNewWidget and newWidget
+        for guitype in guitype_list:
+            import guitool as gt
+            new_name = 'new' + guitype
+            addnew_name = 'addNew' + guitype
+            newfunc = getattr(gt, new_name)
+            addnew_func = self._addnew_factory(newfunc)
+            ut.inject_func_as_method(self, newfunc, new_name)
+            ut.inject_func_as_method(self, addnew_func, addnew_name)
+        self.initialize(**kwargs)
+
+    @classmethod
+    def as_dialog(cls, parent=None, **kwargs):
+        widget = cls(**kwargs)
+        dlg = QtGui.QDialog(parent)
+        dlg.vlayout = QtGui.QVBoxLayout(dlg)
+        dlg.vlayout.addWidget(widget)
+        widget.closed.connect(dlg.close)
+        dlg.setWindowTitle(widget.windowTitle())
+        return dlg
+
+    def initialize(self, **kwargs):
+        pass
+
+    def addLayout(self, *args, **kwargs):
+        return self._guitool_layout.addLayout(*args, **kwargs)
+
+    def addWidget(self, widget, *args, **kwargs):
+        self._guitool_layout.addWidget(widget, *args, **kwargs)
+        return widget
+
+    def newHWidget(self, **kwargs):
+        return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)
+
+    #def addNewWidget(self, *args, **kwargs):
+    #    new_widget = self.newWidget(*args, **kwargs)
+    #    return self.addWidget(new_widget)
+
+    def _addnew_factory(self, newfunc):
+        def _addnew(self, *args, **kwargs):
+            new_widget = newfunc(self, *args, **kwargs)
+            return self.addWidget(new_widget)
+        return _addnew
+
+    def closeEvent(self, event):
+        event.accept()
+        self.closed.emit()
 
 
 def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
-              enabled=True, bgcolor=None, fgcolor=None, fontkw={}):
+              enabled=True, bgcolor=None, fgcolor=None, fontkw={},
+              shrink_to_text=False):
     """ wrapper around QtGui.QPushButton
 
     Args:
-        parent (None):
+        parent (QWidget): parent widget
         text (str):
-        clicked (None):
+        clicked (func): callback function
         qicon (None):
         visible (bool):
         enabled (bool):
@@ -568,7 +642,8 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
         >>> bgcolor = None
         >>> fgcolor = None
         >>> fontkw = {}
-        >>> button = newButton(parent, text, clicked, qicon, visible, enabled, bgcolor, fgcolor, fontkw)
+        >>> button = newButton(parent, text, clicked, qicon, visible, enabled,
+        >>>                    bgcolor, fgcolor, fontkw)
         >>> result = ('button = %s' % (str(button),))
         >>> print(result)
     """
@@ -586,10 +661,28 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
     style_sheet_str = make_style_sheet(bgcolor=bgcolor, fgcolor=fgcolor)
     if style_sheet_str is not None:
         button.setStyleSheet(style_sheet_str)
+
     button.setVisible(visible)
     button.setEnabled(enabled)
     adjust_font(button, **fontkw)
+    #sizePolicy = newSizePolicy(button,
+    #                           #verticalSizePolicy=QSizePolicy.Fixed,
+    #                           #horizontalSizePolicy=QSizePolicy.Fixed,
+    #                           verticalStretch=0)
+    #button.setSizePolicy(sizePolicy)
+    if shrink_to_text:
+        width = get_widget_text_width(button) + 10
+        button.setMaximumWidth(width)
     return button
+
+
+def get_widget_text_width(widget):
+    # http://stackoverflow.com/questions/14418375/shrink-a-button-width
+    text = widget.text()
+    double = text.count('&&')
+    text = text.replace('&', '') + ('&' * double)
+    text_width = widget.fontMetrics().boundingRect(text).width()
+    return text_width
 
 
 def newComboBox(parent=None, options=None, changed=None, default=None, visible=True,
@@ -662,7 +755,8 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
             #combo.removeItem()
 
         def currentIndexChangedCustom(combo, index):
-            combo.changed(index, combo.options[index][1])
+            if combo.changed is not None:
+                combo.changed(index, combo.options[index][1])
 
         def setDefault(combo, default=None):
             """ finds index of backend value and sets the current index """
@@ -681,8 +775,8 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         'changed': changed,
     }
     combo = CustomComboBox(**combo_kwargs)
-    if changed is None:
-        enabled = False
+    #if changed is None:
+    #    enabled = False
     combo.setVisible(visible)
     combo.setEnabled(enabled)
     adjust_font(combo, **fontkw)
@@ -717,6 +811,26 @@ def newCheckBox(parent=None, text='', changed=None, checked=False, visible=True,
     check.setVisible(visible)
     check.setEnabled(enabled)
     return check
+
+
+def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
+    """ wrapper around QtGui.QFont """
+    #fontname = 'Courier New'
+    #pointSize = 8
+    #weight = -1
+    #italic = False
+    font = QtGui.QFont(fontname, pointSize=pointSize, weight=weight, italic=italic)
+    return font
+
+
+def adjust_font(widget, bold=False, pointSize=None, italic=False):
+    if bold or pointSize is not None:
+        font = widget.font()
+        font.setBold(bold)
+        font.setItalic(italic)
+        if pointSize is not None:
+            font.setPointSize(pointSize)
+        widget.setFont(font)
 
 
 def make_style_sheet(bgcolor=None, fgcolor=None):
@@ -790,6 +904,14 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
             #label.setPixmap(label._orig_pixmap.scaled(label.size()))
         label._on_resize_slot = _on_resize_slot
         #ut.embed()
+
+    def setColorFG(self, fgcolor):
+        #current_sheet = self.styleSheet()
+        style_sheet_str = make_style_sheet(bgcolor=None, fgcolor=fgcolor)
+        if style_sheet_str is None:
+            style_sheet_str = ''
+        self.setStyleSheet(style_sheet_str)
+    ut.inject_func_as_method(label, setColorFG)
     return label
 
 
