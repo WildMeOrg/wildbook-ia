@@ -1,3 +1,22 @@
+r"""
+Helpers for graph plotting
+
+Ignore:
+    http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
+    pip uninstall pydot
+    pip uninstall pyparsing
+    pip install -Iv https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709
+    pip install pydot
+    sudo apt-get  install libgraphviz4 libgraphviz-dev -y
+    sudo apt-get install libgraphviz-dev
+    pip install pygraphviz
+    sudo pip3 install pygraphviz \
+        --install-option="--include-path=/usr/include/graphviz" \
+        --install-option="--library-path=/usr/lib/graphviz/"
+    python -c "import pygraphviz; print(pygraphviz.__file__)"
+    python3 -c "import pygraphviz; print(pygraphviz.__file__)"
+
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import numpy as np
@@ -5,192 +24,8 @@ import matplotlib as mpl
 import utool as ut
 import vtool as vt
 import six
-
-try:
-    import cv2
-except ImportError as ex:
-    print('ERROR PLOTTOOL CANNOT IMPORT CV2')
-    print(ex)
+import dtool
 (print, rrr, profile) = ut.inject2(__name__, '[df2]')
-
-
-class GraphVizConfig(object):
-    r"""
-    Ignore:
-        # Parse param definitions;
-        text = ut.readfrom(ut.truepath('~/rawhtml.txt'))
-        import re
-        subrepl_list = [
-            ('<TR>', r'\n\n'),
-            ('<\/TR>', r'\n\n'),
-            ('<A HREF=.*?>', r''),
-            ('<A NAME=.*?>', r''),
-            ('<\/A>', ''),
-            (ut.negative_lookbehind('\n') + '\n' + ut.negative_lookahead('\n'), ''),
-            ('<TD ALIGN="CENTER">', r'<TD>'),
-            (' *, *', r' | '),
-            ('<\/TD>\n*<TD>', ', '),
-            ('<TD>\n*<\TD>', ', '),
-            ('^<TD>', ''),
-            ('<\/TD>', ''),
-            ('<BR>', ''),
-            ('<BR>', ''),
-            ('<TABLE ALIGN=CENTER>', ''),
-            ('<TH.*\n', ''),
-            ('</TABLE>', ''),
-        ]
-        new_text = text
-        for sub, repl in subrepl_list:
-            new_text = re.sub(sub, repl, new_text, flags=re.MULTILINE)
-        new_text = new_text.replace('&#60;', '<')
-        new_text = new_text.replace('&#62;', '>')
-        new_text = ut.remove_doublenewlines(new_text)
-        print(new_text)
-        row_list = [r.split(',') for r in new_text.split('\n') if r]
-        row_list = [[c.strip() for c in r] for r in row_list]
-
-        column_lbls = ['Name', 'Used By', 'Type', 'Default', 'Minimum', 'Notes']
-        column_list = ut.listT(row_list)
-
-        csv_str = (ut.make_standard_csv(column_list, column_lbls))
-        ut.writeto('tmp.csv', csv_str)
-        df = pandas.read_csv('tmp.csv')
-
-        usedby = [''.join(sorted(tags)) for tags in df['Used By'].tolist()]
-        df['Used By'][:] = usedby
-
-        minim = ['-' if tags is np.nan else tags for tags in df['Minimum'].tolist()]
-        df['Minimum'][:] = minim
-        print(df.to_string())
-
-        notes = ['' if tags is np.nan else tags.replace(' only', '').strip() for tags in df['Notes'].tolist()]
-        unique_tags = ut.unique(ut.flatten([t.strip().split('|') for t in notes]))
-        unique_tags = ut.unique([t.strip().replace('not ', '') for t in unique_tags])
-        valid_progs = ut.unique([t for t in unique_tags if t])
-        #df['Notes'][:] = notes
-        #print(df.to_string())
-
-        flags = ['N' in tags for tags in df['Used By'].tolist()]
-        sortx = ut.argsort(flags)[::-1]
-        idx = ut.where(flags)
-        df_nodes = df.take(idx)
-
-        progs = ['dot', 'neato', 'svg', 'postscript', 'map', 'patchwork', 'write']
-
-        def expand_tags(tag):
-            extag = [t.strip() for t in tag.split('|')]
-            if len(''.join(extag)) == 0:
-                extag = valid_progs
-            extag2 = []
-            remove_tags = []
-            for t in extag:
-                if t.startswith('not '):
-                    remove = t[4:]
-                    remove_tags.append(remove)
-                else:
-                    extag2.append(t)
-            extag2.extend(ut.setdiff(valid_progs, remove_tags))
-            return extag
-
-        def usedby(df, opts):
-            notes = df['Notes'].tolist()
-            notes = ['' if t is np.nan else t for t in notes]
-            notes = [t.replace(' only', '').strip() for t in notes]
-            extags = [expand_tags(t) for t in notes]
-            flag_list = [[prog in exts for exts in extags] for prog in opts]
-            flags = ut.or_lists(*flag_list)
-            hasany_idx = ut.where(flags)
-            subdf = df.take(hasany_idx)
-            return subdf
-
-        def print_useful(df):
-            print(df.sort(['Used By', 'Notes', 'Name']).to_string())
-
-        # In the Used By field, the characters E, N, G, S and C represent edges,
-        # nodes, the root graph, subgraphs and cluster subgraphs, respectively.
-        #T his field indicates which graph component uses the attribute.
-
-        # At present, most device-independent units are either inches or points,
-        # which we take as 72 points per inch.
-
-
-        df_nd = usedby(df, ['neato', 'dot'])
-        print_useful(df_nd)
-
-        dotneato_nodes = df_nodes.take(idx2)
-
-        dotneato_nodes = df.take(idx2)
-
-        print(df_.to_string())
-        print(dotneato_nodes.sort('Used By').to_string())
-
-        Node Props:
-            colorscheme    CEGN           string                                       ""              NaN
-              fontcolor    CEGN            color                                    black              NaN
-               fontname    CEGN           string                            "Times-Roman"              NaN
-               fontsize    CEGN           double                                     14.0              NaN
-                  label    CEGN        lblString           "&#92;N" (nodes)"" (otherwise)              NaN
-              nojustify    CEGN             bool                                    false              NaN
-                  style    CEGN            style                                       ""              NaN
-                  color     CEN   colorcolorList                                    black              NaN
-              fillcolor     CEN   colorcolorList          lightgrey(nodes)black(clusters)              NaN
-                  layer     CEN       layerRange                                       ""              NaN
-               penwidth     CEN           double                                      1.0              NaN
-           radientangle     CGN              int                                       ""              NaN
-               labelloc     CGN           string  "t"(clusters)"b"(root graphs)"c"(nodes)              NaN
-                 margin     CGN      doublepoint                       <device-dependent>              NaN
-                  sortv     CGN              int                                        0              NaN
-            peripheries      CN              int          shape default(nodes)1(clusters)              NaN
-              showboxes     EGN              int                                        0         dot only
-                comment     EGN           string                                       ""              NaN
-                    pos      EN  pointsplineType                                      NaN              NaN
-                 xlabel      EN        lblString                                       ""              NaN
-               ordering      GN           string                                       ""         dot only
-                  group       N           string                                       ""         dot only
-                    pin       N             bool                                    false fdp | neato only
-             distortion       N           double                                      0.0              NaN
-              fixedsize       N       boolstring                                    false              NaN
-                 height       N           double                                      0.5              NaN
-                  image       N           string                                       ""              NaN
-             imagescale       N       boolstring                                    false              NaN
-            orientation       N           double                                      0.0              NaN
-                regular       N             bool                                    false              NaN
-           samplepoints       N              int      8(output)20(overlap and image maps)              NaN
-                  shape       N            shape                                  ellipse              NaN
-              shapefile       N           string                                       ""              NaN
-                  sides       N              int                                        4              NaN
-                   skew       N           double                                      0.0              NaN
-                  width       N           double                                     0.75              NaN
-                      z       N           double                                      0.0              NaN
-    """
-    # TODO: make a gridsearchable config for layouts
-    def get_param_info_list(self):
-        param_info_list = [
-            # GENERAL
-            ut.ParamInfo('splines', 'spline', valid_values=[
-                'none', 'line', 'polyline', 'curved', 'ortho', 'spline']),
-            ut.ParamInfo('pack', True),
-            ut.ParamInfo('packmode', 'cluster'),
-            #ut.ParamInfo('nodesep', ?),
-            # NOT DOT
-            ut.ParamInfo('overlap', 'prism', valid_values=[
-                'true', 'false', 'prism', 'ipsep']),
-            ut.ParamInfo('sep', 1 / 8),
-            ut.ParamInfo('esep', 1 / 8),  # stricly  less than sep
-            # NEATO ONLY
-            ut.ParamInfo('mode', 'major', valid_values=['heir', 'KK', 'ipsep']),
-            #kwargs['diredgeconstraints'] = 'heir'
-            #kwargs['inputscale'] = kwargs.get('inputscale', 72)
-            #kwargs['Damping'] = kwargs.get('Damping', .1)
-            # DOT ONLY
-            ut.ParamInfo('rankdir', 'LR', valid_values=['LR', 'RL', 'TB', 'BT']),
-            ut.ParamInfo('ranksep', 2.5),
-            ut.ParamInfo('nodesep', 2.0),
-            ut.ParamInfo('clusterrank', 'local', valid_values=['local', 'global'])
-            # OUTPUT ONLY
-            #kwargs['dpi'] = kwargs.get('dpi', 1.0)
-        ]
-        return param_info_list
 
 
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
@@ -203,21 +38,6 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         node_size (int): (default = 1100)
         fnum (int):  figure number(default = None)
         pnum (tuple):  plot number(default = None)
-
-    Ignore:
-        http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
-        pip uninstall pydot
-        pip uninstall pyparsing
-        pip install -Iv https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709
-        pip install pydot
-        sudo apt-get  install libgraphviz4 libgraphviz-dev -y
-        sudo apt-get install libgraphviz-dev
-        pip install pygraphviz
-        sudo pip3 install pygraphviz \
-            --install-option="--include-path=/usr/include/graphviz" \
-            --install-option="--library-path=/usr/lib/graphviz/"
-        python -c "import pygraphviz; print(pygraphviz.__file__)"
-        python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
     CommandLine:
         python -m plottool.nx_helpers --exec-show_nx --show
@@ -262,17 +82,19 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
     node_pos = pos
     edge_pos = None
     layout_dict = {}
+    edge_endpoints = None
     if node_pos is None:
         layout_dict = get_nx_layout(graph, layout, layoutkw=layoutkw)
         node_pos = layout_dict['node_pos']
         edge_pos = layout_dict['edge_pos']
+        edge_endpoints = layout_dict['edge_endpoints']
 
     # zoom = kwargs.pop('zoom', .4)
     node_size = layout_dict['node_size']
     frameon = kwargs.pop('frameon', True)
     splines = layout_dict['splines']
     draw_network2(graph, node_pos, ax, edge_pos=edge_pos, splines=splines,
-                  node_size=node_size, **kwargs)
+                  node_size=node_size, edge_endpoints=edge_endpoints, **kwargs)
     ax.grid(False)
     pt.plt.axis('equal')
 
@@ -295,6 +117,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
 
     plotinfo = {
         'pos': node_pos,
+        'node_size': node_size,
     }
 
     if img_dict is not None and len(img_dict) > 0:
@@ -302,18 +125,164 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         pos_list = ut.take(node_pos, node_list)
         img_list = ut.take(img_dict, node_list)
         size_list = ut.take(node_size, node_list)
+        color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
         #node_attrs = ut.dict_take(graph.node, node_list)
         # Rename to node_scale?
         #scale_list = np.array(ut.dict_take_column(node_attrs, 'scale',
         #                                          default=None))
         #img_list = [img if scale is None else vt.resize_image_by_scale(img, scale)
         #            for scale, img in zip(scale_list, img_list)]
-        imgdat = pt.netx_draw_images_at_positions(img_list, pos_list, size_list, frameon=frameon)
+        imgdat = pt.netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, frameon=frameon)
         plotinfo['imgdat'] = imgdat
 
     if title is not None:
         pt.set_title(title)
     return plotinfo
+
+
+def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, frameon=True):
+    """
+    Overlays images on a networkx graph
+
+    References:
+        https://gist.github.com/shobhit/3236373
+        http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+        http://stackoverflow.com/questions/11487797/mpl-basemap-overlay-small-image
+        http://matplotlib.org/api/text_api.html
+        http://matplotlib.org/api/offsetbox_api.html
+
+    TODO: look into DraggableAnnotation
+    """
+    print('[viz_graph] drawing %d images' % len(img_list))
+    # Thumb stackartist
+    import plottool as pt
+    ax  = pt.gca()
+    artist_list = []
+    offset_img_list = []
+
+    # Ensure all images have been read
+    img_list_ = [vt.convert_colorspace(vt.imread(img), 'RGB')
+                 if isinstance(img, six.string_types) else img
+                 for img in img_list]
+    size_list_ = [vt.get_size(img) if size is None else size
+                  for size, img in zip(size_list, img_list)]
+
+    as_offset_image = False
+
+    if as_offset_image:
+        # THIS DOES NOT DO WHAT I WANT
+        # Scales the image with data coords
+        from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+        bboxkw = dict(
+            xycoords='data',
+            boxcoords='offset points',
+            #boxcoords='data',
+            pad=0.25, frameon=frameon,
+            # frameon=False, bboxprops=dict(fc="cyan"),
+            # arrowprops=dict(arrowstyle="->"))
+        )
+        for pos, img in zip(pos_list, img_list_):
+            offset_img = OffsetImage(img, zoom=.4)
+            artist = AnnotationBbox(offset_img, pos, xybox=(-0., 0.), **bboxkw)
+            offset_img_list.append(offset_img)
+            artist_list.append(artist)
+    else:
+        # THIS DOES EXACTLY WHAT I WANT
+        # Ties the image to data coords
+        for pos, img, size, color in zip(pos_list, img_list_, size_list_, color_list):
+            bbox = vt.bbox_from_center_wh(pos, size)
+            extent = vt.extent_from_bbox(bbox)
+            pt.plt.imshow(img, extent=extent)
+            if frameon:
+                alpha = 1
+                if color is None:
+                    color = pt.BLACK
+                    alpha = 0
+                    #color = pt.WHITE
+                #color = pt.ORANGE
+                patch = pt.make_bbox(bbox, bbox_color=color, ax=ax, lw=3, alpha=alpha)
+                artist_list.append(patch)
+    for artist in artist_list:
+        ax.add_artist(artist)
+
+    imgdat = {
+        'offset_img_list': offset_img_list,
+        'artist_list': artist_list,
+    }
+    return imgdat
+
+
+class GraphVizLayoutConfig(dtool.Config):
+    r"""
+    Ignore:
+        Node Props:
+            colorscheme    CEGN           string                NaN
+              fontcolor    CEGN            color                NaN
+               fontname    CEGN           string                NaN
+               fontsize    CEGN           double                NaN
+                  label    CEGN        lblString                NaN
+              nojustify    CEGN             bool                NaN
+                  style    CEGN            style                NaN
+                  color     CEN   colorcolorList                NaN
+              fillcolor     CEN   colorcolorList                NaN
+                  layer     CEN       layerRange                NaN
+               penwidth     CEN           double                NaN
+           radientangle     CGN              int                NaN
+               labelloc     CGN           string                NaN
+                 margin     CGN      doublepoint                NaN
+                  sortv     CGN              int                NaN
+            peripheries      CN              int                NaN
+              showboxes     EGN              int           dot only
+                comment     EGN           string                NaN
+                    pos      EN  pointsplineType                NaN
+                 xlabel      EN        lblString                NaN
+               ordering      GN           string           dot only
+                  group       N           string           dot only
+                    pin       N             bool   fdp | neato only
+             distortion       N           double                NaN
+              fixedsize       N       boolstring                NaN
+                 height       N           double                NaN
+                  image       N           string                NaN
+             imagescale       N       boolstring                NaN
+            orientation       N           double                NaN
+                regular       N             bool                NaN
+           samplepoints       N              int                NaN
+                  shape       N            shape                NaN
+              shapefile       N           string                NaN
+                  sides       N              int                NaN
+                   skew       N           double                NaN
+                  width       N           double                NaN
+                      z       N           double                NaN
+    """
+    # TODO: make a gridsearchable config for layouts
+    @staticmethod
+    def get_param_info_list():
+        param_info_list = [
+            # GENERAL
+            ut.ParamInfo('splines', 'spline', valid_values=[
+                'none', 'line', 'polyline', 'curved', 'ortho', 'spline']),
+            ut.ParamInfo('pack', True),
+            ut.ParamInfo('packmode', 'cluster'),
+            #ut.ParamInfo('nodesep', ?),
+            # NOT DOT
+            ut.ParamInfo('overlap', 'prism', valid_values=[
+                'true', 'false', 'prism', 'ipsep']),
+            ut.ParamInfo('sep', 1 / 8),
+            ut.ParamInfo('esep', 1 / 8),  # stricly  less than sep
+            # NEATO ONLY
+            ut.ParamInfo('mode', 'major', valid_values=['heir', 'KK', 'ipsep']),
+            #kwargs['diredgeconstraints'] = 'heir'
+            #kwargs['inputscale'] = kwargs.get('inputscale', 72)
+            #kwargs['Damping'] = kwargs.get('Damping', .1)
+            # DOT ONLY
+            ut.ParamInfo('rankdir', 'LR', valid_values=['LR', 'RL', 'TB', 'BT']),
+            ut.ParamInfo('ranksep', 2.5),
+            ut.ParamInfo('nodesep', 2.0),
+            ut.ParamInfo('clusterrank', 'local', valid_values=['local', 'global'])
+            # OUTPUT ONLY
+            #kwargs['dpi'] = kwargs.get('dpi', 1.0)
+        ]
+        return param_info_list
 
 
 def get_nx_layout(graph, layout, layoutkw=None):
@@ -334,7 +303,6 @@ def get_nx_layout(graph, layout, layoutkw=None):
         layoutkw = {}
     layout_info = {}
 
-    #print('layout = %r' % (layout,))
     if layout == 'agraph':
         # PREFERED LAYOUT WITH MOST CONTROL
         _, layout_info = nx_agraph_layout(layout_graph, **layoutkw)
@@ -363,6 +331,7 @@ def get_nx_layout(graph, layout, layoutkw=None):
     layout_dict['edge_pos'] = layout_info.get('edge_pos', None)
     layout_dict['splines'] = layout_info.get('splines', 'line')
     layout_dict['node_size'] = layout_info.get('node_size', None)
+    layout_dict['edge_endpoints'] = layout_info.get('edge_endpoints', None)
     return layout_dict
 
 
@@ -370,7 +339,6 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
     r"""
     References:
         http://www.graphviz.org/doc/info/attrs.html
-
     """
     import networkx as nx
     import pygraphviz
@@ -381,33 +349,22 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
     node_pos = {}
     node_size = {}
     edge_pos = {}
+    edge_endpoints = {}
 
     kwargs = kwargs.copy()
     factor = kwargs.pop('factor', 1.0)
     prog = kwargs.pop('prog', 'dot')
 
     if True:
-        #kwargs['ratio'] = 'compress'
-        #kwargs['ratio'] = .7
-        #kwargs['size'] = '10,2'
-        #kwargs['pagedir'] = 'LB'
-        #kwargs['landscape'] = 'true'
-        #kwargs['imagescale'] = kwargs.get('imagescale', 'true')
-        #kwargs['fixedsize'] = kwargs.get('fixedsize', 'true')
         kwargs['splines'] = kwargs.get('splines', 'spline')
-        #kwargs['splines'] = kwargs.get('splines', 'polyline')
         kwargs['pack'] = kwargs.get('pack', 'true')
         kwargs['packmode'] = kwargs.get('packmode', 'cluster')
     if prog == 'dot':
-        #kwargs['ranksep'] = kwargs.get('ranksep', 2.5 * factor)
-        #kwargs['nodesep'] = kwargs.get('nodesep', 2 * factor)
         kwargs['ranksep'] = kwargs.get('ranksep', 1.5 * factor)
         #kwargs['rankdir'] = kwargs.get('rankdir', 'LR')
         kwargs['nodesep'] = kwargs.get('nodesep', 1 * factor)
         kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
     if prog != 'dot':
-        #kwargs['overlap_scaling'] = .01
-        #kwargs['overlap'] = kwargs.get('overlap', 'false')
         kwargs['overlap'] = kwargs.get('overlap', 'prism')
         kwargs['sep'] = kwargs.get('sep', 1 / 8.)
         kwargs['esep'] = kwargs.get('esep', (1 / 8) * .8)
@@ -494,11 +451,11 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
     # Run layout
     # print('BEFORE LAYOUT')
     print('prog = %r' % (prog,))
-    # print(agraph)
+    #print(agraph)
     agraph.layout(prog=prog, args=args)
     agraph.draw('test_graphviz_draw.png')
     # print('AFTER LAYOUT')
-    # print(agraph)
+    print(agraph)
     #ratio_scale = 2.0
     ratio_scale = 1.0
 
@@ -526,6 +483,14 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
             # FIXME: not sure I'm parsing this correctly
             edge_ctrlpts = [tuple([float(f) for f in ea if f not in 'es'])
                             for ea in strtup_list]
+            if len(strtup_list) > 0:
+                # append endpoint
+                ea0 = strtup_list[0]
+                if ea0[0] == 'e':
+                    endpoint = tuple([float(f) for f in ea0[1:]])
+                    endpoint = np.array(endpoint) / factor * ratio_scale
+                    edge_endpoints[edge] = endpoint
+                pass
             edge_ctrlpts = np.array(edge_ctrlpts)
             edge_ctrlpts /= factor
             edge_ctrlpts[:, 0] *= ratio_scale
@@ -538,6 +503,7 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
         splines=splines,
         edge_pos=edge_pos,
         node_size=node_size,
+        edge_endpoints=edge_endpoints,
     )
 
     return graph, layout_info
@@ -564,7 +530,7 @@ def _get_node_size(graph, node, node_size):
 
 def draw_network2(graph, node_pos, ax,
                   hacknoedge=False, hacknonode=False, splines='line',
-                  as_directed=None, edge_pos=None, node_size=None, use_arc=True):
+                  as_directed=None, edge_pos=None, edge_endpoints=None, node_size=None, use_arc=True):
     """
     fancy way to draw networkx graphs without directly using networkx
     """
@@ -729,28 +695,7 @@ def draw_network2(graph, node_pos, ax,
             #color = data.get('color', color)[0:3]
             start_point = pts[offset]
             other_points = pts[offset + 1:].tolist()  # [0:3]
-            end_point = np.array(other_points[-1])
             verts = [start_point] + other_points
-
-            xy1 = node_pos[edge[0]]
-            xy2 = node_pos[edge[1]]
-            wh1 = _get_node_size(graph, edge[0], node_size)
-            wh2 = _get_node_size(graph, edge[0], node_size)
-
-            bbox1 = vt.bbox_from_xywh(xy1, wh1, [.5, .5])
-            bbox2 = vt.bbox_from_xywh(xy2, wh2, [.5, .5])
-
-            #bbox1_verts = np.array(vt.verts_from_bbox(bbox1, close=True))
-            #pt.plt.plot(bbox1_verts.T[0], bbox1_verts.T[1], 'b-')
-            #bbox2_verts = np.array(vt.verts_from_bbox(bbox2, close=True))
-            #pt.plt.plot(bbox2_verts.T[0], bbox2_verts.T[1], 'b-')
-
-            close_point1 = vt.closest_point_on_bbox(start_point, bbox1)
-            close_point2 = vt.closest_point_on_bbox(end_point, bbox2)
-            #print('edge = %r' % (edge,))
-            #print('pts = %r' % (pts,))
-            #print('close_point1 = %r' % (close_point1,))
-            #print('close_point2 = %r' % (close_point2,))
 
             MOVETO = mpl.path.Path.MOVETO
             LINETO = mpl.path.Path.LINETO
@@ -765,29 +710,40 @@ def draw_network2(graph, node_pos, ax,
             else:
                 raise AssertionError('splines = %r' % (splines,))
 
-            #print('CODE = %r' % (CODE,))
-            force_touch_bbox = False
-            if force_touch_bbox:
-                astart_code = LINETO
-            else:
-                astart_code = MOVETO
-
-            # Force edge to touch node.
-            #pt.plt.plot(close_point1[0], close_point1[1], 'go')
-            #pt.plt.plot(close_point2[0], close_point2[1], 'gx')
-            #pt.plt.plot(start_point[0], start_point[1], 'rx')
-            #pt.plt.plot(other_points[0][0], other_points[0][1], 'b-x')
+            #if offset == 1:
+            #    astart_code = LINETO
+            #else:
+            astart_code = MOVETO
 
             verts = [start_point] + other_points
             codes = [astart_code] + [CODE] * len(other_points)
-            if force_touch_bbox:
-                verts = [close_point1] + verts
-                codes = [MOVETO] + codes
-                if not as_directed:
-                    verts = verts + [close_point2]
-                    codes = codes + [LINETO]
-            #verts = [start_point] + other_points
-            #codes = [MOVETO] + [LINETO] * len(other_points)
+
+            #if offset == 1:
+            #    verts = [start_point[0]] + verts
+            #    codes = [MOVETO] + codes
+            print('verts = %r' % (verts,))
+            print('codes = %r' % (codes,))
+
+            # HACK THE ENDPOINTS TO TOUCH THE BOUNDING BOXES
+            if not as_directed:
+                if edge_endpoints is not None:
+                    endpoint = edge_endpoints.get(edge, None)
+                    if endpoint is not None:
+                        #print('endpoint = %r' % (endpoint,))
+                        verts += [endpoint]
+                        codes += [LINETO]
+                        #endpoint = np.array(other_points[-1])
+                        #xy2 = node_pos[edge[1]]
+                        #wh2 = _get_node_size(graph, edge[0], node_size)
+                        #bbox2 = vt.bbox_from_xywh(xy2, wh2, [.5, .5])
+                        #close_point2 = vt.closest_point_on_bbox(endpoint, bbox2)
+                        #verts += [close_point2]
+                        #codes += [LINETO]
+                        #print('verts = %r' % (verts,))
+                        #print('codes = %r' % (codes,))
+                        #print('close_point2 = %r' % (close_point2,))
+                        #print('endpoint = %r' % (endpoint,))
+                        #print('#other_points = %r' % (#other_points,))
 
             path = mpl.path.Path(verts, codes)
             patch = mpl.patches.PathPatch(path, facecolor='none', lw=5,
@@ -824,72 +780,6 @@ def draw_network2(graph, node_pos, ax,
         if not hacknoedge:
             for patch in edge_patch_list:
                 ax.add_patch(patch)
-
-
-def netx_draw_images_at_positions(img_list, pos_list, node_size, frameon=True):
-    """
-    Overlays images on a networkx graph
-
-    References:
-        https://gist.github.com/shobhit/3236373
-        http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
-        http://stackoverflow.com/questions/11487797/mpl-basemap-overlay-small-image
-        http://matplotlib.org/api/text_api.html
-        http://matplotlib.org/api/offsetbox_api.html
-
-    TODO: look into DraggableAnnotation
-    """
-    # from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-    print('[viz_graph] drawing %d images' % len(img_list))
-    # Thumb stackartist
-    import plottool as pt
-    ax  = pt.gca()
-    artist_list = []
-    offset_img_list = []
-
-    # bboxkw = dict(
-    #     xycoords='data',
-    #     boxcoords='offset points',
-    #     #boxcoords='data',
-    #     pad=0.25, frameon=frameon,
-    #     # frameon=False, bboxprops=dict(fc="cyan"),
-    #     # arrowprops=dict(arrowstyle="->"))
-    # )
-    for pos, img, size in zip(pos_list, img_list, node_size):
-        x, y = pos
-        if isinstance(img, six.string_types):
-            img = cv2.cvtColor(vt.imread(img), cv2.COLOR_BGR2RGB)
-        if size is not None:
-            width, height = size
-        else:
-            width, height = vt.get_size(img)
-        #print('height = %r' % (height,))
-        #print('width = %r' % (width,))
-        if False:
-            # THIS DOES NOT DO WHAT I WANT
-            # Scales the image with data coords
-            # offset_img = OffsetImage(img, zoom=zoom)
-            # artist = AnnotationBbox(offset_img, (x, y), xybox=(-0., 0.), **bboxkw)
-            # offset_img_list.append(offset_img)
-            # artist_list.append(artist)
-            pass
-
-        #offset_img = None
-
-        # THIS DOES EXACTLY WHAT I WANT
-        # Ties the image to data coords
-        pt.plt.imshow(img, extent=[x - width // 2, x + width // 2,
-                                   y - height // 2, y + height // 2])
-        #, aspect='auto')
-
-    for artist in artist_list:
-        ax.add_artist(artist)
-
-    imgdat = {
-        'offset_img_list': offset_img_list,
-        'artist_list': artist_list,
-    }
-    return imgdat
 
 
 if __name__ == '__main__':

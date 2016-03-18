@@ -1044,6 +1044,24 @@ def rotate_plot(theta=TAU / 8, ax=None):
     iup()
 
 
+def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0):
+    if ax is None:
+        ax = gca()
+    (rx, ry, rw, rh) = bbox
+    # Transformations are specified in backwards order.
+    trans_annotation = mpl.transforms.Affine2D()
+    trans_annotation.scale(rw, rh)
+    trans_annotation.rotate(theta)
+    trans_annotation.translate(rx + rw / 2, ry + rh / 2)
+    t_end = trans_annotation + ax.transData
+    bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=lw, transform=t_end)
+    bbox.set_fill(False)
+    bbox.set_alpha(alpha)
+    #bbox.set_transform(trans)
+    bbox.set_edgecolor(bbox_color)
+    return bbox
+
+
 # TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
 def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
               lbl_txtcolor=(1, 1, 1), draw_arrow=True, theta=0, ax=None, lw=2):
