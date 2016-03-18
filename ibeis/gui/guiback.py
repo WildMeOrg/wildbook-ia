@@ -1715,37 +1715,99 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def new_database(back, new_dbdir=None):
-        """ File -> New Database"""
+        """ File -> New Database
+
+        Args:
+            new_dbdir (None): (default = None)
+
+        CommandLine:
+            python -m ibeis.gui.guiback new_database --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback(defaultdb='testdb1')
+            >>> testdb0 = sysres.db_to_dbdir('testdb0')
+            >>> testdb1 = sysres.db_to_dbdir('testdb1')
+            >>> print('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
+            >>> back.open_database(testdb1)
+            >>> print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
+            >>> back.open_database(testdb0)
+            >>> import ibeis
+            >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
+            >>> dbdir = None
+            >>> result = back.new_database(dbdir)
+            >>> guitool.qtapp_loop(qwin=back.front, freq=10)
+        """
         if new_dbdir is None:
-            new_dbname = back.user_input(
-                msg='What do you want to name the new database?',
-                title='New Database')
-            if new_dbname is None or len(new_dbname) == 0:
-                print('Abort new database. new_dbname=%r' % new_dbname)
-                return
-            new_dbdir_options = ['Choose Directory', 'My Work Dir']
-            reply = back.user_option(
-                msg='Where should I put the new database?',
-                title='Import Images',
-                options=new_dbdir_options,
-                default=new_dbdir_options[1],
-                use_cache=False)
-            if reply == 'Choose Directory':
-                print('[back] new_database(): SELECT A DIRECTORY')
-                putdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
-            elif reply == 'My Work Dir':
-                putdir = back.get_work_directory()
+            old = True
+            if old:
+                new_dbname = back.user_input(
+                    msg='What do you want to name the new database?',
+                    title='New Database')
+                if new_dbname is None or len(new_dbname) == 0:
+                    print('Abort new database. new_dbname=%r' % new_dbname)
+                    return
+                    new_dbdir_options = ['Choose Directory', 'My Work Dir']
+                reply = back.user_option(
+                    msg='Where should I put the new database?',
+                    title='Import Images',
+                    options=new_dbdir_options,
+                    default=new_dbdir_options[1],
+                    use_cache=False)
+                if reply == 'Choose Directory':
+                    print('[back] new_database(): SELECT A DIRECTORY')
+                    putdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
+                elif reply == 'My Work Dir':
+                    putdir = back.get_work_directory()
+                else:
+                    print('Abort new database')
+                    return
+                new_dbdir = join(putdir, new_dbname)
+
+                if not exists(putdir):
+                    raise ValueError('Directory %r does not exist.' % putdir)
+                if exists(new_dbdir):
+                    raise ValueError('New DB %r already exists.' % new_dbdir)
+
+                ut.ensuredir(new_dbdir)
+                print('[back] new_database(new_dbdir=%r)' % new_dbdir)
+                back.open_database(dbdir=new_dbdir)
             else:
-                print('Abort new database')
-                return
-            new_dbdir = join(putdir, new_dbname)
-            if not exists(putdir):
-                raise ValueError('Directory %r does not exist.' % putdir)
-            if exists(new_dbdir):
-                raise ValueError('New DB %r already exists.' % new_dbdir)
-        ut.ensuredir(new_dbdir)
-        print('[back] new_database(new_dbdir=%r)' % new_dbdir)
-        back.open_database(dbdir=new_dbdir)
+                from guitool import QtGui
+
+                class NewDatabaseInterface(QtGui.QWidget):
+                    def __init__(self):
+                        self.vert_layout = QtGui.QVBoxLayout(self)
+                        self.chosen_name = guitool.QTextEdit()  # What do you want to name the new database
+                        self.choose_myworkdir_button = guitool.NewButton(self, 'Create database in my work dirctory.\n{myworkdir}')
+                        self.choose_directory_button = guitool.NewButton(self, 'Choose location for new database.')
+                        self.my_workdir_button = None
+                    pass
+
+                w = guitool.newWidget(None)
+                w.show()
+                # TODO
+                # http://pyqt.sourceforge.net/Docs/PyQt4/qformlayout.html
+                w.resize(700, 400)
+                # w.ui.defaultPrefsBUT.clicked.connect(back.default_config)
+                w.show()
+                from guitool.__PYQT__.QtCore import Qt  # NOQA
+                # from guitool__PYQT__ import Qt
+                # w.addLayout = guitool.newSplitter(w, Qt.Vertical)
+                # w.hlayout = QtGui.QHBoxLayout(w.layout)
+                # w.addLayout(w.hlayout)
+                hsplitter = guitool.newSplitter(w, Qt.Horizontal, verticalStretch=18)
+                w.addWidget(guitool.newTextEdit(w, 'hello'))  # What do you want to name the new database
+                # w.addWidget(guitool.newButton(w, 'hello1'))  # What do you want to name the new database
+                # w.addWidget(guitool.newButton(w, 'hello2'))  # What do you want to name the new database
+                w.addWidget(hsplitter)
+                hsplitter.addWidget(guitool.newButton(w, 'Create database in my workdir'))
+                hsplitter.addWidget(guitool.newButton(w, 'Choose location for new db'))
+                back.newdb_widget = w
+                # self.vert_layout = QtGui.QVBoxLayout(self)
+                # self.choose_myworkdir_button = guitool.NewButton(self, 'Create database in my work dirctory.\n{myworkdir}')
+                # self.choose_directory_button = guitool.NewButton(self, 'Choose location for new database.')
 
     @blocking_slot()
     def open_database(back, dbdir=None):

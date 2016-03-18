@@ -42,8 +42,6 @@ import plottool as pt
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui]')
 
 
-IBEIS_WIDGET_BASE = QtGui.QWidget
-
 VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
 WITH_GUILOG = ut.get_argflag('--guilog')
 #WITH_GUILOG = not ut.get_argflag('--noguilog')
@@ -236,6 +234,9 @@ class IBEISMainWindow(QtGui.QMainWindow):
 #############################
 ##### IBEIS GUI Widget ######
 #############################
+
+
+IBEIS_WIDGET_BASE = QtGui.QWidget
 
 
 class IBEISGuiWidget(IBEIS_WIDGET_BASE):
