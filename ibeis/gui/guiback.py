@@ -7,7 +7,7 @@ gui components is written or called from here
 TODO:
     open_database should not allow you to open subfolders
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import sys
 import functools
@@ -25,7 +25,7 @@ from ibeis.gui import guiexcept
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import newgui
 from ibeis.viz import interact
-from os.path import exists, join, dirname
+from os.path import exists, join, dirname, normpath
 from plottool import fig_presenter
 from six.moves import zip
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -36,6 +36,145 @@ VERBOSE = ut.VERBOSE
 WEB_URL = '127.0.0.1'
 WEB_PORT = 5000
 WEB_DOMAIN = '%s:%s' % (WEB_URL, WEB_PORT, )
+
+
+class NewDatabaseWidget(guitool.GuitoolWidget):
+    r"""
+    Args:
+        parent (None): (default = None)
+
+    CommandLine:
+        python -m ibeis.gui.guiback NewDatabaseWidget --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.guiback import *  # NOQA
+        >>> import guitool as gt
+        >>> guitool.ensure_qtapp()
+        >>> self = NewDatabaseWidget(back=None)
+        >>> self.resize(400, 200)
+        >>> self.show()
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
+    """
+    def initialize(self, back=None):
+        from guitool.__PYQT__.QtCore import Qt  # NOQA
+        from guitool.__PYQT__.QtGui import QSizePolicy  # NOQA
+        # Save arguments
+        if back is not None:
+            self.back = back
+            self.on_chosen = back.open_database
+            self.workdir = back.get_work_directory()
+        else:
+            self.back = None
+            self.workdir = ut.truepath('.')
+            self.on_chosen = None
+        self.dbname = 'MyNewIBEISDatabase'
+
+        # Build layout
+        self.setWindowTitle('Create a new IBEIS Database')
+        self.instructions = self.addNewLabel(
+            'Choose a name for the new database', align='center')
+        # ---
+        self.dbname_row = self.newHWidget()
+        #self.dbname_row.lbl  = self.dbname_row.addNewLabel('DBName:', align='left')
+        self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname, align='center')
+        self.dbname_row.edit.textChanged.connect(self.update_state)
+        # ---
+        self.workdir_row = self.newHWidget()
+        self.workdir_row.lbl  = self.workdir_row.addNewLabel('Current Workdir:')
+        self.workdir_row.edit = self.workdir_row.addNewLineEdit(self.workdir, align='right')
+        self.workdir_row.button = self.workdir_row.addNewButton('...',
+                                                                shrink_to_text=True,
+                                                                clicked=self.change_workdir)
+        self.workdir_row.viewbut = self.workdir_row.addNewButton('➤',
+                                                                 shrink_to_text=True,
+                                                                 clicked=self.view_workdir)
+        self.workdir_row.edit.textChanged.connect(self.update_state)
+        # ---
+        self.current_row = self.newHWidget()
+        self.create_in_workdir_but = self.newButton(
+            'Create in workdir', clicked=self.create_in_workdir)
+        #self.current_row.addWidget(self.create_in_workdir_but)
+        self.current_row.lbl  = self.current_row.addNewLabel('Current choice:', align='left')
+        self.current_row.edit = self.current_row.addNewLabel('{current_dbdir}', align='right')
+
+        self.button_row = self.newHWidget()
+        self.button_row.addNewButton('Cancel', clicked=self.press_cancel)
+        self.button_row.addNewButton('Create in a different directory', clicked=self.create_in_customdir)
+        self.button_row.addWidget(self.create_in_workdir_but)
+
+        self.update_state()
+
+    def update_state(self):
+        workdir = ut.truepath(self.workdir_row.edit.text())
+        dbname = self.dbname_row.edit.text()
+        current_choice = normpath(join(workdir, dbname))
+        workdir_exists = ut.checkpath(workdir, verbose=False)
+        print('workdir_exists = %r' % (workdir_exists,))
+        if workdir_exists:
+            self.current_row.edit.setColorFG(None)
+            if ut.checkpath(current_choice, verbose=False):
+                self.current_row.edit.setColorFG((255, 0, 0))
+        else:
+            self.current_row.edit.setColorFG((255, 0, 0))
+        #self.current_row.
+        #pass
+        self.current_row.edit.setText(current_choice)
+        pass
+
+    def view_workdir(self):
+        ut.view_directory(ut.truepath(self.workdir_row.edit.text()))
+
+    def change_workdir(self):
+        print('change workdir')
+        ut.colorprint('change workdir', 'yellow')
+        new_workdir = guitool.select_directory(
+            'Select new work directory',
+            other_sidebar_dpaths=[self.workdir_row.edit.text()])
+        if new_workdir is not None:
+            print('new_workdir = %r' % (new_workdir,))
+            self.workdir_row.edit.setText(new_workdir)
+            self.update_state()
+            if self.back is not None:
+                import ibeis
+                ibeis.sysres.set_workdir(work_dir=new_workdir, allow_gui=False)
+
+    def create_in_workdir(self):
+        print('Create in Workdir')
+        ut.colorprint('Create in Workdir', 'yellow')
+        self.choose_new_dbdir(self.current_row.edit.text())
+
+    def create_in_customdir(self):
+        print('Create in Custom')
+        new_dbdir = guitool.select_directory(
+            'Select directory for %s' % (self.dbname),
+            other_sidebar_dpaths=[self.workdir_row.edit.text()])
+        current_choice = normpath(join(new_dbdir, self.dbname))
+        self.choose_new_dbdir(current_choice)
+
+    def choose_new_dbdir(self, dbdir):
+        print('Chose dbdir = %r' % (dbdir,))
+        ut.colorprint('Chose dbdir = %r' % (dbdir,), 'yellow')
+        if self.on_chosen is not None:
+            self.on_chosen(dbdir)
+        self.close()
+
+    def press_cancel(self):
+        print('Cancel')
+        ut.colorprint('Cancel', 'yellow')
+        self.close()
+
+        #self.mdia = QtGui.QMdiArea()
+        #setWindowFlags(Qt.Widget)
+        #dialog = guitool.newDirectoryDialog('.')
+        #self.layout.addWidget(dialog)
+        #self.mdia.addSubWindow(dialog)
+
+        #self.layout.addWidget(self.mdia)
+        #self.hbox = QtGui.QHBoxLayout(self)
+        #self.form.addChildLayout(self.hbox)
+        #self.form.addRow(self.newButton('Create'), self.newButton('Cancel'))
 
 
 def backreport(func):
@@ -118,6 +257,22 @@ GUIBACK_BASE = QtCore.QObject
 class MainWindowBackend(GUIBACK_BASE):
     """
     Sends and recieves signals to and from the frontend
+
+    Args:
+        back (?):
+        ibs (ibeis.IBEISController):  image analysis api(default = None)
+
+    CommandLine:
+        python -m ibeis.gui.guiback MainWindowBackend --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.guiback import *  # NOQA
+        >>> import ibeis
+        >>> back = testdata_guiback(defaultdb=None)
+        >>> ut.quit_if_noshow()
+        >>> ut.quit_if_noshow()
+        >>> guitool.qtapp_loop(qwin=back.front, freq=10)
     """
     # Backend Signals
     updateWindowTitleSignal = signal_(str)
@@ -1726,21 +1881,16 @@ class MainWindowBackend(GUIBACK_BASE):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back = testdata_guiback(defaultdb='testdb1')
-            >>> testdb0 = sysres.db_to_dbdir('testdb0')
-            >>> testdb1 = sysres.db_to_dbdir('testdb1')
-            >>> print('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
-            >>> back.open_database(testdb1)
-            >>> print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
-            >>> back.open_database(testdb0)
             >>> import ibeis
-            >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
+            >>> #back = testdata_guiback(defaultdb='testdb1')
+            >>> back = testdata_guiback(defaultdb=None)
             >>> dbdir = None
             >>> result = back.new_database(dbdir)
+            >>> ut.quit_if_noshow()
             >>> guitool.qtapp_loop(qwin=back.front, freq=10)
         """
         if new_dbdir is None:
-            old = True
+            old = False
             if old:
                 new_dbname = back.user_input(
                     msg='What do you want to name the new database?',
@@ -1757,7 +1907,9 @@ class MainWindowBackend(GUIBACK_BASE):
                     use_cache=False)
                 if reply == 'Choose Directory':
                     print('[back] new_database(): SELECT A DIRECTORY')
-                    putdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
+                    putdir = guitool.select_directory(
+                        'Select new database directory',
+                        other_sidebar_dpaths=[back.get_work_directory()])
                 elif reply == 'My Work Dir':
                     putdir = back.get_work_directory()
                 else:
@@ -1774,40 +1926,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 print('[back] new_database(new_dbdir=%r)' % new_dbdir)
                 back.open_database(dbdir=new_dbdir)
             else:
-                from guitool import QtGui
-
-                class NewDatabaseInterface(QtGui.QWidget):
-                    def __init__(self):
-                        self.vert_layout = QtGui.QVBoxLayout(self)
-                        self.chosen_name = guitool.QTextEdit()  # What do you want to name the new database
-                        self.choose_myworkdir_button = guitool.NewButton(self, 'Create database in my work dirctory.\n{myworkdir}')
-                        self.choose_directory_button = guitool.NewButton(self, 'Choose location for new database.')
-                        self.my_workdir_button = None
-                    pass
-
-                w = guitool.newWidget(None)
-                w.show()
-                # TODO
-                # http://pyqt.sourceforge.net/Docs/PyQt4/qformlayout.html
-                w.resize(700, 400)
-                # w.ui.defaultPrefsBUT.clicked.connect(back.default_config)
-                w.show()
                 from guitool.__PYQT__.QtCore import Qt  # NOQA
-                # from guitool__PYQT__ import Qt
-                # w.addLayout = guitool.newSplitter(w, Qt.Vertical)
-                # w.hlayout = QtGui.QHBoxLayout(w.layout)
-                # w.addLayout(w.hlayout)
-                hsplitter = guitool.newSplitter(w, Qt.Horizontal, verticalStretch=18)
-                w.addWidget(guitool.newTextEdit(w, 'hello'))  # What do you want to name the new database
-                # w.addWidget(guitool.newButton(w, 'hello1'))  # What do you want to name the new database
-                # w.addWidget(guitool.newButton(w, 'hello2'))  # What do you want to name the new database
-                w.addWidget(hsplitter)
-                hsplitter.addWidget(guitool.newButton(w, 'Create database in my workdir'))
-                hsplitter.addWidget(guitool.newButton(w, 'Choose location for new db'))
-                back.newdb_widget = w
-                # self.vert_layout = QtGui.QVBoxLayout(self)
-                # self.choose_myworkdir_button = guitool.NewButton(self, 'Create database in my work dirctory.\n{myworkdir}')
-                # self.choose_directory_button = guitool.NewButton(self, 'Choose location for new database.')
+                from guitool.__PYQT__ import QtGui  # NOQA
+                dlg = NewDatabaseWidget.as_dialog(back.front, back=back)
+                dlg.exec_()
 
     @blocking_slot()
     def open_database(back, dbdir=None):
@@ -2325,9 +2447,13 @@ class MainWindowBackend(GUIBACK_BASE):
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):
     import ibeis
-    print('launching ipython notebook')
-    main_locals = ibeis.main(defaultdb=defaultdb, **kwargs)
-    back = main_locals['back']
+    print('testdata guiback')
+    if defaultdb is None:
+        back = ibeis.main_module._init_gui()
+        #back = MainWindowBackend()
+    else:
+        main_locals = ibeis.main(defaultdb=defaultdb, **kwargs)
+        back = main_locals['back']
     return back
 
 

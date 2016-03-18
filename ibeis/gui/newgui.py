@@ -431,7 +431,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
-        _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt)
+        _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt, verticalStretch=1)
 
         primary_fontkw = dict(bold=True, pointSize=11)
         secondary_fontkw = dict(bold=False, pointSize=9)

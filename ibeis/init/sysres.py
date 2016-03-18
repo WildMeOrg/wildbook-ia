@@ -32,7 +32,10 @@ def _ibeis_cache_dump():
 
 
 def _ibeis_cache_write(key, val):
-    """ Writes to global IBEIS cache """
+    """ Writes to global IBEIS cache
+
+    TODO: Use text based config file
+    """
     print('[sysres] set %s=%r' % (key, val))
     util_cache.global_cache_write(key, val, appname=__APPNAME__)
 
