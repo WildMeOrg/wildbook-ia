@@ -116,9 +116,14 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
 
     def ensure_names_are_connected(graph):
         aug_graph = graph.copy().to_undirected()
-        unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
+        orig_edges = aug_graph.edges()
+        unflat_edges = [list(itertools.product(aids, aids)) for aids in aids_list]
         aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-        aug_graph.add_edges_from(aid_pairs)
+        new_edges = ut.setdiff_ordered(aid_pairs, aug_graph.edges())
+        aug_graph.add_edges_from(new_edges)
+        # Ensure the largest possible set of original edges is in the MST
+        nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 1.0) for edge in new_edges]))
+        nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 0.1) for edge in orig_edges]))
         for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
             mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
             for edge in mst_sub_graph.edges():
