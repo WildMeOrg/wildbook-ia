@@ -21,13 +21,6 @@ def verts_list_from_bboxes_list(bboxes_list):
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
 
 
-def bbox_center(bbox):
-    (x, y, w, h) = bbox
-    centerx = x + (w / 2)
-    centery = y + (h / 2)
-    return centerx, centery
-
-
 def verts_from_bbox(bbox, close=False):
     r"""
     Args:
@@ -271,6 +264,27 @@ def bbox_from_xywh(xy, wh, xy_rel_pos=[0, 0]):
     tl_y = xy[1] - to_tly
     bbox = [tl_x, tl_y, wh[0], wh[1]]
     return bbox
+
+
+#def tlbr_from_bbox(bbox):
+def extent_from_bbox(bbox):
+    """ returns tlbr_x, tlbr_y from tlwh """
+    tl_x, tl_y, w, h = bbox
+    br_x = tl_x + w
+    br_y = tl_y + h
+    extent = [tl_x, br_x, tl_y, br_y]
+    return extent
+
+
+def bbox_from_center_wh(center_xy, wh):
+    return bbox_from_xywh(center_xy, wh, xy_rel_pos=[.5, .5])
+
+
+def bbox_center(bbox):
+    (x, y, w, h) = bbox
+    centerx = x + (w / 2)
+    centery = y + (h / 2)
+    return centerx, centery
 
 
 if __name__ == '__main__':
