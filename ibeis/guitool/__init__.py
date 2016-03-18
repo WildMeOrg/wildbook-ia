@@ -134,58 +134,63 @@ if DOELSE:
     from guitool import qtype
     from guitool import stripe_proxy_model
     from guitool import filter_proxy_model
-    from guitool.guitool_main import (IS_ROOT_WINDOW, QAPP, QUIET, VERBOSE,
-                                      activate_qwindow, ensure_qapp,
-                                      ensure_qtapp, exit_application,
-                                      get_qtapp, init_qtapp,
-                                      ping_python_interpreter,
-                                      pyqtRemoveInputHook, qtapp_loop,
-                                      qtapp_loop_nonblocking,
-                                      remove_pyqt_input_hook,)
-    from guitool.guitool_components import (ALIGN_DICT, QSizePolicy,
-                                            adjust_font, getAvailableFonts,
-                                            layoutSplitter, make_style_sheet,
-                                            msg_event, newButton, newCheckBox,
-                                            newComboBox, newFont, newLabel,
-                                            newLineEdit, newMenu,
-                                            newMenuAction, newMenubar,
-                                            newOutputLog, newProgressBar,
-                                            newQPoint, newSizePolicy,
-                                            newSplitter, newTabWidget,
-                                            newTextEdit, newWidget,)
-    from guitool.guitool_dialogs import (SELDIR_CACHEID, are_you_sure,
-                                         build_nested_qmenu,
-                                         connect_context_menu, msgbox,
-                                         newFileDialog, popup_menu,
-                                         select_directory, select_files,
-                                         select_images, user_info, user_input,
-                                         user_option, user_question,)
-    from guitool.guitool_decorators import (DEBUG, checks_qt_error, signal_,
-                                            slot_,)
-    from guitool.guitool_misc import (GUILoggingHandler, GUILoggingSender,
-                                      QLoggedOutput, WITH_GUILOG,
-                                      get_cplat_tab_height,
-                                      get_view_selection_as_str,)
-    from guitool.api_item_model import (APIItemModel, API_MODEL_BASE,
-                                        ChangeLayoutContext, QVariantHack,
-                                        default_method_decorator, updater,)
-    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE,)
-    from guitool.api_table_view import (APITableView,)
-    from guitool.qtype import (ItemDataRoles, LOCALE, QLocale, QString,
-                               QT_BUTTON_TYPES, QT_COMBO_TYPES,
-                               QT_DELEGATE_TYPES, QT_ICON_TYPES,
-                               QT_IMAGE_TYPES, QT_PIXMAP_TYPES, QVariant,
-                               SIMPLE_CASTING, cast_from_qt, cast_into_qt,
-                               infer_coltype, locale_float, numpy_to_qicon,
-                               numpy_to_qpixmap, qindexinfo, to_qcolor,)
-    from guitool.stripe_proxy_model import (BASE_CLASS, META_CLASS, SIX_BASE,
-                                            StripeProxyModel,)
-    from guitool.filter_proxy_model import (FilterProxyModel,)
+    from guitool.guitool_main import (GuitoolApplication, IS_ROOT_WINDOW, QAPP, 
+                                      QUIET, VERBOSE, activate_qwindow, 
+                                      ensure_qapp, ensure_qtapp, 
+                                      exit_application, get_qtapp, init_qtapp, 
+                                      ping_python_interpreter, 
+                                      pyqtRemoveInputHook, qtapp_loop, 
+                                      qtapp_loop_nonblocking, 
+                                      remove_pyqt_input_hook,) 
+    from guitool.guitool_components import (ALIGN_DICT, ProgressHooks, 
+                                            QSizePolicy, SHOW_TEXT, 
+                                            adjust_font, getAvailableFonts, 
+                                            layoutSplitter, make_style_sheet, 
+                                            msg_event, newButton, newCheckBox, 
+                                            newComboBox, newFont, newLabel, 
+                                            newLineEdit, newMenu, 
+                                            newMenuAction, newMenubar, 
+                                            newOutputLog, newProgressBar, 
+                                            newQPoint, newSizePolicy, 
+                                            newSplitter, newTabWidget, 
+                                            newTextEdit, newWidget,) 
+    from guitool.guitool_dialogs import (ResizableMessageBox, SELDIR_CACHEID, 
+                                         are_you_sure, build_nested_qmenu, 
+                                         connect_context_menu, msgbox, 
+                                         newFileDialog, popup_menu, 
+                                         select_directory, select_files, 
+                                         select_images, user_info, user_input, 
+                                         user_option, user_question,) 
+    from guitool.guitool_decorators import (DEBUG, checks_qt_error, signal_, 
+                                            slot_,) 
+    from guitool.guitool_misc import (BlockContext, GUILoggingHandler, 
+                                      GUILoggingSender, QLoggedOutput, 
+                                      WITH_GUILOG, find_used_chars, 
+                                      get_cplat_tab_height, 
+                                      get_view_selection_as_str, 
+                                      make_word_hotlinks,) 
+    from guitool.api_item_model import (APIItemModel, API_MODEL_BASE, 
+                                        ChangeLayoutContext, QVariantHack, 
+                                        default_method_decorator, 
+                                        simple_thumbnail_widget, updater,) 
+    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE,) 
+    from guitool.api_table_view import (APITableView,) 
+    from guitool.qtype import (ItemDataRoles, LOCALE, QLocale, QString, 
+                               QT_BUTTON_TYPES, QT_COMBO_TYPES, 
+                               QT_DELEGATE_TYPES, QT_ICON_TYPES, 
+                               QT_IMAGE_TYPES, QT_PIXMAP_TYPES, QVariant, 
+                               SIMPLE_CASTING, cast_from_qt, cast_into_qt, 
+                               infer_coltype, locale_float, numpy_to_qicon, 
+                               numpy_to_qpixmap, qindexinfo, to_qcolor,) 
+    from guitool.stripe_proxy_model import (STRIPE_PROXY_BASE, 
+                                            STRIP_PROXY_META_CLASS, 
+                                            STRIP_PROXY_SIX_BASE, 
+                                            StripeProxyModel,) 
+    from guitool.filter_proxy_model import (BASE_CLASS, FilterProxyModel,) 
     import utool
-    print, print_, printDBG, rrr, profile = utool.inject(
-        __name__, '[guitool]')
-
-
+    print, rrr, profile = utool.inject2(__name__, '[guitool]')
+    
+    
     def reassign_submodule_attributes(verbose=True):
         """
         why reloading all the modules doesnt do this I don't know
@@ -212,25 +217,40 @@ if DOELSE:
                     continue
                 seen_.add(attr)
                 setattr(guitool, attr, getattr(submod, attr))
-
-
+    
+    
     def reload_subs(verbose=True):
         """ Reloads guitool and submodules """
+        if verbose:
+            print('Reloading submodules')
         rrr(verbose=verbose)
-        def fbrrr(*args, **kwargs):
-            """ fallback reload """
-            pass
-        getattr(guitool_main, 'rrr', fbrrr)(verbose=verbose)
-        getattr(guitool_components, 'rrr', fbrrr)(verbose=verbose)
-        getattr(guitool_dialogs, 'rrr', fbrrr)(verbose=verbose)
-        getattr(guitool_decorators, 'rrr', fbrrr)(verbose=verbose)
-        getattr(guitool_misc, 'rrr', fbrrr)(verbose=verbose)
-        getattr(api_item_model, 'rrr', fbrrr)(verbose=verbose)
-        getattr(api_tree_view, 'rrr', fbrrr)(verbose=verbose)
-        getattr(api_table_view, 'rrr', fbrrr)(verbose=verbose)
-        getattr(qtype, 'rrr', fbrrr)(verbose=verbose)
-        getattr(stripe_proxy_model, 'rrr', fbrrr)(verbose=verbose)
-        getattr(filter_proxy_model, 'rrr', fbrrr)(verbose=verbose)
+        def wrap_fbrrr(mod):
+            def fbrrr(*args, **kwargs):
+                """ fallback reload """
+                if verbose:
+                    print('No fallback relaod for mod=%r' % (mod,))
+                # Breaks ut.Pref (which should be depricated anyway)
+                # import imp
+                # imp.reload(mod)
+            return fbrrr
+        def get_rrr(mod):
+            if hasattr(mod, 'rrr'):
+                return mod.rrr
+            else:
+                return wrap_fbrrr(mod)
+        def get_reload_subs(mod):
+            return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
+        get_rrr(guitool_main)(verbose=verbose)
+        get_rrr(guitool_components)(verbose=verbose)
+        get_rrr(guitool_dialogs)(verbose=verbose)
+        get_rrr(guitool_decorators)(verbose=verbose)
+        get_rrr(guitool_misc)(verbose=verbose)
+        get_rrr(api_item_model)(verbose=verbose)
+        get_rrr(api_tree_view)(verbose=verbose)
+        get_rrr(api_table_view)(verbose=verbose)
+        get_rrr(qtype)(verbose=verbose)
+        get_rrr(stripe_proxy_model)(verbose=verbose)
+        get_rrr(filter_proxy_model)(verbose=verbose)
         rrr(verbose=verbose)
         try:
             # hackish way of propogating up the new reloaded submodule attributes

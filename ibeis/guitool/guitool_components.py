@@ -392,13 +392,15 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     return outputLog
 
 
-def newTextEdit(parent, visible=True):
+def newTextEdit(parent, label=None, visible=True, label_pos='above'):
     """ This is a text area """
     outputEdit = QtGui.QTextEdit(parent)
     sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
     outputEdit.setVisible(visible)
+    if label is None:
+        pass
     setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
     return outputEdit
 
@@ -447,6 +449,38 @@ def newWidget(parent, orientation=Qt.Vertical,
               verticalSizePolicy=QSizePolicy.Expanding,
               horizontalSizePolicy=QSizePolicy.Expanding,
               verticalStretch=1):
+    r"""
+    Args:
+        parent (?):
+        orientation (Orientation): (default = 2)
+        verticalSizePolicy (Policy): (default = 7)
+        horizontalSizePolicy (Policy): (default = 7)
+        verticalStretch (int): (default = 1)
+
+    Returns:
+        ?: widget
+
+    CommandLine:
+        python -m guitool.guitool_components newWidget --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> # build test data
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> parent = None
+        >>> orientation = 2
+        >>> verticalSizePolicy = 7
+        >>> horizontalSizePolicy = 7
+        >>> verticalStretch = 1
+        >>> widget = newWidget(parent, orientation, verticalSizePolicy, horizontalSizePolicy, verticalStretch)
+        >>> widget.show()
+        >>> widget.resize(200, 200)
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> guitool.qtapp_loop(qwin=widget, freq=10)
+    """
     widget = QtGui.QWidget(parent)
 
     sizePolicy = newSizePolicy(widget,
