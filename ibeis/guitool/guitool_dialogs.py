@@ -61,7 +61,6 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> import guitool
         >>> guitool.ensure_qtapp()
-        >>> # build test data
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_option'
@@ -70,10 +69,10 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> default = 'Yes'
         >>> # execute function
         >>> reply = user_option(parent, msg, title, options, use_cache, default)
-        >>> #guitool.guitool_main.qtapp_loop()
-        >>> # verify results
         >>> result = str(reply)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> #guitool.guitool_main.qtapp_loop()
     """
     if ut.VERBOSE:
         print('[gt] user_option:\n %r: %s' % (title, msg))

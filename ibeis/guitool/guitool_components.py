@@ -541,7 +541,6 @@ class GuitoolWidget(QtGui.QWidget):
         # Black magic
         #self.newButton = ut.partial(newButton, self)
         #self.newLineEdit = ut.partial(newLineEdit, self)
-        #self.newComboBox = ut.partial(newComboBox, self)
         #self.newLabel = ut.partial(newLabel, self)
         #self.newWidget = ut.partial(newWidget, self)
 
@@ -561,6 +560,7 @@ class GuitoolWidget(QtGui.QWidget):
     def as_dialog(cls, parent=None, **kwargs):
         widget = cls(**kwargs)
         dlg = QtGui.QDialog(parent)
+        dlg.widget = widget
         dlg.vlayout = QtGui.QVBoxLayout(dlg)
         dlg.vlayout.addWidget(widget)
         widget.closed.connect(dlg.close)
@@ -593,6 +593,81 @@ class GuitoolWidget(QtGui.QWidget):
     def closeEvent(self, event):
         event.accept()
         self.closed.emit()
+
+
+class ConfigConfirmWidget(GuitoolWidget):
+    def initialize(self, title, msg, config):
+        self.msg = msg
+        import copy
+        self.orig_config = config
+        self.config = copy.deepcopy(config)
+
+        self.setWindowTitle(title)
+        self.addNewLabel(msg, align='left')
+
+        if False:
+            if hasattr(self.config, 'get_param_info_dict'):
+                self.param_info_dict = self.config.get_param_info_dict()
+            else:
+                self.param_info_dict = None
+
+            self.row_dict = {}
+            for key, val in self.config.items():
+                row = self.newHWidget()
+                row.lbl  = row.addNewLabel(str(key))
+
+                if self.param_info_dict is None:
+                    pi = None
+                else:
+                    pi = self.param_info_dict[key]
+
+                if pi is None:
+                    row.edit = row.addNewLineEdit(str(val), align='right')
+                elif pi.type_ is bool:
+                    options = [True, False]
+                    row.edit = row.addNewComboBox(options, default=val,
+                                                  changed=self.update_state)
+                    # row.edit.changed.connect(lambda val: self.setitem(key, val[1]))
+                else:
+                    row.edit = row.addNewLineEdit('!' + str(val), align='right')
+
+                self.row_dict[key] = row
+        else:
+            from guitool import PrefWidget2
+            self.editConfig = PrefWidget2.newConfigWidget(self.config)
+            self.addWidget(self.editConfig)
+
+        self.button_row = self.newHWidget()
+        self.button_row.addNewButton('Cancel', clicked=self.cancel)
+        self.button_row.addNewButton('Confirm', clicked=self.confirm)
+        self.resize(668, 530)
+        # self.update_state()
+
+    def update_state(self, *args):
+        print('*args = %r' % (args,))
+        print('Update state')
+        if self.param_info_dict is None:
+            print('Need dtool config')
+
+        for key, pi in self.param_info_dict.items():
+            row = self.row_dict[key]
+            if pi.type_ is bool:
+                value = row.edit.currentValue()
+                print('Changed: key, value = %r, %r' % (key, value))
+                self.config[key] = value
+
+        for key, pi in self.param_info_dict.items():
+            row = self.row_dict[key]
+            flag = not pi.is_hidden(self.config)
+            row.edit.setEnabled(flag)
+
+    def confirm(self):
+        print('[gt] Confirmed config')
+        self.close()
+
+    def cancel(self):
+        print('[gt] Canceled confirm config')
+        self.close()
 
 
 def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
@@ -730,23 +805,35 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         >>> result = str(combo)
         >>> print(result)
     """
+
+    # Check for tuple option formating
+    flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
+    options_ = [opt if flag else (str(opt), opt)
+                for flag, opt in zip(flags, options)]
+
     class CustomComboBox(QtGui.QComboBox):
-        def __init__(combo, parent=None, default=None, options=None, changed=None):
+        def __init__(combo, parent=None, default=None, options_=None, changed=None):
             QtGui.QComboBox.__init__(combo, parent)
             combo.ibswgt = parent
-            combo.options = options
+            combo.options_ = options_
             combo.changed = changed
-            combo.setEditable(True)
+            # combo.setEditable(True)
             combo.updateOptions()
-            combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom)
             combo.setDefault(default)
+            combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom)
+
+        def currentValue(combo):
+            index = combo.currentIndex()
+            opt = combo.options_[index]
+            value = opt[1]
+            return value
 
         def updateOptions(combo, reselect=False, reselect_index=None):
             if reselect_index is None:
                 reselect_index = combo.currentIndex()
             combo.clear()
-            combo.addItems( [ option[0] for option in combo.options ] )
-            if reselect and reselect_index < len(combo.options):
+            combo.addItems( [ option[0] for option in combo.options_ ] )
+            if reselect and reselect_index < len(combo.options_):
                 combo.setCurrentIndex(reselect_index)
 
         def setOptionText(combo, option_text_list):
@@ -756,21 +843,34 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
 
         def currentIndexChangedCustom(combo, index):
             if combo.changed is not None:
-                combo.changed(index, combo.options[index][1])
+                combo.changed(index, combo.options_[index][1])
 
         def setDefault(combo, default=None):
-            """ finds index of backend value and sets the current index """
             if default is not None:
-                for index, (text, value) in enumerate(options):
-                    if value == default:
-                        combo.setCurrentIndex(index)
-                        break
+                combo.setCurrentValue(default)
             else:
                 combo.setCurrentIndex(0)
 
+        def setCurrentValue(combo, value):
+            index = combo.findValueIndex(value)
+            combo.setCurrentIndex(index)
+
+        def findValueIndex(combo, value):
+            """ finds index of backend value and sets the current index """
+            for index, (text, val) in enumerate(combo.options_):
+                if value == val:
+                    return index
+            else:
+                # Hack, try the text if value doesnt work
+                for index, (text, val) in enumerate(combo.options_):
+                    if value == text:
+                        return index
+                else:
+                    raise ValueError('No such option value=%r' % (value,))
+
     combo_kwargs = {
         'parent' : parent,
-        'options': options,
+        'options_': options_,
         'default': default,
         'changed': changed,
     }

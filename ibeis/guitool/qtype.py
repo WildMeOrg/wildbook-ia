@@ -17,8 +17,7 @@ __STR__ = unicode if six.PY2 else str
 
 QString = __STR__
 
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[qtype]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[qtype]')
 
 
 SIMPLE_CASTING = True

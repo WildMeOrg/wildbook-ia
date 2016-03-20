@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
-from guitool import api_item_view
-#from guitool import guitool_components
 from guitool.guitool_decorators import signal_, slot_
 import utool
+#from guitool import guitool_components
+from guitool import api_item_view
 
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, rrr, profile) = utool.inject2(
     __name__, '[APITreeView]', DEBUG=False)
 
 

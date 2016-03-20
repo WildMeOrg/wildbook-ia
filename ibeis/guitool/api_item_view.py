@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 provides common methods for api_tree_view and api_table_view
 """
@@ -8,22 +9,18 @@ import functools
 from guitool import qtype
 from guitool import api_button_delegate
 from guitool import api_thumb_delegate
-#from guitool import api_timestamp_delegate
 from guitool import guitool_main
 from guitool import guitool_misc
 from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
 import operator
-
 # Valid API Models
 from guitool.stripe_proxy_model import StripeProxyModel
 from guitool.filter_proxy_model import FilterProxyModel
 from guitool.api_item_model import APIItemModel
 
-# DANGER SHOULD UTOOL BE INJECTING HERE?!
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[APIItemView]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[APIItemView]')
 
 VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
 VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
