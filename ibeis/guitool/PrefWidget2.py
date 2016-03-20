@@ -91,6 +91,12 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
             editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
             return editor
+        # elif leafNode is not None and leafNode.type_ is float:
+        #     editor = QtGui.QDoubleSpinBox(parent)
+        #     editor.setMinimum(0.0)
+        #     editor.setMaximum(1.0)
+        #     editor.setSingleStep(0.1)
+        #     return editor
         else:
             return super(ConfigValueDelegate, self).createEditor(parent, option, index)
             # return None
@@ -126,6 +132,9 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
         if VERBOSE_CONFIG:
             print('[DELEGATE] Commit Data with combo_idx=%r' % (combo_idx,))
         self.commitData.emit(self.sender())
+
+    # def updateEditorGeometry(self, editor, option, index):
+    #     editor.setGeometry(option.rect)
 
 
 class QConfigModel(QAbstractItemModel):
@@ -248,9 +257,9 @@ class QConfigModel(QAbstractItemModel):
         else:
             childPref = self.index2Pref(index)
             if childPref and childPref.qt_is_editable():
-                # if childPref.type_ is bool:
-                #     flags = Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
-                # else:
+                if childPref.is_checkable():
+                    flags = Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
+                else:
                     flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
             else:
                 flags = Qt.ItemFlag(0)
@@ -264,6 +273,9 @@ class QConfigModel(QAbstractItemModel):
             if section == 1:
                 return QVariantHack('Config Value')
         return QVariantHack()
+
+
+BOOL_AS_COMBO = False
 
 
 class ConfigNodeWrapper(ut.NiceRepr):
@@ -352,7 +364,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
     def is_combo(self):
         if self.param_info is None:
             return False
-        elif self.type_ is bool:
+        elif BOOL_AS_COMBO and self.type_ is bool:
             return True
         else:
             return self.param_info.valid_values is not None
@@ -360,12 +372,15 @@ class ConfigNodeWrapper(ut.NiceRepr):
     @property
     def valid_values(self):
         if self.is_combo:
-            if self.type_ is bool:
+            if BOOL_AS_COMBO and self.type_ is bool:
                 return [True, False]
             else:
                 return self.param_info.valid_values
         else:
             return None
+
+    def is_checkable(self):
+        return not BOOL_AS_COMBO and self.type_ is bool
 
     def is_leaf(self):
         return self.children is None
