@@ -174,6 +174,14 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         return '_'.join([str_] + [cfg[subcfg_attr].get_cfgstr()
                                   for subcfg_attr in cfg._subconfig_attrs])
 
+    def get_param_info_dict(cfg):
+        param_info_list = cfg.get_param_info_list()
+        param_info_dict = {pi.varname: pi for pi in param_info_list}
+        return param_info_dict
+
+    def getinfo(cfg, key):
+        pass
+
     def get_hashid(cfg):
         return ut.hashstr27(cfg.get_cfgstr())
 
@@ -198,7 +206,10 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def setitem(cfg, key, value):
         """ Required for DictLike interface """
-        return getattr(cfg, key, value)
+        # TODO; check for valid config setting
+        pi = cfg.get_param_info_dict()[key]
+        pi.error_if_invalid_value(value)
+        return setattr(cfg, key, value)
 
     def get_param_info_list(cfg):
         try:
