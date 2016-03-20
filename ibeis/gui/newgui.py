@@ -303,7 +303,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for tblname in ibswgt.super_tblname_list:
             tblview = ibswgt.views[tblname]
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
-            #tblview.clicked.connect(ibswgt.on_click)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
             if tblname != gh.IMAGESET_TABLE:
                 tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
@@ -1160,13 +1159,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.show_annotation(aid, web=True)),
                     ('View image in Web',
                         lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
-                    #('View annotation in Matplotlib',
-                    #    #lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),
-                    #    lambda: ibswgt.back.show_annotation(aid, web=False)),
-                    #('View image in Matplotlib',
-                    #    lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=False)),
-                    #('View detection chip (probability) [dev]',
-                    #    lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),
                     ('Remove annotation\'s name',
                         lambda: ibswgt.back.unset_names([aid])),
@@ -1193,22 +1185,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if len(aid_list) == 1:
                 aid = aid_list[0]
                 context_options += build_annot_context_options(ibswgt, ibs, [aid], imgsetid)
-                #[
-                #    ('Go to image',
-                #     lambda: ibswgt.goto_table_id(IMAGE_TABLE,
-                #                                  ibswgt.back.ibs.get_annot_gids(aid))),
-                #    ('Go to annotation',
-                #     lambda: ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)),
-                #    ('----', lambda: None),
-                #    ('View annotation in Matplotlib',
-                #     lambda: ibswgt.back.select_aid(aid, imgsetid, show=False)),
-                #    ('View annotation in Web',
-                #     lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),
-                #    ('View image in Matplotlib',
-                #     lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=False)),
-                #    ('View image in Web',
-                #     lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
-                #]
             if len(aid_list) > 0:
                 def set_annot_names_to_same_new_name(ibswgt, aid_list):
                     ibswgt.back.ibs.set_annot_names_to_same_new_name(aid_list)
@@ -1464,93 +1440,85 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid, model, qtindex)
                     #ibswgt.back.select_aid(aid, imgsetid, show=True)
 
-    @slot_(list)
+    # @slot_(list)
     def imagesDropped(ibswgt, url_list):
-        """
+        r"""
         image drag and drop event
+
+        CommandLine:
+            python -m ibeis.gui.newgui imagesDropped --show
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
+            >>> url_list = ['images.foo']
+            >>> url_list = [ut.truepath('~/Downloads/hs-images.zip')]
+            >>> url = url_list[0]
+            >>> ut.quit_if_noshow()
+            >>> ibswgt.imagesDropped(url_list)
+            >>> testdata_main_loop(globals(), locals())
         """
         print('[drop_event] url_list=%r' % (url_list,))
-        gpath_list = list(filter(ut.matches_image, url_list))
+        has_zipext = ut.partial(ut.fpath_has_ext, exts=['.zip'])
+        gpath_list = list(filter(ut.fpath_has_imgext, url_list))
         dir_list   = list(filter(isdir, url_list))
-        if len(dir_list) > 0:
-            options = ['No', 'Yes']
-            title   = 'Non-Images dropped'
-            msg     = 'Recursively import from directories?'
-            ans = guitool.user_option(ibswgt, msg=msg, title=title,
-                                      options=options)
-            if ans == 'Yes':
-                unflat_gpaths = [ut.list_images(dir_, fullpath=True, recursive=True)
-                                 for dir_ in dir_list]
-                flat_gpaths = ut.flatten(unflat_gpaths)
-                flat_unix_gpaths = list(map(ut.unixpath, flat_gpaths))
-                gpath_list.extend(flat_unix_gpaths)
-            else:
-                return
-        print('[drop_event] gpath_list=%r' % (gpath_list,))
-        if len(gpath_list) > 0:
-            ibswgt.back.import_images_from_file(gpath_list=gpath_list)
+        zipfile_list = list(filter(has_zipext, url_list))
+        old = False
+        if old:
+            if len(dir_list) > 0:
+                options = ['No', 'Yes']
+                title   = 'Non-Images dropped'
+                msg     = 'Recursively import from directories?'
+                ans = guitool.user_option(ibswgt, msg=msg, title=title,
+                                          options=options)
+                if ans == 'Yes':
+                    unflat_gpaths = [ut.list_images(dir_, fullpath=True, recursive=True)
+                                     for dir_ in dir_list]
+                    flat_gpaths = ut.flatten(unflat_gpaths)
+                    flat_unix_gpaths = list(map(ut.unixpath, flat_gpaths))
+                    gpath_list.extend(flat_unix_gpaths)
+                else:
+                    return
+            print('[drop_event] gpath_list=%r' % (gpath_list,))
+            if len(gpath_list) > 0:
+                ibswgt.back.import_images_from_file(gpath_list=gpath_list)
+        else:
+            from ibeis.dbio import ingest_database
+            ibs = ibswgt.back.ibs
+            ingestable = ingest_database.Ingestable2(
+                ibs.get_dbdir(), gpath_list, dir_list, zipfile_list)
+            num_gpaths = len(ingestable.imgpath_list)
+            num_dpaths = len(ingestable.imgdir_list)
+            num_zips = len(ingestable.zipfile_list)
+            confirm_list = []
+            if num_gpaths > 0:
+                confirm_list += [ut.quantstr('image file', num_gpaths)]
+            if num_dpaths > 0:
+                confirm_list += ['recursively from ' + ut.quantstr('directory', num_dpaths, 's')]
+            if num_zips > 0:
+                confirm_list += [ut.quantstr('zip file', num_zips, 's')]
+            confirm_msg = 'Import from: ' + ut.conj_phrase(confirm_list, 'and') + '.'
+            # guitool.rrrr()
+            config = ingestable.ingest_config
+            # cfg = config
+            dlg = guitool.ConfigConfirmWidget.as_dialog(ibswgt,
+                                                        title='Confirm Import Images',
+                                                        msg=confirm_msg,
+                                                        config=config)
+            dlg.resize(700, 500)
+            self = dlg.widget
+            dlg.exec_()
+            print('config = %r' % (config,))
+            updated_config = self.config  # NOQA
+            print('updated_config = %r' % (updated_config,))
+            gid_list = ingestable.execute(ibs=ibs)
+            ibswgt.back._process_new_images(refresh=True, gid_list=gid_list, clock_offset=False)
 
     def register_redirect(ibswgt, src_table, src_table_col, dst_table, mapping_func):
         if src_table not in ibswgt.redirects.keys():
             ibswgt.redirects[src_table] = {}
         ibswgt.redirects[src_table][src_table_col] = (dst_table, mapping_func)
-
-    #def _init_redirects(ibswgt):
-    #    """
-    #    redirects allows user to go from a row of a table to corresponding rows
-    #    of other tables
-    #    """
-    #    redirects = gh.get_redirects(ibswgt.ibs)
-    #    for src_table in redirects.keys():
-    #        for src_table_name in redirects[src_table].keys():
-    #            dst_table, mapping_func = redirects[src_table][src_table_name]
-    #            src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
-    #            ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
-
-    @slot_(QtCore.QModelIndex)
-    def on_click(ibswgt, qtindex):
-        """
-        Clicking anywhere in the GUI
-
-        DOENT DO ANYTHING ANYMORE SELECTION MODEL USED INSTEAD
-
-        DEPRICATE
-        """
-        return
-        #printDBG('on_click')
-        model = qtindex.model()
-        id_ = model._get_row_id(qtindex)
-        #model_name = model.name
-        #print('clicked: %s' + ut.dict_str(locals()))
-        if False:
-            try:
-                dst_table, mapping_func = ibswgt.redirects[model.name][qtindex.column()]
-                dst_id = mapping_func(id_)
-                print("[on_click] Redirecting to: %r" % (dst_table, ))
-                print("[on_click]     Mapping %r -> %r" % (id_, dst_id, ))
-                ibswgt.set_table_tab(dst_table)
-                ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
-                return None
-            except Exception as ex:
-                print('no redirects')
-                if ut.VERYVERBOSE:
-                    ut.printex(ex, 'no redirect listed for this table', iswarning=True)
-                # No redirect listed for this table
-                pass
-
-        # If no link, process normally
-        if model.name == IMAGESET_TABLE:
-            pass
-            #printDBG('clicked imageset')
-        else:
-            table_key = model.name
-            # FIXME: stripe model needs to forward get_level
-            if not hasattr(model, '_get_level'):
-                level = 0
-            else:
-                level = model._get_level(qtindex)
-            imgsetid = model.imgsetid
-            ibswgt.select_table_id(table_key, level, id_, imgsetid)
 
     def select_table_id(ibswgt, table_key, level, id_, imgsetid):
         select_func_dict = {
@@ -1573,18 +1541,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.newgui import *  # NOQA
-            >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
-            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('lynx')
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
+            >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('lynx')
             >>> ibswgt.edit_image_time([277, 630])
             >>> testdata_main_loop(globals(), locals())
         """
         from ibeis.gui import clock_offset_gui
-        # keep in scope
-        #ibswgt.co_wgt = clock_offset_gui.ClockOffsetWidget(ibswgt.ibs, gid_list, parent=ibswgt, hack=True)
         ibswgt.co_wgt = clock_offset_gui.ClockOffsetWidget(ibswgt.ibs, gid_list, hack=True)
         ibswgt.co_wgt.show()
-        #ibswgt.co_wgt.raise_()
-        #return None
 
     def filter_annotation_table(ibswgt):
         r"""
@@ -1596,8 +1560,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.newgui import *  # NOQA
-            >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
-            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('PZ_Master1')
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
+            >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('PZ_Master1')
             >>> result = ibswgt.filter_annotation_table()
             >>> print(result)
             >>> testdata_main_loop(globals(), locals())
@@ -1625,59 +1589,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         model.set_ider_filters([filter_fn])
         with ChangeLayoutContext([model]):
             model._update_rows(rebuild_structure=True)
-            #model._update_rows()
-
-        #model = ibswgt.models[gh.NAMES_TREE]  # NOQA
-        ##model.set_ider_filters([ut.identity, filter_fn])
-        #model.set_ider_filters([ut.identity, lambda aids_list: [filter_fn(aids) for aids in aids_list]])
-        #with ChangeLayoutContext([model]):
-        #    model._update_rows(rebuild_structure=True)
-
-        #def get_error_aids():
-        #    # DISABLE_DOCTEST
-        #    aid_list = ibs.get_valid_aids()
-        #    #filter_kw = dict(is_known=True, min_num=1, has_any='viewpoint')
-        #    aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
-
-        #def get_aids_with_annotmatchprop():
-        #    from ibeis import constants as const
-        #    from ibeis.control import _autogen_annotmatch_funcs
-        #    colnames = (_autogen_annotmatch_funcs.ANNOT_ROWID1,
-        #    _autogen_annotmatch_funcs.ANNOT_ROWID2)
-        #    tblname = const.ANNOTMATCH_TABLE
-        #    wherecol = _autogen_annotmatch_funcs.ANNOTMATCH_IS_SCENERYMATCH
-        #    whereclause = wherecol + '=?'
-        #    colname_str = ', '.join(colnames)
-        #    operation = ut.codeblock(
-        #        '''
-        #        SELECT {colname_str}
-        #        FROM {tblname}
-        #        WHERE {whereclause}
-        #        ''').format(colname_str=colname_str, tblname=tblname, whereclause=whereclause)
-
-        #    ibs.db.cur.execute(operation, [True])
-        #    scenery_aids = list(set(ut.flatten(ibs.db.cur.fetchall())))
-        #    return scenery_aids
-
-        #annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
-        #ishard_list         = ibs.get_annotmatch_is_hard(annotmatch_rowid_list)
-        #isphotobomb_list    = ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)
-        #isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
-        #isnondistinct_list  = ibs.get_annotmatch_is_nondistinct(annotmatch_rowid_list)
-        #hards        = np.array(ut.replace_nones(ishard_list, False))
-        #photobombs   = np.array(ut.replace_nones(isphotobomb_list, False))
-        #scenerys     = np.array(ut.replace_nones(isscenerymatch_list, False))
-        #nondistincts = np.array(ut.replace_nones(isnondistinct_list, False))
-        #flags = vt.and_lists(vt.or_lists(hards, nondistincts), ~photobombs, ~scenerys)
-        #annotmatch_rowid_list_ = ut.compress(annotmatch_rowid_list, flags)
-
-        #aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowid_list_)
-        #aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowid_list_)
-        #aid_list = sorted(list(set(aid1_list + aid2_list)))
-
-        #def filter_to_background(aid_list, ibs=ibswgt.back.ibs):
-        #    ibswgt.back.ibs
-        #pass
 
 
 ######################
@@ -1714,7 +1625,6 @@ def testfunc():
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.newgui import *  # NOQA
         >>> result = testfunc()
-        >>> # verify results
         >>> print(result)
     """
     ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
@@ -1722,27 +1632,6 @@ def testfunc():
     testdata_main_loop(globals(), locals())
 
 
-#if __name__ == '__main__':
-#    """
-#    CommandLine:
-#        python -m ibeis.gui.newgui
-#        python -m ibeis.gui.newgui --allexamples
-#        python -m ibeis.gui.newgui --allexamples --noface --nosrc
-#    """
-#    testfunc()
-
-#    #import ibeis
-#    #main_locals = ibeis.main(defaultdb='testdb1')
-#    #ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
-#    #ibswgt = back.ibswgt
-
-#    ##ibswgt = IBEISGuiWidget(back=back, ibs=ibs)
-
-#    #if '--cmd' in sys.argv:
-#    #    guitool.qtapp_loop(qwin=ibswgt, ipy=True)
-#    #    exec(ut.ipython_execstr())
-#    #else:
-#    #    guitool.qtapp_loop(qwin=ibswgt)
 if __name__ == '__main__':
     """
     CommandLine:

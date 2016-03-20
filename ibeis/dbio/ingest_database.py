@@ -24,6 +24,164 @@ import vtool as vt
 import parse
 
 
+class Ingestable(object):
+    """
+    Temporary structure representing how to ingest a databases
+    """
+    def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
+                 adjust_percent=0.0, postingest_func=None, zipfile=None,
+                 species=None, images_as_annots=True):
+        self.dbname          = dbname
+        self.img_dir         = img_dir
+        self.ingest_type     = ingest_type
+        self.fmtkey          = fmtkey
+        self.zipfile         = zipfile
+        self.adjust_percent  = adjust_percent
+        self.postingest_func = postingest_func
+        self.species         = species
+        self.images_as_annots = images_as_annots
+        self.ensure_feasibility()
+
+    def __str__(self):
+        return ut.dict_str(self.__dict__)
+
+    def ensure_feasibility(self):
+        rawdir  = ibeis.sysres.get_rawdir()
+        if self.img_dir is None:
+            # Try to find data either the raw or work dir
+            self.img_dir = ibeis.sysres.db_to_dbdir(
+                self.dbname, extra_workdirs=[rawdir], allow_newdir=True)
+        msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (self.dbname, self.img_dir)
+        assert self.img_dir is not None, msg
+        #from os.path import isabs
+        #if not isabs(self.img_dir):
+        #    self.img_dir = join(dbdir, self.img_dir)
+        self.img_dir = ut.truepath(self.img_dir)
+        assert exists(self.img_dir), msg
+        #if self.ingest_type == 'named_folders':
+        #    assert self.fmtkey == 'name'
+
+
+class Ingestable2(object):
+    def __init__(self, dbdir, imgpath_list=None, imgdir_list=None,
+                 zipfile_list=None, postingest_func=None, ingest_config={},
+                 **kwargs):
+        self.dbdir = dbdir
+        self.zipfile_list = zipfile_list
+        self.imgdir_list = imgdir_list
+        self.imgpath_list = imgpath_list
+        self.postingest_func = postingest_func
+
+        import dtool
+        # valid_species = None
+        valid_species = ['____']
+
+        class IngestConfig(dtool.Config):
+            _param_info_list = [
+                ut.ParamInfo(
+                    'images_as_annots', True),
+                ut.ParamInfo(
+                    'ingest_type', 'unknown', valid_values=['unknown', 'named_folders', 'named_images']),
+                ut.ParamInfo(
+                    'species', '____',
+                    hideif=lambda cfg: not cfg['images_as_annots'],
+                    valid_values=valid_species,
+                ),
+                ut.ParamInfo(
+                    'adjust_percent', 0.0,
+                    hideif=lambda cfg: not cfg['images_as_annots']),
+            ]
+        updatekw = kwargs.copy()
+        updatekw.update(ingest_config)
+        self.ingest_config = IngestConfig(**updatekw)
+
+    def execute(self, ibs=None):
+        print('[ingest_rawdata] Ingestable' + str(self))
+        assert ibs is not None
+
+        unzipped_file_base_dir = join(ibs.get_dbdir(), 'unzipped_files')
+
+        def extract_from_zipfiles(zipfile_list):
+            ut.ensuredir(unzipped_file_base_dir)
+            for zipfile in zipfile_list:
+                img_dir = unzipped_file_base_dir
+                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile), realpath(img_dir))))
+                unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
+                ut.ensuredir(unzipped_file_dir)
+                ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
+            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+            return gpath_list
+
+        def list_images(img_dir):
+            """ lists images that are not in an internal cache """
+            import utool as ut  # NOQA
+            ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+            gpath_list = ut.list_images(img_dir, fullpath=True, recursive=True,
+                                        ignore_list=ignore_list)
+            return gpath_list
+
+        # FIXME ensure python3 works with this
+        gpath_list = []
+        if self.imgpath_list is not None:
+            gpath_list += self.imgpath_list
+
+        if self.imgdir_list is not None:
+            for img_dir in self.imgdir_list:
+                gpath_list += ut.ensure_unicode_strlist(list_images(img_dir))
+
+        if self.zipfile_list is not None:
+            gpath_list += extract_from_zipfiles(self.zipfile_list)
+
+        gpath_list = ut.ensure_unicode_strlist(gpath_list)
+
+        # Parse structure for image names
+        ingest_type = self.ingest_config.ingest_type
+        if ingest_type == 'named_folders':
+            name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, None)
+            pass
+        elif ingest_type == 'named_images':
+            name_list = get_name_texts_from_gnames(gpath_list, img_dir, None)
+        elif ingest_type == 'unknown':
+            name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
+        else:
+            raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
+
+        # Add Images
+        gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+        gid_list_ = ibs.add_images(gpath_list)
+
+        # <DEBUG>
+        #print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
+        unique_gids = list(set(gid_list_))
+        print("[ingest] Length gid list: %d" % len(gid_list_))
+        print("[ingest] Length unique gid list: %d" % len(unique_gids))
+        assert len(gid_list_) == len(gpath_list)
+        for gid in gid_list_:
+            if gid is None:
+                print('[ingest] big fat warning')
+        # </DEBUG>
+        gid_list = ut.filter_Nones(gid_list_)
+        unique_gids, unique_names, unique_notes = resolve_name_conflicts(
+            gid_list, name_list)
+        # Add ANNOTATIONs with names and notes
+        if self.ingest_config.images_as_annots:
+            aid_list = ibs.use_images_as_annotations(unique_gids,
+                                                     adjust_percent=self.ingest_config.adjust_percent)
+            ibs.set_annot_names(aid_list, unique_names)
+            ibs.set_annot_notes(aid_list, unique_notes)
+            species_text = self.ingest_config.species
+            if species_text is not None:
+                ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
+
+        localize = False
+        if localize:
+            ibs.localize_images()
+
+        if self.postingest_func is not None:
+            self.postingest_func(ibs)
+        return gid_list
+
+
 def ingest_rawdata(ibs, ingestable, localize=False):
     """
     Ingests rawdata into an ibeis database.
@@ -677,44 +835,6 @@ def ingest_standard_database(dbname, force_delete=False):
 ### </STANDARD DATABASES> ###
 #
 #
-
-
-class Ingestable(object):
-    """
-    Temporary structure representing how to ingest a databases
-    """
-    def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
-                 adjust_percent=0.0, postingest_func=None, zipfile=None,
-                 species=None, images_as_annots=True):
-        self.dbname          = dbname
-        self.img_dir         = img_dir
-        self.ingest_type     = ingest_type
-        self.fmtkey          = fmtkey
-        self.zipfile         = zipfile
-        self.adjust_percent  = adjust_percent
-        self.postingest_func = postingest_func
-        self.species         = species
-        self.images_as_annots = images_as_annots
-        self.ensure_feasibility()
-
-    def __str__(self):
-        return ut.dict_str(self.__dict__)
-
-    def ensure_feasibility(self):
-        rawdir  = ibeis.sysres.get_rawdir()
-        if self.img_dir is None:
-            # Try to find data either the raw or work dir
-            self.img_dir = ibeis.sysres.db_to_dbdir(
-                self.dbname, extra_workdirs=[rawdir], allow_newdir=True)
-        msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (self.dbname, self.img_dir)
-        assert self.img_dir is not None, msg
-        #from os.path import isabs
-        #if not isabs(self.img_dir):
-        #    self.img_dir = join(dbdir, self.img_dir)
-        self.img_dir = ut.truepath(self.img_dir)
-        assert exists(self.img_dir), msg
-        #if self.ingest_type == 'named_folders':
-        #    assert self.fmtkey == 'name'
 
 
 def ingest_oxford_style_db(dbdir, dryrun=False):

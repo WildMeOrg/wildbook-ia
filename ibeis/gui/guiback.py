@@ -58,8 +58,6 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
     def initialize(self, back=None):
-        from guitool.__PYQT__.QtCore import Qt  # NOQA
-        from guitool.__PYQT__.QtGui import QSizePolicy  # NOQA
         # Save arguments
         if back is not None:
             self.back = back
@@ -77,7 +75,6 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
             'Choose a name for the new database', align='center')
         # ---
         self.dbname_row = self.newHWidget()
-        #self.dbname_row.lbl  = self.dbname_row.addNewLabel('DBName:', align='left')
         self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname, align='center')
         self.dbname_row.edit.textChanged.connect(self.update_state)
         # ---
@@ -93,17 +90,16 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
         self.workdir_row.edit.textChanged.connect(self.update_state)
         # ---
         self.current_row = self.newHWidget()
-        self.create_in_workdir_but = self.newButton(
+        self.create_but = self.newButton(
             'Create in workdir', clicked=self.create_in_workdir)
-        #self.current_row.addWidget(self.create_in_workdir_but)
         self.current_row.lbl  = self.current_row.addNewLabel('Current choice:', align='left')
         self.current_row.edit = self.current_row.addNewLabel('{current_dbdir}', align='right')
 
         self.button_row = self.newHWidget()
-        self.button_row.addNewButton('Cancel', clicked=self.press_cancel)
+        self.button_row.addNewButton('Cancel', clicked=self.cancel)
         self.button_row.addNewButton('Create in a different directory',
                                      clicked=self.create_in_customdir)
-        self.button_row.addWidget(self.create_in_workdir_but)
+        self.button_row.addWidget(self.create_but)
 
         self.update_state()
 
@@ -114,15 +110,18 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
         workdir_exists = ut.checkpath(workdir, verbose=False)
         print('workdir_exists = %r' % (workdir_exists,))
         if workdir_exists:
-            self.current_row.edit.setColorFG(None)
             if ut.checkpath(current_choice, verbose=False):
-                self.current_row.edit.setColorFG((255, 0, 0))
+                self.current_row.edit.setColorFG((0, 0, 255))
+                self.create_but.setText('Open existing database')
+            else:
+                self.current_row.edit.setColorFG(None)
+                self.create_but.setText('Create in workdir')
+            self.create_but.setEnabled(True)
         else:
             self.current_row.edit.setColorFG((255, 0, 0))
-        #self.current_row.
-        #pass
+            self.create_but.setText('Create in workdir')
+            self.create_but.setEnabled(False)
         self.current_row.edit.setText(current_choice)
-        pass
 
     def view_workdir(self):
         ut.view_directory(ut.truepath(self.workdir_row.edit.text()))
@@ -161,21 +160,10 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
             self.on_chosen(dbdir)
         self.close()
 
-    def press_cancel(self):
+    def cancel(self):
         print('Cancel')
         ut.colorprint('Cancel', 'yellow')
         self.close()
-
-        #self.mdia = QtGui.QMdiArea()
-        #setWindowFlags(Qt.Widget)
-        #dialog = guitool.newDirectoryDialog('.')
-        #self.layout.addWidget(dialog)
-        #self.mdia.addSubWindow(dialog)
-
-        #self.layout.addWidget(self.mdia)
-        #self.hbox = QtGui.QHBoxLayout(self)
-        #self.form.addChildLayout(self.hbox)
-        #self.form.addRow(self.newButton('Create'), self.newButton('Cancel'))
 
 
 def backreport(func):
@@ -298,9 +286,9 @@ class MainWindowBackend(GUIBACK_BASE):
         back.sel_gids = []
         back.sel_cm = []
         #if ut.is_developer():
-        #    back.daids_mode = const.INTRA_OCCUR_KEY
+        back.daids_mode = None
         #else:
-        back.daids_mode = const.VS_EXEMPLARS_KEY
+        # back.daids_mode = const.VS_EXEMPLARS_KEY
         #back.imageset_query_results = ut.ddict(dict)
         # used to store partials defined in the frontend
         back.special_query_funcs = {}
@@ -314,7 +302,6 @@ class MainWindowBackend(GUIBACK_BASE):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
         back.register_self()
-        back.set_daids_mode(back.daids_mode)
         #back.changeSpeciesSignal.connect(back.ibswgt.species_combo.setItemText)
 
         #back.incQuerySignal.connect(back.incremental_query_slot)
@@ -553,6 +540,13 @@ class MainWindowBackend(GUIBACK_BASE):
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_imgsetids=[None])
         back.front.connect_ibeis_control(ibs)
+        exemplar_gsid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
+        num_exemplars = len(ibsfuncs._get_gids_in_imgsetid(ibs, exemplar_gsid))
+        if num_exemplars == 0:
+            back.daids_mode = const.INTRA_OCCUR_KEY
+        else:
+            back.daids_mode = const.VS_EXEMPLARS_KEY
+        back.set_daids_mode(back.daids_mode)
 
     @blocking_slot()
     def default_config(back):

@@ -78,9 +78,9 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
         [harn]================
         [harn] harness.test_configurations2()""").strip(), 'white')
         msg = '[harn] Running %s using %s and %s' % (
-            ut.quantity_str('test', len(acfg_list) * len(pipecfg_list)),
-            ut.quantity_str('pipeline config', len(pipecfg_list)),
-            ut.quantity_str('annot config', len(acfg_list)),
+            ut.quantstr('test', len(acfg_list) * len(pipecfg_list)),
+            ut.quantstr('pipeline config', len(pipecfg_list)),
+            ut.quantstr('annot config', len(acfg_list)),
         )
         ut.colorprint(msg, 'white')
 
