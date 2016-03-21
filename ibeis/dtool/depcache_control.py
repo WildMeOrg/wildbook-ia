@@ -514,7 +514,7 @@ class _CoreDependencyCache(object):
         if _debug:
             print('[depc] dependency_levels = %s' %
                   ut.repr3(dependency_levels, nl=1))
-            print('[depc] dependency_levels = %s' %
+            print('[depc] config_levels = %s' %
                   ut.repr3(configclass_levels, nl=1))
 
         # TODO: better support for multi-edges
@@ -542,8 +542,7 @@ class _CoreDependencyCache(object):
                     ut.printex(ex, 'error expanding rowids',
                                keys=['tablename', 'tablekey', 'rowid_dict',
                                      'config', 'table',
-                                     'dependency_levels',
-                                     ])
+                                     'dependency_levels'])
                     raise
                 rowid_dict[tablekey] = child_rowids
         if _debug:
@@ -593,14 +592,15 @@ class _CoreDependencyCache(object):
         if _debug:
             print('   * tablekey = %r' % (tablekey,))
             print('   * config_ = %r' % (config_,))
+            print('   * config_rowid = %r' % (table.get_config_rowid(config_),))
             print('   * parent_rowids = %s' % (ut.trunc_repr(parent_rowids),))
         _recompute = recompute_all or (tablekey == tablename and recompute)
-        child_rowids = table.get_rowid(
+        level_rowids = table.get_rowid(
             parent_rowids, config=config_, eager=eager, nInput=nInput,
             ensure=ensure, recompute=_recompute)
         if _debug:
-            print('   * child_rowids = %s' % (ut.trunc_repr(child_rowids),))
-        return child_rowids
+            print('   * level_rowids = %s' % (ut.trunc_repr(level_rowids),))
+        return level_rowids
 
     # -----------------------------
     # STATE GETTERS
@@ -644,7 +644,7 @@ class _CoreDependencyCache(object):
         GridParams:
             >>> param_grid = dict(
             >>>     tablename=[ 'spam', 'neighbs'] # 'spam', 'multitest_score','keypoint'],
-            >>>     #tablename=['neighbs', 'keypoint', 'spam', 'multitest_score','keypoint'],
+            >>>   #tablename=['neighbs', 'keypoint', 'spam', 'multitest_score','keypoint'],
             >>> )
             >>> flat_root_ids = [1, 2, 3]
             >>> combos = ut.all_dict_combinations(param_grid)
@@ -876,6 +876,15 @@ class _CoreDependencyCache(object):
         parent_rowids = depc._get_parent_rowids(table, rowid_dict)
         return parent_rowids
 
+    def _parse_sqlkw(kwargs):
+        default_sqlkw = dict(
+            _debug=None, ensure=True, recompute=False, recompute_all=False,
+            eager=True, nInput=None, read_extern=True, onthefly=False,
+        )
+        otherkw = kwargs.copy()
+        sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
+        return sqlkw, otherkw
+
     @ut.accepts_scalar_input2(argx_list=[1])
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
                      ensure=True, _debug=None, recompute=False,
@@ -906,6 +915,7 @@ class _CoreDependencyCache(object):
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
             >>> exec(ut.execstr_funckw(depc.get_property), globals())
+            >>> _debug = True
             >>> tablename = 'keypoint'
             >>> root_rowids = [1, 2, 3]
             >>> prop_list = depc.get_property(
@@ -955,15 +965,6 @@ class _CoreDependencyCache(object):
         # Vectorized get of properties
         tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config)
         return depc[tablename].get_config_history(tbl_rowids)
-
-    def _parse_sqlkw(kwargs):
-        default_sqlkw = dict(
-            _debug=None, ensure=True, recompute=False, recompute_all=False,
-            eager=True, nInput=None, read_extern=True, onthefly=False,
-        )
-        otherkw = kwargs.copy()
-        sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
-        return sqlkw, otherkw
 
     get = get_property
 

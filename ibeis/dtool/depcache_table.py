@@ -1362,11 +1362,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
             rowid_list = rowid_list_
         return rowid_list
 
-    def get_rowid(table, parent_rowids, config=None, ensure=True, eager=True,
-                  nInput=None, recompute=False, _debug=None):
+    def get_rowid(table, parent_rowids, config=None, ensure=True,
+                  eager=True, nInput=None, recompute=False, _debug=None):
         r"""
-        get feat rowids of chip under the current state configuration
-        if ensure is True, this function is equivalent to add_rows_from_parent
+        get feat rowids of chip under the current state configuration if
+        ensure is True, this function is equivalent to add_rows_from_parent
 
         Args:
             parent_rowids (list): list of tuples with the parent rowids as the
@@ -1413,7 +1413,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                 print('[deptbl.get_rowid] config = %r' % (config,))
                 print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
-        parent_ids_, preproc_args, idxs1, idxs2 = table._rectify_ids(parent_rowids)
+        (parent_ids_, preproc_args,
+         idxs1, idxs2) = table._rectify_ids(parent_rowids)
         if recompute:
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
