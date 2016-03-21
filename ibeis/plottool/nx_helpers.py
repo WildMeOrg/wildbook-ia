@@ -746,12 +746,16 @@ def draw_network2(graph, node_pos, ax,
                                 bbox=dict(boxstyle='round', fc='w'))
             #ax.add_patch(arrow_patch)
             edge_patch_list.append(arrow_patch)
-    elif edge_pos is not None:
+    if edge_pos is not None:
         # NEW WAY OF DRAWING EDGEES
         if as_directed is None:
             as_directed = graph.is_directed()
         for edge, pts in edge_pos.items():
             data = graph.get_edge_data(*edge)
+            if data is None:
+                if len(edge) == 3:
+                    data = graph.get_edge_data(edge[0], edge[1], int(edge[2]))
+
             if data is None:
                 data = {}
 
@@ -839,6 +843,71 @@ def draw_network2(graph, node_pos, ax,
                                                 color=color,
                                                 head_starts_at_zero=True)
                 ax.add_patch(patch1)
+
+            # endpoint1 = edge_verts[0]
+            # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
+            u, v = edge[0:2]
+            n1 = patches[u]
+            n2 = patches[v]
+            if (data.get('ismulti', False) or data.get('isnwise', False) or
+                 data.get('local_input_id', False)):
+                pt1 = np.array(n1.center)
+                pt2 = np.array(n2.center)
+                frac_thru = 4
+                edge_verts = path.vertices
+                edge_verts = vt.unique_rows(edge_verts)
+                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+                if len(sorted_verts) <= 4:
+                    mpl_bbox = path.get_extents()
+                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                    beta = (1 / frac_thru)
+                    alpha = 1 - beta
+                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+                else:
+                    #print('sorted_verts = %r' % (sorted_verts,))
+                    #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                    #frac_thru = 3
+                    frac_thru = 6
+
+                    text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
+
+                font_prop = mpl.font_manager.FontProperties(family='monospace',
+                                                            weight='light',
+                                                            size=14)
+                if data.get('local_input_id', False):
+                    text = data['local_input_id']
+                    if text == '1':
+                        text = ''
+                elif data.get('ismulti', False):
+                    text = '*'
+                else:
+                    text = str(data.get('nwise_idx', '!'))
+                ax.annotate(text, xy=text_point1, xycoords='data', va='center',
+                            ha='center', fontproperties=font_prop)
+                #bbox=dict(boxstyle='round', fc=None, alpha=1.0))
+            if data.get('label', False):
+                pt1 = np.array(n1.center)
+                pt2 = np.array(n2.center)
+                frac_thru = 2
+                edge_verts = path.vertices
+                edge_verts = vt.unique_rows(edge_verts)
+                sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
+                if len(sorted_verts) <= 4:
+                    mpl_bbox = path.get_extents()
+                    bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
+                    endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
+                    endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
+                    print('sorted_verts = %r' % (sorted_verts,))
+                    beta = (1 / frac_thru)
+                    alpha = 1 - beta
+                    text_point1 = (alpha * endpoint1) + (beta * endpoint2)
+                else:
+                    text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
+                    ax.annotate(data['label'], xy=text_point1, xycoords='data',
+                                va='center', ha='center',
+                                bbox=dict(boxstyle='round', fc='w'))
             #patch = mpl.patches.PathPatch(path, facecolor='none', lw=1)
             ax.add_patch(patch)
 
