@@ -109,6 +109,23 @@ INSTALL_OPTIONAL = [
     'tornado',
     'flask',
     'flask-cors',
+    'pynmea2'
+    'pygraphviz'
+    'pydot'
+    #'https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709', # pyparsing
+    #http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
+    #pip uninstall pydot
+    #pip uninstall pyparsing
+    #pip install -Iv https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709
+    #pip install pydot
+    #sudo apt-get  install libgraphviz4 libgraphviz-dev -y
+    #sudo apt-get install libgraphviz-dev
+    #pip install pygraphviz
+    #sudo pip3 install pygraphviz \
+    #    --install-option="--include-path=/usr/include/graphviz" \
+    #    --install-option="--library-path=/usr/lib/graphviz/"
+    #python -c "import pygraphviz; print(pygraphviz.__file__)"
+    #python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 ]
 
 INSTALL_OPTIONAL_DEV = [

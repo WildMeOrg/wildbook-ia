@@ -136,7 +136,7 @@ if __name__ == '__main__':
         python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
         python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
 
-        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks_fb --user joncrall --remote lev:/home/zach/data/IBEIS/
+        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks_fb --user joncrall --remote lev:/media/hdd/zach/data/IBEIS/
 
         /home/zach/data/IBEIS/humpbacks_fb
 

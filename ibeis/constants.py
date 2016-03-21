@@ -132,6 +132,7 @@ EXCLUDE_COPY_REL_DIRS = [
     REL_PATHS.backups,
     REL_PATHS.figures,
     REL_PATHS.nets,
+    join(PATH_NAMES._ibsdb, '_ibeis_cache*'),
     #'_ibsdb/_ibeis_cache',
     '_ibsdb/chips',  # old path for caches
     './images',  # the hotspotter images dir
