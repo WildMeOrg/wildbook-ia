@@ -226,25 +226,6 @@ def testdata_depc(fname=None):
         #root_asobject=root_asobject,
         use_globals=False)
 
-    @depc.register_preproc(
-        tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
-        coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
-    def dummy_manual_chipmask(depc, parent_rowids, config=None):
-        import vtool as vt
-        from plottool import interact_impaint
-        mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
-        ut.ensuredir(mask_dpath)
-        if config is None:
-            config = {}
-        print('Requesting user defined chip mask')
-        for rowid in parent_rowids:
-            img = vt.imread(gpath_list[rowid])
-            mask = interact_impaint.impaint_mask2(img)
-            mask_fpath = join(mask_dpath, 'mask%d.png' % (rowid,))
-            vt.imwrite(mask_fpath, mask)
-            w, h = vt.get_size(mask)
-            yield (w, h), mask_fpath
-
     @depc.register_preproc(tablename='chip', parents=[dummy_root],
                            colnames=['size', 'chip'],
                            coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
@@ -335,103 +316,6 @@ def testdata_depc(fname=None):
         for rowid1, rowid2 in zip(kpts_rowid, probchip_rowid):
             yield np.ones(7 + rowid1),
 
-    @depc.register_preproc('notch', [dummy_root], ['notchdata'], [np.ndarray],)
-    def dummy_preproc_notch(depc, parent_rowids, config=None):
-        if config is None:
-            config = {}
-        print('[preproc] Computing notch')
-        for rowid in parent_rowids:
-            yield np.empty(5 + rowid),
-
-    @depc.register_preproc(
-        'spam', ['fgweight', 'chip', 'keypoint'],
-        ['spam', 'eggs', 'size', 'uuid', 'vector', 'textdata'],
-        [str, int, (int, int), uuid.UUID, np.ndarray, ('extern', ut.readfrom)],
-        docstr='I dont like spam',)
-    def dummy_preproc_spam(depc, *args, **kwargs):
-        config = kwargs.get('config', None)
-        if config is None:
-            config = {}
-        print('[preproc] Computing spam')
-        ut.writeto('tmp.txt', ut.lorium_ipsum())
-        for x in zip(*args):
-            size = (42, 21)
-            uuid = ut.get_zero_uuid()
-            vector = np.ones(3)
-            yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
-
-    @depc.register_preproc(
-        'nnindexer', ['keypoint*'], ['flann'], [str],  # [('extern', ut.load_data)],
-        configclass=DummyIndexerConfig,
-    )
-    def dummy_preproc_indexer(depc, parent_rowids_list, config=None):
-        print('COMPUTING DUMMY INDEXER')
-        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for parent_rowids in parent_rowids_list:
-            yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
-
-    @depc.register_preproc(
-        'notchpair', ['notch', 'notch'], ['pairscore'], [int],  # [('extern', ut.load_data)],
-        #configclass=DummyIndexerConfig,
-    )
-    def dummy_notchpair(depc, n1, n2, config=None):
-        print('COMPUTING MULTITEST 1 ')
-        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for nn1, nn2 in zip(n1, n2):
-            yield (nn1 + nn2,)
-
-    @depc.register_preproc(
-        'multitest', ['keypoint', 'notch', 'notch', 'fgweight*', 'notchpair*', 'notchpair*', 'notchpair', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
-        #configclass=DummyIndexerConfig,
-    )
-    def dummy_multitest(depc, *args, **kwargs):
-        print('COMPUTING MULTITEST 1 ')
-        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for x in zip(args):
-            yield ('cool multi object' + str(kwargs) + ' ' + str(x),)
-
-    # TEST MULTISET DEPENDENCIES
-    @depc.register_preproc(
-        'multitest_score', ['multitest'], ['score'], [int],  # [('extern', ut.load_data)],
-        #configclass=DummyIndexerConfig,
-    )
-    def dummy_multitest_score(depc, parent_rowids, config=None):
-        print('COMPUTING DEPENDENCY OF MULTITEST 1 ')
-        #assert len(parent_rowids_list) == 1, 'handles only one indexer'
-        for parent_rowids in zip(parent_rowids):
-            yield (parent_rowids,)
-
-    # TEST MULTISET DEPENDENCIES
-    @depc.register_preproc(
-        'multitest_score_x', ['multitest_score', 'multitest_score'], ['score'], [int],  # [('extern', ut.load_data)],
-        #configclass=DummyIndexerConfig,
-    )
-    def multitest_score_x(depc, *args, **kwargs):
-        raise NotImplementedError('hack')
-    # REGISTER MATCHING ALGORITHMS
-
-    @depc.register_preproc(tablename='neighbs', colnames=['qx2_idx', 'qx2_dist'],
-                           coltypes=[np.ndarray, np.ndarray],
-                           parents=['keypoint', 'fgweight', 'nnindexer', 'nnindexer'])
-    def neighbs(depc, *args, **kwargs):
-        """
-        CommandLine:
-            python -m dtool.base --exec-VsManySimilarityRequest
-        """
-        #dummy_preproc_kpts
-        for qaid in zip(args):
-            yield np.array([qaid]), np.array([qaid])
-
-    @depc.register_preproc(tablename='neighbs_score', colnames=['qx2_dist'],
-                           coltypes=[np.ndarray],
-                           parents=['neighbs'])
-    def neighbs_score(depc, *args, **kwargs):
-        """
-        CommandLine:
-            python -m dtool.base --exec-VsManySimilarityRequest
-        """
-        raise NotImplementedError('hack')
-
     @depc.register_preproc(
         tablename='vsmany', colnames='annotmatch', coltypes=DummyAnnotMatch,
         requestclass=DummyVsManyRequest, configclass=DummyVsManyConfig)
@@ -461,27 +345,146 @@ def testdata_depc(fname=None):
                                           name_score_list)
             yield annot_match
 
-    @depc.register_preproc(
-        'vsone', [dummy_root, dummy_root],
-        ['score', 'match_obj', 'fm'],
-        [float, DummyVsOneMatch, np.ndarray],
-        requestclass=DummyVsOneRequest,
-        configclass=DummyVsOneConfig,
-        chunksize=2
-    )
-    def vsone_matching(depc, qaids, daids, config):
-        """
-        CommandLine:
-            python -m dtool.base --exec-VsOneSimilarityRequest
-        """
-        print('RUNNING DUMMY VSONE ALGO')
-        for qaid, daid in zip(qaids, daids):
-            match = DummyVsOneMatch()
-            match.qaid = qaid
-            match.daid = daid
-            match.fm = np.array([[1, 2], [3, 4]])
-            score = match.score = qaid + daid
-            yield (score, match, match.fm)
+    SIMPLE = 0
+    if not SIMPLE:
+
+        @depc.register_preproc(
+            tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
+            coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
+        def dummy_manual_chipmask(depc, parent_rowids, config=None):
+            import vtool as vt
+            from plottool import interact_impaint
+            mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
+            ut.ensuredir(mask_dpath)
+            if config is None:
+                config = {}
+            print('Requesting user defined chip mask')
+            for rowid in parent_rowids:
+                img = vt.imread(gpath_list[rowid])
+                mask = interact_impaint.impaint_mask2(img)
+                mask_fpath = join(mask_dpath, 'mask%d.png' % (rowid,))
+                vt.imwrite(mask_fpath, mask)
+                w, h = vt.get_size(mask)
+                yield (w, h), mask_fpath
+
+        @depc.register_preproc('notch', [dummy_root], ['notchdata'], [np.ndarray],)
+        def dummy_preproc_notch(depc, parent_rowids, config=None):
+            if config is None:
+                config = {}
+            print('[preproc] Computing notch')
+            for rowid in parent_rowids:
+                yield np.empty(5 + rowid),
+
+        @depc.register_preproc(
+            'spam', ['fgweight', 'chip', 'keypoint'],
+            ['spam', 'eggs', 'size', 'uuid', 'vector', 'textdata'],
+            [str, int, (int, int), uuid.UUID, np.ndarray, ('extern', ut.readfrom)],
+            docstr='I dont like spam',)
+        def dummy_preproc_spam(depc, *args, **kwargs):
+            config = kwargs.get('config', None)
+            if config is None:
+                config = {}
+            print('[preproc] Computing spam')
+            ut.writeto('tmp.txt', ut.lorium_ipsum())
+            for x in zip(*args):
+                size = (42, 21)
+                uuid = ut.get_zero_uuid()
+                vector = np.ones(3)
+                yield ('spam', 3665, size, uuid, vector, 'tmp.txt')
+
+        @depc.register_preproc(
+            'nnindexer', ['keypoint*'], ['flann'], [str],  # [('extern', ut.load_data)],
+            configclass=DummyIndexerConfig,
+        )
+        def dummy_preproc_indexer(depc, parent_rowids_list, config=None):
+            print('COMPUTING DUMMY INDEXER')
+            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            for parent_rowids in parent_rowids_list:
+                yield ('really cool flann object' + str(config.get_cfgstr()) + ' ' + str(parent_rowids),)
+
+        @depc.register_preproc(
+            'notchpair', ['notch', 'notch'], ['pairscore'], [int],  # [('extern', ut.load_data)],
+            #configclass=DummyIndexerConfig,
+        )
+        def dummy_notchpair(depc, n1, n2, config=None):
+            print('COMPUTING MULTITEST 1 ')
+            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            for nn1, nn2 in zip(n1, n2):
+                yield (nn1 + nn2,)
+
+        @depc.register_preproc(
+            'multitest', ['keypoint', 'notch', 'notch', 'fgweight*', 'notchpair*', 'notchpair*', 'notchpair', 'nnindexer'], ['foo'], [str],  # [('extern', ut.load_data)],
+            #configclass=DummyIndexerConfig,
+        )
+        def dummy_multitest(depc, *args, **kwargs):
+            print('COMPUTING MULTITEST 1 ')
+            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            for x in zip(args):
+                yield ('cool multi object' + str(kwargs) + ' ' + str(x),)
+
+        # TEST MULTISET DEPENDENCIES
+        @depc.register_preproc(
+            'multitest_score', ['multitest'], ['score'], [int],  # [('extern', ut.load_data)],
+            #configclass=DummyIndexerConfig,
+        )
+        def dummy_multitest_score(depc, parent_rowids, config=None):
+            print('COMPUTING DEPENDENCY OF MULTITEST 1 ')
+            #assert len(parent_rowids_list) == 1, 'handles only one indexer'
+            for parent_rowids in zip(parent_rowids):
+                yield (parent_rowids,)
+
+        # TEST MULTISET DEPENDENCIES
+        @depc.register_preproc(
+            'multitest_score_x', ['multitest_score', 'multitest_score'], ['score'], [int],  # [('extern', ut.load_data)],
+            #configclass=DummyIndexerConfig,
+        )
+        def multitest_score_x(depc, *args, **kwargs):
+            raise NotImplementedError('hack')
+        # REGISTER MATCHING ALGORITHMS
+
+        @depc.register_preproc(tablename='neighbs', colnames=['qx2_idx', 'qx2_dist'],
+                               coltypes=[np.ndarray, np.ndarray],
+                               parents=['keypoint', 'fgweight', 'nnindexer', 'nnindexer'])
+        def neighbs(depc, *args, **kwargs):
+            """
+            CommandLine:
+                python -m dtool.base --exec-VsManySimilarityRequest
+            """
+            #dummy_preproc_kpts
+            for qaid in zip(args):
+                yield np.array([qaid]), np.array([qaid])
+
+        @depc.register_preproc(tablename='neighbs_score', colnames=['qx2_dist'],
+                               coltypes=[np.ndarray],
+                               parents=['neighbs'])
+        def neighbs_score(depc, *args, **kwargs):
+            """
+            CommandLine:
+                python -m dtool.base --exec-VsManySimilarityRequest
+            """
+            raise NotImplementedError('hack')
+
+        @depc.register_preproc(
+            'vsone', [dummy_root, dummy_root],
+            ['score', 'match_obj', 'fm'],
+            [float, DummyVsOneMatch, np.ndarray],
+            requestclass=DummyVsOneRequest,
+            configclass=DummyVsOneConfig,
+            chunksize=2
+        )
+        def vsone_matching(depc, qaids, daids, config):
+            """
+            CommandLine:
+                python -m dtool.base --exec-VsOneSimilarityRequest
+            """
+            print('RUNNING DUMMY VSONE ALGO')
+            for qaid, daid in zip(qaids, daids):
+                match = DummyVsOneMatch()
+                match.qaid = qaid
+                match.daid = daid
+                match.fm = np.array([[1, 2], [3, 4]])
+                score = match.score = qaid + daid
+                yield (score, match, match.fm)
 
     # table = depc['spam']
     # print(ut.repr2(table.get_addtable_kw(), nl=2))

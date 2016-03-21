@@ -1199,6 +1199,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
             >>> #pt.show_nx(ut.nx_transitive_reduction(graph))
             >>> pt.show_nx(graph)
+            >>> pt.show_nx(graph, layout='agraph')
             >>> ut.show_if_requested()
         """
         import networkx as nx
@@ -1215,13 +1216,16 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         shape_dict = {
             'node': 'circle',
+            'node': 'rect',
             # 'root': 'rhombus',
-            'root': 'circle',
+            #'root': 'circle',
+            #'root': 'circle',
+            'root': 'rect',
         }
         import plottool as pt
         color_dict = {
             #'algo': pt.DARK_GREEN,  # 'g',
-            'node': None,
+            'node': pt.NEUTRAL_BLUE,
             'root': pt.RED,  # 'r',
         }
         def _node_attrs(dict_):
@@ -1298,6 +1302,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         graph = depc.make_graph(reduced=reduced)
         if ut.is_developer():
             ut.ensure_pylab_qt4()
+        kwargs['layout'] = 'agraph'
         pt.show_nx(graph, **kwargs)
 
     def __nice__(depc):
