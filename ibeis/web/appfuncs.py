@@ -7,10 +7,13 @@ from ibeis import ibsfuncs
 from ibeis.constants import TAU
 from flask import request, current_app
 from os.path import join, dirname, abspath  # NOQA
+from datetime import datetime
 from datetime import date
 import base64
 import jinja2
 import utool as ut
+import pynmea2
+import simplejson as json
 
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
@@ -324,3 +327,30 @@ def convert_yaw_to_old_viewpoint(yaw):
     view_angle = ((TAU / 2) - yaw) % TAU
     view_angle = ut.rad_to_deg(view_angle)
     return view_angle
+
+
+def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
+    json_list = []
+    filename = filename.strip('.LOG').strip('N')
+    year = 2000 + int(filename[0:2])
+    month = int(filename[2:4])
+    day = int(filename[4:6])
+    print(year, month, day)
+    for line in nmea_str.split('\n'):
+        line = line.strip()
+        if '@' in line or 'GPRMC' in line or len(line) == 0:
+            continue
+        record = pynmea2.parse(line)
+        dt = record.timestamp
+        dt = datetime(year, month, day, dt.hour, dt.minute, dt.second)
+        # Gather values
+        posix = int(dt.strftime("%s"))
+        posix += (60 * 60 * GMT_OFFSET)
+        lat   = float(record.latitude)
+        lon   = float(record.longitude)
+        json_list.append({
+            'time': posix,
+            'lat':  lat,
+            'lon':  lon,
+        })
+    return json.dumps({ "track": json_list })
