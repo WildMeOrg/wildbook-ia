@@ -305,7 +305,7 @@ def get_nx_layout(graph, layout, layoutkw=None):
 
     if layout == 'agraph':
         # PREFERED LAYOUT WITH MOST CONTROL
-        _, layout_info = nx_agraph_layout(layout_graph, **layoutkw)
+        _, layout_info = nx_agraph_layout(layout_graph, orig_graph=graph, **layoutkw)
         node_pos = layout_info['node_pos']
     elif layout == 'pydot':
         node_pos = nx.nx_pydot.pydot_layout(layout_graph, prog='dot')
@@ -335,8 +335,11 @@ def get_nx_layout(graph, layout, layoutkw=None):
     return layout_dict
 
 
-def nx_agraph_layout(graph, inplace=False, **kwargs):
+def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
     r"""
+    orig_graph = graph
+    graph = layout_graph
+
     References:
         http://www.graphviz.org/doc/info/attrs.html
     """
@@ -345,11 +348,6 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
 
     if not inplace:
         graph = graph.copy()
-
-    node_pos = {}
-    node_size = {}
-    edge_pos = {}
-    edge_endpoints = {}
 
     kwargs = kwargs.copy()
     factor = kwargs.pop('factor', 1.0)
@@ -377,6 +375,8 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
         pass
 
     splines = kwargs['splines']
+
+    kwargs['notranslate'] = 'true'  # for neato postprocessing
 
     argparts = ['-G%s=%s' % (key, str(val))
                 for key, val in kwargs.items()]
@@ -456,47 +456,105 @@ def nx_agraph_layout(graph, inplace=False, **kwargs):
     agraph.draw('test_graphviz_draw.png')
     # print('AFTER LAYOUT')
     #print(agraph)
-    #ratio_scale = 2.0
-    ratio_scale = 1.0
 
-    for node in graph_.nodes():
-        anode = pygraphviz.Node(agraph, node)
+    adpi = 72.0
+
+    def parse_anode_pos(anode):
         try:
             xx, yy = anode.attr['pos'].split(',')
             xy = np.array((float(xx), float(yy))) / factor
-            xy[0] *= ratio_scale
-            node_pos[node] = xy
         except:
-            node_pos[node] = (0.0, 0.0)
-        height = float(anode.attr['height']) * 72.0 / factor
-        width = float(anode.attr['width']) * 72.0 / factor
-        node_size[node] = width, height
+            xy = np.array((0.0, 0.0))
+        return xy
 
-    for edge in graph_.edges():
-        u, v = edge[0:2]
-        aedge = pygraphviz.Edge(agraph, u, v)
-        #apos = aedge.attr['pos'][2:]
+    def parse_aedge_pos(aedge):
+        """
+        parse grpahviz splineType
+        """
         apos = aedge.attr['pos']
+        endp = None
+        startp = None
         strpos_list = apos.split(' ')
         strtup_list = [ea.split(',') for ea in strpos_list]
-        try:
-            # FIXME: not sure I'm parsing this correctly
-            edge_ctrlpts = [tuple([float(f) for f in ea if f not in 'es'])
-                            for ea in strtup_list]
-            if len(strtup_list) > 0:
-                # append endpoint
-                ea0 = strtup_list[0]
-                if ea0[0] == 'e':
-                    endpoint = tuple([float(f) for f in ea0[1:]])
-                    endpoint = np.array(endpoint) / factor * ratio_scale
-                    edge_endpoints[edge] = endpoint
-                pass
-            edge_ctrlpts = np.array(edge_ctrlpts)
-            edge_ctrlpts /= factor
-            edge_ctrlpts[:, 0] *= ratio_scale
-            edge_pos[edge] = edge_ctrlpts
-        except Exception:
-            raise
+        edge_ctrlpts = [tuple([float(f) for f in ea if f not in 'es'])
+                        for ea in strtup_list]
+        edge_ctrlpts = np.array(edge_ctrlpts)
+        if len(strtup_list) > 0 and strtup_list[0][0] == 'e':
+            ea0 = strtup_list[0]
+            endp = tuple([float(f) for f in ea0[1:]])
+        if len(strtup_list) > 0 and strtup_list[0][0] == 's':
+            ea0 = strtup_list[0]
+            startp = tuple([float(f) for f in ea0[1:]])
+        elif len(strtup_list) > 1 and strtup_list[1][0] == 's':
+            ea1 = strtup_list[1]
+            startp = tuple([float(f) for f in ea1[1:]])
+        if startp:
+            startp = np.array(startp) / factor
+        if endp:
+            endp = np.array(endp) / factor
+        edge_ctrlpts = edge_ctrlpts / factor
+        return edge_ctrlpts, startp, endp
+
+    def parse_anode_size(anode):
+        width = float(anode.attr['width']) * adpi / factor
+        height = float(anode.attr['height']) * adpi / factor
+        return width, height
+
+    def format_anode_pos(xy, pin=True):
+        xx, yy = xy * factor
+        return '%f,%f%s' % (xx, yy, '!' * pin)
+
+    node_pos = {}
+    node_size = {}
+    edge_pos = {}
+    edge_endpoints = {}
+
+    for node in agraph.nodes():
+        anode = pygraphviz.Node(agraph, node)
+        node_pos[node] = parse_anode_pos(anode)
+        node_size[node] = parse_anode_size(anode)
+
+    for edge in agraph.edges(keys=True):
+        aedge = pygraphviz.Edge(agraph, *edge)
+        edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
+        edge_pos[edge] = edge_ctrlpts
+        edge_endpoints[edge] = endp
+
+    if orig_graph is not None:
+        layout_edges = set(graph.edges(keys=True))
+        orig_edges = set(orig_graph.edges(keys=True))
+        implicit_edges = orig_edges - layout_edges
+        needs_implicit = len(implicit_edges) > 0
+        if needs_implicit:
+            # Pin down positions
+            for node in agraph.nodes():
+                anode = pygraphviz.Node(agraph, node)
+                anode.attr['pin'] = 'true'
+                anode.attr['pos'] += '!'
+
+            # Add new edges to route
+            for iedge in implicit_edges:
+                data = orig_graph.get_edge_data(*iedge)
+                agraph.add_edge(*iedge, **data)
+
+            agraph.draw('test_graphviz_draw_implicit.png')
+
+            # Route the implicit edges (must use neato)
+            #agraph.layout(prog=prog, args=args)
+            agraph.layout(prog='neato', args='-n ' + args)
+            #print(agraph)
+            #agraph.layout(prog='neato', args='-n ' + args)
+
+            for node in agraph.nodes():
+                anode = pygraphviz.Node(agraph, node)
+                #print(parse_anode_pos(anode) / node_pos[node])
+                print(np.array(parse_anode_size(anode)) / np.array(node_size[node]))
+
+            for iedge in implicit_edges:
+                aedge = pygraphviz.Edge(agraph, *iedge)
+                edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
+                edge_pos[iedge] = edge_ctrlpts
+                edge_endpoints[iedge] = endp
 
     layout_info = dict(
         node_pos=node_pos,
@@ -561,7 +619,7 @@ def draw_network2(graph, node_pos, ax,
         patch_kw = dict(alpha=alpha_, color=node_color)
         node_shape = nattrs.get('shape', 'circle')
         if node_shape == 'circle':
-            radius = _get_node_size(graph, node, node_size)[0]
+            radius = min(_get_node_size(graph, node, node_size)) / 2.0  # divide by 2 seems to work for agraph
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
         elif node_shape in ['rect', 'rhombus']:
             width, height = _get_node_size(graph, node, node_size)
@@ -580,7 +638,7 @@ def draw_network2(graph, node_pos, ax,
         node_patch_list.append(patch)
     ###
     # Draw Edges
-    if edge_pos is None:
+    if  edge_pos is None:
         # TODO: rectify with spline method
         seen = {}
         edge_list = graph.edges(data=True)
@@ -694,7 +752,19 @@ def draw_network2(graph, node_pos, ax,
             as_directed = graph.is_directed()
         for edge, pts in edge_pos.items():
             data = graph.get_edge_data(*edge)
-            color = data.get('color', pt.BLACK)[0:3]
+            if data is None:
+                data = {}
+
+            if data.get('implicit', False):
+                alpha = .2
+                defaultcolor = pt.GREEN[0:3]
+            else:
+                alpha = 0.5
+                defaultcolor = pt.BLACK[0:3]
+            color = data.get('color', defaultcolor)
+            if color is None:
+                color = defaultcolor
+            color = color[0:3]
 
             offset = 1 if graph.is_directed() else 0
             #color = data.get('color', color)[0:3]
@@ -751,15 +821,20 @@ def draw_network2(graph, node_pos, ax,
                         #print('#other_points = %r' % (#other_points,))
 
             path = mpl.path.Path(verts, codes)
-            patch = mpl.patches.PathPatch(path, facecolor='none', lw=5,
+            #lw = 5
+            lw = 1.0
+            patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
                                           edgecolor=color,
+                                          alpha=alpha,
                                           joinstyle='bevel')
             if as_directed:
                 dxy = (np.array(other_points[-1]) - other_points[-2])
                 dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
                 dx, dy = dxy
                 rx, ry = other_points[-1][0], other_points[-1][1]
-                patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=.9,
+                #width = .9
+                width = .5
+                patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=width,
                                                 length_includes_head=True,
                                                 color=color,
                                                 head_starts_at_zero=True)
