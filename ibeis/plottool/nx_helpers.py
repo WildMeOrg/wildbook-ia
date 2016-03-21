@@ -545,9 +545,14 @@ def draw_network2(graph, node_pos, ax,
     # Draw nodes
     for node, nattrs in graph.nodes(data=True):
         # shape = nattrs.get('shape', 'circle')
+        if nattrs is None:
+            nattrs = {}
         label = nattrs.get('label', None)
         alpha = nattrs.get('alpha', .5)
-        node_color = nattrs.get('color', pt.NEUTRAL_BLUE)[0:3]
+        node_color = nattrs.get('color', pt.NEUTRAL_BLUE)
+        if node_color is None:
+            node_color = pt.NEUTRAL_BLUE
+        node_color = node_color[0:3]
         xy = node_pos[node]
         if 'image' in nattrs:
             alpha_ = 0.0
