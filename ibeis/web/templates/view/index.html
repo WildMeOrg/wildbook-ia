@@ -367,17 +367,32 @@
       responsive: true,
     });
 
+    sum_lat = 0.0;
+    sum_lon = 0.0
+    for (var index in markers_all)
+    {
+        marker = markers_all[index];
+        sum_lat += marker[0];
+        sum_lon += marker[1];
+        console.log(marker);
+    }
+    center_lat = sum_lat / markers_all.length;
+    center_lon = sum_lon / markers_all.length;
 
-
-    var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
+    var center = new google.maps.LatLng(center_lat, center_lon); // General
+    // var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
     // var center = new google.maps.LatLng(-1.385, 36.860); // Nairobi
     // var center = new google.maps.LatLng(42.728, -73.687); // Troy
-    loadGPSMap(tracks, markers, center);
+
+    // var zoom = 12;
+    var zoom = 9;
+
+    loadGPSMap(tracks, markers, center, zoom);
   };
 
 
 
-  function loadGPSMap(tracks, markers, center)
+  function loadGPSMap(tracks, markers, center, zoom)
   {
     var gps;
     var styles = [
@@ -393,7 +408,7 @@
 
     // Initialize the Google Maps API v3
     var map1 = new google.maps.Map(document.getElementById('gps-map-canvas1'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -406,7 +421,7 @@
     });
 
     var map2 = new google.maps.Map(document.getElementById('gps-map-canvas2'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -419,7 +434,7 @@
     });
 
     var map3 = new google.maps.Map(document.getElementById('gps-map-canvas3'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -432,7 +447,7 @@
     });
 
     var map4 = new google.maps.Map(document.getElementById('gps-map-canvas4'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -445,7 +460,7 @@
     });
 
     var map5 = new google.maps.Map(document.getElementById('gps-map-canvas5'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
