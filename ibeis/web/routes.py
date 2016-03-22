@@ -194,6 +194,13 @@ def view():
         __nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
+    gps_list_markers = [ gps for gps in gps_list_markers if tuple(gps) != (-1, -1, ) ]
+    gps_list_markers_all = [ gps for gps in gps_list_markers_all if tuple(gps) != (-1, -1, ) ]
+    gps_list_tracks = [
+        [ gps for gps in gps_list_track if tuple(gps) != (-1, -1, ) ]
+        for gps_list_track in gps_list_tracks
+    ]
+
     valid_aids = ibs.get_valid_aids()
     valid_gids = ibs.get_valid_gids()
     valid_aids_ = ibs.filter_aids_custom(valid_aids)
