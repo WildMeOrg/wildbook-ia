@@ -372,13 +372,13 @@
     for (var index in markers_all)
     {
         marker = markers_all[index];
-        sum_lat += marker[0];
-        sum_lon += marker[1];
-        console.log(marker);
+        sum_lat += marker[1];
+        sum_lon += marker[0];
     }
     center_lat = sum_lat / markers_all.length;
     center_lon = sum_lon / markers_all.length;
 
+    console.log("Center: " + center_lat + " " + center_lon);
     var center = new google.maps.LatLng(center_lat, center_lon); // General
     // var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
     // var center = new google.maps.LatLng(-1.385, 36.860); // Nairobi
