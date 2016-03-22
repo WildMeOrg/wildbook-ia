@@ -394,6 +394,7 @@
         }
     ];
 
+    var modify = true;
     var bounds = new google.maps.LatLngBounds();
 
     // Initialize the Google Maps API v3
@@ -404,9 +405,9 @@
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
@@ -417,9 +418,9 @@
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
@@ -430,9 +431,9 @@
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
@@ -443,9 +444,9 @@
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
@@ -456,9 +457,9 @@
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
