@@ -367,28 +367,14 @@
       responsive: true,
     });
 
-    sum_lat = 0.0;
-    sum_lon = 0.0
-    for (var index in markers_all)
-    {
-        marker = markers_all[index];
-        if(marker[0] == -1 && marker[1] == -1) {
-            continue;
-        }
-        sum_lat += marker[0];
-        sum_lon += marker[1];
-    }
-    center_lat = sum_lat / markers_all.length;
-    center_lon = sum_lon / markers_all.length;
 
-    console.log("Center: " + center_lat + " " + center_lon);
-    var center = new google.maps.LatLng(center_lat, center_lon); // General
+    var center = undefined;
     // var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
     // var center = new google.maps.LatLng(-1.385, 36.860); // Nairobi
     // var center = new google.maps.LatLng(42.728, -73.687); // Troy
 
     // var zoom = 12;
-    var zoom = 7;
+    var zoom = undefined;
 
     loadGPSMap(tracks, markers, center, zoom);
   };
@@ -408,6 +394,8 @@
             ]
         }
     ];
+
+    var bounds = new google.maps.LatLngBounds();
 
     // Initialize the Google Maps API v3
     var map1 = new google.maps.Map(document.getElementById('gps-map-canvas1'), {
@@ -484,6 +472,7 @@
     {
         marker = markers[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
+        bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         heatmap_data.push(gps);
         color = "#428BCA";
@@ -501,6 +490,7 @@
     {
         marker = markers_all[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
+        bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         heatmap_data_all.push(gps);
         color = "#428BCA";
@@ -545,6 +535,7 @@
           {
               marker = track[index2];
               var gps = new google.maps.LatLng(marker[0], marker[1]);
+              bounds.extend(gps);
               if(last !== undefined)
               {
                   console.log(last + " " + gps);
@@ -566,6 +557,7 @@
     {
         marker = markers[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
+        bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         color = "#428BCA";
         new google.maps.Polyline({
@@ -576,6 +568,15 @@
             strokeWeight: 5,
             map: map5
         });
+    }
+
+    if( center === undefined || zoom === undefined )
+    {
+        map1.fitBounds(bounds);
+        map2.fitBounds(bounds);
+        map3.fitBounds(bounds);
+        map4.fitBounds(bounds);
+        map5.fitBounds(bounds);
     }
   }
 
