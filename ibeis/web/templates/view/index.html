@@ -372,8 +372,8 @@
     for (var index in markers_all)
     {
         marker = markers_all[index];
-        sum_lat += marker[1];
-        sum_lon += marker[0];
+        sum_lat += marker[0];
+        sum_lon += marker[1];
     }
     center_lat = sum_lat / markers_all.length;
     center_lon = sum_lon / markers_all.length;
@@ -385,7 +385,7 @@
     // var center = new google.maps.LatLng(42.728, -73.687); // Troy
 
     // var zoom = 12;
-    var zoom = 9;
+    var zoom = 4;
 
     loadGPSMap(tracks, markers, center, zoom);
   };
