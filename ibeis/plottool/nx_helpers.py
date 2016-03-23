@@ -121,10 +121,10 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
     }
 
     if img_dict is not None and len(img_dict) > 0:
-        node_list = img_dict.keys()
-        pos_list = ut.take(node_pos, node_list)
-        img_list = ut.take(img_dict, node_list)
-        size_list = ut.take(node_size, node_list)
+        node_list = sorted(img_dict.keys())
+        pos_list = ut.dict_take(node_pos, node_list)
+        img_list = ut.dict_take(img_dict, node_list)
+        size_list = ut.dict_take(node_size, node_list)
         color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
         #node_attrs = ut.dict_take(graph.node, node_list)
         # Rename to node_scale?
@@ -132,7 +132,10 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         #                                          default=None))
         #img_list = [img if scale is None else vt.resize_image_by_scale(img, scale)
         #            for scale, img in zip(scale_list, img_list)]
+
+        # TODO; frames without images
         imgdat = pt.netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, frameon=frameon)
+        imgdat['node_list'] = node_list
         plotinfo['imgdat'] = imgdat
 
     if title is not None:
@@ -509,20 +512,30 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
     edge_pos = {}
     edge_endpoints = {}
 
-    for node in agraph.nodes():
+    #for node in agraph.nodes():
+    for node in graph.nodes():
         anode = pygraphviz.Node(agraph, node)
         node_pos[node] = parse_anode_pos(anode)
         node_size[node] = parse_anode_size(anode)
 
-    for edge in agraph.edges(keys=True):
+    if graph.is_multigraph():
+        edges = graph.edges(keys=True)
+    else:
+        edges = graph.edges()
+
+    for edge in edges:
         aedge = pygraphviz.Edge(agraph, *edge)
         edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
         edge_pos[edge] = edge_ctrlpts
         edge_endpoints[edge] = endp
 
     if orig_graph is not None:
-        layout_edges = set(graph.edges(keys=True))
-        orig_edges = set(orig_graph.edges(keys=True))
+        if graph.is_multigraph():
+            layout_edges = set(graph.edges(keys=True))
+            orig_edges = set(orig_graph.edges(keys=True))
+        else:
+            layout_edges = set(graph.edges())
+            orig_edges = set(orig_graph.edges())
         implicit_edges = orig_edges - layout_edges
         needs_implicit = len(implicit_edges) > 0
         if needs_implicit:
@@ -545,10 +558,10 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
             #print(agraph)
             #agraph.layout(prog='neato', args='-n ' + args)
 
-            for node in agraph.nodes():
-                anode = pygraphviz.Node(agraph, node)
-                #print(parse_anode_pos(anode) / node_pos[node])
-                print(np.array(parse_anode_size(anode)) / np.array(node_size[node]))
+            #for node in agraph.nodes():
+            #    anode = pygraphviz.Node(agraph, node)
+            #    #print(parse_anode_pos(anode) / node_pos[node])
+            #    print(np.array(parse_anode_size(anode)) / np.array(node_size[node]))
 
             for iedge in implicit_edges:
                 aedge = pygraphviz.Edge(agraph, *iedge)
@@ -619,7 +632,8 @@ def draw_network2(graph, node_pos, ax,
         patch_kw = dict(alpha=alpha_, color=node_color)
         node_shape = nattrs.get('shape', 'circle')
         if node_shape == 'circle':
-            radius = min(_get_node_size(graph, node, node_size)) / 2.0  # divide by 2 seems to work for agraph
+            # divide by 2 seems to work for agraph
+            radius = min(_get_node_size(graph, node, node_size)) / 2.0
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
         elif node_shape in ['rect', 'rhombus']:
             width, height = _get_node_size(graph, node, node_size)
@@ -629,7 +643,7 @@ def draw_network2(graph, node_pos, ax,
                 xy_bl, width, height, angle=angle, **patch_kw)
             patch.center = xy
         patches[node] = patch
-        x, y = node_pos[node]
+        x, y = xy
         text = node
         if label is not None:
             text += ': ' + str(label)
@@ -753,17 +767,24 @@ def draw_network2(graph, node_pos, ax,
         for edge, pts in edge_pos.items():
             data = graph.get_edge_data(*edge)
             if data is None:
-                if len(edge) == 3:
+                if len(edge) == 3 and edge[2] is not None:
                     data = graph.get_edge_data(edge[0], edge[1], int(edge[2]))
+                else:
+                    data = graph.get_edge_data(edge[0], edge[1])
 
             if data is None:
                 data = {}
 
+            if data.get('style', None) == 'invis':
+                continue
+
             if data.get('implicit', False):
-                alpha = .2
+                #alpha = .2
+                alpha = .5
                 defaultcolor = pt.GREEN[0:3]
             else:
-                alpha = 0.5
+                #alpha = 0.5
+                alpha = 1.0
                 defaultcolor = pt.BLACK[0:3]
             color = data.get('color', defaultcolor)
             if color is None:
@@ -826,7 +847,18 @@ def draw_network2(graph, node_pos, ax,
 
             path = mpl.path.Path(verts, codes)
             #lw = 5
-            lw = 1.0
+            # python -m ibeis.annotmatch_funcs review_tagged_joins --dpath ~/latex/crall-candidacy-2015/ --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
+            # python -m dtool --tf DependencyCache.make_graph --show
+
+            figsize = ut.get_argval('--figsize', type_=list, default=None)
+            if figsize is not None:
+                # HACK
+                graphsize = max(figsize)
+                lw = graphsize / 5
+                width =  graphsize / 15
+            else:
+                width = .5
+                lw = 1.0
             patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
                                           edgecolor=color,
                                           alpha=alpha,
@@ -836,8 +868,6 @@ def draw_network2(graph, node_pos, ax,
                 dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
                 dx, dy = dxy
                 rx, ry = other_points[-1][0], other_points[-1][1]
-                #width = .9
-                width = .5
                 patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=width,
                                                 length_includes_head=True,
                                                 color=color,

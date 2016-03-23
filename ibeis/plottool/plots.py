@@ -545,16 +545,22 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
     x123, y123 = vt.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
     submaxima_x, submaxima_y = vt.interpolate_submaxima(argmaxima, hist, centers)
-    xpoints = []
-    ypoints = []
-    for xtup, ytup in zip(x123.T, y123.T):
-        (x1, x2, x3) = xtup  # DUPLICATE CODE!!
-        (y1, y2, y3) = ytup  # DUPLICATE CODE!!
-        coeff = np.polyfit((x1, x2, x3), (y1, y2, y3), 2)
-        x_pts = np.linspace(x1, x3, 50)
-        y_pts = np.polyval(coeff, x_pts)
-        xpoints.append(x_pts)
-        ypoints.append(y_pts)
+
+    # Extract parabola points
+    coeff_list =  [np.polyfit(xtup, ytup, 2) for xtup, ytup in zip(x123.T, y123.T)]
+    xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
+    ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
+
+    #xpoints = []
+    #ypoints = []
+    #for xtup, ytup in zip(x123.T, y123.T):
+    #    (x1, x2, x3) = xtup  # DUPLICATE CODE!!
+    #    (y1, y2, y3) = ytup  # DUPLICATE CODE!!
+    #    coeff = np.polyfit((x1, x2, x3), (y1, y2, y3), 2)
+    #    x_pts = np.linspace(x1, x3, 50)
+    #    y_pts = np.polyval(coeff, x_pts)
+    #    xpoints.append(x_pts)
+    #    ypoints.append(y_pts)
 
     maxima_thresh_val = maxima_y.max() * maxima_thresh
     plt.plot(centers, [maxima_thresh_val] * len(centers), 'r--')
