@@ -273,7 +273,7 @@ def imageset_annot_additional_processed(ibs, aid_list, nid_list):
     return annots_reviewed
 
 
-def convert_old_viewpoint_to_yaw(view_angle):
+def convert_old_viewpoint_to_yaw(view_theta):
     """ we initially had viewpoint coordinates inverted
 
     Example:
@@ -290,13 +290,13 @@ def convert_old_viewpoint_to_yaw(view_angle):
         >>>     ('backleft'   , 315, 0.875 * TAU,),
         >>> ]
         >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
-        >>> for lbl, angle, radians in old_viewpoint_labels:
-        >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
+        >>> for lbl, theta, radians in old_viewpoint_labels:
+        >>>     print(fmtstr % (lbl, theta, lbl, convert_old_viewpoint_to_yaw(theta)))
     """
-    if view_angle is None:
+    if view_theta is None:
         return None
-    view_angle = ut.deg_to_rad(view_angle)
-    yaw = (-view_angle + (TAU / 2)) % TAU
+    view_theta = ut.deg_to_rad(view_theta)
+    yaw = (-view_theta + (TAU / 2)) % TAU
     return yaw
 
 
@@ -316,17 +316,17 @@ def convert_yaw_to_old_viewpoint(yaw):
         >>>     ('back'       , 270, 0.750 * TAU,),
         >>>     ('backleft'   , 315, 0.875 * TAU,),
         >>> ]
-        >>> fmtstr = 'original_angle %15r %.2f -> yaw %15r %.2f -> reconstructed_angle %15r %.2f'
-        >>> for lbl, angle, radians in old_viewpoint_labels:
-        >>>     yaw = convert_old_viewpoint_to_yaw(angle)
-        >>>     reconstructed_angle = convert_yaw_to_old_viewpoint(yaw)
-        >>>     print(fmtstr % (lbl, angle, lbl, yaw, lbl, reconstructed_angle))
+        >>> fmtstr = 'original_theta %15r %.2f -> yaw %15r %.2f -> reconstructed_theta %15r %.2f'
+        >>> for lbl, theta, radians in old_viewpoint_labels:
+        >>>     yaw = convert_old_viewpoint_to_yaw(theta)
+        >>>     reconstructed_theta = convert_yaw_to_old_viewpoint(yaw)
+        >>>     print(fmtstr % (lbl, theta, lbl, yaw, lbl, reconstructed_theta))
     """
     if yaw is None:
         return None
-    view_angle = ((TAU / 2) - yaw) % TAU
-    view_angle = ut.rad_to_deg(view_angle)
-    return view_angle
+    view_theta = ((TAU / 2) - yaw) % TAU
+    view_theta = ut.rad_to_deg(view_theta)
+    return view_theta
 
 
 def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):

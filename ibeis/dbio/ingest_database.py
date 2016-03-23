@@ -1196,10 +1196,6 @@ def ingest_serengeti_mamal_cameratrap(species):
     ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
     gid_list_ = ibs.add_images(chosen_path_list, auto_localize=False)  # NOQA
 
-    # Attempt to automatically detect the annotations
-    #aids_list = ibs.detect_random_forest(gid_list_, species)
-    #aids_list
-
     #if False:
     #    # remove non-zebra photos
     #    from os.path import basename

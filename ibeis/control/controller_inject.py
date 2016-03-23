@@ -796,10 +796,17 @@ def make_ibs_register_decorator(modname):
         return func
     return CLASS_INJECT_KEY, register_ibs_method
 
+_decors_annot = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
+_decors_image = dtool.make_depcache_decors(const.IMAGE_TABLE)
 
-_decors = dtool.make_depcache_decors(const.ANNOTATION_TABLE)
-register_preproc = _decors['preproc']
-register_subprop = _decors['subprop']
+register_preprocs = {
+    'annot' : _decors_annot['preproc'],
+    'image' : _decors_image['preproc'],
+}
+register_subprops = {
+    'annot' : _decors_annot['subprop'],
+    'image' : _decors_image['subprop'],
+}
 
 
 if __name__ == '__main__':

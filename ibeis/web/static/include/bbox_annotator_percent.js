@@ -114,7 +114,7 @@
       // data.width = Math.max(50, data.width)
       // data.height = Math.max(50, data.height)
       data.label = $.trim(this.label_input.val().toLowerCase());
-      data.angle = 0.0;
+      data.theta = 0.0;
       data.id = null;
       if (options.input_method !== 'fixed') {
         this.label_input.val('');
@@ -555,14 +555,14 @@
         annotator.refresh();
       }
 
-      function update_angle(angle)
+      function update_theta(theta)
       {
         function mod(x, n) {
           // Javascript % is not modulus, it is remainder (wtf?)
           return ((x % n) + n) % n;
         }
 
-        entry['angle'] = mod(angle, 2.0 * Math.PI);
+        entry['theta'] = mod(theta, 2.0 * Math.PI);
         annotator.refresh();
       }
 
@@ -591,10 +591,10 @@
           stop: function(e, ui) {
             $('.ia-label-text-box').css('opacity', '0.80');
             annotator.editing = false;
-            update_angle(ui.angle.stop);
+            update_theta(ui.theta.stop);
             update_style(false, annotator, e);
           },
-          angle: entry.angle,
+          theta: entry.theta,
       };
       var drag_params = {
           start: function(e, ui) {

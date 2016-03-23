@@ -241,13 +241,13 @@ def detect_gid_list(ibs, gid_list, tree_path_list, downsample=True, **kwargs):
     # Run detection
     results_iter = detect(ibs, gpath_list, tree_path_list, **kwargs)
     # Upscale the results
-    for downsample, (gpath, result_list) in zip(downsample_list, results_iter):
+    for gid, downsample, (gpath, result_list) in zip(gid_list, downsample_list, results_iter):
         # Upscale the results back up to the original image size
         if downsample is not None and downsample != 1.0:
             for result in result_list:
                 for key in ['centerx', 'centery', 'xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
-        yield (gpath, result_list)
+        yield gid, gpath, result_list
 
 
 def detect(ibs, gpath_list, tree_path_list, **kwargs):
@@ -274,7 +274,6 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     # Run detection
     detector = pyrf.Random_Forest_Detector(verbose=verbose)
     forest = detector.forest(tree_path_list)
-    raise RuntimeError('This detector implementation leaks memory')
     results_iter = detector.detect(forest, gpath_list, **kwargs)
     return results_iter
 

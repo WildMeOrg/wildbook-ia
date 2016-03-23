@@ -646,7 +646,7 @@ def turk_detection():
             temp['height'] = 100.0 * (annot_bbox[3] / height)
             temp['label']  = species
             temp['id']     = aid
-            temp['angle']  = float(annot_theta)
+            temp['theta']  = float(annot_theta)
             annotation_list.append(temp)
         if len(species_list) > 0:
             species = max(set(species_list), key=species_list.count)  # Get most common species
@@ -705,7 +705,7 @@ def turk_detection_dynamic():
         temp['height'] = 100.0 * (annot_bbox[3] / height)
         temp['label']  = species
         temp['id']     = aid
-        temp['angle']  = float(annot_theta)
+        temp['theta']  = float(annot_theta)
         annotation_list.append(temp)
     if len(species_list) > 0:
         species = max(set(species_list), key=species_list.count)  # Get most common species
