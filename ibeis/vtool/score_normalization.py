@@ -327,45 +327,46 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
             >>> #encoder, X, y = testdata_score_normalier([(3.5, 256), (9.5, 1024), (15.5, 2048)], [(6.5, 256), (12.5, 5064), (18.5, 128)], adjust=1, p_tp_method='ratio')
-            >>> #encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 5064)], [(6.5, 256), (12.5, 2048), (18.5, 128)], adjust=1, p_tp_method='ratio')
+            >>> encoder, X, y = testdata_score_normalier([(3.5, 64), (9.5, 1024), (15.5, 5064)], [(6.5, 256), (12.5, 2048), (18.5, 128)], adjust=1, p_tp_method='ratio')
             >>> #encoder, X, y = testdata_score_normalier(adjust=1)
             >>> #encoder, X, y = testdata_score_normalier([(3.5, 2048)], [(30.5, 128)], tn_scale=.1, adjust=1)
-            >>> encoder, X, y = testdata_score_normalier([(0, 64)], [(-.1, 12)], adjust=8, min_clip=0)
+            >>> #encoder, X, y = testdata_score_normalier([(0, 64)], [(-.1, 12)], adjust=8, min_clip=0)
             >>> locals_ = ut.exec_func_src(encoder.learn_threshold2)
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> #pt.plot(xdata[0:-2], np.diff(np.diff(distance)))
-            >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
+            >>> #pt.plot(xdata[0:-2], np.diff(np.diff(closeness)))
+            >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(closeness)
             >>> fnum = 100
-            >>> pt.multi_plot(xdata, [tp_curve, tn_curve, distance],
-            >>>               label_list=['p(tp | s)', 'p(tn | s)', 'isect-dist'], markers=['', '', ''],
-            >>>               linewidth_list=[4, 4, 1], title='intersection points',
+            >>> pt.multi_plot(xdata, [tp_curve, tn_curve, closeness, ],
+            >>>               label_list=['p(tp | s)', 'p(tn | s)', 'closeness', ], marker='',
+            >>>               linewidth_list=[4, 4, 1,], title='intersection points',
             >>>               pnum=(4, 1, 1), fnum=fnum, xmax=xdata.max(), xmin=0)
-            >>> pt.plot(x_submax, y_submax, 'o')
-            >>> pt.plot(xdata[argmaxima], distance[argmaxima], 'rx')
-            >>> pt.plot(x_submax, y_submax, 'o')
+            >>> pt.plot(xdata[argmaxima], closeness[argmaxima], 'rx', label='closeness maxima')
+            >>> pt.plot(x_submax, y_submax, 'o', label='chosen')
+            >>> #pt.plot(xdata[argmaxima], curveness[argmaxima], 'rx', label='curveness maxima')
+            >>> pt.legend()
+            >>> #pt.plot(x_submax, y_submax, 'o')
             >>> pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
             >>> pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
             >>> pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
             >>> pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
             >>> #pt.plot(xdata[argmaxima], encoder.interp_fn(x_submax), 'rx')
-            >>> #
-            >>> _interp_sgtp = scipy.interpolate.interp1d(
-            >>>     xdata, tn_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
-            >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
-            >>> #
-            >>> _interp_sgtp = scipy.interpolate.interp1d(
-            >>>     xdata, tp_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
+            >>> _mkinterp = ut.partial(
+            >>>     scipy.interpolate.interp1d, kind='linear', copy=False,
+            >>>     assume_sorted=False, bounds_error=False)
+            >>> _interp_sgtn = _mkinterp(xdata, tn_curve)
+            >>> _interp_sgtp = _mkinterp(xdata, tp_curve)
+            >>> pt.plot(x_submax, _interp_sgtn(x_submax), 'go')
             >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
             >>> #
             >>> pt.multi_plot(xdata[argmaxima], [tp_area, fp_area, tn_area, fn_area], title='intersection areas',
-            >>>               label_list=['tp_area', 'fp_area', 'tn_area', 'fn_area'], marker='o',
+            >>>               label_list=['tp_area', 'fp_area', 'tn_area', 'fn_area'], markers=['o', 'd', 'o', '.'],
             >>>               pnum=(4, 1, 2), fnum=fnum, xmax=xdata.max(), xmin=0)
             >>> #
-            >>> pt.multi_plot(xdata[argmaxima], [lr_pos, lr_neg], title='intersection quality',
-            >>>               label_list=['lr_pos', 'lr_neg'], marker='o',
+            >>> pt.multi_plot(xdata[argmaxima], [lr_pos, lr_neg, acc], title='intersection quality (liklihood ratios)',
+            >>>               label_list=['lr_pos=tp/fp', 'lr_neg=fn/tn', 'acc'], markers=['o', 'o', '*'],
             >>>               pnum=(4, 1, 3), fnum=fnum, xmax=xdata.max(), xmin=0)
             >>> #
             >>> pnum_ = pt.make_pnum_nextgen(4, 3, start=9)
@@ -391,34 +392,41 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             tn_curve = encoder.p_score_given_tn[:cutx]
         else:
             xdata = encoder.score_domain
-            #print('xdata = %r' % (xdata,))
             tp_curve = encoder.p_score_given_tp
-            #print('tp_curve = %r' % (tp_curve,))
             tn_curve = encoder.p_score_given_tn
+            if 0:
+                _p = np.where(xdata > 50)[0][0]
+                xdata = xdata[0:_p]
+                tp_curve = tp_curve[0:_p]
+                tn_curve = tn_curve[0:_p]
+            #print('xdata = %r' % (xdata,))
+            #print('tp_curve = %r' % (tp_curve,))
             #print('tn_curve = %r' % (tn_curve,))
             #tp_curve[:] = .1
             #tn_curve[:] = .5
 
         # Find locations of intersection
-        distance = -np.abs(tp_curve - tn_curve)
-        distance = distance - distance.min()
-        #distance
-        #print('distance = %r' % (distance,))
-        #argmaxima = vt.hist_argmaxima2(distance)
+        closeness = -np.abs(tp_curve - tn_curve)
+        closeness = closeness - closeness.min()
+        #closeness
+        #print('closeness = %r' % (closeness,))
+        #argmaxima = vt.hist_argmaxima2(closeness)
         #print('argmaxima = %r' % (argmaxima,))
 
-        argmaxima = vt.hist_argmaxima2(distance)
-        curvature = -np.gradient(np.gradient(distance))
-        # Remove distances with almost no curvature
-        #if len(argmaxima) > 0:
-        #    pass
-        if len(argmaxima) > 1:
-            curvature_  = curvature[argmaxima]
-            valid = curvature_ > 1e-6
-            #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
-            #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
-            if np.any(valid):
-                argmaxima = argmaxima[valid]
+        argmaxima = vt.hist_argmaxima2(closeness)
+        #argmaxima = np.arange(2, len(closeness) - 2)
+        #curvature = -np.gradient(np.gradient(closeness))
+        #curveness = (curvature - curvature.min()) / (curvature.max() - curvature.min())
+        # Remove maxima points with almost no curvature
+        #if False:
+        #    if len(argmaxima) > 1:
+        #        #curveness[argmaxima]
+        #        curvature_  = curvature[argmaxima]
+        #        valid = curvature_ > 1e-5
+        #        #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
+        #        #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
+        #        if np.any(valid):
+        #            argmaxima = argmaxima[valid]
 
         #argmaxima2 = vt.hist_argmaxima2(-deriv_no2)
         #if len(np.intersect1d(argmaxima2, argmaxima)) > 0:
@@ -436,24 +444,40 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             fn_area = get_left_area(tp_curve, xdata, argmaxima)  # NOQA
             # Choose the location of intersection that performs best on some test
             # statistic. (Positive likelihood ratio)
-            lr_pos = tp_area / fp_area
-            lr_neg = fp_area / tn_area
+            lr_pos_ = tp_area / fp_area
+            lr_neg_ = fn_area / tn_area
+            # Accuracy is (tp + tn) / total
+            acc = (tp_area + tn_area) / 2
             #print('lr_neg = %r' % (lr_neg,))
             #print('lr_pos = %r' % (lr_pos,))
             # Normalize likelihood into range 0 to 1
-            pos_norm = max(1, vt.safe_extreme(lr_pos, op=np.nanmax, fill=1, finite=True))
-            neg_norm = max(1, vt.safe_extreme(lr_neg, op=np.nanmax, fill=1, finite=True))
-            lr_pos = lr_pos / pos_norm
-            lr_neg = lr_neg / neg_norm
-            isvalid = np.isfinite(lr_pos)
+            pos_norm = max(1, vt.safe_extreme(lr_pos_, op=np.nanmax, fill=1, finite=True))
+            neg_norm = max(1, vt.safe_extreme(lr_neg_, op=np.nanmax, fill=1, finite=True))
+            lr_pos = lr_pos_ / pos_norm  # NOQA
+            lr_neg = lr_neg_ / neg_norm  # NOQA
+
+            #chosen_metric = lr_pos
+            chosen_metric = acc
+            # Invalidate impossible values
+            isvalid = np.isfinite(chosen_metric)
             if np.any(isvalid):
-                lr_pos = isvalid[isvalid]
+                valid_argmaxima = argmaxima[isvalid]
+                chosen_metric = chosen_metric[isvalid]
+            else:
+                valid_argmaxima = argmaxima
+
+            # Invalidate values based on "reasonable" heuristics
+            #reasonable_tp = tp_area > .1
+            #reasonable_fp = tn_area > .1
+            #reasonable_flags = np.logical_and(reasonable_tp, reasonable_fp)
+            #if np.any(reasonable_flags):
+            #    lr_pos = lr_pos.compress(reasonable_flags)
+            #    lr_neg = lr_neg.compress(reasonable_flags)
+
             # Choose a finite argmax
-            ranked_poses = lr_pos.argsort()[::-1]
-            #np.isnan(lr_pos)
-            maxpos = ranked_poses[0]
-            dist_argmax = argmaxima[maxpos]
-            #maxpos = argmaxima[lr_pos.argmax()]
+            sortx = chosen_metric.argsort()[::-1]
+            closeness_argmax = valid_argmaxima[sortx[0]]
+            #maxpos = valid_argmaxima[lr_pos.argmax()]
             #print('lr_pos.argmax = %r' % (lr_pos.argmax,))
             # Hack for infinity and nans. bring thems out of the 0 and 1 range, but only by a bit.
             #lr_pos[np.isnan(lr_pos)] = -.1
@@ -461,20 +485,19 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             #lr_pos[np.isinf(lr_pos)] = 1.1
             #lr_neg[np.isinf(lr_neg)] = 1.1
         else:
-            dist_argmax = distance.argmax()
+            closeness_argmax = closeness.argmax()
 
-        if dist_argmax == len(distance) - 1:
-            y_submax = distance[-2:-1]
+        if closeness_argmax == len(closeness) - 1:
+            y_submax = closeness[-2:-1]
             x_submax = xdata[-2:-1]
-        elif dist_argmax == 0:
-            y_submax = distance[0:1]
+        elif closeness_argmax == 0:
+            y_submax = closeness[0:1]
             x_submax = xdata[0:1]
         else:
-            # argmaxima, hist_, centers = maxpos, distance, xdata
-            x_submax, y_submax = vt.interpolate_submaxima(np.array([dist_argmax]), distance, xdata)
+            # argmaxima, hist_, centers = maxpos, closeness, xdata
+            x_submax, y_submax = vt.interpolate_submaxima(np.array([closeness_argmax]), closeness, xdata)
         score_thresh = x_submax[0]
-        #if not getattr(encoder, 'block', False):
-        if False:
+        if ut.get_argflag('--debug-scorethresh') and not getattr(encoder, 'block', False):
             encoder.block = True
             ut.exec_func_doctest(encoder.learn_threshold2,
                                  start_sentinal='import plottool as pt',
