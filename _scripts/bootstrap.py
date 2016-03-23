@@ -199,6 +199,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'networkx',
         'pyfiglet',
         'pygraphviz',
+        'pynmea2',
     ]
 
     OPTIONAL_PYPKG_LIST = [

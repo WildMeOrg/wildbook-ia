@@ -253,11 +253,11 @@ def process_detection_html(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-def detect_cnn_yolo_uuid(ibs, image_uuid_list, **kwargs):
+def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
     from ibeis.algo.detect import yolo  # NOQA
     # TODO: Return confidence here as well
     print('[ibs] detecting using CNN YOLO')
-    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    image_uuid_list = ibs.get_image_uuids(gid_list)
     ibs.assert_valid_gids(gid_list)
     results_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
     results_list = list(results_gen)

@@ -104,7 +104,7 @@
     <div class="col-lg-1"></div>
   </div>
 
-  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+  <div class="row" style="margin-top: 50px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas1"></div>
@@ -115,7 +115,7 @@
       Locations of named animals
     </div>
 
-  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+  <div class="row" style="margin-top: 50px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas2"></div>
@@ -126,7 +126,7 @@
       Heatmap of named animals
     </div>
 
-  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+  <div class="row" style="margin-top: 50px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas3"></div>
@@ -137,7 +137,7 @@
         Locations of all taken images (including images with no animals)
     </div>
 
-  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+  <div class="row" style="margin-top: 50px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas4"></div>
@@ -148,7 +148,7 @@
       Heatmap of all taken images (including images with no animals)
     </div>
 
-  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+  <div class="row" style="margin-top: 50px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas5"></div>
@@ -367,17 +367,20 @@
       responsive: true,
     });
 
-
-
-    var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
+    var center = undefined;
+    // var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
     // var center = new google.maps.LatLng(-1.385, 36.860); // Nairobi
     // var center = new google.maps.LatLng(42.728, -73.687); // Troy
-    loadGPSMap(tracks, markers, center);
+
+    // var zoom = 12;
+    var zoom = undefined;
+
+    loadGPSMap(tracks, markers, center, zoom);
   };
 
 
 
-  function loadGPSMap(tracks, markers, center)
+  function loadGPSMap(tracks, markers, center, zoom)
   {
     var gps;
     var styles = [
@@ -391,69 +394,72 @@
         }
     ];
 
+    var modify = true;
+    var bounds = new google.maps.LatLngBounds();
+
     // Initialize the Google Maps API v3
     var map1 = new google.maps.Map(document.getElementById('gps-map-canvas1'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
     var map2 = new google.maps.Map(document.getElementById('gps-map-canvas2'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
     var map3 = new google.maps.Map(document.getElementById('gps-map-canvas3'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
     var map4 = new google.maps.Map(document.getElementById('gps-map-canvas4'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
     var map5 = new google.maps.Map(document.getElementById('gps-map-canvas5'), {
-        zoom: 12,
+        zoom: zoom,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
         // mapTypeId: google.maps.MapTypeId.ROADMAP,
         // mapTypeId: google.maps.MapTypeId.SATELLITE,
         mapTypeId: google.maps.MapTypeId.TERRAIN,
-        disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
+        disableDefaultUI: ! modify,
+        scrollwheel: modify,
+        draggable: modify,
         styles: styles,
     });
 
@@ -466,6 +472,7 @@
     {
         marker = markers[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
+        bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         heatmap_data.push(gps);
         color = "#428BCA";
@@ -483,6 +490,7 @@
     {
         marker = markers_all[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
+        bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         heatmap_data_all.push(gps);
         color = "#428BCA";
@@ -527,6 +535,7 @@
           {
               marker = track[index2];
               var gps = new google.maps.LatLng(marker[0], marker[1]);
+              bounds.extend(gps);
               if(last !== undefined)
               {
                   console.log(last + " " + gps);
@@ -548,6 +557,7 @@
     {
         marker = markers[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
+        bounds.extend(gps);
         gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
         color = "#428BCA";
         new google.maps.Polyline({
@@ -558,6 +568,15 @@
             strokeWeight: 5,
             map: map5
         });
+    }
+
+    if( center === undefined || zoom === undefined )
+    {
+        map1.fitBounds(bounds);
+        map2.fitBounds(bounds);
+        map3.fitBounds(bounds);
+        map4.fitBounds(bounds);
+        map5.fitBounds(bounds);
     }
   }
 
