@@ -468,7 +468,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             # argmaxima, hist_, centers = maxpos, distance, xdata
             x_submax, y_submax = vt.interpolate_submaxima(np.array([dist_argmax]), distance, xdata)
         score_thresh = x_submax[0]
-        if True:
+        if False:
             #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
             print('!!!score_thresh = %r' % (score_thresh,))
             fnum = 100
