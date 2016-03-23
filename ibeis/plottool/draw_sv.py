@@ -120,9 +120,14 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         if show_homog:
             if refine_method is None:
                 refine_method = ''
+
+            if len(refine_method) > 0:
+                refine_method_ = '(%s) ' % (refine_method,)
+            else:
+                refine_method_ = ''
             px = _draw_matches(
                 px,
-                '%d Refined (%s) inliers' % (len(hom_inliers), refine_method),
+                '%d Refined %sinliers' % (len(hom_inliers), refine_method_),
                 hom_inliers)
     #
     # Draw the Affine Transformations
