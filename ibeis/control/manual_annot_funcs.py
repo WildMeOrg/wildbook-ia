@@ -661,8 +661,10 @@ def delete_annots(ibs, aid_list):
     if ut.VERBOSE:
         print('[ibs] deleting %d annotations' % len(aid_list))
     # Delete chips and features first
-    from ibeis.algo.preproc import preproc_annot
-    preproc_annot.on_delete(ibs, aid_list)
+    #ibs.delete_annot_relations(aid_list)
+    # image thumbs are deleted in here too, this needs to be fixed
+    ibs.delete_annot_chips(aid_list)
+    ibs.depc_annot.delete_root(aid_list)
     # TODO:
     # delete parent rowid column if exists in annot table
     return ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)

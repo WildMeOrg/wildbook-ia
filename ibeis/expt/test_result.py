@@ -1855,7 +1855,6 @@ class TestResult(object):
         #tn_scores = tn_nscores
         name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
         encoder.fit(name_scores, labels, attrs)
-        #score_thresh = encoder.learn_threshold()
         score_thresh = encoder.learn_threshold2()
 
         # Find intersection point
