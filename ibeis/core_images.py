@@ -76,10 +76,10 @@ def compute_detections(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[0:10]
-        >>> config = {'algo': 'cnn'}
+        >>> config = {'algo': 'yolo'}
         >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> config = {'algo': 'rf'}
+        >>> config = {'algo': 'pyrf'}
         >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
         >>> print(detects)
     """
@@ -117,6 +117,8 @@ def compute_detections(depc, gid_list, config=None):
         print('[ibs] detecting using Random Forests')
         base_key_list[6] = (config['species'], )  # class == species
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
+    else:
+        raise ValueError('specified detection algo is not supported')
 
     # yield detections
     for gid, gpath, result_list in detect_gen:
