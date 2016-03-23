@@ -256,6 +256,7 @@ class IBEISController(BASE_CLASS):
         # an dict to hack in temporary state
         ibs.const = const
         ibs.depc_annot = None
+        ibs.depc_image = None
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         if force_serial is None:
@@ -292,11 +293,14 @@ class IBEISController(BASE_CLASS):
             except KeyError:
                 pass
 
-    def show_depc_graph(ibs, reduced=False):
+    def show_depc_graph(ibs, depc, reduced=False):
+        depc.show_graph(reduced=reduced)
+
+    def show_depc_annot_graph(ibs, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_graph --show
-            python -m ibeis.control.IBEISControl --test-show_depc_graph --show --reduced
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show --reduced
 
         Example:
             >>> # SCRIPT
@@ -304,15 +308,18 @@ class IBEISController(BASE_CLASS):
             >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
             >>> reduced = ut.get_argflag('--reduced')
-            >>> ibs.show_depc_graph(reduced=reduced)
+            >>> ibs.show_depc_annot_graph(reduced=reduced)
             >>> ut.show_if_requested()
         """
-        ibs.depc_annot.show_graph(reduced=reduced)
+        ibs.show_depc_graph(ibs.depc_annot, **kwargs)
 
-    def show_depc_table_input(ibs, tablename, reduced=False):
+    def show_depc_table_input(ibs, depc, tablename, reduced=False):
+        depc[tablename].show_input_graph()
+
+    def show_depc_annot_table_input(ibs, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
 
         Example:
             >>> # SCRIPT
@@ -320,10 +327,10 @@ class IBEISController(BASE_CLASS):
             >>> import ibeis  # NOQA
             >>> ibs = ibeis.opendb('testdb1')
             >>> tablename = ut.get_argval('--tablename')
-            >>> ibs.show_depc_table_input(tablename)
+            >>> ibs.show_depc_annot_table_input(tablename)
             >>> ut.show_if_requested()
         """
-        ibs.depc_annot[tablename].show_input_graph()
+        ibs.show_depc_table_input(ibs.depc_annot, **kwargs)
 
     def get_cachestats_str(ibs):
         """
@@ -525,8 +532,8 @@ class IBEISController(BASE_CLASS):
     @profile
     def _init_depcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
-        # Initialize dependency cache
-        root_getters = {
+        # Initialize dependency cache for annotations
+        annot_root_getters = {
             'name': ibs.get_annot_names,
             'bbox': ibs.get_annot_bboxes,
             'species': ibs.get_annot_species,
@@ -540,7 +547,7 @@ class IBEISController(BASE_CLASS):
             cache_dpath=ibs.get_cachedir(),
             controller=ibs,
             get_root_uuid=ibs.get_annot_visual_uuids,
-            root_getters=root_getters,
+            root_getters=annot_root_getters,
         )
         # backwards compatibility
         ibs.depc = ibs.depc_annot
@@ -548,18 +555,24 @@ class IBEISController(BASE_CLASS):
         # base_root_uuid plus a hash of the attributes that matter for the
         # requested computation.
         ibs.depc_annot.initialize()
-        if False:
-            ibs.image_depc = dtool.DependencyCache(
-                root_tablename=const.IMAGE_TABLE,
-                default_fname=const.IMAGE_TABLE + '_depcache',
-                cache_dpath=ibs.get_cachedir(),
-                controller=ibs,
-                get_root_uuid=ibs.get_image_uuids,
-            )
+
+        # Initialize dependency cache for images
+        image_root_getters = {}
+        ibs.depc_image = dtool.DependencyCache(
+            root_tablename=const.IMAGE_TABLE,
+            default_fname=const.IMAGE_TABLE + '_depcache',
+            cache_dpath=ibs.get_cachedir(),
+            controller=ibs,
+            get_root_uuid=ibs.get_image_uuids,
+            root_getters=image_root_getters,
+        )
+        ibs.depc_image.initialize()
 
     def _close_depcache(ibs):
         ibs.depc_annot.close()
         ibs.depc_annot = None
+        ibs.depc_image.close()
+        ibs.depc_image = None
 
     def disconnect_sqldatabase(ibs):
         print('disconnecting from sql database')

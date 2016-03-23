@@ -62,12 +62,14 @@ import utool as ut
 import vtool as vt
 import numpy as np
 import cv2
-from ibeis.control.controller_inject import register_preproc, register_subprop
+from ibeis.control.controller_inject import register_preprocs, register_subprops
 from ibeis.algo.hots.chip_match import ChipMatch
 from ibeis.algo.hots import neighbor_index
-(print, rrr, profile) = ut.inject2(__name__, '[core]')
+(print, rrr, profile) = ut.inject2(__name__, '[core_annots]')
 
 
+register_preproc = register_preprocs['annot']
+register_subprop = register_subprops['annot']
 # dtool.Config.register_func = register_preproc
 
 

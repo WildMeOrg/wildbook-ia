@@ -26,6 +26,13 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     config = {
         'output_gpath_list': hough_gpath_list,
     }
+    print('-' * 80)
+    print('')
+    print('WARNING!!!')
+    print('Hough image is not used often and not worth putting into depcache.')
+    print('This image is computed as needed and not cached to disk.')
+    print('')
+    print('-' * 80)
     results_list = list(randomforest.detect_gpath_list_with_species(ibs, src_gpath_list, species, **config))  # NOQA
     # Get path
     hough_gpath = hough_gpath_list[0]

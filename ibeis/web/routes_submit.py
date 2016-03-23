@@ -56,7 +56,7 @@ def submit_detection():
             for annot in annotation_list
         ]
         theta_list = [
-            float(annot['angle'])
+            float(annot['theta'])
             for annot in annotation_list
         ]
         survived_aid_list = [

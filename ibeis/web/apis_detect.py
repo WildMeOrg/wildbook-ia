@@ -37,7 +37,7 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
             image
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-detect_random_forest --show
+        python -m ibeis.web.apis_detect --test-detect_random_forest --show
 
     RESTful:
         Method: PUT, GET
@@ -45,7 +45,7 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -64,30 +64,10 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
         >>> ibs.delete_annots(ut.flatten(aids_list))
     """
     # TODO: Return confidence here as well
-    print('[ibs] detecting using random forests')
-    from ibeis.algo.detect import randomforest  # NOQA
-    if isinstance(gid_list, int):
-        gid_list = [gid_list]
-    detect_gen = randomforest.detect_gid_list_with_species(
-        ibs, gid_list, species, **kwargs)
-    # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
-    # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
-    aids_list = []
-    for gid, (gpath, result_list) in zip(gid_list, detect_gen):
-        aids = []
-        for result in result_list:
-            # Ideally, species will come from the detector with confidences
-            # that actually mean something
-            bbox = (result['xtl'], result['ytl'],
-                    result['width'], result['height'])
-            (aid,) = ibs.add_annots(
-                [gid], [bbox], notes_list=['rfdetect'],
-                species_list=[species], quiet_delete_thumbs=True,
-                detect_confidence_list=[result['confidence']],
-                skip_cleaning=True)
-            aids.append(aid)
-        aids_list.append(aids)
-    ibs._clean_species()
+    depc = ibs.depc_image
+    config = {'algo': 'pyrf', 'species': species}
+    results_list = depc.get_property('detections', gid_list, None, config=config)
+    aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
     return aids_list
 
 
@@ -110,7 +90,7 @@ def review_detection_test():
             'height'     : height,
             'class'      : species,
             'confidence' : 0.0,
-            'angle'      : 0.0,
+            'theta'      : 0.0,
         }
         for aid, (xtl, ytl, width, height), species in zipped
     ]
@@ -161,7 +141,7 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
             'height' : 100.0 * (result['height'] / height),
             'label'  : result['class'],
             'id'     : None,
-            'angle'  : result.get('angle', 0.0),
+            'theta'  : result.get('theta', 0.0),
         })
 
     species = KEY_DEFAULTS[SPECIES_KEY]
@@ -237,8 +217,9 @@ def process_detection_html(ibs, **kwargs):
             'ytl'        : int( height * (annot['top']    / 100.0) ),
             'width'      : int( width  * (annot['width']  / 100.0) ),
             'height'     : int( height * (annot['height'] / 100.0) ),
-            'class'      : annot['label'],
+            'theta'      : float(annot['theta']),
             'confidence' : 1.0,
+            'class'      : annot['label'],
         }
         for annot in annotation_list
     ]
@@ -254,25 +235,61 @@ def process_detection_html(ibs, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
-    from ibeis.algo.detect import yolo  # NOQA
+    """
+    Runs animal detection in each image and returns json-ready formatted
+        results, does not return annotations
+
+    Args:
+        gid_list (list): list of image ids to run detection on
+
+    Returns:
+        results_dict (list): dict of detection results (not annotations)
+
+    CommandLine:
+        python -m ibeis.web.apis_detect --test-detect_cnn_yolo_json
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.apis_detect import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:2]
+        >>> # execute function
+        >>> results_dict = ibs.detect_cnn_yolo_json(gid_list)
+        >>> print(results_dict)
+    """
     # TODO: Return confidence here as well
-    print('[ibs] detecting using CNN YOLO')
     image_uuid_list = ibs.get_image_uuids(gid_list)
     ibs.assert_valid_gids(gid_list)
-    results_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
-    results_list = list(results_gen)
+    depc = ibs.depc_image
+    # Get detections from depc
+    config = {'algo': 'yolo'}
+    results_list = depc.get_property('detections', gid_list, None, config=config)
+    score_list = [ results[0] for results in results_list ]
+    zipped_list = zip(results_list)
+    # Reformat results for json
+    results_list = [
+        [
+            {
+                'xtl'        : bbox[0],
+                'ytl'        : bbox[1],
+                'width'      : bbox[2],
+                'height'     : bbox[3],
+                'theta'      : theta,
+                'confidence' : conf,
+                'class'      : class_,
+            }
+            for bbox, theta, conf, class_ in zip(*zipped[0][1:])
+        ]
+        for zipped in zipped_list
+    ]
+    # Wrap up results with other information
     results_dict = {
         'image_uuid_list' : image_uuid_list,
         'results_list'    : results_list,
-        'score_list'      : [0.0] * len(image_uuid_list),
+        'score_list'      : score_list,
     }
-    # for gid, gpath, result_list in results_list:
-    #     score_list = [ result['confidence'] for result in result_list ]
-    #     if len(score_list) == 0:
-    #         score = None
-    #     else:
-    #         score = sum(score_list) / len(score_list)
-    #     results_dict['score_list'].append(score)
     return results_dict
 
 
@@ -293,7 +310,7 @@ def detect_cnn_yolo(ibs, gid_list, **kwargs):
             image
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-detect_cnn_yolo --show
+        python -m ibeis.web.apis_detect --test-detect_cnn_yolo --show
 
     RESTful:
         Method: PUT, GET
@@ -301,7 +318,7 @@ def detect_cnn_yolo(ibs, gid_list, **kwargs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -319,31 +336,31 @@ def detect_cnn_yolo(ibs, gid_list, **kwargs):
         >>> ibs.delete_annots(ut.flatten(aids_list))
     """
     # TODO: Return confidence here as well
-    print('[ibs] detecting using CNN YOLO')
-    from ibeis.algo.detect import yolo  # NOQA
-    if isinstance(gid_list, int):
-        gid_list = [gid_list]
-    detect_result_gen = yolo.detect_gid_list(ibs, gid_list, **kwargs)
-    detect_result_list = list(detect_result_gen)
-    aids_list = ibs.commit_detection_results(detect_result_list)
+    depc = ibs.depc_image
+    config = {'algo': 'yolo'}
+    results_list = depc.get_property('detections', gid_list, None, config=config)
+    aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
     return aids_list
 
 
 @register_ibs_method
-def commit_detection_results(ibs, detect_result_list):
+def commit_detection_results(ibs, gid_list, results_list, note=None):
+    zipped_list = zip(gid_list, results_list)
     aids_list = []
-    for gid, gpath, result_list in detect_result_list:
-        aids = []
-        for result in result_list:
-            bbox = (result['xtl'], result['ytl'],
-                    result['width'], result['height'])
-            (aid,) = ibs.add_annots(
-                [gid], [bbox], notes_list=['cnnyolodetect'],
-                species_list=[result['class']], quiet_delete_thumbs=True,
-                detect_confidence_list=[result['confidence']],
-                skip_cleaning=True)
-            aids.append(aid)
-        aids_list.append(aids)
+    for gid, (score, bbox_list, theta_list, conf_list, class_list) in zipped_list:
+        num = len(bbox_list)
+        notes_list = None if note is None else [note] * num
+        aid_list = ibs.add_annots(
+            [gid] * num,
+            bbox_list,
+            theta_list,
+            class_list,
+            detect_confidence_list=conf_list,
+            notes_list=notes_list,
+            quiet_delete_thumbs=True,
+            skip_cleaning=True
+        )
+        aids_list.append(aid_list)
     ibs._clean_species()
     return aids_list
 

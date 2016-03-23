@@ -460,12 +460,13 @@ class MainWindowBackend(GUIBACK_BASE):
         back.run_detection_on_images(gid_list, refresh=refresh, **kwargs)
 
     def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
+        ibs = back.ibs
         detector = back.ibs.cfg.detect_cfg.detector
         if detector in ['cnn_yolo', 'yolo', 'cnn']:
-            back.ibs.detect_cnn_yolo(gid_list)
+            ibs.detect_cnn_yolo(gid_list)
         elif detector in ['random_forest', 'rf']:
             species = back.ibs.cfg.detect_cfg.species_text
-            back.ibs.detect_random_forest(gid_list, species)
+            ibs.detect_random_forest(gid_list, species)
         else:
             raise ValueError('Detector not recognized')
         if refresh:

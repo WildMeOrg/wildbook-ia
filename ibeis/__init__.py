@@ -67,9 +67,9 @@ try:
     from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
-    from ibeis.control.controller_inject import register_preproc
+    from ibeis.control.controller_inject import register_preprocs
     from ibeis import core_annots
-    #from ibeis import core_images
+    from ibeis import core_images
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise

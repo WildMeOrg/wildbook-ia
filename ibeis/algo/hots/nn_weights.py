@@ -228,7 +228,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 100, 300)
+        >>> ut.assert_inbounds(weights1.sum(), 100, 310)
 
     Example:
         >>> # ENABLE_DOCTEST

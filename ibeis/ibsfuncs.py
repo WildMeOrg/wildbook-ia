@@ -1939,117 +1939,117 @@ def plot_distrobutions(distro_dict):
     plt.show()
 
 
-@register_ibs_method
-def detect_rf_test_set_sweep(ibs, db_check=True):
-    from ibeis.algo.detect import randomforest  # NOQA
-    from os.path import abspath, expanduser, join, exists
+# @register_ibs_method
+# def detect_rf_test_set_sweep(ibs, db_check=True):
+#     from ibeis.algo.detect import randomforest  # NOQA
+#     from os.path import abspath, expanduser, join, exists
 
-    if db_check:
-        assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
+#     if db_check:
+#         assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
 
-    species = 'zebra_plains' if ibs.dbname == 'PZ_Paper' else 'zebra_grevys'
-    trees_path = abspath(join(ibs.treesdir, species))
-    tree_path_list = ut.ls(trees_path, '*.txt')
+#     species = 'zebra_plains' if ibs.dbname == 'PZ_Paper' else 'zebra_grevys'
+#     trees_path = abspath(join(ibs.treesdir, species))
+#     tree_path_list = ut.ls(trees_path, '*.txt')
 
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-    gid_list = ibs.get_imageset_gids(test_imgsetid)
-    uuid_list = ibs.get_image_uuids(gid_list)
+#     test_imgsetid = ibs.add_imagesets('TEST_SET')
+#     gid_list = ibs.get_imageset_gids(test_imgsetid)
+#     uuid_list = ibs.get_image_uuids(gid_list)
 
-    print('Using trees: %r' % (tree_path_list, ))
-    print('gid_list = %r' % (gid_list, ))
-    print('len(gid_list) = %r' % (len(gid_list), ))
+#     print('Using trees: %r' % (tree_path_list, ))
+#     print('gid_list = %r' % (gid_list, ))
+#     print('len(gid_list) = %r' % (len(gid_list), ))
 
-    output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'rf')))
-    ut.ensuredir(output_path)
-    output_gpath_list = [
-        join(output_path, '%s.JPG' % (uuid, ))
-        for uuid in uuid_list
-    ]
+#     output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'rf')))
+#     ut.ensuredir(output_path)
+#     output_gpath_list = [
+#         join(output_path, '%s.JPG' % (uuid, ))
+#         for uuid in uuid_list
+#     ]
 
-    gid_list_ = []
-    output_gpath_list_ = []
-    for gid, output_gpath in zip(gid_list, output_gpath_list):
-        if not exists(output_gpath):
-            gid_list_.append(gid)
-            output_gpath_list_.append(output_gpath)
-        else:
-            print('Skipping: %r - %r' % (gid, output_gpath, ))
+#     gid_list_ = []
+#     output_gpath_list_ = []
+#     for gid, output_gpath in zip(gid_list, output_gpath_list):
+#         if not exists(output_gpath):
+#             gid_list_.append(gid)
+#             output_gpath_list_.append(output_gpath)
+#         else:
+#             print('Skipping: %r - %r' % (gid, output_gpath, ))
 
-    print('Continuing with %d images' % (len(gid_list_), ))
-    # Create detection generator cross sweep
-    results_gen = randomforest.detect_gid_list(ibs, gid_list_, tree_path_list,
-                                               output_gpath_list=output_gpath_list_,
-                                               quiet=True)
-    # Compute results
-    list(results_gen)
+#     print('Continuing with %d images' % (len(gid_list_), ))
+#     # Create detection generator cross sweep
+#     results_gen = randomforest.detect_gid_list(ibs, gid_list_, tree_path_list,
+#                                                output_gpath_list=output_gpath_list_,
+#                                                quiet=True)
+#     # Compute results
+#     list(results_gen)
 
 
-@register_ibs_method
-def detect_yolo_test_set_sweep(ibs):
-    from ibeis.algo.detect import yolo  # NOQA
-    from os.path import abspath, expanduser, join, exists
-    import pydarknet
+# @register_ibs_method
+# def detect_yolo_test_set_sweep(ibs):
+#     from ibeis.algo.detect import yolo  # NOQA
+#     from os.path import abspath, expanduser, join, exists
+#     import pydarknet
 
-    assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
+#     assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
 
-    config_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.cfg')))
-    weight_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.weights')))
+#     config_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.cfg')))
+#     weight_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.weights')))
 
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-    gid_list = ibs.get_imageset_gids(test_imgsetid)
-    uuid_list = ibs.get_image_uuids(gid_list)
+#     test_imgsetid = ibs.add_imagesets('TEST_SET')
+#     gid_list = ibs.get_imageset_gids(test_imgsetid)
+#     uuid_list = ibs.get_image_uuids(gid_list)
 
-    print('gid_list = %r' % (gid_list, ))
-    print('len(gid_list) = %r' % (len(gid_list), ))
+#     print('gid_list = %r' % (gid_list, ))
+#     print('len(gid_list) = %r' % (len(gid_list), ))
 
-    output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'yolo')))
-    ut.ensuredir(output_path)
-    output_gpath_list = [
-        join(output_path, '%s.JPG_sweep.txt' % (uuid, ))
-        for uuid in uuid_list
-    ]
+#     output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'yolo')))
+#     ut.ensuredir(output_path)
+#     output_gpath_list = [
+#         join(output_path, '%s.JPG_sweep.txt' % (uuid, ))
+#         for uuid in uuid_list
+#     ]
 
-    gid_list_ = []
-    output_gpath_list_ = []
-    for gid, output_gpath in zip(gid_list, output_gpath_list):
-        if not exists(output_gpath):
-            gid_list_.append(gid)
-            output_gpath_list_.append(output_gpath)
-        else:
-            print('Skipping: %r - %r' % (gid, output_gpath, ))
+#     gid_list_ = []
+#     output_gpath_list_ = []
+#     for gid, output_gpath in zip(gid_list, output_gpath_list):
+#         if not exists(output_gpath):
+#             gid_list_.append(gid)
+#             output_gpath_list_.append(output_gpath)
+#         else:
+#             print('Skipping: %r - %r' % (gid, output_gpath, ))
 
-    print('Continuing with %d images' % (len(gid_list_), ))
+#     print('Continuing with %d images' % (len(gid_list_), ))
 
-    detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
-                                               weight_filepath=weight_filepath)
+#     detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
+#                                                weight_filepath=weight_filepath)
 
-    for gid, output_gpath in zip(gid_list_, output_gpath_list_):
-        print('SWEEPING: %r' % (output_gpath, ))
-        with open(output_gpath, 'w') as results:
-            for index in range(100):
-                sensitivity = (index + 1) / 100.0
-                print('Sweep: %d (%0.02f)' % (index, sensitivity, ))
-                # Create detection generator cross sweep
-                results_gen = yolo.detect_gid_list(ibs, [gid],
-                                                   detector=detector,
-                                                   sensitivity=(1.0 - sensitivity),
-                                                   quiet=True)
-                for gid, gpath, result_list in results_gen:
-                    results.write('%s %s\n' % (gpath, index + 1))
-                    for result in result_list:
-                        centerx = int(result['xtl'] + 0.5 * result['width'])
-                        centery = int(result['ytl'] + 0.5 * result['height'])
-                        args = (
-                            centerx,
-                            centery,
-                            result['xtl'],
-                            result['ytl'],
-                            result['width'],
-                            result['height'],
-                            result['class'],
-                            result['confidence'],
-                        )
-                        results.write('    %d %d %d %d %d %d %s %0.2f\n' % args)
+#     for gid, output_gpath in zip(gid_list_, output_gpath_list_):
+#         print('SWEEPING: %r' % (output_gpath, ))
+#         with open(output_gpath, 'w') as results:
+#             for index in range(100):
+#                 sensitivity = (index + 1) / 100.0
+#                 print('Sweep: %d (%0.02f)' % (index, sensitivity, ))
+#                 # Create detection generator cross sweep
+#                 results_gen = yolo.detect_gid_list(ibs, [gid],
+#                                                    detector=detector,
+#                                                    sensitivity=(1.0 - sensitivity),
+#                                                    quiet=True)
+#                 for gid, gpath, result_list in results_gen:
+#                     results.write('%s %s\n' % (gpath, index + 1))
+#                     for result in result_list:
+#                         centerx = int(result['xtl'] + 0.5 * result['width'])
+#                         centery = int(result['ytl'] + 0.5 * result['height'])
+#                         args = (
+#                             centerx,
+#                             centery,
+#                             result['xtl'],
+#                             result['ytl'],
+#                             result['width'],
+#                             result['height'],
+#                             result['class'],
+#                             result['confidence'],
+#                         )
+#                         results.write('    %d %d %d %d %d %d %s %0.2f\n' % args)
 
 
 def detect_intersection_over_union(bbox1, bbox2):
