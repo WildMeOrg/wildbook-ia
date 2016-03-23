@@ -413,7 +413,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         #if len(argmaxima) > 0:
         #    pass
         if len(argmaxima) > 1:
-            valid = curvature[argmaxima] > 1e-6
+            curvature_  = curvature[argmaxima]
+            valid = curvature_ > 1e-6
             #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
             #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
             if np.any(valid):
@@ -444,9 +445,13 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             neg_norm = max(1, vt.safe_extreme(lr_neg, op=np.nanmax, fill=1, finite=True))
             lr_pos = lr_pos / pos_norm
             lr_neg = lr_neg / neg_norm
+            isvalid = np.isfinite(lr_pos)
+            if np.any(isvalid):
+                lr_pos = isvalid[isvalid]
             # Choose a finite argmax
             ranked_poses = lr_pos.argsort()[::-1]
-            maxpos = ranked_poses[np.isfinite(ranked_poses)][0]
+            #np.isnan(lr_pos)
+            maxpos = ranked_poses[0]
             dist_argmax = argmaxima[maxpos]
             #maxpos = argmaxima[lr_pos.argmax()]
             #print('lr_pos.argmax = %r' % (lr_pos.argmax,))
@@ -468,40 +473,13 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             # argmaxima, hist_, centers = maxpos, distance, xdata
             x_submax, y_submax = vt.interpolate_submaxima(np.array([dist_argmax]), distance, xdata)
         score_thresh = x_submax[0]
+        #if not getattr(encoder, 'block', False):
         if False:
-            #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
-            print('!!!score_thresh = %r' % (score_thresh,))
-            fnum = 100
-            import plottool as pt
-            pt.multi_plot(xdata, [tp_curve, tn_curve, distance],
-                          label_list=['p(tp | s)', 'p(tn | s)', 'isect-dist'], markers=['', '', ''],
-                          linewidth_list=[4, 4, 1], title='intersection points',
-                          pnum=(4, 1, 1), fnum=fnum, xmax=xdata.max(), xmin=0)
-            pt.plot(x_submax, y_submax, 'o')
-            pt.plot(xdata[argmaxima], distance[argmaxima], 'rx')
-            pt.plot(x_submax, y_submax, 'o')
-            pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
-            pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
-            pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
-            pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
-            #pt.plot(xdata[argmaxima], encoder.interp_fn(x_submax), 'rx')
-            #
-            _interp_sgtp = scipy.interpolate.interp1d(
-                xdata, tn_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
-            pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
-            #
-            _interp_sgtp = scipy.interpolate.interp1d(
-                xdata, tp_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
-            pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
-            #
-            pt.multi_plot(xdata[argmaxima], [tp_area, fp_area, tn_area, fn_area], title='intersection areas',
-                          label_list=['tp_area', 'fp_area', 'tn_area', 'fn_area'], marker='o',
-                          pnum=(4, 1, 2), fnum=fnum, xmax=xdata.max(), xmin=0)
-            #
-            pt.multi_plot(xdata[argmaxima], [lr_pos, lr_neg], title='intersection quality',
-                          label_list=['lr_pos', 'lr_neg'], marker='o',
-                          pnum=(4, 1, 3), fnum=fnum, xmax=xdata.max(), xmin=0)
-            #
+            encoder.block = True
+            ut.exec_func_doctest(encoder.learn_threshold2,
+                                 start_sentinal='import plottool as pt',
+                                 end_sentinal='pt.show_if_requested()')
+            encoder.block = False
         return score_thresh
 
     def learn_threshold(encoder, verbose=False, **thresh_kw):
@@ -775,16 +753,6 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
 
         score_thresh, prob_thresh = encoder._hack_vizlearn(**other_kw)
-        #if 'target_tpr' in other_kw:
-        #    verbose = ut.VERBOSE
-        #    score_thresh = encoder.learn_threshold(verbose=verbose, **other_kw)
-        #    prob_thresh = encoder.learned_thresh
-        #    #prob_thresh = encoder.normalize_scores(score_thresh)
-        #else:
-        #    #prob_thresh = encoder.learned_thresh
-        #    #score_thresh = encoder.inverse_normalize(prob_thresh)
-        #    score_thresh = encoder.learn_threshold2()
-        #    prob_thresh = encoder.normalize_scores(score_thresh)
 
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
@@ -1380,11 +1348,7 @@ def inspect_pdfs(tn_support, tp_support,
 
     nSubplots = (with_normscore + with_prebayes + with_postbayes +
                  with_scores + with_roc + with_precision_recall + with_hist)
-    if True:
-        nRows, nCols = pt.get_square_row_cols(nSubplots)
-    else:
-        nRows = nSubplots
-        nCols = 1
+    nRows, nCols = pt.get_square_row_cols(nSubplots)
     _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols,
                                      nSubplots=nSubplots)
 
