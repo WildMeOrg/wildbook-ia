@@ -1014,6 +1014,12 @@ class _CoreDependencyCache(object):
         for table in depc.cachetable_dict.values():
             table.clear_table()
 
+    def delete_root(depc, root_rowids):
+        # TODO make sure this works generally
+        children = depc.graph[depc.root_tablename]
+        for tablename in children:
+            depc.delete_property(tablename, root_rowids)
+
     def delete_property(depc, tablename, root_rowids, config=None):
         """
         Deletes the rowids of `tablename` that correspond to `root_rowids`
