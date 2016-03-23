@@ -74,12 +74,12 @@ def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     return graph
 
 
-def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
+def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
+                                    invis_edges=None, ensure_edges=None):
     r"""
     Args:
         ibs (ibeis.IBEISController):  image analysis api
         aids_list (list):
-        full (bool): (default = False)
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -87,8 +87,9 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids_list = [[1, 2, 3, 4], [5, 6, 7]]
+        >>> invis_edges = [(1, 5)]
         >>> only_reviewed_matches = True
-        >>> graph = make_netx_graph_from_aid_groups(ibs, aids_list, full)
+        >>> graph = make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches, invis_edges)
         >>> list(nx.connected_components(graph.to_undirected()))
     """
     #aids_list, nid_list = ibs.group_annots_by_name(aid_list)
@@ -108,6 +109,21 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
         aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
 
     graph = make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
+
+    if ensure_edges is not None:
+        for edge in ensure_edges:
+            edge = tuple(edge)
+            redge = tuple(edge[::-1])  # HACK
+            if graph.has_edge(*edge):
+                pass
+                #nx.set_edge_attributes(graph, 'weight', {edge: .001})
+            elif graph.has_edge(*redge):
+                #nx.set_edge_attributes(graph, 'weight', {redge: .001})
+                pass
+            else:
+                #graph.add_edge(*edge, weight=.001)
+                graph.add_edge(*edge)
+
     unique_nids = ibs.get_annot_nids(unique_aids)
     nx.set_node_attributes(graph, 'nid', dict(zip(unique_aids, unique_nids)))
 
@@ -120,6 +136,11 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
         unflat_edges = [list(itertools.product(aids, aids)) for aids in aids_list]
         aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
         new_edges = ut.setdiff_ordered(aid_pairs, aug_graph.edges())
+
+        preweighted_edges = nx.get_edge_attributes(aug_graph, 'weight')
+        if preweighted_edges:
+            orig_edges = ut.setdiff(orig_edges, list(preweighted_edges.keys()))
+
         aug_graph.add_edges_from(new_edges)
         # Ensure the largest possible set of original edges is in the MST
         nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 1.0) for edge in new_edges]))
@@ -130,13 +151,19 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
                 redge = edge[::-1]
                 if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
                     graph.add_edge(*redge, attr_dict={})
+
     ensure_names_are_connected(graph)
 
     # Color edges by nid
     def color_by_nids(graph):
         node_to_nid = nx.get_node_attributes(graph, 'nid')
         unique_nids = ut.unique(node_to_nid.values())
-        nid_to_color = dict(zip(unique_nids, pt.distinct_colors(len(unique_nids))))
+        ncolors = len(unique_nids)
+        if (ncolors) == 1:
+            unique_colors = [pt.NEUTRAL_BLUE]
+        else:
+            unique_colors = pt.distinct_colors(ncolors)
+        nid_to_color = dict(zip(unique_nids, unique_colors))
         edge_aids = graph.edges()
         edge_nids = ut.unflat_take(node_to_nid, edge_aids)
         flags = [nids[0] == nids[1] for nids in edge_nids]
@@ -147,7 +174,19 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True):
         node_to_color = ut.map_dict_vals(ut.partial(ut.take, nid_to_color), node_to_nid)
         nx.set_edge_attributes(graph, 'color', edge_to_color)
         nx.set_node_attributes(graph, 'color', node_to_color)
+
     color_by_nids(graph)
+    if invis_edges:
+        for edge in invis_edges:
+            if graph.has_edge(*edge):
+                nx.set_edge_attributes(graph, 'style', {edge: 'invis'})
+                nx.set_edge_attributes(graph, 'invisible', {edge: True})
+            else:
+                graph.add_edge(*edge, style='invis', invisible=True)
+
+    # Hack color images orange
+    if ensure_edges:
+        nx.set_edge_attributes(graph, 'color', {tuple(edge): pt.ORANGE for edge in ensure_edges})
 
     return graph
 
@@ -233,7 +272,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
     ax = pt.gca()
 
-    aid_list = graph.nodes()
+    aid_list = sorted(graph.nodes())
     if layout is None:
         layout = 'agraph'
     print('layout = %r' % (layout,))
@@ -267,7 +306,8 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
     if with_images:
         offset_img_list = plotinfo['imgdat']['offset_img_list']
         artist_list = plotinfo['imgdat']['artist_list']
-        for artist, aid in zip(artist_list, aid_list):
+        aid_list_ = plotinfo['imgdat']['node_list']
+        for artist, aid in zip(artist_list, aid_list_):
             pt.set_plotdat(artist, 'aid', aid)
     # TODO; make part of interaction
     pt.zoom_factory(ax, offset_img_list)
@@ -377,7 +417,8 @@ def special_viewpoint_graph():
 
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
-                                with_all=True, **kwargs):
+                                with_all=True, invis_edges=None,
+                                ensure_edges=None, with_images=True, **kwargs):
     """
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
@@ -408,7 +449,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             self.selected_aids = selected_aids
             self._nids = nids if nids is not None else []
             self._aids = aids if aids is not None else []
-            self.with_images = True
+            self.with_images = with_images
             self._aids2 = None
 
         def update_netx_graph(self):
@@ -425,10 +466,12 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.get_name_aids(nids)
             else:
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
-            self.graph = make_netx_graph_from_aid_groups(ibs, aids_list)
+            self.graph = make_netx_graph_from_aid_groups(ibs, aids_list,
+                                                         invis_edges=invis_edges,
+                                                         ensure_edges=ensure_edges)
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
-            self._aids2 = self.graph.nodes()
+            self._aids2 = sorted(self.graph.nodes())
             self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 
         def plot(self, fnum, pnum):

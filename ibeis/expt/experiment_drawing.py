@@ -188,7 +188,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         encoder = vt.ScoreNormalizer(
             #adjust=8,
             adjust=1.5,
-            fpr=fpr, tpr=tpr, monotonize=True, verbose=verbose)
+            #fpr=fpr, tpr=tpr,
+            monotonize=True, verbose=verbose)
         tp_scores = tp_nscores
         tn_scores = tn_nscores
         name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
@@ -201,8 +202,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         # --- NEW ---
         # Fit accept and reject thresholds
 
-        find_auto_decision_thresh(encoder, True, part_attrs)
-        find_auto_decision_thresh(encoder, False, part_attrs)
+        #find_auto_decision_thresh(encoder, True, part_attrs)
+        #find_auto_decision_thresh(encoder, False, part_attrs)
 
         # --- /NEW ---
 

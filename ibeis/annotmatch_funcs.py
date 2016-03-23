@@ -702,10 +702,19 @@ def review_tagged_splits():
         >>> #back.run_annot_splits(aid_list)
         >>> print('Review splits for tagd problem cases %r' % (problem_aids))
         >>> from ibeis.viz import viz_graph
-        >>> nids = [split_nids[0]]
+        >>> nid = split_nids[0]
         >>> selected_aids = np.unique(problem_aids.ravel()).tolist()
         >>> selected_aids = [] if ut.get_argflag('--noselect') else  selected_aids
-        >>> self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids, prog='dot', rankdir='LR', augment_graph=False)
+        >>> print('selected_aids = %r' % (selected_aids,))
+        >>> selected_aids = []
+        >>> aids = ibs.get_name_aids(nid)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
+        >>>                                              with_all=False,
+        >>>                                              selected_aids=selected_aids,
+        >>>                                              with_images=True,
+        >>>                                              prog='neato', rankdir='LR',
+        >>>                                              augment_graph=False,
+        >>>                                              ensure_edges=problem_aids.tolist())
         >>> ut.show_if_requested()
 
         rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
@@ -776,8 +785,9 @@ def review_tagged_joins():
         >>> selected_aids = np.unique(problem_aid_pairs.ravel()).tolist()
         >>> ut.flatten(ibs.get_name_aids(nids))
         >>> aids = ibs.sample_annots_general(ut.flatten(ibs.get_name_aids(nids)), sample_per_name=4, verbose=True)
+        >>> import itertools
         >>> aids = ut.unique(aids + selected_aids)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, selected_aids=selected_aids, with_all=False, invis_edges=list(itertools.combinations(selected_aids, 2)))
         >>> #self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
         >>> ut.show_if_requested()
 
