@@ -51,6 +51,7 @@ class ScoreNormVisualizeClass(object):
 
     def _hack_vizlearn(encoder, **kwargs):
         if 'target_tpr' in kwargs:
+            print('_HACK VIZLERAN TARGET')
             verbose = ut.VERBOSE
             score_thresh = encoder.learn_threshold(verbose=verbose, **kwargs)
             prob_thresh = encoder.learned_thresh
@@ -58,6 +59,7 @@ class ScoreNormVisualizeClass(object):
         else:
             #prob_thresh = encoder.learned_thresh
             #score_thresh = encoder.inverse_normalize(prob_thresh)
+            print('_HACK VIZLERAN2')
             score_thresh = encoder.learn_threshold2()
             prob_thresh = encoder.normalize_scores(score_thresh)
         return score_thresh, prob_thresh
@@ -333,6 +335,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
             >>> #pt.plot(xdata[0:-2], np.diff(np.diff(distance)))
             >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
             >>> fnum = 100
@@ -350,11 +353,11 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> #pt.plot(xdata[argmaxima], encoder.interp_fn(x_submax), 'rx')
             >>> #
             >>> _interp_sgtp = scipy.interpolate.interp1d(
-            >>>     xdata, tn_curve, kind='linear', copy=False, assume_sorted=False)
+            >>>     xdata, tn_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
             >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
             >>> #
             >>> _interp_sgtp = scipy.interpolate.interp1d(
-            >>>     xdata, tp_curve, kind='linear', copy=False, assume_sorted=False)
+            >>>     xdata, tp_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
             >>> pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
             >>> #
             >>> pt.multi_plot(xdata[argmaxima], [tp_area, fp_area, tn_area, fn_area], title='intersection areas',
@@ -399,9 +402,26 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         # Find locations of intersection
         distance = -np.abs(tp_curve - tn_curve)
         distance = distance - distance.min()
+        #distance
         #print('distance = %r' % (distance,))
-        argmaxima = vt.hist_argmaxima2(distance)
+        #argmaxima = vt.hist_argmaxima2(distance)
         #print('argmaxima = %r' % (argmaxima,))
+
+        argmaxima = vt.hist_argmaxima2(distance)
+        curvature = -np.gradient(np.gradient(distance))
+        # Remove distances with almost no curvature
+        #if len(argmaxima) > 0:
+        #    pass
+        if len(argmaxima) > 1:
+            valid = curvature[argmaxima] > 1e-6
+            #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
+            #valid = curvature[argmaxima] > np.median(curvature[argmaxima])
+            if np.any(valid):
+                argmaxima = argmaxima[valid]
+
+        #argmaxima2 = vt.hist_argmaxima2(-deriv_no2)
+        #if len(np.intersect1d(argmaxima2, argmaxima)) > 0:
+        #    argmaxima = np.intersect1d(argmaxima2, argmaxima)
 
         # Now find which intersection points are "best"
         # TODO: have user specify metric that they care about
@@ -427,6 +447,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             # Choose a finite argmax
             ranked_poses = lr_pos.argsort()[::-1]
             maxpos = ranked_poses[np.isfinite(ranked_poses)][0]
+            dist_argmax = argmaxima[maxpos]
             #maxpos = argmaxima[lr_pos.argmax()]
             #print('lr_pos.argmax = %r' % (lr_pos.argmax,))
             # Hack for infinity and nans. bring thems out of the 0 and 1 range, but only by a bit.
@@ -435,17 +456,52 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             #lr_pos[np.isinf(lr_pos)] = 1.1
             #lr_neg[np.isinf(lr_neg)] = 1.1
         else:
-            maxpos = np.array([distance.argmax()])
+            dist_argmax = distance.argmax()
 
-        if maxpos == len(distance) - 1:
+        if dist_argmax == len(distance) - 1:
             y_submax = distance[-2:-1]
             x_submax = xdata[-2:-1]
-        elif maxpos == 0:
+        elif dist_argmax == 0:
             y_submax = distance[0:1]
             x_submax = xdata[0:1]
         else:
-            x_submax, y_submax = vt.interpolate_submaxima(maxpos, distance, xdata)
+            # argmaxima, hist_, centers = maxpos, distance, xdata
+            x_submax, y_submax = vt.interpolate_submaxima(np.array([dist_argmax]), distance, xdata)
         score_thresh = x_submax[0]
+        if True:
+            #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(distance)
+            print('!!!score_thresh = %r' % (score_thresh,))
+            fnum = 100
+            import plottool as pt
+            pt.multi_plot(xdata, [tp_curve, tn_curve, distance],
+                          label_list=['p(tp | s)', 'p(tn | s)', 'isect-dist'], markers=['', '', ''],
+                          linewidth_list=[4, 4, 1], title='intersection points',
+                          pnum=(4, 1, 1), fnum=fnum, xmax=xdata.max(), xmin=0)
+            pt.plot(x_submax, y_submax, 'o')
+            pt.plot(xdata[argmaxima], distance[argmaxima], 'rx')
+            pt.plot(x_submax, y_submax, 'o')
+            pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
+            pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
+            pt.plot(xdata[argmaxima], tp_curve[argmaxima], 'rx')
+            pt.plot(xdata[argmaxima], tn_curve[argmaxima], 'rx')
+            #pt.plot(xdata[argmaxima], encoder.interp_fn(x_submax), 'rx')
+            #
+            _interp_sgtp = scipy.interpolate.interp1d(
+                xdata, tn_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
+            pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
+            #
+            _interp_sgtp = scipy.interpolate.interp1d(
+                xdata, tp_curve, kind='linear', copy=False, assume_sorted=False, bounds_error=False)
+            pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
+            #
+            pt.multi_plot(xdata[argmaxima], [tp_area, fp_area, tn_area, fn_area], title='intersection areas',
+                          label_list=['tp_area', 'fp_area', 'tn_area', 'fn_area'], marker='o',
+                          pnum=(4, 1, 2), fnum=fnum, xmax=xdata.max(), xmin=0)
+            #
+            pt.multi_plot(xdata[argmaxima], [lr_pos, lr_neg], title='intersection quality',
+                          label_list=['lr_pos', 'lr_neg'], marker='o',
+                          pnum=(4, 1, 3), fnum=fnum, xmax=xdata.max(), xmin=0)
+            #
         return score_thresh
 
     def learn_threshold(encoder, verbose=False, **thresh_kw):

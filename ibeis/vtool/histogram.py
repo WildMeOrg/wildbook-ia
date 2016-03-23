@@ -599,78 +599,119 @@ def hist_argmaxima2(hist, maxima_thresh=.8):
 
 
 @profile
-def maxima_neighbors(argmaxima, hist, centers=None):
+def maxima_neighbors(argmaxima, hist_, centers=None):
     neighbs = np.vstack((argmaxima - 1, argmaxima, argmaxima + 1))
-    y123 = hist[neighbs]
+    y123 = hist_[neighbs]
     x123 = neighbs if centers is None else centers[neighbs]
     return x123, y123
 
 
 @profile
-def interpolate_submaxima(argmaxima, hist, centers=None):
+def interpolate_submaxima(argmaxima, hist_, centers=None):
     r"""
     CommandLine:
         python -m vtool.histogram --test-interpolate_submaxima --show
 
     FIXME:
-        what happens when argmaxima[i] == len(hist)
+        what happens when argmaxima[i] == len(hist_)
+
+    Args:
+        argmaxima (ndarray): indicies into ydata / centers that are argmaxima
+        hist_ (ndarray): histogram freq ydata
+        centers (ndarray): xdata
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> # build test data
-        >>> argmaxima = np.array([1, 4])
-        >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
+        >>> argmaxima = np.array([1, 4, 7])
+        >>> hist_ = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
         >>> # execute function
-        >>> submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist, centers)
+        >>> submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist_, centers)
+        >>> locals_ = ut.exec_func_src(readable_interpolate_submaxima, key_list=['x123', 'y123', 'coeff_list'])
+        >>> x123 = locals_[0]
+        >>> y123 = locals_[1]
+        >>> coeff_list = locals_[2]
         >>> # verify results
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
+        >>> pt.ensure_pylab_qt4()
         >>> pt.figure(fnum=pt.ensure_fnum(None))
-        >>> pt.plot(centers, hist, '-x')
-        >>> pt.plot(submaxima_x, submaxima_y, 'o')
+        >>> pt.plot(centers, hist_, '-')
+        >>> pt.plot(centers[argmaxima], hist_[argmaxima], 'o', label='argmaxima')
+        >>> pt.plot(submaxima_x, submaxima_y, 'b*', markersize=20, label='interp maxima')
+        >>> # Extract parabola points
+        >>> pt.plt.plot(x123, y123, 'o', label='maxima neighbors')
+        >>> xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
+        >>> ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
+        >>> # Draw Submax Parabola
+        >>> for x_pts, y_pts in zip(xpoints, ypoints):
+        >>>     pt.plt.plot(x_pts, y_pts, 'g--', lw=2)
         >>> pt.show_if_requested()
         (array([ 0.14597723,  3.0318792 ]), array([  9.20251557,  37.19208239]))
 
     Ignore:
-        assert str(interpolate_submaxima(argmaxima, hist, centers)) == str(readable_interpolate_submaxima(argmaxima, hist, centers))
-        %timeit interpolate_submaxima(argmaxima, hist, centers)
-        %timeit readable_interpolate_submaxima(argmaxima, hist, centers)
+        assert str(interpolate_submaxima(argmaxima, hist_, centers)) == str(readable_interpolate_submaxima(argmaxima, hist_, centers))
+        %timeit interpolate_submaxima(argmaxima, hist_, centers)
+        %timeit readable_interpolate_submaxima(argmaxima, hist_, centers)
 
     """
-    #if np.any(argmaxima == 0 + argmaxima == (len(hist) - 1)):
+    #if np.any(argmaxima == 0 + argmaxima == (len(hist_) - 1)):
     #    pass
     # ~~~TODO Use np.polyfit here instead for readability
     # This turns out to just be faster. Other function is written under
-    x123, y123 = maxima_neighbors(argmaxima, hist, centers)
-    (y1, y2, y3) = y123
-    (x1, x2, x3) = x123
-    denom = (x1 - x2) * (x1 - x3) * (x2 - x3)
-    A     = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom
-    B     = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom
-    C     = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom
-    xv = -B / (2 * A)
-    yv = C - B * B / (4 * A)
-    submaxima_x, submaxima_y = np.vstack((xv.T, yv.T))
+    submaxima_x, submaxima_y = readable_interpolate_submaxima(argmaxima, hist_, centers)
+    # Seems to be some error here.
+    #x123, y123 = maxima_neighbors(argmaxima, hist_, centers)
+    #(y1, y2, y3) = y123
+    #(x1, x2, x3) = x123
+    #denom = (x1 - x2) * (x1 - x3) * (x2 - x3)
+    #A     = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom
+    #B     = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom
+    #C     = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom
+    #xv = B / (2 * A)
+    #yv = C - B * B / (4 * A)
+    #submaxima_x, submaxima_y = np.vstack((xv.T, yv.T))
     return submaxima_x, submaxima_y
 
 
 def maximum_parabola_point(A, B, C):
+    # Maximum x point is where the derivative is 0
     xv = -B / (2 * A)
     yv = C - B * B / (4 * A)
     return xv, yv
 
 
-def readable_interpolate_submaxima(argmaxima, hist, centers=None):
-    x123, y123 = maxima_neighbors(argmaxima, hist, centers)
-    coeff_list = [np.polyfit(x123_, y123_, 2) for (x123_, y123_) in zip(x123.T, y123.T)]
+def readable_interpolate_submaxima(argmaxima, hist_, centers=None):
+    """
+    np.polyval(coeff, submaxima_x)
+
+    """
+    #x123, y123 = maxima_neighbors(argmaxima, hist_, centers)
+    neighbs = np.vstack((argmaxima - 1, argmaxima, argmaxima + 1))
+    y123 = hist_[neighbs]
+    x123 = neighbs if centers is None else centers[neighbs]
+    # Fit parabola around points
+    coeff_list = [np.polyfit(x123_, y123_, deg=2) for (x123_, y123_) in zip(x123.T, y123.T)]
     A, B, C = np.vstack(coeff_list).T
     submaxima_x, submaxima_y = maximum_parabola_point(A, B, C)
     #submaxima_points = [maximum_parabola_point(A, B, C) for (A, B, C) in coeff_list]
     #submaxima_x, submaxima_y = np.array(submaxima_points).T
+
+    # Check to make sure submaxima is not less than original maxima
+    # (can be the case only if the maxima is incorrectly given)
+    # In this case just return what the user wanted as the maxima
+    maxima_y = y123[1, :]
+    invalid = submaxima_y < maxima_y
+    if np.any(invalid):
+        if centers is not None:
+            submaxima_x[invalid] = centers[argmaxima[invalid]]
+        else:
+            submaxima_x[invalid] = argmaxima[invalid]
+        submaxima_y[invalid] = hist_[argmaxima[invalid]]
     return submaxima_x, submaxima_y
 
 

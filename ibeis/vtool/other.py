@@ -2066,6 +2066,52 @@ def bow_test():
     print(x.dot(c2))
 
 
+def greedy_setcover(universe, subsets, weights=None):
+    """
+    Copied implmentation of greedy set cover from stack overflow. Needs work.
+
+    References:
+        http://stackoverflow.com/questions/7942312/how-do-i-make-my-implementation-of-greedy-set-cover-faster
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> import vtool as vt
+        >>> universe = set([1,2,3,4])
+        >>> subsets = [set([1,2]), set([1]), set([1,2,3]), set([1]), set([3,4]),
+        >>>           set([4]), set([1,2]), set([3,4]), set([1,2,3,4])]
+        >>> weights = [1, 1, 2, 2, 2, 3, 3, 4, 4]
+        >>> chosen, costs = greedy_setcover(universe, subsets, weights)
+        >>> print('Cover: %r' % (chosen,))
+        >>> print('Total Cost: %r=sum(%r)' % (sum(costs), costs))
+    """
+    #unchosen = subsets.copy()
+    uncovered = universe
+    chosen = []
+    costs = []
+
+    def findMin(subsets, uncovered, weights):
+        minCost = np.inf
+        minElement = -1
+        for i, s in enumerate(subsets):
+            num_isect = len(s.intersection(uncovered))
+            try:
+                cost = weights[i] / num_isect
+                if cost < minCost:
+                    minCost = cost
+                    minElement = i
+            except ZeroDivisionError:
+                pass
+        return subsets[minElement], weights[minElement]
+
+    while len(uncovered) != 0:
+        S_i, cost = findMin(subsets, uncovered, weights)
+        chosen.append(S_i)
+        uncovered = uncovered.difference(S_i)
+        costs.append(cost)
+    return chosen, costs
+
+
 if __name__ == '__main__':
     """
     CommandLine:
