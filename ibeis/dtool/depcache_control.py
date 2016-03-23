@@ -1015,9 +1015,29 @@ class _CoreDependencyCache(object):
             table.clear_table()
 
     def delete_root(depc, root_rowids):
-        # TODO make sure this works generally
-        children = depc.graph[depc.root_tablename]
-        for tablename in children:
+        r"""
+        Args:
+            root_rowids (?):
+
+        CommandLine:
+            python -m dtool.depcache_control delete_root --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.delete_root), globals())
+            >>> root_rowids = [1]
+            >>> depc.delete_root(root_rowids)
+            >>> depc.get('fgweight', [1])
+            >>> depc.delete_root(root_rowids)
+        """
+        graph = depc.make_graph(implicit=False)
+        children = list(graph[depc.root_tablename].keys())
+        needs_delete = [len(graph.pred[child]) == 1 for child in children]
+        children_ = ut.compress(children, needs_delete)
+        for tablename in children_:
             depc.delete_property(tablename, root_rowids)
 
     def delete_property(depc, tablename, root_rowids, config=None):
