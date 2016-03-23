@@ -49,7 +49,7 @@ register_preproc = register_preprocs['image']
     colnames=['score', 'bboxes', 'thetas', 'confs', 'classes'],
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=DetectionConfig,
-    fname='imgdetects',
+    fname='detectcache',
     chunksize=32,
 )
 def compute_detections(depc, gid_list, config=None):
