@@ -344,6 +344,19 @@ def get_unixtime(exif_dict, default=-1):
     """
     TODO: Exif.Image.TimeZoneOffset
 
+    Ignore:
+        gpaths = ut.list_images('/home/joncrall/work/humpbacks_fb/_ibsdb/images', full=1)
+        gpaths = ut.list_images('/home/joncrall/work/humpbacks/_ibsdb/images', full=1)
+        exifs = list(ut.generate(vt.read_exif, gpaths))
+        times = ut.dict_take_column(exifs, 'DateTimeOriginal', '!!!!!!!!!!!!!!!!!!!')
+        idxs = ut.where([y[-2] == ' ' for y in times])
+
+        gpath = gpaths[idxs[0]]
+        exif_dict = vt.get_exif_dict(Image.open(gpath))
+        ut.take(times, idxs)
+        ut.take(exifs, idxs)
+        ut.take(gpaths, idxs)
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.exif import *  # NOQA
@@ -355,6 +368,11 @@ def get_unixtime(exif_dict, default=-1):
     if isinstance(exiftime, tuple) and len(exiftime) == 1:
         # hack, idk why
         exiftime = exiftime[0]
+    if len(exiftime) == 19 and exiftime[-1] != ' ' and exiftime[-3:-1] == ': ':
+        # Hack for weird fluke exif times '2009:10:01 11:52: 1'
+        exiftime = list(exiftime)
+        exiftime[-2] = '0'
+        exiftime = ''.join(exiftime)
     unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
     timezone_offset = exif_dict.get('TimeZoneOffset', None)
     if timezone_offset is not None:
