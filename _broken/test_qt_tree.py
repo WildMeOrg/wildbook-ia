@@ -4,7 +4,7 @@
 #from guitool.__PYQT__ import QtGui, QtCore
 #from guitool import slot_
 #from ibeis.control import IBEISControl
-#from ibeis import ibsfuncs
+#from ibeis.other import ibsfuncs
 #from ibeis.gui import guiheaders as gh
 #from ibeis.gui.guiheaders import NAMES_TREE
 #from ibeis.gui.models_and_views import IBEISTableModel, IBEISTreeView

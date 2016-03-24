@@ -12,7 +12,7 @@ from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis.algo import Config
-#from ibeis import ibsfuncs
+#from ibeis.other import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, profile = ut.inject2(__name__, '[manual_meta]')
 

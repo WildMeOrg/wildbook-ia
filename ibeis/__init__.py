@@ -47,7 +47,6 @@ try:
     #main_module._preload()
 
     from ibeis import control
-    from ibeis import ibsfuncs
     from ibeis import dbio
     #from ibeis import web
 
@@ -283,7 +282,6 @@ def reload_subs(verbose=True):
     import_subs()
     rrr(verbose=verbose)
     getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(ibsfuncs, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(other, 'reload_subs', lambda verbose: None)(verbose=verbose)
@@ -317,7 +315,7 @@ Regen Command:
 
     cd /home/joncrall/code/ibeis/ibeis/other
     makeinit.py -x web viz tests gui all_imports
-    makeinit.py -x constants params main_module other control ibsfuncs dbio tests all_imports
+    makeinit.py -x constants params main_module other control dbio tests all_imports
 """
 
 if __name__ == '__main__':

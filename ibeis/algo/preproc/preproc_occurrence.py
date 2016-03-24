@@ -220,7 +220,7 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
 def compute_occurrence_unixtime(ibs, occur_gids):
     #assert isinstance(ibs, IBEISController)
     # TODO: account for -1
-    from ibeis import ibsfuncs
+    from ibeis.other import ibsfuncs
     unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, occur_gids)
     time_arrs = list(map(np.array, unixtimes))
     occur_unixtimes = list(map(np.mean, time_arrs))
@@ -229,7 +229,7 @@ def compute_occurrence_unixtime(ibs, occur_gids):
 
 def _compute_occurrence_datetime(ibs, occur_gids):
     #assert isinstance(ibs, IBEISController)
-    #from ibeis import ibsfuncs
+    #from ibeis.other import ibsfuncs
     occur_unixtimes = compute_occurrence_unixtime(ibs, occur_gids)
     occur_datetimes = list(map(ut.unixtime_to_datetimestr, occur_unixtimes))
     return occur_datetimes

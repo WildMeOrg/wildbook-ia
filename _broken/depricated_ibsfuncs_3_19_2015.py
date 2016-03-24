@@ -45,19 +45,19 @@ def export_testset_for_chuck(ibs, min_num_annots):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 100
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 500
+        python -m ibeis.other.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 100
+        python -m ibeis.other.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/PZ_Master --min-num-annots 500
 
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/GZ_Master --min-num-annots 100
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir
+        python -m ibeis.other.ibsfuncs --test-export_testset_for_chuck --dbdir /raid/work2/Turk/GZ_Master --min-num-annots 100
+        python -m ibeis.other.ibsfuncs --test-export_testset_for_chuck --dbdir
         /raid/work2/Turk/GZ_Master --min-num-annots 500_DOCTEST
 
 
-        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --db GIR_Tanya --min-num-annots 100
+        python -m ibeis.other.ibsfuncs --test-export_testset_for_chuck --db GIR_Tanya --min-num-annots 100
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> #dbdir = ut.get_argval(('--dbdir',), type_=str, default='testdb1')
@@ -199,8 +199,8 @@ def GreatZebraCount_mergedbs():
     ibs_pz_mugu_19.print_name_table()
     ibs_pz_mugu_all.print_name_table()
 
-    #ibeis.ibsfuncs.GreatZebraCount_batch_rename(ibs_pz_mugu_19)
-    #ibeis.ibsfuncs.GreatZebraCount_batch_rename(ibs_pz_mugu_20)
+    #ibeis.other.ibsfuncs.GreatZebraCount_batch_rename(ibs_pz_mugu_19)
+    #ibeis.other.ibsfuncs.GreatZebraCount_batch_rename(ibs_pz_mugu_20)
 
     ibs_pz_mugu_18.fix_and_clean_database()
     ibs_pz_mugu_19.fix_and_clean_database()
@@ -286,11 +286,11 @@ def export_subdatabase_all_annots_new(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-export_subdatabase_all_annots_new --db GIR_Tanya
+        python -m ibeis.other.ibsfuncs --test-export_subdatabase_all_annots_new --db GIR_Tanya
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb()
         >>> print(ibs.get_dbinfo_str())
@@ -400,11 +400,11 @@ def DEPRICATE_rebase_images(ibs, new_path, gid_list=None):
 #        tuple: upsizetup
 
 #    CommandLine:
-#        python -m ibeis.ibsfuncs --test-get_upsize_data
+#        python -m ibeis.other.ibsfuncs --test-get_upsize_data
 
 #    Example:
 #        >>> # UNSTABLE_DOCTEST
-#        >>> from ibeis.ibsfuncs import *  # NOQA
+#        >>> from ibeis.other.ibsfuncs import *  # NOQA
 #        >>> import ibeis  # NOQA
 #        >>> ibs = ibeis.opendb('PZ_MTEST')
 #        >>> qaid_list = ibs.get_valid_aids()

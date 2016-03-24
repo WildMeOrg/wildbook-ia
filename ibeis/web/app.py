@@ -109,6 +109,41 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
     ibs.close_job_manager()
 
 
+def start_web_annot_groupreview(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    CommandLine:
+        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1
+        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1
+        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        >>> #aid_list = ibs.get_valid_aids()
+        >>> # -----
+        >>> any_tags = ut.get_argval('--tags', type_=list, default=['Viewpoint'])
+        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
+        >>> prop = any_tags[0]
+        >>> filtered_annotmatch_rowids = filter_annotmatch_by_tags(ibs, None, any_tags=any_tags, min_num=min_num)
+        >>> aid1_list = (ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
+        >>> aid2_list = (ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))
+        >>> aid_list = list(set(ut.flatten([aid2_list, aid1_list])))
+        >>> result = start_web_annot_groupreview(ibs, aid_list)
+        >>> print(result)
+    """
+    import ibeis.web
+    aid_strs = ','.join(list(map(str, aid_list)))
+    url_suffix = '/group_review/?aid_list=%s' % (aid_strs)
+    ibeis.web.app.start_from_ibeis(ibs, url_suffix=url_suffix, browser=True)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

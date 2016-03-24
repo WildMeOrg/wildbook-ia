@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import range, input
 from os.path import join, expanduser, exists, basename  # NOQA
 from ibeis.control import IBEISControl
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from detecttools.directory import Directory
 import utool
 

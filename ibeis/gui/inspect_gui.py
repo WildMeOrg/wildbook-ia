@@ -12,7 +12,7 @@ from functools import partial
 from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
                      ChangeLayoutContext)
 from guitool.__PYQT__ import QtGui, QtCore
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
 #from ibeis.algo.hots import chip_match

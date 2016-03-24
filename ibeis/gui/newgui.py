@@ -24,7 +24,7 @@ from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six

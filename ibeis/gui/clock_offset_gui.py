@@ -7,7 +7,7 @@ from functools import partial
 #from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
 from guitool.__PYQT__ import QtGui  # , QtCore
 from guitool.__PYQT__.QtCore import Qt
-#from ibeis import ibsfuncs
+#from ibeis.other import ibsfuncs
 #from ibeis.expt import results_organizer
 #from ibeis.viz import interact
 #from ibeis.viz import viz_helpers as vh

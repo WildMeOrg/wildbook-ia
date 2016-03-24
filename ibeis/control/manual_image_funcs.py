@@ -278,7 +278,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         >>> ibs.delete_images(new_gids1)
     """
     from ibeis.algo.preproc import preproc_image
-    from ibeis import ibsfuncs
+    from ibeis.other import ibsfuncs
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
     #print('[ibs] gpath_list = %r' % (gpath_list,))
@@ -755,7 +755,7 @@ def get_images(ibs, gid_list, force_orient=False, **kwargs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/image/thumbtup/', methods=['GET'])
-def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
+def get_image_thumbtup(ibs, gid_list, **kwargs):
     r"""
     Returns:
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
@@ -764,13 +764,11 @@ def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
         Method: GET
         URL:    /api/image/thumbtup/
     """
-    thumbsize = ibs.get_image_thumbsize(thumbsize, draw_annots)
     # print('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
-    thumb_gpaths = ibs.get_image_thumbpath_(gid_list, draw_annots=draw_annots,
-                                            thumbsize=thumbsize)
+    thumb_gpaths = ibs.get_image_thumbpath(gid_list, **kwargs)
     image_paths = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_sizes(gid_list)
     thumbtup_list = [
@@ -784,8 +782,7 @@ def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/image/thumbpath/', methods=['GET'])
-def get_image_thumbpath(ibs, gid_list, ensure_paths=False, draw_annots=True,
-                        thumbsize=None):
+def get_image_thumbpath(ibs, gid_list, **config):
     r"""
     Returns:
         list_ (list): the thumbnail path of each gid
@@ -794,38 +791,9 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, draw_annots=True,
         Method: GET
         URL:    /api/image/thumbpath/
     """
-    if ensure_paths:
-        thumbpath_list = ibs.preprocess_image_thumbs(gid_list,
-                                                     draw_annots=draw_annots,
-                                                     thumbsize=thumbsize)
-    else:
-        thumbpath_list = get_image_thumbpath_(ibs, gid_list, draw_annots=True, thumbsize=thumbsize)
-    return thumbpath_list
-
-
-@register_ibs_method
-def get_image_thumbsize(ibs, thumbsize=None, draw_annots=True):
-    if thumbsize is None:
-        if draw_annots:
-            thumbsize = ibs.cfg.other_cfg.thumb_size
-        else:
-            thumbsize = ibs.cfg.other_cfg.thumb_bare_size
-    return thumbsize
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-def get_image_thumbpath_(ibs, gid_list, draw_annots=True, thumbsize=None):
-    """ get_image_thumbpath, but never will ensure existence """
-    thumbsize = ibs.get_image_thumbsize(thumbsize, draw_annots)
-    thumb_dpath = ibs.get_thumbdir()
-    img_uuid_list = ibs.get_image_uuids(gid_list)
-    if draw_annots:
-        thumb_suffix = '_' + str(thumbsize) + const.IMAGE_THUMB_SUFFIX
-    else:
-        thumb_suffix = '_' + str(thumbsize) + const.IMAGE_BARE_THUMB_SUFFIX
-    thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
-                      for uuid in img_uuid_list]
+    depc = ibs.depc_image
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                               read_extern=False)
     return thumbpath_list
 
 
@@ -1072,9 +1040,13 @@ def get_image_detectpaths(ibs, gid_list):
         Method: GET
         URL:    /api/image/detectpaths/
     """
-    from ibeis.algo.preproc import preproc_detectimg
-    new_gfpath_list = preproc_detectimg.compute_and_write_detectimg_lazy(ibs, gid_list)
-    return new_gfpath_list
+    depc = ibs.depc_image
+    config = {
+        'thumbsize': ibs.cfg.detect_cfg.detectimg_sqrt_area,
+    }
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                               read_extern=False)
+    return thumbpath_list
 
 
 @register_ibs_method

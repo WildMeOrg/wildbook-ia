@@ -22,11 +22,6 @@ import vtool as vt
 import utool as ut
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from ibeis import constants as const
-try:
-    from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
-except ImportError as ex:
-    ut.printex('COMMIT TO DETECTTOOLS')
-    pass
 from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
@@ -48,11 +43,11 @@ def postinject_func(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-postinject_func
+        python -m ibeis.other.ibsfuncs --test-postinject_func
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_empty_nids()  # a test run before this forgot to do this
@@ -90,170 +85,6 @@ def refresh(ibs):
     ibsfuncs.rrr()
     all_imports.reload_all()
     ibs.rrr()
-
-
-def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
-    import random
-    from datetime import date
-
-    current_year = date.today().year
-    # target_size = 900
-    information = {
-        'database_name' : ibs.get_dbname()
-    }
-    datadir = ibs._ibsdb + '/LearningData/'
-    imagedir = datadir + 'JPEGImages/'
-    annotdir = datadir + 'Annotations/'
-    setsdir = datadir + 'ImageSets/'
-    mainsetsdir = setsdir + 'Main/'
-    if purge:
-        ut.delete(datadir)
-    ut.ensuredir(datadir)
-    ut.ensuredir(imagedir)
-    ut.ensuredir(annotdir)
-    ut.ensuredir(setsdir)
-    ut.ensuredir(mainsetsdir)
-    gid_list = ibs.get_valid_gids()
-    sets_dict = {
-        'test'     : [],
-        'train'    : [],
-        'trainval' : [],
-        'val'      : [],
-    }
-    index = 1 if offset == 'auto' else offset
-    try:
-        train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
-        test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    except:
-        train_gid_set = set([])
-        test_gid_set = set([])
-
-    print('Exporting %d images' % (len(gid_list),))
-    for gid in gid_list:
-        yawed = True
-        aid_list = ibs.get_image_aids(gid)
-        image_uri = ibs.get_image_uris(gid)
-        image_path = ibs.get_image_paths(gid)
-        if len(aid_list) > -1:
-            fulldir = image_path.split('/')
-            filename = fulldir.pop()
-            extension = filename.split('.')[-1]  # NOQA
-            out_name = "%d_%06d" % (current_year, index, )
-            out_img = out_name + ".jpg"
-            folder = "IBEIS"
-
-            _image = ibs.get_images(gid)
-            height, width, channels = _image.shape
-
-            if width > height:
-                ratio = height / width
-                decrease = target_size / width
-                width = target_size
-                height = int(target_size * ratio)
-            else:
-                ratio = width / height
-                decrease = target_size / height
-                height = target_size
-                width = int(target_size * ratio)
-
-            dst_img = imagedir + out_img
-            _image = vt.resize(_image, (width, height))
-            vt.imwrite(dst_img, _image)
-
-            annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img,
-                                                     source=image_uri,
-                                                     **information)
-            bbox_list = ibs.get_annot_bboxes(aid_list)
-            theta_list = ibs.get_annot_thetas(aid_list)
-            for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
-                # Transformation matrix
-                R = vt.rotation_around_bbox_mat3x3(theta, bbox)
-                # Get verticies of the annotation polygon
-                verts = vt.verts_from_bbox(bbox, close=True)
-                # Rotate and transform vertices
-                xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
-                trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
-                x_points = [pt[0] for pt in new_verts]
-                y_points = [pt[1] for pt in new_verts]
-                xmin = int(min(x_points) * decrease)
-                xmax = int(max(x_points) * decrease)
-                ymin = int(min(y_points) * decrease)
-                ymax = int(max(y_points) * decrease)
-                # Bounds check
-                xmin = max(xmin, 0)
-                ymin = max(ymin, 0)
-                xmax = min(xmax, width - 1)
-                ymax = min(ymax, height - 1)
-                #TODO: Change species_name to getter in IBEISControl once
-                #implemented
-                #species_name = 'grevys_zebra'
-                info = {}
-                species_name = ibs.get_annot_species_texts(aid)
-                if species_name not in ['zebra_plains', 'zebra_grevys']:
-                    species_name = 'unspecified'
-                # yaw = ibs.get_annot_yaw_texts(aid)
-                # if yaw != '' and yaw is not None:
-                #     info['pose'] = yaw
-                yaw = ibs.get_annot_yaws(aid)
-                if yaw != -1 and yaw is not None:
-                    info['pose'] = '%0.06f' % (yaw, )
-                else:
-                    yawed = False
-                    print("UNVIEWPOINTED: %d " % gid)
-                annotation.add_object(
-                    species_name, (xmax, xmin, ymax, ymin), **info)
-            dst_annot = annotdir + out_name  + '.xml'
-
-            # # Update sets
-            # state = random.uniform(0.0, 1.0)
-            # if state <= 0.50:
-            #     sets_dict['test'].append(out_name)
-            # elif state <= 0.75:
-            #     sets_dict['train'].append(out_name)
-            #     sets_dict['trainval'].append(out_name)
-            # else:
-            #     sets_dict['val'].append(out_name)
-            #     sets_dict['trainval'].append(out_name)
-
-            if gid in test_gid_set:
-                sets_dict['test'].append(out_name)
-            elif gid in train_gid_set:
-                state = random.uniform(0.0, 1.0)
-                if state <= 0.75:
-                    sets_dict['train'].append(out_name)
-                    sets_dict['trainval'].append(out_name)
-                else:
-                    sets_dict['val'].append(out_name)
-                    sets_dict['trainval'].append(out_name)
-            else:
-                raise NotImplementedError()
-
-            # Write XML
-            if True or not enforce_yaw or yawed:
-                print("Copying:\n%r\n%r\n%r\n\n" % (
-                    image_path, dst_img, (width, height), ))
-                xml_data = open(dst_annot, 'w')
-                xml_data.write(annotation.xml())
-                xml_data.close()
-                while exists(dst_annot):
-                    index += 1
-                    if offset != 'auto':
-                        break
-                    out_name = "%d_%06d" % (current_year, index, )
-                    dst_annot = annotdir + out_name  + '.xml'
-        else:
-            print("Skipping:\n%r\n\n" % (image_path, ))
-
-    for key in sets_dict.keys():
-        with open(mainsetsdir + key + '.txt', 'w') as file_:
-            sets_dict[key].append('')
-            content = sets_dict[key]
-            content = '\n'.join(content)
-            file_.write(content)
-
-    print('...completed')
-    return datadir
 
 
 @register_ibs_method
@@ -310,7 +141,7 @@ def filter_junk_annotations(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -467,11 +298,11 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False, msg='', a
         veryverbose (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-assert_valid_aids
+        python -m ibeis.other.ibsfuncs --test-assert_valid_aids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -542,11 +373,11 @@ def get_missing_gids(ibs, gid_list=None):
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_missing_gids --db GZ_Master1
+        python -m ibeis.other.ibsfuncs --exec-get_missing_gids --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> #ibs = ibeis.opendb('GZ_Master1')
@@ -631,11 +462,11 @@ def check_image_consistency(ibs, gid_list=None):
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-check_image_consistency  --db=GZ_Master1
+        python -m ibeis.other.ibsfuncs --exec-check_image_consistency  --db=GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> gid_list = None
@@ -662,10 +493,10 @@ def check_image_uuid_consistency(ibs, gid_list):
     VERY SLOW
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
-        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
-        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency
-        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db lynx
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency
+        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -679,7 +510,7 @@ def check_image_uuid_consistency(ibs, gid_list):
         >>> gpath_list = ut.take(gpath_list_, sortx)
         >>> bytes_list = ut.take(bytes_list_, sortx)
         >>> gid_list   = ut.take(gid_list_, sortx)
-        >>> ibeis.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
+        >>> ibeis.other.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
     import ibeis.algo.preproc.preproc_image as preproc_image
@@ -701,11 +532,11 @@ def check_annot_consistency(ibs, aid_list=None):
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-check_annot_consistency
+        python -m ibeis.other.ibsfuncs --test-check_annot_consistency
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -749,7 +580,7 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
     # import uuid
     # del dtool.__SQLITE__.adapters[(uuid.UUID, dtool.__SQLITE__.PrepareProtocol)]
 
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
@@ -780,11 +611,11 @@ def check_name_consistency(ibs, nid_list):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-check_name_consistency
+        python -m ibeis.other.ibsfuncs --test-check_name_consistency
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -946,7 +777,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('GZ_ALL')
         >>> fix_remove_visual_dupliate_annotations(ibs)
@@ -1020,11 +851,11 @@ def fix_exif_data(ibs, gid_list):
         gid_list (list): list of image ids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-fix_exif_data
+        python -m ibeis.other.ibsfuncs --exec-fix_exif_data
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='lynx')
         >>> gid_list = ibs.get_valid_gids()
@@ -1125,11 +956,11 @@ def fix_invalid_nids(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-fix_invalid_nids
+        python -m ibeis.other.ibsfuncs --test-fix_invalid_nids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -1168,11 +999,11 @@ def fix_invalid_name_texts(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-fix_invalid_names
+        python -m ibeis.other.ibsfuncs --test-fix_invalid_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -1218,11 +1049,11 @@ def copy_imagesets(ibs, imgsetid_list):
         list: new_imgsetid_list
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-copy_imagesets
+        python -m ibeis.other.ibsfuncs --test-copy_imagesets
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -1334,7 +1165,7 @@ def delete_qres_cache(ibs):
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> result = delete_qres_cache(ibs)
@@ -1473,7 +1304,7 @@ def get_annot_is_hard(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0::2]
@@ -1591,11 +1422,11 @@ def unflat_map(method, unflat_rowids, **kwargs):
         list of values: unflat_vals
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-unflat_map
+        python -m ibeis.other.ibsfuncs --test-unflat_map
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> method = ibs.get_annot_name_rowids
@@ -1711,11 +1542,11 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         list: infodict_list
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annot_info --tb
+        python -m ibeis.other.ibsfuncs --exec-get_annot_info --tb
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
@@ -1829,792 +1660,6 @@ def vsstr(qaid, aid, lite=False):
 
 
 @register_ibs_method
-def imageset_train_test_split(ibs, train_split=0.8):
-    from random import shuffle
-    gid_list = ibs.get_valid_gids()
-    aids_list = ibs.get_image_aids(gid_list)
-    distro_dict = {}
-    for gid, aid_list in zip(gid_list, aids_list):
-        total = len(aid_list)
-        if total not in distro_dict:
-            distro_dict[total] = []
-        distro_dict[total].append(gid)
-
-    print('Processing train/test imagesets...')
-    global_train_list = []
-    global_test_list = []
-    for distro, gid_list_ in distro_dict.iteritems():
-        total = len(gid_list_)
-        shuffle(gid_list_)
-        split_index = total * (1.0 - train_split) + 1E-9  # weird
-        if split_index < 1.0:
-            split_index = total / 2
-        else:
-            split_index = np.around(split_index)
-        split_index = int(split_index)
-        args = (distro, total, split_index, )
-        print('\tdistro: %d - total: %d - split_index: %d' % args)
-        train_list = gid_list_[split_index:]
-        test_list = gid_list_[:split_index]
-        args = (len(test_list), len(train_list), len(train_list) / total, )
-        print('\ttest: %d\n\ttrain: %d\n\tsplit: %0.04f' % args)
-        global_train_list.extend(train_list)
-        global_test_list.extend(test_list)
-
-    args = (
-        len(global_train_list),
-        len(global_test_list),
-        len(global_train_list) + len(global_test_list),
-        len(global_train_list) / len(gid_list),
-        train_split,
-    )
-
-    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-
-    temp_list = ibs.get_imageset_gids(train_imgsetid)
-    ibs.unrelate_images_and_imagesets(temp_list, [train_imgsetid] * len(temp_list))
-    temp_list = ibs.get_imageset_gids(test_imgsetid)
-    ibs.unrelate_images_and_imagesets(temp_list, [test_imgsetid] * len(temp_list))
-
-    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
-    ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
-
-    print('Complete... %d train + %d test = %d [%0.04f, %0.04f]' % args)
-
-
-@register_ibs_method
-def detect_distributions(ibs):
-    # Process distributions of densities
-    gid_list = ibs.get_valid_gids()
-    aids_list = ibs.get_image_aids(gid_list)
-    distro_dict = {}
-    species_dict = {}
-    for gid, aid_list in zip(gid_list, aids_list):
-        total = len(aid_list)
-        if total >= 7:
-            total = 7
-        if total not in distro_dict:
-            distro_dict[total] = 0
-        distro_dict[total] += 1
-        for aid in aid_list:
-            species = ibs.get_annot_species_texts(aid)
-            if species not in ['zebra_plains', 'zebra_grevys']:
-                species = 'unspecified'
-            viewpoint = ibs.get_annot_yaw_texts(aid)
-            if species not in species_dict:
-                species_dict[species] = {}
-            if viewpoint not in species_dict[species]:
-                species_dict[species][viewpoint] = 0
-            species_dict[species][viewpoint] += 1
-
-    print('Density distribution')
-    for distro in sorted(distro_dict.keys()):
-        print('%d,%d' % (distro, distro_dict[distro]))
-    print('\n')
-
-    for species in sorted(species_dict.keys()):
-        print('Species viewpoint distribution: %r' % (species, ))
-        viewpoint_dict = species_dict[species]
-        total = 0
-        for viewpoint in sorted(viewpoint_dict.keys()):
-            print('%s: %d' % (viewpoint, viewpoint_dict[viewpoint]))
-            total += viewpoint_dict[viewpoint]
-        print('Total: %d\n' % (total, ))
-
-    plot_distrobutions(distro_dict)
-
-
-def plot_distrobutions(distro_dict):
-    import matplotlib.pyplot as plt
-    key_list = sorted(distro_dict.keys())
-    label_list = [ '7+' if key == 7 else str(key) for key in key_list ]
-    size_list = [ distro_dict[key] for key in key_list ]
-    color_list = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral']
-    explode = [0.0] + [0.0] * (len(size_list) - 1)
-
-    plt.pie(size_list, explode=explode, labels=label_list, colors=color_list,
-            autopct='%1.1f%%', shadow=True, startangle=90)
-    plt.axis('equal')
-    plt.show()
-
-
-# @register_ibs_method
-# def detect_rf_test_set_sweep(ibs, db_check=True):
-#     from ibeis.algo.detect import randomforest  # NOQA
-#     from os.path import abspath, expanduser, join, exists
-
-#     if db_check:
-#         assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
-
-#     species = 'zebra_plains' if ibs.dbname == 'PZ_Paper' else 'zebra_grevys'
-#     trees_path = abspath(join(ibs.treesdir, species))
-#     tree_path_list = ut.ls(trees_path, '*.txt')
-
-#     test_imgsetid = ibs.add_imagesets('TEST_SET')
-#     gid_list = ibs.get_imageset_gids(test_imgsetid)
-#     uuid_list = ibs.get_image_uuids(gid_list)
-
-#     print('Using trees: %r' % (tree_path_list, ))
-#     print('gid_list = %r' % (gid_list, ))
-#     print('len(gid_list) = %r' % (len(gid_list), ))
-
-#     output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'rf')))
-#     ut.ensuredir(output_path)
-#     output_gpath_list = [
-#         join(output_path, '%s.JPG' % (uuid, ))
-#         for uuid in uuid_list
-#     ]
-
-#     gid_list_ = []
-#     output_gpath_list_ = []
-#     for gid, output_gpath in zip(gid_list, output_gpath_list):
-#         if not exists(output_gpath):
-#             gid_list_.append(gid)
-#             output_gpath_list_.append(output_gpath)
-#         else:
-#             print('Skipping: %r - %r' % (gid, output_gpath, ))
-
-#     print('Continuing with %d images' % (len(gid_list_), ))
-#     # Create detection generator cross sweep
-#     results_gen = randomforest.detect_gid_list(ibs, gid_list_, tree_path_list,
-#                                                output_gpath_list=output_gpath_list_,
-#                                                quiet=True)
-#     # Compute results
-#     list(results_gen)
-
-
-# @register_ibs_method
-# def detect_yolo_test_set_sweep(ibs):
-#     from ibeis.algo.detect import yolo  # NOQA
-#     from os.path import abspath, expanduser, join, exists
-#     import pydarknet
-
-#     assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
-
-#     config_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.cfg')))
-#     weight_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.weights')))
-
-#     test_imgsetid = ibs.add_imagesets('TEST_SET')
-#     gid_list = ibs.get_imageset_gids(test_imgsetid)
-#     uuid_list = ibs.get_image_uuids(gid_list)
-
-#     print('gid_list = %r' % (gid_list, ))
-#     print('len(gid_list) = %r' % (len(gid_list), ))
-
-#     output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'yolo')))
-#     ut.ensuredir(output_path)
-#     output_gpath_list = [
-#         join(output_path, '%s.JPG_sweep.txt' % (uuid, ))
-#         for uuid in uuid_list
-#     ]
-
-#     gid_list_ = []
-#     output_gpath_list_ = []
-#     for gid, output_gpath in zip(gid_list, output_gpath_list):
-#         if not exists(output_gpath):
-#             gid_list_.append(gid)
-#             output_gpath_list_.append(output_gpath)
-#         else:
-#             print('Skipping: %r - %r' % (gid, output_gpath, ))
-
-#     print('Continuing with %d images' % (len(gid_list_), ))
-
-#     detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
-#                                                weight_filepath=weight_filepath)
-
-#     for gid, output_gpath in zip(gid_list_, output_gpath_list_):
-#         print('SWEEPING: %r' % (output_gpath, ))
-#         with open(output_gpath, 'w') as results:
-#             for index in range(100):
-#                 sensitivity = (index + 1) / 100.0
-#                 print('Sweep: %d (%0.02f)' % (index, sensitivity, ))
-#                 # Create detection generator cross sweep
-#                 results_gen = yolo.detect_gid_list(ibs, [gid],
-#                                                    detector=detector,
-#                                                    sensitivity=(1.0 - sensitivity),
-#                                                    quiet=True)
-#                 for gid, gpath, result_list in results_gen:
-#                     results.write('%s %s\n' % (gpath, index + 1))
-#                     for result in result_list:
-#                         centerx = int(result['xtl'] + 0.5 * result['width'])
-#                         centery = int(result['ytl'] + 0.5 * result['height'])
-#                         args = (
-#                             centerx,
-#                             centery,
-#                             result['xtl'],
-#                             result['ytl'],
-#                             result['width'],
-#                             result['height'],
-#                             result['class'],
-#                             result['confidence'],
-#                         )
-#                         results.write('    %d %d %d %d %d %d %s %0.2f\n' % args)
-
-
-def detect_intersection_over_union(bbox1, bbox2):
-    x_overlap = max(0.0,
-                    min(bbox1['xtl'] + bbox1['width'], bbox2['xtl'] + bbox2['width']) -
-                    max(bbox1['xtl'], bbox2['xtl']))
-    y_overlap = max(0.0, min(bbox1['ytl'] + bbox1['height'], bbox2['ytl'] + bbox2['height']) -
-                    max(bbox1['ytl'], bbox2['ytl']))
-    intersection = float(x_overlap * y_overlap)
-    union = (bbox1['width'] * bbox1['height']) + (bbox2['width'] * bbox2['height']) - intersection
-    return intersection / union
-
-
-def detect_overlap(gt_list, pred_list):
-    overlap = np.zeros((len(gt_list), len(pred_list)), dtype=np.float32)
-    for i, gt in enumerate(gt_list):
-        for j, pred in enumerate(pred_list):
-            overlap[i, j] = detect_intersection_over_union(gt, pred)
-    return overlap
-
-
-def detect_precision_recall(overlap, algo, min_overlap, **kwargs):
-    num_gt, num_pred = overlap.shape
-    if num_gt == 0:
-        tp = 0.0
-        fp = num_pred
-        fn = 0.0
-        pr = 0.0
-        re = 1.0
-        assignment_dict = {}
-    elif num_pred == 0:
-        tp = 0.0
-        fp = 0.0
-        fn = num_gt
-        pr = 1.0
-        re = 0.0
-        assignment_dict = {}
-    else:
-        index_list = np.argmax(overlap, axis=1)
-        max_overlap = np.max(overlap, axis=1)
-        max_overlap[max_overlap < min_overlap] = 0.0
-        assignment_dict = {
-            i : index_list[i] for i in range(num_gt) if max_overlap[i] != 0
-        }
-        tp = len(assignment_dict.keys())
-        # Fix where multiple GT claim the same prediction
-        if tp > num_pred:
-            index_list_ = np.argmax(overlap, axis=0)
-            key_list = sorted(assignment_dict.keys())
-            for key in key_list:
-                if key not in index_list_:
-                    del assignment_dict[key]
-            tp = len(assignment_dict.keys())
-        fp = num_pred - tp
-        fn = num_gt - tp
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-    assert 0.0 <= pr and pr <= 1.0 and 0.0 <= re and re <= 1.0
-    if algo == 'rf':
-        fp, fn = fn, fp
-        pr, re = re, pr
-    return pr, re, tp, fp, fn, assignment_dict
-
-
-def detect_parse_gt(ibs, test_gid_set=None):
-    if test_gid_set is None:
-        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
-    gid_list = ibs.get_image_gids_from_uuid(uuid_list)
-
-    gt_dict = {}
-    for gid, uuid in zip(gid_list, uuid_list):
-        width, height = ibs.get_image_sizes(gid)
-        aid_list = ibs.get_image_aids(gid)
-        temp_list = []
-        for aid in aid_list:
-            bbox = ibs.get_annot_bboxes(aid)
-            temp = {
-                'xtl'        : bbox[0] / width,
-                'ytl'        : bbox[1] / height,
-                'width'      : bbox[2] / width,
-                'height'     : bbox[3] / height,
-                'species'    : ibs.get_annot_species_texts(aid),
-                'viewpoint'  : ibs.get_annot_yaw_texts(aid),
-                'confidence' : 1.0,
-            }
-            temp_list.append(temp)
-        gt_dict[uuid] = temp_list
-    return gt_dict
-
-
-def detect_parse_sweep(sweep_filepath):
-    from os.path import abspath, expanduser, join, exists
-    with open(sweep_filepath, 'r') as sweep_file:
-        line_list = sweep_file.readlines()
-    sweep_dict = {}
-    temp_list = []
-    current_gpath = None
-    current_index = None
-    current_width, current_height = None, None
-    # print('Parsing: %r' % (sweep_filepath, ))
-    for line in line_list:
-        if not line.startswith(' '):
-            if current_index is not None:
-                sweep_dict[current_index] = temp_list
-                temp_list = []
-            line = line.strip().split()
-            assert len(line) == 2
-            current_gpath = line[0]
-            if exists(current_gpath):
-                current_width, current_height = vt.open_image_size(current_gpath)
-            else:
-                current_gpath = current_gpath.replace(
-                    '/media/extend/jason/data',
-                    abspath(expanduser(join('~', 'Desktop', 'data')))
-                )
-                current_width, current_height = vt.open_image_size(current_gpath)
-            current_index = int(line[1])
-        else:
-            assert current_gpath is not None and current_index is not None
-            assert current_width is not None and current_height is not None
-            line = line.strip().split()
-            assert len(line) == 8
-            temp = {
-                'xtl'        : float(line[2]) / current_width,
-                'ytl'        : float(line[3]) / current_height,
-                'width'      : float(line[4]) / current_width,
-                'height'     : float(line[5]) / current_height,
-                'species'    : None if line[6] == '0' else line[6],
-                'confidence' : float(line[7]),
-            }
-            temp_list.append(temp)
-    sweep_dict[current_index] = temp_list
-    if 100 not in sweep_dict:
-        raise ValueError('Error parsing (incomplete): %r' % (sweep_filepath, ))
-    return sweep_dict
-
-
-def detect_precision_recall_algo(ibs, algo, **kwargs):
-    import uuid
-    from os.path import abspath, expanduser, join, split
-    test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo)))
-    sweep_filepath_list = ut.ls(test_path, '*_sweep.txt')
-
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
-
-    sweep_dict_dict = {}
-    processed, skipped, errored = 0, 0, 0
-    for sweep_filepath in sweep_filepath_list:
-        sweep_path, sweep_filename = split(sweep_filepath)
-        uuid_ = uuid.UUID(sweep_filename.split('.JPG')[0])
-        if uuid_ not in uuid_list:
-            # print('Skipping: image UUID not in this dataset')
-            skipped += 1
-            continue
-        try:
-            sweep_dict = detect_parse_sweep(sweep_filepath)
-            sweep_dict_dict[uuid_] = sweep_dict
-            processed += 1
-        except ValueError:
-            # print('Skipping: Incomplete sweep file')
-            errored += 1
-            continue
-        except AssertionError:
-            # print('Skipping: Corrupt sweep file')
-            errored += 1
-            continue
-        # print('Parsed: %r' % (sweep_filepath, ))
-        # print(sweep_dict)
-    print('Processed: %d' % (processed, ))
-    print('Skipped: %d' % (skipped, ))
-    print('Errored: %d' % (errored, ))
-    assert errored == 0
-    return sweep_dict_dict
-
-
-def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
-
-    gt_dict = detect_parse_gt(ibs)
-    sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
-
-    total = 0
-    error_localization   = 0
-    error_localization_by_species   = {}
-    error_localization_by_viewpoint = {}
-    error_localization_by_density   = {}
-    error_classification = 0
-    error_classification_by_species   = {}
-    error_classification_by_viewpoint = {}
-    error_classification_by_density   = {}
-
-    gt_by_species   = {}
-    gt_by_viewpoint = {}
-    gt_by_density   = {}
-
-    pr_dict = {}
-    re_dict = {}
-    print('Processing IOU + P/R Curves...')
-    for uuid in uuid_list:
-        # print('    %r' % (uuid, ))
-        gt_list = gt_dict[uuid]
-        gt_density = len(gt_list)
-        total += gt_density
-        gt_density = min(gt_density, 7)
-
-        if gt_density not in gt_by_density:
-            gt_by_density[gt_density] = 0
-
-        gt_by_density[gt_density] += 1
-
-        if uuid in sweep_dict_dict:
-            sweep_dict = sweep_dict_dict[uuid]
-            best_pr = None
-            best_index = None
-            for index in sweep_dict:
-                pred_list = sweep_dict[index]
-                overlap = detect_overlap(gt_list, pred_list)
-                pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-                if algo == 'yolo':
-                    index = 101 - index
-                if index not in pr_dict:
-                    pr_dict[index] = []
-                if index not in re_dict:
-                    re_dict[index] = []
-                pr_dict[index].append(pr)
-                re_dict[index].append(re)
-                # Analyze errors
-                if best_pr is None or pr > best_pr:
-                    best_pr = pr
-                    best_index = index
-
-            # Analyze errors
-            assert best_index is not None
-            pred_list = sweep_dict[best_index]
-            overlap = detect_overlap(gt_list, pred_list)
-            pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-
-            temp_total = len(gt_list)
-            temp_local = 0
-            temp_class = 0
-            for gt in range(temp_total):
-                gt_species   = gt_list[gt]['species']
-                if gt_species not in ['zebra_plains', 'zebra_grevys']:
-                    gt_species = 'unspecified'
-                gt_viewpoint = gt_list[gt]['viewpoint']
-
-                if gt_species not in gt_by_species:
-                    gt_by_species[gt_species] = 0
-                if gt_viewpoint not in gt_by_viewpoint:
-                    gt_by_viewpoint[gt_viewpoint] = 0
-
-                gt_by_species[gt_species] += 1
-                gt_by_viewpoint[gt_viewpoint] += 1
-
-                if gt not in assignment_dict:
-                    error_localization += 1
-                    if gt_species not in error_localization_by_species:
-                        error_localization_by_species[gt_species] = 0
-                    if gt_viewpoint not in error_localization_by_viewpoint:
-                        error_localization_by_viewpoint[gt_viewpoint] = 0
-                    error_localization_by_species[gt_species] += 1
-                    error_localization_by_viewpoint[gt_viewpoint] += 1
-                    temp_local += 1
-                else:
-                    pred = assignment_dict[gt]
-                    pred_species = pred_list[pred]['species']
-                    if pred_species is None and algo == 'rf':
-                        pred_species = species
-                    assert pred_species is not None
-                    if gt_species != pred_species:
-                        error_classification += 1
-                        if gt_species not in error_classification_by_species:
-                            error_classification_by_species[gt_species] = 0
-                        if gt_viewpoint not in error_classification_by_viewpoint:
-                            error_classification_by_viewpoint[gt_viewpoint] = 0
-                        error_classification_by_species[gt_species] += 1
-                        error_classification_by_viewpoint[gt_viewpoint] += 1
-                        temp_class += 1
-            if gt_density not in error_localization_by_density:
-                error_localization_by_density[gt_density] = 0
-            if gt_density not in error_classification_by_density:
-                error_classification_by_density[gt_density] = 0
-            if temp_local > temp_total // 2:
-                error_localization_by_density[gt_density] += 1
-            if temp_class > temp_total // 2:
-                error_classification_by_density[gt_density] += 1
-    print('...complete')
-
-    for _dict in [pr_dict, re_dict]:
-        for index in _dict:
-            temp = _dict[index]
-            if len(temp) == 0:
-                _dict[index] = None
-            else:
-                _dict[index] = sum(temp) / len(temp)
-
-    print(gt_by_species)
-    print(gt_by_viewpoint)
-    print(gt_by_density)
-
-    print(sum( map(len, ibs.get_image_aids(test_gid_set)) ))
-    print(total - error_localization - error_classification)
-    print(error_classification)
-    print(error_localization)
-    print(error_localization_by_species)
-    print(error_localization_by_viewpoint)
-    print(error_localization_by_density)
-    print(error_classification_by_species)
-    print(error_classification_by_viewpoint)
-    print(error_classification_by_density)
-
-    return pr_dict, re_dict
-
-
-def detect_precision_recall_algo_average2(ibs, algo, species, **kwargs):
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
-
-    gt_dict = detect_parse_gt(ibs)
-    sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
-
-    performance_dict = {}
-    print('Processing IOU + P/R Curves...')
-    for uuid in uuid_list:
-        gt_list = gt_dict[uuid]
-
-        if uuid in sweep_dict_dict:
-            sweep_dict = sweep_dict_dict[uuid]
-            temp = {}
-            for index in sweep_dict:
-                pred_list = sweep_dict[index]
-                overlap = detect_overlap(gt_list, pred_list)
-                pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-                re = np.around(re, decimals=2)
-                if re not in temp or temp[re] < pr:
-                    temp[re] = pr
-            for re, pr in temp.iteritems():
-                if re not in performance_dict:
-                    performance_dict[re] = []
-                performance_dict[re].append(pr)
-    print('...complete')
-
-    for re in sorted(performance_dict.keys()):
-        temp = performance_dict[re]
-        performance_dict[re] = sum(temp) / len(temp)
-    return performance_dict
-
-
-def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
-    import matplotlib.pyplot as plt
-
-    def axes(dict_):
-        x_axis = []
-        y_axis = []
-        for _ in sorted(dict_.keys()):
-            x_axis.append( _ / 100.0 )
-            y_axis.append(dict_[_])
-        return x_axis, y_axis
-
-    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
-
-    algo_dict = {
-        'rf'   : 'HF',
-        'yolo' : 'YOLO',
-        'rcnn' : 'R-CNN',
-    }
-    algo = algo_dict[algo]
-
-    species_dict = {
-        'zebra_plains' : 'Plains',
-        'zebra_grevys' : 'Grevy\'s',
-    }
-    species = species_dict[species]
-
-    # Plot curves
-    x_axis, y_axis = axes(pr_dict)
-    plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
-
-    x_axis, y_axis = axes(re_dict)
-    plt.plot(x_axis, y_axis, '%s--' % (color, ), label='%s Rec. (%s)' % (algo, species, ))
-
-
-def detect_precision_recall_algo_plot2(ibs, algo, species, color, **kwargs):
-    import matplotlib.pyplot as plt
-
-    def axes(pr_dict, re_dict, algo):
-        x_axis = []
-        y_axis = []
-        for _ in sorted(re_dict.keys(), reverse=True):
-            re, pr = re_dict[_], pr_dict[_]
-            x_axis.append(re)
-            y_axis.append(pr)
-
-        return x_axis, y_axis
-
-    # performance_dict = detect_precision_recall_algo_average2(ibs, algo, species, **kwargs)
-    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
-
-    algo_dict = {
-        'rf'   : 'HF',
-        'yolo' : 'YOLO',
-        'rcnn' : 'R-CNN',
-    }
-    algo = algo_dict[algo]
-
-    species_dict = {
-        'zebra_plains' : 'Plains',
-        'zebra_grevys' : 'Grevy\'s',
-    }
-    species = species_dict[species]
-
-    # Plot curves
-    x_axis, y_axis = axes(pr_dict, re_dict, algo)
-    plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s (%s)' % (algo, species, ))
-
-
-@register_ibs_method
-def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsize=(10, 6), **kwargs):
-    import matplotlib.pyplot as plt
-    from os.path import abspath, expanduser, join
-    import ibeis
-
-    plt.figure(figsize=figsize)
-    axes_ = plt.subplot(111)
-    axes_.set_autoscalex_on(False)
-    axes_.set_autoscaley_on(False)
-    if version == 1:
-        axes_.set_xlabel('Operating Parameter Percentage (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
-        axes_.set_ylabel('Precision / Recall')
-    else:
-        axes_.set_xlabel('Recall (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
-        axes_.set_ylabel('Precision')
-    axes_.set_xlim([0.0, 1.01])
-    axes_.set_ylim([0.0, 1.01])
-
-    ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'PZ_Paper'))))
-    if version == 1:
-        detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
-    else:
-        detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
-    ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'GZ_Paper'))))
-    if version == 1:
-        detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
-    else:
-        detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
-
-    # Display graph
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
-    # plt.show()
-    plt.savefig('/Users/bluemellophone/Desktop/precision-recall.png', bbox_inches='tight')
-
-
-def _resize(image, t_width=None, t_height=None):
-    import cv2
-    print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
-    height, width = image.shape[:2]
-    if t_width is None and t_height is None:
-        return image
-    elif t_width is not None and t_height is not None:
-        pass
-    elif t_width is None:
-        t_width = (width / height) * float(t_height)
-    elif t_height is None:
-        t_height = (height / width) * float(t_width)
-    t_width, t_height = float(t_width), float(t_height)
-    t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
-    assert t_width > 0 and t_height > 0, 'target size too small'
-    assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
-    # interpolation = cv2.INTER_LANCZOS4
-    interpolation = cv2.INTER_LINEAR
-    return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
-
-
-@register_ibs_method
-def detect_write_detection_exmaples(ibs, SEED=23170):
-    from os.path import abspath, expanduser, join
-    import ibeis
-    import random
-    import cv2
-
-    operating_dict = {
-        'rcnn': 80,
-        'rf' : 60,
-        'yolo': 80,
-    }
-
-    random.seed(SEED)
-    for database, tag in [ ('PZ_Paper', 'pz'), ('GZ_Paper', 'gz') ]:
-        ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', database))))
-        # Get random set of test images
-        test_gid_set = ibs_.get_imageset_gids(ibs_.get_imageset_imgsetids_from_text('TEST_SET'))
-        random.shuffle(test_gid_set)
-        test_gid_list = test_gid_set[:10]
-
-        if tag == 'gz':
-            test_gid_list[0] = test_gid_set[10]
-
-        test_image_list = ibs_.get_images(test_gid_list)
-        test_uuid_list = ibs_.get_image_uuids(test_gid_list)
-
-        write_path = abspath('/Users/bluemellophone/Dropbox/Shared/Chuck WACV/resources/detections/')
-        print(write_path)
-        # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
-        for algo, conf in operating_dict.iteritems():
-            test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo,)))
-            for index, (test_uuid, test_image) in enumerate(zip(test_uuid_list, test_image_list)):
-                test_image = _resize(test_image, t_width=600)
-                height, width, channels = test_image.shape
-                sweep_filepath = join(test_path, '%s.JPG_sweep.txt' % (test_uuid, ))
-                sweep_dict = detect_parse_sweep(sweep_filepath)
-                annot_list = sweep_dict[conf]
-                for annot in annot_list:
-                    xtl = int(annot['xtl'] * width)
-                    ytl = int(annot['ytl'] * height)
-                    xbr = int((annot['xtl'] + annot['width']) * width)
-                    ybr = int((annot['ytl'] + annot['height']) * height)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
-                write_filepath = join(write_path, algo, '%s%d.jpg' % (tag, index, ))
-                print(write_filepath)
-                cv2.imwrite(write_filepath, test_image)
-
-
-@register_ibs_method
-def detect_write_detection_all(ibs):
-    from os.path import abspath, join
-    import cv2
-
-    test_gid_list = ibs.get_valid_gids()
-    test_image_list = ibs.get_images(test_gid_list)
-    test_uuid_list = ibs.get_image_uuids(test_gid_list)
-
-    write_path = abspath('/Users/bluemellophone/Desktop/')
-    print(write_path)
-    # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
-    for index, (test_gid, test_uuid, test_image) in enumerate(zip(test_gid_list, test_uuid_list, test_image_list)):
-        height_old, width_old, channels_old = test_image.shape
-        test_image = _resize(test_image, t_width=600)
-        height_, width_, channels_ = test_image.shape
-        rescale = width_ / width_old
-        aid_list = ibs.get_image_aids(test_gid)
-        annot_list = ibs.get_annot_bboxes(aid_list)
-        for xtl, ytl, width, height in annot_list:
-            xbr = int((xtl + width) * rescale)
-            ybr = int((ytl + height) * rescale)
-            xtl = int(xtl * rescale)
-            ytl = int(ytl * rescale)
-            cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
-        write_filepath = join(write_path, '%d.jpg' % (index, ))
-        print(write_filepath)
-        cv2.imwrite(write_filepath, test_image)
-
-
-@register_ibs_method
 @ut.time_func
 #@profile
 def update_exemplar_special_imageset(ibs):
@@ -2683,11 +1728,11 @@ def get_special_imgsetids(ibs):
 def get_ungrouped_gids(ibs):
     """
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_ungrouped_gids
+        python -m ibeis.other.ibsfuncs --test-get_ungrouped_gids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -2724,11 +1769,11 @@ def update_ungrouped_special_imageset(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-update_ungrouped_special_imageset
+        python -m ibeis.other.ibsfuncs --test-update_ungrouped_special_imageset
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb9')
@@ -2858,7 +1903,7 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[], include_columns
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> verbosity = 1
@@ -2890,12 +1935,12 @@ def print_annotmatch_table(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-print_annotmatch_table
-        python -m ibeis.ibsfuncs --exec-print_annotmatch_table --db PZ_Master1
+        python -m ibeis.other.ibsfuncs --exec-print_annotmatch_table
+        python -m ibeis.other.ibsfuncs --exec-print_annotmatch_table --db PZ_Master1
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> result = print_annotmatch_table(ibs)
@@ -3023,7 +2068,7 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> verbosity = 1
@@ -3085,11 +2130,11 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_consecutive_newname_list_via_species
+        python -m ibeis.other.ibsfuncs --test-get_consecutive_newname_list_via_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -3107,7 +2152,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -3202,11 +2247,11 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         str: next_name
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-make_next_name
+        python -m ibeis.other.ibsfuncs --test-make_next_name
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs1 = ibeis.opendb('testdb1')
@@ -3282,133 +2327,6 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         return next_name_list
 
 
-def draw_thumb_helper(tup):
-    thumb_path, thumbsize, gpath, orient, bbox_list, theta_list = tup
-    # time consuming
-    # img = vt.imread(gpath, orient=orient)
-    img = vt.imread(gpath)
-    (gh, gw) = img.shape[0:2]
-    img_size = (gw, gh)
-    max_dsize = (thumbsize, thumbsize)
-    dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
-    new_verts_list = list(vt.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
-    #thumb = vt.resize_thumb(img, max_dsize)
-    # -----------------
-    # Actual computation
-    thumb = vt.resize(img, dsize)
-    orange_bgr = (0, 128, 255)
-    for new_verts in new_verts_list:
-        thumb = vt.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
-    vt.imwrite(thumb_path, thumb)
-    return True
-    #return (thumb_path, thumb)
-
-
-@register_ibs_method
-def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
-                            draw_annots=True, thumbsize=None, **kwargs):
-    """
-    Computes thumbs of images in parallel based on kwargs
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        gid_list (list): (default = None)
-        use_cache (bool):  turns on disk based caching(default = True)
-        chunksize (int): (default = 8)
-        draw_annots (bool): (default = True)
-        thumbsize (None): (default = None)
-
-    Returns:
-        list: thumbpath_list
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --exec-preprocess_image_thumbs --db GZ_Master1
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> gid_list = None
-        >>> use_cache = True
-        >>> chunksize = 8
-        >>> draw_annots = True
-        >>> thumbsize = None
-        >>> thumbpath_list = preprocess_image_thumbs(ibs, gid_list, use_cache, chunksize, draw_annots, thumbsize)
-        >>> result = ('thumbpath_list = %s' % (str(thumbpath_list),))
-        >>> print(result)
-    """
-    if gid_list is None:
-        gid_list = ibs.get_valid_gids(**kwargs)
-    thumbsize = ibs.get_image_thumbsize(thumbsize, draw_annots)
-    print('[ibsfuncs] preprocess_image_thumbs(use_cache=%r, thumbsize=%r)' % (use_cache, thumbsize))
-    thumbpath_list = ibs.get_image_thumbpath_(gid_list,
-                                              draw_annots=draw_annots,
-                                              thumbsize=thumbsize)
-    if use_cache:
-        # Filter out paths gids that already have existing thumb paths
-        exists_list = list(map(exists, thumbpath_list))
-        gid_list_ = ut.filterfalse_items(gid_list, exists_list)
-        thumbpath_list_ = ut.filterfalse_items(thumbpath_list, exists_list)
-    else:
-        gid_list_ = gid_list
-        thumbpath_list_ = thumbpath_list
-
-    compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots, thumbsize)
-    return thumbpath_list
-
-
-def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots, thumbsize):
-    """
-    Parallel work function. Computes image thumbnails. Overwrites anything that exists.
-    Does not use any caching
-    """
-    gpath_list = ibs.get_image_paths(gid_list_)
-    orient_list = ibs.get_image_orientation(gid_list_)
-    aids_list = ibs.get_image_aids(gid_list_)
-    if draw_annots:
-        bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
-        thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
-    else:
-        bboxes_list = [ [] for aids in aids_list ]
-        thetas_list = [ [] for aids in aids_list ]
-    args_list = [(thumb_path, thumbsize, gpath, orient, bbox_list, theta_list)
-                 for thumb_path, gpath, orient, bbox_list, theta_list in
-                 zip(thumbpath_list_, gpath_list, orient_list, bboxes_list, thetas_list)]
-
-    # Execute all tasks in parallel
-    genkw = {
-        'ordered': False,
-        'chunksize': chunksize,
-        'freq': 50,
-        #'adjust': True,
-        'force_serial': ibs.force_serial,
-    }
-    gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
-    ut.evaluate_generator(gen)
-
-
-@register_ibs_method
-def fix_horizontal_bounding_boxes_to_orient(ibs, gid, bbox_list):
-    orient = ibs.get_image_orientation(gid)
-    bbox_list_ = []
-    for bbox in bbox_list:
-        (xtl, ytl, width, height) = bbox
-        if orient == 6:
-            full_w, full_h = ibs.get_image_sizes(gid)
-            xtl, ytl = full_w - ytl - height, xtl
-            width, height = height, width
-        elif orient == 8:
-            full_w, full_h = ibs.get_image_sizes(gid)
-            xtl, ytl = ytl, full_h - xtl - width
-            width, height = height, width
-        else:
-            pass
-        bbox_ = (xtl, ytl, width, height)
-        bbox_list_.append(bbox_)
-    return bbox_list_
-
-
 @register_ibs_method
 def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
     r"""
@@ -3423,11 +2341,11 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
         tuple: grouped_aids_, unique_nids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-group_annots_by_name
+        python -m ibeis.other.ibsfuncs --test-group_annots_by_name
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -3464,11 +2382,11 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     #>>> import ibeis  # NOQA
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-group_annots_by_known_names
+        python -m ibeis.other.ibsfuncs --test-group_annots_by_known_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -3506,11 +2424,11 @@ def get_primary_species_viewpoint(species, plus=0):
         str: primary_viewpoint
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_primary_species_viewpoint
+        python -m ibeis.other.ibsfuncs --exec-get_primary_species_viewpoint
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> aid_subset = get_primary_species_viewpoint(species, 0)
@@ -3539,7 +2457,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> yaw_text_list = ['left', 'right', 'back', 'front']
         >>> towards = 'front'
         >>> num1 = 1
@@ -3601,16 +2519,16 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
       * time delta restrictions
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons
-        python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
-        python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
+        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons
+        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
+        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
 
     Ignore:
         sys.argv.extend(['--db', 'PZ_MTEST'])
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master0')
         >>> aid_subset = get_two_annots_per_name_and_singletons(ibs, onlygt=ut.get_argflag('--onlygt'))
@@ -3663,12 +2581,12 @@ def get_num_annots_per_name(ibs, aid_list):
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_num_annots_per_name
-        python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
+        python -m ibeis.other.ibsfuncs --exec-get_num_annots_per_name
+        python -m ibeis.other.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids(is_known=True)
@@ -3724,7 +2642,7 @@ def get_yaw_viewtexts(yaw_list):
         yaw_list (list of angles):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_yaw_viewtexts
+        python -m ibeis.other.ibsfuncs --test-get_yaw_viewtexts
 
     TODO:
         rhombicubeoctehedron
@@ -3760,7 +2678,7 @@ def get_yaw_viewtexts(yaw_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import numpy as np
         >>> # build test data
         >>> yaw_list = [0.0, np.pi / 2, np.pi / 4, np.pi, 3.15, -.4, -8, .2, 4, 7, 20, None]
@@ -3826,11 +2744,11 @@ def get_database_species(ibs, aid_list=None):
     r"""
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_database_species
+        python -m ibeis.other.ibsfuncs --test-get_database_species
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = ut.list_str(ibs.get_database_species(), nl=False)
@@ -3839,7 +2757,7 @@ def get_database_species(ibs, aid_list=None):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> result = ut.list_str(ibs.get_database_species(), nl=False)
@@ -3860,11 +2778,11 @@ def get_primary_database_species(ibs, aid_list=None):
         aid_list (list):  list of annotation ids (default = None)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_primary_database_species
+        python -m ibeis.other.ibsfuncs --test-get_primary_database_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = None
@@ -3903,11 +2821,11 @@ def get_dominant_species(ibs, aid_list):
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_dominant_species
+        python -m ibeis.other.ibsfuncs --test-get_dominant_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -3927,11 +2845,11 @@ def get_database_species_count(ibs, aid_list=None):
     """
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_database_species_count
+        python -m ibeis.other.ibsfuncs --test-get_database_species_count
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = ibeis.opendb('testdb1')
@@ -3976,11 +2894,11 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         list[bool]: truth
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_aidpair_truths
+        python -m ibeis.other.ibsfuncs --test-get_aidpair_truths
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -4062,38 +2980,6 @@ def annotstr(ibs, aid):
 
 
 @register_ibs_method
-def redownload_detection_models(ibs):
-    r"""
-    Args:
-        ibs (IBEISController):
-
-    CommandLine:
-        python -c "from ibeis.algo.detect import grabmodels; grabmodels.redownload_models()"
-        python -c "import utool, ibeis.algo; utool.view_directory(ibeis.algo.detect.grabmodels._expand_modeldir())"
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> result = redownload_detection_models(ibs)
-        >>> print(result)
-    """
-    print('[ibsfuncs] redownload_detection_models')
-    from ibeis.algo.detect import grabmodels
-    modeldir = ibs.get_detect_modeldir()
-    grabmodels.redownload_models(modeldir=modeldir)
-
-
-@register_ibs_method
-def view_model_dir(ibs):
-    print('[ibsfuncs] redownload_detection_models')
-    modeldir = ibs.get_detect_modeldir()
-    ut.view_directory(modeldir)
-    #grabmodels.redownload_models(modeldir=modeldir)
-
-
-@register_ibs_method
 def merge_names(ibs, merge_name, other_names):
     r"""
     Args:
@@ -4102,11 +2988,11 @@ def merge_names(ibs, merge_name, other_names):
         other_names (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-merge_names
+        python -m ibeis.other.ibsfuncs --test-merge_names
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -4192,12 +3078,12 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         http://www.csbio.unc.edu/mcmillan/pubs/ICDM07_Pan.pdf
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
-        python -m ibeis.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint:1
+        python -m ibeis.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
+        python -m ibeis.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> #ibs = ibeis.opendb('PZ_MUGU_19')
@@ -4215,7 +3101,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> dry_run = True
@@ -4228,7 +3114,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
 
     Example2:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb2')
         >>> dry_run = True
@@ -4288,11 +3174,11 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
     and here to use left side only when custom filter is on.
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_prioritized_name_subset
+        python -m ibeis.other.ibsfuncs --test-get_prioritized_name_subset
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
@@ -4307,7 +3193,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
         28
 
     Exeample:
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
@@ -4400,11 +3286,11 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
 def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
     """
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
+        python -m ibeis.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
@@ -4548,11 +3434,11 @@ def detect_join_cases(ibs):
         QueryResult: qres_list -  object of feature correspondences and scores
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-detect_join_cases --show
+        python -m ibeis.other.ibsfuncs --test-detect_join_cases --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -4781,11 +3667,11 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
         iter: qual_flags
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_quality_filterflags
+        python -m ibeis.other.ibsfuncs --exec-get_quality_filterflags
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:20]
@@ -4825,12 +3711,12 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
         int: aid_list -  list of annotation ids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_viewpoint_filterflags
-        python -m ibeis.ibsfuncs --exec-get_viewpoint_filterflags --db NNP_Master3
+        python -m ibeis.other.ibsfuncs --exec-get_viewpoint_filterflags
+        python -m ibeis.other.ibsfuncs --exec-get_viewpoint_filterflags --db NNP_Master3
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:20]
@@ -4885,11 +3771,11 @@ def filter_aids_custom(ibs, aid_list):
         list: aid_list_
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-filter_aids_custom
+        python -m ibeis.other.ibsfuncs --test-filter_aids_custom
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb2')
@@ -4920,11 +3806,11 @@ def flag_aids_count(ibs, aid_list):
         list:
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-flag_aids_count
+        python -m ibeis.other.ibsfuncs --test-flag_aids_count
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -5009,11 +3895,11 @@ def filter_gids_custom(ibs, gid_list):
 def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     """
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_name_gps_tracks
+        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> #ibs = ibeis.opendb('PZ_Master0')
@@ -5061,7 +3947,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
@@ -5082,7 +3968,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
     """
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
@@ -5126,11 +4012,11 @@ def get_valid_multiton_nids_custom(ibs):
 def get_name_speeds(ibs, nid_list):
     r"""
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_name_speeds
+        python -m ibeis.other.ibsfuncs --test-get_name_speeds
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> speeds_list = get_name_speeds(ibs, nid_list)
@@ -5149,11 +4035,11 @@ def get_name_speeds(ibs, nid_list):
 def get_name_hourdiffs(ibs, nid_list):
     """
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_name_hourdiffs
+        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
         >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
@@ -5182,11 +4068,11 @@ def get_name_max_hourdiff(ibs, nid_list):
 def get_name_max_speed(ibs, nid_list):
     """
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_name_max_speed
+        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
         >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
@@ -5207,11 +4093,11 @@ def make_next_imageset_text(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-make_next_imageset_text
+        python -m ibeis.other.ibsfuncs --test-make_next_imageset_text
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> new_imagesettext = make_next_imageset_text(ibs)
@@ -5242,11 +4128,11 @@ def create_new_imageset_from_images(ibs, gid_list, new_imgsetid=None):
         gid_list (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-create_new_imageset_from_images
+        python -m ibeis.other.ibsfuncs --test-create_new_imageset_from_images
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[::2]
@@ -5280,11 +4166,11 @@ def create_new_imageset_from_names(ibs, nid_list):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-create_new_imageset_from_names
+        python -m ibeis.other.ibsfuncs --test-create_new_imageset_from_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()[0:2]
@@ -5314,11 +4200,11 @@ def prepare_annotgroup_review(ibs, aid_list):
         tuple: (src_ag_rowid, dst_ag_rowid) - source and dest annot groups
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-prepare_annotgroup_review
+        python -m ibeis.other.ibsfuncs --test-prepare_annotgroup_review
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -5343,13 +4229,6 @@ def prepare_annotgroup_review(ibs, aid_list):
     return src_ag_rowid, dst_ag_rowid
 
 
-def remove_rfdetect(ibs):
-    aids = ibs.search_annot_notes('rfdetect')
-    notes = ibs.get_annot_notes(aids)
-    newnotes = [note.replace('rfdetect', '') for note in notes]
-    ibs.set_annot_notes(aids, newnotes)
-
-
 @register_ibs_method
 def remove_groundtrue_aids(ibs, aid_list, ref_aid_list):
     """ removes any aids that are known to match """
@@ -5366,7 +4245,7 @@ def search_annot_notes(ibs, pattern, aid_list=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_Master0')
         >>> pattern = ['gash', 'injury', 'scar', 'wound']
@@ -5460,12 +4339,12 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         min_timedelta (?):
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-filter_annots_using_minimum_timedelta
-        python -m ibeis.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
+        python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta
+        python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
@@ -5529,11 +4408,11 @@ def filter_aids_to_species(ibs, aid_list, species):
         list: aid_list_
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-filter_aids_to_species
+        python -m ibeis.other.ibsfuncs --exec-filter_aids_to_species
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -5580,11 +4459,11 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
             the other list.
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-partition_annots_into_corresponding_groups
+        python -m ibeis.other.ibsfuncs --exec-partition_annots_into_corresponding_groups
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> grouped_aids = list(map(list, ibs.group_annots_by_name(ibs.get_valid_aids())[0]))
@@ -5775,7 +4654,7 @@ def get_annot_yaw_stats(ibs, aid_list):
 @register_ibs_method
 def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     """
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> aids = available_aids
     """
     getter_func = ibs.get_annot_yaw_texts
@@ -5848,12 +4727,12 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         dict: multiprop2_aids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
-        python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop
+        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
+        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids(is_known=True)
@@ -5885,7 +4764,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
 
 def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     """
-    from ibeis.ibsfuncs import *  # NOQA
+    from ibeis.other.ibsfuncs import *  # NOQA
     getter_func = ibs.get_annot_yaw_texts
     prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
     size = 2
@@ -5928,16 +4807,16 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
         dict: aid_stats_dict
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict
-        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
-        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
-        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
-        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
-        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
@@ -6095,11 +4974,11 @@ def compare_nested_props(ibs, aids1_list,
         list of ndarrays:
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-compare_nested_props --show
+        python -m ibeis.other.ibsfuncs --exec-compare_nested_props --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aids1_list = [ibs.get_valid_aids()[8:11]]
@@ -6173,15 +5052,15 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         ibs.print_annotconfig_stats(qaid_list, daid_list)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a default
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db testdb1  -a default
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
+        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a default
+        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db testdb1  -a default
+        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
+        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
+        python -m ibeis.other.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> kwargs = {'per_enc': True, 'enc_per_name': True}
         >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(defaultdb='testdb1')
@@ -6355,11 +5234,11 @@ def find_unlabeled_name_members(ibs, **kwargs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-find_unlabeled_name_members --qual
+        python -m ibeis.other.ibsfuncs --exec-find_unlabeled_name_members --qual
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> defaultdict = dict(ut.parse_func_kwarg_keys(find_unlabeled_name_members, with_vals=True))
@@ -6435,42 +5314,6 @@ def find_unlabeled_name_members(ibs, **kwargs):
 
 
 @register_ibs_method
-def start_web_annot_groupreview(ibs, aid_list):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (list):  list of annotation rowids
-
-    CommandLine:
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.tag_funcs import *  # NOQA
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
-        >>> #aid_list = ibs.get_valid_aids()
-        >>> # -----
-        >>> any_tags = ut.get_argval('--tags', type_=list, default=['Viewpoint'])
-        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
-        >>> prop = any_tags[0]
-        >>> filtered_annotmatch_rowids = filter_annotmatch_by_tags(ibs, None, any_tags=any_tags, min_num=min_num)
-        >>> aid1_list = (ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
-        >>> aid2_list = (ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))
-        >>> aid_list = list(set(ut.flatten([aid2_list, aid1_list])))
-        >>> result = start_web_annot_groupreview(ibs, aid_list)
-        >>> print(result)
-    """
-    import ibeis.web
-    aid_strs = ','.join(list(map(str, aid_list)))
-    url_suffix = '/group_review/?aid_list=%s' % (aid_strs)
-    ibeis.web.app.start_from_ibeis(ibs, url_suffix=url_suffix, browser=True)
-
-
-@register_ibs_method
 def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
     r"""
     Args:
@@ -6481,11 +5324,11 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
         dconfig2_ (dict): (default = None)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annot_pair_lazy_dict
+        python -m ibeis.other.ibsfuncs --exec-get_annot_pair_lazy_dict
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> qaid, daid = ibs.get_valid_aids()[0:2]
@@ -6513,11 +5356,11 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annot_lazy_dict --show
+        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid = 1
@@ -6552,11 +5395,11 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annot_lazy_dict2 --show
+        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid = 1
@@ -6604,7 +5447,7 @@ def get_imageset_expanded_aids(ibs, aid_list=None):
     """
     Example:
         >>> import ibeis
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='lynx')
         >>> a = ['default:hack_imageset=True', ]
         >>> from ibeis.expt import experiment_helpers
@@ -7022,9 +5865,9 @@ def compute_occurrences(ibs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.ibsfuncs
-        python -m ibeis.ibsfuncs --allexamples
-        python -m ibeis.ibsfuncs --allexamples --noface --nosrc
+        python -m ibeis.other.ibsfuncs
+        python -m ibeis.other.ibsfuncs --allexamples
+        python -m ibeis.other.ibsfuncs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

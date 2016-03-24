@@ -11,7 +11,7 @@ import utool as ut
 import datetime
 # import ibeis
 import inspect
-from ibeis import ibsfuncs  # NOQA
+from ibeis.other import ibsfuncs  # NOQA
 from ibeis import constants as const
 # from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,
 #                              CONTRIBUTOR_TABLE, GSG_RELATION_TABLE, IMAGESET_TABLE,
@@ -1614,7 +1614,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 #     """ Given a list of gids from each ibs, this function asserts that every
 #         annontation in gid1 is the same as every annontation in gid2
 #     """
-#     from ibeis.ibsfuncs import unflat_map
+#     from ibeis.other.ibsfuncs import unflat_map
 #     hasannot_aids_list1 = ibs_src.get_image_aids(hasannot_gid_list1)
 #     hasannot_aids_list2 = ibs_dst.get_image_aids(hasannot_gid_list2)
 #     hasannot_auuids_list1 = unflat_map(ibs_src.get_annot_uuids, hasannot_aids_list1)
@@ -1854,7 +1854,6 @@ def check_database_overlap(ibs1, ibs2):
 
         # Show change in viewpoints
         if len(colx2_rowids[yawx]) > 0:
-            from ibeis import ibsfuncs  # NOQA
             vp_category_diff = ibsfuncs.viewpoint_diff(
                 sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(np.float)
             # Look for category changes

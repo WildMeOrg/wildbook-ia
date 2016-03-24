@@ -56,7 +56,8 @@ from ibeis.control import accessor_decors, controller_inject
 AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.annotmatch_funcs',
     'ibeis.tag_funcs',
-    'ibeis.ibsfuncs',
+    'ibeis.other.ibsfuncs',
+    'ibeis.other.detectfuncs',
     'ibeis.init.filter_annots',
     'ibeis.control.manual_featweight_funcs',
     'ibeis.control._autogen_party_funcs',

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import plottool.draw_func2 as df2
 import numpy as np
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from plottool import plot_helpers as ph
 import plottool as pt
 import utool as ut

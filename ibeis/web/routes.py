@@ -737,7 +737,7 @@ def turk_viewpoint():
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
@@ -820,7 +820,7 @@ def turk_quality():
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list_ = ibs.find_unlabeled_name_members(qual=True)

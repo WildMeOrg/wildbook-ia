@@ -3,7 +3,6 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.preproc import preproc_annot
-from ibeis.algo.preproc import preproc_detectimg
 from ibeis.algo.preproc import preproc_image
 from ibeis.algo.preproc import preproc_occurrence
 from ibeis.algo.preproc import preproc_residual
@@ -62,7 +61,6 @@ def reload_subs(verbose=True):
     def get_reload_subs(mod):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
     get_rrr(preproc_annot)(verbose=verbose)
-    get_rrr(preproc_detectimg)(verbose=verbose)
     get_rrr(preproc_image)(verbose=verbose)
     get_rrr(preproc_occurrence)(verbose=verbose)
     get_rrr(preproc_residual)(verbose=verbose)
@@ -77,7 +75,6 @@ rrrr = reload_subs
 
 IMPORT_TUPLES = [
     ('preproc_annot', None),
-    ('preproc_detectimg', None),
     ('preproc_image', None),
     ('preproc_occurrence', None),
     ('preproc_residual', None),

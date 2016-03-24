@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import six
 import utool as ut
-#from ibeis import ibsfuncs
+#from ibeis.other import ibsfuncs
 #from ibeis.expt import experiment_drawing
 from six.moves import map, range, input  # NOQA
 import vtool as vt

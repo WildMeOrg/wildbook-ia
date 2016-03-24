@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import ibeis
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis.dev import sysres
 import multiprocessing
 import utool

@@ -17,7 +17,8 @@ import utool as ut
 from guitool import slot_, signal_, cast_from_qt
 from guitool.__PYQT__ import QtCore
 from ibeis import constants as const
-from ibeis import ibsfuncs, sysres
+from ibeis.other import ibsfuncs
+from ibeis import sysres
 from ibeis import viz
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
@@ -1742,7 +1743,6 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def redownload_detection_models(back):
-        from ibeis import ibsfuncs
         print('[back] redownload_detection_models')
         if not back.are_you_sure('[back] redownload_detection_models'):
             return
@@ -1830,7 +1830,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @backreport
     def dev_export_annotations(back):
         ibs = back.ibs
-        ibsfuncs.export_to_xml(ibs)
+        ibs.export_to_xml(ibs)
 
     def start_web_server_parallel(back, browser=True):
         import ibeis

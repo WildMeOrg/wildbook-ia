@@ -4,6 +4,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.other import dbinfo
 from ibeis.other import duct_tape
+from ibeis.other import detectfuncs
+from ibeis.other import ibsfuncs
 import utool
 print, rrr, profile = utool.inject2(__name__, '[ibeis.other]')
 
@@ -59,6 +61,8 @@ def reload_subs(verbose=True):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
     get_rrr(dbinfo)(verbose=verbose)
     get_rrr(duct_tape)(verbose=verbose)
+    get_rrr(detectfuncs)(verbose=verbose)
+    get_rrr(ibsfuncs)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -70,6 +74,8 @@ rrrr = reload_subs
 IMPORT_TUPLES = [
     ('dbinfo', None),
     ('duct_tape', None),
+    ('detectfuncs', None),
+    ('ibsfuncs', None),
 ]
 """
 Regen Command:

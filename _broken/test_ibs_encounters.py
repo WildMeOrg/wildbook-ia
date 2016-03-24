@@ -3,7 +3,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 # Python
 import multiprocessing
 #import numpy as np

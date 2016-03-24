@@ -154,7 +154,7 @@ def assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     just tests uuids
 
     if anything goes wrong this should fix it:
-        from ibeis import ibsfuncs
+        from ibeis.other import ibsfuncs
         aid_list1 = ibs_gt.get_valid_aids()
         ibs_gt.update_annot_visual_uuids(aid_list1)
         ibs2.update_annot_visual_uuids(aid_list2)

@@ -30,8 +30,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import dtool
 import utool as ut
 import numpy as np
+import vtool as vt
 from ibeis.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
+
+
+register_preproc = register_preprocs['image']
 
 
 class DetectionConfig(dtool.Config):
@@ -39,9 +43,6 @@ class DetectionConfig(dtool.Config):
         ut.ParamInfo('algo', 'cnn'),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
     ]
-
-
-register_preproc = register_preprocs['image']
 
 
 @register_preproc(
@@ -75,7 +76,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> config = {'algo': 'yolo'}
         >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
         >>> print(detects)
@@ -124,6 +125,104 @@ def compute_detections(depc, gid_list, config=None):
     for gid, gpath, result_list in detect_gen:
         score = 0.0
         yield package_to_numpy(base_key_list, result_list, score)
+
+
+class ThumbnailConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('draw_annots', True, hideif=True),
+        ut.ParamInfo('thumbsize', None, hideif=None),
+        ut.ParamInfo('ext', '.png', hideif='.png'),
+    ]
+
+
+@register_preproc(
+    tablename='thumbnails', parents=['images'],
+    colnames=['img', 'width', 'height'],
+    coltypes=[('extern', vt.imread, vt.imwrite), int, int],
+    configclass=ThumbnailConfig,
+    fname='thumbcache',
+    rm_extern_on_delete=True,
+    chunksize=256,
+)
+def compute_thumbnails(depc, gid_list, config=None):
+    r"""
+    Computers the thumbnail for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (uri, int, int): tup
+
+    CommandLine:
+        ibeis --tf compute_thumbnails --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221})
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.show_if_requested()
+    """
+
+    ibs = depc.controller
+    draw_annots = config['draw_annots']
+    thumbsize = config['thumbsize']
+    if thumbsize is None:
+        cfg = ibs.cfg.other_cfg
+        thumbsize = cfg.thumb_size if draw_annots else cfg.thumb_bare_size
+    thumbsize_list = [thumbsize] * len(gid_list)
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+    if draw_annots:
+        aids_list = ibs.get_image_aids(gid_list)
+        bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
+        thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
+    else:
+        bboxes_list = [ [] for aids in aids_list ]
+        thetas_list = [ [] for aids in aids_list ]
+
+    # Execute all tasks in parallel
+    args_list = zip(thumbsize_list, gpath_list, orient_list, bboxes_list, thetas_list)
+    genkw = {
+        'ordered': False,
+        'chunksize': 256,
+        'freq': 50,
+        #'adjust': True,
+        'force_serial': ibs.force_serial,
+    }
+    gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
+    for val in gen:
+        yield val
+
+
+def draw_thumb_helper(tup):
+    thumbsize, gpath, orient, bbox_list, theta_list = tup
+    # time consuming
+    # img = vt.imread(gpath, orient=orient)
+    img = vt.imread(gpath)
+    (gh, gw) = img.shape[0:2]
+    img_size = (gw, gh)
+    max_dsize = (thumbsize, thumbsize)
+    dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
+    new_verts_list = list(vt.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
+    #thumb = vt.resize_thumb(img, max_dsize)
+    # -----------------
+    # Actual computation
+    thumb = vt.resize(img, dsize)
+    orange_bgr = (0, 128, 255)
+    for new_verts in new_verts_list:
+        thumb = vt.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+    width, height = dsize
+    return thumb, width, height
 
 
 if __name__ == '__main__':

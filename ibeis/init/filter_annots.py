@@ -765,7 +765,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             ---acfginfo --veryverbtd
     """
-    from ibeis import ibsfuncs
+    from ibeis.other import ibsfuncs
     if aidcfg is None:
         if verbose:
             print('No annot filter returning')
@@ -898,7 +898,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         >>> aidcfg['min_timedelta'] = 60 * 60 * 24
         >>> aidcfg['min_pername'] = 3
     """
-    from ibeis import ibsfuncs
+    from ibeis.other import ibsfuncs
 
     if aidcfg is None:
         if verbose:

@@ -9,7 +9,7 @@ import utool as ut
 import sys
 from ibeis import constants as const
 from ibeis import params
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis.init import sysres
 from os.path import join
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[commands]')

@@ -12,7 +12,7 @@ import functools
 import six  # NOQA
 #from six.moves import range
 from ibeis import constants as const
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 import numpy as np
 import vtool as vt
 from ibeis.control import accessor_decors, controller_inject  # NOQA

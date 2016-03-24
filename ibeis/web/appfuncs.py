@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import cStringIO as StringIO
 import flask
 import random
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis.constants import TAU
 from flask import request, current_app
 from os.path import join, dirname, abspath  # NOQA

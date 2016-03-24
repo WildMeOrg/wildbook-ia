@@ -7,7 +7,7 @@ from ibeis import constants as const
 from ibeis.control.accessor_decors import (
     adder, getter_1to1, default_decorator, getter_1toM)
 import utool as ut
-#from ibeis import ibsfuncs
+#from ibeis.other import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_lblimg]')
 

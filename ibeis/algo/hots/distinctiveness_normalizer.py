@@ -12,7 +12,7 @@ import numpy as np
 from six.moves import map
 import six  # NOQA
 from ibeis import constants as const
-from ibeis import sysres
+from ibeis.init import sysres
 from ibeis.algo.hots import hstypes
 print, rrr, profile = ut.inject2(__name__, '[distinctnorm]')
 

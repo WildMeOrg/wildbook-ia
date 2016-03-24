@@ -17,7 +17,7 @@ from six.moves import zip, map, range
 import ibeis
 import os
 from os.path import relpath, dirname, exists, join, realpath, basename
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
 import vtool as vt

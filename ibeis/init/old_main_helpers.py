@@ -268,7 +268,7 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
     if CONTROLLED_CASES:
         if VERB_MAIN_HELPERS:
             print('[get_test_qaids] * Including controlled qaids')
-        from ibeis import ibsfuncs
+        from ibeis.other import ibsfuncs
         # Override all other gts with controlled
         controlled_qaids = ibsfuncs.get_two_annots_per_name_and_singletons(ibs, onlygt=True)
         available_qaids.extend(controlled_qaids)
@@ -421,7 +421,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
 
     if CONTROLLED_CASES:
         print('[get_test_daids] * Including controlled daids')
-        from ibeis import ibsfuncs
+        from ibeis.other import ibsfuncs
         controlled_daids = ibsfuncs.get_two_annots_per_name_and_singletons(ibs, onlygt=False)
         available_daids.extend(controlled_daids)
         daid_request_info['controlled'] = True

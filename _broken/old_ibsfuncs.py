@@ -5,11 +5,11 @@ def export_nnp_master3_subset(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-export_nnp_master3_subset
+        python -m ibeis.other.ibsfuncs --test-export_nnp_master3_subset
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('NNP_Master3')
@@ -46,13 +46,13 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=1
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=2
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=3
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=4
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=5
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=6
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=7
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=1
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=2
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=3
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=4
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=5
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=6
+        python -m ibeis.other.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=7
 
     Ignore:
         challenge_pdfs = ut.glob('.', 'pair_*_compressed.pdf', recursive=True)
@@ -62,7 +62,7 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('Elephants_drop1')
         >>> result = make_temporally_distinct_blind_test(ibs)
@@ -344,11 +344,11 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 def find_location_disparate_splits(ibs):
     """
     CommandLine:
-        python -m ibeis.ibsfuncs --test-find_location_disparate_splits
+        python -m ibeis.other.ibsfuncs --test-find_location_disparate_splits
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('NNP_Master3')
@@ -493,11 +493,11 @@ def find_offending_contributors(ibs):
 def get_fastest_names(ibs, nid_list=None):
     r"""
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_fastest_names
+        python -m ibeis.other.ibsfuncs --test-get_fastest_names
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = None
         >>> # execute function

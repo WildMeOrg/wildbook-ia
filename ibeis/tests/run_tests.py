@@ -93,7 +93,6 @@ def run_tests():
             'ibeis.algo.hots.scoring',
             'ibeis.algo.preproc.preproc_annot',
             'ibeis.algo.preproc.preproc_imageset',
-            'ibeis.algo.preproc.preproc_detectimg',
             'ibeis.algo.preproc.preproc_image',
             'ibeis.algo.preproc.preproc_residual',
             'ibeis.algo.detect.grabmodels',

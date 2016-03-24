@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import plottool as pt
 import utool as ut  # NOQA
 import numpy as np
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 #from ibeis.algo.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_chip

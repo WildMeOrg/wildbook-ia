@@ -4,7 +4,7 @@ import uuid
 import six  # NOQA
 from six.moves import range
 from ibeis import constants as const
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, getter_1toM, default_decorator, ider)
 import utool as ut

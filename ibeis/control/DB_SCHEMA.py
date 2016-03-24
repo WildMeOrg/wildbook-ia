@@ -483,7 +483,7 @@ def pre_1_3_1(db, ibs=None):
     constaint to sql. This will remove any annotations that are not unique
     """
     if ibs is not None:
-        #from ibeis import ibsfuncs
+        #from ibeis.other import ibsfuncs
         import utool as ut
         import six
         ibs._init_rowid_constants()

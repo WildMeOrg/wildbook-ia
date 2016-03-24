@@ -155,11 +155,11 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
         list: sample_aids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
+        python -m ibeis.other.ibsfuncs --test-get_annot_rowid_sample
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -217,13 +217,13 @@ def get_one_annot_per_name(ibs, col='rand'):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_Master0
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
-        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --dbdir /raid/work2/Turk/GIR_Master
+        python -m ibeis.other.ibsfuncs --test-get_one_annot_per_name --db PZ_Master0
+        python -m ibeis.other.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
+        python -m ibeis.other.ibsfuncs --test-get_one_annot_per_name --dbdir /raid/work2/Turk/GIR_Master
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> result = get_one_annot_per_name(ibs)
@@ -274,7 +274,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::4]

@@ -20,7 +20,7 @@ import plottool as pt
 from ibeis import viz
 from ibeis import constants as const
 from ibeis.viz import viz_helpers as vh
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 from ibeis.viz import viz_chip
 from plottool.abstract_interaction import AbstractInteraction
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_name]', DEBUG=False)

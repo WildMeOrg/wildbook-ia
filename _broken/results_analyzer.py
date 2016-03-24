@@ -8,7 +8,7 @@ import utool as ut
 import numpy as np
 import six
 from six.moves import zip
-from ibeis import ibsfuncs
+from ibeis.other import ibsfuncs
 #from ibeis.expt import results_organizer
 print, rrr, profile = ut.inject2(__name__, '[resorg]')
 
