@@ -6,6 +6,7 @@ import six
 import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
+import scipy.spatial.distance as spdist
 (print, rrr, profile) = ut.inject2(__name__, '[other]')
 
 
@@ -168,6 +169,29 @@ def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     return isok
 
 
+def safe_pdist(arr, *args, **kwargs):
+    """
+    Kwargs:
+        metric = ut.absdiff
+
+    SeeAlso:
+        scipy.spatial.distance.pdist
+    """
+    if arr is None or len(arr) < 2:
+        return None
+    else:
+        if len(arr.shape) == 1:
+            return spdist.pdist(arr[:, None], *args, **kwargs)
+        else:
+            return spdist.pdist(arr, *args, **kwargs)
+
+
+def pdist_indicies(num):
+    return np.array([(i, j) for i in range(num) for j in range(num) if i < j])
+    #import itertools
+    #return [(i, j) for i, j in itertools.product(range(num), range(num)) if i < j]
+
+
 def pdist_argsort(x):
     """
     Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance
@@ -197,7 +221,6 @@ def pdist_argsort(x):
     #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2),
     #range(len(x) / 2)) if (c > r)]
     if OLD:
-        import scipy.spatial.distance as spdist
         mat = spdist.squareform(x)
         matu = np.triu(mat)
         sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
