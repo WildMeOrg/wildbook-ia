@@ -1295,9 +1295,10 @@ def sver_single_chipmatch(qreq_, cm):
         >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.get_external_data_config2())
         >>> import plottool as pt
         >>> show_aff = not ut.get_argflag('--noaff')
+        >>> refine_method = qreq_.qparams.refine_method if not ut.get_argflag('--norefinelbl') else ''
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup,
         >>>                    homog_tup=homog_tup, show_aff=show_aff,
-        >>>                    refine_method=qreq_.qparams.refine_method)
+        >>>                    refine_method=refine_method)
         >>> ut.show_if_requested()
     """
     qaid = cm.qaid

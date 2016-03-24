@@ -1141,7 +1141,8 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'], t=['default:K=[1,2,3]'])
+            >>> ut.exec_funckw(testres.case_sample2, globals())
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
             >>> ibs, testres = main_helpers.testdata_expts('humpbacks_fb', a=['default:has_any=hasnotch,mingt=2,qindex=0:300,dindex=0:300'], t=['default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple', 'default:proot=vsmany'], qaid_override=[12])
             >>> filt_cfg = ':disagree=True,index=0:8,min_gtscore=.00001,require_all_cfg=True'
@@ -1217,9 +1218,29 @@ class TestResult(object):
                 flags = disagree_flags2d
             return flags
 
+        def cfg_scoresep(mat, val, op):
+            """
+            Compares scores between different configs
+
+            op = operator.ge
+            is_success = prop2_mat['is_success']
+            """
+            #import scipy.spatial.distance as spdist
+            nCols = mat.shape[1]
+            pdistx = vt.pdist_indicies(nCols)
+            pdist_list = np.array([vt.safe_pdist(row) for row in mat])
+            flags_list = op(pdist_list, val)
+            colx_list = [np.unique(ut.flatten(pdistx.compress(flags, axis=0))) for flags in flags_list]
+            offsets = np.arange(0, nCols * len(mat), step=nCols)
+            idx_list = ut.flatten([colx + offset for colx, offset in zip(colx_list, offsets)])
+            mask = vt.index_to_boolmask(idx_list, maxval=offsets[-1] + nCols)
+            flags = mask.reshape(mat.shape)
+            return flags
+
         # List of rules that can filter results
         rule_list = [
             ('disagree', lambda val: cols_disagree(prop2_mat['is_failure'], val)),
+            ('min_gt_cfg_scoresep', lambda val: cfg_scoresep(truth2_prop['gt']['score'], val, operator.ge)),
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
@@ -1855,7 +1876,6 @@ class TestResult(object):
         #tn_scores = tn_nscores
         name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
         encoder.fit(name_scores, labels, attrs)
-        #score_thresh = encoder.learn_threshold()
         score_thresh = encoder.learn_threshold2()
 
         # Find intersection point
