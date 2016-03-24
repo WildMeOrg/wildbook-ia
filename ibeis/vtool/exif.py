@@ -368,7 +368,7 @@ def get_unixtime(exif_dict, default=-1):
     if isinstance(exiftime, tuple) and len(exiftime) == 1:
         # hack, idk why
         exiftime = exiftime[0]
-    if len(exiftime) == 19 and exiftime[-1] != ' ' and exiftime[-3:-1] == ': ':
+    if exiftime != -1 and len(exiftime) == 19 and exiftime[-1] != ' ' and exiftime[-3:-1] == ': ':
         # Hack for weird fluke exif times '2009:10:01 11:52: 1'
         exiftime = list(exiftime)
         exiftime[-2] = '0'
