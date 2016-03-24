@@ -697,7 +697,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ('Unknown',  const.UNKNOWN),
             #'none'),
         ] + sorted(list(ibs.get_working_species()))
-        ibswgt.species_combo.options = detection_combo_box_options
         species_text = ibswgt.back.get_selected_species()
         reselect_index = None
         if not deleting and reselect_new_name is None and species_text is not None:
@@ -709,6 +708,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             reselect_index = nice_name_list.index(reselect_new_name)
             print('[update_species_available] Reselecting renamed selection: %r' % (reselect_new_name, ))
         print('[update_species_available] Reselecting index: %r' % (reselect_index, ))
+        ibswgt.species_combo.setOptions(detection_combo_box_options)
         ibswgt.species_combo.updateOptions(reselect=reselect, reselect_index=reselect_index)
 
     def setWindowTitle(ibswgt, title):
