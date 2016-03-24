@@ -17,6 +17,7 @@ from ibeis.viz import viz_nearest_descriptors
 from ibeis.viz import viz_qres
 from ibeis.viz import viz_sver
 from ibeis.viz import viz_graph
+from ibeis.viz import viz_other
 
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz.viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
@@ -27,6 +28,7 @@ from ibeis.viz.viz_qres import show_qres, show_qres_top, show_qres_analysis
 from ibeis.viz.viz_sver import show_sver, _compute_svvars
 from ibeis.viz.viz_nearest_descriptors import show_nearest_descriptors
 from ibeis.viz.viz_hough import show_hough_image, show_probability_chip
+from ibeis.viz.viz_other import chip_montage
 
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(

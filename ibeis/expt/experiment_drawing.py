@@ -26,7 +26,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         python -m ibeis --tf draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
         python -m ibeis --tf draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
         python -m ibeis --tf draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show --cmd
+        python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
         python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
     Example:
