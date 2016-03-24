@@ -213,16 +213,23 @@ class _CoreDependencyCache(object):
             ('get_{tablename}_config_history', depc.get_config_history),
         ]
         for table in depc.cachetable_dict.values():
+            wobj = InjectedDepc()
+            # Set nested version
+            setattr(w, table.tablename, wobj)
             for dfmtstr, func in inject_patterns:
                 funcname = ut.get_funcname(func)
                 attrname = dfmtstr.format(tablename=table.tablename)
                 get_rowids = ut.partial(func, table.tablename)
-                wobj = InjectedDepc()
                 # Set flat version
                 setattr(d, attrname, get_rowids)
-                # Set nested version
-                setattr(w, table.tablename, wobj)
                 setattr(wobj, funcname, func)
+            dfmtstr = 'get_{tablename}_{colname}'
+            for colname in table.data_colnames:
+                get_prop = ut.partial(depc.get_property, table.tablename, colnames=colname)
+                attrname = dfmtstr.format(tablename=table.tablename, colname=colname)
+                # Set flat version
+                setattr(d, attrname, get_prop)
+                setattr(wobj, 'get_' + colname, get_prop)
 
     # -----------------------------
     # GRAPH INSPECTION
@@ -1006,39 +1013,15 @@ class _CoreDependencyCache(object):
               (prop, len(root_rowids),))
         # for key in tables_depending_on(prop)
         #depc.delete_property(key, root_rowids)
-        # TODO: delete dependant properties
+        # TODO: check which properties were invalidated by this prop
+        # TODO; remove invalidated properties
+        #depc.delete_root(root_rowids)
         pass
 
     def clear_all(depc):
         print('Clearning all cached data in %r' % (depc,))
         for table in depc.cachetable_dict.values():
             table.clear_table()
-
-    def delete_root(depc, root_rowids):
-        r"""
-        Args:
-            root_rowids (?):
-
-        CommandLine:
-            python -m dtool.depcache_control delete_root --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> exec(ut.execstr_funckw(depc.delete_root), globals())
-            >>> root_rowids = [1]
-            >>> depc.delete_root(root_rowids)
-            >>> depc.get('fgweight', [1])
-            >>> depc.delete_root(root_rowids)
-        """
-        graph = depc.make_graph(implicit=False)
-        children = list(graph[depc.root_tablename].keys())
-        needs_delete = [len(graph.pred[child]) == 1 for child in children]
-        children_ = ut.compress(children, needs_delete)
-        for tablename in children_:
-            depc.delete_property(tablename, root_rowids)
 
     def delete_property(depc, tablename, root_rowids, config=None):
         """
@@ -1058,6 +1041,32 @@ class _CoreDependencyCache(object):
         if tablename == depc.root:
             uuid_list = depc.get_root_uuid(root_rowids)
         return uuid_list
+
+    def delete_root(depc, root_rowids):
+        r"""
+        Args:
+            root_rowids (list):
+
+        CommandLine:
+            python -m dtool.depcache_control delete_root --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.delete_root), globals())
+            >>> root_rowids = [1]
+            >>> depc.delete_root(root_rowids)
+            >>> depc.get('fgweight', [1])
+            >>> depc.delete_root(root_rowids)
+        """
+        graph = depc.make_graph(implicit=False)
+        # check to make sure child does not have another parent
+        children = [child for child in graph.succ[depc.root_tablename]
+                    if len(graph.pred[child]) == 1]
+        for tablename in children:
+            depc.delete_property(tablename, root_rowids)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
