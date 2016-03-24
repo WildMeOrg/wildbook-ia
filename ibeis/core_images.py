@@ -132,6 +132,7 @@ class ThumbnailConfig(dtool.Config):
         ut.ParamInfo('draw_annots', True, hideif=True),
         ut.ParamInfo('thumbsize', None, hideif=None),
         ut.ParamInfo('ext', '.png', hideif='.png'),
+        ut.ParamInfo('force_serial', False, hideif=False),
     ]
 
 
@@ -197,7 +198,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         'chunksize': 256,
         'freq': 50,
         #'adjust': True,
-        'force_serial': ibs.force_serial,
+        'force_serial': ibs.force_serial or config['force_serial'],
     }
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
     for val in gen:

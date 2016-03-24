@@ -801,7 +801,6 @@ def get_image_thumbpath(ibs, gid_list, **config):
         # TODO; this check might go in dtool itself
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
-
     return thumbpath_list
 
 
@@ -1048,12 +1047,20 @@ def get_image_detectpaths(ibs, gid_list):
         Method: GET
         URL:    /api/image/detectpaths/
     """
+    import dtool
     depc = ibs.depc_image
     config = {
         'thumbsize': ibs.cfg.detect_cfg.detectimg_sqrt_area,
+        'force_serial': True,
     }
-    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
-                               read_extern=False)
+    try:
+        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                                   read_extern=False)
+    except dtool.ExternalStorageException:
+        # TODO; this check might go in dtool itself
+        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                                   read_extern=False)
+    print(thumbpath_list)
     return thumbpath_list
 
 
