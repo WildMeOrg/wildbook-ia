@@ -817,6 +817,7 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
             combo.ibswgt = parent
             combo.options_ = options_
             combo.changed = changed
+            #combo.allow_add = allow_add  # TODO
             # combo.setEditable(True)
             combo.updateOptions()
             combo.setDefault(default)
@@ -827,6 +828,12 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
             opt = combo.options_[index]
             value = opt[1]
             return value
+
+        def setOptions(combo, options):
+            flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
+            options_ = [opt if flag else (str(opt), opt)
+                        for flag, opt in zip(flags, options)]
+            combo.options_ = options_
 
         def updateOptions(combo, reselect=False, reselect_index=None):
             if reselect_index is None:
