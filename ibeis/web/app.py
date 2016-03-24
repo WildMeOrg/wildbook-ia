@@ -87,10 +87,11 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
         precache = ut.get_argflag('--precache')
 
     if precache:
+        gid_list = ibs.get_valid_gids()
         print('[web] Pre-computing all image thumbnails (with annots)...')
-        ibs.preprocess_image_thumbs()
+        ibs.get_image_thumbpath(gid_list, draw_annots=True)
         print('[web] Pre-computing all image thumbnails (without annots)...')
-        ibs.preprocess_image_thumbs(draw_annots=False)
+        ibs.get_image_thumbpath(gid_list, draw_annots=False)
         print('[web] Pre-computing all annotation chips...')
         ibs.check_chip_existence()
         ibs.compute_all_chips()

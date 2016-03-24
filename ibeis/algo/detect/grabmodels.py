@@ -16,7 +16,7 @@ MODEL_ALGO_SUBDIRS = {
 }
 
 MODEL_URLS = {
-    DETECTOR_KEY_RF: 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip',
+    DETECTOR_KEY_RF: 'https://lev.cs.rpi.edu/public/models/rf.zip',
 }
 
 
@@ -124,8 +124,8 @@ def _download_model(algo, algo_modeldir):
     zip_fpath = realpath(join(algo_modeldir, algo + '.zip'))
     # Download and unzip model
     print('[grabmodels] Downloading model_dir=%s' % zip_fpath)
-    dropbox_link = MODEL_URLS[algo]
-    ut.download_url(dropbox_link, zip_fpath)
+    model_link = MODEL_URLS[algo]
+    ut.download_url(model_link, zip_fpath)
     ut.unzip_file(zip_fpath)
     # Cleanup
     ut.delete(zip_fpath)

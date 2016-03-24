@@ -723,7 +723,6 @@ def ensure_nauts():
 
 def ensure_testdb2():
     """ SeeAlso ibeis.init.sysres """
-    #zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
     zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
     ensure_db_from_url(zipped_db_url)
 
@@ -732,7 +731,6 @@ def ensure_db_from_url(zipped_db_url):
     """ SeeAlso ibeis.init.sysres """
     from ibeis import sysres
     workdir = sysres.get_workdir()
-    #zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
     dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
     print('have %s=%r' % (zipped_db_url, dbdir,))
 
@@ -760,7 +758,7 @@ def grab_example_smart_xml_fpath():
         >>> #ut.editfile(smart_xml_fpath)
 
     """
-    smart_xml_url = 'https://www.dropbox.com/s/g1mpjzp57wfnhk6/LWC_000261.xml'
+    smart_xml_url = 'https://lev.cs.rpi.edu/public/data/LWC_000261.xml'
     smart_sml_fpath = ut.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
     return smart_sml_fpath
 

@@ -702,6 +702,7 @@ def set_image_orientation(ibs, gid_list, orientation_list):
     val_list = ((orientation,) for orientation in orientation_list)
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
+    # ibs.depc_image.notify_root_changed(gid_list, 'img')
 
 
 #
@@ -792,8 +793,15 @@ def get_image_thumbpath(ibs, gid_list, **config):
         URL:    /api/image/thumbpath/
     """
     depc = ibs.depc_image
-    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
-                               read_extern=False)
+    import dtool
+    try:
+        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                                   read_extern=False)
+    except dtool.ExternalStorageException:
+        # TODO; this check might go in dtool itself
+        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                                   read_extern=False)
+
     return thumbpath_list
 
 
@@ -1624,6 +1632,7 @@ def delete_images(ibs, gid_list, trash_images=True):
     # delete thumbs in case an annot doesnt delete them
     # TODO: pass flag to not delete them in delete_annots
     ibs.delete_image_thumbs(gid_list)
+    ibs.depc_image.delete_root(gid_list)
     ibs.db.delete_rowids(const.IMAGE_TABLE, gid_list)
     #gsgrid_list = ut.flatten(ibs.get_image_gsgrids(gid_list))
     #ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
@@ -1633,7 +1642,7 @@ def delete_images(ibs, gid_list, trash_images=True):
 @register_ibs_method
 @accessor_decors.deleter
 @register_api('/api/image/thumbs/', methods=['DELETE'])
-def delete_image_thumbs(ibs, gid_list, quiet=False):
+def delete_image_thumbs(ibs, gid_list, **config2_):
     r"""
     Removes image thumbnails from disk
 
@@ -1659,10 +1668,7 @@ def delete_image_thumbs(ibs, gid_list, quiet=False):
         >>> for path in gpath_list:
         >>>     utool.assertpath(path)
     """
-    # print('gid_list = %r' % (gid_list,))
-    thumbpath_list = ibs.get_image_thumbpath(gid_list)
-    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
-    ut.remove_existing_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
+    ibs.depc_image.delete_property('thumbnails', gid_list, config=config2_)
 
 
 @register_ibs_method

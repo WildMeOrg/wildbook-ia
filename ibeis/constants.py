@@ -269,10 +269,8 @@ class ZIPPED_URLS(object):
     PZ_MTEST       = 'https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip'
     NAUTS          = 'https://lev.cs.rpi.edu/public/databases/NAUT_test.zip'
     WDS            = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
-    #PZ_MTEST       = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
-    #NAUTS          = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'
-    PZ_DISTINCTIVE = 'https://www.dropbox.com/s/gbp24qks9z3fzm6/distinctivness_zebra_plains.zip'
-    GZ_DISTINCTIVE = 'https://www.dropbox.com/s/nb5gv7wibwo3ib4/distinctivness_zebra_grevys.zip'
+    PZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip'
+    GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'
 
 if six.PY2:
     __STR__ = unicode  # change to str if needed
