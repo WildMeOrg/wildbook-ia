@@ -1191,7 +1191,7 @@ def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
 def resize_worker(tup):
     """ worker function for parallel generator """
     gfpath, new_gfpath, new_size = tup
-    #print('[preproc] writing detectimg: %r' % new_gfpath)
+    #print('[preproc] writing thumbnail: %r' % new_gfpath)
     #if not exists(new_gfpath):
     #    return new_gfpath
     img = imread(gfpath)
@@ -1202,7 +1202,7 @@ def resize_worker(tup):
 
 def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwargs):
     """ Resizes images and yeilds results asynchronously  """
-    # Compute and write detectimg in asychronous process
+    # Compute and write thumbnail in asychronous process
     kwargs['force_serial'] = kwargs.get('force_serial', True)
     kwargs['ordered']      = kwargs.get('ordered', True)
     arg_iter = zip(gpath_list, new_gpath_list, newsize_list)
