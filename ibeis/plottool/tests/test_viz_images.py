@@ -39,7 +39,7 @@ def test_viz_image(imgpaths):
 
 
 if __name__ == '__main__':
-    TEST_IMAGES_URL = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
+    TEST_IMAGES_URL = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths       = utool.list_images(test_image_dir, fullpath=True)   # test image paths
     test_viz_image(imgpaths)
