@@ -25,7 +25,7 @@ import utool as ut
 import vtool as vt
 import six
 import dtool
-(print, rrr, profile) = ut.inject2(__name__, '[df2]')
+(print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
 
 
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
@@ -344,6 +344,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
     graph = layout_graph
 
     References:
+        http://www.graphviz.org/content/attrs
         http://www.graphviz.org/doc/info/attrs.html
     """
     import networkx as nx
@@ -358,13 +359,14 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
 
     if True:
         kwargs['splines'] = kwargs.get('splines', 'spline')
-        kwargs['pack'] = kwargs.get('pack', 'true')
-        kwargs['packmode'] = kwargs.get('packmode', 'cluster')
+        # kwargs['pack'] = kwargs.get('pack', 'true')
+        # kwargs['packmode'] = kwargs.get('packmode', 'cluster')
     if prog == 'dot':
-        kwargs['ranksep'] = kwargs.get('ranksep', 1.5 * factor)
+        pass
+        # kwargs['ranksep'] = kwargs.get('ranksep', 1.5 * factor)
         #kwargs['rankdir'] = kwargs.get('rankdir', 'LR')
-        kwargs['nodesep'] = kwargs.get('nodesep', 1 * factor)
-        kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
+        # kwargs['nodesep'] = kwargs.get('nodesep', 1 * factor)
+        # kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
     if prog != 'dot':
         kwargs['overlap'] = kwargs.get('overlap', 'prism')
         kwargs['sep'] = kwargs.get('sep', 1 / 8.)
@@ -421,13 +423,13 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
     height_px = np.array(ut.take_column(node_attrs, 'height'))
     scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
 
-    dimsize_in = np.maximum(width_px, height_px)
-    dimsize_in = dimsize_in / 72.0 * scale
-    dimsize_in_dict = dict(zip(shaped_nodes, dimsize_in))
-    width_in = dimsize_in_dict
-    height_in = dimsize_in_dict
-    nx.set_node_attributes(graph_, 'width', width_in)
-    nx.set_node_attributes(graph_, 'height', height_in)
+    # dimsize_in = np.maximum(width_px, height_px)
+    width_in = width_px / 72.0 * scale
+    height_in = height_px / 72.0 * scale
+    width_in_dict = dict(zip(shaped_nodes, width_in))
+    height_in_dict = dict(zip(shaped_nodes, height_in))
+    nx.set_node_attributes(graph_, 'width', width_in_dict)
+    nx.set_node_attributes(graph_, 'height', height_in_dict)
     ut.nx_delete_node_attr(graph_, 'scale')
 
     # Check for any nodes with groupids
@@ -452,13 +454,15 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
 
     # Run layout
-    # print('BEFORE LAYOUT')
     print('prog = %r' % (prog,))
-    #print(agraph)
+    if ut.VERBOSE:
+        print('BEFORE LAYOUT')
+        print(agraph)
     agraph.layout(prog=prog, args=args)
     agraph.draw('test_graphviz_draw.png')
-    # print('AFTER LAYOUT')
-    #print(agraph)
+    if ut.VERBOSE:
+        print('AFTER LAYOUT')
+        print(agraph)
 
     adpi = 72.0
 
@@ -601,11 +605,15 @@ def _get_node_size(graph, node, node_size):
 
 def draw_network2(graph, node_pos, ax,
                   hacknoedge=False, hacknonode=False, splines='line',
-                  as_directed=None, edge_pos=None, edge_endpoints=None, node_size=None, use_arc=True):
+                  as_directed=None, edge_pos=None, edge_endpoints=None,
+                  node_size=None, use_arc=True, fontsize=14):
     """
     fancy way to draw networkx graphs without directly using networkx
     """
     import plottool as pt
+
+    font_prop = mpl.font_manager.FontProperties(family='monospace',
+                                                weight='light', size=fontsize)
 
     node_patch_list = []
     edge_patch_list = []
@@ -635,20 +643,27 @@ def draw_network2(graph, node_pos, ax,
             # divide by 2 seems to work for agraph
             radius = min(_get_node_size(graph, node, node_size)) / 2.0
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
-        elif node_shape in ['rect', 'rhombus']:
+        elif node_shape in ['none', 'box', 'rect', 'rectangle', 'rhombus']:
             width, height = _get_node_size(graph, node, node_size)
-            angle = 0 if node_shape == 'rect' else 45
+            angle = 45 if node_shape == 'rhombus' else 0
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             patch = mpl.patches.Rectangle(
                 xy_bl, width, height, angle=angle, **patch_kw)
             patch.center = xy
+        elif node_shape == 'stack':
+            width, height = _get_node_size(graph, node, node_size)
+            xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
+            patch = pt.cartoon_stacked_rects(xy_bl, width, height)
+            pass
+
         patches[node] = patch
         x, y = xy
         text = node
         if label is not None:
             text += ': ' + str(label)
         if not hacknonode and 'image' not in nattrs:
-            pt.ax_absolute_text(x, y, text, ha='center', va='center')
+            pt.ax_absolute_text(x, y, text, ha='center', va='center',
+                                fontproperties=font_prop)
         node_patch_list.append(patch)
     ###
     # Draw Edges
@@ -723,9 +738,6 @@ def draw_network2(graph, node_pos, ax,
 
                     text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
 
-                font_prop = mpl.font_manager.FontProperties(family='monospace',
-                                                            weight='light',
-                                                            size=14)
                 if data.get('local_input_id', False):
                     text = data['local_input_id']
                     if text == '1':
@@ -903,9 +915,6 @@ def draw_network2(graph, node_pos, ax,
 
                     text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
 
-                font_prop = mpl.font_manager.FontProperties(family='monospace',
-                                                            weight='light',
-                                                            size=14)
                 if data.get('local_input_id', False):
                     text = data['local_input_id']
                     if text == '1':
@@ -955,7 +964,10 @@ def draw_network2(graph, node_pos, ax,
     else:
         if not hacknonode:
             for patch in node_patch_list:
-                ax.add_patch(patch)
+                if isinstance(patch, mpl.collections.PatchCollection):
+                    ax.add_collection(patch)
+                else:
+                    ax.add_patch(patch)
         if not hacknoedge:
             for patch in edge_patch_list:
                 ax.add_patch(patch)

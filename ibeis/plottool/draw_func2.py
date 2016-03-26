@@ -1044,6 +1044,23 @@ def rotate_plot(theta=TAU / 8, ax=None):
     iup()
 
 
+def cartoon_stacked_rects(xy, width, height, num=4):
+    """
+    pt.figure()
+    xy = (.5, .5)
+    width = .2
+    height = .2
+    ax = pt.gca()
+    ax.add_collection(col)
+    """
+    shift = np.array([-width, height]) * (.1 / num)
+    xy = np.array(xy)
+    patch_list = [mpl.patches.Rectangle(xy + shift * count, width, height)
+                  for count in reversed(range(num))]
+    col = mpl.collections.PatchCollection(patch_list)
+    return col
+
+
 def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0):
     if ax is None:
         ax = gca()
