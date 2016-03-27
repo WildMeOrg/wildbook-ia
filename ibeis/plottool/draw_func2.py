@@ -1044,7 +1044,7 @@ def rotate_plot(theta=TAU / 8, ax=None):
     iup()
 
 
-def cartoon_stacked_rects(xy, width, height, num=4):
+def cartoon_stacked_rects(xy, width, height, num=4, **kwargs):
     """
     pt.figure()
     xy = (.5, .5)
@@ -1057,7 +1057,7 @@ def cartoon_stacked_rects(xy, width, height, num=4):
     xy = np.array(xy)
     patch_list = [mpl.patches.Rectangle(xy + shift * count, width, height)
                   for count in reversed(range(num))]
-    col = mpl.collections.PatchCollection(patch_list)
+    col = mpl.collections.PatchCollection(patch_list, **kwargs)
     return col
 
 

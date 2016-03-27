@@ -368,16 +368,18 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
         # kwargs['nodesep'] = kwargs.get('nodesep', 1 * factor)
         # kwargs['clusterrank'] = kwargs.get('clusterrank', 'local')
     if prog != 'dot':
+        pass
         kwargs['overlap'] = kwargs.get('overlap', 'prism')
-        kwargs['sep'] = kwargs.get('sep', 1 / 8.)
-        kwargs['esep'] = kwargs.get('esep', (1 / 8) * .8)
+        # kwargs['sep'] = kwargs.get('sep', 1 / 8.)
+        # kwargs['esep'] = kwargs.get('esep', (1 / 8) * .8)
         #assert kwargs['esep']  < kwargs['sep']
     if prog == 'neato':
-        kwargs['mode'] = 'major'
-        if kwargs['mode'] == 'ipsep':
-            pass
-            #kwargs['overlap'] = 'ipsep'
         pass
+        # kwargs['mode'] = 'major'
+        # if kwargs['mode'] == 'ipsep':
+        #     pass
+        #     #kwargs['overlap'] = 'ipsep'
+        # pass
 
     splines = kwargs['splines']
 
@@ -627,7 +629,7 @@ def draw_network2(graph, node_pos, ax,
         if nattrs is None:
             nattrs = {}
         label = nattrs.get('label', None)
-        alpha = nattrs.get('alpha', .5)
+        alpha = nattrs.get('alpha', 1.0)
         node_color = nattrs.get('color', pt.NEUTRAL_BLUE)
         if node_color is None:
             node_color = pt.NEUTRAL_BLUE
@@ -653,8 +655,8 @@ def draw_network2(graph, node_pos, ax,
         elif node_shape == 'stack':
             width, height = _get_node_size(graph, node, node_size)
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
-            patch = pt.cartoon_stacked_rects(xy_bl, width, height)
-            pass
+            patch = pt.cartoon_stacked_rects(xy_bl, width, height, **patch_kw)
+            patch.xy = xy
 
         patches[node] = patch
         x, y = xy
@@ -816,7 +818,8 @@ def draw_network2(graph, node_pos, ax,
                 CODE = LINETO
             elif splines == 'curved':
                 #CODE = mpl.path.Path.CURVE3
-                CODE = mpl.path.Path.CURVE3
+                # CODE = mpl.path.Path.CURVE3
+                CODE = mpl.path.Path.CURVE4
             elif splines == 'spline':
                 CODE = mpl.path.Path.CURVE4
             else:
@@ -866,7 +869,7 @@ def draw_network2(graph, node_pos, ax,
             if figsize is not None:
                 # HACK
                 graphsize = max(figsize)
-                lw = graphsize / 5
+                lw = graphsize / 8
                 width =  graphsize / 15
             else:
                 width = .5
