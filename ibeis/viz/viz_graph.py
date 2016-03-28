@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import vtool as vt
 import numpy as np  # NOQA
+import itertools
 #import sys
 #from os.path import join
 try:
@@ -74,8 +75,31 @@ def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
     return graph
 
 
+def ensure_names_are_connected(graph, aids_list):
+    aug_graph = graph.copy().to_undirected()
+    orig_edges = aug_graph.edges()
+    unflat_edges = [list(itertools.product(aids, aids)) for aids in aids_list]
+    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+    new_edges = ut.setdiff_ordered(aid_pairs, aug_graph.edges())
+
+    preweighted_edges = nx.get_edge_attributes(aug_graph, 'weight')
+    if preweighted_edges:
+        orig_edges = ut.setdiff(orig_edges, list(preweighted_edges.keys()))
+
+    aug_graph.add_edges_from(new_edges)
+    # Ensure the largest possible set of original edges is in the MST
+    nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 1.0) for edge in new_edges]))
+    nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 0.1) for edge in orig_edges]))
+    for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+        mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
+        for edge in mst_sub_graph.edges():
+            redge = edge[::-1]
+            if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
+                graph.add_edge(*redge, attr_dict={})
+
+
 def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
-                                    invis_edges=None, ensure_edges=None):
+                                    invis_edges=None, ensure_edges=None, temp_nids=None):
     r"""
     Args:
         ibs (ibeis.IBEISController):  image analysis api
@@ -89,14 +113,15 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
         >>> aids_list = [[1, 2, 3, 4], [5, 6, 7]]
         >>> invis_edges = [(1, 5)]
         >>> only_reviewed_matches = True
-        >>> graph = make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches, invis_edges)
+        >>> graph = make_netx_graph_from_aid_groups(ibs, aids_list,
+        >>>                                         only_reviewed_matches,
+        >>>                                         invis_edges)
         >>> list(nx.connected_components(graph.to_undirected()))
     """
     #aids_list, nid_list = ibs.group_annots_by_name(aid_list)
     unique_aids = list(ut.flatten(aids_list))
 
     # grouped version
-    import itertools
     unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
     aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
     aids1 = ut.get_list_column(aid_pairs, 0)
@@ -111,71 +136,39 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
     graph = make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
 
     if ensure_edges is not None:
+        if ensure_edges == 'all':
+            ensure_edges = list(ut.upper_diag_self_prodx(graph.nodes()))
+        ensure_edges_ = []
         for edge in ensure_edges:
             edge = tuple(edge)
             redge = tuple(edge[::-1])  # HACK
             if graph.has_edge(*edge):
+                ensure_edges_.append(edge)
                 pass
                 #nx.set_edge_attributes(graph, 'weight', {edge: .001})
             elif graph.has_edge(*redge):
+                ensure_edges_.append(redge)
                 #nx.set_edge_attributes(graph, 'weight', {redge: .001})
                 pass
             else:
+                ensure_edges_.append(edge)
                 #graph.add_edge(*edge, weight=.001)
                 graph.add_edge(*edge)
 
-    unique_nids = ibs.get_annot_nids(unique_aids)
-    nx.set_node_attributes(graph, 'nid', dict(zip(unique_aids, unique_nids)))
+    if temp_nids is None:
+        unique_nids = ibs.get_annot_nids(graph.nodes())
+    else:
+        # HACK
+        unique_nids = [1] * len(graph.nodes())
+        #unique_nids = temp_nids
 
-    import itertools
+    nx.set_node_attributes(graph, 'nid', dict(zip(graph.nodes(), unique_nids)))
+
     import plottool as pt
-
-    def ensure_names_are_connected(graph):
-        aug_graph = graph.copy().to_undirected()
-        orig_edges = aug_graph.edges()
-        unflat_edges = [list(itertools.product(aids, aids)) for aids in aids_list]
-        aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-        new_edges = ut.setdiff_ordered(aid_pairs, aug_graph.edges())
-
-        preweighted_edges = nx.get_edge_attributes(aug_graph, 'weight')
-        if preweighted_edges:
-            orig_edges = ut.setdiff(orig_edges, list(preweighted_edges.keys()))
-
-        aug_graph.add_edges_from(new_edges)
-        # Ensure the largest possible set of original edges is in the MST
-        nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 1.0) for edge in new_edges]))
-        nx.set_edge_attributes(aug_graph, 'weight', dict([(edge, 0.1) for edge in orig_edges]))
-        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
-            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
-            for edge in mst_sub_graph.edges():
-                redge = edge[::-1]
-                if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
-                    graph.add_edge(*redge, attr_dict={})
-
-    ensure_names_are_connected(graph)
+    ensure_names_are_connected(graph, aids_list)
 
     # Color edges by nid
-    def color_by_nids(graph):
-        node_to_nid = nx.get_node_attributes(graph, 'nid')
-        unique_nids = ut.unique(node_to_nid.values())
-        ncolors = len(unique_nids)
-        if (ncolors) == 1:
-            unique_colors = [pt.NEUTRAL_BLUE]
-        else:
-            unique_colors = pt.distinct_colors(ncolors)
-        nid_to_color = dict(zip(unique_nids, unique_colors))
-        edge_aids = graph.edges()
-        edge_nids = ut.unflat_take(node_to_nid, edge_aids)
-        flags = [nids[0] == nids[1] for nids in edge_nids]
-        flagged_edge_aids = ut.compress(edge_aids, flags)
-        flagged_edge_nids = ut.compress(edge_nids, flags)
-        flagged_edge_colors = [nid_to_color[nids[0]] for nids in flagged_edge_nids]
-        edge_to_color = dict(zip(flagged_edge_aids, flagged_edge_colors))
-        node_to_color = ut.map_dict_vals(ut.partial(ut.take, nid_to_color), node_to_nid)
-        nx.set_edge_attributes(graph, 'color', edge_to_color)
-        nx.set_node_attributes(graph, 'color', node_to_color)
-
-    color_by_nids(graph)
+    color_by_nids(graph, unique_nids=unique_nids)
     if invis_edges:
         for edge in invis_edges:
             if graph.has_edge(*edge):
@@ -186,9 +179,41 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
 
     # Hack color images orange
     if ensure_edges:
-        nx.set_edge_attributes(graph, 'color', {tuple(edge): pt.ORANGE for edge in ensure_edges})
+        nx.set_edge_attributes(graph, 'color',
+                               {tuple(edge): pt.ORANGE for edge in ensure_edges_})
 
     return graph
+
+
+def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
+    if unique_nids is None:
+        unique_nids = ibs.get_annot_nids(graph.nodes())
+    nodeattrs = dict(zip(graph.nodes(), unique_nids))
+    ut.set_default_node_attributes(graph, 'nid', nodeattrs)
+
+
+def color_by_nids(graph, unique_nids=None, ibs=None):
+    """ Colors edges and nodes by nid """
+    import plottool as pt
+    ensure_graph_nid_labels(graph, unique_nids, ibs=ibs)
+    node_to_nid = nx.get_node_attributes(graph, 'nid')
+    unique_nids = ut.unique(node_to_nid.values())
+    ncolors = len(unique_nids)
+    if (ncolors) == 1:
+        unique_colors = [pt.NEUTRAL_BLUE]
+    else:
+        unique_colors = pt.distinct_colors(ncolors)
+    nid_to_color = dict(zip(unique_nids, unique_colors))
+    edge_aids = graph.edges()
+    edge_nids = ut.unflat_take(node_to_nid, edge_aids)
+    flags = [nids[0] == nids[1] for nids in edge_nids]
+    flagged_edge_aids = ut.compress(edge_aids, flags)
+    flagged_edge_nids = ut.compress(edge_nids, flags)
+    flagged_edge_colors = [nid_to_color[nids[0]] for nids in flagged_edge_nids]
+    edge_to_color = dict(zip(flagged_edge_aids, flagged_edge_colors))
+    node_to_color = ut.map_dict_vals(ut.partial(ut.take, nid_to_color), node_to_nid)
+    nx.set_edge_attributes(graph, 'color', edge_to_color)
+    nx.set_node_attributes(graph, 'color', node_to_color)
 
 
 def augment_graph_mst(ibs, graph):
@@ -232,9 +257,17 @@ def augment_graph_mst(ibs, graph):
                 graph.add_edge(*redge, attr_dict=attr_dict)
 
 
+def ensure_node_images(ibs, graph):
+    aid_list = sorted(graph.nodes())
+    imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
+                                               config=dict(dim_size=200),
+                                               read_extern=False)
+    nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
+
+
 def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
                        zoom=None, prog='neato', as_directed=False,
-                       augment_graph=True, **kwargs):
+                       augment_graph=True, layoutkw=None, frameon=True, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -272,22 +305,17 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
     ax = pt.gca()
 
-    aid_list = sorted(graph.nodes())
     if layout is None:
         layout = 'agraph'
     print('layout = %r' % (layout,))
 
-    if False and augment_graph:
-        augment_graph_mst(ibs, graph)
-
     if with_images:
-        imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
-                                                   config=dict(dim_size=200),
-                                                   read_extern=False)
-        nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
+        ensure_node_images(ibs, graph)
     nx.set_node_attributes(graph, 'shape', 'rect')
 
-    layoutkw = {'prog': prog}
+    if layoutkw is None:
+        layoutkw = {}
+    layoutkw['prog'] = layoutkw.get('prog', prog)
     layoutkw.update(kwargs)
 
     if prog == 'neato':
@@ -299,7 +327,8 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
                           layout=layout,
                           # hacknonode=bool(with_images),
                           layoutkw=layoutkw,
-                          as_directed=as_directed
+                          as_directed=as_directed,
+                          frameon=frameon,
                           )
 
     offset_img_list = []
@@ -318,7 +347,8 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
-                                ensure_edges=None, with_images=True, **kwargs):
+                                ensure_edges=None, with_images=True,
+                                temp_nids=None, **kwargs):
     """
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
@@ -368,7 +398,8 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
             self.graph = make_netx_graph_from_aid_groups(ibs, aids_list,
                                                          invis_edges=invis_edges,
-                                                         ensure_edges=ensure_edges)
+                                                         ensure_edges=ensure_edges,
+                                                         temp_nids=temp_nids)
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
             self._aids2 = sorted(self.graph.nodes())

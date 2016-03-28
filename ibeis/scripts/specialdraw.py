@@ -261,7 +261,11 @@ def merge_viewpoint_graph():
 
     #pt.close_all_figures();
     from ibeis.viz import viz_graph
-    viz_graph.viz_netx_chipgraph(ibs, graph, with_images=1, prog='dot', augment_graph=False)
+    layoutkw = {
+        'nodesep': 1,
+    }
+    viz_graph.viz_netx_chipgraph(ibs, graph, with_images=1, prog='dot',
+                                 augment_graph=False, layoutkw=layoutkw)
 
     if False:
         """
@@ -295,6 +299,146 @@ def merge_viewpoint_graph():
             vt.imwrite(fpath, vt.resize_to_maxdims(chip, (400, 400)))
         """
     pass
+
+
+def intraoccurrence_connected():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> result = intraoccurrence_connected()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool as pt
+    from ibeis.viz import viz_graph
+    import networkx as nx
+    pt.ensure_pylab_qt4()
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    aids = [3690, 3696, 3703, 3706, 3712, 3721, 3739, 7360, 7376, 7377, 7383,
+            7390, 7408, 7462, 7464, 7465, 7477, 7478, 7500, 7522, 7566, 7579,
+            7586, 7664, 7671, 7746]
+
+    temp_nids = [1] * len(aids)
+    postcut = ut.get_argflag('--postcut')
+    if 0:
+        layoutkw = {
+            'prog': 'twopi',
+            #'prog': 'circo',
+            'nodesep': 1,
+            'ranksep': 3,
+        }
+        interact = viz_graph.make_name_graph_interaction(ibs, aids=aids,
+                                                         with_all=False,
+                                                         ensure_edges='all',
+                                                         prog='twopi',
+                                                         #prog='circo',
+                                                         temp_nids=temp_nids,
+                                                         layoutkw=layoutkw,
+                                                         frameon=False)
+
+        unlabeled_graph = interact.graph
+    else:
+        aids_list = ibs.group_annots_by_name(aids)[0]
+        ensure_edges = 'all' if not postcut else None
+        unlabeled_graph = viz_graph.make_netx_graph_from_aid_groups(ibs, aids_list,
+                                                                    #invis_edges=invis_edges,
+                                                                    ensure_edges=ensure_edges,
+                                                                    temp_nids=temp_nids)
+        viz_graph.color_by_nids(unlabeled_graph, unique_nids=[1] * len(unlabeled_graph.nodes()))
+        viz_graph.ensure_node_images(ibs, unlabeled_graph)
+        nx.set_node_attributes(unlabeled_graph, 'shape', 'rect')
+        #unlabeled_graph = unlabeled_graph.to_undirected()
+
+    # Find the "database exemplars for these annots"
+    gt_aids = ibs.get_annot_groundtruth(aids)
+    gt_aids = [ut.setdiff(s, aids) for s in gt_aids]
+    dbaids = ut.unique(ut.flatten(gt_aids))
+    dbaids = ibs.filter_annots_general(dbaids, minqual='good')
+    ibs.get_annot_quality_texts(dbaids)
+    exemplars = nx.DiGraph()
+    #graph = exemplars  # NOQA
+    exemplars.add_nodes_from(dbaids)
+
+    def add_clique(graph, nodes, nodeattrs=None):
+        edge_list = ut.upper_diag_self_prodx(nodes)
+        graph.add_edges_from(edge_list)
+        return edge_list
+
+    for aids_, nid in zip(*ibs.group_annots_by_name(dbaids)):
+        add_clique(exemplars, aids_)
+    viz_graph.ensure_node_images(ibs, exemplars)
+    viz_graph.color_by_nids(exemplars, ibs=ibs)
+    #layoutkw = {}
+    #pt.show_nx(exemplars, layout='agraph', layoutkw=layoutkw,
+    #           as_directed=False, frameon=True,)
+
+    #exemplars = exemplars.to_undirected()
+
+    nx.set_node_attributes(unlabeled_graph, 'frameon', False)
+    nx.set_node_attributes(exemplars,  'frameon', True)
+    #nx.set_node_attributes(unlabeled_graph, 'groupid', 'unlabeled')
+    if not postcut:
+        nx.set_node_attributes(exemplars, 'exemplars', 'exemplars')
+        nx.set_node_attributes(exemplars,  'frameon', True)
+
+    #big_graph = nx.compose_all([unlabeled_graph])
+    big_graph = nx.compose_all([exemplars, unlabeled_graph])
+
+    # add sparse connections from unlabeled to exemplars
+    import numpy as np
+    rng = np.random.RandomState(0)
+    if not postcut:
+        for aid_ in unlabeled_graph.nodes():
+            exmatches = ut.compress(exemplars.nodes(), rng.rand(len(exemplars)) > .5)
+            big_graph.add_edges_from(list(ut.product([aid_], exmatches)),
+                                     color=pt.ORANGE, implicit=True)
+    else:
+        for aid_ in unlabeled_graph.nodes():
+            exmatches = ut.compress(exemplars.nodes(), rng.rand(len(exemplars)) > .5)
+            nid_ = ibs.get_annot_nids(aid_)
+            exnids = np.array(ibs.get_annot_nids(exmatches))
+            exmatches = ut.compress(exmatches, exnids == nid_)
+            big_graph.add_edges_from(list(ut.product([aid_], exmatches)))
+        pass
+
+    nx.set_node_attributes(big_graph, 'shape', 'rect')
+    if postcut:
+        ut.nx_delete_node_attr(big_graph, 'nid')
+        ut.nx_delete_edge_attr(big_graph, 'color')
+        viz_graph.ensure_graph_nid_labels(big_graph, ibs=ibs)
+        viz_graph.color_by_nids(big_graph, ibs=ibs)
+        big_graph = big_graph.to_undirected()
+
+    layoutkw = {
+        'prog': 'twopi' if not postcut else 'neato',
+        #'prog': 'neato',
+        #'prog': 'circo',
+        'nodesep': 1,
+        'ranksep': 3,
+        'overlap': 'false' if not postcut else 'prism',
+    }
+    if postcut:
+        layoutkw['splines'] = 'spline'
+        layoutkw['mode'] = 'major'
+        layoutkw['sep'] = 1 / 8.
+    pt.show_nx(big_graph, layout='agraph', layoutkw=layoutkw, as_directed=False)
+
+    # The database exemplars
+    # TODO: match these along with the intra encounter set
+    #interact = viz_graph.make_name_graph_interaction(ibs, aids=dbaids,
+
+    #                                                 with_all=False,
+    #                                                 prog='neato',
+    #                                                 frameon=True)
+    #print(interact)
+    pt.zoom_factory()
 
 
 if __name__ == '__main__':
