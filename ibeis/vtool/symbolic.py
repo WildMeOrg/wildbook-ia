@@ -54,7 +54,7 @@ def evalprint(str_, globals_=None, locals_=None, simplify=False):
 
 def check_expr_eq(expr1, expr2, verbose=True):
     """
-    Does not work in general. Problem is not decidable
+    Does not work in general. Problem is not decidable.
     Thanks Richard.
 
     Args:
@@ -63,6 +63,9 @@ def check_expr_eq(expr1, expr2, verbose=True):
 
     CommandLine:
         python -m vtool.symbolic --test-check_expr_eq
+
+    SeeALso:
+        vt.symbolic_randcheck
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -79,6 +82,8 @@ def check_expr_eq(expr1, expr2, verbose=True):
     print(ut.hz_str('Checking if ', repr(expr1), ' == ', repr(expr2)))
     random_point_check = expr1.equals(expr2)
     if random_point_check is None:
+        failexpr = expr1.equals(expr2, failing_expression=True)
+        print('failexpr = %r' % (failexpr,))
         random_point_check = False
     print('... seems %r' % (random_point_check,))
     #return random_point_check
