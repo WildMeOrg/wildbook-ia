@@ -975,7 +975,7 @@ class FeatureConfig(ConfigBase):
         >>> result = (feat_cfg.get_cfgstr())
         >>> print(result)
         >>> #assert result.startswith('_FEAT(hesaff+sift_)_CHIP')
-        _Feat(hesaff+sift,scale_max=50)
+        _Feat(hesaff+sift)
     """
     def __init__(feat_cfg, **kwargs):
         # Features depend on chips

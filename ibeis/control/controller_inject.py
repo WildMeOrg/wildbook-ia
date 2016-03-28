@@ -520,6 +520,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         text = text.replace('\r\n', r).replace('\n\r', r).replace('\r', r).replace('\n', r)
                         return text
 
+                    __format__ = False  # Default __format__ value
                     try:
                         #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
                         # Pipe web input into Python web call

@@ -693,7 +693,7 @@ class NeighborIndex(object):
             >>> assert qfx2_aid.shape[1] == num_neighbors
             >>> result = ('qfx2_aid.shape = %r' % (qfx2_aid.shape,))
             >>> print(result)
-            qfx2_aid.shape = (1237, 4)
+            qfx2_aid.shape = (1257, 4)
         """
         qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
         qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
