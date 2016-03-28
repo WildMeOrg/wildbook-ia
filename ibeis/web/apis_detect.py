@@ -276,8 +276,8 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
                 'ytl'        : bbox[1],
                 'width'      : bbox[2],
                 'height'     : bbox[3],
-                'theta'      : theta,
-                'confidence' : conf,
+                'theta'      : round(theta, 4),
+                'confidence' : round(conf, 4),
                 'class'      : class_,
             }
             for bbox, theta, conf, class_ in zip(*zipped[0][1:])
