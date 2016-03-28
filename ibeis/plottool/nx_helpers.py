@@ -126,6 +126,8 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         img_list = ut.dict_take(img_dict, node_list)
         size_list = ut.dict_take(node_size, node_list)
         color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
+        frameon_list = ut.dict_take(nx.get_node_attributes(graph, 'frameon'),
+                                    node_list, frameon)
         #node_attrs = ut.dict_take(graph.node, node_list)
         # Rename to node_scale?
         #scale_list = np.array(ut.dict_take_column(node_attrs, 'scale',
@@ -134,7 +136,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
         #            for scale, img in zip(scale_list, img_list)]
 
         # TODO; frames without images
-        imgdat = pt.netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, frameon=frameon)
+        imgdat = pt.netx_draw_images_at_positions(img_list, pos_list,
+                                                  size_list, color_list,
+                                                  frameon_list=frameon_list)
         imgdat['node_list'] = node_list
         plotinfo['imgdat'] = imgdat
 
@@ -143,7 +147,8 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
     return plotinfo
 
 
-def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, frameon=True):
+def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
+                                  frameon_list):
     """
     Overlays images on a networkx graph
 
@@ -180,19 +185,22 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, fra
             xycoords='data',
             boxcoords='offset points',
             #boxcoords='data',
-            pad=0.25, frameon=frameon,
+            pad=0.25,
             # frameon=False, bboxprops=dict(fc="cyan"),
             # arrowprops=dict(arrowstyle="->"))
         )
-        for pos, img in zip(pos_list, img_list_):
+        for pos, img, frameon in zip(pos_list, img_list_, frameon_list):
             offset_img = OffsetImage(img, zoom=.4)
+            bboxkw['frameon'] = frameon
             artist = AnnotationBbox(offset_img, pos, xybox=(-0., 0.), **bboxkw)
             offset_img_list.append(offset_img)
             artist_list.append(artist)
     else:
         # THIS DOES EXACTLY WHAT I WANT
         # Ties the image to data coords
-        for pos, img, size, color in zip(pos_list, img_list_, size_list_, color_list):
+        for pos, img, size, color, frameon in zip(pos_list, img_list_,
+                                                  size_list_, color_list,
+                                                  frameon_list):
             bbox = vt.bbox_from_center_wh(pos, size)
             extent = vt.extent_from_bbox(bbox)
             pt.plt.imshow(img, extent=extent)
@@ -203,7 +211,14 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list, fra
                     alpha = 0
                     #color = pt.WHITE
                 #color = pt.ORANGE
-                patch = pt.make_bbox(bbox, bbox_color=color, ax=ax, lw=3, alpha=alpha)
+                figsize = ut.get_argval('--figsize', type_=list, default=None)
+                if figsize is not None:
+                    # HACK
+                    graphsize = max(figsize)
+                    lw = graphsize / 8
+                else:
+                    lw = 3.0
+                patch = pt.make_bbox(bbox, bbox_color=color, ax=ax, lw=lw, alpha=alpha)
                 artist_list.append(patch)
     for artist in artist_list:
         ax.add_artist(artist)

@@ -140,11 +140,13 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 #extra
 
 
-def zoom_factory(ax, zoomable_list, base_scale=1.1):
+def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
     """
     References:
         https://gist.github.com/tacaswell/3144287
     """
+    if ax is None:
+        ax = pt.gca()
     def zoom_fun(event):
         #print('zooming')
         # get the current x and y limits
