@@ -276,6 +276,16 @@ def extent_from_bbox(bbox):
     return extent
 
 
+#def tlbr_from_bbox(bbox):
+def bbox_from_extent(extent):
+    """ returns tlbr_x, tlbr_y from tlwh """
+    tl_x, br_x, tl_y, br_y = extent
+    w = br_x - tl_x
+    h = br_y - tl_y
+    bbox = [tl_x, br_x, w, h]
+    return bbox
+
+
 def bbox_from_center_wh(center_xy, wh):
     return bbox_from_xywh(center_xy, wh, xy_rel_pos=[.5, .5])
 
@@ -285,6 +295,13 @@ def bbox_center(bbox):
     centerx = x + (w / 2)
     centery = y + (h / 2)
     return centerx, centery
+
+
+def get_pointset_extents(pts):
+    minx, miny = pts.min(axis=0)
+    maxx, maxy = pts.max(axis=0)
+    bounds = minx, maxx, miny, maxy
+    return bounds
 
 
 if __name__ == '__main__':
