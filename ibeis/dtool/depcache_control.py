@@ -1251,11 +1251,13 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         shape_dict = {
             'node': 'circle',
-            'node': 'rect',
+            #'node': 'rect',
+            'node': 'ellipse',
             # 'root': 'rhombus',
             #'root': 'circle',
             #'root': 'circle',
-            'root': 'rect',
+            'root': 'ellipse',
+            #'root': 'rect',
         }
         import plottool as pt
         color_dict = {
