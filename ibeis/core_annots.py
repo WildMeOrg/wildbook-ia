@@ -45,7 +45,7 @@ Needed Tables:
 
 
 CommandLine:
-    python -m ibeis.control.IBEISControl --test-show_depc_graph --show
+    python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
 
 Setup:
     >>> from ibeis.core_annots import *  # NOQA
@@ -1090,7 +1090,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
     """
     CommandLine:
         python -m ibeis.core_annots --test-compute_one_vs_one --show
-        python -m ibeis.control.IBEISControl --test-show_depc_graph --show
+        python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
         python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
 
     Ignore:

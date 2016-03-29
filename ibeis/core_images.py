@@ -6,6 +6,12 @@ Defines the core dependency cache supported by the image analysis api
 Extracts detection results from images and applies additional processing
 automatically
 
+
+Ex
+    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
+    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+
+
 TODO:
 
 NOTES:
@@ -36,95 +42,6 @@ from ibeis.control.controller_inject import register_preprocs
 
 
 register_preproc = register_preprocs['image']
-
-
-class DetectionConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('algo', 'cnn'),
-        ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
-    ]
-
-
-@register_preproc(
-    tablename='detections', parents=['images'],
-    colnames=['score', 'bboxes', 'thetas', 'confs', 'classes'],
-    coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
-    configclass=DetectionConfig,
-    fname='detectcache',
-    chunksize=32,
-)
-def compute_detections(depc, gid_list, config=None):
-    r"""
-    Extracts the detections for a given input image
-
-    Args:
-        depc (ibeis.depends_cache.DependencyCache):
-        gid_list (list):  list of image rowids
-        config (dict): (default = None)
-
-    Yields:
-        (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
-
-    CommandLine:
-        ibeis --tf compute_detections
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
-        >>> depc = ibs.depc_image
-        >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()[0:8]
-        >>> config = {'algo': 'yolo'}
-        >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'pyrf'}
-        >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-    """
-    def package_to_numpy(key_list, result_list, score):
-        temp = [
-            [
-                key[0] if isinstance(key, tuple) else result[key]
-                for key in key_list
-            ]
-            for result in result_list
-        ]
-        return (
-            score,
-            np.array([ _[0:4] for _ in temp ]),
-            np.array([ _[4]   for _ in temp ]),
-            np.array([ _[5]   for _ in temp ]),
-            np.array([ _[6]   for _ in temp ]),
-        )
-
-    print('[ibs] Preprocess Detections')
-    print('config = %r' % (config,))
-    # Get controller
-    ibs = depc.controller
-    ibs.assert_valid_gids(gid_list)
-    base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
-    # Temporary for all detectors
-    base_key_list[4] = (0.0, )  # Theta
-
-    if config['algo'] in ['yolo']:
-        from ibeis.algo.detect import yolo
-        print('[ibs] detecting using CNN YOLO')
-        detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
-    elif config['algo'] in ['pyrf']:
-        from ibeis.algo.detect import randomforest
-        print('[ibs] detecting using Random Forests')
-        base_key_list[6] = (config['species'], )  # class == species
-        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
-    else:
-        raise ValueError('specified detection algo is not supported')
-
-    # yield detections
-    for gid, gpath, result_list in detect_gen:
-        score = 0.0
-        yield package_to_numpy(base_key_list, result_list, score)
 
 
 class ThumbnailConfig(dtool.Config):
@@ -224,6 +141,98 @@ def draw_thumb_helper(tup):
         thumb = vt.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
     width, height = dsize
     return thumb, width, height
+
+
+class DetectionConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('algo', 'cnn'),
+        ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='detections', parents=['images'],
+    colnames=['score', 'bboxes', 'thetas', 'confs', 'classes'],
+    coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
+    configclass=DetectionConfig,
+    fname='detectcache',
+    chunksize=32,
+)
+def compute_detections(depc, gid_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
+
+    CommandLine:
+        ibeis --tf compute_detections
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> print(depc.get_tablenames())
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> config = {'algo': 'yolo'}
+        >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'pyrf'}
+        >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+    """
+    def package_to_numpy(key_list, result_list, score):
+        temp = [
+            [
+                key[0] if isinstance(key, tuple) else result[key]
+                for key in key_list
+            ]
+            for result in result_list
+        ]
+        return (
+            score,
+            np.array([ _[0:4] for _ in temp ]),
+            np.array([ _[4]   for _ in temp ]),
+            np.array([ _[5]   for _ in temp ]),
+            np.array([ _[6]   for _ in temp ]),
+        )
+
+    print('[ibs] Preprocess Detections')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    ibs.assert_valid_gids(gid_list)
+    base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
+    # Temporary for all detectors
+    base_key_list[4] = (0.0, )  # Theta
+
+    if config['algo'] in ['yolo']:
+        from ibeis.algo.detect import yolo
+        print('[ibs] detecting using CNN YOLO')
+        detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
+    elif config['algo'] in ['pyrf']:
+        from ibeis.algo.detect import randomforest
+        print('[ibs] detecting using Random Forests')
+        base_key_list[6] = (config['species'], )  # class == species
+        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
+    else:
+        raise ValueError('specified detection algo is not supported')
+
+    # yield detections
+    for gid, gpath, result_list in detect_gen:
+        score = 0.0
+        yield package_to_numpy(base_key_list, result_list, score)
 
 
 if __name__ == '__main__':

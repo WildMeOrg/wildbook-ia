@@ -298,6 +298,23 @@ class IBEISController(BASE_CLASS):
     def show_depc_graph(ibs, depc, reduced=False):
         depc.show_graph(reduced=reduced)
 
+    def show_depc_image_graph(ibs, **kwargs):
+        """
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
+            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis  # NOQA
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> reduced = ut.get_argflag('--reduced')
+            >>> ibs.show_depc_image_graph(reduced=reduced)
+            >>> ut.show_if_requested()
+        """
+        ibs.show_depc_graph(ibs.depc_image, **kwargs)
+
     def show_depc_annot_graph(ibs, **kwargs):
         """
         CommandLine:

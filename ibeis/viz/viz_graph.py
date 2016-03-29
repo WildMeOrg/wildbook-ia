@@ -203,6 +203,7 @@ def color_by_nids(graph, unique_nids=None, ibs=None):
         unique_colors = [pt.NEUTRAL_BLUE]
     else:
         unique_colors = pt.distinct_colors(ncolors)
+    # Find edges and aids strictly between two nids
     nid_to_color = dict(zip(unique_nids, unique_colors))
     edge_aids = graph.edges()
     edge_nids = ut.unflat_take(node_to_nid, edge_aids)
