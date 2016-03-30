@@ -22,28 +22,23 @@ def set_cookie():
 
 @register_route('/ajax/image/src/<gid>/', methods=['GET'])
 def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
+    thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     ibs = current_app.ibs
     gid = int(gid)
-    thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     if thumbnail:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
         fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
         if fresh:
-            # print('*' * 80)
-            # print('\n\n')
-            # print('RUNNING WITH FRESH')
-            # print('\n\n')
-            # print('*' * 80)
-            # ut.remove_dirs(gpath)
             import os
             os.remove(gpath)
             gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
-        image = vt.imread(gpath)
     else:
-        print(gid)
-        image = ibs.get_images(gid)
-    image_src = appf.embed_image_html(image, target_width=200)
-    return image_src
+        gpath = ibs.get_image_paths(gid)
+
+    # Load image
+    image = vt.imread(gpath, orient='auto')
+    image = appf.resize_via_web_parameters(image)
+    return appf.embed_image_html(image, target_width=None)
 
 
 @register_route('/ajax/annotation/src/<aid>/', methods=['GET'])

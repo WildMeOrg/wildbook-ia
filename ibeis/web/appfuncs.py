@@ -74,7 +74,8 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH):
     """ Creates an image embedded in HTML base64 format. """
     import cv2
     from PIL import Image
-    imgBGR = _resize(imgBGR, target_width)
+    if target_width is not None:
+        imgBGR = _resize(imgBGR, target_width)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
     string_buf = StringIO.StringIO()
