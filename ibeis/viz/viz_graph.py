@@ -189,12 +189,13 @@ def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
     if unique_nids is None:
         unique_nids = ibs.get_annot_nids(graph.nodes())
     nodeattrs = dict(zip(graph.nodes(), unique_nids))
-    ut.set_default_node_attributes(graph, 'nid', nodeattrs)
+    ut.nx_set_default_node_attributes(graph, 'nid', nodeattrs)
 
 
-def color_by_nids(graph, unique_nids=None, ibs=None):
+def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     """ Colors edges and nodes by nid """
     import plottool as pt
+
     ensure_graph_nid_labels(graph, unique_nids, ibs=ibs)
     node_to_nid = nx.get_node_attributes(graph, 'nid')
     unique_nids = ut.unique(node_to_nid.values())
@@ -202,9 +203,15 @@ def color_by_nids(graph, unique_nids=None, ibs=None):
     if (ncolors) == 1:
         unique_colors = [pt.NEUTRAL_BLUE]
     else:
-        unique_colors = pt.distinct_colors(ncolors)
+        if nid2_color_ is not None:
+            unique_colors = pt.distinct_colors(ncolors + len(nid2_color_) * 2)
+        else:
+            unique_colors = pt.distinct_colors(ncolors)
     # Find edges and aids strictly between two nids
     nid_to_color = dict(zip(unique_nids, unique_colors))
+    if nid2_color_ is not None:
+        # HACK NEED TO ENSURE COLORS ARE NOT REUSED
+        nid_to_color.update(nid2_color_)
     edge_aids = graph.edges()
     edge_nids = ut.unflat_take(node_to_nid, edge_aids)
     flags = [nids[0] == nids[1] for nids in edge_nids]

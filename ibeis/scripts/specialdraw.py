@@ -49,7 +49,7 @@ def general_identify_flow():
     global_pairvec = makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2)
     local_pairvec = makenode('Local similarities\n(LNBNN, spatial error, ...)',
                              size=(ns * 2.2, ns))
-    prob = makenode('Probability\n(same individual and\nsimilar viewpoint)')
+    prob = makenode('Matching Probability\n(same individual given\nsimilar viewpoint)')
     classifier = makenode('Classifier\n(SVM/RF/DNN)')
     agglocal = makenode('Aggregate', size=(ns / 1.1, ns / 2))
     catvecs = makenode('Concatenate', shape='box', size=(ns / 1.1, ns / 2))
@@ -83,11 +83,11 @@ def general_identify_flow():
     graph.add_edge(pairvec, classifier)
     graph.add_edge(classifier, prob)
 
-    ut.set_default_node_attributes(graph, 'shape',  'rect')
-    ut.set_default_node_attributes(graph, 'fixedsize', 'true')
-    ut.set_default_node_attributes(graph, 'width', ns * ut.PHI)
-    ut.set_default_node_attributes(graph, 'height', ns)
-    ut.set_default_node_attributes(graph, 'regular', False)
+    ut.nx_set_default_node_attributes(graph, 'shape',  'rect')
+    ut.nx_set_default_node_attributes(graph, 'fixedsize', 'true')
+    ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
+    ut.nx_set_default_node_attributes(graph, 'height', ns)
+    ut.nx_set_default_node_attributes(graph, 'regular', False)
 
     layoutkw = {
         'prog': 'dot',
@@ -107,7 +107,9 @@ def general_identify_flow():
         # 'rank': 'max',
     }
 
-    pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, fontsize=12)
+    fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, **fontkw)
+    pt.zoom_factory()
 
 
 def graphcut_flow():
@@ -173,11 +175,11 @@ def graphcut_flow():
     graph.add_edge(matchgraph, cutalgo)
     graph.add_edge(cutalgo, cc_names)
 
-    ut.set_default_node_attributes(graph, 'shape',  'rect')
-    ut.set_default_node_attributes(graph, 'fixedsize', 'true')
-    ut.set_default_node_attributes(graph, 'width', ns * ut.PHI)
-    ut.set_default_node_attributes(graph, 'height', ns)
-    ut.set_default_node_attributes(graph, 'regular', False)
+    ut.nx_set_default_node_attributes(graph, 'shape',  'rect')
+    ut.nx_set_default_node_attributes(graph, 'fixedsize', 'true')
+    ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
+    ut.nx_set_default_node_attributes(graph, 'height', ns)
+    ut.nx_set_default_node_attributes(graph, 'regular', False)
 
     layoutkw = {
         'prog': 'dot',
@@ -188,7 +190,9 @@ def graphcut_flow():
         'ranksep': 300 / 72,
     }
 
-    pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, fontsize=12)
+    fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, **fontkw)
+    pt.zoom_factory()
 
 
 def merge_viewpoint_graph():
@@ -232,8 +236,9 @@ def merge_viewpoint_graph():
     back_graph = nx.DiGraph(back_edges)
 
     # Let the graph be a bit smaller
-    right_graph.edge[right_aids[1]][right_aids[2]]['constraint'] = False
-    left_graph.edge[left_aids[1]][left_aids[2]]['constraint'] = False
+
+    right_graph.edge[right_aids[1]][right_aids[2]]['constraint'] = ut.get_argflag('--constraint')
+    left_graph.edge[left_aids[1]][left_aids[2]]['constraint'] = ut.get_argflag('--constraint')
 
     #right_graph = right_graph.to_undirected().to_directed()
     #left_graph = left_graph.to_undirected().to_directed()
@@ -407,12 +412,12 @@ def intraoccurrence_connected():
         pass
 
     nx.set_node_attributes(big_graph, 'shape', 'rect')
-    if False and postcut:
-        ut.nx_delete_node_attr(big_graph, 'nid')
-        ut.nx_delete_edge_attr(big_graph, 'color')
-        viz_graph.ensure_graph_nid_labels(big_graph, ibs=ibs)
-        viz_graph.color_by_nids(big_graph, ibs=ibs)
-        big_graph = big_graph.to_undirected()
+    #if False and postcut:
+    #    ut.nx_delete_node_attr(big_graph, 'nid')
+    #    ut.nx_delete_edge_attr(big_graph, 'color')
+    #    viz_graph.ensure_graph_nid_labels(big_graph, ibs=ibs)
+    #    viz_graph.color_by_nids(big_graph, ibs=ibs)
+    #    big_graph = big_graph.to_undirected()
 
     layoutkw = {
         'sep' : 1 / 5,
@@ -448,7 +453,21 @@ def intraoccurrence_connected():
         cut_graph.remove_edges_from(cut_edges)
         ut.nx_delete_node_attr(cut_graph, 'nid')
         viz_graph.ensure_graph_nid_labels(cut_graph, ibs=ibs)
-        viz_graph.color_by_nids(cut_graph, ibs=ibs)
+
+        #ut.nx_get_default_node_attributes(exemplars, 'color', None)
+        ut.nx_delete_node_attr(cut_graph, 'color', nodes=unlabeled_graph.nodes())
+        aid2_color = ut.nx_get_default_node_attributes(cut_graph, 'color', None)
+        nid2_colors = ut.group_items(aid2_color.values(), ibs.get_annot_nids(aid2_color.keys()))
+        nid2_colors = ut.map_dict_vals(ut.filter_Nones, nid2_colors)
+        nid2_colors = ut.map_dict_vals(ut.unique, nid2_colors)
+        #for val in nid2_colors.values():
+        #    assert len(val) <= 1
+        # Get initial colors
+        nid2_color_ = {nid: colors_[0] for nid, colors_ in nid2_colors.items()
+                       if len(colors_) == 1}
+
+        graph = cut_graph
+        viz_graph.color_by_nids(cut_graph, ibs=ibs, nid2_color_=nid2_color_)
         nx.set_node_attributes(cut_graph, 'frameon', True)
 
         pt.show_nx(cut_graph, layout='custom', layoutkw=layoutkw,

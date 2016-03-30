@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool
 import utool as ut
 from six.moves import range
-import plottool as pt  # NOQA
 from plottool import draw_func2 as df2
 from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
-(print, rrr, profile) = utool.inject2(__name__, '[viz_nndesc]', DEBUG=False)
+import plottool as pt  # NOQA
+import six  # NOQA
+(print, rrr, profile) = ut.inject2(__name__, '[viz_nndesc]', DEBUG=False)
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
@@ -18,15 +18,59 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         daid_list = ibs.get_valid_aids()
         qreq_ = ibs.new_query_request([qaid], daid_list)
     qreq_.load_indexer()  # TODO: ensure lazy
-    qfx2_vecs = ibs.get_annot_vecs(qaid)[qfx:(qfx + 1)]
+
+    #if isinstance(qfx, six.string_types):
+    special = (qfx == 'special')
+    if special:
+        qfx2_vecs = ibs.get_annot_vecs(qaid)
+    else:
+        qfx = int(qfx)
+        qfx2_vecs = ibs.get_annot_vecs(qaid)[qfx:(qfx + 1)]
     K = qreq_.qparams.K
     Knorm = qreq_.qparams.Knorm
     if ut.VERBOSE:
         print('Knorm = %r' % (Knorm,))
     qfx2_idx, qfx2_dist = qreq_.indexer.knn(qfx2_vecs, 10)
+
+    if special:
+        import numpy as np
+        # Find a query feature with "good" results
+        qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_idx)
+        qfx2_dnid = ibs.get_annot_nids(qfx2_daid)
+        nid = ibs.get_annot_nids(qaid)
+
+        #slice_ = slice(None)
+        slice_ = slice(0, K + Knorm)
+        flags = qfx2_dnid.T[slice_].T == nid
+        flags = np.logical_and(flags, qfx2_daid[:, slice_] != qaid)
+        flags_first = flags[:, 0:K]
+        flags_last = flags[:, K:]
+        num_gt_matches = flags_first.sum(axis=1) - flags_last.sum(axis=1)
+        print('num_gt_matches = %r' % (num_gt_matches,))
+        print(num_gt_matches.max())
+        has_good_num = num_gt_matches >= num_gt_matches.max() - 1
+        candidate_qfxs = np.where(has_good_num)[0]
+
+        cand_nids = qfx2_dnid[candidate_qfxs].T[slice_].T
+        cand_flags = cand_nids == nid
+        cand_dist = qfx2_dist[candidate_qfxs].T[slice_].T
+        cand_dist_gt = cand_dist * cand_flags
+        cand_dist_gf = cand_dist * ~cand_flags
+        cand_score = cand_dist_gt.sum(axis=1) - cand_dist_gf.sum(axis=1)
+        top_candxs = cand_score.argsort()
+        print('cand_nids = %r' % (cand_nids,))
+        print('top_candxs = %r' % (top_candxs,))
+
+        cand_idx = top_candxs[1]
+        #cand_idx = ut.take_percentile(top_candxs, .1)[-1]
+        qfx = candidate_qfxs[cand_idx]
+        print('qfx = %r' % (qfx,))
+        qfx2_dist = qfx2_dist[qfx:(qfx + 1)]
+        qfx2_idx = qfx2_idx[qfx:(qfx + 1)]
+
     qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_idx)
     qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_idx)
-    return qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm
+    return qfx, qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm
 
 
 def show_top_featmatches(qreq_, cm_list):
@@ -102,7 +146,7 @@ def show_top_featmatches(qreq_, cm_list):
 
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
 
-    import plottool as pt
+    import plottool as pt  # NOQA
     pt.ensure_pylab_qt4()
     import ibeis_cnn
     inter = ibeis_cnn.draw_results.interact_patches(
@@ -111,7 +155,7 @@ def show_top_featmatches(qreq_, cm_list):
     inter.show()
 
 
-#@utool.indent_func('[show_neardesc]')
+#@ut.indent_func('[show_neardesc]')
 def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                              qreq_=None, **kwargs):
     r"""
@@ -144,7 +188,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> qreq_ = ibeis.testdata_qreq_()
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid = qreq_.qaids[0]
-        >>> qfx = ut.get_argval('--qfx', type_=int, default=879)
+        >>> qfx = ut.get_argval('--qfx', type_=None, default=879)
         >>> fnum = None
         >>> stride = 5
         >>> # execute function
@@ -158,6 +202,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> print(result)
         >>> pt.show_if_requested()
     """
+    import plottool as pt  # NOQA
     consecutive_distance_compare = True
     draw_chip     = kwargs.get('draw_chip', False)
     draw_desc     = kwargs.get('draw_desc', True)
@@ -169,7 +214,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         fnum = df2.next_fnum()
     try:
         # Flann NN query
-        (qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=qreq_)
+        (qfx, qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=qreq_)
 
         # Adds metadata to a feature match
         def get_extract_tuple(aid, fx, k=-1):

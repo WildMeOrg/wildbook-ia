@@ -434,6 +434,7 @@ class ProbchipConfig(dtool.Config):
     _param_info_list = [
         #ut.ParamInfo('preserve_aspect', True, hideif=True),
         ut.ParamInfo('fw_detector', 'cnn', 'detector='),
+        ut.ParamInfo('ext', '.png'),
         ut.ParamInfo('fw_dim_size', 256, 'sz'),
         ut.ParamInfo('smooth_thresh', 20, 'thresh='),
         ut.ParamInfo('smooth_ksize', 20, 'ksz=', hideif=lambda cfg: cfg['smooth_thresh'] is None),
@@ -447,7 +448,8 @@ class ProbchipConfig(dtool.Config):
 @register_preproc(
     tablename='probchip', parents=['annotations'],
     colnames=['img'],
-    coltypes=[('extern', vt.imread)],
+    # FIXME; imwrite
+    coltypes=[('extern', ut.partial(vt.imread, grayscale=True), vt.imwrite)],
     configclass=ProbchipConfig,
     fname='chipcache4',
     # isinteractive=True,
@@ -467,13 +469,16 @@ def compute_probchip(depc, aid_list, config=None):
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
         >>> config = ProbchipConfig.from_argv_dict(fw_detector='rf', smooth_thresh=None)
-        >>> probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
-        >>> result = ut.list_str(probchip_fpath_list_)
-        >>> print(result)
+        >>> #probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
+        >>> probchip_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
+        >>> #result = ut.list_str(probchip_fpath_list_)
+        >>> #print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
-        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
+        >>> #xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
+        >>> #iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
+        >>> xlabel_list = [str(vt.get_size(img)) for img in probchip_list_]
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_list_, nPerPage=4, xlabel_list=xlabel_list)
         >>> iteract_obj.start()
         >>> ut.show_if_requested()
     """
@@ -528,7 +533,8 @@ def compute_probchip(depc, aid_list, config=None):
           % (len(aid_list), len(unique_species)))
     print(config)
 
-    grouped_probchip_fpath_list = []
+    #grouped_probchip_fpath_list = []
+    grouped_probchips = []
     _iter = zip(grouped_aids, unique_species, grouped_ppaths, grouped_mpaths)
     _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
                         lbl='probchip for species', enabled=ut.VERBOSE)
@@ -537,16 +543,18 @@ def compute_probchip(depc, aid_list, config=None):
         for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
             if len(aids) == 0:
                 continue
-            rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
-                         smooth_thresh, smooth_ksize)
-            grouped_probchip_fpath_list.append(probchip_fpaths)
+            gen = rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
+                               smooth_thresh, smooth_ksize)
+            #grouped_probchip_fpath_list.append(probchip_fpaths)
+            grouped_probchips.append(list(gen))
     elif fw_detector == 'cnn':
         for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
             if len(aids) == 0:
                 continue
-            cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths,
-                          smooth_thresh, smooth_ksize)
-            grouped_probchip_fpath_list.append(probchip_fpaths)
+            gen = cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths,
+                                smooth_thresh, smooth_ksize)
+            #grouped_probchip_fpath_list.append(probchip_fpaths)
+            grouped_probchips.append(list(gen))
     else:
         raise NotImplementedError('unknown fw_detector=%r' % (fw_detector,))
 
@@ -554,11 +562,14 @@ def compute_probchip(depc, aid_list, config=None):
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
 
-    probchip_fpath_list = vt.invert_apply_grouping2(
-        grouped_probchip_fpath_list, groupxs, dtype=object)
-
-    for fpath in probchip_fpath_list:
-        yield (fpath,)
+    #probchip_fpath_list = vt.invert_apply_grouping2(
+    #    grouped_probchip_fpath_list, groupxs, dtype=object)
+    #for fpath in probchip_fpath_list:
+    #    yield (fpath,)
+    probchip_result_list = vt.invert_apply_grouping2(
+        grouped_probchips, groupxs, dtype=object)
+    for probchip in probchip_result_list:
+        yield (probchip,)
 
 
 def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_thresh, smooth_ksize):
@@ -570,7 +581,8 @@ def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_th
         for probchip_fpath, probchip in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
                 probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
-            vt.imwrite(probchip_fpath, probchip)
+            yield probchip
+            #vt.imwrite(probchip_fpath, probchip)
 
 
 def rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
@@ -593,7 +605,8 @@ def rf_probchips(ibs, aids, species, probchip_fpaths, inputchip_fpaths, pad,
         probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
         if smooth_thresh is not None and smooth_ksize is not None:
             probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
-        vt.imwrite(probchip_fpath, probchip)
+        yield probchip
+        #vt.imwrite(probchip_fpath, probchip)
 
 
 def postprocess_mask(mask, thresh=20, kernel_size=20):
@@ -911,13 +924,14 @@ def gen_featweight_worker(tup):
         >>> #test_featweight_worker()
         >>> ibs, depc, aid_list = testdata_core()
         >>> aid_list = aid_list[0:1]
-        >>> config = {}
-        >>> probchip = depc.get('probchip', aid_list, 'img', config)[0]
-        >>> chipsize = depc.get('chips', aid_list, ('width', 'height'), config)[0]
-        >>> kpts = depc.get('feat', aid_list, 'kpts', config)[0]
+        >>> config = {'dim_size': 450, 'resize_dim': 'area', 'smooth_thresh': 0, 'smooth_ksize': 0}
+        >>> probchip = depc.get('probchip', aid_list, 'img', config=config)[0]
+        >>> chipsize = depc.get('chips', aid_list, ('width', 'height'), config=config)[0]
+        >>> kpts = depc.get('feat', aid_list, 'kpts', config=config)[0]
         >>> tup = (kpts, probchip, chipsize)
         >>> weights = gen_featweight_worker(tup)
-        >>> chip = depc.get('chips', aid_list, 'img', config)[0]
+        >>> assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
+        >>> chip = depc.get('chips', aid_list, 'img', config=config)[0]
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> fnum = 1
