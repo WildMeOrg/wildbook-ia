@@ -471,7 +471,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
         print('BEFORE LAYOUT')
         print(agraph)
     agraph.layout(prog=prog, args=args)
-    agraph.draw('test_graphviz_draw.png')
+    agraph.draw(ut.truepath('~/test_graphviz_draw.png'))
     if ut.VERBOSE:
         print('AFTER LAYOUT')
         print(agraph)
@@ -519,7 +519,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
                 data = orig_graph.get_edge_data(*iedge)
                 agraph.add_edge(*iedge, **data)
 
-            agraph.draw('test_graphviz_draw_implicit.png')
+            agraph.draw(ut.truepath('~/test_graphviz_draw_implicit.png'))
 
             # Route the implicit edges (must use neato)
             #agraph.layout(prog=prog, args=args)
