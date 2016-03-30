@@ -224,12 +224,10 @@ def gaussian_average_patch(patch, sigma=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
-        >>> # build test data
         >>> patch = get_star_patch()
-        >>> sigma = 1.6
-        >>> # execute function
+        >>> #sigma = 1.6
+        >>> sigma = None
         >>> result = gaussian_average_patch(patch, sigma)
-        >>> # verify results
         >>> print(result)
         0.414210641527
 
@@ -256,6 +254,7 @@ def gaussian_average_patch(patch, sigma=None):
         sigma = 0.3 * ((min(patch.shape[0:1]) - 1) * 0.5 - 1) + 0.8
     gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
     gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
+    # assert gauss_kernel_d0.dot(gauss_kernel_d1.T).sum() == 1
     weighted_patch = patch.copy()
     weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
     weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T

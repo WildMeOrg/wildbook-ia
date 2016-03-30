@@ -583,7 +583,7 @@ def resize_mask(mask, chip, interpolation=None):
     return resize(mask, dsize, interpolation)
 
 
-def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0,
+def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
                       borderType=cv2.BORDER_CONSTANT, **kwargs):
     imgBGR = imread(img_fpath)
     imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_,
@@ -698,7 +698,7 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     return fpath_out
 
 
-def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
+def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
     r"""
     Args:
         img_fpath (?):
@@ -706,7 +706,7 @@ def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
         out_fpath (None):
 
     CommandLine:
-        python -m vtool.image --test-rotate_image_on_disk
+        python -m vtool.image --test-rotate_image_ondisk
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -716,7 +716,7 @@ def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
         >>> theta = TAU * 3 / 8
         >>> # execute function
         >>> out_fpath = None
-        >>> out_fpath_ = rotate_image_on_disk(img_fpath, theta, out_fpath)
+        >>> out_fpath_ = rotate_image_ondisk(img_fpath, theta, out_fpath)
         >>> print(out_fpath_)
         >>> if ut.get_argflag('--show') or ut.inIPython():
         >>>     import plottool as pt
@@ -1030,6 +1030,39 @@ def embed_in_square_image(img, target_size):
     img_sqare = np.zeros(target_shape, dtype=img.dtype)
     img_sqare[rc_slice[0], rc_slice[1]] = img
     return img_sqare
+
+
+def resize_to_maxdims_ondisk(img_fpath, max_dsize, out_fpath=None):
+    r"""
+    Args:
+        img_fpath (str):  file path string
+        max_dsize (?):
+        out_fpath (str):  file path string(default = None)
+
+    CommandLine:
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormA.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormB.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormC.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormD.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormE.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormF.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormG.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormH.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormI.png --dsize=417,None
+        python -m vtool.image resize_to_maxdims_ondisk --fpath ~/latex/crall-candidacy-2015/figures3/knormJ.png --dsize=417,None
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_fpath = ut.get_argval('--fpath')
+        >>> max_dsize = ut.get_argval('--dsize', type_=list)
+        >>> out_fpath = None
+        >>> resize_to_maxdims_ondisk(img_fpath, max_dsize, out_fpath)
+    """
+    img = imread(img_fpath, flags=cv2.IMREAD_UNCHANGED)
+    img2 = resize_to_maxdims(img, max_dsize)
+    out_fpath_ = ut.augpath(img_fpath, '_max_dsize=%r' % (max_dsize)) if out_fpath is None else out_fpath
+    imwrite(out_fpath_, img2)
 
 
 def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4):
