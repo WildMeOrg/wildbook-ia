@@ -210,17 +210,15 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
             extent = vt.extent_from_bbox(bbox)
             pt.plt.imshow(img, extent=extent)
             if frameon:
-                alpha = 1
+                alpha = 1.0
                 if color is None:
                     color = pt.BLACK
-                    alpha = 0
-                    #color = pt.WHITE
-                #color = pt.ORANGE
+                    alpha = 0.0
                 figsize = ut.get_argval('--figsize', type_=list, default=None)
                 if figsize is not None:
                     # HACK
                     graphsize = max(figsize)
-                    lw = graphsize / 8
+                    lw = graphsize / 4
                 else:
                     lw = 3.0
                 patch = pt.make_bbox(bbox, bbox_color=color, ax=ax, lw=lw, alpha=alpha)
@@ -618,19 +616,18 @@ def _get_node_size(graph, node, node_size):
 def draw_network2(graph, node_pos, ax,
                   hacknoedge=False, hacknonode=False, splines='line',
                   as_directed=None, edge_pos=None, edge_endpoints=None,
-                  node_size=None, use_arc=True, fontsize=14):
+                  node_size=None, use_arc=True, **kwargs):
     """
     fancy way to draw networkx graphs without directly using networkx
     """
     import plottool as pt
 
-    font_prop = mpl.font_manager.FontProperties(family='monospace',
-                                                weight='light', size=fontsize)
+    font_prop = pt.parse_fontkw(**kwargs)
 
     node_patch_list = []
     edge_patch_list = []
 
-    patches = {}
+    patch_dict = {}
 
     ###
     # Draw nodes
@@ -663,16 +660,31 @@ def draw_network2(graph, node_pos, ax,
             width, height = _get_node_size(graph, node, node_size)
             angle = 45 if node_shape == 'rhombus' else 0
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
-            patch = mpl.patches.Rectangle(
-                xy_bl, width, height, angle=angle, **patch_kw)
+
+            rounded = 1
+            if rounded:
+                from matplotlib import patches
+                rpad = 20
+                xy_bl = np.array(xy_bl) + rpad
+                width -= rpad
+                height -= rpad
+                boxstyle = patches.BoxStyle.Round(pad=rpad)
+                patch = mpl.patches.FancyBboxPatch(
+                    xy_bl, width, height, boxstyle=boxstyle, **patch_kw)
+            else:
+                patch = mpl.patches.Rectangle(
+                    xy_bl, width, height, angle=angle,
+                    **patch_kw)
             patch.center = xy
+        #if style == 'rounded'
+        #elif node_shape in ['roundbox']:
         elif node_shape == 'stack':
             width, height = _get_node_size(graph, node, node_size)
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             patch = pt.cartoon_stacked_rects(xy_bl, width, height, **patch_kw)
             patch.xy = xy
 
-        patches[node] = patch
+        patch_dict[node] = patch
         x, y = xy
         text = node
         if label is not None:
@@ -841,8 +853,8 @@ def draw_network2(graph, node_pos, ax,
             # endpoint1 = edge_verts[0]
             # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
             u, v = edge[0:2]
-            n1 = patches[u]
-            n2 = patches[v]
+            n1 = patch_dict[u]
+            n2 = patch_dict[v]
             if (data.get('ismulti', False) or data.get('isnwise', False) or
                  data.get('local_input_id', False)):
                 pt1 = np.array(n1.center)

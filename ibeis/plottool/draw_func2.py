@@ -520,7 +520,10 @@ def show_if_requested(N=1):
             for count, axs in ut.ProgressIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
                 subpath = ut.augpath(fpath_strict, chr(count + 65))
                 extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
-                fig.savefig(subpath, bbox_inches=extent)
+                savekw = {}
+                savekw['transparent'] = True
+                savekw['edgecolor'] = 'none'
+                fig.savefig(subpath, bbox_inches=extent, **savekw)
                 subpath_list.append(subpath)
             absfpath_ = subpath
             fpath_list = [relpath(_, dpath) for _ in subpath_list]
@@ -1345,6 +1348,22 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
         x_ += xoff
         y_ += yoff
     ax_absolute_text(x_, y_, txt, ax=ax, **kwargs)
+
+
+def parse_fontkw(**kwargs):
+    r"""
+    Kwargs:
+        fontsize, fontfamilty, fontproperties
+    """
+    from matplotlib.font_manager import FontProperties
+    if 'fontproperties' not in kwargs:
+        size = kwargs.get('fontsize', 14)
+        weight = kwargs.get('fontweight', 'normal')
+        familty = kwargs.get('fontfamilty', 'monospace')
+        font_prop = FontProperties(family=familty, weight=weight, size=size)
+    else:
+        font_prop = kwargs['fontproperties']
+    return font_prop
 
 
 def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
