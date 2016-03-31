@@ -68,7 +68,7 @@ def get_exif_dict(pil_img):
         if exif_dict is None:
             raise AttributeError
         assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
-    except (IndexError, AttributeError, OverflowError):
+    except (ValueError, IndexError, AttributeError, OverflowError):
         exif_dict = {}
     except Exception as ex:
         ut.printex(ex, 'get_exif_dict failed in an unexpected way')
