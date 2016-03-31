@@ -32,9 +32,9 @@ import dtool
 (print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
 
 
-def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
+def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
             ax=None, pos=None, img_dict=None, title=None, layoutkw=None,
-            **kwargs):
+            verbose=None, **kwargs):
     r"""
     Args:
         graph (networkx.Graph):
@@ -88,7 +88,7 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='pydot',
     layout_dict = {}
     edge_endpoints = None
     if node_pos is None:
-        layout_dict = get_nx_layout(graph, layout, layoutkw=layoutkw)
+        layout_dict = get_nx_layout(graph, layout, layoutkw=layoutkw, verbose=verbose)
         node_pos = layout_dict['node_pos']
         edge_pos = layout_dict['edge_pos']
         edge_endpoints = layout_dict['edge_endpoints']
@@ -318,7 +318,7 @@ def get_explicit_graph(graph):
     return explicit_graph
 
 
-def get_nx_layout(graph, layout, layoutkw=None):
+def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
     import networkx as nx
     only_explicit = True
     if only_explicit:
@@ -339,7 +339,7 @@ def get_nx_layout(graph, layout, layoutkw=None):
         layout_info['edge_endpoints'] = nx.get_edge_attributes(graph, 'endpoints')
     elif layout == 'agraph':
         # PREFERED LAYOUT WITH MOST CONTROL
-        _, layout_info = nx_agraph_layout(layout_graph, orig_graph=graph,
+        _, layout_info = nx_agraph_layout(layout_graph, orig_graph=graph, verbose=verbose,
                                           **layoutkw)
         node_pos = layout_info['node_pos']
     elif layout == 'pydot':
@@ -370,7 +370,7 @@ def get_nx_layout(graph, layout, layoutkw=None):
     return layout_dict
 
 
-def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
+def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwargs):
     r"""
     orig_graph = graph
     graph = layout_graph
@@ -467,12 +467,12 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, **kwargs):
 
     # Run layout
     print('prog = %r' % (prog,))
-    if ut.VERBOSE:
+    if ut.VERBOSE or verbose:
         print('BEFORE LAYOUT')
         print(agraph)
     agraph.layout(prog=prog, args=args)
     agraph.draw(ut.truepath('~/test_graphviz_draw.png'))
-    if ut.VERBOSE:
+    if ut.VERBOSE or verbose:
         print('AFTER LAYOUT')
         print(agraph)
 
@@ -640,12 +640,18 @@ def draw_network2(graph, node_pos, ax,
         node_color = nattrs.get('color', pt.NEUTRAL_BLUE)
         if node_color is None:
             node_color = pt.NEUTRAL_BLUE
-        node_color = node_color[0:3]
         xy = node_pos[node]
         if 'image' in nattrs:
             alpha_ = 0.0
         else:
             alpha_ = alpha
+
+        if isinstance(node_color, six.string_types) and node_color.startswith('#'):
+            import matplotlib.colors as colors
+            print('node_color = %r' % (node_color,))
+            node_color = colors.hex2color(node_color)
+            #intcolor = int(node_color.replace('#', '0x'), 16)
+        node_color = node_color[0:3]
         patch_kw = dict(alpha=alpha_, color=node_color)
         node_shape = nattrs.get('shape', 'circle')
         if node_shape == 'circle':
@@ -686,7 +692,7 @@ def draw_network2(graph, node_pos, ax,
 
         patch_dict[node] = patch
         x, y = xy
-        text = node
+        text = str(node)
         if label is not None:
             text += ': ' + str(label)
         if not hacknonode and 'image' not in nattrs:
@@ -731,6 +737,10 @@ def draw_network2(graph, node_pos, ax,
             color = data.get('color', defaultcolor)
             if color is None:
                 color = defaultcolor
+
+            if isinstance(color, six.string_types) and color.startswith('#'):
+                import matplotlib.colors as colors
+                color = colors.hex2color(color)
             color = color[0:3]
 
             offset = 1 if graph.is_directed() else 0
