@@ -9,7 +9,9 @@ import time
 import cStringIO as StringIO
 from flask import request, current_app, send_file
 from ibeis.control import controller_inject
+from ibeis.web import appfuncs as appf
 import utool as ut
+import vtool as vt
 print, rrr, profile = ut.inject2(__name__, '[apis]')
 
 
@@ -41,7 +43,12 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     else:
         gpath = ibs.get_image_paths(gid)
 
-    image = ibs.get_images(gid)
+    # Load image
+    image = vt.imread(gpath, orient='auto')
+    image = appf.resize_via_web_parameters(image)
+    image = image[:, :, ::-1]
+
+    # Encode image
     image_pil = Image.fromarray(image)
     img_io = StringIO.StringIO()
     image_pil.save(img_io, 'JPEG', quality=100)

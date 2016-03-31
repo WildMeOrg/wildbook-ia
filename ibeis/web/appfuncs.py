@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 import cStringIO as StringIO
 import flask
 import random
-from ibeis.other import ibsfuncs
 from ibeis.constants import TAU
 from flask import request, current_app
 from os.path import join, dirname, abspath  # NOQA
@@ -14,6 +13,7 @@ import jinja2
 import utool as ut
 import pynmea2
 import simplejson as json
+import numpy as np
 
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
@@ -67,14 +67,15 @@ def resize_via_web_parameters(image):
     if h_per:
         h_pix = float(h_per) * image.shape[0]
     # Perform resize
-    return ibsfuncs._resize(image, t_width=w_pix, t_height=h_pix)
+    return _resize(image, t_width=w_pix, t_height=h_pix)
 
 
 def embed_image_html(imgBGR, target_width=TARGET_WIDTH):
     """ Creates an image embedded in HTML base64 format. """
     import cv2
     from PIL import Image
-    imgBGR = ibsfuncs._resize(imgBGR, target_width)
+    if target_width is not None:
+        imgBGR = _resize(imgBGR, target_width)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
     string_buf = StringIO.StringIO()
@@ -354,3 +355,24 @@ def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
             'lon':  lon,
         })
     return json.dumps({ "track": json_list })
+
+
+def _resize(image, t_width=None, t_height=None):
+    import cv2
+    print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+    height, width = image.shape[:2]
+    if t_width is None and t_height is None:
+        return image
+    elif t_width is not None and t_height is not None:
+        pass
+    elif t_width is None:
+        t_width = (width / height) * float(t_height)
+    elif t_height is None:
+        t_height = (height / width) * float(t_width)
+    t_width, t_height = float(t_width), float(t_height)
+    t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
+    assert t_width > 0 and t_height > 0, 'target size too small'
+    assert t_width <= width * 10 and t_height <= height * 10, 'target size too large (capped at 1000%)'
+    # interpolation = cv2.INTER_LANCZOS4
+    interpolation = cv2.INTER_LINEAR
+    return cv2.resize(image, (t_width, t_height), interpolation=interpolation)

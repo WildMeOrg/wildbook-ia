@@ -100,8 +100,8 @@ def compute_thumbnails(depc, gid_list, config=None):
     thumbsize_list = [thumbsize] * len(gid_list)
     gpath_list = ibs.get_image_paths(gid_list)
     orient_list = ibs.get_image_orientation(gid_list)
+    aids_list = ibs.get_image_aids(gid_list)
     if draw_annots:
-        aids_list = ibs.get_image_aids(gid_list)
         bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
     else:
