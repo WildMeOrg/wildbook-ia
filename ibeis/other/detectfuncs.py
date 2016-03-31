@@ -132,8 +132,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
                 #species_name = 'grevys_zebra'
                 info = {}
                 species_name = ibs.get_annot_species_texts(aid)
-                if species_name not in ['zebra_plains', 'zebra_grevys']:
-                    species_name = 'unspecified'
+                # if species_name not in ['zebra_plains', 'zebra_grevys']:
+                #     species_name = 'unspecified'
                 # yaw = ibs.get_annot_yaw_texts(aid)
                 # if yaw != '' and yaw is not None:
                 #     info['pose'] = yaw
