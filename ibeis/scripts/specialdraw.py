@@ -5,23 +5,19 @@ import utool as ut
 
 def general_identify_flow():
     r"""
-    Returns:
-        ?: name
-
     CommandLine:
         python -m ibeis.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi=100 --diskshow --clipwhite
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.scripts.specialdraw import *  # NOQA
         >>> general_identify_flow()
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
         >>> ut.show_if_requested()
     """
+    import networkx as nx
     import plottool as pt
     pt.ensure_pylab_qt4()
-    import networkx as nx
     # pt.plt.xkcd()
 
     graph = nx.DiGraph()
