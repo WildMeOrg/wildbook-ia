@@ -1073,6 +1073,11 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
     Notes:
         requires CPLEX
 
+    CommandLine:
+        python -m vtool.clustering2 unsupervised_multicut_labeling --show
+
+    Ignore:
+
         >>> # synthetic data
         >>> import vtool as vt
         >>> size = 100
@@ -1081,20 +1086,26 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> np.zeros((size, size))
         >>> #np.random.rand(size, size)
         >>> size = 45
-        >>> size = 10
+        >>> #size = 10
+        >>> size = 5
+        >>> aids = np.arange(size)
         >>> rng = np.random.RandomState(443284320)
+        >>> encounter_lbls = rng.randint(0, size, size)
         >>> separation = 5.0
         >>> separation = 1.10
-        >>> aids = np.arange(size)
-        >>> encounter_lbls = rng.randint(0, size, size)
         >>> grid1 = np.tile(encounter_lbls, (size, 1))
         >>> is_match = grid1.T == grid1
         >>> good_pos = np.where(is_match)
-        >>> bad_pos = np.where(~is_match)
-        >>> cost_matrix = np.empty((size, size))
-        >>> cost_matrix[good_pos] = rng.randn(len(good_pos[0])) + separation
-        >>> cost_matrix[bad_pos] = rng.randn(len(bad_pos[0])) - separation
-        >>> cost_matrix[np.diag_indices_from(cost_matrix)] = np.inf
+        >>> bad_pos = np.where(~s_match)
+        >>> cost_matrix_ = np.zeros((size, size))
+        >>> cost_matrix_[good_pos] = rng.randn(len(good_pos[0])) + separation
+        >>> cost_matrix_[bad_pos] = rng.randn(len(bad_pos[0])) - separation
+        >>> false_val = min(cost_matrix_.min(), np.min(rng.randn(1000) - separation))
+        >>> true_val = max(cost_matrix_.max(), np.max(rng.randn(500) + separation))
+        >>> cost_matrix_[np.diag_indices_from(cost_matrix_)] = true_val
+        >>> #cost_matrix_[np.diag_indices_from(cost_matrix_)] = np.inf
+        >>> cost_matrix = (cost_matrix_ - false_val) / (true_val - false_val)
+        >>> cost_matrix = 2 * (cost_matrix - .5)
         >>> thresh = 0
         >>> labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
         >>> diff = ut.compare_groupings(
@@ -1102,9 +1113,94 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>>     list(ut.group_items(aids, labels).values()))
         >>> print('diff = %r' % (diff,))
 
-        gm, = ut.exec_func_src(vt.unsupervised_multicut_labeling, key_list=['gm'], sentinal='inf = opengm')
-        parameter = opengm.InfParam()
-        %timeit opengm.inference.Multicut(gm, parameter=parameter).infer()
+        #gm, = ut.exec_func_src(vt.unsupervised_multicut_labeling,
+        #key_list=['gm'], sentinal='inf = opengm')
+        #parameter = opengm.InfParam()
+        #%timeit opengm.inference.Multicut(gm, parameter=parameter).infer()
+
+    Example:
+        >>> # SCRIPT
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import networkx as nx
+        >>> import plottool as pt
+        >>> rng = np.random.RandomState(443284320)
+        >>> pt.ensure_pylab_qt4()
+        >>> #
+        >>> def make_test_costmatrix(name_labels, view_labels, separation=2):
+        >>>     is_same = name_labels == name_labels[:, None]
+        >>>     is_comp = np.abs(view_labels - view_labels[:, None]) <= 1
+        >>>     good_pos = np.where(is_same)
+        >>>     bad_pos = np.where(~is_same)
+        >>>     cost_matrix_ = np.zeros((len(name_labels), len(name_labels)))
+        >>>     cost_matrix_[good_pos] = rng.randn(len(good_pos[0])) + separation
+        >>>     cost_matrix_[bad_pos] = rng.randn(len(bad_pos[0])) - separation
+        >>>     cost_matrix_ = (cost_matrix_.T + cost_matrix_) / 2
+        >>>     false_val = min(cost_matrix_.min(), np.min(rng.randn(1000) - separation))
+        >>>     true_val = max(cost_matrix_.max(), np.max(rng.randn(500) + separation))
+        >>>     cost_matrix_[np.diag_indices_from(cost_matrix_)] = true_val
+        >>>     cost_matrix = (cost_matrix_ - false_val) / (true_val - false_val)
+        >>>     cost_matrix = 2 * (cost_matrix - .5)
+        >>>     cost_matrix[np.where(~is_comp)] = 0
+        >>>     return cost_matrix
+        >>> #
+        >>> view_labels = np.array([0, 0, 2, 2, 1, 0, 0, 0])
+        >>> name_labels = np.array([0, 0, 0, 0, 0, 1, 1, 1])
+        >>> #cost_matrix = make_test_costmatrix(name_labels, view_labels, 2)
+        >>> cost_matrix = make_test_costmatrix(name_labels, view_labels, .9)
+        >>> #
+        >>> def multicut_value(cost_matrix, name_labels):
+        >>>     grid1 = np.tile(name_labels, (len(name_labels), 1))
+        >>>     isdiff = grid1.T != grid1
+        >>>     cut_value = cost_matrix[isdiff].sum()
+        >>>     return cut_value
+        >>> #
+        >>> aids = np.arange(len(name_labels))
+        >>> #
+        >>> graph = ut.nx_from_matrix(cost_matrix)
+        >>> weights = nx.get_edge_attributes(graph, 'weight')
+        >>> #
+        >>> floatfmt1 = ut.partial(ut.map_dict_vals, lambda x: 'w=%.2f' % x)
+        >>> floatfmt2 = ut.partial(ut.map_dict_vals, lambda x: 'l=%.2f' % x)
+        >>> #
+        >>> lens = ut.map_dict_vals(lambda x: (1 - ((x + 1) / 2)) / 2, weights)
+        >>> labels = floatfmt1(weights)
+        >>> #labels = floatfmt2(lens)
+        >>> nx.set_edge_attributes(graph, 'label', labels)
+        >>> #nx.set_edge_attributes(graph, 'len', lens)
+        >>> nx.set_node_attributes(graph, 'shape', 'ellipse')
+        >>> encounter_lbls_str = [str(x) for x in name_labels]
+        >>> node_name_lbls = dict(zip(aids, encounter_lbls_str))
+        >>> import vtool as vt
+        >>> #
+        >>> mcut_labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh=vt.eps)
+        >>> diff = ut.compare_groupings(
+        >>>     list(ut.group_items(aids, name_labels).values()),
+        >>>     list(ut.group_items(aids, mcut_labels).values()))
+        >>> print('diff = %r' % (diff,))
+        >>> #
+        >>> nx.set_node_attributes(graph, 'label', node_name_lbls)
+        >>> node_mcut_lbls = dict(zip(aids, mcut_labels))
+        >>> nx.set_node_attributes(graph, 'mcut_label', node_mcut_lbls)
+        >>> #
+        >>> print('mc_val(name) ' + str(multicut_value(cost_matrix, name_labels)))
+        >>> print('mc_val(mcut) ' + str(multicut_value(cost_matrix, mcut_labels)))
+        >>> #
+        >>> ut.color_nodes(graph, 'mcut_label')
+        >>> #
+        >>> # remove noncomparable edges
+        >>> is_comp = np.abs(view_labels - view_labels[:, None]) <= 1
+        >>> #
+        >>> noncomp_edges = list(zip(*np.where(~is_comp)))
+        >>> graph.remove_edges_from(noncomp_edges)
+        >>> #
+        >>> layoutkw = {
+        >>>     'sep' : 5,
+        >>>     'prog': 'neato',
+        >>>     'overlap': 'false',
+        >>>     'splines': 'spline',
+        >>> }
+        >>> pt.show_nx(graph, layoutkw=layoutkw, asdirected=False)
+        >>> ut.show_if_requested()
 
     """
     import opengm
