@@ -38,7 +38,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
     import random
     from datetime import date
 
-    current_year = date.today().year
+    current_year = int(date.today().year)
     # target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -160,7 +160,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
 
             if gid in test_gid_set:
                 sets_dict['test'].append(out_name)
-            elif gid in train_gid_set:
+            elif True or gid in train_gid_set:
                 state = random.uniform(0.0, 1.0)
                 if state <= 0.75:
                     sets_dict['train'].append(out_name)

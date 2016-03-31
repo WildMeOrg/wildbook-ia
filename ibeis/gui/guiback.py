@@ -1830,7 +1830,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @backreport
     def dev_export_annotations(back):
         ibs = back.ibs
-        ibs.export_to_xml(ibs)
+        ibs.export_to_xml()
 
     def start_web_server_parallel(back, browser=True):
         import ibeis
