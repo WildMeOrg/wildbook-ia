@@ -37,7 +37,7 @@ class IBEIS_Object(object):
 
             ibso.parts = []
         # Pose
-        if ibso.pose < 0:
+        if ibso.pose < 0 or ibso.pose == []:
             ibso.pose_str = 'Unspecified'
         else:
             bin_size = 2.0 * math.pi / len(BINS)

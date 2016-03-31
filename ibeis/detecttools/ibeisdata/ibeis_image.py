@@ -28,7 +28,10 @@ class IBEIS_Image(object):
             size = com.get(_xml, 'size', text=False)
             ibsi.width = int(com.get(size, 'width'))
             ibsi.height = int(com.get(size, 'height'))
-            ibsi.depth = int(com.get(size, 'depth'))
+            try:
+                ibsi.depth = int(com.get(size, 'depth'))
+            except TypeError:
+                ibsi.depth = 3
 
             ibsi.segmented = com.get(size, 'segmented') == "1"
 
@@ -140,16 +143,18 @@ class IBEIS_Image(object):
     def image_path(ibsi):
         return os.path.join(ibsi.absolute_dataset_path, "JPEGImages", ibsi.filename)
 
-    def categories(ibsi, unique=True, patches=False):
+    def categories(ibsi, unique=True, sorted_=True, patches=False):
         temp = [ _object.name for _object in ibsi.objects ]
         if patches:
             temp += [ _object.name for _object in ibsi.objects_patches ]
         if unique:
-            temp = set(temp)
-        return sorted(temp)
+            temp = list(set(temp))
+        if sorted_:
+            temp = sorted(temp)
+        return temp
 
-    def bounding_boxes(ibsi, parts=False):
-        return [ _object.bounding_box(parts) for _object in ibsi.objects ]
+    def bounding_boxes(ibsi, **kwargs):
+        return [ _object.bounding_box(**kwargs) for _object in ibsi.objects ]
 
     def _accuracy_match(ibsi, prediction, object_list):
 
