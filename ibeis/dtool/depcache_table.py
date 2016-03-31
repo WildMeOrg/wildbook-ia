@@ -1036,7 +1036,7 @@ class _TableComputeHelper(object):
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table', 'table.parents()', 'parent_ids_', 'config', 'argsT',
-                'config_rowid', 'dirty_parent_ids', 'table.preproc_func'
+                'config_rowid', 'dirty_parent_ids', 'table.preproc_func',
                 'preproc_args',
             ])
             raise
