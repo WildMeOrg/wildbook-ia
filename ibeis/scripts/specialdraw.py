@@ -8,6 +8,10 @@ def double_depcache_graph():
     CommandLine:
         python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
 
+        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite
+        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=.5
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.specialdraw import *  # NOQA
@@ -23,8 +27,9 @@ def double_depcache_graph():
     pt.ensure_pylab_qt4()
     # pt.plt.xkcd()
     ibs = ibeis.opendb('testdb1')
-    annot_graph = ibs.depc_annot.make_graph(reduced=True)
-    image_graph = ibs.depc_image.make_graph(reduced=True)
+    reduced = 1
+    annot_graph = ibs.depc_annot.make_graph(reduced=reduced)
+    image_graph = ibs.depc_image.make_graph(reduced=reduced)
     graph = nx.compose_all([image_graph, annot_graph])
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
@@ -44,24 +49,36 @@ def double_depcache_graph():
         # 'nodesep': 5,
         # 'nodesep': 1,
     }
-    nx.relabel_nodes(graph, {
+
+    for u, v, d in graph.edges(data=True):
+        localid = d.get('local_input_id')
+        if localid:
+            d['headlabel'] = localid
+            d['taillabel'] = localid
+            #d['label'] = localid
+            pass
+    node_alias = {
         'chips': 'Chip',
         'images': 'Image',
         'feat': 'Feats',
-        'featweight': 'Feat weights',
+        'featweight': 'Feat Weights',
         'thumbnails': 'Thumbnail',
         'detections': 'Detections',
         'annotations': 'Annotation',
-        'Notch_Tips': 'Notch tips',
-        'probchip': 'Prob chip',
-        'Cropped_Chips': 'Croped chip',
-        'Trailing_Edge': 'Trailing edge',
-        'Block_Curvature': 'Block curvature',
+        'Notch_Tips': 'Notch Tips',
+        'probchip': 'Prob Chip',
+        'Cropped_Chips': 'Croped Chip',
+        'Trailing_Edge': 'Trailing Edge',
+        'Block_Curvature': 'Block Curvature',
         # 'BC_DTW': 'block curvature /\n dynamic time warp',
-        'BC_DTW': 'DTW distance',
-        'vsone': 'Hotspotter vsone',
-        # 'vsmany': 'vsmany hotspotter',
-    }, copy=False)
+        'BC_DTW': 'DTW Distance',
+        'vsone': 'Hots vsone',
+        'feat_neighbs': 'Nearest Neighbors',
+        'vsmany': 'Hots vsmany',
+        'sver': 'Spatial Verification',
+    }
+    node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(), graph.nodes()))
+    nx.relabel_nodes(graph, node_alias, copy=False)
     fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
     pt.gca().set_aspect('equal')
     pt.figure()
@@ -489,6 +506,9 @@ def intraoccurrence_connected():
         explicit_graph = pt.get_explicit_graph(graph)
         _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
                                              **layoutkw)
+        graph_layout_attrs = layout_info['graph_layout_attrs']  # NOQA
+        edge_layout_attrs  = layout_info['edge_layout_attrs']   # NOQA
+        node_layout_attrs  = layout_info['node_layout_attrs']   # NOQA
 
         nx.set_node_attributes(graph, 'pos', layout_info['node_pos'])
         nx.set_edge_attributes(graph, 'pos', layout_info['edge_pos'])

@@ -12,6 +12,71 @@ from six.moves import map, range
 print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
 
 
+def scorediff(ibs, testres, f=None, verbose=None):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        testres (ibeis.TestResult):  test result object
+        f (None): (default = None)
+        verbose (bool):  verbosity flag(default = None)
+
+    CommandLine:
+        python -m ibeis.expt.experiment_drawing scorediff --db PZ_Master1 -a timectrl -t best --show
+
+        python -m ibeis.expt.experiment_drawing scorediff --db humpbacks_fb \
+            -a default:has_any=hasnotch,mingt=2 \
+            -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
+        >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+        >>> scorediff(ibs, testres, f=f, verbose=ut.VERBOSE)
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    annot_matches = testres.cfgx2_qreq_[0].execute()
+    score_diffs = []
+    top_scores = []
+    for amatch in annot_matches:
+        annot_scores = sorted(amatch.annot_score_list, key=lambda x: -x)
+        diff = annot_scores[0] - annot_scores[1]
+        top_scores.append(annot_scores[0])
+        score_diffs.append(diff)
+    score_diffs = np.array(score_diffs)
+    top_scores = np.array(top_scores)
+
+    succ = np.where(testres.get_truth2_prop()[0]['gt']['rank'][:, 0] == 0)
+    fail = np.where(testres.get_truth2_prop()[0]['gt']['rank'][:, 0] != 0)
+
+    #fail = np.where(testres.get_truth2_prop()[0]['gt']['score'][:, 0] != 0)
+    #succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=[0, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1])
+    #fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=[0, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1])
+    #bin_max = (score_diffs.max() - score_diffs.min()) / 50
+
+    nbins = 8
+    #bin_width = (score_diffs.mean() + score_diffs.std()) / nbins
+    #bin_width = int(np.ceil((score_diffs.mean() + score_diffs.std() / 4) / nbins))
+    bin_width = 1
+    bins = np.arange(nbins) * bin_width
+    succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=bins)
+    fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=bins)
+    ymax = max(max(succ_hist), max(fail_hist)) * 1.1
+
+    pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score', autolabel=False, color='blue', title='Success Cases', ymax=ymax, pnum=(1, 2, 1), fnum=2)
+    pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score', autolabel=False, title='Failure Cases', ymax=ymax, pnum=(1, 2, 2), fnum=2)
+
+    pt.figure(fnum=3)
+    pt.plt.scatter(top_scores[succ], score_diffs[succ], marker='o', color='b',  s=10)
+    pt.plt.scatter(top_scores[fail], score_diffs[fail], marker='x', color='r',  s=10)
+    pt.set_xlabel('top score')
+    pt.set_ylabel('score diff')
+
+
 #@devcmd('scores', 'score', 'namescore_roc')
 def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     """
