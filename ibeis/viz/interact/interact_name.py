@@ -672,8 +672,19 @@ class MatchVerificationInteraction(AbstractInteraction):
                     #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     #])
                     # TODO USE ABSTRACT INTERACTION
-                    from ibeis.viz.interact import interact_chip
-                    options = interact_chip.build_annot_context_options(self.ibs, aid, refresh_func=self.show_page)
+                    #from ibeis.viz.interact import interact_chip
+                    from ibeis.gui import inspect_gui
+
+                    options = inspect_gui.get_aidpair_context_menu_options(
+                        self.ibs, self.qaid, self.daid, self.qres,
+                        qreq_=self.qreq_,
+                        #update_callback=self.show_page,
+                        #backend_callback=None, aid_list=aid_list)
+                    )
+
+                    #options = interact_chip.build_annot_context_options(self.ibs, aid, refresh_func=self.show_page)
+                    #options = [
+                    #] + options
                     self.show_popup_menu(options, event)
                     #interact_chip.show_annot_context_menu(
                     #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)

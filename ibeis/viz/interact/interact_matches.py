@@ -209,7 +209,7 @@ class MatchInteraction(object):
 
             if is_match_type:
                 options += inspect_gui.get_aidpair_context_menu_options(
-                    self.ibs, self.qaid, self.daid, self.qres,
+                    self.ibs, self.qaid, self.daid, self.cm,
                     qreq_=self.qreq_,
                     #update_callback=self.show_page,
                     #backend_callback=None, aid_list=aid_list)
