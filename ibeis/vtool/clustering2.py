@@ -1199,7 +1199,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>>     'overlap': 'false',
         >>>     'splines': 'spline',
         >>> }
-        >>> pt.show_nx(graph, layoutkw=layoutkw, asdirected=False)
+        >>> pt.show_nx(graph, layoutkw=layoutkw)
         >>> ut.show_if_requested()
 
     """
