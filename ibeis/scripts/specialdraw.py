@@ -3,6 +3,72 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
 
 
+def double_depcache_graph():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> result = double_depcache_graph()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import networkx as nx
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+    # pt.plt.xkcd()
+    ibs = ibeis.opendb('testdb1')
+    annot_graph = ibs.depc_annot.make_graph(reduced=True)
+    image_graph = ibs.depc_image.make_graph(reduced=True)
+    graph = nx.compose_all([image_graph, annot_graph])
+    # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
+    # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
+    userdecision = ut.nx_makenode(graph, 'User decision', shape='rect', color=pt.YELLOW, style='diagonals')
+    longcat = True
+    graph.add_edge('detections', userdecision, constraint=longcat)
+    graph.add_edge(userdecision, 'annotations', constraint=longcat)
+    # graph.add_edge(userdecision, 'annotations', implicit=True, color=[0, 0, 0])
+    if not longcat:
+        graph.add_edge('images', 'annotations', style='invis')
+        graph.add_edge('thumbnails', 'annotations', style='invis')
+        graph.add_edge('thumbnails', userdecision, style='invis')
+    graph.remove_node('Has_Notch')
+    graph.remove_node('annotmask')
+    layoutkw = {
+        # 'ranksep': 2,
+        # 'nodesep': 5,
+        # 'nodesep': 1,
+    }
+    nx.relabel_nodes(graph, {
+        'chips': 'Chip',
+        'images': 'Image',
+        'feat': 'Feats',
+        'featweight': 'Feat weights',
+        'thumbnails': 'Thumbnail',
+        'detections': 'Detections',
+        'annotations': 'Annotation',
+        'Notch_Tips': 'Notch tips',
+        'probchip': 'Prob chip',
+        'Cropped_Chips': 'Croped chip',
+        'Trailing_Edge': 'Trailing edge',
+        'Block_Curvature': 'Block curvature',
+        # 'BC_DTW': 'block curvature /\n dynamic time warp',
+        'BC_DTW': 'DTW distance',
+        'vsone': 'Hotspotter vsone',
+        # 'vsmany': 'vsmany hotspotter',
+    }, copy=False)
+    fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    pt.gca().set_aspect('equal')
+    pt.figure()
+    pt.show_nx(graph, layoutkw=layoutkw, fontkw=fontkw)
+    pt.zoom_factory()
+
+
 def general_identify_flow():
     r"""
     CommandLine:
@@ -22,14 +88,8 @@ def general_identify_flow():
 
     graph = nx.DiGraph()
 
-    def makenode(name, **attrkw):
-        if 'size' in attrkw:
-            attrkw['width'], attrkw['height'] = attrkw.pop('size')
-        graph.add_node(name, **attrkw)
-        return name
-
     def makecluster(name, num, **attrkw):
-        return [makenode(name + str(n), **attrkw) for n in range(num)]
+        return [ut.nx_makenode(name + str(n), **attrkw) for n in range(num)]
 
     def add_edge2(u, v, *args, **kwargs):
         v = ut.ensure_iterable(v)
@@ -39,23 +99,23 @@ def general_identify_flow():
 
     ns = 500
 
-    annot1 = makenode('Annotation X', width=ns, height=ns, groupid='annot')
-    annot2 = makenode('Annotation Y', width=ns, height=ns, groupid='annot')
+    annot1 = ut.nx_makenode('Annotation X', width=ns, height=ns, groupid='annot')
+    annot2 = ut.nx_makenode('Annotation Y', width=ns, height=ns, groupid='annot')
 
-    global_pairvec = makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2)
-    local_pairvec = makenode('Local similarities\n(LNBNN, spatial error, ...)',
-                             size=(ns * 2.2, ns))
-    prob = makenode('Matching Probability\n(same individual given\nsimilar viewpoint)')
-    classifier = makenode('Classifier\n(SVM/RF/DNN)')
-    agglocal = makenode('Aggregate', size=(ns / 1.1, ns / 2))
-    catvecs = makenode('Concatenate', shape='box', size=(ns / 1.1, ns / 2))
-    pairvec = makenode('Vector of\npairwise similarities')
-    findnn = makenode('Find correspondences\n(nearest neighbors)')
+    global_pairvec = ut.nx_makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2)
+    local_pairvec = ut.nx_makenode('Local similarities\n(LNBNN, spatial error, ...)',
+                                   size=(ns * 2.2, ns))
+    prob = ut.nx_makenode('Matching Probability\n(same individual given\nsimilar viewpoint)')
+    classifier = ut.nx_makenode('Classifier\n(SVM/RF/DNN)')
+    agglocal = ut.nx_makenode('Aggregate', size=(ns / 1.1, ns / 2))
+    catvecs = ut.nx_makenode('Concatenate', shape='box', size=(ns / 1.1, ns / 2))
+    pairvec = ut.nx_makenode('Vector of\npairwise similarities')
+    findnn = ut.nx_makenode('Find correspondences\n(nearest neighbors)')
 
-    featX = makenode('Features X', size=(ns / 1.2, ns / 2),
-                        groupid='feats', shape='rect')
-    featY = makenode('Features Y', size=(ns / 1.2, ns / 2),
-                        groupid='feats', shape='rect')
+    featX = ut.nx_makenode('Features X', size=(ns / 1.2, ns / 2),
+                           groupid='feats', shape='rect')
+    featY = ut.nx_makenode('Features Y', size=(ns / 1.2, ns / 2),
+                           groupid='feats', shape='rect')
 
     graph.add_edge(annot1, global_pairvec)
     graph.add_edge(annot2, global_pairvec)
@@ -131,12 +191,8 @@ def graphcut_flow():
 
     graph = nx.DiGraph()
 
-    def makenode(name, **attrkw):
-        graph.add_node(name, **attrkw)
-        return name
-
     def makecluster(name, num, **attrkw):
-        return [makenode(name + str(n), **attrkw) for n in range(num)]
+        return [ut.nx_makenode(graph, name + str(n), **attrkw) for n in range(num)]
 
     def add_edge2(u, v, *args, **kwargs):
         v = ut.ensure_iterable(v)
@@ -146,13 +202,13 @@ def graphcut_flow():
 
     ns = 500
 
-    annot1 = makenode('Unlabeled\nannotations\n(query)', width=ns, height=ns,
-                      groupid='annot')
-    annot2 = makenode('Labeled\nannotations\n(database)', width=ns, height=ns,
-                      groupid='annot')
-    occurprob = makenode('Fully connected\nprobabilities')
-    cacheprob = makenode('Cached \nprobabilities')
-    sparseprob = makenode('Sparse\nprobabilities')
+    annot1 = ut.nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
+                            groupid='annot')
+    annot2 = ut.nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
+                            groupid='annot')
+    occurprob = ut.nx_makenode(graph, 'Fully connected\nprobabilities')
+    cacheprob = ut.nx_makenode(graph, 'Cached \nprobabilities')
+    sparseprob = ut.nx_makenode(graph, 'Sparse\nprobabilities')
 
     graph.add_edge(annot1, occurprob)
 
@@ -160,9 +216,9 @@ def graphcut_flow():
     graph.add_edge(annot2, sparseprob)
     graph.add_edge(annot2, cacheprob)
 
-    matchgraph = makenode('Graph of\npotential matches')
-    cutalgo = makenode('Graph cut algorithm')
-    cc_names = makenode('Identifications,\n splits, and merges are\nconnected compoments')
+    matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches')
+    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm')
+    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected compoments')
 
     graph.add_edge(occurprob, matchgraph)
     graph.add_edge(sparseprob, matchgraph)

@@ -1267,7 +1267,9 @@ class IndexerConfig(dtool.Config):
         return flann_params
 
 
-if False:
+testmode = ut.get_argflag('--testmode')
+
+if testmode:
     @register_preproc(
         #tablename='neighbor_index', parents=['annotations*'],
         #tablename='neighbor_index', parents=['annotations'],
@@ -1331,7 +1333,7 @@ if False:
 #class FeatNeighborConfig(dtool.Config)
 
 
-if False:
+if testmode:
     # NOT YET READY
     @register_preproc(
         tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
