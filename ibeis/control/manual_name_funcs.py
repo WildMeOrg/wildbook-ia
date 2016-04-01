@@ -466,11 +466,25 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
             valid_aids = np.array(ibs._get_all_aids())
             valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
             #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-            aids_list = [
-                valid_aids.take(np.flatnonzero(
-                    np.equal(valid_nids, nid))).tolist()
-                for nid in nid_list_
-            ]
+
+            # MEMORY HOG LIKE A SON OF A BITCH
+            # aids_list = [
+            #     valid_aids.take(np.flatnonzero(
+            #         np.equal(valid_nids, nid))).tolist()
+            #     for nid in nid_list_
+            # ]
+
+            temp = np.zeros((len(valid_nids), ), dtype=np.bool)
+            aids_dict = {}
+            nid_list_unique = np.unique(nid_list_)
+            for nid in nid_list_unique:
+                bool_list = np.equal(valid_nids, nid, out=temp)
+                flattened = np.flatnonzero(bool_list)
+                aid_list = [] if nid < 0 else valid_aids.take(flattened)
+                aid_list = aid_list.tolist()
+                aids_dict[nid] = aid_list
+
+            aids_list = ut.dict_take(aids_dict, nid_list_)
         else:
             # SQL IMPL
             aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
