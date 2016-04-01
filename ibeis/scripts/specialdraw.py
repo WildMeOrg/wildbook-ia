@@ -6,7 +6,7 @@ import utool as ut
 def double_depcache_graph():
     r"""
     CommandLine:
-        python -m ibeis.scripts.specialdraw double_depcache_graph --show
+        python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
 
     Example:
         >>> # DISABLE_DOCTEST
