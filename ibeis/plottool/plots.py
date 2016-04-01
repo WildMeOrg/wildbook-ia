@@ -863,6 +863,13 @@ def plot_score_histograms(scores_list,
             num_bins = int((total_max - start) // bin_width)
         #end = total_max
         bins = [start + (bin_width * count) for count in range(num_bins)]
+    else:
+        import scipy as sp
+        sortscores = np.sort(np.hstack(scores_list))
+        area = sp.integrate.cumtrapz(sortscores)
+        area = area / area[-1]
+        inlier_scores = sortscores[np.logical_and(area < .95, area > .05)]
+        (inlier_scores.max() - inlier_scores.min())
 
     # Plot each datapoint on a line
     _n_max = 0

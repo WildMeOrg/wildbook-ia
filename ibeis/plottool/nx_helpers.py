@@ -476,6 +476,11 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
         print('AFTER LAYOUT')
         print(agraph)
 
+    # TODO: just replace with a single dict of attributes
+    node_layout_attrs = {}
+    edge_layout_attrs = {}
+
+    #
     node_pos = {}
     node_size = {}
     edge_pos = {}
@@ -484,8 +489,10 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     #for node in agraph.nodes():
     for node in graph.nodes():
         anode = pygraphviz.Node(agraph, node)
-        node_pos[node] = parse_anode_pos(anode)
-        node_size[node] = parse_anode_size(anode)
+        node_attrs = parse_anode_layout_attrs(anode)
+        node_layout_attrs[node] = node_attrs
+        node_pos[node] = node_attrs['pos']
+        node_size[node] = node_attrs['size']
 
     if graph.is_multigraph():
         edges = graph.edges(keys=True)
@@ -494,9 +501,13 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
 
     for edge in edges:
         aedge = pygraphviz.Edge(agraph, *edge)
-        edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
-        edge_pos[edge] = edge_ctrlpts
-        edge_endpoints[edge] = endp
+        #edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
+        #edge_pos[edge] = edge_ctrlpts
+        #edge_endpoints[edge] = endp
+        edge_attrs = parse_aedge_layout_attrs(aedge)
+        edge_layout_attrs[edge] = edge_attrs
+        edge_pos[edge] = edge_attrs['ctrl_pts']
+        edge_endpoints[edge] = edge_attrs['end_pt']
 
     if orig_graph is not None:
         if graph.is_multigraph():
@@ -522,16 +533,21 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
             agraph.draw(ut.truepath('~/test_graphviz_draw_implicit.png'))
 
             # Route the implicit edges (must use neato)
-            #agraph.layout(prog=prog, args=args)
             agraph.layout(prog='neato', args='-n ' + args)
-            #print(agraph)
-            #agraph.layout(prog='neato', args='-n ' + args)
 
             for iedge in implicit_edges:
                 aedge = pygraphviz.Edge(agraph, *iedge)
-                edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
-                edge_pos[iedge] = edge_ctrlpts
-                edge_endpoints[iedge] = endp
+                iedge_attrs = parse_aedge_layout_attrs(aedge)
+                edge_layout_attrs[iedge] = iedge_attrs
+                edge_pos[iedge] = edge_attrs['ctrl_pts']
+                edge_endpoints[iedge] = edge_attrs['end_pt']
+                #edge_ctrlpts, startp, endp = parse_aedge_pos(aedge)
+                #edge_pos[iedge] = edge_ctrlpts
+                #edge_endpoints[iedge] = endp
+
+    graph_layout_attrs = dict(
+        splines=splines
+    )
 
     layout_info = dict(
         node_pos=node_pos,
@@ -539,24 +555,45 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
         edge_pos=edge_pos,
         node_size=node_size,
         edge_endpoints=edge_endpoints,
+        graph_layout_attrs=graph_layout_attrs,
+        edge_layout_attrs=edge_layout_attrs,
+        node_layout_attrs=node_layout_attrs,
     )
 
     return graph, layout_info
 
 
-def parse_anode_pos(anode):
+def parse_point(ptstr):
+    try:
+        xx, yy = ptstr.split(',')
+        xy = np.array((float(xx), float(yy)))
+    except:
+        xy = None
+    return xy
+
+
+def parse_anode_layout_attrs(anode):
+    node_attrs = {}
     try:
         xx, yy = anode.attr['pos'].split(',')
         xy = np.array((float(xx), float(yy)))
     except:
         xy = np.array((0.0, 0.0))
-    return xy
+    adpi = 72.0
+    width = float(anode.attr['width']) * adpi
+    height = float(anode.attr['height']) * adpi
+    node_attrs['width'] = width
+    node_attrs['height'] = height
+    node_attrs['size'] = (width, height)
+    node_attrs['pos'] = xy
+    return node_attrs
 
 
-def parse_aedge_pos(aedge):
+def parse_aedge_layout_attrs(aedge):
     """
     parse grpahviz splineType
     """
+    edge_attrs = {}
     apos = aedge.attr['pos']
     endp = None
     startp = None
@@ -579,14 +616,16 @@ def parse_aedge_pos(aedge):
     if endp:
         endp = np.array(endp)
     edge_ctrlpts = edge_ctrlpts
-    return edge_ctrlpts, startp, endp
-
-
-def parse_anode_size(anode):
-    adpi = 72.0
-    width = float(anode.attr['width']) * adpi
-    height = float(anode.attr['height']) * adpi
-    return width, height
+    edge_attrs['ctrl_pts'] = edge_ctrlpts
+    edge_attrs['start_pt'] = startp
+    edge_attrs['end_pt'] = endp
+    edge_attrs['label_pos'] = parse_point(aedge.attr.get('lp', None))
+    edge_attrs['label'] = aedge.attr.get('label', None)
+    edge_attrs['headlabel'] = aedge.attr.get('headlabel', None)
+    edge_attrs['taillabel'] = aedge.attr.get('taillabel', None)
+    edge_attrs['head_lp'] = parse_point(aedge.attr.get('head_lp', None))
+    edge_attrs['tail_lp'] = parse_point(aedge.attr.get('tail_lp', None))
+    return edge_attrs
 
 
 def format_anode_pos(xy, pin=True):
@@ -695,7 +734,6 @@ def draw_network2(graph, node_pos, ax,
                         _xy + [         0,  height / 2],
                         _xy + [ width / 2,           0],
                     ]
-
                     # theta = vt.TAU / 5
                     # bbox = vt.bbox_from_center_wh(center_xy, [width, height])
                     # M = vt.rotation_around_bbox_mat3x3(theta, bbox)
@@ -840,6 +878,8 @@ def draw_network2(graph, node_pos, ax,
                 graphsize = max(figsize)
                 lw = graphsize / 8
                 width =  graphsize / 15
+                width = ut.get_argval('--arrow-width', default=width)
+                print('width = %r' % (width,))
             else:
                 width = .5
                 lw = 1.0
@@ -943,7 +983,6 @@ def draw_network2(graph, node_pos, ax,
                     bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
                     endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
                     endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-                    print('sorted_verts = %r' % (sorted_verts,))
                     beta = (1 / frac_thru)
                     alpha = 1 - beta
                     text_point1 = (alpha * endpoint1) + (beta * endpoint2)
@@ -976,6 +1015,43 @@ def draw_network2(graph, node_pos, ax,
         if not hacknoedge:
             for patch in edge_patch_list:
                 ax.add_patch(patch)
+
+
+def arrowed_spines(ax=None, arrow_length=20, labels=('', ''), arrowprops=None):
+    """
+    References:
+        https://gist.github.com/joferkington/3845684
+    """
+    xlabel, ylabel = labels
+    import plottool as pt
+    if ax is None:
+        ax = pt.plt.gca()
+    if arrowprops is None:
+        arrowprops = dict(arrowstyle='<|-', facecolor='black')
+
+    for i, spine in enumerate(['left', 'bottom']):
+        # Set up the annotation parameters
+        t = ax.spines[spine].get_transform()
+        xy, xycoords = [1, 0], ('axes fraction', t)
+        xytext, textcoords = [arrow_length, 0], ('offset points', t)
+        ha, va = 'left', 'bottom'
+
+        # If axis is reversed, draw the arrow the other way
+        top, bottom = ax.spines[spine].axis.get_view_interval()
+        if top < bottom:
+            xy[0] = 0
+            xytext[0] *= -1
+            ha, va = 'right', 'top'
+
+        if spine is 'bottom':
+            xarrow = ax.annotate(xlabel, xy, xycoords=xycoords, xytext=xytext,
+                                 textcoords=textcoords, ha=ha, va='center',
+                                 arrowprops=arrowprops)
+        else:
+            yarrow = ax.annotate(ylabel, xy[::-1], xycoords=xycoords[::-1],
+                                 xytext=xytext[::-1], textcoords=textcoords[::-1],
+                                 ha='center', va=va, arrowprops=arrowprops)
+    return xarrow, yarrow
 
 
 if __name__ == '__main__':
