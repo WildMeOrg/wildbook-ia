@@ -304,6 +304,14 @@ def get_pointset_extents(pts):
     return bounds
 
 
+def get_pointset_extent_wh(pts):
+    minx, miny = pts.min(axis=0)
+    maxx, maxy = pts.max(axis=0)
+    extent_w = maxx - minx
+    extent_h = maxy - miny
+    return extent_w, extent_h
+
+
 if __name__ == '__main__':
     """
     CommandLine:

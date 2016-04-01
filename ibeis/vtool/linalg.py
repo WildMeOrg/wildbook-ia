@@ -169,12 +169,26 @@ def rotation_mat2x2(theta):
     return rot_
 
 
+def transform_around(M, x, y):
+    tr1_ = translation_mat3x3(-x, -y)
+    tr2_ = translation_mat3x3(x, y)
+    M_ = tr2_.dot(M).dot(tr1_)
+    return M_
+
+
 def rotation_around_mat3x3(theta, x, y):
+    # rot = rotation_mat3x3(theta)
+    # return transform_around(rot, x, y)
     tr1_ = translation_mat3x3(-x, -y)
     rot_ = rotation_mat3x3(theta)
     tr2_ = translation_mat3x3(x, y)
     rot = tr2_.dot(rot_).dot(tr1_)
     return rot
+
+
+def scale_around_mat3x3(sx, sy, x, y):
+    scale_ = scale_mat3x3(sx, sy)
+    return transform_around(scale_, x, y)
 
 
 def rotation_around_bbox_mat3x3(theta, bbox):
