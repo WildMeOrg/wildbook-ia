@@ -568,7 +568,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         use_cache = USE_ACFG_CACHE
 
     # save_cache = True
-    if use_cache or save_cache:
+    if use_cache and save_cache:
         acfg_cacheinfo = get_acfg_cacheinfo(ibs, aidcfg)
         acfg_cachedir, acfg_cachename, aid_cachestr = acfg_cacheinfo
     if use_cache:
@@ -701,7 +701,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         ut.colorprint('L___ EXPAND_ACFGS ___', 'yellow')
 
     # Save filter to cache
-    if save_cache:
+    if use_cache and save_cache:
         ut.ensuredir(acfg_cachedir)
         try:
             ut.save_cache(acfg_cachedir, acfg_cachename, aid_cachestr,
