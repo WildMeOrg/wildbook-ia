@@ -667,7 +667,10 @@ def draw_network2(graph, node_pos, ax,
             angle = 45 if node_shape == 'rhombus' else 0
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
 
-            rounded = 1
+            # rounded = angle == 0
+            rounded = 'rounded' in graph.node.get(node, {}).get('style', '')
+            isdiag = 'diagonals' in graph.node.get(node, {}).get('style', '')
+
             if rounded:
                 from matplotlib import patches
                 rpad = 20
@@ -678,9 +681,37 @@ def draw_network2(graph, node_pos, ax,
                 patch = mpl.patches.FancyBboxPatch(
                     xy_bl, width, height, boxstyle=boxstyle, **patch_kw)
             else:
-                patch = mpl.patches.Rectangle(
-                    xy_bl, width, height, angle=angle,
-                    **patch_kw)
+                bbox = list(xy_bl) + [width, height]
+                if isdiag:
+                    center_xy  = vt.bbox_center(bbox)
+                    # width = height
+                    # height = width
+                    # angle = 35
+                    # theta = vt.TAU / 8
+                    _xy =  np.array(center_xy)
+                    newverts_ = [
+                        _xy + [         0, -height / 2],
+                        _xy + [-width / 2,           0],
+                        _xy + [         0,  height / 2],
+                        _xy + [ width / 2,           0],
+                    ]
+
+                    # theta = vt.TAU / 5
+                    # bbox = vt.bbox_from_center_wh(center_xy, [width, height])
+                    # M = vt.rotation_around_bbox_mat3x3(theta, bbox)
+                    # verts = np.array(vt.verts_from_bbox(bbox))
+                    # newverts = vt.transform_points_with_homography(M, verts.T).T
+                    # sf = np.array([width, height]) / np.array(vt.get_pointset_extent_wh(newverts))
+                    # S = vt.scale_around_mat3x3(sf[0], sf[1], center_xy[0], center_xy[1])
+                    # newverts_ = vt.transform_points_with_homography(S, newverts.T).T
+                    patch = mpl.patches.Polygon(newverts_, **patch_kw)
+                else:
+
+                    # patch = pt.make_bbox(bbox, theta=angle, fill=True,
+                    #                      **patch_kw)
+                    patch = mpl.patches.Rectangle(
+                        xy_bl, width, height, angle=angle,
+                        **patch_kw)
             patch.center = xy
         #if style == 'rounded'
         #elif node_shape in ['roundbox']:

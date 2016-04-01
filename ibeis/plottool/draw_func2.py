@@ -1064,7 +1064,7 @@ def cartoon_stacked_rects(xy, width, height, num=4, **kwargs):
     return col
 
 
-def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0):
+def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0, fill=None, **kwargs):
     if ax is None:
         ax = gca()
     (rx, ry, rw, rh) = bbox
@@ -1074,8 +1074,8 @@ def make_bbox(bbox, theta=0, bbox_color=None, ax=None, lw=2, alpha=1.0):
     trans_annotation.rotate(theta)
     trans_annotation.translate(rx + rw / 2, ry + rh / 2)
     t_end = trans_annotation + ax.transData
-    bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=lw, transform=t_end)
-    bbox.set_fill(False)
+    bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=lw, transform=t_end, **kwargs)
+    bbox.set_fill(fill if fill else None)
     bbox.set_alpha(alpha)
     #bbox.set_transform(trans)
     bbox.set_edgecolor(bbox_color)
