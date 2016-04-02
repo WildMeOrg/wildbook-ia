@@ -1264,8 +1264,6 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 GZ_ALL --db2 GZ_Master1
         python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys --db2 GZ_Master1
 
-        python -m ibeis.dbio.export_subset --test-merge_databases2:1
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
@@ -1288,28 +1286,6 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         >>> merge_databases2(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
         >>> ibs_dst.print_dbinfo()
-
-    Example2:
-       >>> # DISABLE_DOCTEST
-       >>> from ibeis.dbio.export_subset import *  # NOQA
-       >>> from os.path import abspath, expanduser
-       >>> import ibeis
-       >>> ibs_dst = ibeis.opendb(dbdir=abspath(expanduser('~/Desktop/ALL_Paper')))
-       >>> ibs_src = ibeis.opendb(dbdir=abspath(expanduser('~/Desktop/GZ_Paper')))
-       >>> # OPEN A CLEAN DATABASE
-       >>> merge_databases2(ibs_src, ibs_dst)
-       >>> check_merge(ibs_src, ibs_dst)
-       >>> gid_list = ibs_dst.get_valid_gids()
-       >>> uuid_list = ibs_dst.get_image_uuids(gid_list)
-       >>> gid_list_src = ibs_src.get_image_gids_from_uuid(uuid_list)
-       >>> train_imgsetid = ibs_dst.get_imageset_imgsetids_from_text('TRAIN_SET')
-       >>> test_imgsetid = ibs_dst.get_imageset_imgsetids_from_text('TEST_SET')
-       >>> imagesettexts_list = ibs_src.get_image_imagesettext(gid_list_src)
-       >>> for gid, imagesettext_list in zip(gid_list, imagesettexts_list):
-       >>>     if 'TRAIN_SET' in imagesettext_list:
-       >>>         ibs_dst.set_image_imgsetids([gid], [train_imgsetid])
-       >>>     if 'TEST_SET' in imagesettext_list:
-       >>>         ibs_dst.set_image_imgsetids([gid], [test_imgsetid])
     """
     # TODO: ensure images are localized
     # otherwise this wont work
