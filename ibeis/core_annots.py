@@ -1396,6 +1396,25 @@ if testmode:
                                                                        invalid_axs)
             yield qfx2_idx, qfx2_dist
 
+    # NOT YET READY
+    @register_preproc(
+        tablename='sver', parents=['feat_neighbs'],
+        colnames=['chipmatch'], coltypes=[ChipMatch],
+        #configclass=IndexerConfig,
+        chunksize=1, fname='vsmany',
+    )
+    def compute_sver(depc, fid_list, config):
+        pass
+
+    @register_preproc(
+        tablename='vsmany', parents=['sver'],
+        colnames=['chipmatch'], coltypes=[ChipMatch],
+        #configclass=IndexerConfig,
+        chunksize=1, fname='vsmany',
+    )
+    def compute_vsmany(depc, fid_list, config):
+        pass
+
 
 if __name__ == '__main__':
     r"""

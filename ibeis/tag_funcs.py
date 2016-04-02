@@ -272,6 +272,16 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
     return aid_list
 
 
+@register_ibs_method
+def filterflags_annot_tags(ibs, aid_list, **kwargs):
+    """
+    Filter / Find / Search for annotations with particular tags
+    """
+    tags_list = ibs.get_annot_all_tags(aid_list)
+    flags = filterflags_general_tags(tags_list, **kwargs)
+    return flags
+
+
 def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     r"""
     Args:
