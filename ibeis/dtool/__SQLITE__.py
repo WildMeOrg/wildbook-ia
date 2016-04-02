@@ -68,7 +68,12 @@ def REGISTER_SQLITE3_TYPES():
             return memoryview(out.read())
 
     def _read_uuid_from_sqlite3(blob):
-        return uuid.UUID(bytes_le=blob)
+        try:
+            return uuid.UUID(bytes_le=blob)
+        except ValueError:
+            print('WARNING: COULD NOT PARSE UUID %r, GIVING RANDOM' % (blob, ))
+            raw_input('continue... [enter]')
+            return uuid.uuid4()
 
     if six.PY2:
         def _write_uuid_to_sqlite3(uuid_):
