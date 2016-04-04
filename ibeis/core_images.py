@@ -75,7 +75,7 @@ def compute_thumbnails(depc, gid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        ibeis --tf compute_thumbnails --show
+        ibeis --tf compute_thumbnails --show --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -88,6 +88,8 @@ def compute_thumbnails(depc, gid_list, config=None):
         >>> thumbs = depc.get_property('thumbnails', gid_list, 'img', config={'thumbsize': 221})
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(thumbs, nPerPage=4)
+        >>> iteract_obj.start()
         >>> pt.show_if_requested()
     """
 
@@ -174,7 +176,7 @@ def compute_detections(depc, gid_list, config=None):
         (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup
 
     CommandLine:
-        ibeis --tf compute_detections
+        ibeis compute_detections
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -186,9 +188,11 @@ def compute_detections(depc, gid_list, config=None):
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[0:8]
         >>> config = {'algo': 'yolo'}
+        >>> depc.delete_property('detections', gid_list, config=config)
         >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
         >>> print(detects)
         >>> config = {'algo': 'pyrf'}
+        >>> depc.delete_property('detections', gid_list, config=config)
         >>> detects = depc.get_property('detections', gid_list, 'bboxes', config=config)
         >>> print(detects)
     """

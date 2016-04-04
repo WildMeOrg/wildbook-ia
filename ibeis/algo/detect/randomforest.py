@@ -266,7 +266,7 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
         kwargs['scale_list'] = list(map(float, ibs.cfg.detect_cfg.scale_list.split(',')))
         assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
 
-    verbose = kwargs.get('verbose', False)
+    verbose = kwargs.get('verbose', ut.VERBOSE)
     if verbose:
         print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (
             len(tree_path_list), kwargs['scale_list'], ))
