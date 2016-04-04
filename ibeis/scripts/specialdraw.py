@@ -53,7 +53,7 @@ def double_depcache_graph():
     for u, v, d in graph.edges(data=True):
         localid = d.get('local_input_id')
         if localid:
-            d['headlabel'] = localid
+            # d['headlabel'] = localid
             d['taillabel'] = localid
             #d['label'] = localid
             pass
