@@ -522,6 +522,7 @@ def show_if_requested(N=1):
                 extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
                 savekw = {}
                 savekw['transparent'] = True
+                savekw['dpi'] = dpi
                 savekw['edgecolor'] = 'none'
                 fig.savefig(subpath, bbox_inches=extent, **savekw)
                 subpath_list.append(subpath)
