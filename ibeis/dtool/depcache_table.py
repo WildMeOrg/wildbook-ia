@@ -953,7 +953,7 @@ class _TableComputeHelper(object):
             try:
                 _iter = zip(extern_data, extern_fpaths, extern_writers)
                 for obj, fpath, write_func in _iter:
-                    print('WRITE fpath = %r' % (fpath,))
+                    #print('WRITE fpath = %r' % (fpath,))
                     write_func(fpath, obj)
                     ut.assert_exists(fpath, verbose=False)
             except Exception as ex:
