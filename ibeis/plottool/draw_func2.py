@@ -1360,8 +1360,17 @@ def parse_fontkw(**kwargs):
     if 'fontproperties' not in kwargs:
         size = kwargs.get('fontsize', 14)
         weight = kwargs.get('fontweight', 'normal')
-        familty = kwargs.get('fontfamilty', 'monospace')
-        font_prop = FontProperties(family=familty, weight=weight, size=size)
+        fontname = kwargs.get('fontname', None)
+        if fontname is not None:
+            # TODO catch user warning
+            '/usr/share/fonts/truetype/'
+            '/usr/share/fonts/opentype/'
+            fontpath = mpl.font_manager.findfont(fontname,
+                                                 fallback_to_default=False)
+            font_prop = FontProperties(fname=fontpath, weight=weight, size=size)
+        else:
+            familty = kwargs.get('fontfamilty', 'monospace')
+            font_prop = FontProperties(family=familty, weight=weight, size=size)
     else:
         font_prop = kwargs['fontproperties']
     return font_prop

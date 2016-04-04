@@ -601,6 +601,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     import plottool as pt
 
     font_prop = pt.parse_fontkw(**kwargs)
+    print('font_prop = %r' % (font_prop,))
+    print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
 
     node_patch_list = []
     edge_patch_list = []
@@ -789,7 +791,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 lw = graphsize / 8
                 width =  graphsize / 15
                 width = ut.get_argval('--arrow-width', default=width)
-                print('width = %r' % (width,))
+                #print('width = %r' % (width,))
             else:
                 width = .5
                 lw = 1.0
