@@ -1176,7 +1176,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                     'parent_colx': parent_data.get('parent_colx'),
                     'edge_type': edge_type_id,
                     'local_input_id': local_input_id,
-                    'headlabel': local_input_id,  # proper graphviz attribute
+                    'taillabel': local_input_id,  # proper graphviz attribute
                 }
                 return edge_data
             edges = [
