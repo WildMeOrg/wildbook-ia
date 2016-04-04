@@ -102,11 +102,13 @@ class ChipConfig(dtool.Config):
         ut.ParamInfo('ext', '.png', hideif='.png'),
     ]
 
+ChipImgType = dtool.ExternType(vt.imread, vt.imwrite, extkey='ext')
+
 
 @register_preproc(
     tablename='chips', parents=['annotations'],
     colnames=['img', 'width', 'height', 'M'],
-    coltypes=[('extern', vt.imread), int, int, np.ndarray],
+    coltypes=[ChipImgType, int, int, np.ndarray],
     configclass=ChipConfig,
     fname='chipcache4',
     rm_extern_on_delete=True,
@@ -235,7 +237,6 @@ def compute_chip(depc, aid_list, config=None):
         z1 = ibs.depc_annot.get_rowids('feat', aid_list, config={'histeq': True})
         z2 = ibs.depc_annot.get_rowids('feat', aid_list)
         assert len(set(z1).intersection(z2)) == 0
-
     """
     print('Preprocess Chips')
     print('config = %r' % (config,))
@@ -245,21 +246,21 @@ def compute_chip(depc, aid_list, config=None):
 
     ut.ensuredir(chip_dpath)
 
-    ext = config['ext']
+    #ext = config['ext']
     pad = config['pad']
     dim_size = config['dim_size']
     dim_tol = config['dim_tol']
     resize_dim = config['resize_dim']
 
-    cfghashid = config.get_hashid()
-    avuuid_list = ibs.get_annot_visual_uuids(aid_list)
+    #cfghashid = config.get_hashid()
+    #avuuid_list = ibs.get_annot_visual_uuids(aid_list)
 
     # TODO: just hash everything together
-    _fmt = 'chip_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
-    cfname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
-                   for aid, avuuid in zip(aid_list, avuuid_list)]
-    cfpath_list = [ut.unixjoin(chip_dpath, chip_fname)
-                   for chip_fname in cfname_list]
+    #_fmt = 'chip_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
+    #cfname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
+    #               for aid, avuuid in zip(aid_list, avuuid_list)]
+    #cfpath_list = [ut.unixjoin(chip_dpath, chip_fname)
+    #               for chip_fname in cfname_list]
 
     #gfpath_list = ibs.get_annot_image_paths(aid_list)
     gid_list    = ibs.get_annot_gids(aid_list)
@@ -299,7 +300,8 @@ def compute_chip(depc, aid_list, config=None):
     M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
               bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)]
 
-    arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
+    #arg_iter = zip(cfpath_list, gid_list, newsize_list, M_list)
+    arg_iter = zip(gid_list, newsize_list, M_list)
     arg_list = list(arg_iter)
 
     flags = cv2.INTER_LANCZOS4
@@ -315,18 +317,19 @@ def compute_chip(depc, aid_list, config=None):
 
     for tup in ut.ProgIter(arg_list, lbl='computing chips'):
         # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
-        cfpath, gid, new_size, M = tup
-        # Read parent image
+        #cfpath, gid, new_size, M = tup
+        gid, new_size, M = tup
+        # Read parent image # TODO: buffer this
         imgBGR = ibs.get_images(gid)
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
         for filtfn in filterfn_list:
             chipBGR = filtfn(chipBGR)
         width, height = vt.get_size(chipBGR)
-        #yield (chipBGR, width, height, M)
+        yield (chipBGR, width, height, M)
         # Write chip to disk
-        vt.imwrite(cfpath, chipBGR)
-        yield (cfpath, width, height, M)
+        #vt.imwrite(cfpath, chipBGR)
+        #yield (cfpath, width, height, M)
 
 
 @register_subprop('chips', 'dlen_sqrd')
@@ -434,7 +437,6 @@ class ProbchipConfig(dtool.Config):
     _param_info_list = [
         #ut.ParamInfo('preserve_aspect', True, hideif=True),
         ut.ParamInfo('fw_detector', 'cnn', 'detector='),
-        ut.ParamInfo('ext', '.png'),
         ut.ParamInfo('fw_dim_size', 256, 'sz'),
         ut.ParamInfo('smooth_thresh', 20, 'thresh='),
         ut.ParamInfo('smooth_ksize', 20, 'ksz=', hideif=lambda cfg: cfg['smooth_thresh'] is None),
@@ -445,11 +447,14 @@ class ProbchipConfig(dtool.Config):
     #]
 
 
+ProbchipImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
+                                   vt.imwrite, extern_ext='.png')
+
+
 @register_preproc(
     tablename='probchip', parents=['annotations'],
     colnames=['img'],
-    # FIXME; imwrite
-    coltypes=[('extern', ut.partial(vt.imread, grayscale=True), vt.imwrite)],
+    coltypes=[ProbchipImgType],
     configclass=ProbchipConfig,
     fname='chipcache4',
     # isinteractive=True,
@@ -577,7 +582,7 @@ def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_th
     mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
     _iter = zip(probchip_fpath_list, mask_gen)
     for chunk in ut.ichunks(_iter, 64):
-        _progiter = ut.ProgIter(chunk, lbl='write probchip chunk', adjust=True, time_thresh=30.0)
+        _progiter = ut.ProgIter(chunk, lbl='compute probchip chunk', adjust=True, time_thresh=30.0)
         for probchip_fpath, probchip in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
                 probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
