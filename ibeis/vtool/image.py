@@ -616,6 +616,18 @@ def get_pixel_dist(img, pixel, channel=None):
     return mask2d
 
 
+def make_white_transparent(imgBGR):
+    import vtool as vt
+    dist = vt.get_pixel_dist(imgBGR, [255, 255, 255])
+    # grayflags = np.logical_and(imgBGR[:, :, 0] == imgBGR[:, :, 1], imgBGR[:, :, 1] == imgBGR[:, :, 2])
+    # dist = dist / dist.max()
+    imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
+    # imgBGRA[:, :, 3] = np.maximum(np.round(dist * 255), ~grayflags * 255)
+    # imgBGRA[:, :, 3] = np.round(dist * 255)
+    imgBGRA[:, :, 3] = np.round(dist / 3)
+    return imgBGRA
+
+
 def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
     r"""
     Crops image to remove fillval
