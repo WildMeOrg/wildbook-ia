@@ -91,6 +91,9 @@ def general_identify_flow():
     CommandLine:
         python -m ibeis.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi=100 --diskshow --clipwhite
 
+        python -m ibeis.scripts.specialdraw general_identify_flow --dpi=200 --diskshow --clipwhite --dpath ~/latex/cand/ --figsize=20,10  --save figures4/pairprob.png
+
+
     Example:
         >>> # SCRIPT
         >>> from ibeis.scripts.specialdraw import *  # NOQA
@@ -114,25 +117,31 @@ def general_identify_flow():
         for _u, _v in ut.product(u, v):
             graph.add_edge(_u, _v, *args, **kwargs)
 
-    ns = 500
+    ns = 512
 
-    annot1 = ut.nx_makenode('Annotation X', width=ns, height=ns, groupid='annot')
-    annot2 = ut.nx_makenode('Annotation Y', width=ns, height=ns, groupid='annot')
+    ut.inject_func_as_method(graph, ut.nx_makenode)
 
-    global_pairvec = ut.nx_makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2)
-    local_pairvec = ut.nx_makenode('Local similarities\n(LNBNN, spatial error, ...)',
-                                   size=(ns * 2.2, ns))
-    prob = ut.nx_makenode('Matching Probability\n(same individual given\nsimilar viewpoint)')
-    classifier = ut.nx_makenode('Classifier\n(SVM/RF/DNN)')
-    agglocal = ut.nx_makenode('Aggregate', size=(ns / 1.1, ns / 2))
-    catvecs = ut.nx_makenode('Concatenate', shape='box', size=(ns / 1.1, ns / 2))
-    pairvec = ut.nx_makenode('Vector of\npairwise similarities')
-    findnn = ut.nx_makenode('Find correspondences\n(nearest neighbors)')
+    import matplotlib.colors as colors
+    annot1_color = '#FCA530'
+    annot2_color = '#4771B3'
+    #annot1_color2 = pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .01)
 
-    featX = ut.nx_makenode('Features X', size=(ns / 1.2, ns / 2),
-                           groupid='feats', shape='rect')
-    featY = ut.nx_makenode('Features Y', size=(ns / 1.2, ns / 2),
-                           groupid='feats', shape='rect')
+    annot1 = graph.nx_makenode('Annotation X', width=ns, height=ns, groupid='annot', color='#FCA530')
+    annot2 = graph.nx_makenode('Annotation Y', width=ns, height=ns, groupid='annot', color='#4771B3')
+
+    featX = graph.nx_makenode('Features X', size=(ns / 1.2, ns / 2), groupid='feats', color=pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .1))
+    featY = graph.nx_makenode('Features Y', size=(ns / 1.2, ns / 2), groupid='feats', color=pt.color_funcs.lighten_rgb(colors.hex2color(annot2_color), .1))
+    #'#4771B3')
+
+    global_pairvec = graph.nx_makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2, color='#029F5C')
+    local_pairvec = graph.nx_makenode('Local similarities\n(LNBNN, spatial error, ...)',
+                                      size=(ns * 2.2, ns))
+    prob = graph.nx_makenode('Matching Probability\n(same individual given\nsimilar viewpoint)')
+    classifier = graph.nx_makenode('Classifier\n(SVM/RF/DNN)')
+    agglocal = graph.nx_makenode('Aggregate', size=(ns / 1.1, ns / 2), shape='ellipse')
+    catvecs = graph.nx_makenode('Concatenate', size=(ns / 1.1, ns / 2), shape='ellipse')
+    pairvec = graph.nx_makenode('Vector of\npairwise similarities')
+    findnn = graph.nx_makenode('Find correspondences\n(nearest neighbors)', shape='ellipse')
 
     graph.add_edge(annot1, global_pairvec)
     graph.add_edge(annot2, global_pairvec)
@@ -157,21 +166,61 @@ def general_identify_flow():
     graph.add_edge(classifier, prob)
 
     ut.nx_set_default_node_attributes(graph, 'shape',  'rect')
+    #ut.nx_set_default_node_attributes(graph, 'fillcolor', nx.get_node_attributes(graph, 'color'))
+    #ut.nx_set_default_node_attributes(graph, 'style',  'rounded')
+    ut.nx_set_default_node_attributes(graph, 'style',  'filled,rounded')
     ut.nx_set_default_node_attributes(graph, 'fixedsize', 'true')
+    ut.nx_set_default_node_attributes(graph, 'xlabel', nx.get_node_attributes(graph, 'label'))
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
     ut.nx_set_default_node_attributes(graph, 'height', ns)
     ut.nx_set_default_node_attributes(graph, 'regular', False)
 
+    #font = 'MonoDyslexic'
+    #font = 'Mono_Dyslexic'
+    font = 'Ubuntu'
+    ut.nx_set_default_node_attributes(graph, 'fontsize', 72)
+    ut.nx_set_default_node_attributes(graph, 'fontname', font)
+
+    #ut.nx_delete_node_attr(graph, 'width')
+    #ut.nx_delete_node_attr(graph, 'height')
+    #ut.nx_delete_node_attr(graph, 'fixedsize')
+    #ut.nx_delete_node_attr(graph, 'style')
+    #ut.nx_delete_node_attr(graph, 'regular')
+    #ut.nx_delete_node_attr(graph, 'shape')
+
+    #graph.node[annot1]['label'] = "<f0> left|<f1> mid&#92; dle|<f2> right"
+    #graph.node[annot2]['label'] = ut.codeblock(
+    #    '''
+    #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+    #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
+    #    </TABLE>>
+    #    ''')
+    #graph.node[annot1]['label'] = ut.codeblock(
+    #    '''
+    #    <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+    #      <TR><TD>left</TD><TD PORT="f1">mid dle</TD><TD PORT="f2">right</TD></TR>
+    #    </TABLE>>
+    #    ''')
+
+    #graph.node[annot1]['shape'] = 'none'
+    #graph.node[annot1]['margin'] = '0'
+
     layoutkw = {
+        'forcelabels': True,
         'prog': 'dot',
         'rankdir': 'LR',
         # 'splines': 'curved',
         'splines': 'line',
+        'samplepoints': 20,
+        'showboxes': 1,
         # 'splines': 'polyline',
-        # 'splines': 'spline',
+        #'splines': 'spline',
         'sep': 100 / 72,
         'nodesep': 300 / 72,
         'ranksep': 300 / 72,
+        #'inputscale': 72,
+        'inputscale': 1,
+        'dpi': 72,
         # 'concentrate': 'true', # merges edge lines
         # 'splines': 'ortho',
         # 'aspect': 1,
@@ -180,7 +229,12 @@ def general_identify_flow():
         # 'rank': 'max',
     }
 
-    fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    #fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    #fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
+    #fontkw = dict(fontname='Ubuntu', fontweight='light', fontsize=20)
+    fontkw = dict(fontname=font, fontweight='light', fontsize=12)
+    #prop = fm.FontProperties(fname='/usr/share/fonts/truetype/groovygh.ttf')
+
     pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, **fontkw)
     pt.zoom_factory()
 

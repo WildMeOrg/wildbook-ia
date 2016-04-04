@@ -1426,6 +1426,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.core_annots
         python -m ibeis.core_annots --allexamples
+        utprof.py -m ibeis.core_annots --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -45,9 +45,9 @@ def default_decorator(input_):
     This should be the first decorator applied to all Controller functions
     """
     func_ = input_
-    return profile(func_)
+    #return profile(func_)
     #return ut.indent_func(profile(func_))
-    #return func_
+    return func_
 
 
 # DECORATORS::ADDER
