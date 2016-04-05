@@ -2434,7 +2434,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def update_source_install(back):
         import ibeis
         from os.path import dirname
-        repo_path = dirname(ut.truepath(ut.get_modpath_from_modname(ibeis, prefer_pkg=True)))
+        repo_path = dirname(ut.truepath(ut.get_modpath(ibeis, prefer_pkg=True)))
         with ut.ChdirContext(repo_path):
             command = ut.python_executable() + ' super_setup.py pull'
             ut.cmd(command)
