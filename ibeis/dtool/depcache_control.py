@@ -1033,6 +1033,24 @@ class _CoreDependencyCache(object):
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
 
+    def make_root_info_uuid(depc, root_rowids, info_props):
+        """
+        Creates a uuid that depends on certain properties of the root object.
+        This is used for implicit cache invalidation because, if those
+        properties change then this uuid also changes.
+
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> root_rowids = ibs._get_all_aids()
+        >>> depc = ibs.depc_annot
+        >>> info_props = ['image_uuid', 'verts', 'theta']
+        >>> info_props = ['image_uuid', 'verts', 'theta', 'name', 'species', 'yaw']
+        """
+        getters = ut.dict_take(depc.root_getters, info_props)
+        infotup_list = zip(*[getter(root_rowids) for getter in getters])
+        info_uuid_list = [ut.augment_uuid(*tup) for tup in infotup_list]
+        return info_uuid_list
+
     def get_uuids(depc, tablename, root_rowids, config=None):
         """
         # TODO: Make uuids for dependant object based on root uuid and path of

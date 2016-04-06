@@ -258,7 +258,7 @@ class _TableGeneralHelper(ut.NiceRepr):
         import plottool as pt
         from plottool.interactions import ExpandableInteraction
         expanded_input_graph = table.expanded_input_graph
-        inter = ExpandableInteraction(nCols=1)
+        inter = ExpandableInteraction(nCols=2)
         graph = table.depc.explicit_graph
         nodes = ut.all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
@@ -312,23 +312,23 @@ class _TableGeneralHelper(ut.NiceRepr):
             prev = None  # rinput_path_id[0]
             compressed = []
             for item in rinput_path_id:
-                if item == '1':
-                    continue
-                if item == '*1':
-                    item = '*'
+                #if item == '1':
+                #    continue
+                #if item == '*1':
+                #    item = '*'
                 if item != prev:
                     compressed.append(item)
                 prev = item
-            compressed = ut.list_strip(compressed, '1', right=False)
-            if len(compressed) == 0:
-                compressed = ['1']
-            if len(compressed) == 1 and '*' in compressed[0]:
-                #compressed = compressed + ['1']
-                compressed = ['1'] + compressed
+            #compressed = ut.list_strip(compressed, '1', right=False)
+            #if len(compressed) == 0:
+            #    compressed = ['1']
+            #if len(compressed) == 1 and '*' in compressed[0]:
+            #    #compressed = compressed + ['1']
+            #    compressed = ['1'] + compressed
 
-            if len(compressed) > 2:
-                if '*' not in compressed[-2] and compressed[-1] == '1':
-                    compressed = compressed[:-1]
+            #if len(compressed) > 2:
+            #    if '*' not in compressed[-2] and compressed[-1] == '1':
+            #        compressed = compressed[:-1]
             compressed = tuple(compressed)
             return compressed
 
@@ -346,10 +346,55 @@ class _TableGeneralHelper(ut.NiceRepr):
                 suffix2 = '[' + ','.join(_id2) + ']'
                 u2 = u + suffix1
                 v2 = v + suffix2
+                taillabel = ''
+                if _id1[-1] == '*':
+                    taillabel = '*'
+                    #import utool
+                    #utool.embed()
                 if not expanded_input_graph.has_edge(u2, v2):
-                    expanded_input_graph.add_edge(u2, v2)
+                    expanded_input_graph.add_edge(u2, v2, taillabel=taillabel)
+
             if not expanded_input_graph.has_edge(u2, v2):
                 expanded_input_graph.add_edge(u2, v2)
+
+        # Color Rootmost inputs
+        for node in expanded_input_graph.nodes():
+            root_specifiable = False
+            for edge in expanded_input_graph.in_edges(node, keys=True):
+                edata = expanded_input_graph.get_edge_data(*edge)
+                if edata.get('taillabel') == '*':
+                    root_specifiable = True
+            if expanded_input_graph.in_degree(node) == 0:
+                root_specifiable = True
+            if root_specifiable:
+                expanded_input_graph.node[node]['color'] = [1, .7, .6]
+                expanded_input_graph.node[node]['root_specifiable'] = True
+            else:
+                expanded_input_graph.node[node]['root_specifiable'] = False
+
+        # Need to specify any combo of red nodes such that
+        # 1) for each path from a (leaf) to the (root) there is exactly one
+        # red node along that path.
+        # This garentees that all inputs are gievn.
+        sink_nodes = ut.find_sink_nodes(expanded_input_graph)
+        source_nodes = ut.find_source_nodes(expanded_input_graph)
+        assert len(sink_nodes) == 1, 'can only have one sink node'
+        sink_node = sink_nodes[0]
+        path_list = [nx.shortest_path(expanded_input_graph, source_node, sink_node)
+                     for source_node in source_nodes]
+        rootmost_nodes = set([])
+        for path in path_list:
+            flags = [expanded_input_graph.node[node]['root_specifiable'] for node in path]
+            valid_nodes = ut.compress(path, flags)
+            rootmost_nodes.add(valid_nodes[-1])
+            print('valid_nodes = %r' % (valid_nodes,))
+        print('rootmost_nodes = %r' % (rootmost_nodes,))
+        # Rootmost nodes are the ones specifiable by default when computing
+        # the normal property.
+        for node in rootmost_nodes:
+            expanded_input_graph.node[node]['color'] = [1, 0, 0]
+            expanded_input_graph.node[node]['rootmost'] = True
+        expanded_input_graph.node[sink_node]['color'] = [0, 1, 0]
 
         return expanded_input_graph
 
@@ -725,6 +770,19 @@ class _TableGeneralHelper(ut.NiceRepr):
 class _TableConfigHelper(object):
     """ helper for configuration table """
 
+    def get_parent_rowids(table, rowid_list):
+        """
+        Args:
+            rowid_list (list): native table rowids
+
+        Returns:
+            parent_rowids (list of tuples): tuples of parent rowids
+        """
+        parent_rowids = table.get_internal_columns(
+            rowid_list, table.parent_id_colnames, unpack_scalars=True,
+            keepwrap=True)
+        return parent_rowids
+
     def get_row_parent_rowid_map(table, rowid_list):
         """
         >>> from dtool.depcache_table import *  # NOQA
@@ -733,10 +791,9 @@ class _TableConfigHelper(object):
         key = parent_rowid_dict.keys()[0]
         val = parent_rowid_dict.values()[0]
         """
-        parent_rowids = table.get_internal_columns(rowid_list, table.parent_id_colnames,
-                                                   unpack_scalars=True,
-                                                   keepwrap=True)
-        parent_rowid_dict = dict(zip(table.parent_id_tablenames, ut.list_transpose(parent_rowids)))
+        parent_rowids = table.get_parent_rowids(rowid_list)
+        parent_rowid_dict = dict(zip(table.parent_id_tablenames,
+                                     ut.list_transpose(parent_rowids)))
         return parent_rowid_dict
 
     def get_config_history(table, rowid_list):
@@ -753,9 +810,7 @@ class _TableConfigHelper(object):
         unique_configs = table.get_config_from_rowid(unique_cfgids)
         print('unique_configs = %r' % (unique_configs,))
 
-        parent_rowids = table.get_internal_columns(rowid_list, table.parent_id_colnames,
-                                                   unpack_scalars=True,
-                                                   keepwrap=True)
+        parent_rowids = table.get_parent_rowids(rowid_list)
         ret_list = [unique_configs]
         depc = table.depc
         for tblname, ids in zip(table.parent_id_tablenames,
@@ -965,8 +1020,55 @@ class _TableComputeHelper(object):
             data_new = tuple(ut.ungroup(grouped_items, groupxs, nCols - 1))
             yield data_new
 
+    def get_extern_fnames(table, parent_rowids, config, extern_col_index=0):
+        """
+        convinience function around get_extern_fnames
+
+        Exmaple:
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> depc = ibs.depc_annot
+            >>> tablename = 'chips'
+            >>> table = depc[tablename]
+            >>> extern_col_index = 0
+            >>> info_props = ['image_uuid', 'verts', 'theta']
+            >>> config = depc.configclass_dict[tablename]()
+            >>> root_rowids = [1, 2, 3]
+            >>> rowid_list = depc.get_rowids(tablename, root_rowids)
+            >>> parent_rowids = table.get_parent_rowids(rowid_list)
+            >>> fname_list = table.get_extern_fnames(parent_rowids, config)
+            >>> print('fname_list = %r' % (fname_list,))
+        """
+        config_rowid = table.get_config_rowid(config)
+        # depc.get_rowids(tablename, root_rowids, config)
+        internal_data_col_attrs = table.internal_data_col_attrs
+        writable_flags = ut.dict_take_column(internal_data_col_attrs,
+                                             'write_func', False)
+        extern_colattrs = ut.compress(internal_data_col_attrs, writable_flags)
+        extern_colattr = extern_colattrs[extern_col_index]
+        fname_list = table._get_extern_fnames(parent_rowids, config_rowid,
+                                              config, extern_colattr)
+
+        #if False:
+        #    root_rowids = table.depc.get_root_rowids(table.tablename, rowid_list)
+        #    info_props = ['image_uuid', 'verts', 'theta']
+        #    table.depc.make_root_info_uuid(root_rowids, info_props)
+
+        return fname_list
+
     @profile
     def _get_extern_fnames(table, parent_rowids, config_rowid, config, extern_colattr=None):
+        """
+        TODO:
+            * Clean up signature
+            * Make this function return the filenames used
+              by a specific external column in this table.  The inputs are the
+              parent_rowids, (and the root rowids?), and the config.
+
+        Args:
+            parent_rowids (list of tuples) - list of tuples of rowids
+        """
         config_hashid = table.get_config_hashid([config_rowid])[0]
         prefix = table.tablename
         prefix += '_' + extern_colattr['colname']
@@ -1690,10 +1792,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         # FIXME: understand unpack_scalars and keepwrap
         if table.default_onthefly:
             assert STORE_CFGDICT
-            parent_rowids = table.get_internal_columns(nonNone_tbl_rowids,
-                                                       table.parent_id_colnames,
-                                                       unpack_scalars=True,
-                                                       keepwrap=False)
+            parent_rowids = table.get_parent_rowids(nonNone_tbl_rowids)
             # TODO; groupby config
             config_rowids = table.get_row_cfgid(nonNone_tbl_rowids)
             unique_cfgids, groupxs = ut.group_indices(config_rowids)

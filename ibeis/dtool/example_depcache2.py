@@ -179,6 +179,55 @@ def testdata_depc2():
     return depc
 
 
+def testdata_depc3():
+    """
+    Example of local registration
+    sudo pip install freetype-py
+
+    CommandLine:
+        python -m dtool.example_depcache2 testdata_depc3 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from dtool.example_depcache2 import *  # NOQA
+        >>> depc = testdata_depc3()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> depc.show_graph()
+        >>> depc['smk_match'].show_input_graph()
+        >>> depc['vsone'].show_input_graph()
+        >>> depc['vocab'].show_input_graph()
+        >>> depc['neigbs'].show_input_graph()
+        >>> ut.show_if_requested()
+    """
+    import dtool
+
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
+    cache_dpath = join(dtool_repo, 'DEPCACHE2')
+
+    root = 'annot'
+
+    depc = dtool.DependencyCache(
+        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
+
+    # ----------
+    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
+    def dummy_func(depc, *args, **kwargs):
+        return None
+
+    depc.register_preproc(tablename='indexer', parents=['annot*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='neigbs', parents=['annot', 'indexer'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='vocab', parents=['annot*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='smk_vec', parents=['annot', 'vocab'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='vsone', parents=['annot', 'annot'], **dummy_cols)(dummy_func)
+
+    depc.initialize()
+    return depc
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
