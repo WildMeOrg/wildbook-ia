@@ -776,7 +776,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             if True or not as_directed:
                 if edge_endpoints is not None:
                     endpoint = edge_endpoints.get(edge, None)
-                    if endpoint is not None:
+                    if ut.get_argval('--arrow-width', default=None) is None and endpoint is not None:
                         #print('endpoint = %r' % (endpoint,))
                         verts += [endpoint]
                         codes += [LINETO]
@@ -858,67 +858,6 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 label_pos = layout_info['edge']['lp'][edge]
                 ax.annotate(label, xy=label_pos, xycoords='data',
                             va='center', ha='center', fontproperties=font_prop)
-            # u, v = edge[0:2]
-            # endpoint1 = edge_verts[0]
-            # endpoint2 = edge_verts[len(edge_verts) // 2 - 1]
-            # n1 = patch_dict[u]
-            # n2 = patch_dict[v]
-            # if (data.get('ismulti', False) or data.get('isnwise', False) or
-            #      data.get('local_input_id', False)):
-            #     pt1 = np.array(n1.center)
-            #     pt2 = np.array(n2.center)
-            #     frac_thru = 4
-            #     edge_verts = path.vertices
-            #     edge_verts = vt.unique_rows(edge_verts)
-            #     sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
-            #     if len(sorted_verts) <= 4:
-            #         mpl_bbox = path.get_extents()
-            #         bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
-            #         endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
-            #         endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-            #         beta = (1 / frac_thru)
-            #         alpha = 1 - beta
-            #         text_point1 = (alpha * endpoint1) + (beta * endpoint2)
-            #     else:
-            #         #print('sorted_verts = %r' % (sorted_verts,))
-            #         #text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-            #         #frac_thru = 3
-            #         frac_thru = 6
-
-            #         text_point1 = edge_verts[(len(edge_verts) - 2) // (frac_thru) + 1]
-
-            #     if data.get('local_input_id', False):
-            #         text = data['local_input_id']
-            #         if text == '1':
-            #             text = ''
-            #     elif data.get('ismulti', False):
-            #         text = '*'
-            #     else:
-            #         text = str(data.get('nwise_idx', '!'))
-            #     ax.annotate(text, xy=text_point1, xycoords='data', va='center',
-            #                 ha='center', fontproperties=font_prop)
-            #     #bbox=dict(boxstyle='round', fc=None, alpha=1.0))
-            # if data.get('label', False):
-            #     pt1 = np.array(n1.center)
-            #     pt2 = np.array(n2.center)
-            #     frac_thru = 2
-            #     edge_verts = path.vertices
-            #     edge_verts = vt.unique_rows(edge_verts)
-            #     sorted_verts = edge_verts[vt.L2(edge_verts, pt1).argsort()]
-            #     if len(sorted_verts) <= 4:
-            #         mpl_bbox = path.get_extents()
-            #         bbox = [mpl_bbox.x0, mpl_bbox.y0, mpl_bbox.width, mpl_bbox.height]
-            #         endpoint1 = vt.closest_point_on_bbox(pt1, bbox)
-            #         endpoint2 = vt.closest_point_on_bbox(pt2, bbox)
-            #         beta = (1 / frac_thru)
-            #         alpha = 1 - beta
-            #         text_point1 = (alpha * endpoint1) + (beta * endpoint2)
-            #     else:
-            #         text_point1 = sorted_verts[len(sorted_verts) // (frac_thru)]
-            #         ax.annotate(data['label'], xy=text_point1, xycoords='data',
-            #                     va='center', ha='center',
-            #                     bbox=dict(boxstyle='round', fc='w'))
-            #patch = mpl.patches.PathPatch(path, facecolor='none', lw=1)
             ax.add_patch(patch)
 
     use_collections = False
@@ -944,41 +883,42 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 ax.add_patch(patch)
 
 
-def arrowed_spines(ax=None, arrow_length=20, labels=('', ''), arrowprops=None):
-    """
-    References:
-        https://gist.github.com/joferkington/3845684
-    """
-    xlabel, ylabel = labels
-    import plottool as pt
-    if ax is None:
-        ax = pt.plt.gca()
-    if arrowprops is None:
-        arrowprops = dict(arrowstyle='<|-', facecolor='black')
+# def arrowed_spines(ax=None, arrow_length=20, labels=('', ''), arrowprops=None):
+#     """
+#     TODO arrow splines not spines
+#     References:
+#         https://gist.github.com/joferkington/3845684
+#     """
+#     xlabel, ylabel = labels
+#     import plottool as pt
+#     if ax is None:
+#         ax = pt.plt.gca()
+#     if arrowprops is None:
+#         arrowprops = dict(arrowstyle='<|-', facecolor='black')
 
-    for i, spine in enumerate(['left', 'bottom']):
-        # Set up the annotation parameters
-        t = ax.spines[spine].get_transform()
-        xy, xycoords = [1, 0], ('axes fraction', t)
-        xytext, textcoords = [arrow_length, 0], ('offset points', t)
-        ha, va = 'left', 'bottom'
+#     for i, spine in enumerate(['left', 'bottom']):
+#         # Set up the annotation parameters
+#         t = ax.spines[spine].get_transform()
+#         xy, xycoords = [1, 0], ('axes fraction', t)
+#         xytext, textcoords = [arrow_length, 0], ('offset points', t)
+#         ha, va = 'left', 'bottom'
 
-        # If axis is reversed, draw the arrow the other way
-        top, bottom = ax.spines[spine].axis.get_view_interval()
-        if top < bottom:
-            xy[0] = 0
-            xytext[0] *= -1
-            ha, va = 'right', 'top'
+#         # If axis is reversed, draw the arrow the other way
+#         top, bottom = ax.spines[spine].axis.get_view_interval()
+#         if top < bottom:
+#             xy[0] = 0
+#             xytext[0] *= -1
+#             ha, va = 'right', 'top'
 
-        if spine is 'bottom':
-            xarrow = ax.annotate(xlabel, xy, xycoords=xycoords, xytext=xytext,
-                                 textcoords=textcoords, ha=ha, va='center',
-                                 arrowprops=arrowprops)
-        else:
-            yarrow = ax.annotate(ylabel, xy[::-1], xycoords=xycoords[::-1],
-                                 xytext=xytext[::-1], textcoords=textcoords[::-1],
-                                 ha='center', va=va, arrowprops=arrowprops)
-    return xarrow, yarrow
+#         if spine is 'bottom':
+#             xarrow = ax.annotate(xlabel, xy, xycoords=xycoords, xytext=xytext,
+#                                  textcoords=textcoords, ha=ha, va='center',
+#                                  arrowprops=arrowprops)
+#         else:
+#             yarrow = ax.annotate(ylabel, xy[::-1], xycoords=xycoords[::-1],
+#                                  xytext=xytext[::-1], textcoords=textcoords[::-1],
+#                                  ha='center', va=va, arrowprops=arrowprops)
+#     return xarrow, yarrow
 
 
 if __name__ == '__main__':
