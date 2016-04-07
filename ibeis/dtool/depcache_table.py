@@ -402,7 +402,6 @@ class _TableGeneralHelper(ut.NiceRepr):
     @ut.memoize
     def compute_order(table):
         """
-
         >>> from dtool.depcache_control import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
         >>> import plottool as pt
@@ -413,22 +412,17 @@ class _TableGeneralHelper(ut.NiceRepr):
         >>> table = depc[tablename]
         >>> compute_order = table.compute_order
         >>> print('compute_order = %s' % (ut.repr3(compute_order),))
-
         """
-        # Ensure the input names are in the correct order
-        nonfinal_compute_order = table.nonfinal_compute_order()
-        expected_input_order = table.expected_input_order
-        # List that holds a mapping from input order to input "name"
-        input_order_lookup = ut.make_index_lookup(expected_input_order)
-
-        def resort_names(input_names):
-            ordering = ut.dict_take(input_order_lookup, input_names)
-            sortx = ut.argsort(ordering)
-            return ut.take(input_names, sortx)
-
-        # compute_order = [('raw_input', expected_input_order)]
-        compute_order = [(key, resort_names(input_names))
-                               for key, input_names in nonfinal_compute_order]
+        expanded_input_graph = table.expanded_input_graph
+        #expanded_input_graph
+        attrs = ut.nx_get_default_node_attributes(expanded_input_graph, 'rootmost', False)
+        rootmost_node_lbls = [node for node, v in attrs.items() if v]
+        # hack for labels
+        rootmost_nodes = [node[:node.find('[')] for node in rootmost_node_lbls]
+        ranks = ut.nx_dag_node_rank(table.depc.graph, rootmost_nodes)
+        sortx = ut.argsort(ranks)
+        # TODO Need to make tiebreaker attribute
+        compute_order = ut.take(rootmost_nodes, sortx)
         return compute_order
 
     @ut.memoize

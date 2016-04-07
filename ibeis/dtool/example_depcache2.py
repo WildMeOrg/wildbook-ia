@@ -198,6 +198,7 @@ def testdata_depc3():
         >>> depc['vsone'].show_input_graph()
         >>> depc['vocab'].show_input_graph()
         >>> depc['neigbs'].show_input_graph()
+        >>> print(depc['smk_match'].compute_order)
         >>> ut.show_if_requested()
     """
     import dtool
