@@ -643,7 +643,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             #intcolor = int(node_color.replace('#', '0x'), 16)
         node_color = node_color[0:3]
         patch_kw = dict(alpha=alpha_, color=node_color)
-        node_shape = nattrs.get('shape', 'circle')
+        node_shape = nattrs.get('shape', 'ellipse')
         if node_shape == 'circle':
             # divide by 2 seems to work for agraph
             radius = min(_get_node_size(graph, node, node_size)) / 2.0
