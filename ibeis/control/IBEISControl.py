@@ -554,9 +554,12 @@ class IBEISController(BASE_CLASS):
         # Initialize dependency cache for annotations
         annot_root_getters = {
             'name': ibs.get_annot_names,
-            'bbox': ibs.get_annot_bboxes,
             'species': ibs.get_annot_species,
+            'yaw': ibs.get_annot_yaws,
+            'bbox': ibs.get_annot_bboxes,
+            'verts': ibs.get_annot_verts,
             'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
+            'theta': ibs.get_annot_thetas,
             'occurrence_text': ibs.get_annot_occurrence_text,
         }
         ibs.depc_annot = dtool.DependencyCache(
@@ -806,7 +809,6 @@ class IBEISController(BASE_CLASS):
 
     def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
-
         Args:
             species_text (str):
             ensure       (bool):
@@ -829,7 +831,6 @@ class IBEISController(BASE_CLASS):
             >>> result = ut.relpath_unix(species_cachedir, resourcedir)
             >>> print(result)
             scorenorm/zebra_grevys
-
         """
         scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(),
                                   const.PATH_NAMES.scorenormdir)
