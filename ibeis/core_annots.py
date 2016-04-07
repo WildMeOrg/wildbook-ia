@@ -7,27 +7,17 @@ Extracts annotation chips from imaages and applies optional image
 normalizations.
 
 TODO:
-    * Dependency Cache from flukes
-
-    * make coltypes take imwrite and return just
-     the image and let dtool save it where it wants
-
-     * external write functions
      * interactive callback functions
      * detection interface
-     * identificatin interface
-     * table based registration
+     * identification interface
 
 NOTES:
     HOW TO DESIGN INTERACTIVE PLOTS:
         decorate as interactive
-
         depc.get_property(recompute=True)
-
         instead of calling preproc as a generator and then adding,
         calls preproc and passes in a callback function.
         preproc spawns interaction and must call callback function when finished.
-
         callback function adds the rowids to the table.
 
 Needed Tables:
@@ -1021,11 +1011,11 @@ def test_cut(ibs, parent_rowids_T, score_list2):
     chunksize=128, fname='vsone',
 )
 def compute_one_vs_one(depc, qaids, daids, config):
-    """
+    r"""
     CommandLine:
         python -m ibeis.core_annots --test-compute_one_vs_one --show
         python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
-        python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=vsone
+        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
 
     Ignore:
         >>> from ibeis.core_annots import *  # NOQA
@@ -1034,7 +1024,6 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> occurid2_aids = ibs.temp_group_annot_occurrences(aid_list)
         >>> aids_list = [np.unique(aids) for aids in occurid2_aids.values()]
         >>> aids_list = [aids for aids in aids_list if len(aids) > 1 and len(aids) < 100]
-
 
         aids = ut.sortedby([a.tolist() for a in aids_list], ut.lmap(len, aids_list))[-1]
 
@@ -1052,6 +1041,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
             #test_cut(ibs, parent_rowids_T, score_list2)
             # x = 44
             #test_cut(ibs, ut.list_T(ut.list_T(parent_rowids_T)[0:x]), score_list2[0:x])
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
@@ -1189,65 +1179,66 @@ class IndexerConfig(dtool.Config):
 
 testmode = ut.get_argflag('--testmode')
 
-if testmode:
-    @register_preproc(
-        #tablename='neighbor_index', parents=['annotations*'],
-        #tablename='neighbor_index', parents=['annotations'],
-        tablename='neighbor_index', parents=['feat*'],
-        #tablename='neighbor_index', parents=['feat'],
-        colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
-        #ismulti=True,
-        configclass=IndexerConfig,
-        chunksize=1, fname='indexer',
-    )
-    def compute_neighbor_index(depc, fids_list, config):
-        """
-        Args:
-            depc (dtool.DependencyCache):
-            fids_list (list):
-            config (dtool.Config):
 
-        CommandLine:
-            python -m ibeis.core_annots --exec-compute_neighbor_index --show
-            python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=neighbor_index
+#if 1 or testmode:
+@register_preproc(
+    #tablename='neighbor_index', parents=['annotations*'],
+    #tablename='neighbor_index', parents=['annotations'],
+    tablename='neighbor_index', parents=['feat*'],
+    #tablename='neighbor_index', parents=['feat'],
+    colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
+    #ismulti=True,
+    configclass=IndexerConfig,
+    chunksize=1, fname='indexer',
+)
+def compute_neighbor_index(depc, fids_list, config):
+    r"""
+    Args:
+        depc (dtool.DependencyCache):
+        fids_list (list):
+        config (dtool.Config):
 
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.core_annots import *  # NOQA
-            >>> import ibeis
-            >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
-            >>> depc = ibs.depc_annot
-            >>> fid_list = depc.get_rowids('feat', aid_list)
-            >>> aids_list = tuple([aid_list])
-            >>> fids_list = tuple([fid_list])
-            >>> # Compute directly from function
-            >>> config = ibs.depc_annot['neighbor_index'].configclass()
-            >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
-            >>> nnindexer1 = result1[0][0]
-            >>> # Compute using depcache
-            >>> result2 = ibs.depc_annot.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
-            >>> #result3 = ibs.depc_annot.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
-            >>> print(result2)
-            >>> print(result3)
-            >>> assert result2[0] is not result3[0]
-            >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
-            >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
-        """
-        print('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
-        # TODO: allow augment
-        assert len(fids_list) == 1, 'only working with one indexer at a time'
-        fid_list = fids_list[0]
-        aid_list = depc.get_root_rowids('feat', fid_list)
-        flann_params = config.get_flann_params()
-        cfgstr = config.get_cfgstr()
-        verbose = True
-        nnindexer = neighbor_index.NeighborIndex2(flann_params, cfgstr)
-        # Initialize neighbor with unindexed data
-        support = nnindexer.get_support(depc, aid_list, config)
-        nnindexer.init_support(aid_list, *support, verbose=verbose)
-        nnindexer.config = config
-        nnindexer.reindex()
-        yield (nnindexer,)
+    CommandLine:
+        python -m ibeis.core_annots --exec-compute_neighbor_index --show
+        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> depc = ibs.depc_annot
+        >>> fid_list = depc.get_rowids('feat', aid_list)
+        >>> aids_list = tuple([aid_list])
+        >>> fids_list = tuple([fid_list])
+        >>> # Compute directly from function
+        >>> config = ibs.depc_annot['neighbor_index'].configclass()
+        >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
+        >>> nnindexer1 = result1[0][0]
+        >>> # Compute using depcache
+        >>> result2 = ibs.depc_annot.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
+        >>> #result3 = ibs.depc_annot.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
+        >>> print(result2)
+        >>> print(result3)
+        >>> assert result2[0] is not result3[0]
+        >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
+        >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
+    """
+    print('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
+    # TODO: allow augment
+    assert len(fids_list) == 1, 'only working with one indexer at a time'
+    fid_list = fids_list[0]
+    aid_list = depc.get_root_rowids('feat', fid_list)
+    flann_params = config.get_flann_params()
+    cfgstr = config.get_cfgstr()
+    verbose = True
+    nnindexer = neighbor_index.NeighborIndex2(flann_params, cfgstr)
+    # Initialize neighbor with unindexed data
+    support = nnindexer.get_support(depc, aid_list, config)
+    nnindexer.init_support(aid_list, *support, verbose=verbose)
+    nnindexer.config = config
+    nnindexer.reindex()
+    yield (nnindexer,)
 
 
 #class FeatNeighborConfig(dtool.Config)
@@ -1269,8 +1260,8 @@ if testmode:
             config (dtool.Config):
 
         CommandLine:
-            python -m ibeis.core_annots --exec-compute_neighbor_index --show
-            python -m ibeis.control.IBEISControl --test-show_depc_table_input --show --tablename=feat_neighbs
+            python -m ibeis.core_annots --exec-compute_feature_neighbors --show
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs
 
         Example:
             >>> # DISABLE_DOCTEST

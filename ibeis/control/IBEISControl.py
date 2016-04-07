@@ -315,7 +315,7 @@ class IBEISController(BASE_CLASS):
         """
         ibs.show_depc_graph(ibs.depc_image, **kwargs)
 
-    def show_depc_annot_graph(ibs, **kwargs):
+    def show_depc_annot_graph(ibs, *args, **kwargs):
         """
         CommandLine:
             python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
@@ -330,12 +330,12 @@ class IBEISController(BASE_CLASS):
             >>> ibs.show_depc_annot_graph(reduced=reduced)
             >>> ut.show_if_requested()
         """
-        ibs.show_depc_graph(ibs.depc_annot, **kwargs)
+        ibs.show_depc_graph(ibs.depc_annot, *args, **kwargs)
 
     def show_depc_table_input(ibs, depc, tablename, reduced=False):
         depc[tablename].show_input_graph()
 
-    def show_depc_annot_table_input(ibs, **kwargs):
+    def show_depc_annot_table_input(ibs, *args, **kwargs):
         """
         CommandLine:
             python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
@@ -349,7 +349,7 @@ class IBEISController(BASE_CLASS):
             >>> ibs.show_depc_annot_table_input(tablename)
             >>> ut.show_if_requested()
         """
-        ibs.show_depc_table_input(ibs.depc_annot, **kwargs)
+        ibs.show_depc_table_input(ibs.depc_annot, *args, **kwargs)
 
     def get_cachestats_str(ibs):
         """
