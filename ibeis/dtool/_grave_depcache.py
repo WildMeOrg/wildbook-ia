@@ -475,10 +475,10 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             tablegraph = graph.subgraph(nodes)
             import plottool as pt
             # pt.show_nx(tablegraph.reverse())
-            # sink = ut.find_sink_nodes(tablegraph)[0]
+            # sink = ut.nx_sink_nodes(tablegraph)[0]
             # bfs_edges = list(ut.bfs_multi_edges(G, sink, data=True, reverse=True))
             G = tablegraph
-            source = ut.find_source_nodes(tablegraph)[0]
+            source = ut.nx_source_nodes(tablegraph)[0]
             bfs_edges = list(ut.bfs_multi_edges(G, source, data=0, reverse=False))
             print('bfs_edges = %r' % (bfs_edges,))
             T = nx.MultiDiGraph()

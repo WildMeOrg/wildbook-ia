@@ -255,6 +255,20 @@ class _TableGeneralHelper(ut.NiceRepr):
         return children_tablenames
 
     def show_input_graph(table):
+        """
+        CommandLine:
+            python -m dtool.depcache_table show_input_graph --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3()
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> depc['smk_match'].show_input_graph()
+            >>> print(depc['smk_match'].compute_order)
+            >>> ut.show_if_requested()
+        """
         import plottool as pt
         from plottool.interactions import ExpandableInteraction
         expanded_input_graph = table.expanded_input_graph
@@ -262,10 +276,10 @@ class _TableGeneralHelper(ut.NiceRepr):
         graph = table.depc.explicit_graph
         nodes = ut.all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
-        inter.append_plot(ut.partial(pt.show_nx, G))
-        inter.append_plot(ut.partial(pt.show_nx, expanded_input_graph,
-                                     use_arc=False,
-                                     title='expanded_inputs'))
+        inter.append_plot(
+            ut.partial(pt.show_nx, G, title='Dependency Subgraph'))
+        inter.append_plot(
+            ut.partial(pt.show_nx, expanded_input_graph, title='Expanded Input'))
         inter.start()
 
     @property
@@ -295,7 +309,7 @@ class _TableGeneralHelper(ut.NiceRepr):
         # The nesting of non-1-to-1 dependencies is greater than 2 (I think)
         # algorithm for finding inputs does not work.
         graph = table.depc.explicit_graph
-        sources = ut.find_source_nodes(graph)
+        sources = list(ut.nx_source_nodes(graph))
         assert len(sources) == 1
         source = sources[0]
         target = table.tablename
@@ -357,13 +371,19 @@ class _TableGeneralHelper(ut.NiceRepr):
             if not expanded_input_graph.has_edge(u2, v2):
                 expanded_input_graph.add_edge(u2, v2)
 
+        sink_nodes = list(ut.nx_sink_nodes(expanded_input_graph))
+        source_nodes = list(ut.nx_source_nodes(expanded_input_graph))
+        assert len(sink_nodes) == 1, 'can only have one sink node'
+        sink_node = sink_nodes[0]
+
         # Color Rootmost inputs
         for node in expanded_input_graph.nodes():
             root_specifiable = False
             for edge in expanded_input_graph.in_edges(node, keys=True):
                 edata = expanded_input_graph.get_edge_data(*edge)
                 if edata.get('taillabel') == '*':
-                    root_specifiable = True
+                    if node != sink_node:
+                        root_specifiable = True
             if expanded_input_graph.in_degree(node) == 0:
                 root_specifiable = True
             if root_specifiable:
@@ -376,10 +396,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         # 1) for each path from a (leaf) to the (root) there is exactly one
         # red node along that path.
         # This garentees that all inputs are gievn.
-        sink_nodes = ut.find_sink_nodes(expanded_input_graph)
-        source_nodes = ut.find_source_nodes(expanded_input_graph)
-        assert len(sink_nodes) == 1, 'can only have one sink node'
-        sink_node = sink_nodes[0]
         path_list = [nx.shortest_path(expanded_input_graph, source_node, sink_node)
                      for source_node in source_nodes]
         rootmost_nodes = set([])
@@ -400,7 +416,7 @@ class _TableGeneralHelper(ut.NiceRepr):
 
     @property
     @ut.memoize
-    def compute_order(table):
+    def rootmost_expanded_inputs(table):
         """
         >>> from dtool.depcache_control import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
@@ -410,8 +426,8 @@ class _TableGeneralHelper(ut.NiceRepr):
         >>> #tablename = 'multitest_score'
         >>> tablename = 'neighbs'
         >>> table = depc[tablename]
-        >>> compute_order = table.compute_order
-        >>> print('compute_order = %s' % (ut.repr3(compute_order),))
+        >>> compute_order = table.rootmost_expanded_inputs
+        >>> print('rootmost_expanded_inputs = %s' % (ut.repr3(compute_order),))
         """
         expanded_input_graph = table.expanded_input_graph
         #expanded_input_graph
@@ -422,7 +438,38 @@ class _TableGeneralHelper(ut.NiceRepr):
         ranks = ut.nx_dag_node_rank(table.depc.graph, rootmost_nodes)
         sortx = ut.argsort(ranks)
         # TODO Need to make tiebreaker attribute
-        compute_order = ut.take(rootmost_nodes, sortx)
+        rootmost_expanded_inputs = ut.take(rootmost_node_lbls, sortx)
+        return rootmost_expanded_inputs
+
+    @property
+    @ut.memoize
+    def compute_order(table):
+        """
+        Example:
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc()
+            >>> #tablename = 'multitest_score'
+            >>> tablename = 'neighbs'
+            >>> table = depc[tablename]
+            >>> compute_order = table.compute_order
+            >>> print('compute_order = %s' % (ut.repr3(compute_order),))
+
+        Example:
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3()
+            >>> table = depc['smk_match']
+            >>> print(table.compute_order)
+        """
+        expanded_input_graph = table.expanded_input_graph
+        rootmost_expanded_input = table.rootmost_expanded_inputs
+        import networkx as nx
+        sink = list(ut.nx_sink_nodes(expanded_input_graph))[0]
+        compute_order_ = [nx.shortest_path(expanded_input_graph, source, sink)
+                          for source in rootmost_expanded_input]
+        compute_order = [[node[:node.find('[')] for node in path] for path in compute_order_]
         return compute_order
 
     @ut.memoize

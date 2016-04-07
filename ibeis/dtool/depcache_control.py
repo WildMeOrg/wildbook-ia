@@ -86,10 +86,6 @@ class _CoreDependencyCache(object):
     Inherited by a calss with some "nice extras
     """
 
-    # -----------------------------
-    # REGISTRATION / INITIALIZATION
-
-    #@ut.apply_docstr(REG_PREPROC_DOC)
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, fname=None,
                        configclass=None, requestclass=None,
@@ -548,8 +544,7 @@ class _CoreDependencyCache(object):
                     table = depc[tablekey]  # NOQA
                     ut.printex(ex, 'error expanding rowids',
                                keys=['tablename', 'tablekey', 'rowid_dict',
-                                     'config', 'table',
-                                     'dependency_levels'])
+                                     'config', 'table', 'dependency_levels'])
                     raise
                 rowid_dict[tablekey] = child_rowids
         if _debug:
@@ -717,6 +712,10 @@ class _CoreDependencyCache(object):
             print(' * config = %r' % (config,))
         table = depc[tablename]  # NOQA
         INDEXER_VERSION = False
+
+        if tablename == 'neighbor_index':
+            import utool
+            utool.embed()
 
         if INDEXER_VERSION or tablename == 'neighbs':
             expected_input_order = table.expected_input_order
