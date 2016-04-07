@@ -617,6 +617,27 @@ def get_pixel_dist(img, pixel, channel=None):
 
 
 def make_white_transparent(imgBGR):
+    r"""
+    Args:
+        imgBGR (ndarray[uint8_t, ndim=2]):  image data (blue, green, red)
+
+    Returns:
+        ndarray: imgBGRA
+
+    CommandLine:
+        python -m vtool.image make_white_transparent --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> imgBGR = imread(ut.get_argval('--fpath', type_=str))
+        >>> imgBGRA = make_white_transparent(imgBGR)
+        >>> result = ('imgBGRA = %s' % (ut.repr2(imgBGRA),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     import vtool as vt
     dist = vt.get_pixel_dist(imgBGR, [255, 255, 255])
     # grayflags = np.logical_and(imgBGR[:, :, 0] == imgBGR[:, :, 1], imgBGR[:, :, 1] == imgBGR[:, :, 2])
