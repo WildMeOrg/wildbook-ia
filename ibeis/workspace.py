@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
@@ -11,6 +12,96 @@ Buidl probability curves of
 Rescore based on progressively increasing thresholds
 
 """
+
+
+def chip_tester():
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+
+    from ibeis.core_annots import *  # NOQA
+    import ibeis
+    defaultdb = 'GZ_ALL'
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    aid_list = ibs.get_valid_aids()
+    depc = ibs.depc_annot
+
+    chips_orig = depc.get_property('chips', aid_list, 'img', config={})
+
+    chips_aeq = depc.get_property('chips', aid_list, 'img', config={'adapteq': True})
+    chips_heq = depc.get_property('chips', aid_list, 'img', config={'histeq': True})
+
+
+    import pyhesaff
+    nkpts_list = np.array(list(ut.generate(pyhesaff.detect_num_kpts_in_image, chips_orig, force_serial=ibs.force_serial)))
+    nkpts_list = np.array(nkpts_list)
+
+    nfeats_orig = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats'))
+    nfeats_hteq = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats', config={'histeq': True}))
+    nfeats_ateq = np.array(ibs.depc_annot.get('feat', aid_list, 'num_feats', config={'adapteq': True}))
+
+    sortx = np.array(nfeats_orig).argsort()
+    sortx = np.array(nfeats_hteq).argsort()
+    sortx = np.array(nfeats_ateq).argsort()
+
+    aids = ut.take(aid_list, sortx)
+    chips = chips_orig
+    chips_bad = ut.take(chips, sortx)
+    chips_good = ut.take(chips, sortx[::-1])
+
+    import ibeis.viz.interact.interact_chip
+    ibeis.viz.interact.interact_chip.interact_multichips(ibs, aids)
+
+    iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips_bad, nPerPage=15)
+    iteract_obj.start()
+
+    iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips_good, nPerPage=15)
+    iteract_obj.start()
+
+    x = sklearn.cluster.KMeans(2)
+    x.fit(np.nan_to_num(measures))
+
+    import vtool.quality_classifier
+    from vtool.quality_classifier import contrast_measures
+    chips128 = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
+    gray_chips = [vt.convert_colorspace(x, 'GRAY') for x in ut.ProgIter(chips128)]
+    measures = list(ut.generate(contrast_measures, gray_chips, force_serial=ibs.force_serial))
+    measures = np.array(measures)
+    measures = np.nan_to_num(measures)
+    y = measures.T[3]
+    sortx = y.argsort()
+    ys = y.take(sortx)
+
+
+    pca = sklearn.decomposition.PCA(1)
+    pca.fit(measures)
+    pca_measure = pca.transform(measures)
+    nfeats_white = (nfeats_orig - nfeats_orig.mean()) / nfeats_orig.std()
+    pca_white = (pca_measure - pca_measure.mean()) / pca_measure.std()
+    sortx = nfeats_white.argsort()
+    pt.plt.plot(pca_white[sortx], 'x')
+    pt.plt.plot(nfeats_white[sortx], '.')
+
+
+    pyhesaff.detect_feats_in_image
+
+    svc = sklearn.svm.LinearSVC()
+    svc.fit(measures, nfeats_orig > 500)
+    svc.predict(measures) == (nfeats_orig > 500)
+
+    svr = sklearn.svm.LinearSVR()
+    svr.fit(measures, nfeats_orig)
+    svr.predict(measures)
+
+    depc['feat'].get_config_history(z1)
+    depc['feat'].get_config_history(z2)
+    pt.plt.plot(nfeats_hteq[sortx], 'x')
+    pt.plt.plot(nfeats_orig[sortx], '.')
+    pt.plt.plot(nfeats_ateq[sortx], 'o')
+
+    z1 = ibs.depc_annot.get_rowids('feat', aid_list, config={'histeq': True})
+    z2 = ibs.depc_annot.get_rowids('feat', aid_list)
+    assert len(set(z1).intersection(z2)) == 0
+
 
 
 def test_sharpness():

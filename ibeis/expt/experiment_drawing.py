@@ -149,7 +149,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
     Example:
-       >>> # DISABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> defaultdb = 'PZ_MTEST'
@@ -341,6 +341,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             attr_callback=attr_callback,
             #bin_width=.125,
             #bin_width=.05,
+            score_range=(0, 14),
+            bin_width=.5,
             verbose=verbose
         )
 

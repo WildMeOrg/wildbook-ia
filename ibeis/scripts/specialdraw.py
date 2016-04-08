@@ -86,12 +86,18 @@ def double_depcache_graph():
     pt.zoom_factory()
 
 
+def lighten_hex(hexcolor, amount):
+    import plottool as pt
+    import matplotlib.colors as colors
+    return pt.color_funcs.lighten_rgb(colors.hex2color(hexcolor), amount)
+
+
 def general_identify_flow():
     r"""
     CommandLine:
         python -m ibeis.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi=100 --diskshow --clipwhite
 
-        python -m ibeis.scripts.specialdraw general_identify_flow --dpi=200 --diskshow --clipwhite --dpath ~/latex/cand/ --figsize=20,10  --save figures4/pairprob.png
+        python -m ibeis.scripts.specialdraw general_identify_flow --dpi=200 --diskshow --clipwhite --dpath ~/latex/cand/ --figsize=20,10  --save figures4/pairprob.png --arrow-width=2.0
 
 
     Example:
@@ -117,31 +123,39 @@ def general_identify_flow():
         for _u, _v in ut.product(u, v):
             graph.add_edge(_u, _v, *args, **kwargs)
 
+    # *** Primary color:
+    p_shade2 = '#41629A'
+    # *** Secondary color
+    s1_shade2 = '#E88B53'
+    # *** Secondary color
+    s2_shade2 = '#36977F'
+    # *** Complement color
+    c_shade2 = '#E8B353'
+
     ns = 512
 
     ut.inject_func_as_method(graph, ut.nx_makenode)
 
-    import matplotlib.colors as colors
-    annot1_color = '#FCA530'
-    annot2_color = '#4771B3'
+    annot1_color = p_shade2
+    annot2_color = s1_shade2
     #annot1_color2 = pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .01)
 
-    annot1 = graph.nx_makenode('Annotation X', width=ns, height=ns, groupid='annot', color='#FCA530')
-    annot2 = graph.nx_makenode('Annotation Y', width=ns, height=ns, groupid='annot', color='#4771B3')
+    annot1 = graph.nx_makenode('Annotation X', width=ns, height=ns, groupid='annot', color=annot1_color)
+    annot2 = graph.nx_makenode('Annotation Y', width=ns, height=ns, groupid='annot', color=annot2_color)
 
-    featX = graph.nx_makenode('Features X', size=(ns / 1.2, ns / 2), groupid='feats', color=pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .1))
-    featY = graph.nx_makenode('Features Y', size=(ns / 1.2, ns / 2), groupid='feats', color=pt.color_funcs.lighten_rgb(colors.hex2color(annot2_color), .1))
+    featX = graph.nx_makenode('Features X', size=(ns / 1.2, ns / 2), groupid='feats', color=lighten_hex(annot1_color, .1))
+    featY = graph.nx_makenode('Features Y', size=(ns / 1.2, ns / 2), groupid='feats', color=lighten_hex(annot2_color, .1))
     #'#4771B3')
 
-    global_pairvec = graph.nx_makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2, color='#029F5C')
+    global_pairvec = graph.nx_makenode('Global similarity\n(viewpoint, quality, ...)', width=ns * ut.PHI * 1.2, color=s2_shade2)
+    findnn = graph.nx_makenode('Find correspondences\n(nearest neighbors)', shape='ellipse', color=c_shade2)
     local_pairvec = graph.nx_makenode('Local similarities\n(LNBNN, spatial error, ...)',
-                                      size=(ns * 2.2, ns))
-    prob = graph.nx_makenode('Matching Probability\n(same individual given\nsimilar viewpoint)')
-    classifier = graph.nx_makenode('Classifier\n(SVM/RF/DNN)')
-    agglocal = graph.nx_makenode('Aggregate', size=(ns / 1.1, ns / 2), shape='ellipse')
-    catvecs = graph.nx_makenode('Concatenate', size=(ns / 1.1, ns / 2), shape='ellipse')
-    pairvec = graph.nx_makenode('Vector of\npairwise similarities')
-    findnn = graph.nx_makenode('Find correspondences\n(nearest neighbors)', shape='ellipse')
+                                      size=(ns * 2.2, ns), color=lighten_hex(c_shade2, .1))
+    agglocal = graph.nx_makenode('Aggregate', size=(ns / 1.1, ns / 2), shape='ellipse', color=lighten_hex(c_shade2, .2))
+    catvecs = graph.nx_makenode('Concatenate', size=(ns / 1.1, ns / 2), shape='ellipse', color=lighten_hex(s2_shade2, .1))
+    pairvec = graph.nx_makenode('Vector of\npairwise similarities', color=lighten_hex(s2_shade2, .2))
+    classifier = graph.nx_makenode('Classifier\n(SVM/RF/DNN)', color=lighten_hex(s2_shade2, .3))
+    prob = graph.nx_makenode('Matching Probability\n(same individual given\nsimilar viewpoint)', color=lighten_hex(s2_shade2, .4))
 
     graph.add_edge(annot1, global_pairvec)
     graph.add_edge(annot2, global_pairvec)
@@ -219,8 +233,8 @@ def general_identify_flow():
         'nodesep': 300 / 72,
         'ranksep': 300 / 72,
         #'inputscale': 72,
-        'inputscale': 1,
-        'dpi': 72,
+        # 'inputscale': 1,
+        # 'dpi': 72,
         # 'concentrate': 'true', # merges edge lines
         # 'splines': 'ortho',
         # 'aspect': 1,
@@ -247,6 +261,8 @@ def graphcut_flow():
     CommandLine:
         python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --dpi=100 --diskshow --clipwhite
 
+    python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --dpi=200 --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.specialdraw import *  # NOQA
@@ -271,15 +287,24 @@ def graphcut_flow():
         for _u, _v in ut.product(u, v):
             graph.add_edge(_u, _v, *args, **kwargs)
 
-    ns = 500
+    ns = 512
+
+    # *** Primary color:
+    p_shade2 = '#41629A'
+    # *** Secondary color
+    s1_shade2 = '#E88B53'
+    # *** Secondary color
+    s2_shade2 = '#36977F'
+    # *** Complement color
+    c_shade2 = '#E8B353'
 
     annot1 = ut.nx_makenode(graph, 'Unlabeled\nannotations\n(query)', width=ns, height=ns,
-                            groupid='annot')
+                            groupid='annot', color=p_shade2)
     annot2 = ut.nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
-                            groupid='annot')
-    occurprob = ut.nx_makenode(graph, 'Fully connected\nprobabilities')
-    cacheprob = ut.nx_makenode(graph, 'Cached \nprobabilities')
-    sparseprob = ut.nx_makenode(graph, 'Sparse\nprobabilities')
+                            groupid='annot', color=s1_shade2)
+    occurprob = ut.nx_makenode(graph, 'Fully connected\nprobabilities', color=lighten_hex(p_shade2, .1))
+    cacheprob = ut.nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
+    sparseprob = ut.nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
 
     graph.add_edge(annot1, occurprob)
 
@@ -287,9 +312,9 @@ def graphcut_flow():
     graph.add_edge(annot2, sparseprob)
     graph.add_edge(annot2, cacheprob)
 
-    matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches')
-    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm')
-    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected compoments')
+    matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
+    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2))
+    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected compoments', color=lighten_hex(s2_shade2, .3))
 
     graph.add_edge(occurprob, matchgraph)
     graph.add_edge(sparseprob, matchgraph)
@@ -299,9 +324,10 @@ def graphcut_flow():
     graph.add_edge(cutalgo, cc_names)
 
     ut.nx_set_default_node_attributes(graph, 'shape',  'rect')
+    ut.nx_set_default_node_attributes(graph, 'style',  'filled,rounded')
     ut.nx_set_default_node_attributes(graph, 'fixedsize', 'true')
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
-    ut.nx_set_default_node_attributes(graph, 'height', ns)
+    ut.nx_set_default_node_attributes(graph, 'height', ns * (1 / ut.PHI))
     ut.nx_set_default_node_attributes(graph, 'regular', False)
 
     layoutkw = {
@@ -313,7 +339,7 @@ def graphcut_flow():
         'ranksep': 300 / 72,
     }
 
-    fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    fontkw = dict(fontname='Ubuntu', fontweight='light', fontsize=14)
     pt.show_nx(graph, layout='agraph', layoutkw=layoutkw, **fontkw)
     pt.zoom_factory()
 
