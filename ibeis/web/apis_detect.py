@@ -297,7 +297,7 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET'])
-def detect_cnn_yolo(ibs, gid_list, **kwargs):
+def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
     """
     Runs animal detection in each image. Adds annotations to the database
     as they are found.
@@ -339,8 +339,9 @@ def detect_cnn_yolo(ibs, gid_list, **kwargs):
     depc = ibs.depc_image
     config = {'algo': 'yolo'}
     results_list = depc.get_property('detections', gid_list, None, config=config)
-    aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
-    return aids_list
+    if commit:
+        aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
+        return aids_list
 
 
 @register_ibs_method

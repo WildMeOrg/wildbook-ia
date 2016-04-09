@@ -149,6 +149,9 @@ class DetectionConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'cnn'),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
+        ut.ParamInfo('config_filepath', None, hideif=None),
+        ut.ParamInfo('weight_filepath', None, hideif=None),
+        ut.ParamInfo('grid', False),
     ]
     _sub_config_list = [
         ThumbnailConfig
