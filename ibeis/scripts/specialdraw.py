@@ -79,7 +79,7 @@ def double_depcache_graph():
     }
     node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(), graph.nodes()))
     nx.relabel_nodes(graph, node_alias, copy=False)
-    fontkw = dict(fontfamilty='sans-serif', fontweight='normal', fontsize=12)
+    fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
     pt.gca().set_aspect('equal')
     pt.figure()
     pt.show_nx(graph, layoutkw=layoutkw, fontkw=fontkw)
