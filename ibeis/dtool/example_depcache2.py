@@ -197,7 +197,8 @@ def testdata_depc3():
         >>> depc['smk_match'].show_input_graph()
         >>> depc['vsone'].show_input_graph()
         >>> depc['vocab'].show_input_graph()
-        >>> depc['neigbs'].show_input_graph()
+        >>> depc['neighbs'].show_input_graph()
+        >>> depc['viewpoint_classification'].show_input_graph()
         >>> print(depc['smk_match'].compute_order)
         >>> ut.show_if_requested()
     """
@@ -218,12 +219,115 @@ def testdata_depc3():
         return None
 
     depc.register_preproc(tablename='indexer', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='neigbs', parents=['annot', 'indexer'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='neighbs', parents=['annot', 'indexer'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='vocab', parents=['annot*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='smk_vec', parents=['annot', 'vocab'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='vsone', parents=['annot', 'annot'], **dummy_cols)(dummy_func)
+
+    depc.register_preproc(tablename='viewpoint_classifier', parents=['annot*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'], **dummy_cols)(dummy_func)
+
+    depc.initialize()
+    return depc
+
+
+def testdata_depc_image():
+    """
+    Example of local registration
+    sudo pip install freetype-py
+
+    CommandLine:
+        python -m dtool.example_depcache2 testdata_depc_image --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from dtool.example_depcache2 import *  # NOQA
+        >>> depc = testdata_depc_image()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> depc.show_graph()
+        >>> depc['detection'].show_input_graph()
+        >>> print(depc['detection'].compute_order)
+        >>> ut.show_if_requested()
+    """
+    import dtool
+
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
+    cache_dpath = join(dtool_repo, 'DEPCACHE2')
+
+    root = 'image'
+
+    depc = dtool.DependencyCache(
+        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
+
+    # ----------
+    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
+    def dummy_func(depc, *args, **kwargs):
+        return None
+
+    depc.register_preproc(tablename='detector', parents=['image*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='detection', parents=['image', 'detector'], **dummy_cols)(dummy_func)
+
+    depc.initialize()
+    return depc
+
+
+def testdata_depc_annot():
+    """
+    CommandLine:
+        python -m dtool.example_depcache2 testdata_depc_annot --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from dtool.example_depcache2 import *  # NOQA
+        >>> depc = testdata_depc_annot()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> depc.show_graph()
+        >>> tablename = 'featweight'
+        >>> table = depc[tablename]
+        >>> table.show_input_graph()
+        >>> print(table.compute_order)
+        >>> ut.show_if_requested()
+    """
+    import dtool
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
+    cache_dpath = join(dtool_repo, 'DEPCACHE2')
+    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
+    def dummy_func(depc, *args, **kwargs):
+        return None
+
+    root = 'annot'
+    #vocab_parent = 'annot'
+    #vocab_parent = 'chip'
+    #vocab_parent = 'feat'
+    vocab_parent = 'featweight'
+    depc = dtool.DependencyCache(
+        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
+    depc.register_preproc(tablename='chip', parents=['annot'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='fgmodel', parents=['annot*'], **dummy_cols)(dummy_func)
+    #depc.register_preproc(tablename='probchip', parents=['annot', 'fgmodel'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='probchip', parents=['annot'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='feat', parents=['chip'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='featweight', parents=['feat', 'probchip'], **dummy_cols)(dummy_func)
+
+    depc.register_preproc(tablename='indexer', parents=['featweight*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='neighbs', parents=['featweight', 'indexer'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='vocab', parents=[vocab_parent + '*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='smk_vec', parents=[vocab_parent, 'vocab'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='vsone', parents=['featweight', 'featweight'], **dummy_cols)(dummy_func)
+
+    depc.register_preproc(tablename='viewpoint_model', parents=['annot*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='viewpoint', parents=['annot', 'viewpoint_model'], **dummy_cols)(dummy_func)
+
+    depc.register_preproc(tablename='quality_model', parents=['annot*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='quality', parents=['annot', 'quality_model'], **dummy_cols)(dummy_func)
 
     depc.initialize()
     return depc

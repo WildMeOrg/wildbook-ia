@@ -262,10 +262,11 @@ class _TableGeneralHelper(ut.NiceRepr):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from dtool.example_depcache2 import *  # NOQA
-            >>> depc = testdata_depc3()
+            >>> depc = testdata_depc_annot()
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
-            >>> depc['smk_match'].show_input_graph()
+            >>> table = depc['smk_match']
+            >>> table.show_input_graph()
             >>> print(depc['smk_match'].compute_order)
             >>> ut.show_if_requested()
         """
@@ -274,12 +275,20 @@ class _TableGeneralHelper(ut.NiceRepr):
         expanded_input_graph = table.expanded_input_graph
         inter = ExpandableInteraction(nCols=2)
         graph = table.depc.explicit_graph
-        nodes = ut.all_nodes_between(graph, None, table.tablename)
+        nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
+
+        #for node in expanded_input_graph.node:
+        #    if isinstance(node, tuple):
+        #        if expanded_input_graph.node.get('label') is None:
+        #            label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
+        #            expanded_input_graph.node[node]['label'] = label
+
+        plot_kw = {'fontname': 'Ubuntu'}
         inter.append_plot(
-            ut.partial(pt.show_nx, G, title='Dependency Subgraph'))
+            ut.partial(pt.show_nx, G, title='Dependency Subgraph', **plot_kw))
         inter.append_plot(
-            ut.partial(pt.show_nx, expanded_input_graph, title='Expanded Input'))
+            ut.partial(pt.show_nx, expanded_input_graph, title='Expanded Input', **plot_kw))
         inter.start()
 
     @property
@@ -287,7 +296,9 @@ class _TableGeneralHelper(ut.NiceRepr):
     def expanded_input_graph(table):
         """
         CommandLine:
-            python -m dtool.depcache_table --exec-expanded_input_graph --show
+            python -m dtool.depcache_table --exec-expanded_input_graph --show --table=neighbs
+            python -m dtool.depcache_table --exec-expanded_input_graph --show --table=vsone
+            python -m dtool.depcache_table --exec-expanded_input_graph --show --table=smk_match
 
         TODO:
             * determine root argument structure
@@ -296,13 +307,14 @@ class _TableGeneralHelper(ut.NiceRepr):
 
         Example:
             >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
+            >>> from dtool.example_depcache2 import * # NOQA
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> depc = testdata_depc()
-            >>> tablename = 'neighbs_score'
+            >>> depc = testdata_depc_annot()
+            >>> tablename = ut.get_argval('--table', default='vsone')
             >>> table = depc[tablename]
             >>> table.show_input_graph()
+            >>> print('table.compute_order = %s' % ut.repr2(table.compute_order, nl=2))
             >>> ut.show_if_requested()
         """
         # FIXME: this does not work correctly when
@@ -314,57 +326,113 @@ class _TableGeneralHelper(ut.NiceRepr):
         source = sources[0]
         target = table.tablename
 
+        # Hack multi edges stars
+        count = 0
+        for edge in graph.edges(keys=True, data=True):
+            dat = edge[3]
+            if dat['local_input_id'] == '*':
+                dat['local_input_id'] = '*' + str(count)
+                dat['taillabel'] = '*' + str(count)
+                count += 1
+
+        # Find all paths from the table to the source.
         paths_to_source   = ut.all_multi_paths(graph, source, target, data=True)
         rpaths_to_source  = ut.lmap(ut.reverse_path_edges, paths_to_source)
+        # Accumlate unique identifiers for each of those paths.
+        # The output is a new expanded input graph.
+        # The inputs to this table can be derived from this graph.
+
         accum_path_redges = ut.lmap(ut.accum_path_data, rpaths_to_source,
                                     srckey='local_input_id', dstkey='rinput_path_id')
-        accum_path_edges  = ut.lmap(ut.reverse_path_edges, accum_path_redges)
 
-        def condence_rinput_ids(rinput_path_id):
-            # like np.squeeze
+        def condense_rinput_ids(rinput_path_id):
             # Hack to condense and consolidate graph sources
-            prev = None  # rinput_path_id[0]
+            prev = None
             compressed = []
             for item in rinput_path_id:
-                #if item == '1':
-                #    continue
-                #if item == '*1':
-                #    item = '*'
-                if item != prev:
+                if item == '1' and prev is not None:
+                    pass  # done append ones
+                elif item != prev:
                     compressed.append(item)
                 prev = item
-            #compressed = ut.list_strip(compressed, '1', right=False)
-            #if len(compressed) == 0:
-            #    compressed = ['1']
-            #if len(compressed) == 1 and '*' in compressed[0]:
-            #    #compressed = compressed + ['1']
-            #    compressed = ['1'] + compressed
-
-            #if len(compressed) > 2:
-            #    if '*' not in compressed[-2] and compressed[-1] == '1':
-            #        compressed = compressed[:-1]
+            if len(compressed) > 1 and compressed[0] == '1':
+                compressed = compressed[1:]
             compressed = tuple(compressed)
             return compressed
 
+        def condense_input_ids2(input_ids):
+            # Hack to condense and consolidate graph sources
+            prev = None
+            compressed = []
+            for item in input_ids:
+                if item != prev:
+                    compressed.append(item)
+                prev = item
+            compressed = tuple(compressed)
+            return compressed
+
+        newid_list = [
+            tuple(ut.flatten(condense_input_ids2([ut.dict_take(d, 'taillabel')
+                                                 for (u, v, k, d) in path])))
+            for path in paths_to_source
+        ]
+        #print(ut.list_str(newid_list, nl=1))
+
+        accum_path_redges = []
+        for rpath, newid in zip(rpaths_to_source, newid_list):
+            # add a self loop at the end so edge length = path length
+            #end_edge = [(target, target, 0, {'local_input_id': 't'})]
+            end_edge = []
+            subkeys = ['local_input_id', 'taillabel']
+            rpath_ = end_edge + [(u, v, k, dict(ut.dict_subset(d, subkeys)))
+                                 for (u, v, k, d) in rpath]
+            rpath_accum = ut.accum_path_data(rpath_, srckey='local_input_id',
+                                             dstkey='rinput_path_id')
+            edge_datas = ut.take_column(rpath_accum, 3)
+            for edge_data in edge_datas:
+                rinput_path_id = edge_data['rinput_path_id']
+                node_rinput_path_id = condense_rinput_ids(rinput_path_id)
+                edge_data['node_rinput_path_id'] = node_rinput_path_id
+                edge_data['newid'] = newid
+            accum_path_redges.append(rpath_accum)
+
+        accum_path_edges  = ut.lmap(ut.reverse_path_edges, accum_path_redges)
+        #import utool
+        #utool.embed()
+
         #import networkx as nx
         expanded_input_graph = graph.__class__()
-        for edge_list in accum_path_edges:
-            rinput_path_ids = [edge[3]['rinput_path_id'] for edge in edge_list]
-            rinput_path_ids = ut.lmap(condence_rinput_ids, rinput_path_ids)
+        for edge_list, newid in zip(accum_path_edges, newid_list):
+            edge_datas = ut.take_column(edge_list, 3)
+            taillabel_list = ut.dict_take_column(edge_datas, 'taillabel')
+            rinput_path_ids = ut.dict_take_column(edge_datas, 'rinput_path_id')
+            rinput_path_ids = ut.lmap(condense_rinput_ids, rinput_path_ids)
+            #node_rinput_path_ids = rinput_path_ids + [tuple('t')]
             node_rinput_path_ids = rinput_path_ids + [tuple('1')]
+            #node_rinput_path_ids = rinput_path_ids
             uv_list = ut.take_column(edge_list, slice(0, 2))
             uvsuf_list = ut.itertwo(node_rinput_path_ids)
-            for uvsuf, (u, v) in zip(uvsuf_list, uv_list):
+            for uvsuf, (u, v), taillabel in zip(uvsuf_list, uv_list, taillabel_list):
                 _id1, _id2 = uvsuf
-                suffix1 = '[' + ','.join(_id1) + ']'
-                suffix2 = '[' + ','.join(_id2) + ']'
-                u2 = u + suffix1
-                v2 = v + suffix2
-                taillabel = ''
-                if _id1[-1] == '*':
-                    taillabel = '*'
-                    #import utool
-                    #utool.embed()
+                #suffix1 = '[' + ','.join(_id1) + ']'
+                #suffix2 = '[' + ','.join(_id2) + ']'
+                #u2 = u + suffix1
+                #v2 = v + suffix2
+                u2 = (u, _id1)
+                v2 = (v, _id2)
+
+                #taillabel = ''
+                #if _id1[-1] == '*':
+                #    taillabel = '*'
+                #    #import utool
+                #    #utool.embed()
+                for node in [u2, v2]:
+                    if not expanded_input_graph.has_node(node):
+                        #label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
+                        #newid_ = '(' + ','.join(newid) + ')'
+                        #label = node[0] + '[' + ','.join(map(str, node[1])) + ']' + newid_
+                        label = node[0] + '[' + ','.join([str(x)[0] for x in node[1]]) + ']'
+                        expanded_input_graph.add_node(node, label=label, newid=newid)
                 if not expanded_input_graph.has_edge(u2, v2):
                     expanded_input_graph.add_edge(u2, v2, taillabel=taillabel)
 
@@ -377,11 +445,13 @@ class _TableGeneralHelper(ut.NiceRepr):
         sink_node = sink_nodes[0]
 
         # Color Rootmost inputs
+
+        # First identify if a node is root_specifiable
         for node in expanded_input_graph.nodes():
             root_specifiable = False
             for edge in expanded_input_graph.in_edges(node, keys=True):
                 edata = expanded_input_graph.get_edge_data(*edge)
-                if edata.get('taillabel') == '*':
+                if edata.get('taillabel').startswith('*'):
                     if node != sink_node:
                         root_specifiable = True
             if expanded_input_graph.in_degree(node) == 0:
@@ -418,23 +488,28 @@ class _TableGeneralHelper(ut.NiceRepr):
     @ut.memoize
     def rootmost_expanded_inputs(table):
         """
-        >>> from dtool.depcache_control import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
-        >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
-        >>> depc = testdata_depc()
-        >>> #tablename = 'multitest_score'
-        >>> tablename = 'neighbs'
-        >>> table = depc[tablename]
-        >>> compute_order = table.rootmost_expanded_inputs
-        >>> print('rootmost_expanded_inputs = %s' % (ut.repr3(compute_order),))
+        CommandLine:
+            python -m dtool.depcache_table rootmost_expanded_inputs --show
+
+        Example:
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc_annot()
+            >>> #tablename = 'multitest_score'
+            >>> tablename = 'featweight'
+            >>> table = depc[tablename]
+            >>> compute_order = table.rootmost_expanded_inputs
+            >>> print('rootmost_expanded_inputs = %s' % (ut.repr3(compute_order),))
         """
         expanded_input_graph = table.expanded_input_graph
         #expanded_input_graph
-        attrs = ut.nx_get_default_node_attributes(expanded_input_graph, 'rootmost', False)
+        attrs = ut.nx_get_default_node_attributes(expanded_input_graph,
+                                                  'rootmost', False)
         rootmost_node_lbls = [node for node, v in attrs.items() if v]
         # hack for labels
-        rootmost_nodes = [node[:node.find('[')] for node in rootmost_node_lbls]
+        rootmost_nodes = [node[0] for node in rootmost_node_lbls]
         ranks = ut.nx_dag_node_rank(table.depc.graph, rootmost_nodes)
         sortx = ut.argsort(ranks)
         # TODO Need to make tiebreaker attribute
@@ -458,18 +533,82 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> print('compute_order = %s' % (ut.repr3(compute_order),))
 
         Example:
+            >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache2 import *  # NOQA
-            >>> depc = testdata_depc3()
-            >>> table = depc['smk_match']
-            >>> print(table.compute_order)
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> depc = testdata_depc_annot()
+            >>> #tablename = 'multitest_score'
+            >>> tablename = 'vsone'
+            >>> table = depc[tablename]
+            >>> compute_order = table.compute_order
+            >>> print('compute_order = %s' % (ut.repr3(compute_order, nl=1),))
         """
         expanded_input_graph = table.expanded_input_graph
         rootmost_expanded_input = table.rootmost_expanded_inputs
-        import networkx as nx
+        #import networkx as nx
         sink = list(ut.nx_sink_nodes(expanded_input_graph))[0]
-        compute_order_ = [nx.shortest_path(expanded_input_graph, source, sink)
-                          for source in rootmost_expanded_input]
-        compute_order = [[node[:node.find('[')] for node in path] for path in compute_order_]
+        #compute_order_ = [nx.shortest_path(expanded_input_graph, source, sink)
+        #                  for source in rootmost_expanded_input]
+        unordered_compute_nodes = [
+            list(ut.nx_all_nodes_between(expanded_input_graph, source, sink))
+            for source in rootmost_expanded_input
+        ]
+        ordered_compute_nodes = [
+            ut.take(nodes, ut.argsort(ut.nx_dag_node_rank(expanded_input_graph,
+                                                          nodes)))
+            for nodes in unordered_compute_nodes
+        ]
+        #compute_order = [[node[0] for node in nodes]
+        #                 for nodes in ordered_compute_nodes]
+        #import utool
+        #utool.embed()
+
+        flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
+        topsort = list(nx.topological_sort(expanded_input_graph))
+        toprank = ut.dict_take(ut.make_index_lookup(topsort), flat_node_order_)
+        sortx = ut.argsort(toprank)
+        flat_node_order = ut.take(flat_node_order_, sortx)
+        #newid_list = ut.dict_take_column(ut.dict_take(expanded_input_graph.node, flag_compute_order), 'newid')
+
+        # Compute which branches in the tree each node belongs to
+        node_to_branchids = ut.group_items(*zip(*[
+            #(node, s[1])
+            (s[1], node)
+            for s, t in ut.product(ut.nx_source_nodes(expanded_input_graph),
+                                   ut.nx_sink_nodes(expanded_input_graph))
+            for node in ut.nx_all_nodes_between(expanded_input_graph, s, t)
+        ]))
+        branch_ids = ut.dict_take(node_to_branchids, flat_node_order)
+        tablenames = ut.take_column(flat_node_order, 0)
+        #rinput_ids = ut.take_column(flat_node_order, 1)
+
+        #def make_new_flat_order(list_):
+        #    groupxs = ut.group_indices(list(map(str, list_)))[1]
+        #    min_groupxs = ut.argsort(ut.argsort([min(xs) for xs in groupxs]))
+        #    gidxs = [[mx] * len(xs) for mx, xs in zip(min_groupxs, groupxs)]
+        #    new_idxs = ut.ungroup(gidxs, groupxs)
+        #    return new_idxs
+        #branch_idxs = make_new_flat_order(branch_ids)
+        #order_idxs = list(range(len(branch_idxs)))
+        #rinput_idxs = make_new_flat_order(rinput_ids)
+
+        rootmost_expanded_input_branchids = ut.dict_take(node_to_branchids, rootmost_expanded_input)
+        rootmost_tables = ut.take_column(rootmost_expanded_input, 0)
+        input_compute_ids = list(zip(rootmost_tables, rootmost_expanded_input_branchids))
+
+        depend_compute_ids = list(zip(tablenames, branch_ids))
+
+        # Compute order specifies the expected input order of the signature arguments
+        # in input_compute_ids. They are paired with an id that states
+        # to which items in the compute order the input will be applied.
+        # depend_compute_ids specify the table dependencies. They are paired with an
+        # id that specifies where its input must come from.
+
+        compute_order = {
+            'input_compute_ids': input_compute_ids,
+            'depend_compute_ids': depend_compute_ids,
+        }
         return compute_order
 
     @ut.memoize
