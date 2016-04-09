@@ -701,7 +701,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         x, y = xy
         text = str(node)
         if label is not None:
-            text += ': ' + str(label)
+            #text += ': ' + str(label)
+            text = label
         if not hacknonode and 'image' not in nattrs:
             pt.ax_absolute_text(x, y, text, ha='center', va='center',
                                 fontproperties=font_prop)
@@ -844,20 +845,24 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 ax.add_patch(patch1)
 
             taillabel = layout_info['edge']['taillabel'][edge]
+            #ha = 'left'
+            #ha = 'right'
+            ha = 'center'
+            va = 'center'
             if taillabel:
                 taillabel_pos = layout_info['edge']['tail_lp'][edge]
                 ax.annotate(taillabel, xy=taillabel_pos, xycoords='data',
-                            va='center', ha='center', fontproperties=font_prop)
+                            va=va, ha=ha, fontproperties=font_prop)
             headlabel = layout_info['edge']['headlabel'][edge]
             if headlabel:
                 headlabel_pos = layout_info['edge']['head_lp'][edge]
                 ax.annotate(headlabel, xy=headlabel_pos, xycoords='data',
-                            va='center', ha='center', fontproperties=font_prop)
+                            va=va, ha=ha, fontproperties=font_prop)
             label = layout_info['edge']['label'][edge]
             if label:
                 label_pos = layout_info['edge']['lp'][edge]
                 ax.annotate(label, xy=label_pos, xycoords='data',
-                            va='center', ha='center', fontproperties=font_prop)
+                            va=va, ha=ha, fontproperties=font_prop)
             ax.add_patch(patch)
 
     use_collections = False
