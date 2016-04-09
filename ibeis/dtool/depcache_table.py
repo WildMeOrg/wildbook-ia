@@ -314,38 +314,17 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> tablename = ut.get_argval('--table', default='vsone')
             >>> table = depc[tablename]
             >>> table.show_input_graph()
+            >>> pt.interactions.zoom_factory()
             >>> print('table.compute_order = %s' % ut.repr2(table.compute_order, nl=2))
             >>> ut.show_if_requested()
         """
         # FIXME: this does not work correctly when
         # The nesting of non-1-to-1 dependencies is greater than 2 (I think)
         # algorithm for finding inputs does not work.
-        graph = table.depc.explicit_graph
-        sources = list(ut.nx_source_nodes(graph))
-        assert len(sources) == 1
-        source = sources[0]
-        target = table.tablename
+        import plottool as pt
+        pt.ensure_pylab_qt4()
 
-        # Hack multi edges stars
-        count = 0
-        for edge in graph.edges(keys=True, data=True):
-            dat = edge[3]
-            if dat['local_input_id'] == '*':
-                dat['local_input_id'] = '*' + str(count)
-                dat['taillabel'] = '*' + str(count)
-                count += 1
-
-        # Find all paths from the table to the source.
-        paths_to_source   = ut.all_multi_paths(graph, source, target, data=True)
-        rpaths_to_source  = ut.lmap(ut.reverse_path_edges, paths_to_source)
-        # Accumlate unique identifiers for each of those paths.
-        # The output is a new expanded input graph.
-        # The inputs to this table can be derived from this graph.
-
-        accum_path_redges = ut.lmap(ut.accum_path_data, rpaths_to_source,
-                                    srckey='local_input_id', dstkey='rinput_path_id')
-
-        def condense_rinput_ids(rinput_path_id):
+        def condense_accum_ids(rinput_path_id):
             # Hack to condense and consolidate graph sources
             prev = None
             compressed = []
@@ -360,117 +339,113 @@ class _TableGeneralHelper(ut.NiceRepr):
             compressed = tuple(compressed)
             return compressed
 
-        def condense_input_ids2(input_ids):
-            # Hack to condense and consolidate graph sources
-            prev = None
-            compressed = []
-            for item in input_ids:
-                if item != prev:
-                    compressed.append(item)
-                prev = item
-            compressed = tuple(compressed)
-            return compressed
+        def accumulate_input_ids(edge_list):
+            edge_data = ut.take_column(edge_list, 3)
+            toaccum_list = ut.dict_take_column(edge_data, 'local_input_id')
+            accum_ids_ = ut.cumsum(zip(toaccum_list), tuple())
+            accum_ids = ut.lmap(condense_accum_ids, accum_ids_)
+            ut.dict_set_column(edge_data, 'accum_id', accum_ids)
+            return accum_ids
 
-        newid_list = [
-            tuple(ut.flatten(condense_input_ids2([ut.dict_take(d, 'taillabel')
-                                                 for (u, v, k, d) in path])))
-            for path in paths_to_source
-        ]
-        #print(ut.list_str(newid_list, nl=1))
+        graph = table.depc.explicit_graph.copy()
+        sources = list(ut.nx_source_nodes(graph))
+        assert len(sources) == 1
+        source = sources[0]
+        target = table.tablename
 
-        accum_path_redges = []
-        for rpath, newid in zip(rpaths_to_source, newid_list):
-            # add a self loop at the end so edge length = path length
-            #end_edge = [(target, target, 0, {'local_input_id': 't'})]
-            end_edge = []
-            subkeys = ['local_input_id', 'taillabel']
-            rpath_ = end_edge + [(u, v, k, dict(ut.dict_subset(d, subkeys)))
-                                 for (u, v, k, d) in rpath]
-            rpath_accum = ut.accum_path_data(rpath_, srckey='local_input_id',
-                                             dstkey='rinput_path_id')
-            edge_datas = ut.take_column(rpath_accum, 3)
-            for edge_data in edge_datas:
-                rinput_path_id = edge_data['rinput_path_id']
-                node_rinput_path_id = condense_rinput_ids(rinput_path_id)
-                edge_data['node_rinput_path_id'] = node_rinput_path_id
-                edge_data['newid'] = newid
-            accum_path_redges.append(rpath_accum)
+        graph = graph.subgraph(ut.nx_all_nodes_between(graph, source, target))
+        # Remove superfluous data
+        ut.nx_delete_edge_attr(graph, ['edge_type', 'isnwise', 'nwise_idx',
+                                       'parent_colx', 'ismulti'])
 
-        accum_path_edges  = ut.lmap(ut.reverse_path_edges, accum_path_redges)
-        #import utool
-        #utool.embed()
+        # Hack multi edges stars to uniquely identify stars
+        count = ord('a')
+        for edge in graph.edges(keys=True, data=True):
+            dat = edge[3]
+            if dat['local_input_id'] == '*':
+                dat['local_input_id'] = '*' + chr(count)
+                dat['taillabel'] = '*' + chr(count)
+                count += 1
 
-        #import networkx as nx
-        expanded_input_graph = graph.__class__()
-        for edge_list, newid in zip(accum_path_edges, newid_list):
-            edge_datas = ut.take_column(edge_list, 3)
-            taillabel_list = ut.dict_take_column(edge_datas, 'taillabel')
-            rinput_path_ids = ut.dict_take_column(edge_datas, 'rinput_path_id')
-            rinput_path_ids = ut.lmap(condense_rinput_ids, rinput_path_ids)
-            #node_rinput_path_ids = rinput_path_ids + [tuple('t')]
-            node_rinput_path_ids = rinput_path_ids + [tuple('1')]
-            #node_rinput_path_ids = rinput_path_ids
-            uv_list = ut.take_column(edge_list, slice(0, 2))
-            uvsuf_list = ut.itertwo(node_rinput_path_ids)
-            for uvsuf, (u, v), taillabel in zip(uvsuf_list, uv_list, taillabel_list):
-                _id1, _id2 = uvsuf
-                #suffix1 = '[' + ','.join(_id1) + ']'
-                #suffix2 = '[' + ','.join(_id2) + ']'
-                #u2 = u + suffix1
-                #v2 = v + suffix2
-                u2 = (u, _id1)
-                v2 = (v, _id2)
+        # Append dummy input/output nodes
+        source_input = 'source_input'
+        target_output = 'target_output'
+        graph.add_edge(source_input, source, local_input_id='s', taillabel='1')
+        graph.add_edge(target, target_output, local_input_id='t', taillabel='1')
 
-                #taillabel = ''
-                #if _id1[-1] == '*':
-                #    taillabel = '*'
-                #    #import utool
-                #    #utool.embed()
-                for node in [u2, v2]:
-                    if not expanded_input_graph.has_node(node):
-                        #label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
-                        #newid_ = '(' + ','.join(newid) + ')'
-                        #label = node[0] + '[' + ','.join(map(str, node[1])) + ']' + newid_
-                        label = node[0] + '[' + ','.join([str(x)[0] for x in node[1]]) + ']'
-                        expanded_input_graph.add_node(node, label=label, newid=newid)
-                if not expanded_input_graph.has_edge(u2, v2):
-                    expanded_input_graph.add_edge(u2, v2, taillabel=taillabel)
+        # Find all paths from the table to the source.
+        paths_to_source   = ut.all_multi_paths(graph, source_input,
+                                               target_output, data=True)
 
-            if not expanded_input_graph.has_edge(u2, v2):
-                expanded_input_graph.add_edge(u2, v2)
+        accumulate_order = ut.reverse_path_edges
+        #accumulate_order = ut.identity
 
-        sink_nodes = list(ut.nx_sink_nodes(expanded_input_graph))
-        source_nodes = list(ut.nx_source_nodes(expanded_input_graph))
+        # Build expanded input graph
+        # The inputs to this table can be derived from this graph.
+        # The output is a new expanded input graph.
+        exi_graph = graph.__class__()
+        for path in paths_to_source:
+
+            # Accumlate unique identifiers along the reversed(?) path
+            edge_list = accumulate_order(path)
+            accumulate_input_ids(edge_list)
+
+            # A node's output(?) on this path determines its expanded id
+            exi_nodes = [(v, d['accum_id']) for u, v, k, d in edge_list[:-1]]
+            # A node's input(?) on this path determines its expanded id
+            #exi_nodes = [(u, d['accum_id']) for u, v, k, d in edge_list[1:]]
+
+            exi_node_to_label = {
+                # remove hacked in * ids
+                #node: node[0] + '[' + ','.join([str(x)[0] for x in node[1]]) + ']'
+                node: node[0] + '[' + ','.join([str(x) for x in node[1]]) + ']'
+                for node in exi_nodes
+            }
+            exi_graph.add_nodes_from(exi_nodes)
+            nx.set_node_attributes(exi_graph, 'label', exi_node_to_label)
+
+            # Undo any accumulation ordering and remove dummy nodes
+            old_edges = accumulate_order(edge_list[1:-1])
+            new_edges = accumulate_order(list(ut.itertwo(exi_nodes)))
+            for new_edge, old_edge in zip(new_edges, old_edges):
+                u2, v2 = new_edge[:2]
+                d = old_edge[3]
+                taillabel = d['taillabel']
+                if not exi_graph.has_edge(u2, v2):
+                    exi_graph.add_edge(u2, v2, taillabel=taillabel)
+
+        sink_nodes = list(ut.nx_sink_nodes(exi_graph))
+        source_nodes = list(ut.nx_source_nodes(exi_graph))
         assert len(sink_nodes) == 1, 'can only have one sink node'
         sink_node = sink_nodes[0]
 
         # Color Rootmost inputs
 
         # First identify if a node is root_specifiable
-        for node in expanded_input_graph.nodes():
+        for node in exi_graph.nodes():
             root_specifiable = False
-            for edge in expanded_input_graph.in_edges(node, keys=True):
-                edata = expanded_input_graph.get_edge_data(*edge)
+            for edge in exi_graph.in_edges(node, keys=True):
+                edata = exi_graph.get_edge_data(*edge)
                 if edata.get('taillabel').startswith('*'):
                     if node != sink_node:
                         root_specifiable = True
-            if expanded_input_graph.in_degree(node) == 0:
+            if exi_graph.in_degree(node) == 0:
                 root_specifiable = True
             if root_specifiable:
-                expanded_input_graph.node[node]['color'] = [1, .7, .6]
-                expanded_input_graph.node[node]['root_specifiable'] = True
+                exi_graph.node[node]['color'] = [1, .7, .6]
+                exi_graph.node[node]['root_specifiable'] = True
             else:
-                expanded_input_graph.node[node]['root_specifiable'] = False
+                exi_graph.node[node]['root_specifiable'] = False
 
         # Need to specify any combo of red nodes such that
         # 1) for each path from a (leaf) to the (root) there is exactly one
         # red node along that path.
         # This garentees that all inputs are gievn.
-        path_list = [nx.shortest_path(expanded_input_graph, source_node, sink_node)
+        path_list = [nx.shortest_path(exi_graph, source_node, sink_node)
                      for source_node in source_nodes]
         rootmost_nodes = set([])
         for path in path_list:
-            flags = [expanded_input_graph.node[node]['root_specifiable'] for node in path]
+            flags = [exi_graph.node[node]['root_specifiable'] for node in path]
             valid_nodes = ut.compress(path, flags)
             rootmost_nodes.add(valid_nodes[-1])
             print('valid_nodes = %r' % (valid_nodes,))
@@ -478,11 +453,10 @@ class _TableGeneralHelper(ut.NiceRepr):
         # Rootmost nodes are the ones specifiable by default when computing
         # the normal property.
         for node in rootmost_nodes:
-            expanded_input_graph.node[node]['color'] = [1, 0, 0]
-            expanded_input_graph.node[node]['rootmost'] = True
-        expanded_input_graph.node[sink_node]['color'] = [0, 1, 0]
-
-        return expanded_input_graph
+            exi_graph.node[node]['color'] = [1, 0, 0]
+            exi_graph.node[node]['rootmost'] = True
+        exi_graph.node[sink_node]['color'] = [0, 1, 0]
+        return exi_graph
 
     @property
     @ut.memoize
@@ -569,7 +543,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         toprank = ut.dict_take(ut.make_index_lookup(topsort), flat_node_order_)
         sortx = ut.argsort(toprank)
         flat_node_order = ut.take(flat_node_order_, sortx)
-        #newid_list = ut.dict_take_column(ut.dict_take(expanded_input_graph.node, flag_compute_order), 'newid')
 
         # Compute which branches in the tree each node belongs to
         node_to_branchids = ut.group_items(*zip(*[

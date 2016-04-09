@@ -301,6 +301,11 @@ def testdata_depc_annot():
     def dummy_func(depc, *args, **kwargs):
         return None
 
+    # NOTE: Consider the smk_match.
+    # It would be really cool if we could say that the vocab
+    # for the input to the parent smk_vec must be the same vocab
+    # that was used to compute the inverted index. How do we encode that?
+
     root = 'annot'
     #vocab_parent = 'annot'
     #vocab_parent = 'chip'
@@ -309,19 +314,20 @@ def testdata_depc_annot():
     depc = dtool.DependencyCache(
         root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
     depc.register_preproc(tablename='chip', parents=['annot'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='fgmodel', parents=['annot*'], **dummy_cols)(dummy_func)
-    #depc.register_preproc(tablename='probchip', parents=['annot', 'fgmodel'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='probchip', parents=['annot'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='fgmodel', parents=['chip*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='probchip', parents=['annot', 'fgmodel'], **dummy_cols)(dummy_func)
+    #depc.register_preproc(tablename='probchip', parents=['annot'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='feat', parents=['chip'], **dummy_cols)(dummy_func)
+    #depc.register_preproc(tablename='feat', parents=['annot'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='featweight', parents=['feat', 'probchip'], **dummy_cols)(dummy_func)
 
-    depc.register_preproc(tablename='indexer', parents=['featweight*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='neighbs', parents=['featweight', 'indexer'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='indexer', parents=[vocab_parent + '*'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='neighbs', parents=[vocab_parent, 'indexer'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='vocab', parents=[vocab_parent + '*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='smk_vec', parents=[vocab_parent, 'vocab'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vsone', parents=['featweight', 'featweight'], **dummy_cols)(dummy_func)
+    depc.register_preproc(tablename='vsone', parents=[vocab_parent, vocab_parent], **dummy_cols)(dummy_func)
 
     depc.register_preproc(tablename='viewpoint_model', parents=['annot*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='viewpoint', parents=['annot', 'viewpoint_model'], **dummy_cols)(dummy_func)
