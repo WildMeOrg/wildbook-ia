@@ -321,8 +321,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         # FIXME: this does not work correctly when
         # The nesting of non-1-to-1 dependencies is greater than 2 (I think)
         # algorithm for finding inputs does not work.
-        import plottool as pt
-        pt.ensure_pylab_qt4()
 
         def condense_accum_ids(rinput_path_id):
             # Hack to condense and consolidate graph sources
@@ -552,7 +550,7 @@ class _TableGeneralHelper(ut.NiceRepr):
                                    ut.nx_sink_nodes(expanded_input_graph))
             for node in ut.nx_all_nodes_between(expanded_input_graph, s, t)
         ]))
-        branch_ids = ut.dict_take(node_to_branchids, flat_node_order)
+        branch_ids = ut.lmap(tuple, ut.dict_take(node_to_branchids, flat_node_order))
         tablenames = ut.take_column(flat_node_order, 0)
         #rinput_ids = ut.take_column(flat_node_order, 1)
 
@@ -567,6 +565,7 @@ class _TableGeneralHelper(ut.NiceRepr):
         #rinput_idxs = make_new_flat_order(rinput_ids)
 
         rootmost_expanded_input_branchids = ut.dict_take(node_to_branchids, rootmost_expanded_input)
+        rootmost_expanded_input_branchids = ut.lmap(tuple, rootmost_expanded_input_branchids)
         rootmost_tables = ut.take_column(rootmost_expanded_input, 0)
         input_compute_ids = list(zip(rootmost_tables, rootmost_expanded_input_branchids))
 

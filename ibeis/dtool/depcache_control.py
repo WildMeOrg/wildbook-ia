@@ -667,7 +667,7 @@ class _CoreDependencyCache(object):
         GridExample0:
             >>> table = depc[tablename]  # NOQA
             >>> flat_root_ids = [1, 2, 3]
-            >>> root_rowids = [flat_root_ids for _ in table.expected_input_order]
+            >>> root_rowids = [flat_root_ids for _ in table.input_order]
             >>> print('root_rowids = %r' % (root_rowids,))
             >>> #root_rowids = [[flat_root_ids], [(flat_root_ids,)]]
             >>> #root_rowids = [list(zip(flat_root_ids)), (flat_root_ids,)]
@@ -714,91 +714,55 @@ class _CoreDependencyCache(object):
         INDEXER_VERSION = False
 
         if tablename == 'neighbor_index':
+            """
+            python -m ibeis.core_annots --exec-compute_neighbor_index --show
+            """
+
             import utool
             utool.embed()
 
         if INDEXER_VERSION or tablename == 'neighbs':
-            expected_input_order = table.expected_input_order
             compute_order = table.compute_order
+            depend_order = compute_order['depend_compute_ids']
+            input_order = compute_order['input_compute_ids']
 
             if _debug:
-                print(' * expected_input_order = %s' % (expected_input_order,))
-                print(' * compute_order = %s' % (ut.repr3(compute_order),))
-            if len(expected_input_order) > 1:
+                print(' * input_order = %s' % (ut.repr3(input_order, nl=1),))
+                print(' * depend_order = %s' % (ut.repr3(depend_order, nl=1),))
+            if len(input_order) > 1:
                 assert ut.depth_atleast(root_rowids, 2), (
-                    'expected_input_order = %r' % (expected_input_order,))
-
-            def handle_level(tablekey, input_names, rowid_lookup, _recompute,
-                             level):
-                print('+--- HANDLE LEVEL %d -------' % (level,))
-                ordering = ut.dict_take(input_order_lookup, input_names)
-                sortx = ut.argsort(ordering)
-                input_names = ut.take(input_names, sortx)
-                config_ = depc._ensure_config(tablekey, config)
-                table = depc[tablekey]
-
-                lookupkeys = list(zip(table.parent_id_tablenames, input_names))
-                # lookupkeys = list(ut.iprod(table.parent_id_tablenames, input_names))
-                # lookupkeys = list(zip(table.parent_id_tablenames, input_types))
-                if _debug:
-                    print('---- LOCALS ------')
-                    ut.print_locals(input_names, tablekey, lookupkeys, table)
-                    print('L----------')
-                # FIXME generalize
-                _parent_ids = [rowid_lookup[typekey][tblkey]
-                               for tblkey, typekey in lookupkeys]
-                if table.ismulti:
-                    parent_rowidsT = [[tuple(x)] for x in _parent_ids]
-                else:
-                    parent_rowidsT = _parent_ids
-                parent_rowidsT = np.broadcast_arrays(*parent_rowidsT)
-                parent_rowids = list(zip(*parent_rowidsT))
-                # Probably not right for general multi-input
-                import utool
-                with utool.embed_on_exception_context:
-                    next_rowids = table.get_rowid(
-                        parent_rowids, config=config_, eager=eager, nInput=nInput,
-                        ensure=ensure, recompute=_recompute)
-                for name in input_names:
-                    rowid_lookup[name][table.tablename] = next_rowids
-                if _debug:
-                    ut.printdict(rowid_lookup, 'rowid_lookup')
-                if _debug:
-                    print('L___ HANDLE LEVEL %d -------' % (level,))
-                return next_rowids
+                    'input_order = %r' % (input_order,))
 
             with ut.Indenter('[GetRowID-%s]' % (tablename,),
                              enabled=_debug):
                 # New way to get rowids
-                input_level = compute_order[0]
-                mid_levels = compute_order[1:-1]
-                output_level = compute_order[-1]
+                input_level = depend_order[0]
+                mid_levels = depend_order[1:-1]
+                output_level = depend_order[-1]
 
                 # List that holds a mapping from input order to input "name"
-                input_order_lookup = ut.make_index_lookup(expected_input_order)
+                input_order_lookup = ut.make_index_lookup(input_order)
                 # Dictionary that holds the rowids computed for each table
                 # while tracing the dependencies.
-                rowid_lookup = ut.odict([(key, ut.odict())
-                                         for key in expected_input_order])
+                rowid_lookup = ut.odict([(key, ut.odict()) for key in input_order])
 
                 # Need to split each path into parts.
                 # Each part represents another level of unflattening
                 # (because root indicies are all flat)
 
                 # Handle input level
-                tablekey, input_names = input_level
-                assert tablekey == depc.root
-                for name in input_names:
-                    argx = input_order_lookup[name]
-                    rowid_lookup[name]['rawroot'] = root_rowids[argx]
-                    rowid_lookup[name][tablekey] = root_rowids[argx]
+                assert input_level[0] == depc.root
+                for compute_id in input_order:
+                    # for name in input_names:
+                    argx = input_order_lookup[compute_id]
+                    rowid_lookup[compute_id] = root_rowids[argx]
                     # HACK: Flatten to scalars
                     # The inputs should just be given in the "correct" nesting.
                     # TODO: determine what correct nesting is.
                     for i in range(5):
                         try:
-                            current = rowid_lookup[name][tablekey]
-                            rowid_lookup[name][tablekey] = ut.flatten(current)
+                            current = rowid_lookup[compute_id]
+                            rowid_lookup[compute_id] = ut.flatten(current)
                         except Exception:
                             pass
 
@@ -807,18 +771,54 @@ class _CoreDependencyCache(object):
                     print('input_order_lookup = %r' % (input_order_lookup,))
                     ut.printdict(rowid_lookup, 'rowid_lookup')
 
+                def handle_level(compute_id, rowid_lookup, _recompute, level):
+                    print('+--- HANDLE LEVEL %d -------' % (level,))
+                    tablekey = compute_id[0]
+                    input_suff = compute_id[1]
+                    config_ = depc._ensure_config(tablekey, config)
+                    table = depc[tablekey]
+                    lookupkeys = [(n, input_suff) for n in table.parent_id_tablenames]
+                    # ordering = ut.dict_take(input_order_lookup, input_names)
+                    # sortx = ut.argsort(ordering)
+                    # FIXME: get inputs for each table.
+                    # input_names = ut.take(input_names, sortx)
+                    # lookupkeys = list(ut.iprod(table.parent_id_tablenames, input_names))
+                    # lookupkeys = list(zip(table.parent_id_tablenames, input_types))
+                    if _debug:
+                        print('---- LOCALS ------')
+                        ut.print_locals(compute_id, tablekey, lookupkeys, table)
+                        print('L----------')
+                    # FIXME generalize
+                    _parent_ids = [rowid_lookup[tblkey] for tblkey in lookupkeys]
+                    if table.ismulti:
+                        parent_rowidsT = [[tuple(x)] for x in _parent_ids]
+                    else:
+                        parent_rowidsT = _parent_ids
+                    parent_rowidsT = np.broadcast_arrays(*parent_rowidsT)
+                    parent_rowids = list(zip(*parent_rowidsT))
+                    # Probably not right for general multi-input
+                    import utool
+                    with utool.embed_on_exception_context:
+                        next_rowids = table.get_rowid(
+                            parent_rowids, config=config_, eager=eager, nInput=nInput,
+                            ensure=ensure, recompute=_recompute)
+                    rowid_lookup[compute_id] = next_rowids
+                    if _debug:
+                        ut.printdict(rowid_lookup, 'rowid_lookup')
+                    if _debug:
+                        print('L___ HANDLE LEVEL %d -------' % (level,))
+                    return next_rowids
+
                 # Handle mid levels
                 _recompute = recompute_all
-                for level, (tablekey, input_names) in enumerate(mid_levels,
-                                                                start=1):
-                    handle_level(tablekey, input_names, rowid_lookup,
-                                 _recompute, level)
+                for level, compute_id in enumerate(mid_levels, start=1):
+                    handle_level(compute_id, rowid_lookup, _recompute, level)
                 level += 1
 
                 # Handel final (requested) level
-                tablekey, input_names = output_level
+                compute_id = output_level
                 _recompute = recompute
-                rowid_list =  handle_level(tablekey, input_names, rowid_lookup,
+                rowid_list =  handle_level(compute_id, rowid_lookup,
                                            _recompute, level)
         else:
             with ut.Indenter('[GetRowID-%s]' % (tablename,),
