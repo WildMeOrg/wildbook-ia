@@ -388,92 +388,6 @@ def detect_parse_gt(ibs, test_gid_set=None):
     return gt_dict
 
 
-# def detect_parse_sweep(sweep_filepath):
-#     from os.path import abspath, expanduser, join, exists
-#     with open(sweep_filepath, 'r') as sweep_file:
-#         line_list = sweep_file.readlines()
-#     sweep_dict = {}
-#     temp_list = []
-#     current_gpath = None
-#     current_index = None
-#     current_width, current_height = None, None
-#     # print('Parsing: %r' % (sweep_filepath, ))
-#     for line in line_list:
-#         if not line.startswith(' '):
-#             if current_index is not None:
-#                 sweep_dict[current_index] = temp_list
-#                 temp_list = []
-#             line = line.strip().split()
-#             assert len(line) == 2
-#             current_gpath = line[0]
-#             if exists(current_gpath):
-#                 current_width, current_height = vt.open_image_size(current_gpath)
-#             else:
-#                 current_gpath = current_gpath.replace(
-#                     '/media/extend/jason/data',
-#                     abspath(expanduser(join('~', 'Desktop', 'data')))
-#                 )
-#                 current_width, current_height = vt.open_image_size(current_gpath)
-#             current_index = int(line[1])
-#         else:
-#             assert current_gpath is not None and current_index is not None
-#             assert current_width is not None and current_height is not None
-#             line = line.strip().split()
-#             assert len(line) == 8
-#             temp = {
-#                 'xtl'        : float(line[2]) / current_width,
-#                 'ytl'        : float(line[3]) / current_height,
-#                 'width'      : float(line[4]) / current_width,
-#                 'height'     : float(line[5]) / current_height,
-#                 'species'    : None if line[6] == '0' else line[6],
-#                 'confidence' : float(line[7]),
-#             }
-#             temp_list.append(temp)
-#     sweep_dict[current_index] = temp_list
-#     if 100 not in sweep_dict:
-#         raise ValueError('Error parsing (incomplete): %r' % (sweep_filepath, ))
-#     return sweep_dict
-
-
-# def detect_precision_recall_algo(ibs, algo, **kwargs):
-#     import uuid
-#     from os.path import abspath, expanduser, join, split
-#     test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo)))
-#     sweep_filepath_list = ut.ls(test_path, '*_sweep.txt')
-
-#     test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-#     uuid_list = ibs.get_image_uuids(test_gid_set)
-
-#     sweep_dict_dict = {}
-#     processed, skipped, errored = 0, 0, 0
-#     for sweep_filepath in sweep_filepath_list:
-#         sweep_path, sweep_filename = split(sweep_filepath)
-#         uuid_ = uuid.UUID(sweep_filename.split('.JPG')[0])
-#         if uuid_ not in uuid_list:
-#             # print('Skipping: image UUID not in this dataset')
-#             skipped += 1
-#             continue
-#         try:
-#             sweep_dict = detect_parse_sweep(sweep_filepath)
-#             sweep_dict_dict[uuid_] = sweep_dict
-#             processed += 1
-#         except ValueError:
-#             # print('Skipping: Incomplete sweep file')
-#             errored += 1
-#             continue
-#         except AssertionError:
-#             # print('Skipping: Corrupt sweep file')
-#             errored += 1
-#             continue
-#         # print('Parsed: %r' % (sweep_filepath, ))
-#         # print(sweep_dict)
-#     print('Processed: %d' % (processed, ))
-#     print('Skipped: %d' % (skipped, ))
-#     print('Errored: %d' % (errored, ))
-#     assert errored == 0
-#     return sweep_dict_dict
-
-
 def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
     depc = ibs.depc_image
 
@@ -484,8 +398,8 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
     config = {
         'algo'            : 'yolo',
         'sensitivity'     : 0.0,
-        'config_filepath' : '/media/hdd/jason/yolo/weights/detect.yolo.12.cfg',
-        'weight_filepath' : '/media/hdd/jason/yolo/weights/detect.yolo.12.weights',
+        'config_filepath' : None,
+        'weight_filepath' : None,
         'grid'            : False,
     }
     config = ut.update_existing(config, kwargs)
@@ -559,7 +473,6 @@ def detect_precision_recall_algo(ibs, **kwargs):
                 global_dict['tp'][alpha] += tp
                 global_dict['fp'][alpha] += fp
                 global_dict['fn'][alpha] += fn
-    print('...complete')
 
     pr_list, re_list = [], []
     alpha_list = sorted(global_dict['tp'].keys())
@@ -572,6 +485,7 @@ def detect_precision_recall_algo(ibs, **kwargs):
         pr_list.append(pr)
         re_list.append(re)
 
+    print('...complete')
     return pr_list, re_list
 
 
@@ -595,10 +509,10 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    detect_precision_recall_algo_plot(ibs, 'Original', 'r', min_overlap=min_overlap, grid=False, config_filepath='v1', weight_filepath='v1')
-    detect_precision_recall_algo_plot(ibs, 'Original (GRID)', 'k', min_overlap=min_overlap, grid=True, config_filepath='v1', weight_filepath='v1')
-    detect_precision_recall_algo_plot(ibs, 'Retrained', 'b', min_overlap=min_overlap, grid=False)
-    detect_precision_recall_algo_plot(ibs, 'Retrained (GRID)', 'g', min_overlap=min_overlap, grid=True)
+    detect_precision_recall_algo_plot(ibs, 'Original',         'r', min_overlap=min_overlap, grid=False, config_filepath='v1', weight_filepath='v1')
+    detect_precision_recall_algo_plot(ibs, 'Retrained',        'b', min_overlap=min_overlap, grid=False, config_filepath='v2', weight_filepath='v2')
+    detect_precision_recall_algo_plot(ibs, 'Original (GRID)',  'k', min_overlap=min_overlap, grid=True, config_filepath='v1', weight_filepath='v1')
+    detect_precision_recall_algo_plot(ibs, 'Retrained (GRID)', 'g', min_overlap=min_overlap, grid=True, config_filepath='v2', weight_filepath='v2')
 
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -607,6 +521,14 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
     fig_filename = 'precision-recall-%0.2f.png' % (min_overlap, )
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
+
+
+@register_ibs_method
+def detect_precision_recall_algo_display_animate(ibs, **kwargs):
+    for value in range(10):
+        min_overlap = value / 10.0
+        print('Processing: %r' % (min_overlap, ))
+        ibs.detect_precision_recall_algo_display(min_overlap=min_overlap)
 
 
 def _resize(image, t_width=None, t_height=None):
