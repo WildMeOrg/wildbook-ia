@@ -12,7 +12,7 @@ TODO: need to split up into sub modules:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-from os.path import exists
+from os.path import exists, expanduser, join, abspath
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -604,7 +604,8 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
     # plt.show()
-    fig_path = '/Users/bluemellophone/Desktop/precision-recall-%0.2f.png' % (min_overlap, )
+    fig_filename = 'precision-recall-%0.2f.png' % (min_overlap, )
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
 
@@ -628,64 +629,13 @@ def _resize(image, t_width=None, t_height=None):
     return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
 
 
-# @register_ibs_method
-# def detect_write_detection_exmaples(ibs, SEED=23170):
-#     from os.path import abspath, expanduser, join
-#     import ibeis
-#     import random
-
-#     operating_dict = {
-#         'rcnn': 80,
-#         'rf' : 60,
-#         'yolo': 80,
-#     }
-
-#     random.seed(SEED)
-#     for database, tag in [ ('PZ_Paper', 'pz'), ('GZ_Paper', 'gz') ]:
-#         ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', database))))
-#         # Get random set of test images
-#         test_gid_set = ibs_.get_imageset_gids(ibs_.get_imageset_imgsetids_from_text('TEST_SET'))
-#         random.shuffle(test_gid_set)
-#         test_gid_list = test_gid_set[:10]
-
-#         if tag == 'gz':
-#             test_gid_list[0] = test_gid_set[10]
-
-#         test_image_list = ibs_.get_images(test_gid_list)
-#         test_uuid_list = ibs_.get_image_uuids(test_gid_list)
-
-#         write_path = abspath('/Users/bluemellophone/Dropbox/Shared/Chuck WACV/resources/detections/')
-#         print(write_path)
-#         # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
-#         for algo, conf in operating_dict.iteritems():
-#             test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo,)))
-#             for index, (test_uuid, test_image) in enumerate(zip(test_uuid_list, test_image_list)):
-#                 test_image = _resize(test_image, t_width=600)
-#                 height, width, channels = test_image.shape
-#                 sweep_filepath = join(test_path, '%s.JPG_sweep.txt' % (test_uuid, ))
-#                 sweep_dict = detect_parse_sweep(sweep_filepath)
-#                 annot_list = sweep_dict[conf]
-#                 for annot in annot_list:
-#                     xtl = int(annot['xtl'] * width)
-#                     ytl = int(annot['ytl'] * height)
-#                     xbr = int((annot['xtl'] + annot['width']) * width)
-#                     ybr = int((annot['ytl'] + annot['height']) * height)
-#                     cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
-#                 write_filepath = join(write_path, algo, '%s%d.jpg' % (tag, index, ))
-#                 print(write_filepath)
-#                 cv2.imwrite(write_filepath, test_image)
-
-
 @register_ibs_method
 def detect_write_detection_all(ibs):
-    from os.path import abspath, join
-
     test_gid_list = ibs.get_valid_gids()
     test_image_list = ibs.get_images(test_gid_list)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    write_path = abspath('/Users/bluemellophone/Desktop/')
-    print(write_path)
+    write_path = abspath(expanduser(join('~', 'Desktop')))
     # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
     for index, (test_gid, test_uuid, test_image) in enumerate(zip(test_gid_list, test_uuid_list, test_image_list)):
         height_old, width_old, channels_old = test_image.shape
