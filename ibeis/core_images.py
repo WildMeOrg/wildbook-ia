@@ -148,6 +148,7 @@ def draw_thumb_helper(tup):
 class DetectionConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'cnn'),
+        ut.ParamInfo('sensitivity', 0.2),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
         ut.ParamInfo('config_filepath', None, hideif=None),
         ut.ParamInfo('weight_filepath', None, hideif=None),

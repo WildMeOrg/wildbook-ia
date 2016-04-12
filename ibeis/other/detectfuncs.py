@@ -597,26 +597,256 @@ def detect_precision_recall_algo(ibs, algo, **kwargs):
     return sweep_dict_dict
 
 
-def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+# def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
+#     test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+#     uuid_list = ibs.get_image_uuids(test_gid_set)
+
+#     gt_dict = detect_parse_gt(ibs)
+#     sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
+
+#     total = 0
+#     error_localization   = 0
+#     error_localization_by_species   = {}
+#     error_localization_by_viewpoint = {}
+#     error_localization_by_density   = {}
+#     error_classification = 0
+#     error_classification_by_species   = {}
+#     error_classification_by_viewpoint = {}
+#     error_classification_by_density   = {}
+
+#     gt_by_species   = {}
+#     gt_by_viewpoint = {}
+#     gt_by_density   = {}
+
+#     pr_dict = {}
+#     re_dict = {}
+#     print('Processing IOU + P/R Curves...')
+#     for uuid in uuid_list:
+#         # print('    %r' % (uuid, ))
+#         gt_list = gt_dict[uuid]
+#         gt_density = len(gt_list)
+#         total += gt_density
+#         gt_density = min(gt_density, 7)
+
+#         if gt_density not in gt_by_density:
+#             gt_by_density[gt_density] = 0
+
+#         gt_by_density[gt_density] += 1
+
+#         if uuid in sweep_dict_dict:
+#             sweep_dict = sweep_dict_dict[uuid]
+#             best_pr = None
+#             best_index = None
+#             for index in sweep_dict:
+#                 pred_list = sweep_dict[index]
+#                 overlap = detect_overlap(gt_list, pred_list)
+#                 pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
+#                 if algo == 'yolo':
+#                     index = 101 - index
+#                 if index not in pr_dict:
+#                     pr_dict[index] = []
+#                 if index not in re_dict:
+#                     re_dict[index] = []
+#                 pr_dict[index].append(pr)
+#                 re_dict[index].append(re)
+#                 # Analyze errors
+#                 if best_pr is None or pr > best_pr:
+#                     best_pr = pr
+#                     best_index = index
+
+#             # Analyze errors
+#             assert best_index is not None
+#             pred_list = sweep_dict[best_index]
+#             overlap = detect_overlap(gt_list, pred_list)
+#             pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
+
+#             temp_total = len(gt_list)
+#             temp_local = 0
+#             temp_class = 0
+#             for gt in range(temp_total):
+#                 gt_species   = gt_list[gt]['species']
+#                 if gt_species not in ['zebra_plains', 'zebra_grevys']:
+#                     gt_species = 'unspecified'
+#                 gt_viewpoint = gt_list[gt]['viewpoint']
+
+#                 if gt_species not in gt_by_species:
+#                     gt_by_species[gt_species] = 0
+#                 if gt_viewpoint not in gt_by_viewpoint:
+#                     gt_by_viewpoint[gt_viewpoint] = 0
+
+#                 gt_by_species[gt_species] += 1
+#                 gt_by_viewpoint[gt_viewpoint] += 1
+
+#                 if gt not in assignment_dict:
+#                     error_localization += 1
+#                     if gt_species not in error_localization_by_species:
+#                         error_localization_by_species[gt_species] = 0
+#                     if gt_viewpoint not in error_localization_by_viewpoint:
+#                         error_localization_by_viewpoint[gt_viewpoint] = 0
+#                     error_localization_by_species[gt_species] += 1
+#                     error_localization_by_viewpoint[gt_viewpoint] += 1
+#                     temp_local += 1
+#                 else:
+#                     pred = assignment_dict[gt]
+#                     pred_species = pred_list[pred]['species']
+#                     if pred_species is None and algo == 'rf':
+#                         pred_species = species
+#                     assert pred_species is not None
+#                     if gt_species != pred_species:
+#                         error_classification += 1
+#                         if gt_species not in error_classification_by_species:
+#                             error_classification_by_species[gt_species] = 0
+#                         if gt_viewpoint not in error_classification_by_viewpoint:
+#                             error_classification_by_viewpoint[gt_viewpoint] = 0
+#                         error_classification_by_species[gt_species] += 1
+#                         error_classification_by_viewpoint[gt_viewpoint] += 1
+#                         temp_class += 1
+#             if gt_density not in error_localization_by_density:
+#                 error_localization_by_density[gt_density] = 0
+#             if gt_density not in error_classification_by_density:
+#                 error_classification_by_density[gt_density] = 0
+#             if temp_local > temp_total // 2:
+#                 error_localization_by_density[gt_density] += 1
+#             if temp_class > temp_total // 2:
+#                 error_classification_by_density[gt_density] += 1
+#     print('...complete')
+
+#     for _dict in [pr_dict, re_dict]:
+#         for index in _dict:
+#             temp = _dict[index]
+#             if len(temp) == 0:
+#                 _dict[index] = None
+#             else:
+#                 _dict[index] = sum(temp) / len(temp)
+
+#     print(gt_by_species)
+#     print(gt_by_viewpoint)
+#     print(gt_by_density)
+
+#     print(sum( map(len, ibs.get_image_aids(test_gid_set)) ))
+#     print(total - error_localization - error_classification)
+#     print(error_classification)
+#     print(error_localization)
+#     print(error_localization_by_species)
+#     print(error_localization_by_viewpoint)
+#     print(error_localization_by_density)
+#     print(error_classification_by_species)
+#     print(error_classification_by_viewpoint)
+#     print(error_classification_by_density)
+
+#     return pr_dict, re_dict
+
+
+# def detect_precision_recall_algo_average2(ibs, algo, species, **kwargs):
+#     test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+#     uuid_list = ibs.get_image_uuids(test_gid_set)
+
+#     gt_dict = detect_parse_gt(ibs)
+#     sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
+
+#     performance_dict = {}
+#     print('Processing IOU + P/R Curves...')
+#     for uuid in uuid_list:
+#         gt_list = gt_dict[uuid]
+
+#         if uuid in sweep_dict_dict:
+#             sweep_dict = sweep_dict_dict[uuid]
+#             temp = {}
+#             for index in sweep_dict:
+#                 pred_list = sweep_dict[index]
+#                 overlap = detect_overlap(gt_list, pred_list)
+#                 pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
+#                 re = np.around(re, decimals=2)
+#                 if re not in temp or temp[re] < pr:
+#                     temp[re] = pr
+#             for re, pr in temp.iteritems():
+#                 if re not in performance_dict:
+#                     performance_dict[re] = []
+#                 performance_dict[re].append(pr)
+#     print('...complete')
+
+#     for re in sorted(performance_dict.keys()):
+#         temp = performance_dict[re]
+#         performance_dict[re] = sum(temp) / len(temp)
+#     return performance_dict
+
+
+def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
+    depc = ibs.depc_image
+
+    if test_gid_set is None:
+        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
-    gt_dict = detect_parse_gt(ibs)
-    sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
+    config = {
+        'algo'            : 'yolo',
+        'config_filepath' : '/media/hdd/jason/yolo/weights/detect.yolo.12.cfg',
+        'weight_filepath' : '/media/hdd/jason/yolo/weights/detect.yolo.12.weights',
+        'grid'            : False,
+    }
+    config = ut.update_existing(config, kwargs)
+    print(config)
+    results_list = depc.get_property('detections', test_gid_set, None, config=config)
+    size_list = ibs.get_image_sizes(test_gid_set)
+    zipped_list = zip(results_list)
+    # Reformat results for json
+    results_list = [
+        [
+            {
+                'xtl'        : bbox[0] / width,
+                'ytl'        : bbox[1] / height,
+                'width'      : bbox[2] / width,
+                'height'     : bbox[3] / height,
+                'theta'      : round(theta, 4),
+                'confidence' : round(conf, 4),
+                # 'class'      : class_,
+                'species'    : class_,
+            }
+            for bbox, theta, conf, class_ in zip(*zipped[0][1:])
+        ]
+        for zipped, (width, height) in zip(zipped_list, size_list)
+    ]
+    result_list = results_list
+
+    pred_dict_dict = {}
+    for gid, uuid_, result_list in zip(test_gid_set, uuid_list, results_list):
+        # Get detections from depc
+        pred_dict = {}
+        for current_index in range(1, 101):
+            conf = current_index / 100.0
+            temp_list = []
+            for result in result_list:
+                confidence = result['confidence']
+                if confidence <= conf:
+                    continue
+                temp_list.append(result)
+            pred_dict[current_index] = temp_list
+        pred_dict_dict[uuid_] = pred_dict
+    return pred_dict_dict
+
+
+def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
+    # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+    test_gid_set = ibs.get_valid_gids()
+    uuid_list = ibs.get_image_uuids(test_gid_set)
+
+    print('Gather Ground-Truth')
+    gt_dict = detect_parse_gt(ibs, test_gid_set=test_gid_set)
+
+    # pred_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
+    print('Gather Predictions')
+    pred_dict_dict = detect_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
 
     total = 0
     error_localization   = 0
     error_localization_by_species   = {}
     error_localization_by_viewpoint = {}
-    error_localization_by_density   = {}
     error_classification = 0
     error_classification_by_species   = {}
     error_classification_by_viewpoint = {}
-    error_classification_by_density   = {}
 
     gt_by_species   = {}
     gt_by_viewpoint = {}
-    gt_by_density   = {}
 
     pr_dict = {}
     re_dict = {}
@@ -624,21 +854,14 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
     for uuid in uuid_list:
         # print('    %r' % (uuid, ))
         gt_list = gt_dict[uuid]
-        gt_density = len(gt_list)
-        total += gt_density
-        gt_density = min(gt_density, 7)
+        total += len(gt_list)
 
-        if gt_density not in gt_by_density:
-            gt_by_density[gt_density] = 0
-
-        gt_by_density[gt_density] += 1
-
-        if uuid in sweep_dict_dict:
-            sweep_dict = sweep_dict_dict[uuid]
+        if uuid in pred_dict_dict:
+            pred_dict_ = pred_dict_dict[uuid]
             best_pr = None
             best_index = None
-            for index in sweep_dict:
-                pred_list = sweep_dict[index]
+            for index in pred_dict_:
+                pred_list = pred_dict_[index]
                 overlap = detect_overlap(gt_list, pred_list)
                 pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
                 if algo == 'yolo':
@@ -656,7 +879,7 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
 
             # Analyze errors
             assert best_index is not None
-            pred_list = sweep_dict[best_index]
+            pred_list = pred_dict_[best_index]
             overlap = detect_overlap(gt_list, pred_list)
             pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
 
@@ -701,14 +924,6 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
                         error_classification_by_species[gt_species] += 1
                         error_classification_by_viewpoint[gt_viewpoint] += 1
                         temp_class += 1
-            if gt_density not in error_localization_by_density:
-                error_localization_by_density[gt_density] = 0
-            if gt_density not in error_classification_by_density:
-                error_classification_by_density[gt_density] = 0
-            if temp_local > temp_total // 2:
-                error_localization_by_density[gt_density] += 1
-            if temp_class > temp_total // 2:
-                error_classification_by_density[gt_density] += 1
     print('...complete')
 
     for _dict in [pr_dict, re_dict]:
@@ -719,56 +934,19 @@ def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
             else:
                 _dict[index] = sum(temp) / len(temp)
 
-    print(gt_by_species)
-    print(gt_by_viewpoint)
-    print(gt_by_density)
+    # print(gt_by_species)
+    # print(gt_by_viewpoint)
 
-    print(sum( map(len, ibs.get_image_aids(test_gid_set)) ))
-    print(total - error_localization - error_classification)
-    print(error_classification)
-    print(error_localization)
-    print(error_localization_by_species)
-    print(error_localization_by_viewpoint)
-    print(error_localization_by_density)
-    print(error_classification_by_species)
-    print(error_classification_by_viewpoint)
-    print(error_classification_by_density)
+    print('Total:   %r' % (sum( map(len, ibs.get_image_aids(test_gid_set)) ), ))
+    print('Correct: %r' % (total - error_localization - error_classification, ))
+    print('E_Class: %r' % (error_classification, ))
+    print('E_Local: %r' % (error_localization, ))
+    # print(error_localization_by_species)
+    # print(error_localization_by_viewpoint)
+    # print(error_classification_by_species)
+    # print(error_classification_by_viewpoint)
 
     return pr_dict, re_dict
-
-
-def detect_precision_recall_algo_average2(ibs, algo, species, **kwargs):
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
-
-    gt_dict = detect_parse_gt(ibs)
-    sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
-
-    performance_dict = {}
-    print('Processing IOU + P/R Curves...')
-    for uuid in uuid_list:
-        gt_list = gt_dict[uuid]
-
-        if uuid in sweep_dict_dict:
-            sweep_dict = sweep_dict_dict[uuid]
-            temp = {}
-            for index in sweep_dict:
-                pred_list = sweep_dict[index]
-                overlap = detect_overlap(gt_list, pred_list)
-                pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-                re = np.around(re, decimals=2)
-                if re not in temp or temp[re] < pr:
-                    temp[re] = pr
-            for re, pr in temp.iteritems():
-                if re not in performance_dict:
-                    performance_dict[re] = []
-                performance_dict[re].append(pr)
-    print('...complete')
-
-    for re in sorted(performance_dict.keys()):
-        temp = performance_dict[re]
-        performance_dict[re] = sum(temp) / len(temp)
-    return performance_dict
 
 
 def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
@@ -784,19 +962,6 @@ def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
 
     pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
 
-    algo_dict = {
-        'rf'   : 'HF',
-        'yolo' : 'YOLO',
-        'rcnn' : 'R-CNN',
-    }
-    algo = algo_dict[algo]
-
-    species_dict = {
-        'zebra_plains' : 'Plains',
-        'zebra_grevys' : 'Grevy\'s',
-    }
-    species = species_dict[species]
-
     # Plot curves
     x_axis, y_axis = axes(pr_dict)
     plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
@@ -805,45 +970,122 @@ def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
     plt.plot(x_axis, y_axis, '%s--' % (color, ), label='%s Rec. (%s)' % (algo, species, ))
 
 
-def detect_precision_recall_algo_plot2(ibs, algo, species, color, **kwargs):
-    import matplotlib.pyplot as plt
+# def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
+#     import matplotlib.pyplot as plt
 
-    def axes(pr_dict, re_dict, algo):
-        x_axis = []
-        y_axis = []
-        for _ in sorted(re_dict.keys(), reverse=True):
-            re, pr = re_dict[_], pr_dict[_]
-            x_axis.append(re)
-            y_axis.append(pr)
+#     def axes(dict_):
+#         x_axis = []
+#         y_axis = []
+#         for _ in sorted(dict_.keys()):
+#             x_axis.append( _ / 100.0 )
+#             y_axis.append(dict_[_])
+#         return x_axis, y_axis
 
-        return x_axis, y_axis
+#     pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
 
-    # performance_dict = detect_precision_recall_algo_average2(ibs, algo, species, **kwargs)
-    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
+#     algo_dict = {
+#         'rf'   : 'HF',
+#         'yolo' : 'YOLO',
+#         'rcnn' : 'R-CNN',
+#     }
+#     algo = algo_dict[algo]
 
-    algo_dict = {
-        'rf'   : 'HF',
-        'yolo' : 'YOLO',
-        'rcnn' : 'R-CNN',
-    }
-    algo = algo_dict[algo]
+#     species_dict = {
+#         'zebra_plains' : 'Plains',
+#         'zebra_grevys' : 'Grevy\'s',
+#     }
+#     species = species_dict[species]
 
-    species_dict = {
-        'zebra_plains' : 'Plains',
-        'zebra_grevys' : 'Grevy\'s',
-    }
-    species = species_dict[species]
+#     # Plot curves
+#     x_axis, y_axis = axes(pr_dict)
+#     plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
 
-    # Plot curves
-    x_axis, y_axis = axes(pr_dict, re_dict, algo)
-    plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s (%s)' % (algo, species, ))
+#     x_axis, y_axis = axes(re_dict)
+#     plt.plot(x_axis, y_axis, '%s--' % (color, ), label='%s Rec. (%s)' % (algo, species, ))
+
+
+# def detect_precision_recall_algo_plot2(ibs, algo, species, color, **kwargs):
+#     import matplotlib.pyplot as plt
+
+#     def axes(pr_dict, re_dict, algo):
+#         x_axis = []
+#         y_axis = []
+#         for _ in sorted(re_dict.keys(), reverse=True):
+#             re, pr = re_dict[_], pr_dict[_]
+#             x_axis.append(re)
+#             y_axis.append(pr)
+
+#         return x_axis, y_axis
+
+#     # performance_dict = detect_precision_recall_algo_average2(ibs, algo, species, **kwargs)
+#     pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
+
+#     algo_dict = {
+#         'rf'   : 'HF',
+#         'yolo' : 'YOLO',
+#         'rcnn' : 'R-CNN',
+#     }
+#     algo = algo_dict[algo]
+
+#     species_dict = {
+#         'zebra_plains' : 'Plains',
+#         'zebra_grevys' : 'Grevy\'s',
+#     }
+#     species = species_dict[species]
+
+#     # Plot curves
+#     x_axis, y_axis = axes(pr_dict, re_dict, algo)
+#     plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s (%s)' % (algo, species, ))
+
+
+# @register_ibs_method
+# def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsize=(10, 6), **kwargs):
+#     import matplotlib.pyplot as plt
+#     from os.path import abspath, expanduser, join
+#     import ibeis
+
+#     plt.figure(figsize=figsize)
+#     axes_ = plt.subplot(111)
+#     axes_.set_autoscalex_on(False)
+#     axes_.set_autoscaley_on(False)
+#     if version == 1:
+#         axes_.set_xlabel('Operating Parameter Percentage (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
+#         axes_.set_ylabel('Precision / Recall')
+#     else:
+#         axes_.set_xlabel('Recall (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
+#         axes_.set_ylabel('Precision')
+#     axes_.set_xlim([0.0, 1.01])
+#     axes_.set_ylim([0.0, 1.01])
+
+#     ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'PZ_Paper'))))
+#     if version == 1:
+#         detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
+#     else:
+#         detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
+#     ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'GZ_Paper'))))
+#     if version == 1:
+#         detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
+#     else:
+#         detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
+#         detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
+
+#     # Display graph
+#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+#                borderaxespad=0.0)
+#     # plt.show()
+#     plt.savefig('/Users/bluemellophone/Desktop/precision-recall.png', bbox_inches='tight')
 
 
 @register_ibs_method
-def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsize=(10, 6), **kwargs):
+def detect_precision_recall_algo_display(ibs, species=None, min_overlap=0.7, version=2, figsize=(10, 6), **kwargs):
     import matplotlib.pyplot as plt
-    from os.path import abspath, expanduser, join
-    import ibeis
 
     plt.figure(figsize=figsize)
     axes_ = plt.subplot(111)
@@ -858,24 +1100,9 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsiz
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'PZ_Paper'))))
-    if version == 1:
-        detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
-    else:
-        detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
-    ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'GZ_Paper'))))
-    if version == 1:
-        detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
-    else:
-        detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
-        detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
+    detect_precision_recall_algo_plot(ibs, 'yolo', species, 'r', min_overlap=min_overlap, grid=False, config_filepath=None, weight_filepath=None)
+    detect_precision_recall_algo_plot(ibs, 'yolo', species, 'b', min_overlap=min_overlap, grid=False)
+    detect_precision_recall_algo_plot(ibs, 'yolo', species, 'g', min_overlap=min_overlap, grid=True)
 
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
