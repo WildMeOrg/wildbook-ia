@@ -11,11 +11,12 @@ TODO: need to split up into sub modules:
     within this file
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip, range, map
+from six.moves import zip, range
 from os.path import exists
 import numpy as np
 import vtool as vt
 import utool as ut
+import cv2
 try:
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 except ImportError as ex:
@@ -309,119 +310,6 @@ def plot_distrobutions(distro_dict):
     plt.show()
 
 
-# @register_ibs_method
-# def detect_rf_test_set_sweep(ibs, db_check=True):
-#     from ibeis.algo.detect import randomforest  # NOQA
-#     from os.path import abspath, expanduser, join, exists
-
-#     if db_check:
-#         assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
-
-#     species = 'zebra_plains' if ibs.dbname == 'PZ_Paper' else 'zebra_grevys'
-#     trees_path = abspath(join(ibs.treesdir, species))
-#     tree_path_list = ut.ls(trees_path, '*.txt')
-
-#     test_imgsetid = ibs.add_imagesets('TEST_SET')
-#     gid_list = ibs.get_imageset_gids(test_imgsetid)
-#     uuid_list = ibs.get_image_uuids(gid_list)
-
-#     print('Using trees: %r' % (tree_path_list, ))
-#     print('gid_list = %r' % (gid_list, ))
-#     print('len(gid_list) = %r' % (len(gid_list), ))
-
-#     output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'rf')))
-#     ut.ensuredir(output_path)
-#     output_gpath_list = [
-#         join(output_path, '%s.JPG' % (uuid, ))
-#         for uuid in uuid_list
-#     ]
-
-#     gid_list_ = []
-#     output_gpath_list_ = []
-#     for gid, output_gpath in zip(gid_list, output_gpath_list):
-#         if not exists(output_gpath):
-#             gid_list_.append(gid)
-#             output_gpath_list_.append(output_gpath)
-#         else:
-#             print('Skipping: %r - %r' % (gid, output_gpath, ))
-
-#     print('Continuing with %d images' % (len(gid_list_), ))
-#     # Create detection generator cross sweep
-#     results_gen = randomforest.detect_gid_list(ibs, gid_list_, tree_path_list,
-#                                                output_gpath_list=output_gpath_list_,
-#                                                quiet=True)
-#     # Compute results
-#     list(results_gen)
-
-
-# @register_ibs_method
-# def detect_yolo_test_set_sweep(ibs):
-#     from ibeis.algo.detect import yolo  # NOQA
-#     from os.path import abspath, expanduser, join, exists
-#     import pydarknet
-
-#     assert ibs.dbname in ['PZ_Paper', 'GZ_Paper']
-
-#     config_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.cfg')))
-#     weight_filepath = abspath(expanduser(join('~', 'Desktop', 'detect.yolo.3.weights')))
-
-#     test_imgsetid = ibs.add_imagesets('TEST_SET')
-#     gid_list = ibs.get_imageset_gids(test_imgsetid)
-#     uuid_list = ibs.get_image_uuids(gid_list)
-
-#     print('gid_list = %r' % (gid_list, ))
-#     print('len(gid_list) = %r' % (len(gid_list), ))
-
-#     output_path = abspath(expanduser(join('~', 'Desktop', 'results', 'yolo')))
-#     ut.ensuredir(output_path)
-#     output_gpath_list = [
-#         join(output_path, '%s.JPG_sweep.txt' % (uuid, ))
-#         for uuid in uuid_list
-#     ]
-
-#     gid_list_ = []
-#     output_gpath_list_ = []
-#     for gid, output_gpath in zip(gid_list, output_gpath_list):
-#         if not exists(output_gpath):
-#             gid_list_.append(gid)
-#             output_gpath_list_.append(output_gpath)
-#         else:
-#             print('Skipping: %r - %r' % (gid, output_gpath, ))
-
-#     print('Continuing with %d images' % (len(gid_list_), ))
-
-#     detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
-#                                                weight_filepath=weight_filepath)
-
-#     for gid, output_gpath in zip(gid_list_, output_gpath_list_):
-#         print('SWEEPING: %r' % (output_gpath, ))
-#         with open(output_gpath, 'w') as results:
-#             for index in range(100):
-#                 sensitivity = (index + 1) / 100.0
-#                 print('Sweep: %d (%0.02f)' % (index, sensitivity, ))
-#                 # Create detection generator cross sweep
-#                 results_gen = yolo.detect_gid_list(ibs, [gid],
-#                                                    detector=detector,
-#                                                    sensitivity=(1.0 - sensitivity),
-#                                                    quiet=True)
-#                 for gid, gpath, result_list in results_gen:
-#                     results.write('%s %s\n' % (gpath, index + 1))
-#                     for result in result_list:
-#                         centerx = int(result['xtl'] + 0.5 * result['width'])
-#                         centery = int(result['ytl'] + 0.5 * result['height'])
-#                         args = (
-#                             centerx,
-#                             centery,
-#                             result['xtl'],
-#                             result['ytl'],
-#                             result['width'],
-#                             result['height'],
-#                             result['class'],
-#                             result['confidence'],
-#                         )
-#                         results.write('    %d %d %d %d %d %d %s %0.2f\n' % args)
-
-
 def detect_intersection_over_union(bbox1, bbox2):
     x_overlap = max(0.0,
                     min(bbox1['xtl'] + bbox1['width'], bbox2['xtl'] + bbox2['width']) -
@@ -441,22 +329,17 @@ def detect_overlap(gt_list, pred_list):
     return overlap
 
 
-def detect_precision_recall(overlap, algo, min_overlap, **kwargs):
+def detect_tp_fp_fn(gt_list, pred_list, min_overlap, **kwargs):
+    overlap = detect_overlap(gt_list, pred_list)
     num_gt, num_pred = overlap.shape
     if num_gt == 0:
         tp = 0.0
         fp = num_pred
         fn = 0.0
-        pr = 0.0
-        re = 1.0
-        assignment_dict = {}
     elif num_pred == 0:
         tp = 0.0
         fp = 0.0
         fn = num_gt
-        pr = 1.0
-        re = 0.0
-        assignment_dict = {}
     else:
         index_list = np.argmax(overlap, axis=1)
         max_overlap = np.max(overlap, axis=1)
@@ -475,13 +358,7 @@ def detect_precision_recall(overlap, algo, min_overlap, **kwargs):
             tp = len(assignment_dict.keys())
         fp = num_pred - tp
         fn = num_gt - tp
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-    assert 0.0 <= pr and pr <= 1.0 and 0.0 <= re and re <= 1.0
-    if algo == 'rf':
-        fp, fn = fn, fp
-        pr, re = re, pr
-    return pr, re, tp, fp, fn, assignment_dict
+    return tp, fp, fn
 
 
 def detect_parse_gt(ibs, test_gid_set=None):
@@ -511,264 +388,90 @@ def detect_parse_gt(ibs, test_gid_set=None):
     return gt_dict
 
 
-def detect_parse_sweep(sweep_filepath):
-    from os.path import abspath, expanduser, join, exists
-    with open(sweep_filepath, 'r') as sweep_file:
-        line_list = sweep_file.readlines()
-    sweep_dict = {}
-    temp_list = []
-    current_gpath = None
-    current_index = None
-    current_width, current_height = None, None
-    # print('Parsing: %r' % (sweep_filepath, ))
-    for line in line_list:
-        if not line.startswith(' '):
-            if current_index is not None:
-                sweep_dict[current_index] = temp_list
-                temp_list = []
-            line = line.strip().split()
-            assert len(line) == 2
-            current_gpath = line[0]
-            if exists(current_gpath):
-                current_width, current_height = vt.open_image_size(current_gpath)
-            else:
-                current_gpath = current_gpath.replace(
-                    '/media/extend/jason/data',
-                    abspath(expanduser(join('~', 'Desktop', 'data')))
-                )
-                current_width, current_height = vt.open_image_size(current_gpath)
-            current_index = int(line[1])
-        else:
-            assert current_gpath is not None and current_index is not None
-            assert current_width is not None and current_height is not None
-            line = line.strip().split()
-            assert len(line) == 8
-            temp = {
-                'xtl'        : float(line[2]) / current_width,
-                'ytl'        : float(line[3]) / current_height,
-                'width'      : float(line[4]) / current_width,
-                'height'     : float(line[5]) / current_height,
-                'species'    : None if line[6] == '0' else line[6],
-                'confidence' : float(line[7]),
-            }
-            temp_list.append(temp)
-    sweep_dict[current_index] = temp_list
-    if 100 not in sweep_dict:
-        raise ValueError('Error parsing (incomplete): %r' % (sweep_filepath, ))
-    return sweep_dict
-
-
-def detect_precision_recall_algo(ibs, algo, **kwargs):
-    import uuid
-    from os.path import abspath, expanduser, join, split
-    test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo)))
-    sweep_filepath_list = ut.ls(test_path, '*_sweep.txt')
-
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
-
-    sweep_dict_dict = {}
-    processed, skipped, errored = 0, 0, 0
-    for sweep_filepath in sweep_filepath_list:
-        sweep_path, sweep_filename = split(sweep_filepath)
-        uuid_ = uuid.UUID(sweep_filename.split('.JPG')[0])
-        if uuid_ not in uuid_list:
-            # print('Skipping: image UUID not in this dataset')
-            skipped += 1
-            continue
-        try:
-            sweep_dict = detect_parse_sweep(sweep_filepath)
-            sweep_dict_dict[uuid_] = sweep_dict
-            processed += 1
-        except ValueError:
-            # print('Skipping: Incomplete sweep file')
-            errored += 1
-            continue
-        except AssertionError:
-            # print('Skipping: Corrupt sweep file')
-            errored += 1
-            continue
-        # print('Parsed: %r' % (sweep_filepath, ))
-        # print(sweep_dict)
-    print('Processed: %d' % (processed, ))
-    print('Skipped: %d' % (skipped, ))
-    print('Errored: %d' % (errored, ))
-    assert errored == 0
-    return sweep_dict_dict
-
-
-# def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
-#     test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-#     uuid_list = ibs.get_image_uuids(test_gid_set)
-
-#     gt_dict = detect_parse_gt(ibs)
-#     sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
-
-#     total = 0
-#     error_localization   = 0
-#     error_localization_by_species   = {}
-#     error_localization_by_viewpoint = {}
-#     error_localization_by_density   = {}
-#     error_classification = 0
-#     error_classification_by_species   = {}
-#     error_classification_by_viewpoint = {}
-#     error_classification_by_density   = {}
-
-#     gt_by_species   = {}
-#     gt_by_viewpoint = {}
-#     gt_by_density   = {}
-
-#     pr_dict = {}
-#     re_dict = {}
-#     print('Processing IOU + P/R Curves...')
-#     for uuid in uuid_list:
-#         # print('    %r' % (uuid, ))
-#         gt_list = gt_dict[uuid]
-#         gt_density = len(gt_list)
-#         total += gt_density
-#         gt_density = min(gt_density, 7)
-
-#         if gt_density not in gt_by_density:
-#             gt_by_density[gt_density] = 0
-
-#         gt_by_density[gt_density] += 1
-
-#         if uuid in sweep_dict_dict:
-#             sweep_dict = sweep_dict_dict[uuid]
-#             best_pr = None
-#             best_index = None
-#             for index in sweep_dict:
-#                 pred_list = sweep_dict[index]
-#                 overlap = detect_overlap(gt_list, pred_list)
-#                 pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-#                 if algo == 'yolo':
-#                     index = 101 - index
-#                 if index not in pr_dict:
-#                     pr_dict[index] = []
-#                 if index not in re_dict:
-#                     re_dict[index] = []
-#                 pr_dict[index].append(pr)
-#                 re_dict[index].append(re)
-#                 # Analyze errors
-#                 if best_pr is None or pr > best_pr:
-#                     best_pr = pr
-#                     best_index = index
-
-#             # Analyze errors
-#             assert best_index is not None
-#             pred_list = sweep_dict[best_index]
-#             overlap = detect_overlap(gt_list, pred_list)
-#             pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-
-#             temp_total = len(gt_list)
-#             temp_local = 0
-#             temp_class = 0
-#             for gt in range(temp_total):
-#                 gt_species   = gt_list[gt]['species']
-#                 if gt_species not in ['zebra_plains', 'zebra_grevys']:
-#                     gt_species = 'unspecified'
-#                 gt_viewpoint = gt_list[gt]['viewpoint']
-
-#                 if gt_species not in gt_by_species:
-#                     gt_by_species[gt_species] = 0
-#                 if gt_viewpoint not in gt_by_viewpoint:
-#                     gt_by_viewpoint[gt_viewpoint] = 0
-
-#                 gt_by_species[gt_species] += 1
-#                 gt_by_viewpoint[gt_viewpoint] += 1
-
-#                 if gt not in assignment_dict:
-#                     error_localization += 1
-#                     if gt_species not in error_localization_by_species:
-#                         error_localization_by_species[gt_species] = 0
-#                     if gt_viewpoint not in error_localization_by_viewpoint:
-#                         error_localization_by_viewpoint[gt_viewpoint] = 0
-#                     error_localization_by_species[gt_species] += 1
-#                     error_localization_by_viewpoint[gt_viewpoint] += 1
-#                     temp_local += 1
-#                 else:
-#                     pred = assignment_dict[gt]
-#                     pred_species = pred_list[pred]['species']
-#                     if pred_species is None and algo == 'rf':
-#                         pred_species = species
-#                     assert pred_species is not None
-#                     if gt_species != pred_species:
-#                         error_classification += 1
-#                         if gt_species not in error_classification_by_species:
-#                             error_classification_by_species[gt_species] = 0
-#                         if gt_viewpoint not in error_classification_by_viewpoint:
-#                             error_classification_by_viewpoint[gt_viewpoint] = 0
-#                         error_classification_by_species[gt_species] += 1
-#                         error_classification_by_viewpoint[gt_viewpoint] += 1
-#                         temp_class += 1
-#             if gt_density not in error_localization_by_density:
-#                 error_localization_by_density[gt_density] = 0
-#             if gt_density not in error_classification_by_density:
-#                 error_classification_by_density[gt_density] = 0
-#             if temp_local > temp_total // 2:
-#                 error_localization_by_density[gt_density] += 1
-#             if temp_class > temp_total // 2:
-#                 error_classification_by_density[gt_density] += 1
-#     print('...complete')
-
-#     for _dict in [pr_dict, re_dict]:
-#         for index in _dict:
-#             temp = _dict[index]
-#             if len(temp) == 0:
-#                 _dict[index] = None
+# def detect_parse_sweep(sweep_filepath):
+#     from os.path import abspath, expanduser, join, exists
+#     with open(sweep_filepath, 'r') as sweep_file:
+#         line_list = sweep_file.readlines()
+#     sweep_dict = {}
+#     temp_list = []
+#     current_gpath = None
+#     current_index = None
+#     current_width, current_height = None, None
+#     # print('Parsing: %r' % (sweep_filepath, ))
+#     for line in line_list:
+#         if not line.startswith(' '):
+#             if current_index is not None:
+#                 sweep_dict[current_index] = temp_list
+#                 temp_list = []
+#             line = line.strip().split()
+#             assert len(line) == 2
+#             current_gpath = line[0]
+#             if exists(current_gpath):
+#                 current_width, current_height = vt.open_image_size(current_gpath)
 #             else:
-#                 _dict[index] = sum(temp) / len(temp)
+#                 current_gpath = current_gpath.replace(
+#                     '/media/extend/jason/data',
+#                     abspath(expanduser(join('~', 'Desktop', 'data')))
+#                 )
+#                 current_width, current_height = vt.open_image_size(current_gpath)
+#             current_index = int(line[1])
+#         else:
+#             assert current_gpath is not None and current_index is not None
+#             assert current_width is not None and current_height is not None
+#             line = line.strip().split()
+#             assert len(line) == 8
+#             temp = {
+#                 'xtl'        : float(line[2]) / current_width,
+#                 'ytl'        : float(line[3]) / current_height,
+#                 'width'      : float(line[4]) / current_width,
+#                 'height'     : float(line[5]) / current_height,
+#                 'species'    : None if line[6] == '0' else line[6],
+#                 'confidence' : float(line[7]),
+#             }
+#             temp_list.append(temp)
+#     sweep_dict[current_index] = temp_list
+#     if 100 not in sweep_dict:
+#         raise ValueError('Error parsing (incomplete): %r' % (sweep_filepath, ))
+#     return sweep_dict
 
-#     print(gt_by_species)
-#     print(gt_by_viewpoint)
-#     print(gt_by_density)
 
-#     print(sum( map(len, ibs.get_image_aids(test_gid_set)) ))
-#     print(total - error_localization - error_classification)
-#     print(error_classification)
-#     print(error_localization)
-#     print(error_localization_by_species)
-#     print(error_localization_by_viewpoint)
-#     print(error_localization_by_density)
-#     print(error_classification_by_species)
-#     print(error_classification_by_viewpoint)
-#     print(error_classification_by_density)
+# def detect_precision_recall_algo(ibs, algo, **kwargs):
+#     import uuid
+#     from os.path import abspath, expanduser, join, split
+#     test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo)))
+#     sweep_filepath_list = ut.ls(test_path, '*_sweep.txt')
 
-#     return pr_dict, re_dict
-
-
-# def detect_precision_recall_algo_average2(ibs, algo, species, **kwargs):
 #     test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
 #     uuid_list = ibs.get_image_uuids(test_gid_set)
 
-#     gt_dict = detect_parse_gt(ibs)
-#     sweep_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
-
-#     performance_dict = {}
-#     print('Processing IOU + P/R Curves...')
-#     for uuid in uuid_list:
-#         gt_list = gt_dict[uuid]
-
-#         if uuid in sweep_dict_dict:
-#             sweep_dict = sweep_dict_dict[uuid]
-#             temp = {}
-#             for index in sweep_dict:
-#                 pred_list = sweep_dict[index]
-#                 overlap = detect_overlap(gt_list, pred_list)
-#                 pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-#                 re = np.around(re, decimals=2)
-#                 if re not in temp or temp[re] < pr:
-#                     temp[re] = pr
-#             for re, pr in temp.iteritems():
-#                 if re not in performance_dict:
-#                     performance_dict[re] = []
-#                 performance_dict[re].append(pr)
-#     print('...complete')
-
-#     for re in sorted(performance_dict.keys()):
-#         temp = performance_dict[re]
-#         performance_dict[re] = sum(temp) / len(temp)
-#     return performance_dict
+#     sweep_dict_dict = {}
+#     processed, skipped, errored = 0, 0, 0
+#     for sweep_filepath in sweep_filepath_list:
+#         sweep_path, sweep_filename = split(sweep_filepath)
+#         uuid_ = uuid.UUID(sweep_filename.split('.JPG')[0])
+#         if uuid_ not in uuid_list:
+#             # print('Skipping: image UUID not in this dataset')
+#             skipped += 1
+#             continue
+#         try:
+#             sweep_dict = detect_parse_sweep(sweep_filepath)
+#             sweep_dict_dict[uuid_] = sweep_dict
+#             processed += 1
+#         except ValueError:
+#             # print('Skipping: Incomplete sweep file')
+#             errored += 1
+#             continue
+#         except AssertionError:
+#             # print('Skipping: Corrupt sweep file')
+#             errored += 1
+#             continue
+#         # print('Parsed: %r' % (sweep_filepath, ))
+#         # print(sweep_dict)
+#     print('Processed: %d' % (processed, ))
+#     print('Skipped: %d' % (skipped, ))
+#     print('Errored: %d' % (errored, ))
+#     assert errored == 0
+#     return sweep_dict_dict
 
 
 def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
@@ -780,12 +483,12 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
 
     config = {
         'algo'            : 'yolo',
+        'sensitivity'     : 0.0,
         'config_filepath' : '/media/hdd/jason/yolo/weights/detect.yolo.12.cfg',
         'weight_filepath' : '/media/hdd/jason/yolo/weights/detect.yolo.12.weights',
         'grid'            : False,
     }
     config = ut.update_existing(config, kwargs)
-    print(config)
     results_list = depc.get_property('detections', test_gid_set, None, config=config)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
@@ -812,307 +515,100 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
     for gid, uuid_, result_list in zip(test_gid_set, uuid_list, results_list):
         # Get detections from depc
         pred_dict = {}
-        for current_index in range(1, 101):
+        for current_index in range(0, 101):
             conf = current_index / 100.0
             temp_list = []
             for result in result_list:
                 confidence = result['confidence']
-                if confidence <= conf:
+                if confidence < conf:
                     continue
                 temp_list.append(result)
-            pred_dict[current_index] = temp_list
+            alpha = 100 - current_index  # Invert sensitivity for YOLO
+            pred_dict[alpha] = temp_list
         pred_dict_dict[uuid_] = pred_dict
     return pred_dict_dict
 
 
-def detect_precision_recall_algo_average(ibs, algo, species, **kwargs):
+def detect_precision_recall_algo(ibs, **kwargs):
     # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
-    print('Gather Ground-Truth')
+    print('\tGather Ground-Truth')
     gt_dict = detect_parse_gt(ibs, test_gid_set=test_gid_set)
 
-    # pred_dict_dict = detect_precision_recall_algo(ibs, algo, **kwargs)
-    print('Gather Predictions')
+    print('\tGather Predictions')
     pred_dict_dict = detect_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
 
-    total = 0
-    error_localization   = 0
-    error_localization_by_species   = {}
-    error_localization_by_viewpoint = {}
-    error_classification = 0
-    error_classification_by_species   = {}
-    error_classification_by_viewpoint = {}
-
-    gt_by_species   = {}
-    gt_by_viewpoint = {}
-
-    pr_dict = {}
-    re_dict = {}
-    print('Processing IOU + P/R Curves...')
-    for uuid in uuid_list:
-        # print('    %r' % (uuid, ))
+    print('\tGenerate Curves...')
+    global_dict = {
+        'tp' : {},
+        'fp' : {},
+        'fn' : {},
+    }
+    for gid, uuid in zip(test_gid_set, uuid_list):
         gt_list = gt_dict[uuid]
-        total += len(gt_list)
-
         if uuid in pred_dict_dict:
-            pred_dict_ = pred_dict_dict[uuid]
-            best_pr = None
-            best_index = None
-            for index in pred_dict_:
-                pred_list = pred_dict_[index]
-                overlap = detect_overlap(gt_list, pred_list)
-                pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-                if algo == 'yolo':
-                    index = 101 - index
-                if index not in pr_dict:
-                    pr_dict[index] = []
-                if index not in re_dict:
-                    re_dict[index] = []
-                pr_dict[index].append(pr)
-                re_dict[index].append(re)
-                # Analyze errors
-                if best_pr is None or pr > best_pr:
-                    best_pr = pr
-                    best_index = index
-
-            # Analyze errors
-            assert best_index is not None
-            pred_list = pred_dict_[best_index]
-            overlap = detect_overlap(gt_list, pred_list)
-            pr, re, tp, fp, fn, assignment_dict = detect_precision_recall(overlap, algo, **kwargs)
-
-            temp_total = len(gt_list)
-            temp_local = 0
-            temp_class = 0
-            for gt in range(temp_total):
-                gt_species   = gt_list[gt]['species']
-                if gt_species not in ['zebra_plains', 'zebra_grevys']:
-                    gt_species = 'unspecified'
-                gt_viewpoint = gt_list[gt]['viewpoint']
-
-                if gt_species not in gt_by_species:
-                    gt_by_species[gt_species] = 0
-                if gt_viewpoint not in gt_by_viewpoint:
-                    gt_by_viewpoint[gt_viewpoint] = 0
-
-                gt_by_species[gt_species] += 1
-                gt_by_viewpoint[gt_viewpoint] += 1
-
-                if gt not in assignment_dict:
-                    error_localization += 1
-                    if gt_species not in error_localization_by_species:
-                        error_localization_by_species[gt_species] = 0
-                    if gt_viewpoint not in error_localization_by_viewpoint:
-                        error_localization_by_viewpoint[gt_viewpoint] = 0
-                    error_localization_by_species[gt_species] += 1
-                    error_localization_by_viewpoint[gt_viewpoint] += 1
-                    temp_local += 1
-                else:
-                    pred = assignment_dict[gt]
-                    pred_species = pred_list[pred]['species']
-                    if pred_species is None and algo == 'rf':
-                        pred_species = species
-                    assert pred_species is not None
-                    if gt_species != pred_species:
-                        error_classification += 1
-                        if gt_species not in error_classification_by_species:
-                            error_classification_by_species[gt_species] = 0
-                        if gt_viewpoint not in error_classification_by_viewpoint:
-                            error_classification_by_viewpoint[gt_viewpoint] = 0
-                        error_classification_by_species[gt_species] += 1
-                        error_classification_by_viewpoint[gt_viewpoint] += 1
-                        temp_class += 1
+            pred_dict = pred_dict_dict[uuid]
+            for alpha in pred_dict:
+                for key in global_dict.keys():
+                    if alpha not in global_dict[key]:
+                        global_dict[key][alpha] = 0.0
+                pred_list = pred_dict[alpha]
+                tp, fp, fn = detect_tp_fp_fn(gt_list, pred_list, **kwargs)
+                global_dict['tp'][alpha] += tp
+                global_dict['fp'][alpha] += fp
+                global_dict['fn'][alpha] += fn
     print('...complete')
 
-    for _dict in [pr_dict, re_dict]:
-        for index in _dict:
-            temp = _dict[index]
-            if len(temp) == 0:
-                _dict[index] = None
-            else:
-                _dict[index] = sum(temp) / len(temp)
+    pr_list, re_list = [], []
+    alpha_list = sorted(global_dict['tp'].keys())
+    for alpha in alpha_list:
+        tp = global_dict['tp'][alpha]
+        fp = global_dict['fp'][alpha]
+        fn = global_dict['fn'][alpha]
+        pr = tp / (tp + fp)
+        re = tp / (tp + fn)
+        pr_list.append(pr)
+        re_list.append(re)
 
-    # print(gt_by_species)
-    # print(gt_by_viewpoint)
-
-    print('Total:   %r' % (sum( map(len, ibs.get_image_aids(test_gid_set)) ), ))
-    print('Correct: %r' % (total - error_localization - error_classification, ))
-    print('E_Class: %r' % (error_classification, ))
-    print('E_Local: %r' % (error_localization, ))
-    # print(error_localization_by_species)
-    # print(error_localization_by_viewpoint)
-    # print(error_classification_by_species)
-    # print(error_classification_by_viewpoint)
-
-    return pr_dict, re_dict
+    return pr_list, re_list
 
 
-def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
+def detect_precision_recall_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
-
-    def axes(dict_):
-        x_axis = []
-        y_axis = []
-        for _ in sorted(dict_.keys()):
-            x_axis.append( _ / 100.0 )
-            y_axis.append(dict_[_])
-        return x_axis, y_axis
-
-    pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
-
-    # Plot curves
-    x_axis, y_axis = axes(pr_dict)
-    plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
-
-    x_axis, y_axis = axes(re_dict)
-    plt.plot(x_axis, y_axis, '%s--' % (color, ), label='%s Rec. (%s)' % (algo, species, ))
-
-
-# def detect_precision_recall_algo_plot(ibs, algo, species, color, **kwargs):
-#     import matplotlib.pyplot as plt
-
-#     def axes(dict_):
-#         x_axis = []
-#         y_axis = []
-#         for _ in sorted(dict_.keys()):
-#             x_axis.append( _ / 100.0 )
-#             y_axis.append(dict_[_])
-#         return x_axis, y_axis
-
-#     pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
-
-#     algo_dict = {
-#         'rf'   : 'HF',
-#         'yolo' : 'YOLO',
-#         'rcnn' : 'R-CNN',
-#     }
-#     algo = algo_dict[algo]
-
-#     species_dict = {
-#         'zebra_plains' : 'Plains',
-#         'zebra_grevys' : 'Grevy\'s',
-#     }
-#     species = species_dict[species]
-
-#     # Plot curves
-#     x_axis, y_axis = axes(pr_dict)
-#     plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s Prec. (%s)' % (algo, species, ))
-
-#     x_axis, y_axis = axes(re_dict)
-#     plt.plot(x_axis, y_axis, '%s--' % (color, ), label='%s Rec. (%s)' % (algo, species, ))
-
-
-# def detect_precision_recall_algo_plot2(ibs, algo, species, color, **kwargs):
-#     import matplotlib.pyplot as plt
-
-#     def axes(pr_dict, re_dict, algo):
-#         x_axis = []
-#         y_axis = []
-#         for _ in sorted(re_dict.keys(), reverse=True):
-#             re, pr = re_dict[_], pr_dict[_]
-#             x_axis.append(re)
-#             y_axis.append(pr)
-
-#         return x_axis, y_axis
-
-#     # performance_dict = detect_precision_recall_algo_average2(ibs, algo, species, **kwargs)
-#     pr_dict, re_dict = detect_precision_recall_algo_average(ibs, algo, species, **kwargs)
-
-#     algo_dict = {
-#         'rf'   : 'HF',
-#         'yolo' : 'YOLO',
-#         'rcnn' : 'R-CNN',
-#     }
-#     algo = algo_dict[algo]
-
-#     species_dict = {
-#         'zebra_plains' : 'Plains',
-#         'zebra_grevys' : 'Grevy\'s',
-#     }
-#     species = species_dict[species]
-
-#     # Plot curves
-#     x_axis, y_axis = axes(pr_dict, re_dict, algo)
-#     plt.plot(x_axis, y_axis, '%s-' % (color, ), label='%s (%s)' % (algo, species, ))
-
-
-# @register_ibs_method
-# def detect_precision_recall_algo_display(ibs, min_overlap=0.7, version=2, figsize=(10, 6), **kwargs):
-#     import matplotlib.pyplot as plt
-#     from os.path import abspath, expanduser, join
-#     import ibeis
-
-#     plt.figure(figsize=figsize)
-#     axes_ = plt.subplot(111)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     if version == 1:
-#         axes_.set_xlabel('Operating Parameter Percentage (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
-#         axes_.set_ylabel('Precision / Recall')
-#     else:
-#         axes_.set_xlabel('Recall (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
-#         axes_.set_ylabel('Precision')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-
-#     ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'PZ_Paper'))))
-#     if version == 1:
-#         detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
-#     else:
-#         detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_plains', 'b', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_plains', 'c', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_plains', 'g', min_overlap=min_overlap)
-#     ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', 'GZ_Paper'))))
-#     if version == 1:
-#         detect_precision_recall_algo_plot(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
-#     else:
-#         detect_precision_recall_algo_plot2(ibs_, 'rf',   'zebra_grevys', 'm', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot2(ibs_, 'rcnn', 'zebra_grevys', 'r', min_overlap=min_overlap)
-#         detect_precision_recall_algo_plot2(ibs_, 'yolo', 'zebra_grevys', 'y', min_overlap=min_overlap)
-
-#     # Display graph
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
-#     # plt.show()
-#     plt.savefig('/Users/bluemellophone/Desktop/precision-recall.png', bbox_inches='tight')
+    print('Processing Precision-Recall for: %r' % (label, ))
+    pr_list, re_list = detect_precision_recall_algo(ibs, **kwargs)
+    plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
 
 
 @register_ibs_method
-def detect_precision_recall_algo_display(ibs, species=None, min_overlap=0.7, version=2, figsize=(10, 6), **kwargs):
+def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), **kwargs):
     import matplotlib.pyplot as plt
 
     plt.figure(figsize=figsize)
     axes_ = plt.subplot(111)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    if version == 1:
-        axes_.set_xlabel('Operating Parameter Percentage (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
-        axes_.set_ylabel('Precision / Recall')
-    else:
-        axes_.set_xlabel('Recall (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
-        axes_.set_ylabel('Precision')
+    axes_.set_xlabel('Recall (Ground-truth IOU >= %0.02f)' % (min_overlap, ))
+    axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    detect_precision_recall_algo_plot(ibs, 'yolo', species, 'r', min_overlap=min_overlap, grid=False, config_filepath=None, weight_filepath=None)
-    detect_precision_recall_algo_plot(ibs, 'yolo', species, 'b', min_overlap=min_overlap, grid=False)
-    detect_precision_recall_algo_plot(ibs, 'yolo', species, 'g', min_overlap=min_overlap, grid=True)
+    detect_precision_recall_algo_plot(ibs, 'Original', 'r', min_overlap=min_overlap, grid=False, config_filepath='v1', weight_filepath='v1')
+    detect_precision_recall_algo_plot(ibs, 'Original (GRID)', 'k', min_overlap=min_overlap, grid=True, config_filepath='v1', weight_filepath='v1')
+    detect_precision_recall_algo_plot(ibs, 'Retrained', 'b', min_overlap=min_overlap, grid=False)
+    detect_precision_recall_algo_plot(ibs, 'Retrained (GRID)', 'g', min_overlap=min_overlap, grid=True)
 
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
     # plt.show()
-    plt.savefig('/Users/bluemellophone/Desktop/precision-recall.png', bbox_inches='tight')
+    fig_path = '/Users/bluemellophone/Desktop/precision-recall-%0.2f.png' % (min_overlap, )
+    plt.savefig(fig_path, bbox_inches='tight')
 
 
 def _resize(image, t_width=None, t_height=None):
-    import cv2
     print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
     height, width = image.shape[:2]
     if t_width is None and t_height is None:
@@ -1132,59 +628,57 @@ def _resize(image, t_width=None, t_height=None):
     return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
 
 
-@register_ibs_method
-def detect_write_detection_exmaples(ibs, SEED=23170):
-    from os.path import abspath, expanduser, join
-    import ibeis
-    import random
-    import cv2
+# @register_ibs_method
+# def detect_write_detection_exmaples(ibs, SEED=23170):
+#     from os.path import abspath, expanduser, join
+#     import ibeis
+#     import random
 
-    operating_dict = {
-        'rcnn': 80,
-        'rf' : 60,
-        'yolo': 80,
-    }
+#     operating_dict = {
+#         'rcnn': 80,
+#         'rf' : 60,
+#         'yolo': 80,
+#     }
 
-    random.seed(SEED)
-    for database, tag in [ ('PZ_Paper', 'pz'), ('GZ_Paper', 'gz') ]:
-        ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', database))))
-        # Get random set of test images
-        test_gid_set = ibs_.get_imageset_gids(ibs_.get_imageset_imgsetids_from_text('TEST_SET'))
-        random.shuffle(test_gid_set)
-        test_gid_list = test_gid_set[:10]
+#     random.seed(SEED)
+#     for database, tag in [ ('PZ_Paper', 'pz'), ('GZ_Paper', 'gz') ]:
+#         ibs_ = ibeis.opendb(dbdir=abspath(expanduser(join('~', 'Desktop', 'data', database))))
+#         # Get random set of test images
+#         test_gid_set = ibs_.get_imageset_gids(ibs_.get_imageset_imgsetids_from_text('TEST_SET'))
+#         random.shuffle(test_gid_set)
+#         test_gid_list = test_gid_set[:10]
 
-        if tag == 'gz':
-            test_gid_list[0] = test_gid_set[10]
+#         if tag == 'gz':
+#             test_gid_list[0] = test_gid_set[10]
 
-        test_image_list = ibs_.get_images(test_gid_list)
-        test_uuid_list = ibs_.get_image_uuids(test_gid_list)
+#         test_image_list = ibs_.get_images(test_gid_list)
+#         test_uuid_list = ibs_.get_image_uuids(test_gid_list)
 
-        write_path = abspath('/Users/bluemellophone/Dropbox/Shared/Chuck WACV/resources/detections/')
-        print(write_path)
-        # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
-        for algo, conf in operating_dict.iteritems():
-            test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo,)))
-            for index, (test_uuid, test_image) in enumerate(zip(test_uuid_list, test_image_list)):
-                test_image = _resize(test_image, t_width=600)
-                height, width, channels = test_image.shape
-                sweep_filepath = join(test_path, '%s.JPG_sweep.txt' % (test_uuid, ))
-                sweep_dict = detect_parse_sweep(sweep_filepath)
-                annot_list = sweep_dict[conf]
-                for annot in annot_list:
-                    xtl = int(annot['xtl'] * width)
-                    ytl = int(annot['ytl'] * height)
-                    xbr = int((annot['xtl'] + annot['width']) * width)
-                    ybr = int((annot['ytl'] + annot['height']) * height)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
-                write_filepath = join(write_path, algo, '%s%d.jpg' % (tag, index, ))
-                print(write_filepath)
-                cv2.imwrite(write_filepath, test_image)
+#         write_path = abspath('/Users/bluemellophone/Dropbox/Shared/Chuck WACV/resources/detections/')
+#         print(write_path)
+#         # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
+#         for algo, conf in operating_dict.iteritems():
+#             test_path = abspath(expanduser(join('~', 'Desktop', 'results', algo,)))
+#             for index, (test_uuid, test_image) in enumerate(zip(test_uuid_list, test_image_list)):
+#                 test_image = _resize(test_image, t_width=600)
+#                 height, width, channels = test_image.shape
+#                 sweep_filepath = join(test_path, '%s.JPG_sweep.txt' % (test_uuid, ))
+#                 sweep_dict = detect_parse_sweep(sweep_filepath)
+#                 annot_list = sweep_dict[conf]
+#                 for annot in annot_list:
+#                     xtl = int(annot['xtl'] * width)
+#                     ytl = int(annot['ytl'] * height)
+#                     xbr = int((annot['xtl'] + annot['width']) * width)
+#                     ybr = int((annot['ytl'] + annot['height']) * height)
+#                     cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 140, 255), 4)
+#                 write_filepath = join(write_path, algo, '%s%d.jpg' % (tag, index, ))
+#                 print(write_filepath)
+#                 cv2.imwrite(write_filepath, test_image)
 
 
 @register_ibs_method
 def detect_write_detection_all(ibs):
     from os.path import abspath, join
-    import cv2
 
     test_gid_list = ibs.get_valid_gids()
     test_image_list = ibs.get_images(test_gid_list)
