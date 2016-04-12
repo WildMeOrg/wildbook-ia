@@ -10,6 +10,7 @@ def double_depcache_graph():
 
         python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite
         python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=.5
+        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=5
 
 
     Example:
@@ -33,22 +34,31 @@ def double_depcache_graph():
     graph = nx.compose_all([image_graph, annot_graph])
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
-    userdecision = ut.nx_makenode(graph, 'User decision', shape='rect', color=pt.YELLOW, style='diagonals')
-    longcat = True
+    userdecision = ut.nx_makenode(graph, 'User decision', shape='rect',
+                                  #width=100, height=100,
+                                  color=pt.YELLOW, style='diagonals')
+    #longcat = True
+    longcat = False
     graph.add_edge('detections', userdecision, constraint=longcat)
     graph.add_edge(userdecision, 'annotations', constraint=longcat)
     # graph.add_edge(userdecision, 'annotations', implicit=True, color=[0, 0, 0])
     if not longcat:
-        graph.add_edge('images', 'annotations', style='invis')
-        graph.add_edge('thumbnails', 'annotations', style='invis')
-        graph.add_edge('thumbnails', userdecision, style='invis')
+        pass
+        #graph.add_edge('images', 'annotations', style='invis')
+        #graph.add_edge('thumbnails', 'annotations', style='invis')
+        #graph.add_edge('thumbnails', userdecision, style='invis')
     graph.remove_node('Has_Notch')
     graph.remove_node('annotmask')
     layoutkw = {
-        # 'ranksep': 2,
-        # 'nodesep': 5,
+        'ranksep': 5,
+        'nodesep': 5,
         # 'nodesep': 1,
     }
+
+    ns = 700
+
+    ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
+    ut.nx_set_default_node_attributes(graph, 'height', ns * (1 / ut.PHI))
 
     for u, v, d in graph.edges(data=True):
         localid = d.get('local_input_id')
@@ -68,17 +78,19 @@ def double_depcache_graph():
         'Notch_Tips': 'Notch Tips',
         'probchip': 'Prob Chip',
         'Cropped_Chips': 'Croped Chip',
-        'Trailing_Edge': 'Trailing Edge',
-        'Block_Curvature': 'Block Curvature',
+        'Trailing_Edge': 'Trailing\nEdge',
+        'Block_Curvature': 'Block\nCurvature',
         # 'BC_DTW': 'block curvature /\n dynamic time warp',
         'BC_DTW': 'DTW Distance',
         'vsone': 'Hots vsone',
-        'feat_neighbs': 'Nearest Neighbors',
+        'feat_neighbs': 'Nearest\nNeighbors',
+        'neighbor_index': 'Neighbor\nIndex',
         'vsmany': 'Hots vsmany',
-        'sver': 'Spatial Verification',
+        'sver': 'Spatial\nVerification',
     }
     node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(), graph.nodes()))
     nx.relabel_nodes(graph, node_alias, copy=False)
+
     fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
     pt.gca().set_aspect('equal')
     pt.figure()
