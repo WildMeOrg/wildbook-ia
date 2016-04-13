@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import six
 from six.moves import range
 import sys
-import utool
+import utool as ut
 import numpy as np
 try:
     import guitool
@@ -13,8 +13,8 @@ except ImportError:
     except ImportError:
         pass
     print('Warning: guitool did not import correctly')
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[screeninfo]', DEBUG=True)
-utool.noinject(__name__, '[screeninfo]')
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[screeninfo]', DEBUG=True)
+ut.noinject(__name__, '[screeninfo]')
 
 
 DEFAULT_MAX_ROWS = 3
@@ -49,7 +49,76 @@ def ensure_app_is_running():
     app, is_root = guitool.init_qtapp()
 
 
+def get_resolution_info(monitor_num=0):
+    r"""
+    Args:
+        monitor_num (int): (default = 0)
+
+    Returns:
+        dict: info
+
+    CommandLine:
+        python -m plottool.screeninfo get_resolution_info --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.screeninfo import *  # NOQA
+        >>> monitor_num = 0
+        >>> info = get_resolution_info(monitor_num)
+        >>> result = ('info = %s' % (ut.repr2(info, nl=True),))
+        >>> print(result)
+    """
+    ensure_app_is_running()
+    desktop = QtGui.QDesktopWidget()
+    rect = desktop.availableGeometry(screen=monitor_num)
+    pixels_w = rect.width()
+    pixels_h = rect.height()
+    # diagnal number of pixels
+    pixels_diag = np.sqrt(pixels_w ** 2 + pixels_h ** 2)
+    # diagonal inches
+    # pixels per inch
+    dpi_x = QtGui.QX11Info.appDpiX(monitor_num)
+    dpi_y = QtGui.QX11Info.appDpiY(monitor_num)
+    inches_w = (pixels_w / dpi_x)
+    inches_h = (pixels_h / dpi_y)
+    inches_diag = np.sqrt(inches_w ** 2 + inches_h ** 2)
+    dpi = pixels_diag / inches_diag
+
+    screen = desktop.screen()
+    pixel_density = screen.physicalDpiX() / screen.logicalDpiX()
+
+    ppi = dpi * pixel_density
+    info = {
+        'ppi': ppi,
+        'dpi': dpi,
+        'pixel_density': pixel_density,
+        'inches_w': inches_w,
+        'inches_h': inches_h,
+        'pixels_w': pixels_w,
+        'pixels_h': pixels_h,
+    }
+    return info
+
+
 def get_monitor_geom(monitor_num=0):
+    r"""
+    Args:
+        monitor_num (int): (default = 0)
+
+    Returns:
+        tuple: geom
+
+    CommandLine:
+        python -m plottool.screeninfo get_monitor_geom --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.screeninfo import *  # NOQA
+        >>> monitor_num = 0
+        >>> geom = get_monitor_geom(monitor_num)
+        >>> result = ('geom = %s' % (ut.repr2(geom),))
+        >>> print(result)
+    """
     ensure_app_is_running()
     desktop = QtGui.QDesktopWidget()
     rect = desktop.availableGeometry(screen=monitor_num)
@@ -91,7 +160,7 @@ def get_xywh_pads():
 def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
     stdpxls = get_stdpxls()
     if monitor_num is None:
-        if utool.get_computer_name() == 'Ooo':
+        if ut.get_computer_name() == 'Ooo':
             monitor_num = 1
         else:
             monitor_num = 0
@@ -156,3 +225,15 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
         return (x, y, w, h)
     valid_positions = [get_position_ix(ix) for ix in range(num_wins)]
     return valid_positions
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m plottool.screeninfo
+        python -m plottool.screeninfo --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
