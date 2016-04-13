@@ -109,9 +109,9 @@ INSTALL_OPTIONAL = [
     'tornado',
     'flask',
     'flask-cors',
-    'pynmea2'
-    'pygraphviz'
-    'pydot'
+    'pynmea2',
+    'pygraphviz',
+    'pydot',
     #'https://pypi.python.org/packages/source/p/pyparsing/pyparsing-1.5.7.tar.gz#md5=9be0fcdcc595199c646ab317c1d9a709', # pyparsing
     #http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
     #pip uninstall pydot
