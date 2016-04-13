@@ -65,33 +65,30 @@ def get_resolution_info(monitor_num=0):
         >>> from plottool.screeninfo import *  # NOQA
         >>> monitor_num = 0
         >>> info = get_resolution_info(monitor_num)
-        >>> result = ('info = %s' % (ut.repr2(info, nl=True),))
-        >>> print(result)
+        >>> print('info = %s' % (ut.repr2(info, nl=True),))
+        >>> info = get_resolution_info(1)
+        >>> print('info = %s' % (ut.repr2(info, nl=True),))
     """
     ensure_app_is_running()
     desktop = QtGui.QDesktopWidget()
+    screen = desktop.screen(monitor_num)
+    ppi_x = screen.logicalDpiX()
+    ppi_y = screen.logicalDpiY()
+    dpi_x = screen.physicalDpiX()
+    dpi_y = screen.physicalDpiY()
     rect = desktop.availableGeometry(screen=monitor_num)
     pixels_w = rect.width()
     pixels_h = rect.height()
-    # diagnal number of pixels
-    pixels_diag = np.sqrt(pixels_w ** 2 + pixels_h ** 2)
-    # diagonal inches
-    # pixels per inch
-    dpi_x = QtGui.QX11Info.appDpiX(monitor_num)
-    dpi_y = QtGui.QX11Info.appDpiY(monitor_num)
     inches_w = (pixels_w / dpi_x)
     inches_h = (pixels_h / dpi_y)
-    inches_diag = np.sqrt(inches_w ** 2 + inches_h ** 2)
-    dpi = pixels_diag / inches_diag
-
-    screen = desktop.screen()
-    pixel_density = screen.physicalDpiX() / screen.logicalDpiX()
-
-    ppi = dpi * pixel_density
+    #pixel_density = dpi_x / ppi_x
     info = {
-        'ppi': ppi,
-        'dpi': dpi,
-        'pixel_density': pixel_density,
+        'monitor_num': monitor_num,
+        'ppi_x': ppi_x,
+        'ppi_y': ppi_y,
+        'dpi_x': dpi_x,
+        'dpi_y': dpi_y,
+        #'pixel_density': pixel_density,
         'inches_w': inches_w,
         'inches_h': inches_h,
         'pixels_w': pixels_w,

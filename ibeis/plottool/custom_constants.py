@@ -114,10 +114,7 @@ def golden_wh(x):
 
 
 # FIGURE GEOMETRY
-#DPI = 80
-DPI = 60
-#DPI = 160
-#DPI = 360
+DPI = 96
 #FIGSIZE = (24) # default windows fullscreen
 FIGSIZE_MED = (12, 6)
 FIGSIZE_SQUARE = (12, 12)
@@ -128,8 +125,3 @@ FIGSIZE_HUGE = (32, 16)
 #FIGSIZE = FIGSIZE_MED
 # Quality drawings
 FIGSIZE = FIGSIZE_GOLD
-
-if ut.get_argflag('--quality'):
-    DPI = 120
-else:
-    DPI = 80
