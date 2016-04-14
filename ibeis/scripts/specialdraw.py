@@ -606,7 +606,7 @@ def intraoccurrence_connected():
     as_directed = False
     #as_directed = True
     #hacknode = True
-    hacknode = False
+    hacknode = 0
 
     graph = big_graph
     ut.nx_ensure_agraph_color(graph)
@@ -614,30 +614,49 @@ def intraoccurrence_connected():
         nx.set_edge_attributes(graph, 'taillabel', {e: str(e[0]) for e in graph.edges()})
         nx.set_edge_attributes(graph, 'headlabel', {e: str(e[1]) for e in graph.edges()})
 
+    explicit_graph = pt.get_explicit_graph(graph)
+    _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
+                                         inplace=True, **layoutkw)
+
+    if ut.get_argflag('--small'):
+        graph.node[7660]['pos'] = np.array([750, 350])
+        graph.node[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
+        graph.node[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
+        graph.node[7164]['pos'] = np.array([410, 480]) + np.array([350, -400])
+        nx.set_node_attributes(graph, 'pin', 'true')
+        _, layout_info = pt.nx_agraph_layout(graph,
+                                             inplace=True, **layoutkw)
+
     if not postcut:
         #pt.show_nx(graph.to_undirected(), layout='agraph', layoutkw=layoutkw,
         #           as_directed=False)
-        pt.show_nx(graph, layout='agraph', layoutkw=layoutkw,
+        #pt.show_nx(graph, layout='agraph', layoutkw=layoutkw,
+        #           as_directed=as_directed, hacknode=hacknode)
+
+        pt.show_nx(graph, layout='custom', layoutkw=layoutkw,
                    as_directed=as_directed, hacknode=hacknode)
     else:
-        explicit_graph = pt.get_explicit_graph(graph)
-        _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
-                                             **layoutkw)
+        #explicit_graph = pt.get_explicit_graph(graph)
+        #_, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
+        #                                     **layoutkw)
 
-        graph_layout_attrs = layout_info['graph']
-        #edge_layout_attrs  = layout_info['edge']
-        #node_layout_attrs  = layout_info['node']
+        #layout_info['edge']['alpha'] = .8
+        #pt.apply_graph_layout_attrs(graph, layout_info)
 
-        for key, vals in layout_info['node'].items():
-            #print('[special] key = %r' % (key,))
-            nx.set_node_attributes(graph, key, vals)
+        #graph_layout_attrs = layout_info['graph']
+        ##edge_layout_attrs  = layout_info['edge']
+        ##node_layout_attrs  = layout_info['node']
 
-        for key, vals in layout_info['edge'].items():
-            #print('[special] key = %r' % (key,))
-            nx.set_edge_attributes(graph, key, vals)
+        #for key, vals in layout_info['node'].items():
+        #    #print('[special] key = %r' % (key,))
+        #    nx.set_node_attributes(graph, key, vals)
 
-        nx.set_edge_attributes(graph, 'alpha', .8)
-        graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
+        #for key, vals in layout_info['edge'].items():
+        #    #print('[special] key = %r' % (key,))
+        #    nx.set_edge_attributes(graph, key, vals)
+
+        #nx.set_edge_attributes(graph, 'alpha', .8)
+        #graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
         #graph.graph['splines'] = 'polyline'   # graph_layout_attrs.get('splines', 'line')
         #graph.graph['splines'] = 'line'
 

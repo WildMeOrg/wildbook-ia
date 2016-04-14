@@ -194,6 +194,7 @@ def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
 
 def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     """ Colors edges and nodes by nid """
+    # TODO use ut.color_nodes
     import plottool as pt
 
     ensure_graph_nid_labels(graph, unique_nids, ibs=ibs)
@@ -201,7 +202,7 @@ def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     unique_nids = ut.unique(node_to_nid.values())
     ncolors = len(unique_nids)
     if (ncolors) == 1:
-        unique_colors = [pt.NEUTRAL_BLUE]
+        unique_colors = [pt.UNKNOWN_PURP]
     else:
         if nid2_color_ is not None:
             unique_colors = pt.distinct_colors(ncolors + len(nid2_color_) * 2)
