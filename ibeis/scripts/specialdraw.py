@@ -10,6 +10,7 @@ def double_depcache_graph():
 
         python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite
         python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=.5
+
         python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=5
 
 
@@ -52,10 +53,15 @@ def double_depcache_graph():
     layoutkw = {
         'ranksep': 5,
         'nodesep': 5,
+        'dpi': 96,
         # 'nodesep': 1,
     }
 
-    ns = 700
+    ns = 1000
+
+    ut.nx_set_default_node_attributes(graph, 'fontsize', 72)
+    ut.nx_set_default_node_attributes(graph, 'fontname', 'Ubuntu')
+    ut.nx_set_default_node_attributes(graph, 'style',  'filled')
 
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
     ut.nx_set_default_node_attributes(graph, 'height', ns * (1 / ut.PHI))
@@ -271,9 +277,8 @@ def graphcut_flow():
         ?: name
 
     CommandLine:
-        python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --dpi=100 --diskshow --clipwhite
-
-    python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --dpi=200 --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
+        python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite
+        python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -314,7 +319,7 @@ def graphcut_flow():
                             groupid='annot', color=p_shade2)
     annot2 = ut.nx_makenode(graph, 'Labeled\nannotations\n(database)', width=ns, height=ns,
                             groupid='annot', color=s1_shade2)
-    occurprob = ut.nx_makenode(graph, 'Fully connected\nprobabilities', color=lighten_hex(p_shade2, .1))
+    occurprob = ut.nx_makenode(graph, 'Dense \nprobabilities', color=lighten_hex(p_shade2, .1))
     cacheprob = ut.nx_makenode(graph, 'Cached \nprobabilities', color=lighten_hex(s1_shade2, .1))
     sparseprob = ut.nx_makenode(graph, 'Sparse\nprobabilities', color=lighten_hex(c_shade2, .1))
 
@@ -325,7 +330,7 @@ def graphcut_flow():
     graph.add_edge(annot2, cacheprob)
 
     matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
-    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2))
+    cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
     cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected compoments', color=lighten_hex(s2_shade2, .3))
 
     graph.add_edge(occurprob, matchgraph)
@@ -505,6 +510,13 @@ def intraoccurrence_connected():
         6537: [7017, 7206],
         6653: [7660]
     }
+    if ut.get_argflag('--small'):
+        del nid2_aid[6630]
+        del nid2_aid[6537]
+        del nid2_dbaids[6537]
+        #del nid2_aid[4880]
+        #del nid2_dbaids[4880]
+
     aids = ut.flatten(nid2_aid.values())
 
     temp_nids = [1] * len(aids)
@@ -516,7 +528,7 @@ def intraoccurrence_connected():
         #invis_edges=invis_edges,
         ensure_edges=ensure_edges, temp_nids=temp_nids)
     viz_graph.color_by_nids(unlabeled_graph, unique_nids=[1] *
-                            len(unlabeled_graph.nodes()))
+                            len(list(unlabeled_graph.nodes())))
     viz_graph.ensure_node_images(ibs, unlabeled_graph)
     nx.set_node_attributes(unlabeled_graph, 'shape', 'rect')
     #unlabeled_graph = unlabeled_graph.to_undirected()
@@ -544,8 +556,11 @@ def intraoccurrence_connected():
     viz_graph.ensure_node_images(ibs, exemplars)
     viz_graph.color_by_nids(exemplars, ibs=ibs)
 
-    nx.set_node_attributes(unlabeled_graph, 'frameon', False)
-    nx.set_node_attributes(exemplars,  'frameon', True)
+    nx.set_node_attributes(unlabeled_graph, 'framewidth', False)
+    nx.set_node_attributes(exemplars,  'framewidth', 4.0)
+
+    nx.set_node_attributes(unlabeled_graph, 'group', 'unlab')
+    nx.set_node_attributes(exemplars,  'group', 'exemp')
 
     #big_graph = nx.compose_all([unlabeled_graph])
     big_graph = nx.compose_all([exemplars, unlabeled_graph])
@@ -557,15 +572,15 @@ def intraoccurrence_connected():
         for aid_ in unlabeled_graph.nodes():
             flags = rng.rand(len(exemplars)) > .5
             nid_ = ibs.get_annot_nids(aid_)
-            exnids = np.array(ibs.get_annot_nids(exemplars.nodes()))
+            exnids = np.array(ibs.get_annot_nids(list(exemplars.nodes())))
             flags = np.logical_or(exnids == nid_, flags)
-            exmatches = ut.compress(exemplars.nodes(), flags)
+            exmatches = ut.compress(list(exemplars.nodes()), flags)
             big_graph.add_edges_from(list(ut.product([aid_], exmatches)),
                                      color=pt.ORANGE, implicit=True)
     else:
         for aid_ in unlabeled_graph.nodes():
             flags = rng.rand(len(exemplars)) > .5
-            exmatches = ut.compress(exemplars.nodes(), flags)
+            exmatches = ut.compress(list(exemplars.nodes()), flags)
             nid_ = ibs.get_annot_nids(aid_)
             exnids = np.array(ibs.get_annot_nids(exmatches))
             exmatches = ut.compress(exmatches, exnids == nid_)
@@ -584,33 +599,50 @@ def intraoccurrence_connected():
         'sep' : 1 / 5,
         'prog': 'neato',
         'overlap': 'false',
+        #'splines': 'ortho',
         'splines': 'spline',
     }
 
-    if not postcut:
+    as_directed = False
+    #as_directed = True
+    #hacknode = True
+    hacknode = False
 
-        #pt.show_nx(big_graph.to_undirected(), layout='agraph', layoutkw=layoutkw,
+    graph = big_graph
+    ut.nx_ensure_agraph_color(graph)
+    if hacknode:
+        nx.set_edge_attributes(graph, 'taillabel', {e: str(e[0]) for e in graph.edges()})
+        nx.set_edge_attributes(graph, 'headlabel', {e: str(e[1]) for e in graph.edges()})
+
+    if not postcut:
+        #pt.show_nx(graph.to_undirected(), layout='agraph', layoutkw=layoutkw,
         #           as_directed=False)
-        pt.show_nx(big_graph, layout='agraph', layoutkw=layoutkw,
-                   as_directed=False)
+        pt.show_nx(graph, layout='agraph', layoutkw=layoutkw,
+                   as_directed=as_directed, hacknode=hacknode)
     else:
-        graph = big_graph
         explicit_graph = pt.get_explicit_graph(graph)
         _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
                                              **layoutkw)
-        graph_layout_attrs = layout_info['graph_layout_attrs']  # NOQA
-        edge_layout_attrs  = layout_info['edge_layout_attrs']   # NOQA
-        node_layout_attrs  = layout_info['node_layout_attrs']   # NOQA
 
-        nx.set_node_attributes(graph, 'pos', layout_info['node_pos'])
-        nx.set_edge_attributes(graph, 'pos', layout_info['edge_pos'])
-        nx.set_edge_attributes(graph, 'endpoints', layout_info['edge_endpoints'])
-        nx.set_node_attributes(graph, 'size', layout_info['node_size'])
+        graph_layout_attrs = layout_info['graph']
+        #edge_layout_attrs  = layout_info['edge']
+        #node_layout_attrs  = layout_info['node']
+
+        for key, vals in layout_info['node'].items():
+            #print('[special] key = %r' % (key,))
+            nx.set_node_attributes(graph, key, vals)
+
+        for key, vals in layout_info['edge'].items():
+            #print('[special] key = %r' % (key,))
+            nx.set_edge_attributes(graph, key, vals)
+
         nx.set_edge_attributes(graph, 'alpha', .8)
-        graph.graph['splines'] = layout_info.get('splines', 'line')
+        graph.graph['splines'] = graph_layout_attrs.get('splines', 'line')
+        #graph.graph['splines'] = 'polyline'   # graph_layout_attrs.get('splines', 'line')
+        #graph.graph['splines'] = 'line'
 
         cut_graph = graph.copy()
-        edge_list = cut_graph.edges()
+        edge_list = list(cut_graph.edges())
         edge_nids = np.array(ibs.unflat_map(ibs.get_annot_nids, edge_list))
         cut_flags = edge_nids.T[0] != edge_nids.T[1]
         cut_edges = ut.compress(edge_list, cut_flags)
@@ -632,17 +664,17 @@ def intraoccurrence_connected():
 
         graph = cut_graph
         viz_graph.color_by_nids(cut_graph, ibs=ibs, nid2_color_=nid2_color_)
-        nx.set_node_attributes(cut_graph, 'frameon', True)
+        nx.set_node_attributes(cut_graph, 'framewidth', 4)
 
         pt.show_nx(cut_graph, layout='custom', layoutkw=layoutkw,
-                   as_directed=False)
+                   as_directed=as_directed, hacknode=hacknode)
 
     pt.zoom_factory()
 
     # The database exemplars
     # TODO: match these along with the intra encounter set
     #interact = viz_graph.make_name_graph_interaction(
-    #    ibs, aids=dbaids, with_all=False, prog='neato', frameon=True)
+    #    ibs, aids=dbaids, with_all=False, prog='neato', framewidth=True)
     #print(interact)
 
     # Groupid only works for dot
@@ -652,7 +684,7 @@ def intraoccurrence_connected():
     #add_clique(exemplars, aids_, edgeattrs=dict(constraint=False))
     #layoutkw = {}
     #pt.show_nx(exemplars, layout='agraph', layoutkw=layoutkw,
-    #           as_directed=False, frameon=True,)
+    #           as_directed=False, framewidth=True,)
 
 
 if __name__ == '__main__':

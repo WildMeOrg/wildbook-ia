@@ -137,7 +137,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
 
     if ensure_edges is not None:
         if ensure_edges == 'all':
-            ensure_edges = list(ut.upper_diag_self_prodx(graph.nodes()))
+            ensure_edges = list(ut.upper_diag_self_prodx(list(graph.nodes())))
         ensure_edges_ = []
         for edge in ensure_edges:
             edge = tuple(edge)
@@ -156,10 +156,10 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
                 graph.add_edge(*edge)
 
     if temp_nids is None:
-        unique_nids = ibs.get_annot_nids(graph.nodes())
+        unique_nids = ibs.get_annot_nids(list(graph.nodes()))
     else:
         # HACK
-        unique_nids = [1] * len(graph.nodes())
+        unique_nids = [1] * len(list(graph.nodes()))
         #unique_nids = temp_nids
 
     nx.set_node_attributes(graph, 'nid', dict(zip(graph.nodes(), unique_nids)))
@@ -187,7 +187,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
 
 def ensure_graph_nid_labels(graph, unique_nids=None, ibs=None):
     if unique_nids is None:
-        unique_nids = ibs.get_annot_nids(graph.nodes())
+        unique_nids = ibs.get_annot_nids(list(graph.nodes()))
     nodeattrs = dict(zip(graph.nodes(), unique_nids))
     ut.nx_set_default_node_attributes(graph, 'nid', nodeattrs)
 
@@ -212,7 +212,7 @@ def color_by_nids(graph, unique_nids=None, ibs=None, nid2_color_=None):
     if nid2_color_ is not None:
         # HACK NEED TO ENSURE COLORS ARE NOT REUSED
         nid_to_color.update(nid2_color_)
-    edge_aids = graph.edges()
+    edge_aids = list(graph.edges())
     edge_nids = ut.unflat_take(node_to_nid, edge_aids)
     flags = [nids[0] == nids[1] for nids in edge_nids]
     flagged_edge_aids = ut.compress(edge_aids, flags)
@@ -229,7 +229,7 @@ def augment_graph_mst(ibs, graph):
     #spantree_aids1_ = []
     #spantree_aids2_ = []
     # Add edges between all names
-    aid_list = graph.nodes()
+    aid_list = list(graph.nodes())
     aug_digraph = graph.copy()
     # Change all weights in initial graph to be small (likely to be part of mst)
     nx.set_edge_attributes(aug_digraph, 'weight', .0001)
@@ -266,7 +266,7 @@ def augment_graph_mst(ibs, graph):
 
 
 def ensure_node_images(ibs, graph):
-    aid_list = sorted(graph.nodes())
+    aid_list = sorted(list(graph.nodes()))
     imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
                                                config=dict(dim_size=200),
                                                read_extern=False)
@@ -275,7 +275,7 @@ def ensure_node_images(ibs, graph):
 
 def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
                        zoom=None, prog='neato', as_directed=False,
-                       augment_graph=True, layoutkw=None, frameon=True, **kwargs):
+                       augment_graph=True, layoutkw=None, framewidth=True, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -336,7 +336,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
                           # hacknonode=bool(with_images),
                           layoutkw=layoutkw,
                           as_directed=as_directed,
-                          frameon=frameon,
+                          framewidth=framewidth,
                           )
 
     offset_img_list = []
@@ -410,7 +410,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                                          temp_nids=temp_nids)
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
-            self._aids2 = sorted(self.graph.nodes())
+            self._aids2 = sorted(list(self.graph.nodes()))
             self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 
         def plot(self, fnum, pnum):

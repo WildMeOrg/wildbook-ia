@@ -694,7 +694,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
         textkw = dict(
             xycoords='data', boxcoords='offset points', pad=0.25,
-            frameon=True, arrowprops=dict(arrowstyle='->'),
+            framewidth=True, arrowprops=dict(arrowstyle='->'),
             #bboxprops=dict(fc=node_attr['fillcolor']),
         )
 
