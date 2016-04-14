@@ -3567,7 +3567,7 @@ def draw_text_annotations(text_list,
 
     textkw = dict(
         xycoords='data', boxcoords='offset points', pad=0.25,
-        frameon=True, arrowprops=dict(arrowstyle='->', ec='black'),
+        framewidth=True, arrowprops=dict(arrowstyle='->', ec='black'),
         #bboxprops=dict(fc=node_attr['fillcolor']),
     )
 
