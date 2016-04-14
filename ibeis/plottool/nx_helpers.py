@@ -95,8 +95,12 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         half_size_arr = np.array(ut.take(node_size, graph.nodes())) / 2.
         pos_arr = np.array(ut.take(node_pos, graph.nodes()))
         # autoscale does not seem to work
-        ul_pos = pos_arr - half_size_arr
-        br_pos = pos_arr + half_size_arr
+        #ul_pos = pos_arr - half_size_arr
+        #br_pos = pos_arr + half_size_arr
+        # hack because edges are cut off.
+        # need to take into account extent of edges as well
+        ul_pos = pos_arr - half_size_arr * 1.5
+        br_pos = pos_arr + half_size_arr * 1.5
         xmin, ymin = ul_pos.min(axis=0)
         xmax, ymax = br_pos.max(axis=0)
         ax.set_xlim(xmin, xmax)
@@ -307,16 +311,15 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
     layout_info = {}
 
     if layout == 'custom':
-        edge_keys = [
-            'end_pt', 'ctrl_pts', 'start_pt', 'taillabel', 'tail_lp', 'alpha',
-            'color', 'lp', 'headlabel', 'head_lp', 'label'
-        ]
-        node_keys = [
-            'pos', 'size', 'width', 'height'
-        ]
-        graph_keys = [
-            'splines',
-        ]
+
+        edge_keys = list(reduce(set.union, [set(edge[-1].keys()) for edge in
+                                            graph.edges(data=True)]))
+        node_keys = list(reduce(set.union, [set(node[-1].keys()) for node in
+                                            graph.nodes(data=True)]))
+        graph_keys = list(graph.graph.keys())
+        #graph_keys = [
+        #    'splines',
+        #]
         layout_info = {
             'graph': {k: graph.graph.get(k) for k in graph_keys},
             'node': {k: nx.get_node_attributes(graph, k) for k in node_keys},
@@ -331,6 +334,16 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
     return layout_info
 
 
+def apply_graph_layout_attrs(graph, layout_info):
+    import networkx as nx
+    for key, vals in layout_info['node'].items():
+        nx.set_node_attributes(graph, key, vals)
+
+    for key, vals in layout_info['edge'].items():
+        nx.set_edge_attributes(graph, key, vals)
+    graph.graph.update(layout_info['graph'])
+
+
 def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwargs):
     r"""
     orig_graph = graph
@@ -342,9 +355,6 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     """
     import networkx as nx
     import pygraphviz
-
-    if not inplace:
-        graph = graph.copy()
 
     kwargs = kwargs.copy()
     prog = kwargs.pop('prog', 'dot')
@@ -387,6 +397,9 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     else:
         groupid_to_nodes = {}
     # Initialize agraph format
+    #import utool
+    #utool.embed()
+    ut.nx_delete_None_edge_attr(graph_)
     agraph = nx.nx_agraph.to_agraph(graph_)
     # Add subgraphs labels
     # TODO: subgraph attrs
@@ -398,6 +411,21 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
         name = groupid
         name = 'cluster_' + groupid
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
+    for node in graph_.nodes():
+        # force pinning of node points
+        anode = pygraphviz.Node(agraph, node)
+        if anode.attr['pin'] == 'true':
+            if anode.attr['pos'] is not None and not anode.attr['pos'].endswith('!'):
+                import re
+                #utool.embed()
+                ptstr = anode.attr['pos'].strip('[]').strip(' ')
+                ptstr_list = re.split(r'\s+', ptstr)
+                pt_arr = np.array(list(map(float, ptstr_list))) / 72.0
+                print('pt_arr = %r' % (pt_arr,))
+                new_ptstr_list = list(map(str, pt_arr))
+                new_ptstr = ','.join(new_ptstr_list) + '!'
+                print('new_ptstr = %r' % (new_ptstr,))
+                anode.attr['pos'] = new_ptstr
 
     # Run layout
     print('prog = %r' % (prog,))
@@ -413,13 +441,13 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     edge_layout_attrs = ut.ddict(dict)
 
     #for node in agraph.nodes():
-    for node in graph.nodes():
+    for node in graph_.nodes():
         anode = pygraphviz.Node(agraph, node)
         node_attrs = parse_anode_layout_attrs(anode)
         for key, val in node_attrs.items():
             node_layout_attrs[key][node] = val
 
-    edges = list(ut.nx_edges(graph, keys=True))
+    edges = list(ut.nx_edges(graph_, keys=True))
 
     for edge in edges:
         aedge = pygraphviz.Edge(agraph, *edge)
@@ -428,7 +456,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
             edge_layout_attrs[key][edge] = val
 
     if orig_graph is not None:
-        layout_edges = set(ut.nx_edges(graph, keys=True))
+        layout_edges = set(ut.nx_edges(graph_, keys=True))
         orig_edges = set(ut.nx_edges(orig_graph, keys=True))
         implicit_edges = list(orig_edges - layout_edges)
         #all_edges = list(set.union(orig_edges, layout_edges))
@@ -499,12 +527,17 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
         'node': dict(node_layout_attrs),
     }
 
+    if inplace:
+        if orig_graph is not None:
+            graph = orig_graph
+        apply_graph_layout_attrs(graph, layout_info)
+
     return graph, layout_info
 
 
 def parse_point(ptstr):
     try:
-        xx, yy = ptstr.split(',')
+        xx, yy = ptstr.strip('!').split(',')
         xy = np.array((float(xx), float(yy)))
     except:
         xy = None
