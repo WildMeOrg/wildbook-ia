@@ -243,6 +243,62 @@ def compute_detections(depc, gid_list, config=None):
         yield package_to_numpy(base_key_list, result_list, score)
 
 
+class ClassifierConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('classifier_sensitivity', 0.2),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='classifier', parents=['thumbnails'],
+    colnames=['score', 'class'],
+    coltypes=[float, str],
+    configclass=ClassifierConfig,
+    fname='detectcache',
+    chunksize=32,
+)
+def compute_classifications(depc, gid_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_classifications
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> depc.delete_property('classifier', gid_list)
+        >>> results = depc.get_property('classifier', gid_list, None)
+        >>> print(results)
+    """
+    from ibeis.algo.detect.classifier import classify_gid_list
+    print('[ibs] Preprocess Detections')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    ibs.assert_valid_gids(gid_list)
+    result_list = classify_gid_list(ibs, gid_list)
+    # yield detections
+    for result in result_list:
+        yield result
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

@@ -17,6 +17,12 @@ except:
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[classifier]')
 
+MODEL_DOMAIN = 'https://lev.cs.rpi.edu/public/models/'
+
+MODEL_URLS = {
+    'v1' : 'classifier.v1.npy',
+}
+
 
 def load_classifier(source_path='classifier',
                      cache_data_filename='data.npy',
@@ -185,6 +191,35 @@ def test_classifier(output_path):
             print(error_list)
             args = (conf, errors / total, errors, total, )
             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
+
+
+def classify_gid_list(ibs, gid_list, model='v1'):
+    print('[classifier] Loading the classifier training data')
+    depc = ibs.depc_image
+    config = {
+        'draw_annots' : False,
+        'thumbsize'   : (192, 192),
+    }
+    thumbnail_list = depc.get('thumbnails', gid_list, 'img', config=config)
+    data_list = np.array(thumbnail_list, dtype=np.uint8)
+
+    print('[mnist] Loading the data into a JPCNN_Data')
+    data = JPCNN_Data()
+    data.set_data_list(data_list)
+
+    print('[classifier] Create the JPCNN_Model used for testing')
+    url = MODEL_DOMAIN + MODEL_URLS[model]
+    model_path = ut.grab_file_url(url, appname='ibeis')
+    model = Classifier_Model(model_path)
+
+    print('[mnist] Create the JPCNN_network and start testing')
+    net = JPCNN_Network(model, data)
+    test_results = net.test('.', best_weights=True)
+    prediction_list = test_results['label_list']
+    confidence_list = test_results['confidence_list']
+
+    result_list = zip(prediction_list, confidence_list)
+    return result_list
 
 
 if __name__ == '__main__':
