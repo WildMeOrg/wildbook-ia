@@ -2,13 +2,18 @@
 from __future__ import absolute_import, division, print_function
 import ibeis
 from os.path import isfile, join, exists
-from jpcnn.core import JPCNN_Network, JPCNN_Data
 from ibeis.algo.detect.classifier.model import Classifier_Model
 from os import listdir
 import utool as ut
 import vtool as vt
 import numpy as np
 import cv2
+try:
+    from jpcnn.core import JPCNN_Network, JPCNN_Data
+except:
+    print('[ibeis.algo.detect] WARNING: Could not load CNN library for some detectors (ignore for now)')
+    pass
+
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[classifier]')
 

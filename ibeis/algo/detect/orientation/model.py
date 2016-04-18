@@ -1,10 +1,14 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
-from jpcnn.core.model import JPCNN_Default_Model
-from jpcnn.tpl._theano import T
-from jpcnn.tpl import _lasagne
 import numpy as np
 import cv2
+try:
+    from jpcnn.core.model import JPCNN_Default_Model
+    from jpcnn.tpl._theano import T
+    from jpcnn.tpl import _lasagne
+except:
+    JPCNN_Default_Model = object
+    pass
 
 
 def clipped_linear(x):

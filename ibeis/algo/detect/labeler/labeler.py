@@ -2,13 +2,16 @@
 from __future__ import absolute_import, division, print_function
 import ibeis
 from os.path import isfile, join, exists
-from jpcnn.core import JPCNN_Network, JPCNN_Data
 from ibeis.algo.detect.labeler.model import Labeler_Model
 from os import listdir
 import utool as ut
 import vtool as vt
 import numpy as np
 import cv2
+try:
+    from jpcnn.core import JPCNN_Network, JPCNN_Data
+except:
+    pass
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[labeler]')
 

@@ -1,11 +1,15 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
-from jpcnn.core.model import JPCNN_Auto_Model
-from jpcnn.tpl import _lasagne, _theano
-from jpcnn.tpl._theano import T
 import numpy as np
 import utool as ut
 import cv2
+try:
+    from jpcnn.core.model import JPCNN_Auto_Model
+    from jpcnn.tpl import _lasagne, _theano
+    from jpcnn.tpl._theano import T
+except:
+    JPCNN_Auto_Model = object
+    pass
 
 
 label_mapping_dict = {
