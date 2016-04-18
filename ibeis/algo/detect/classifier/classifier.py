@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import ibeis
 from os.path import isfile, join, exists
 from jpcnn.core import JPCNN_Network, JPCNN_Data
-from model import Classifier_Model
+from ibeis.algo.detect.classifier.model import Classifier_Model
 from os import listdir
 import utool as ut
 import vtool as vt

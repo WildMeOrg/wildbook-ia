@@ -9,7 +9,6 @@ from ibeis.algo.detect import background
 from ibeis.algo.detect import classifier
 from ibeis.algo.detect import labeler
 from ibeis.algo.detect import orientation
-from ibeis.algo.detect import saliency
 import utool
 print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.detect]')
 
@@ -70,7 +69,6 @@ def reload_subs(verbose=True):
     get_reload_subs(classifier)(verbose=verbose)
     get_reload_subs(labeler)(verbose=verbose)
     get_reload_subs(orientation)(verbose=verbose)
-    get_reload_subs(saliency)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -87,7 +85,6 @@ IMPORT_TUPLES = [
     ('classifier', None, True),
     ('labeler', None, True),
     ('orientation', None, True),
-    ('saliency', None, True),
 ]
 """
 Regen Command:

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from os.path import isfile, join, exists
 from jpcnn.core import JPCNN_Network, JPCNN_Data
-from model import Orientation_Model
+from ibeis.algo.detect.orientation.model import Orientation_Model
 from os import listdir
 import utool as ut
 import numpy as np
