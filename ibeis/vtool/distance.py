@@ -24,6 +24,20 @@ def testdata_hist():
     return hist1, hist2
 
 
+def wrapped_distance(arr1, arr2, base, out=None):
+    """
+    base = TAU corresponds to ori diff
+    """
+    arr_diff  = np.subtract(arr1, arr2)
+    abs_diff  = np.abs(arr_diff)
+    mod_diff1 = np.mod(abs_diff, base)
+    mod_diff2 = np.subtract(base, mod_diff1)
+    arr_dist  = np.minimum(mod_diff1, mod_diff2)
+    if out is not None:
+        out[:] = arr_dist
+    return arr_dist
+
+
 def signed_ori_distance(ori1, ori2):
     r"""
     Args:
