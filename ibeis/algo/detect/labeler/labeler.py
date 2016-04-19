@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import ibeis
 from os.path import isfile, join, exists
 from ibeis.algo.detect.labeler.model import Labeler_Model
+import ibeis.constants as const
 from os import listdir
 import utool as ut
 import vtool as vt
@@ -14,6 +15,13 @@ except:
     pass
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[labeler]')
+
+
+MODEL_DOMAIN = 'https://lev.cs.rpi.edu/public/models/'
+
+MODEL_URLS = {
+    'v1' : 'labeler.v1.npy',
+}
 
 
 def load_labeler(source_path='labeler',
@@ -182,6 +190,53 @@ def test_labeler(output_path):
             print(error_list)
             args = (conf, errors / total, errors, total, )
             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
+
+
+def classify_aid_list(ibs, aid_list, model='v1'):
+    print('[classifier] Loading the classifier training data')
+    depc = ibs.depc_image
+    config = {
+        'dim_size' : (128, 128),
+        'resize_dim' : 'wh',
+    }
+    chip_list = depc.get('chips', aid_list, 'img', config=config)
+    data_list = np.array(chip_list, dtype=np.uint8)
+
+    print(data_list.shape)
+
+    print('[mnist] Loading the data into a JPCNN_Data')
+    data = JPCNN_Data()
+    data.set_data_list(data_list)
+
+    print('[classifier] Create the JPCNN_Model used for testing')
+    url = MODEL_DOMAIN + MODEL_URLS[model]
+    model_path = ut.grab_file_url(url, appname='ibeis')
+    model = Labeler_Model(model_path)
+
+    print('[mnist] Create the JPCNN_network and start testing')
+    net = JPCNN_Network(model, data)
+    test_results = net.test('.', best_weights=True)
+    prediction_list = test_results['label_list']
+    confidence_list = test_results['confidence_list']
+
+    species_list = []
+    viewpoint_list = []
+    quality_list = []
+    orientation_list = []
+    for prediction in prediction_list:
+        if ':' in prediction:
+            prediction.split(':')
+            species, viewpoint = prediction
+        else:
+            species = prediction
+            viewpoint = None
+        species_list.append(species)
+        viewpoint_list.append(viewpoint)
+        quality_list.append(const.QUAL_UNKNOWN)
+        orientation_list.append(0.0)
+
+    result_list = zip(confidence_list, species_list, viewpoint_list, quality_list, orientation_list)
+    return result_list
 
 
 if __name__ == '__main__':

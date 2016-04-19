@@ -1334,6 +1334,57 @@ if testmode:
         pass
 
 
+class LabelerConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('labeler_sensitivity', 0.2),
+    ]
+
+
+@register_preproc(
+    tablename='labeler', parents=['chips'],
+    colnames=['score', 'species', 'viewpoint', 'quality', 'orientation'],
+    coltypes=[float, str, str, str, float],
+    configclass=LabelerConfig,
+    fname='detectcache',
+    chunksize=32,
+)
+def compute_labels(depc, aid_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_labels
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[0:8]
+        >>> # depc.delete_property('labeler', aid_list)
+        >>> results = depc.get_property('labeler', aid_list, None)
+        >>> print(results)
+    """
+    from ibeis.algo.detect.labeler.labeler import label_aid_list
+    print('[ibs] Process Annotation Labels')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    result_list = label_aid_list(ibs, aid_list)
+    # yield detections
+    for result in result_list:
+        yield result
+
 if __name__ == '__main__':
     r"""
     CommandLine:
