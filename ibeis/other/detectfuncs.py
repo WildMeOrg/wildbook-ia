@@ -558,7 +558,7 @@ def classifier_precision_recall_algo(ibs, **kwargs):
     prediction_list = depc.get_property('classifier', gid_list, 'class')
     confidence_list = depc.get_property('classifier', gid_list, 'score')
 
-    zipped = zip(label_list, prediction_list, confidence_list)
+    zipped = list(zip(label_list, prediction_list, confidence_list))
     conf_list = [ _ / 100.0 for _ in range(0, 101) ]
     conf_dict = {}
     for conf in conf_list:
