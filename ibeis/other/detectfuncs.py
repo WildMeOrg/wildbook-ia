@@ -571,6 +571,7 @@ def classifier_precision_recall_algo(ibs, **kwargs):
     for conf in sorted(conf_dict.keys()):
         error_list = conf_dict[conf]
         tp, tn, fp, fn = error_list
+        print(conf, error_list)
         pr = tp / (tp + fp)
         re = tp / (tp + fn)
         tpr = tp / (tp + fn)
