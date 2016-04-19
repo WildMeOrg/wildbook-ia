@@ -586,14 +586,14 @@ def classifier_precision_recall_algo(ibs, **kwargs):
 def classifier_precision_recall_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
-    pr_list, re_list, tpr_list, fpr_list = detect_precision_recall_algo(ibs, **kwargs)
+    pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
 
 
 def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
-    pr_list, re_list, tpr_list, fpr_list = detect_precision_recall_algo(ibs, **kwargs)
+    pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
 
 
@@ -611,7 +611,7 @@ def classifier_precision_recall_algo_display(ibs, figsize=(10, 6), **kwargs):
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    detect_precision_recall_algo_plot(ibs, 'V1', 'r')
+    classifier_precision_recall_algo_plot(ibs, 'V1', 'r')
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
