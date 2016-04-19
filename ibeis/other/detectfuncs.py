@@ -596,7 +596,7 @@ def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
 
 
-def classifier_confusion_matrix_algo(label_correct_list, label_predict_list, category_list, category_mapping):
+def classifier_confusion_matrix_algo(label_correct_list, label_predict_list, category_list, category_mapping, fig_, axes_):
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
     # Get the number of categories
@@ -617,21 +617,20 @@ def classifier_confusion_matrix_algo(label_correct_list, label_predict_list, cat
     confusion_normalized = np.array((confusion_matrix.T / row_normalizer).T)
 
     # Create a new matplotlib figure
-    ax = plt.subplot(133)
-    ax.set_aspect(1)
+    axes_.set_aspect(1)
     # Draw the confusion matrix
-    res = ax.imshow(confusion_normalized, cmap=plt.cm.jet,
-                    interpolation='nearest')
+    res = axes_.imshow(confusion_normalized, cmap=plt.cm.jet,
+                       interpolation='nearest')
 
     for x in range(num_categories):
         for y in range(num_categories):
-            ax.annotate(
+            axes_.annotate(
                 str(int(confusion_matrix[x][y])), xy=(y, x),
                 horizontalalignment='center',
                 verticalalignment='center'
             )
 
-    cb = fig.colorbar(res)  # NOQA
+    cb = fig_.colorbar(res)  # NOQA
     cb.set_clim(0.0, 1.0)
     plt.xticks(np.arange(num_categories), category_list, rotation=90)
     plt.yticks(np.arange(num_categories), category_list)
@@ -657,14 +656,14 @@ def classifier_confusion_matrix_algo_plot(ibs, label, color, **kwargs):
         'positive': 0,
         'negative': 1,
     }
-    classifier_confusion_matrix_algo(label_list, prediction_list, category_list, category_mapping)
+    classifier_confusion_matrix_algo(label_list, prediction_list, category_list, category_mapping, **kwargs)
 
 
 @register_ibs_method
 def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     import matplotlib.pyplot as plt
 
-    plt.figure(figsize=figsize)
+    fig_ = plt.figure(figsize=figsize)
 
     axes_ = plt.subplot(131)
     plt.title('Precision-Recall Curve', y=1.08)
@@ -698,7 +697,7 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     axes_.set_ylabel('Predictions')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r')
+    classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', fig_, axes_)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
