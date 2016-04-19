@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 IBEIS CORE
 Defines the core dependency cache supported by the image analysis api
@@ -77,11 +78,11 @@ class ChipConfig(dtool.Config):
     _param_info_list = [
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
         #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
-        ut.ParamInfo('dim_size', 700, 'sz', hideif=None),
+        ut.ParamInfo('dim_size', 700, 'sz', hideif=None),  # TODO: allow types to vary
         ut.ParamInfo(
             'resize_dim', 'width', '',
             #'resize_dim', 'area', '',
-            valid_values=['area', 'width', 'height', 'diag', 'maxwh'],
+            valid_values=['area', 'width', 'height', 'diag', 'maxwh', 'wh'],
             hideif=lambda cfg: cfg['dim_size'] is None),
         ut.ParamInfo('dim_tol', 0, 'tol', hideif=0),
         ut.ParamInfo('preserve_aspect', True, hideif=True),
@@ -178,19 +179,25 @@ def compute_chip(depc, aid_list, config=None):
     invalid_aids = ut.compress(aid_list, invalid_flags)
     assert len(invalid_aids) == 0, 'invalid aids=%r' % (invalid_aids,)
 
-    scale_func_dict = {
-        'width': vt.get_scaled_size_with_width,
-        'area': vt.get_scaled_size_with_area,  # actually root area
-    }
-    scale_func = scale_func_dict[resize_dim]
-
-    if dim_size is None:
-        newsize_list = bbox_size_list
+    if resize_dim == 'wh':
+        assert isinstance(dim_size, tuple), (
+            'must specify both width and height in dim_size when resize_dim=wh')
+        # Aspect ratio is not preserved. Use exact specifications.
+        newsize_list = [dim_size for _ in range(len(bbox_size_list))]
     else:
-        if resize_dim == 'area':
-            dim_size = dim_size ** 2
-            dim_tol = dim_tol ** 2
-        newsize_list = [scale_func(dim_size, w, h, dim_tol) for (w, h) in bbox_size_list]
+        scale_func_dict = {
+            'width': vt.get_scaled_size_with_width,
+            'area': vt.get_scaled_size_with_area,  # actually root area
+        }
+        scale_func = scale_func_dict[resize_dim]
+
+        if dim_size is None:
+            newsize_list = bbox_size_list
+        else:
+            if resize_dim == 'area':
+                dim_size = dim_size ** 2
+                dim_tol = dim_tol ** 2
+            newsize_list = [scale_func(dim_size, w, h, dim_tol) for (w, h) in bbox_size_list]
 
     if pad > 0:
         halfoffset_ms = (pad, pad)
