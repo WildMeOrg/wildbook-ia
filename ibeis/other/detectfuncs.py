@@ -627,7 +627,7 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(132)
+    axes_ = plt.subplot(133)
     plt.title('ROC Curve', y=1.08)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
