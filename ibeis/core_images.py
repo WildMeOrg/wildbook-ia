@@ -287,7 +287,7 @@ def compute_classifications(depc, gid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """
-    from ibeis.algo.detect.classifier import classify_gid_list
+    from ibeis.algo.detect.classifier.classifier import classify_gid_list
     print('[ibs] Preprocess Detections')
     print('config = %r' % (config,))
     # Get controller
