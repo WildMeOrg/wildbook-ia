@@ -202,8 +202,6 @@ def label_aid_list(ibs, aid_list, model='v1'):
     chip_list = depc.get('chips', aid_list, 'img', config=config)
     data_list = np.array(chip_list, dtype=np.uint8)
 
-    print(data_list.shape)
-
     print('[mnist] Loading the data into a JPCNN_Data')
     data = JPCNN_Data()
     data.set_data_list(data_list)
@@ -224,7 +222,9 @@ def label_aid_list(ibs, aid_list, model='v1'):
     quality_list = []
     orientation_list = []
     for prediction in prediction_list:
-        prediction = prediction.srtip()
+        print(prediction)
+        prediction = prediction.strip()
+        print(prediction)
         if ':' in prediction:
             prediction = prediction.split(':')
             species, viewpoint = prediction
