@@ -599,12 +599,12 @@ def classifier_roc_algo_plot(ibs, label, color, **kwargs):
 
 
 @register_ibs_method
-def classifier_precision_recall_algo_display(ibs, figsize=(15, 6), **kwargs):
+def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     import matplotlib.pyplot as plt
 
     plt.figure(figsize=figsize)
 
-    axes_ = plt.subplot(121)
+    axes_ = plt.subplot(131)
     plt.title('Precision-Recall Curve', y=1.08)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
@@ -616,7 +616,19 @@ def classifier_precision_recall_algo_display(ibs, figsize=(15, 6), **kwargs):
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(122)
+    axes_ = plt.subplot(132)
+    plt.title('ROC Curve', y=1.08)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    classifier_roc_algo_plot(ibs, 'V1', 'r')
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(132)
     plt.title('ROC Curve', y=1.08)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
