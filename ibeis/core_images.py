@@ -134,7 +134,7 @@ def draw_thumb_helper(tup):
     if isinstance(thumbsize, int):
         max_dsize = (thumbsize, thumbsize)
         dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
-    elif isinstance(thumbsize, tuple) and len(tuple) == 2:
+    elif isinstance(thumbsize, tuple) and len(thumbsize) == 2:
         th, tw = thumbsize
         dsize, sx, sy = thumbsize, tw / gw, th / gh
     else:
