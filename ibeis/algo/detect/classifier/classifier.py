@@ -195,7 +195,7 @@ def test_classifier(output_path):
 
 def classify_gid_list(ibs, gid_list, model='v1'):
     print('[classifier] Loading the classifier training data')
-    depc = ibs.depc_image
+    depc = ibs.depc_annot
     config = {
         'draw_annots' : False,
         'thumbsize'   : (192, 192),
