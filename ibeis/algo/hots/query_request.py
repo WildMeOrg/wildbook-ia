@@ -60,7 +60,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ibeis.QueryRequest
 
     CommandLine:
-        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request
+        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:0
         python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:2
 
     Example0:
@@ -73,7 +73,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Check Results
-        >>> print(qreq_.qparams.query_cfgstr)
+        >>> print(qreq_.get_cfgstr())
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
@@ -140,14 +140,27 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
 
+    try:
+        piperoot = cfgdict['pipeline_root']
+    except Exception:
+        piperoot = None
+    print('[qreq] piperoot = %r' % (piperoot,))
     # HACK FOR DEPC REQUESTS including flukes
     if isinstance(cfg, dtool.Config):
+        print('[qreq] dtool.Config HACK')
         tablename = cfg.get_config_name()
-        requestclass = ibs.depc_annot.requestclass_dict[tablename]
         cfgdict = dict(cfg.parse_items())
+        requestclass = ibs.depc_annot.requestclass_dict[tablename]
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
+    elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
+        # Hack to ensure that correct depcache style request gets called
+        print('[qreq] piperoot HACK')
+        requestclass = ibs.depc_annot.requestclass_dict[piperoot]
+        qreq_ = request = requestclass.new(  # NOQA
+            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot)
     else:
+        print('[qreq] default hots config HACK')
         #if cfgdict.get('pipeline_root', None)
         DYNAMIC_K = False
         if DYNAMIC_K and 'K' not in cfgdict:
@@ -186,9 +199,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         qreq_.query_config2_ = query_config2_
         qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
+        if verbose:
+            print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
     if verbose:
         print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
-        print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
         print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
         print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
         print('[qreq] * data_hashid   = %s' % (qreq_.get_data_hashid(),))
