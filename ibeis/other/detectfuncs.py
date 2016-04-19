@@ -542,9 +542,8 @@ def classifier_precision_recall_algo(ibs, **kwargs):
                     error_list[3] += 1
         return error_list
 
-    category_set = set(['zebra_plains', 'zebra_grevys'])
-
     depc = ibs.depc_image
+    category_set = set(['zebra_plains', 'zebra_grevys'])
     gid_list = ibs.get_valid_gids()
     aids_list = ibs.get_image_aids(gid_list)
     species_set_list = [
@@ -597,6 +596,70 @@ def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
 
 
+def classifier_confusion_matrix_algo(label_correct_list, label_predict_list, category_list, category_mapping):
+    # import matplotlib.colors as colors
+    import matplotlib.pyplot as plt
+    # Get the number of categories
+    num_categories = len(category_list)
+
+    # Build the confusion matrix
+    confusion_matrix = np.zeros((num_categories, num_categories))
+    zipped = zip(label_correct_list, label_predict_list)
+    for label_correct, label_predict, in zipped:
+        # Perform any mapping that needs to be done
+        correct_ = category_mapping[label_correct]
+        predict_ = category_mapping[label_predict]
+        # Add to the confidence matrix
+        confusion_matrix[correct_][predict_] += 1
+
+    # Normalize the confusion matrix using the rows
+    row_normalizer = np.sum(confusion_matrix, axis=1)
+    confusion_normalized = np.array((confusion_matrix.T / row_normalizer).T)
+
+    # Create a new matplotlib figure
+    ax = plt.subplot(133)
+    ax.set_aspect(1)
+    # Draw the confusion matrix
+    res = ax.imshow(confusion_normalized, cmap=plt.cm.jet,
+                    interpolation='nearest')
+
+    for x in range(num_categories):
+        for y in range(num_categories):
+            ax.annotate(
+                str(int(confusion_matrix[x][y])), xy=(y, x),
+                horizontalalignment='center',
+                verticalalignment='center'
+            )
+
+    cb = fig.colorbar(res)  # NOQA
+    cb.set_clim(0.0, 1.0)
+    plt.xticks(np.arange(num_categories), category_list, rotation=90)
+    plt.yticks(np.arange(num_categories), category_list)
+
+
+def classifier_confusion_matrix_algo_plot(ibs, label, color, **kwargs):
+    print('Processing Precision-Recall for: %r' % (label, ))
+    depc = ibs.depc_image
+    category_set = set(['zebra_plains', 'zebra_grevys'])
+    gid_list = ibs.get_valid_gids()
+    aids_list = ibs.get_image_aids(gid_list)
+    species_set_list = [
+        set(ibs.get_annot_species_texts(aid_list))
+        for aid_list in aids_list
+    ]
+    label_list = [
+        'negative' if len(species_set & category_set) == 0 else 'positive'
+        for species_set in species_set_list
+    ]
+    prediction_list = depc.get_property('classifier', gid_list, 'class')
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    classifier_confusion_matrix_algo(label_list, prediction_list, category_list, category_mapping)
+
+
 @register_ibs_method
 def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     import matplotlib.pyplot as plt
@@ -628,14 +691,14 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
                borderaxespad=0.0)
 
     axes_ = plt.subplot(133)
-    plt.title('ROC Curve', y=1.08)
+    plt.title('Confusion Matrix', y=1.08)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('False-Positive Rate')
-    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlabel('Ground-Truth')
+    axes_.set_ylabel('Predictions')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    classifier_roc_algo_plot(ibs, 'V1', 'r')
+    classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r')
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
