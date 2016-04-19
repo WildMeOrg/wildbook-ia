@@ -518,7 +518,116 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
     # plt.show()
-    fig_filename = 'precision-recall-%0.2f.png' % (min_overlap, )
+    fig_filename = 'detection-precision-recall-%0.2f.png' % (min_overlap, )
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
+@register_ibs_method
+def classifier_precision_recall_algo(ibs, **kwargs):
+    def errors(zipped, conf):
+        error_list = [0, 0, 0, 0]
+        for index, (label, prediction, confidence) in enumerate(zipped):
+            if prediction == 'negative' and confidence < conf:
+                prediction = 'positive'
+                confidence == 1.0 - confidence
+            if label == prediction and prediction == 'positive':
+                error_list[0] += 1
+            elif label == prediction and prediction == 'negative':
+                error_list[1] += 1
+            elif label != prediction:
+                if prediction == 'positive':
+                    error_list[2] += 1
+                elif prediction == 'negative':
+                    error_list[3] += 1
+        return error_list
+
+    category_set = set(['zebra_plains', 'zebra_grevys'])
+
+    depc = ibs.depc_image
+    gid_list = ibs.get_valid_gids()
+    aids_list = ibs.get_image_aids(gid_list)
+    species_set_list = [
+        set(ibs.get_annot_species_texts(aid_list))
+        for aid_list in aids_list
+    ]
+    label_list = [
+        'negative' if len(species_set & category_set) == 0 else 'positive'
+        for species_set in species_set_list
+    ]
+    prediction_list = depc.get_property('classifier', gid_list, 'class')
+    confidence_list = depc.get_property('classifier', gid_list, 'score')
+
+    zipped = zip(label_list, prediction_list, confidence_list)
+    conf_list = [ _ / 100.0 for _ in range(0, 101) ]
+    conf_dict = {}
+    for conf in conf_list:
+        conf_dict[conf] = errors(zipped, conf)
+
+    pr_list = []
+    re_list = []
+    tpr_list = []
+    fpr_list = []
+    for conf in sorted(conf_dict.keys()):
+        error_list = conf_dict[conf]
+        tp, tn, fp, fn = error_list
+        pr = tp / (tp + fp)
+        re = tp / (tp + fn)
+        tpr = tp / (tp + fn)
+        fpr = fp / (fp + tn)
+        pr_list.append(pr)
+        re_list.append(re)
+        tpr_list.append(tpr)
+        fpr_list.append(fpr)
+
+    return pr_list, re_list, tpr_list, fpr_list
+
+
+def classifier_precision_recall_algo_plot(ibs, label, color, **kwargs):
+    import matplotlib.pyplot as plt
+    print('Processing Precision-Recall for: %r' % (label, ))
+    pr_list, re_list, tpr_list, fpr_list = detect_precision_recall_algo(ibs, **kwargs)
+    plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
+
+
+def classifier_roc_algo_plot(ibs, label, color, **kwargs):
+    import matplotlib.pyplot as plt
+    print('Processing Precision-Recall for: %r' % (label, ))
+    pr_list, re_list, tpr_list, fpr_list = detect_precision_recall_algo(ibs, **kwargs)
+    plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
+
+
+@register_ibs_method
+def classifier_precision_recall_algo_display(ibs, figsize=(10, 6), **kwargs):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=figsize)
+
+    axes_ = plt.subplot(121)
+    plt.title('Precision-Recall Curve')
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    detect_precision_recall_algo_plot(ibs, 'V1', 'r')
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(122)
+    plt.title('ROC Curve')
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    classifier_roc_algo_plot(ibs, 'V1', 'r')
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    fig_filename = 'classifier-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 

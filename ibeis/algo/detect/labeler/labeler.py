@@ -222,15 +222,15 @@ def label_aid_list(ibs, aid_list, model='v1'):
     quality_list = []
     orientation_list = []
     for prediction in prediction_list:
-        print(prediction)
         prediction = prediction.strip()
-        print(prediction)
         if ':' in prediction:
             prediction = prediction.split(':')
             species, viewpoint = prediction
         else:
             species = prediction
             viewpoint = None
+        if species.lower() == 'ignore':
+            species = const.UNKNOWN
         species_list.append(species)
         viewpoint_list.append(viewpoint)
         quality_list.append(const.QUAL_UNKNOWN)
