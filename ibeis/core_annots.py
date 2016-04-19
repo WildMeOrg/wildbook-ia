@@ -1338,6 +1338,9 @@ class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_sensitivity', 0.2),
     ]
+    _sub_config_list = [
+        ChipConfig
+    ]
 
 
 @register_preproc(
