@@ -620,7 +620,7 @@ def logistic_01(x):
         x (?):
 
     CommandLine:
-        python -m vtool.math --exec-logistic --show
+        python -m vtool.math --exec-logistic_01 --show
 
     Example:
         >>> # DISABLE_DOCTEST
