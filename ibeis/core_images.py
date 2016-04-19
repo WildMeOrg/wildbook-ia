@@ -288,7 +288,7 @@ def compute_classifications(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
-        >>> depc.delete_property('classifier', gid_list)
+        >>> # depc.delete_property('classifier', gid_list)
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """

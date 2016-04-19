@@ -203,8 +203,6 @@ def classify_gid_list(ibs, gid_list, model='v1'):
     thumbnail_list = depc.get('thumbnails', gid_list, 'img', config=config)
     data_list = np.array(thumbnail_list, dtype=np.uint8)
 
-    print(data_list.shape)
-
     print('[mnist] Loading the data into a JPCNN_Data')
     data = JPCNN_Data()
     data.set_data_list(data_list)
