@@ -618,8 +618,6 @@ def classifier_confusion_matrix_algo(label_correct_list, label_predict_list,
     row_normalizer = np.sum(confusion_matrix, axis=1)
     confusion_normalized = np.array((confusion_matrix.T / row_normalizer).T)
 
-    # Create a new matplotlib figure
-    axes_.set_aspect(1)
     # Draw the confusion matrix
     res = axes_.imshow(confusion_normalized, cmap=plt.cm.jet,
                        interpolation='nearest')
