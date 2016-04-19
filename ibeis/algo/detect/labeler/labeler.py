@@ -192,7 +192,7 @@ def test_labeler(output_path):
             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
 
 
-def classify_aid_list(ibs, aid_list, model='v1'):
+def label_aid_list(ibs, aid_list, model='v1'):
     print('[classifier] Loading the classifier training data')
     depc = ibs.depc_image
     config = {
@@ -201,8 +201,6 @@ def classify_aid_list(ibs, aid_list, model='v1'):
     }
     chip_list = depc.get('chips', aid_list, 'img', config=config)
     data_list = np.array(chip_list, dtype=np.uint8)
-
-    print(data_list.shape)
 
     print('[mnist] Loading the data into a JPCNN_Data')
     data = JPCNN_Data()
