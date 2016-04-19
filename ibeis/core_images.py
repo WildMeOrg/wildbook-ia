@@ -131,10 +131,15 @@ def draw_thumb_helper(tup):
     img = vt.imread(gpath)
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
-    max_dsize = (thumbsize, thumbsize)
-    dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
+    if isinstance(thumbsize, int):
+        max_dsize = (thumbsize, thumbsize)
+        dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
+    elif isinstance(thumbsize, tuple) and len(thumbsize) == 2:
+        th, tw = thumbsize
+        dsize, sx, sy = thumbsize, tw / gw, th / gh
+    else:
+        raise ValueError('Incompatible thumbsize')
     new_verts_list = list(vt.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
-    #thumb = vt.resize_thumb(img, max_dsize)
     # -----------------
     # Actual computation
     thumb = vt.resize(img, dsize)
@@ -241,6 +246,62 @@ def compute_detections(depc, gid_list, config=None):
     for gid, gpath, result_list in detect_gen:
         score = 0.0
         yield package_to_numpy(base_key_list, result_list, score)
+
+
+class ClassifierConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('classifier_sensitivity', 0.2),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='classifier', parents=['thumbnails'],
+    colnames=['score', 'class'],
+    coltypes=[float, str],
+    configclass=ClassifierConfig,
+    fname='detectcache',
+    chunksize=32,
+)
+def compute_classifications(depc, gid_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_classifications
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> # depc.delete_property('classifier', gid_list)
+        >>> results = depc.get_property('classifier', gid_list, None)
+        >>> print(results)
+    """
+    from ibeis.algo.detect.classifier.classifier import classify_gid_list
+    print('[ibs] Preprocess Detections')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    ibs.assert_valid_gids(gid_list)
+    result_list = classify_gid_list(ibs, gid_list)
+    # yield detections
+    for result in result_list:
+        yield result
 
 
 if __name__ == '__main__':

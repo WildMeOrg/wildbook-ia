@@ -125,3 +125,16 @@ clean_profile.txt
 
 Experiments-*.ipynb
 test_graphviz_draw.png
+
+network.png
+extracted.tar.gz
+extracted/
+extracted_*/
+graphs/
+failures/
+features/
+confusion/
+model.npy
+model.*.npy
+test/
+test_*.npy
