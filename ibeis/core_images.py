@@ -293,11 +293,10 @@ def compute_classifications(depc, gid_list, config=None):
         >>> print(results)
     """
     from ibeis.algo.detect.classifier.classifier import classify_gid_list
-    print('[ibs] Preprocess Detections')
+    print('[ibs] Process Image Classifications')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
-    ibs.assert_valid_gids(gid_list)
     result_list = classify_gid_list(ibs, gid_list)
     # yield detections
     for result in result_list:

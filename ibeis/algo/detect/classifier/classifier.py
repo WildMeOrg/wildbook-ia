@@ -140,57 +140,57 @@ def load_images(cache_data_filename='test_data.npy',
     return data_list, label_list
 
 
-def test_classifier(output_path):
-    print('[classifier] Loading the classifier training data')
-    data_list, label_list = load_images()
+# def test_classifier(output_path):
+#     print('[classifier] Loading the classifier training data')
+#     data_list, label_list = load_images()
 
-    print('[mnist] Loading the data into a JPCNN_Data')
-    data = JPCNN_Data()
-    data.set_data_list(data_list)
-    data.set_label_list(label_list)
+#     print('[mnist] Loading the data into a JPCNN_Data')
+#     data = JPCNN_Data()
+#     data.set_data_list(data_list)
+#     data.set_label_list(label_list)
 
-    print('[classifier] Create the JPCNN_Model used for testing')
-    model = Classifier_Model('model.npy')
+#     print('[classifier] Create the JPCNN_Model used for testing')
+#     model = Classifier_Model('model.npy')
 
-    print('[mnist] Create the JPCNN_network and start testing')
-    net = JPCNN_Network(model, data)
-    test_results = net.test(output_path, best_weights=True)
-    prediction_list = test_results['label_list']
-    confidence_list = test_results['confidence_list']
+#     print('[mnist] Create the JPCNN_network and start testing')
+#     net = JPCNN_Network(model, data)
+#     test_results = net.test(output_path, best_weights=True)
+#     prediction_list = test_results['label_list']
+#     confidence_list = test_results['confidence_list']
 
-    best_errors = np.inf
-    # conf_list = [ _ / 100.0 for _ in range(0, 101) ]
-    # conf_list = [ 0.81 ]  # FOR MODEL.5.NPY
-    conf_list = [ 0.96 ]  # MODEL.6.NPY
-    for conf in conf_list:
-        failure_path = join(output_path, 'failures')
-        ut.ensuredir(failure_path)
-        error_list = [0, 0, 0, 0]
-        zipped = zip(data_list, label_list, prediction_list, confidence_list)
-        for index, (data, label, prediction, confidence) in enumerate(zipped):
-            if prediction == 'negative' and confidence < conf:
-                prediction = 'positive'
-                confidence == 1.0 - confidence
-            if label == prediction and label == 'positive':
-                error_list[0] += 1
-            elif label == prediction and label == 'negative':
-                error_list[1] += 1
-            elif label != prediction:
-                if label == 'positive':
-                    error_list[2] += 1
-                elif label == 'negative':
-                    error_list[3] += 1
-                args = (confidence, index, label, prediction)
-                failure_filename = 'failure_%0.05f_%06d_%s_%s.png' % args
-                failure_filepath = join(failure_path, failure_filename)
-                cv2.imwrite(failure_filepath, data)
-        errors = error_list[2] + error_list[3]
-        total = sum(error_list)
-        if errors < best_errors:
-            best_errors = errors
-            print(error_list)
-            args = (conf, errors / total, errors, total, )
-            print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
+#     best_errors = np.inf
+#     # conf_list = [ _ / 100.0 for _ in range(0, 101) ]
+#     # conf_list = [ 0.81 ]  # FOR MODEL.5.NPY
+#     conf_list = [ 0.96 ]  # MODEL.6.NPY
+#     for conf in conf_list:
+#         failure_path = join(output_path, 'failures')
+#         ut.ensuredir(failure_path)
+#         error_list = [0, 0, 0, 0]
+#         zipped = zip(data_list, label_list, prediction_list, confidence_list)
+#         for index, (data, label, prediction, confidence) in enumerate(zipped):
+#             if prediction == 'negative' and confidence < conf:
+#                 prediction = 'positive'
+#                 confidence == 1.0 - confidence
+#             if label == prediction and label == 'positive':
+#                 error_list[0] += 1
+#             elif label == prediction and label == 'negative':
+#                 error_list[1] += 1
+#             elif label != prediction:
+#                 if label == 'positive':
+#                     error_list[2] += 1
+#                 elif label == 'negative':
+#                     error_list[3] += 1
+#                 args = (confidence, index, label, prediction)
+#                 failure_filename = 'failure_%0.05f_%06d_%s_%s.png' % args
+#                 failure_filepath = join(failure_path, failure_filename)
+#                 cv2.imwrite(failure_filepath, data)
+#         errors = error_list[2] + error_list[3]
+#         total = sum(error_list)
+#         if errors < best_errors:
+#             best_errors = errors
+#             print(error_list)
+#             args = (conf, errors / total, errors, total, )
+#             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
 
 
 def classify_gid_list(ibs, gid_list, model='v1'):
@@ -227,4 +227,4 @@ if __name__ == '__main__':
     # Train network on Classifier training data
     train_classifier(OUTPUT_PATH)
     # Test network on Classifier training data
-    test_classifier(OUTPUT_PATH)
+    # test_classifier(OUTPUT_PATH)
