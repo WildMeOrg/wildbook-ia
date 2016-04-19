@@ -224,8 +224,9 @@ def label_aid_list(ibs, aid_list, model='v1'):
     quality_list = []
     orientation_list = []
     for prediction in prediction_list:
+        prediction = prediction.srtip()
         if ':' in prediction:
-            prediction.split(':')
+            prediction = prediction.split(':')
             species, viewpoint = prediction
         else:
             species = prediction
