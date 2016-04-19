@@ -220,7 +220,7 @@ def classify_gid_list(ibs, gid_list, model='v1'):
     prediction_list = test_results['label_list']
     confidence_list = test_results['confidence_list']
 
-    result_list = zip(prediction_list, confidence_list)
+    result_list = zip(confidence_list, prediction_list)
     return result_list
 
 
