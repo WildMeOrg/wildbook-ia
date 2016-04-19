@@ -3642,6 +3642,9 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
 
     CommandLine:
         python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=np.exp
+        python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: np.tan((x - .5) * np.pi)" --ylim=-10,10
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,3 --func=np.tan
         python -m plottool.draw_func2 --exec-plot_func --show --range=0,50 --func="lambda x: np.exp(-x / 50)"
         python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_loss
         python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
@@ -3653,17 +3656,22 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
         >>> #funcs = [eval(f) for f in func_list]
         >>> funcs = func_list
         >>> start, stop = ut.get_argval('--range', type_=list, default=[-1, 1])
+        >>> start, stop = eval(str(start)), eval(str(stop))
         >>> num = 1000
         >>> result = plot_func(funcs, start, stop, num)
         >>> print(result)
         >>> ut.quit_if_noshow()
+        >>> ylim = ut.get_argval('--ylim', type_=list, default=None)
         >>> import plottool as pt
+        >>> None if ylim is None else plt.gca().set_ylim(*ylim)
         >>> ut.show_if_requested()
     """
     import plottool as pt
     xdata = np.linspace(start, stop, num)
     if not ut.isiterable(funcs):
         funcs = [funcs]
+    import scipy  # NOQA
+    import scipy.special  # NOQA
     labels = [func if isinstance(func, six.string_types)
               else ut.get_callable_name(func)
               for func in funcs]
@@ -3677,7 +3685,7 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
 
 if __name__ == '__main__':
     """
-    CommandLine:
+    commandline:
         python -m plottool.draw_func2
         python -m plottool.draw_func2 --allexamples
         python -m plottool.draw_func2 --allexamples --noface --nosrc

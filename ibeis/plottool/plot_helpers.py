@@ -134,6 +134,9 @@ def ensure_pylab_qt4():
         import IPython
         IPython.get_ipython().magic('pylab qt4')
 
+
+qt4ensure = ensure_pylab_qt4
+
 #==========================#
 #  --- TESTING FUNCS ---   #
 #==========================#
