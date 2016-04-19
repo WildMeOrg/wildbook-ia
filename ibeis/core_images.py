@@ -131,10 +131,15 @@ def draw_thumb_helper(tup):
     img = vt.imread(gpath)
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
-    max_dsize = (thumbsize, thumbsize)
-    dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
+    if isinstance(thumbsize, int):
+        max_dsize = (thumbsize, thumbsize)
+        dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
+    elif isinstance(thumbsize, tuple) and len(tuple) == 2:
+        th, tw = thumbsize
+        dsize, sx, sy = thumbsize, tw / gw, th / gh
+    else:
+        raise ValueError('Incompatible thumbsize')
     new_verts_list = list(vt.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
-    #thumb = vt.resize_thumb(img, max_dsize)
     # -----------------
     # Actual computation
     thumb = vt.resize(img, dsize)
