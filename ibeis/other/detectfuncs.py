@@ -596,7 +596,9 @@ def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
 
 
-def classifier_confusion_matrix_algo(label_correct_list, label_predict_list, category_list, category_mapping, fig_, axes_):
+def classifier_confusion_matrix_algo(label_correct_list, label_predict_list,
+                                     category_list, category_mapping,
+                                     fig_, axes_):
     # import matplotlib.colors as colors
     import matplotlib.pyplot as plt
     # Get the number of categories
@@ -656,7 +658,8 @@ def classifier_confusion_matrix_algo_plot(ibs, label, color, **kwargs):
         'positive': 0,
         'negative': 1,
     }
-    classifier_confusion_matrix_algo(label_list, prediction_list, category_list, category_mapping, **kwargs)
+    classifier_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                     category_mapping, **kwargs)
 
 
 @register_ibs_method
@@ -697,7 +700,7 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     axes_.set_ylabel('Predictions')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', fig_, axes_)
+    classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', fig_=fig_, axes_=axes_)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
