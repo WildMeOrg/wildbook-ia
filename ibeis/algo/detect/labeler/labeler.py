@@ -192,7 +192,7 @@ def test_labeler(output_path):
             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
 
 
-def classify_aid_list(ibs, aid_list, model='v1'):
+def label_aid_list(ibs, aid_list, model='v1'):
     print('[classifier] Loading the classifier training data')
     depc = ibs.depc_annot
     config = {
