@@ -195,7 +195,7 @@ def load_images(cache_data_filename='test_data.npy',
 
 def classify_gid_list(ibs, gid_list, model='v1'):
     print('[classifier] Loading the classifier training data')
-    depc = ibs.depc_annot
+    depc = ibs.depc_image
     config = {
         'draw_annots' : False,
         'thumbsize'   : (192, 192),
