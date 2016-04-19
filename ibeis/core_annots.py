@@ -1345,7 +1345,7 @@ class LabelerConfig(dtool.Config):
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation'],
     coltypes=[float, str, str, str, float],
     configclass=LabelerConfig,
-    fname='detectcache',
+    fname='chipcache4',
     chunksize=32,
 )
 def compute_labels(depc, aid_list, config=None):
