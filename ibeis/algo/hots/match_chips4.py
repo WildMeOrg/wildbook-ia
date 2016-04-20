@@ -72,10 +72,10 @@ def empty_query(ibs, qaids):
 
 
 def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
-    assert len(qreq_.get_external_qaids()) > 0, ' no current query aids'
-    if len(qreq_.get_external_daids()) == 0:
+    assert len(qreq_.qaids) > 0, ' no current query aids'
+    if len(qreq_.daids) == 0:
         print('[mc4] WARNING no daids... returning empty query')
-        qaid2_cm, qreq_ = empty_query(ibs, qreq_.get_external_qaids())
+        qaid2_cm, qreq_ = empty_query(ibs, qreq_.qaids)
         return qaid2_cm
     save_qcache = False
     qaid2_cm = execute_query2(ibs, qreq_, verbose, save_qcache)
@@ -163,7 +163,9 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     # ------------
     if save_qcache and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_cm)
-    return qaid2_cm
+
+    cm_list = [qaid2_cm[qaid] for qaid in qaid_list]
+    return cm_list
 
 
 @profile
@@ -253,8 +255,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> ut.delete(cm.get_fpath(qreq_))
         >>> print('Re-execute')
         >>> qaid2_cm_ = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose, batch_size=3)
-        >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.get_external_qaids()])
-        >>> [ut.delete(fpath) for fpath in qreq_.get_chipmatch_fpaths(qreq_.get_external_qaids())]
+        >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.qaids])
+        >>> [ut.delete(fpath) for fpath in qreq_.get_chipmatch_fpaths(qreq_.qaids)]
 
     Ignore:
         other = cm_ = qaid2_cm_[qaid]
@@ -269,7 +271,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
             qreq_.assert_self(ibs)
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
-        external_qaids = qreq_.get_external_qaids()
+        external_qaids = qreq_.qaids
         fpath_list = qreq_.get_chipmatch_fpaths(external_qaids)
         exists_flags = [exists(fpath) for fpath in fpath_list]
         qaids_hit = ut.compress(external_qaids, exists_flags)
@@ -330,7 +332,7 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
     to process "more efficiently" and safer as well.
     """
     qreq_.lazy_preload(verbose=verbose and ut.NOT_QUIET)
-    all_qaids = qreq_.get_external_qaids()
+    all_qaids = qreq_.qaids
     print('len(missed_qaids) = %r' % (len(all_qaids),))
     qaid2_cm = {}
     # vsone must have a chunksize of 1
@@ -359,10 +361,10 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
             print('Generating vsmany chunk')
         sub_cm_list = pipeline.request_ibeis_query_L0(
             ibs, sub_qreq_, verbose=verbose)
-        assert len(sub_qreq_.get_external_qaids()) == len(sub_cm_list)
-        assert all([qaid == cm.qaid for qaid, cm in zip(sub_qreq_.get_external_qaids(), sub_cm_list)])
+        assert len(sub_qreq_.qaids) == len(sub_cm_list)
+        assert all([qaid == cm.qaid for qaid, cm in zip(sub_qreq_.qaids, sub_cm_list)])
         if save_qcache:
-            fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.get_external_qaids())
+            fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.qaids)
             _iter = zip(sub_cm_list, fpath_list)
             _iter = ut.ProgressIter(_iter, nTotal=len(sub_cm_list),
                                     lbl='saving chip matches', adjust=True, freq=1)
