@@ -677,7 +677,7 @@ def classifier_precision_recall_algo_plot(ibs, label, color, **kwargs):
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
     best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, re_list, pr_list)
-    print(best_conf_list, best_x_list, best_y_list)
+    plt.plot(best_x_list, best_y_list, 'ro')
     area = np.trapz(pr_list, x=re_list)
     return area
 
@@ -695,7 +695,7 @@ def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
     best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, fpr_list, tpr_list, invert=True)
-    print(best_conf_list, best_x_list, best_y_list)
+    plt.plot(best_x_list, best_y_list, 'ro')
     area = np.trapz(tpr_list, x=fpr_list)
     return area
 
