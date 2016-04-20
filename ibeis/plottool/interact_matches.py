@@ -34,7 +34,7 @@ class MatchInteraction2(BASE_CLASS):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(augment_queryside_hack=True))
-        >>> cm = ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
+        >>> cm = qreq_.execute()[0]
         >>> qaid = cm.qaid
         >>> daid = cm.get_top_aids()[0]
         >>> rchip1 = ibs.get_annot_chips([qaid], config2_=qreq_.extern_query_config2)[0]
