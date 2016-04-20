@@ -69,7 +69,6 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> qaids = ibs.get_valid_aids(species=species)
         >>> qres_list, qreq_ = ibs.query_chips(
         >>>     [1], [2, 3, 4, 5, 6, 7, 8, 9],
-        >>>     return_cm=True,
         >>>     cfgdict=dict(), return_request=True)
         >>> cm = qres_list[0]
         >>> kwargs = dict(show_query=False, viz_name_score=True,

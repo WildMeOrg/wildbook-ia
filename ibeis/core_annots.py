@@ -1367,7 +1367,7 @@ def compute_labels(depc, aid_list, config=None):
         ibeis compute_labels
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'

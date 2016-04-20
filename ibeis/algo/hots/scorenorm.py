@@ -458,6 +458,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
     tp_fsvs_list = []
     tn_fsvs_list = []
 
+    cm_list = [ cm_list[key] for key in sorted(cm_list.keys()) ]
     # Train on only positive examples
     trainable = [
         qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list) and

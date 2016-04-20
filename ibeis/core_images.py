@@ -281,7 +281,7 @@ def compute_classifications(depc, gid_list, config=None):
         ibeis compute_classifications
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
