@@ -45,10 +45,10 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         query_chips
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0
-        python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1
+        python -m ibeis.web.apis_query --test-query_chips_simple_dict:0
+        python -m ibeis.web.apis_query --test-query_chips_simple_dict:1
 
-        python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0 --humpbacks
+        python -m ibeis.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
 
     Example:
         >>> # WEB_DOCTEST
@@ -159,7 +159,7 @@ def query_chips(ibs, qaid_list=None,
         tuple: (cm_list, qreq_) - a list of query results and optionally the QueryRequest object used
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-query_chips
+        python -m ibeis.web.apis_query --test-query_chips
 
         # Test speed of single query
         python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
@@ -257,7 +257,8 @@ def _query_chips4(ibs, qaid_list, daid_list,
     main entrypoint in the IBIES API to the hotspotter pipeline
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-_query_chips4 --show
+        python -m ibeis.web.apis_query --test-_query_chips4 --show
+        python -m ibeis.web.apis_query --test-_query_chips4:1 --show
 
     RESTful:
         Method: PUT
@@ -266,12 +267,28 @@ def _query_chips4(ibs, qaid_list, daid_list,
     Example:
         >>> # SLOW_DOCTEST
         >>> #from ibeis.all_imports import *  # NOQA
+        >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> ibs = ibeis.test_main(db='testdb1')
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list)
-        >>> cm = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
+        >>> cm = ibs._query_chips4(qaid_list, daid_list, use_cache=False, qreq_=qreq_)[1]
+        >>> ut.quit_if_noshow()
+        >>> cm.ishow_analysis(qreq_)
+        >>> ut.show_if_requested()
+
+    Example1:
+        >>> # SLOW_DOCTEST
+        >>> #from ibeis.all_imports import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> ibs = ibeis.test_main(db='testdb1')
+        >>> cfgdict = {'pipeline_root':'BC_DTW'}
+        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict, verbose=True)
+        >>> cm = ibs._query_chips4(qaid_list, daid_list, use_cache=False, qreq_=qreq_)[1]
         >>> ut.quit_if_noshow()
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
