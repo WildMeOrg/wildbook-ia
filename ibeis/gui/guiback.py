@@ -1379,7 +1379,7 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(aid_list, aid_list, cfgdict=cfgdict, query_msg='Checking for SPLIT cases (matching each annotation within a name)')
-        cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+        cm_list = qreq_.execute()
         back.review_queries(cm_list, qreq_=qreq_,
                             filter_reviewed=False,
                             name_scoring=False,

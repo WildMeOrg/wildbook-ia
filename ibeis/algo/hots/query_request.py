@@ -1182,6 +1182,7 @@ class QueryRequest(object):
             cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,
                                             use_bigcache=False)
         else:
+            # TODO: move the entire query_chips logic here
             cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
         return cm_list
 

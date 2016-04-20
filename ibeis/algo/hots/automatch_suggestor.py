@@ -297,7 +297,7 @@ def exemplar_method1_distinctiveness(ibs, qaid, other_exemplars):
     qaid_list = [qaid]
     daid_list = other_exemplars
     cfgdict = dict(codename='vsone_norm_csum')
-    cm = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False, return_cm=True)[0]
+    cm = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False)[0]
     if cm is None:
         exemplar_decision = True
     else:

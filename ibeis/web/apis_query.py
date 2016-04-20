@@ -59,7 +59,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> #qaid = ibs.get_valid_aids()[0:3]
         >>> qaids = ibs.get_valid_aids()
         >>> daids = ibs.get_valid_aids()
-        >>> dict_list = ibs.query_chips_simple_dict(qaids, daids, return_cm=True)
+        >>> dict_list = ibs.query_chips_simple_dict(qaids, daids)
         >>> qgids = ibs.get_annot_image_rowids(qaids)
         >>> qnids = ibs.get_annot_name_rowids(qaids)
         >>> for dict_, qgid, qnid in zip(dict_list, qgids, qnids):
@@ -122,7 +122,6 @@ def query_chips(ibs, qaid_list=None,
                 verbose=pipeline.VERB_PIPELINE,
                 save_qcache=None,
                 prog_hook=None,
-                return_cm=None,
                 return_cm_dict=False,
                 return_cm_simple_dict=False,
                 ):
@@ -149,9 +148,6 @@ def query_chips(ibs, qaid_list=None,
         return_request (bool): returns the request which will be created if
             one is not already specified
         verbose (bool): default=False, turns on verbose printing
-        return_cm (bool): default=True, if true converts QueryResult
-            objects into serializable ChipMatch objects (in the future
-            this will be defaulted to True)
 
     Returns:
         list: a list of ChipMatch objects containing the matching
@@ -184,7 +180,7 @@ def query_chips(ibs, qaid_list=None,
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_()
         >>> ibs = qreq_.ibs
-        >>> cm_list = ibs.query_chips(qreq_=qreq_)
+        >>> cm_list = qreq_.execute()
         >>> cm = cm_list[0]
         >>> ut.quit_if_noshow()
         >>> cm.ishow_analysis(qreq_)
@@ -219,9 +215,7 @@ def query_chips(ibs, qaid_list=None,
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
     """
-
-    if return_cm is None:
-        return_cm = True
+    from ibeis.algo.hots import match_chips4 as mc4
     # The qaid and daid objects are allowed to be None if qreq_ is
     # specified
     if qaid_list is None:
@@ -234,7 +228,6 @@ def query_chips(ibs, qaid_list=None,
 
     qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
 
-    from ibeis.algo.hots import match_chips4 as mc4
     # Check fo empty queries
     try:
         assert len(daid_list) > 0, 'there are no database chips'
@@ -259,9 +252,8 @@ def query_chips(ibs, qaid_list=None,
                                           cfgdict=cfgdict, verbose=verbose)
 
         if isinstance(qreq_, dtool.BaseRequest):
-            # Dtool has a new-ish way of doing requests.
-            # Eventually requests will be depricated and all of this will go
-            # away though.
+            # Dtool has a new-ish way of doing requests.  Eventually requests
+            # will be depricated and all of this will go away though.
             cm_list = qreq_.execute()
         else:
             # Send query to hotspotter (runs the query)
@@ -270,7 +262,7 @@ def query_chips(ibs, qaid_list=None,
                 cfgdict=cfgdict, qreq_=qreq_,
                 verbose=verbose, save_qcache=save_qcache, prog_hook=prog_hook)
 
-    if return_cm or return_cm_dict or return_cm_simple_dict:
+    if return_cm_dict or return_cm_simple_dict:
         # Convert to cm_list
         if return_cm_simple_dict:
             for cm in cm_list:
@@ -280,8 +272,6 @@ def query_chips(ibs, qaid_list=None,
             cm_list = [cm.as_simple_dict(keys) for cm in cm_list]
         elif return_cm_dict:
             cm_list = [cm.as_dict() for cm in cm_list]
-        else:
-            cm_list = cm_list
 
     if was_scalar:
         # hack for scalar input

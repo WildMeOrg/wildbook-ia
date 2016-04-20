@@ -1703,7 +1703,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], return_cm=True,
+            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5],
             >>>                             return_request=True)
             >>> cm.compress_top_feature_matches(num=4, rng=np.random.RandomState(0))
             >>> # Serialize

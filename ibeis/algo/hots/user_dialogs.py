@@ -55,7 +55,7 @@ def wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, inc
         >>> qaids = [1]
         >>> daids = [2, 3, 4, 5]
         >>> cm, qreq_ = ibs.query_chips(qaids, daids, cfgdict=dict(),
-        >>>                             return_request=True, return_cm=True)[0]
+        >>>                             return_request=True)[0]
         >>> choicetup = '?'
         >>> name_suggest_tup = '?'
         >>> incinfo = None

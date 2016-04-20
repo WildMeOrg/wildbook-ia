@@ -3461,7 +3461,7 @@ def detect_join_cases(ibs):
     daids = ibs.get_valid_aids(is_exemplar=None, minqual='poor')
     cfgdict = dict(can_match_samename=False, use_k_padding=True)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
-    cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+    cm_list = qreq_.execute()
     return cm_list
     #return qres_list
 

@@ -185,16 +185,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 
 def testdata_show_qres():
     import ibeis
-    # build test data
     cm, qreq_ = ibeis.testdata_cm()
-    #ibs = ibeis.opendb(defaultdb='testdb1')
-    #qaids = ut.get_argval('--qaids', type_=list, default=None)
-    #if qaids is None:
-    #    qaids = ibs.get_valid_aids()[0:1]
-    #daids = ibs.get_valid_aids()
-    #qreq_ = ibs.new_query_request(qaids, daids)
-    #cm = ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
-    #
     kwargs = dict(
         top_aids=ut.get_argval('--top-aids', type_=int, default=3),
         sidebyside=not ut.get_argflag('--no-sidebyside'),

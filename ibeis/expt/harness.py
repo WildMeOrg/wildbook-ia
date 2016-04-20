@@ -422,7 +422,6 @@ def get_query_result_info(qreq_):
     except AttributeError:
         ibs = qreq_.depc.controller
     import vtool as vt
-    #cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     cm_list = qreq_.execute()
     qx2_cm = cm_list
     qaids = qreq_.qaids

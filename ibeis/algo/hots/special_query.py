@@ -680,7 +680,7 @@ def get_extern_distinctiveness(qreq_, cm, **kwargs):
         >>> cfgdict = dict(codename='vsone_unnorm_dist_ratio_extern_distinctiveness')
         >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
         >>> #qreq_.lazy_load()
-        >>> cm = ibs.query_chips(qreq_=qreq_, use_cache=False, save_qcache=False, return_cm=True)[0]
+        >>> cm = ibs.query_chips(qreq_=qreq_, use_cache=False, save_qcache=False)[0]
         >>> # execute function
         >>> (new_fsv_list, daid_list) = get_extern_distinctiveness(qreq_, cm)
         >>> # verify results

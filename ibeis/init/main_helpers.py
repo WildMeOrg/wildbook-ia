@@ -136,7 +136,6 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
     print('[main_helpers] testdata_cmlist')
     qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
     cm_list = qreq_.execute()
-    #qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     return cm_list, qreq_
 
 

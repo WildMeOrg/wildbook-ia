@@ -53,7 +53,7 @@ def testdata_match_interact(**kwargs):
     import ibeis
     qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', t=['default:Knorm=3'])
     ibs = qreq_.ibs
-    cm = ibs.query_chips(qreq_=qreq_)[0]
+    cm = qreq_.execute()[0]
     cm.sortself()
     aid2 = None
     self = MatchInteraction(ibs, cm, aid2, mode=1, dodraw=False, qreq_=qreq_, **kwargs)

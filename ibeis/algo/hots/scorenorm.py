@@ -191,7 +191,6 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
     """
-    #cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
     cm_list = qreq_.execute()
     tup = get_training_annotscores(qreq_, cm_list)
     tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs = tup
@@ -332,8 +331,6 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
     """
-    #cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
-    #ibs.query_chips(qreq_=qreq_)
     cm_list = qreq_.execute()
     print('learning scorenorm')
     print('datakw = %s' % ut.repr3(datakw))

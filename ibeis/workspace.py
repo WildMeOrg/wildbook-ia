@@ -143,7 +143,7 @@ def testdata_workflow(defaltdb='PZ_MTEST', t=['default'], a=['defualt']):
     ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)
     pipecfg = ibeis.testdata_pipecfg(t=t)
     qreq_ = ibs.new_query_request(qaids, daids, pipecfg)
-    cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    cm_list = qreq_.qreq_.execute()
     return qreq_, cm_list
 
 

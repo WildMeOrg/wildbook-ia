@@ -65,7 +65,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(t=['default:fg_on=False'])
-        >>> cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+        >>> cm_list = qreq_.execute()
         >>> cm = cm_list[0]
         >>> ibs = qreq_.ibs
         >>> aid1 = cm.qaid
@@ -833,7 +833,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     """
     from ibeis.gui import inspect_gui
     qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={'augment_queryside_hack': True})
-    cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+    cm_list = qreq_.execute()
     tblname = ''
     name_scoring = False
     ranks_lt = 5
@@ -1187,7 +1187,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
-        >>> cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+        >>> cm_list = qreq_.execute()
         >>> ranks_lt = 5
         >>> directed = True
         >>> name_scoring = False
@@ -1201,7 +1201,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> cm_list = ibs.query_chips(qaid_list, daid_list, return_cm=True)
+        >>> cm_list = ibs.query_chips(qaid_list, daid_list)
         >>> ranks_lt = 5
         >>> directed = False
         >>> name_scoring = False
@@ -1221,7 +1221,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:1]
         >>> daid_list = ibs.get_valid_aids()[10:100]
-        >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list, return_cm=True)
+        >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list)
         >>> ranks_lt = 1
         >>> directed = False
         >>> name_scoring = False
