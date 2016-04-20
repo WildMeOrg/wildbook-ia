@@ -403,6 +403,10 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
         'grid'            : False,
     }
     config = ut.update_existing(config, kwargs)
+    if config.get('algo', None) == 'rf':
+        species = kwargs.get('species', None)
+        if species is not None:
+            config['species'] = species
     results_list = depc.get_property('detections', test_gid_set, None, config=config)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
@@ -429,15 +433,15 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
     for gid, uuid_, result_list in zip(test_gid_set, uuid_list, results_list):
         # Get detections from depc
         pred_dict = {}
-        for current_index in range(0, 101):
-            conf = current_index / 100.0
+        for current_index in range(0, 10001):
+            conf = current_index / 10000.0
             temp_list = []
             for result in result_list:
                 confidence = result['confidence']
                 if confidence < conf:
                     continue
                 temp_list.append(result)
-            alpha = 100 - current_index  # Invert sensitivity for YOLO
+            alpha = 10000 - current_index  # Invert sensitivity for YOLO
             pred_dict[alpha] = temp_list
         pred_dict_dict[uuid_] = pred_dict
     return pred_dict_dict
@@ -474,7 +478,7 @@ def detect_precision_recall_algo(ibs, **kwargs):
                 global_dict['fp'][alpha] += fp
                 global_dict['fn'][alpha] += fn
 
-    pr_list, re_list = [], []
+    pr_list, re_list = [1.0], [0.0]
     alpha_list = sorted(global_dict['tp'].keys())
     for alpha in alpha_list:
         tp = global_dict['tp'][alpha]
@@ -509,10 +513,24 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    detect_precision_recall_algo_plot(ibs, 'Original',         'r', min_overlap=min_overlap, grid=False, config_filepath='v1', weight_filepath='v1')
-    detect_precision_recall_algo_plot(ibs, 'Retrained',        'b', min_overlap=min_overlap, grid=False, config_filepath='v2', weight_filepath='v2')
-    detect_precision_recall_algo_plot(ibs, 'Original (GRID)',  'k', min_overlap=min_overlap, grid=True, config_filepath='v1', weight_filepath='v1')
-    detect_precision_recall_algo_plot(ibs, 'Retrained (GRID)', 'g', min_overlap=min_overlap, grid=True, config_filepath='v2', weight_filepath='v2')
+    name_list = [
+        'Original',
+        'Retrained',
+        'Original (GRID)',
+        'Retrained (GRID)',
+        'RF',
+    ]
+    area_list = []
+    area_list.append(detect_precision_recall_algo_plot(ibs, name_list[0], 'r', min_overlap=min_overlap, grid=False, config_filepath='v1', weight_filepath='v1'))
+    area_list.append(detect_precision_recall_algo_plot(ibs, name_list[1], 'b', min_overlap=min_overlap, grid=False, config_filepath='v2', weight_filepath='v2'))
+    area_list.append(detect_precision_recall_algo_plot(ibs, name_list[2], 'k', min_overlap=min_overlap, grid=True, config_filepath='v1', weight_filepath='v1'))
+    area_list.append(detect_precision_recall_algo_plot(ibs, name_list[3], 'g', min_overlap=min_overlap, grid=True, config_filepath='v2', weight_filepath='v2'))
+    area_list.append(detect_precision_recall_algo_plot(ibs, name_list[4], 'p', min_overlap=min_overlap, algo='rf', species='zebra_grevys'))
+
+    index = np.argmax(area_list)
+    best_name = name_list[index]
+    best_area = area_list[index]
+    plt.title('Precision-Recall Curve (%r, Area = %0.02f )' % (best_name, best_area, ), y=1.10)
 
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -527,19 +545,15 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
 def classifier_precision_recall_algo(ibs, **kwargs):
     def errors(zipped, conf):
         error_list = [0, 0, 0, 0]
-        for index, (label, prediction, confidence) in enumerate(zipped):
-            if prediction == 'negative' and confidence < conf:
-                prediction = 'positive'
-                confidence == 1.0 - confidence
-            if label == prediction and prediction == 'positive':
+        for index, (label, confidence) in enumerate(zipped):
+            if label == 'positive' and conf <= confidence:
                 error_list[0] += 1
-            elif label == prediction and prediction == 'negative':
+            elif label == 'negative' and conf <= confidence:
+                error_list[2] += 1
+            elif label == 'positive':
+                error_list[3] += 1
+            elif label == 'negative':
                 error_list[1] += 1
-            elif label != prediction:
-                if prediction == 'positive':
-                    error_list[2] += 1
-                elif prediction == 'negative':
-                    error_list[3] += 1
         return error_list
 
     depc = ibs.depc_image
@@ -556,44 +570,134 @@ def classifier_precision_recall_algo(ibs, **kwargs):
     ]
     prediction_list = depc.get_property('classifier', gid_list, 'class')
     confidence_list = depc.get_property('classifier', gid_list, 'score')
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
 
-    zipped = list(zip(label_list, prediction_list, confidence_list))
-    conf_list = [ _ / 100.0 for _ in range(0, 101) ]
+    zipped = list(zip(label_list, confidence_list))
+    conf_list = [ _ / 10000.0 for _ in range(0, 10001) ]
     conf_dict = {}
     for conf in conf_list:
         conf_dict[conf] = errors(zipped, conf)
 
-    pr_list = []
-    re_list = []
-    tpr_list = []
-    fpr_list = []
-    for conf in sorted(conf_dict.keys()):
+    conf_list = [-1.0]
+    pr_list = [1.0]
+    re_list = [0.0]
+    tpr_list = [0.0]
+    fpr_list = [0.0]
+    for conf in sorted(conf_dict.keys(), reverse=True):
         error_list = conf_dict[conf]
         tp, tn, fp, fn = error_list
         pr = tp / (tp + fp)
         re = tp / (tp + fn)
         tpr = tp / (tp + fn)
         fpr = fp / (fp + tn)
+        conf_list.append(conf)
         pr_list.append(pr)
         re_list.append(re)
         tpr_list.append(tpr)
         fpr_list.append(fpr)
 
-    return pr_list, re_list, tpr_list, fpr_list
+    return conf_list, pr_list, re_list, tpr_list, fpr_list
+
+
+# @register_ibs_method
+# def classifier_precision_recall_algo2(ibs, **kwargs):
+#     def errors(zipped, conf):
+#         error_list = [0, 0, 0, 0]
+#         for index, (label, confidence) in enumerate(zipped):
+#             if label == 'positive' and conf <= confidence:
+#                 error_list[0] += 1
+#             elif label == 'negative' and conf <= confidence:
+#                 error_list[2] += 1
+#             elif label == 'positive':
+#                 error_list[3] += 1
+#             elif label == 'negative':
+#                 error_list[1] += 1
+#         return error_list
+
+#     depc = ibs.depc_image
+#     category_set = set(['zebra_plains', 'zebra_grevys'])
+#     gid_list = ibs.get_valid_gids()
+#     aids_list = ibs.get_image_aids(gid_list)
+#     species_set_list = [
+#         set(ibs.get_annot_species_texts(aid_list))
+#         for aid_list in aids_list
+#     ]
+#     label_list = [
+#         'negative' if len(species_set & category_set) == 0 else 'positive'
+#         for species_set in species_set_list
+#     ]
+#     prediction_list = depc.get_property('classifier', gid_list, 'class')
+#     confidence_list = depc.get_property('classifier', gid_list, 'score')
+#     confidence_list = [
+#         confidence if prediction == 'positive' else 1.0 - confidence
+#         for prediction, confidence  in zip(prediction_list, confidence_list)
+#     ]
+
+#     from sklearn.metrics import precision_recall_curve
+#     y_true = np.array([
+#         0 if label == 'negative' else 1
+#         for label in label_list
+#     ])
+#     y_scores = np.array(confidence_list)
+#     pr_list, re_list, thresholds = precision_recall_curve(y_true, y_scores)
+#     return pr_list, re_list
+
+
+def identify_operating_point(conf_list, x_list, y_list, invert=False):
+    best_length = np.inf
+    best_conf_list = []
+    best_x_list = []
+    best_y_list = []
+    for conf, x, y in zip(conf_list, x_list, y_list):
+        x_ = 1.0 - x if not invert else x
+        y_ = 1.0 - y
+        length = np.sqrt(x_ * x_ + y_ * y_)
+        if length < best_length:
+            best_length = length
+            best_conf_list = [conf]
+            best_x_list = [x]
+            best_y_list = [y]
+        elif length == best_length:
+            flag_list = [ abs(best_conf - conf) > 0.01 for best_conf in best_conf_list ]
+            if False in flag_list:
+                continue
+            best_conf_list.append(conf)
+            best_x_list.append(x)
+            best_y_list.append(y)
+
+    return best_conf_list, best_x_list, best_y_list
 
 
 def classifier_precision_recall_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
-    pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
+    best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, re_list, pr_list)
+    print(best_conf_list, best_x_list, best_y_list)
+    area = np.trapz(pr_list, x=re_list)
+    return area
+
+
+# def classifier_precision_recall_algo_plot2(ibs, label, color, **kwargs):
+#     import matplotlib.pyplot as plt
+#     print('Processing Precision-Recall for: %r' % (label, ))
+#     pr_list, re_list, = classifier_precision_recall_algo2(ibs, **kwargs)
+#     plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
 
 
 def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
-    pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
+    best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, fpr_list, tpr_list, invert=True)
+    print(best_conf_list, best_x_list, best_y_list)
+    area = np.trapz(tpr_list, x=fpr_list)
+    return area
 
 
 def classifier_confusion_matrix_algo(label_correct_list, label_predict_list,
@@ -667,31 +771,32 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     fig_ = plt.figure(figsize=figsize)
 
     axes_ = plt.subplot(131)
-    plt.title('Precision-Recall Curve', y=1.08)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    classifier_precision_recall_algo_plot(ibs, 'V1', 'r')
+    area = classifier_precision_recall_algo_plot(ibs, 'V1', 'r')
+    plt.title('Precision-Recall Curve (Area = %0.02f)' % (area, ), y=1.10)
+    # classifier_precision_recall_algo_plot2(ibs, 'V1', 'g')
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(132)
-    plt.title('ROC Curve', y=1.08)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('False-Positive Rate')
     axes_.set_ylabel('True-Positive Rate')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    classifier_roc_algo_plot(ibs, 'V1', 'r')
+    area = classifier_roc_algo_plot(ibs, 'V1', 'r')
+    plt.title('ROC Curve (Area = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(133)
-    plt.title('Confusion Matrix', y=1.08)
+    plt.title('Confusion Matrix', y=1.15)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Ground-Truth')
