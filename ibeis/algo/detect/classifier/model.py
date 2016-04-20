@@ -127,7 +127,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             num_filters=64,
             filter_size=(11, 11),
             stride=(2, 2),
-            # pad=5,
+            pad=0 if _lasagne.USING_GPU else 9,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
             # W=_lasagne.init.Orthogonal('relu'),
