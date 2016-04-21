@@ -427,27 +427,32 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
         ]
         for zipped, (width, height) in zip(zipped_list, size_list)
     ]
-    result_list = results_list
 
-    pred_dict_dict = {}
-    for gid, uuid_, result_list in zip(test_gid_set, uuid_list, results_list):
-        # Get detections from depc
-        pred_dict = {}
-        for current_index in range(0, 10001):
-            conf = current_index / 10000.0
-            temp_list = []
-            for result in result_list:
-                confidence = result['confidence']
-                if confidence < conf:
-                    continue
-                temp_list.append(result)
-            alpha = 10000 - current_index  # Invert sensitivity for YOLO
-            pred_dict[alpha] = temp_list
-        pred_dict_dict[uuid_] = pred_dict
-    return pred_dict_dict
+    # pred_dict_dict = {}
+    # for gid, uuid_, result_list in zip(test_gid_set, uuid_list, results_list):
+    #     # Get detections from depc
+    #     pred_dict = {}
+    #     for current_index in range(0, 10001):
+    #         conf = current_index / 10000.0
+    #         temp_list = []
+    #         for result in result_list:
+    #             confidence = result['confidence']
+    #             if confidence < conf:
+    #                 continue
+    #             temp_list.append(result)
+    #         alpha = 10000 - current_index  # Invert sensitivity for YOLO
+    #         pred_dict[alpha] = temp_list
+    #     pred_dict_dict[uuid_] = pred_dict
+    # return pred_dict_dict
+
+    pred_dict = {
+        uuid_ : result_list
+        for uuid_, result_list in zip(uuid_list, results_list)
+    }
+    return pred_dict
 
 
-def detect_precision_recall_algo(ibs, **kwargs):
+def detect_precision_recall_algo(ibs, samples=1000, **kwargs):
     # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
@@ -456,52 +461,65 @@ def detect_precision_recall_algo(ibs, **kwargs):
     gt_dict = detect_parse_gt(ibs, test_gid_set=test_gid_set)
 
     print('\tGather Predictions')
-    pred_dict_dict = detect_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = detect_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
 
     print('\tGenerate Curves...')
-    global_dict = {
-        'tp' : {},
-        'fp' : {},
-        'fn' : {},
-    }
-    for gid, uuid in zip(test_gid_set, uuid_list):
-        gt_list = gt_dict[uuid]
-        if uuid in pred_dict_dict:
-            pred_dict = pred_dict_dict[uuid]
-            for alpha in pred_dict:
-                for key in global_dict.keys():
-                    if alpha not in global_dict[key]:
-                        global_dict[key][alpha] = 0.0
-                pred_list = pred_dict[alpha]
-                tp, fp, fn = detect_tp_fp_fn(gt_list, pred_list, **kwargs)
-                global_dict['tp'][alpha] += tp
-                global_dict['fp'][alpha] += fp
-                global_dict['fn'][alpha] += fn
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
-    pr_list, re_list = [1.0], [0.0]
-    alpha_list = sorted(global_dict['tp'].keys())
-    for alpha in alpha_list:
-        tp = global_dict['tp'][alpha]
-        fp = global_dict['fp'][alpha]
-        fn = global_dict['fn'][alpha]
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
+    uuid_list_list = [ uuid_list for _ in conf_list ]
+    gt_dict_list   = [ gt_dict   for _ in conf_list ]
+    pred_dict_list = [ pred_dict for _ in conf_list ]
+    kwargs_list    = [ kwargs    for _ in conf_list ]
+    arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
+    arg_list = list(arg_iter)
+    pr_re_gen = ut.generate(detect_precision_recall_algo_worker, arg_list,
+                            nTasks=len(arg_list), ordered=True, verbose=False,
+                            quiet=True, chunksize=64, force_serial=False)
+
+    conf_list_, pr_list, re_list = [-1.0], [1.0], [0.0]
+    for conf, pr, re in pr_re_gen:
+        conf_list_.append(conf)
         pr_list.append(pr)
         re_list.append(re)
 
     print('...complete')
-    return pr_list, re_list
+    return conf_list_, pr_list, re_list
+
+
+def detect_precision_recall_algo_worker(tup):
+    conf, uuid_list, gt_dict, pred_dict, kwargs = tup
+    tp, fp, fn = 0.0, 0.0, 0.0
+    for index, uuid_ in enumerate(uuid_list):
+        if uuid_ in pred_dict:
+            temp_list = [
+                pred
+                for pred in pred_dict[uuid_]
+                if pred['confidence'] >= conf
+            ]
+            tp_, fp_, fn_ = detect_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp += tp_
+            fp += fp_
+            fn += fn_
+    pr = tp / (tp + fp)
+    re = tp / (tp + fn)
+    return (conf, pr, re)
 
 
 def detect_precision_recall_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
-    pr_list, re_list = detect_precision_recall_algo(ibs, **kwargs)
+    conf_list, pr_list, re_list = detect_precision_recall_algo(ibs, **kwargs)
+    best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, re_list, pr_list)
+    best_conf_list = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
+    label = '%s [OP = %s]' % (label, best_conf_list, )
     plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
+    plt.plot(best_x_list, best_y_list, '%so' % (color, ))
+    area = np.trapz(pr_list, x=re_list)
+    return area
 
 
 @register_ibs_method
-def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), **kwargs):
+def detect_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(10, 9), **kwargs):
     import matplotlib.pyplot as plt
 
     plt.figure(figsize=figsize)
@@ -518,19 +536,19 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
         'Retrained',
         'Original (GRID)',
         'Retrained (GRID)',
-        'RF',
+        # 'Hough Forests',
     ]
     area_list = []
     area_list.append(detect_precision_recall_algo_plot(ibs, name_list[0], 'r', min_overlap=min_overlap, grid=False, config_filepath='v1', weight_filepath='v1'))
     area_list.append(detect_precision_recall_algo_plot(ibs, name_list[1], 'b', min_overlap=min_overlap, grid=False, config_filepath='v2', weight_filepath='v2'))
     area_list.append(detect_precision_recall_algo_plot(ibs, name_list[2], 'k', min_overlap=min_overlap, grid=True, config_filepath='v1', weight_filepath='v1'))
     area_list.append(detect_precision_recall_algo_plot(ibs, name_list[3], 'g', min_overlap=min_overlap, grid=True, config_filepath='v2', weight_filepath='v2'))
-    area_list.append(detect_precision_recall_algo_plot(ibs, name_list[4], 'p', min_overlap=min_overlap, algo='rf', species='zebra_grevys'))
+    # area_list.append(detect_precision_recall_algo_plot(ibs, name_list[4], 'p', min_overlap=min_overlap, algo='pyrf', species='zebra_grevys'))
 
     index = np.argmax(area_list)
     best_name = name_list[index]
     best_area = area_list[index]
-    plt.title('Precision-Recall Curve (%r, Area = %0.02f )' % (best_name, best_area, ), y=1.10)
+    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f )' % (best_name, best_area, ), y=1.13)
 
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -542,7 +560,7 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.7, figsize=(10, 6), 
 
 
 @register_ibs_method
-def classifier_precision_recall_algo(ibs, **kwargs):
+def classifier_precision_recall_algo(ibs, samples=10000, **kwargs):
     def errors(zipped, conf):
         error_list = [0, 0, 0, 0]
         for index, (label, confidence) in enumerate(zipped):
@@ -576,7 +594,7 @@ def classifier_precision_recall_algo(ibs, **kwargs):
     ]
 
     zipped = list(zip(label_list, confidence_list))
-    conf_list = [ _ / 10000.0 for _ in range(0, 10001) ]
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
     conf_dict = {}
     for conf in conf_list:
         conf_dict[conf] = errors(zipped, conf)
@@ -675,9 +693,11 @@ def classifier_precision_recall_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
-    plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
     best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, re_list, pr_list)
-    plt.plot(best_x_list, best_y_list, 'ro')
+    best_conf_list = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
+    label = '%s [%s]' % (label, best_conf_list, )
+    plt.plot(re_list, pr_list, '%s-' % (color, ), label=label)
+    plt.plot(best_x_list, best_y_list, '%so' % (color, ))
     area = np.trapz(pr_list, x=re_list)
     return area
 
@@ -693,9 +713,11 @@ def classifier_roc_algo_plot(ibs, label, color, **kwargs):
     import matplotlib.pyplot as plt
     print('Processing Precision-Recall for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
-    plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
     best_conf_list, best_x_list, best_y_list = identify_operating_point(conf_list, fpr_list, tpr_list, invert=True)
-    plt.plot(best_x_list, best_y_list, 'ro')
+    best_conf_list = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
+    label = '%s [%s]' % (label, best_conf_list, )
+    plt.plot(fpr_list, tpr_list, '%s-' % (color, ), label=label)
+    plt.plot(best_x_list, best_y_list, '%so' % (color, ))
     area = np.trapz(tpr_list, x=fpr_list)
     return area
 
@@ -778,7 +800,7 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     area = classifier_precision_recall_algo_plot(ibs, 'V1', 'r')
-    plt.title('Precision-Recall Curve (Area = %0.02f)' % (area, ), y=1.10)
+    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
     # classifier_precision_recall_algo_plot2(ibs, 'V1', 'g')
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -791,7 +813,7 @@ def classifier_precision_recall_algo_display(ibs, figsize=(21, 6), **kwargs):
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
     area = classifier_roc_algo_plot(ibs, 'V1', 'r')
-    plt.title('ROC Curve (Area = %0.02f)' % (area, ), y=1.10)
+    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
