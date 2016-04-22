@@ -192,7 +192,7 @@ def test_labeler(output_path):
             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
 
 
-def label_aid_list(ibs, aid_list, model='v1'):
+def label_cid_list(ibs, cid_list, model='v1'):
     print('[classifier] Loading the classifier training data')
 
     depc = ibs.depc_annot
@@ -200,7 +200,7 @@ def label_aid_list(ibs, aid_list, model='v1'):
         'dim_size' : (128, 128),
         'resize_dim' : 'wh',
     }
-    chip_list = depc.get('chips', aid_list, 'img', config=config)
+    chip_list = depc.get_native('chips', cid_list, 'img', config=config)
     data_list = np.array(chip_list, dtype=np.uint8)
 
     print('[mnist] Loading the data into a JPCNN_Data')
@@ -211,8 +211,6 @@ def label_aid_list(ibs, aid_list, model='v1'):
     url = MODEL_DOMAIN + MODEL_URLS[model]
     model_path = ut.grab_file_url(url, appname='ibeis')
     model = Labeler_Model(model_path)
-
-    ut.embed()
 
     print('[mnist] Create the JPCNN_network and start testing')
     net = JPCNN_Network(model, data)
