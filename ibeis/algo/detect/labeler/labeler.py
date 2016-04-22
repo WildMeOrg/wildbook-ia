@@ -229,7 +229,6 @@ def label_aid_list(ibs, aid_list, model='v1'):
         else:
             species = prediction
             viewpoint = None
-        viewpoint = None
         if species.lower() == 'ignore':
             species = const.UNKNOWN
         species_list.append(species)
