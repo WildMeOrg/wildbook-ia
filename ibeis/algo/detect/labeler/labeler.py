@@ -218,6 +218,7 @@ def label_aid_list(ibs, aid_list, model='v1'):
     net = JPCNN_Network(model, data)
     test_results = net.test('.', best_weights=True)
 
+    class_list = list(net.config['data_label_encoder'].classes_)
     prediction_list = test_results['label_list']
     confidence_list = test_results['confidence_list']
     probability_list = test_results['probability_list']
@@ -240,8 +241,16 @@ def label_aid_list(ibs, aid_list, model='v1'):
     quality_list = [const.QUAL_UNKNOWN] * len(prediction_list)
     orientation_list = [0.0] * len(prediction_list)
 
+    probability_dict_list = []
+    for probability in probability_list:
+        probability_dict = {
+            class_ : prob
+            for class_, prob in zip(class_list, probability)
+        }
+        probability_dict_list.append(probability_dict)
+
     result_list = zip(confidence_list, species_list, viewpoint_list,
-                      quality_list, orientation_list, probability_list)
+                      quality_list, orientation_list, probability_dict_list)
     return result_list
 
 
