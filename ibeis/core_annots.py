@@ -172,6 +172,7 @@ def compute_chip(depc, aid_list, config=None):
     # TODO: use verts instead
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
+    ut.embed()
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
 
     # Checks
