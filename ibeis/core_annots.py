@@ -1346,7 +1346,7 @@ class LabelerConfig(dtool.Config):
 @register_preproc(
     tablename='labeler', parents=['annotations'],
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
-    coltypes=[float, str, str, str, float, np.ndarray],
+    coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
     chunksize=32,

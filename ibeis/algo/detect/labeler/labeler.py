@@ -212,6 +212,8 @@ def label_aid_list(ibs, aid_list, model='v1'):
     model_path = ut.grab_file_url(url, appname='ibeis')
     model = Labeler_Model(model_path)
 
+    ut.embed()
+
     print('[mnist] Create the JPCNN_network and start testing')
     net = JPCNN_Network(model, data)
     test_results = net.test('.', best_weights=True)
