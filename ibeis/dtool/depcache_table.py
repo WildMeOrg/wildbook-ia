@@ -1145,12 +1145,12 @@ class _TableComputeHelper(object):
         extern_dname = 'extern_' + table.tablename
         extern_dpath = join(cache_dpath, extern_dname)
         ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
-        extern_fpaths_list = [
-            [join(extern_dpath, fname) for fname in fnames]
-            for fnames in extern_fnames_list
-        ]
+        # extern_fpaths_list = [
+        #     [join(extern_dpath, fname) for fname in fnames]
+        #     for fnames in extern_fnames_list
+        # ]
 
-        for data, extern_fpaths in zip(proptup_gen, extern_fpaths_list):
+        for data, extern_fpaths in zip(proptup_gen, extern_fnames_list):
             if ALLOW_NONE_YIELD and data is None:
                 yield None
                 continue
@@ -1160,9 +1160,10 @@ class _TableComputeHelper(object):
             try:
                 _iter = zip(extern_data, extern_fpaths, extern_writers)
                 for obj, fpath, write_func in _iter:
-                    #print('WRITE fpath = %r' % (fpath,))
-                    write_func(fpath, obj)
-                    ut.assert_exists(fpath, verbose=False)
+                    abs_fpath = join(extern_dpath, fpath)
+                    # print('WRITE fpath = %r, abs_fpath = %r' % (fpath, abs_fpath, ))
+                    write_func(abs_fpath, obj)
+                    ut.assert_exists(abs_fpath, verbose=False)
             except Exception as ex:
                 ut.printex(ex, 'external write', keys=['config_rowid', 'data'])
                 raise
@@ -1804,17 +1805,25 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         is_extern = table.get_intern_data_col_attr('is_external_pointer')
         extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
         if len(extern_colnames) > 0:
+            cache_dpath = table.depc.cache_dpath
+            extern_dname = 'extern_' + table.tablename
+            extern_dpath = join(cache_dpath, extern_dname)
+
             uri_list = table.get_internal_columns(rowid_list,
                                                   extern_colnames,
                                                   unpack_scalars=False,
                                                   keepwrap=False)
             fpath_list = ut.flatten(uri_list)
+            abs_fpath_list = [
+                join(extern_dpath, fpath)
+                for fpath in fpath_list
+            ]
             if delete_extern:
-                print('fpath_list = %r' % (fpath_list,))
+                print('abs_fpath_list = %r' % (abs_fpath_list,))
                 print('deleting internal files')
-                ut.remove_file_list(fpath_list)
+                ut.remove_file_list(abs_fpath_list)
             else:
-                print('would delete fpath_list = %r' % (fpath_list,))
+                print('would delete abs_fpath_list = %r' % (abs_fpath_list,))
 
         # DELETE EXPLICITLY DEFINED CHILDREN
         # (TODO: handle implicit definitions)
@@ -1981,6 +1990,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                 unpack_scalars=True, keepwrap=True)
 
         if len(raw_prop_list) > 0:
+            cache_dpath = table.depc.cache_dpath
+            extern_dname = 'extern_' + table.tablename
+            extern_dpath = join(cache_dpath, extern_dname)
+
             ####
             # Read data specified by any external columns
             prop_listT = list(zip(*raw_prop_list))
@@ -1991,9 +2004,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                 failed_list = []
                 for uri in prop_listT[extern_colx]:
                     # FIXME: only do this for a localpath
-                    uri_full = join(table.depc.cache_dpath, uri)
+                    # uri_full = join(table.depc.cache_dpath, uri)
+                    uri_full = join(extern_dpath, uri)
                     try:
                         if read_extern:
+                            # print('READ uri = %r, abs_fpath = %r' % (uri, uri_full, ))
                             data = read_func(uri_full)
                         else:
                             if ensure:
