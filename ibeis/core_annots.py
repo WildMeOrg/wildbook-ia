@@ -1374,7 +1374,7 @@ def compute_labels(depc, aid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
-        >>> # depc.delete_property('labeler', aid_list)
+        >>> depc.delete_property('labeler', aid_list)
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
     """
