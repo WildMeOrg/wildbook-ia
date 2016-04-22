@@ -172,7 +172,6 @@ def compute_chip(depc, aid_list, config=None):
     # TODO: use verts instead
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
-    ut.embed()
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
 
     # Checks
@@ -1339,9 +1338,9 @@ class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_sensitivity', 0.2),
     ]
-    # _sub_config_list = [
-    #     ChipConfig
-    # ]
+    _sub_config_list = [
+        ChipConfig
+    ]
 
 
 @register_preproc(
@@ -1384,6 +1383,11 @@ def compute_labels(depc, aid_list, config=None):
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
+    invalid = list(set(aid_list) ^ set(ibs.get_valid_aids()))
+    if len(invalid) > 0:
+        print('INVALID1')
+        print(invalid)
+        raise False
     result_list = label_aid_list(ibs, aid_list)
     # yield detections
     for result in result_list:
