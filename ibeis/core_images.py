@@ -252,6 +252,9 @@ class ClassifierConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_sensitivity', 0.2),
     ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
 
 
 @register_preproc(
