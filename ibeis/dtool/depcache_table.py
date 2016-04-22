@@ -1141,9 +1141,7 @@ class _TableComputeHelper(object):
             for extern_colattr in extern_colattrs
         ]))
         # get extern cache directory and fpaths
-        cache_dpath = table.depc.cache_dpath
-        extern_dname = 'extern_' + table.tablename
-        extern_dpath = join(cache_dpath, extern_dname)
+        extern_dpath = table.extern_dpath
         ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
         # extern_fpaths_list = [
         #     [join(extern_dpath, fname) for fname in fnames]
@@ -1752,6 +1750,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
+    @property
+    def extern_dpath(table):
+        cache_dpath = table.depc.cache_dpath
+        extern_dname = 'extern_' + table.tablename
+        extern_dpath = join(cache_dpath, extern_dname)
+        return extern_dpath
+
     @profile
     def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
         """
@@ -1805,9 +1810,6 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         is_extern = table.get_intern_data_col_attr('is_external_pointer')
         extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
         if len(extern_colnames) > 0:
-            cache_dpath = table.depc.cache_dpath
-            extern_dname = 'extern_' + table.tablename
-            extern_dpath = join(cache_dpath, extern_dname)
 
             uri_list = table.get_internal_columns(rowid_list,
                                                   extern_colnames,
@@ -1815,7 +1817,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                                                   keepwrap=False)
             fpath_list = ut.flatten(uri_list)
             abs_fpath_list = [
-                join(extern_dpath, fpath)
+                join(table.extern_dpath, fpath)
                 for fpath in fpath_list
             ]
             if delete_extern:
