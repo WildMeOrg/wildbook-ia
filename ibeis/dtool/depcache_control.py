@@ -1236,7 +1236,9 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         Helper "fluff" function
 
         CommandLine:
-            python -m dtool --tf DependencyCache.make_graph --show
+            python -m dtool --tf DependencyCache.make_graph --show --reduced
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show --reduced
+
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1291,7 +1293,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         nx.set_node_attributes(graph, 'color', _node_attrs(color_dict))
         nx.set_node_attributes(graph, 'shape', _node_attrs(shape_dict))
         if kwargs.get('reduced', False):
-
+            # FIXME; There is a bug in the reduction of the image depc graph
             # Reduce only the non-multi part of the graph
             nonmulti_graph = graph.copy()
             multi_data_edges = [(u, v, d) for u, v, d in graph.edges(data=True)
