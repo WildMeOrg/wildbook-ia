@@ -216,11 +216,10 @@ def label_aid_list(ibs, aid_list, model='v1'):
     test_results = net.test('.', best_weights=True)
     prediction_list = test_results['label_list']
     confidence_list = test_results['confidence_list']
+    probability_list = test_results['probability_list']
 
     species_list = []
     viewpoint_list = []
-    quality_list = []
-    orientation_list = []
     for prediction in prediction_list:
         prediction = prediction.strip()
         if ':' in prediction:
@@ -233,10 +232,12 @@ def label_aid_list(ibs, aid_list, model='v1'):
             species = const.UNKNOWN
         species_list.append(species)
         viewpoint_list.append(viewpoint)
-        quality_list.append(const.QUAL_UNKNOWN)
-        orientation_list.append(0.0)
 
-    result_list = zip(confidence_list, species_list, viewpoint_list, quality_list, orientation_list)
+    quality_list = [const.QUAL_UNKNOWN] * len(prediction_list)
+    orientation_list = [0.0] * len(prediction_list)
+
+    result_list = zip(confidence_list, species_list, viewpoint_list,
+                      quality_list, orientation_list, probability_list)
     return result_list
 
 

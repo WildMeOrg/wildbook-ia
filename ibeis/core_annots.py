@@ -1345,8 +1345,8 @@ class LabelerConfig(dtool.Config):
 
 @register_preproc(
     tablename='labeler', parents=['chips'],
-    colnames=['score', 'species', 'viewpoint', 'quality', 'orientation'],
-    coltypes=[float, str, str, str, float],
+    colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
+    coltypes=[float, str, str, str, float, np.ndarray],
     configclass=LabelerConfig,
     fname='chipcache4',
     chunksize=32,
@@ -1386,6 +1386,7 @@ def compute_labels(depc, aid_list, config=None):
     result_list = label_aid_list(ibs, aid_list)
     # yield detections
     for result in result_list:
+        print(result)
         yield result
 
 if __name__ == '__main__':
