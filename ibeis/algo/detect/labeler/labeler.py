@@ -214,8 +214,6 @@ def label_aid_list(ibs, aid_list, model='v1'):
     print('[mnist] Create the JPCNN_network and start testing')
     net = JPCNN_Network(model, data)
     test_results = net.test('.', best_weights=True)
-    print(test_results.keys())
-    ut.embed()
 
     prediction_list = test_results['label_list']
     confidence_list = test_results['confidence_list']
@@ -231,6 +229,7 @@ def label_aid_list(ibs, aid_list, model='v1'):
         else:
             species = prediction
             viewpoint = None
+        viewpoint = None
         if species.lower() == 'ignore':
             species = const.UNKNOWN
         species_list.append(species)

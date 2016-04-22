@@ -1386,7 +1386,6 @@ def compute_labels(depc, aid_list, config=None):
     result_list = label_aid_list(ibs, aid_list)
     # yield detections
     for result in result_list:
-        print(result)
         yield result
 
 if __name__ == '__main__':
