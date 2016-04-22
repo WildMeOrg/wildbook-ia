@@ -1338,9 +1338,6 @@ class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_sensitivity', 0.2),
     ]
-    _sub_config_list = [
-        ChipConfig
-    ]
 
 
 @register_preproc(
@@ -1378,12 +1375,18 @@ def compute_labels(depc, cid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
     """
-    from ibeis.algo.detect.labeler.labeler import label_cid_list
+    from ibeis.algo.detect.labeler.labeler import label_chip_list
     print('[ibs] Process Annotation Labels')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
-    result_list = label_cid_list(ibs, cid_list)
+    depc = ibs.depc_annot
+    config = {
+        'dim_size' : (128, 128),
+        'resize_dim' : 'wh',
+    }
+    chip_list = depc.get_native('chips', cid_list, 'img', config=config)
+    result_list = label_chip_list(chip_list)
     # yield detections
     for result in result_list:
         yield result
