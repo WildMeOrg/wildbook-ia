@@ -255,14 +255,14 @@ class ClassifierConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='classifier', parents=['thumbnails'],
+    tablename='classifier', parents=['images'],
     colnames=['score', 'class'],
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
     chunksize=32,
 )
-def compute_classifications(depc, thumbnail_id_list, config=None):
+def compute_classifications(depc, gid_list, config=None):
     r"""
     Extracts the detections for a given input image
 
@@ -299,7 +299,7 @@ def compute_classifications(depc, thumbnail_id_list, config=None):
         'draw_annots' : False,
         'thumbsize'   : (192, 192),
     }
-    thumbnail_list = depc.get_native('thumbnails', thumbnail_id_list, 'img', config=config)
+    thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
     result_list = classify_thumbnail_list(ibs, thumbnail_list)
     # yield detections
     for result in result_list:

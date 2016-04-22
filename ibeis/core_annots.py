@@ -1341,14 +1341,14 @@ class LabelerConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='labeler', parents=['chips'],
+    tablename='labeler', parents=['annotations'],
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
     coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
     chunksize=32,
 )
-def compute_labels(depc, cid_list, config=None):
+def compute_labels(depc, aid_list, config=None):
     r"""
     Extracts the detections for a given input image
 
@@ -1385,7 +1385,7 @@ def compute_labels(depc, cid_list, config=None):
         'dim_size' : (128, 128),
         'resize_dim' : 'wh',
     }
-    chip_list = depc.get_native('chips', cid_list, 'img', config=config)
+    chip_list = depc.get_property('chips', aid_list, 'img', config=config)
     result_list = label_chip_list(chip_list)
     # yield detections
     for result in result_list:
