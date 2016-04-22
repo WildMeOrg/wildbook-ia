@@ -1344,7 +1344,7 @@ class LabelerConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='labeler', parents=['chips'],
+    tablename='labeler', parents=['annotations'],
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
     coltypes=[float, str, str, str, float, np.ndarray],
     configclass=LabelerConfig,
@@ -1383,11 +1383,6 @@ def compute_labels(depc, aid_list, config=None):
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
-    invalid = list(set(aid_list) ^ set(ibs.get_valid_aids()))
-    if len(invalid) > 0:
-        print('INVALID1')
-        print(invalid)
-        raise False
     result_list = label_aid_list(ibs, aid_list)
     # yield detections
     for result in result_list:

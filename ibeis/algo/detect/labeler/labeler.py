@@ -195,12 +195,6 @@ def test_labeler(output_path):
 def label_aid_list(ibs, aid_list, model='v1'):
     print('[classifier] Loading the classifier training data')
 
-    invalid = list(set(aid_list) ^ set(ibs.get_valid_aids()))
-    if len(invalid) > 0:
-        print('INVALID2')
-        print(invalid)
-        raise False
-
     depc = ibs.depc_annot
     config = {
         'dim_size' : (128, 128),
