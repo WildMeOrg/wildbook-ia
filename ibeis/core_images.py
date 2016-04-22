@@ -300,7 +300,7 @@ def compute_classifications(depc, gid_list, config=None):
         'thumbsize'   : (192, 192),
     }
     thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
-    result_list = classify_thumbnail_list(ibs, thumbnail_list)
+    result_list = classify_thumbnail_list(thumbnail_list)
     # yield detections
     for result in result_list:
         yield result
