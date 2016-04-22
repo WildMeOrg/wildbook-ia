@@ -192,14 +192,9 @@ def test_labeler(output_path):
             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
 
 
-def label_aid_list(ibs, aid_list, model='v1'):
+def label_chip_list(chip_list, model='v1'):
     print('[classifier] Loading the classifier training data')
-    depc = ibs.depc_annot
-    config = {
-        'dim_size' : (128, 128),
-        'resize_dim' : 'wh',
-    }
-    chip_list = depc.get('chips', aid_list, 'img', config=config)
+
     data_list = np.array(chip_list, dtype=np.uint8)
 
     print('[mnist] Loading the data into a JPCNN_Data')
@@ -214,13 +209,14 @@ def label_aid_list(ibs, aid_list, model='v1'):
     print('[mnist] Create the JPCNN_network and start testing')
     net = JPCNN_Network(model, data)
     test_results = net.test('.', best_weights=True)
+
+    class_list = list(net.config['data_label_encoder'].classes_)
     prediction_list = test_results['label_list']
     confidence_list = test_results['confidence_list']
+    probability_list = test_results['probability_list']
 
     species_list = []
     viewpoint_list = []
-    quality_list = []
-    orientation_list = []
     for prediction in prediction_list:
         prediction = prediction.strip()
         if ':' in prediction:
@@ -233,10 +229,20 @@ def label_aid_list(ibs, aid_list, model='v1'):
             species = const.UNKNOWN
         species_list.append(species)
         viewpoint_list.append(viewpoint)
-        quality_list.append(const.QUAL_UNKNOWN)
-        orientation_list.append(0.0)
 
-    result_list = zip(confidence_list, species_list, viewpoint_list, quality_list, orientation_list)
+    quality_list = [const.QUAL_UNKNOWN] * len(prediction_list)
+    orientation_list = [0.0] * len(prediction_list)
+
+    probability_dict_list = []
+    for probability in probability_list:
+        probability_dict = {
+            class_ : prob
+            for class_, prob in zip(class_list, probability)
+        }
+        probability_dict_list.append(probability_dict)
+
+    result_list = zip(confidence_list, species_list, viewpoint_list,
+                      quality_list, orientation_list, probability_dict_list)
     return result_list
 
 

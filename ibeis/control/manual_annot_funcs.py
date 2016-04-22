@@ -380,9 +380,9 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> result += str(semantic_uuid_list) + '\n'
         >>> print('Cleaning up. Removing added annotations')
         >>> ibs.delete_annots(aid_list)
-        >>> assert not any([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
+        >>> assert not any([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths]), 'chip paths'
         >>> postvalid = ibs.get_valid_aids()
-        >>> assert prevalid == postvalid
+        >>> assert prevalid == postvalid, 'prevalid != postvalid'
         >>> result += str(postvalid)
         >>> print(result)
         [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
@@ -413,8 +413,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> aid_list1 = ibs.add_annots(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
         >>> aid_list2 = ibs.add_annots(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
         >>> aid_list3 = ibs.add_annots(gid_list, bbox_list=bbox_list2, prevent_visual_duplicates=True)
-        >>> assert aid_list1 == aid_list2
-        >>> assert aid_list1 != aid_list3
+        >>> assert aid_list1 == aid_list2, 'aid_list1 == aid_list2'
+        >>> assert aid_list1 != aid_list3, 'aid_list1 != aid_list3'
         >>> aid_list_new = aid_list1 + aid_list3
         >>> result = aid_list_new
         >>> print('Cleaning up. Removing added annotations')

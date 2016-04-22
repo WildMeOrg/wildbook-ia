@@ -193,14 +193,8 @@ def load_images(cache_data_filename='test_data.npy',
 #             print('Error rate %0.2f: %0.03f [ %d / %d ]' % args)
 
 
-def classify_gid_list(ibs, gid_list, model='v1'):
+def classify_thumbnail_list(thumbnail_list, model='v1'):
     print('[classifier] Loading the classifier training data')
-    depc = ibs.depc_image
-    config = {
-        'draw_annots' : False,
-        'thumbsize'   : (192, 192),
-    }
-    thumbnail_list = depc.get('thumbnails', gid_list, 'img', config=config)
     data_list = np.array(thumbnail_list, dtype=np.uint8)
 
     print('[mnist] Loading the data into a JPCNN_Data')

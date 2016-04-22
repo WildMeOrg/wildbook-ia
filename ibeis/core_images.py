@@ -258,7 +258,7 @@ class ClassifierConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='classifier', parents=['thumbnails'],
+    tablename='classifier', parents=['images'],
     colnames=['score', 'class'],
     coltypes=[float, str],
     configclass=ClassifierConfig,
@@ -292,12 +292,18 @@ def compute_classifications(depc, gid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """
-    from ibeis.algo.detect.classifier.classifier import classify_gid_list
+    from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
     print('[ibs] Process Image Classifications')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
-    result_list = classify_gid_list(ibs, gid_list)
+    depc = ibs.depc_image
+    config = {
+        'draw_annots' : False,
+        'thumbsize'   : (192, 192),
+    }
+    thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
+    result_list = classify_thumbnail_list(thumbnail_list)
     # yield detections
     for result in result_list:
         yield result

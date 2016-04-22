@@ -1344,9 +1344,9 @@ class LabelerConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='labeler', parents=['chips'],
-    colnames=['score', 'species', 'viewpoint', 'quality', 'orientation'],
-    coltypes=[float, str, str, str, float],
+    tablename='labeler', parents=['annotations'],
+    colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
+    coltypes=[float, str, str, str, float, dict],
     configclass=LabelerConfig,
     fname='chipcache4',
     chunksize=32,
@@ -1378,12 +1378,18 @@ def compute_labels(depc, aid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
     """
-    from ibeis.algo.detect.labeler.labeler import label_aid_list
+    from ibeis.algo.detect.labeler.labeler import label_chip_list
     print('[ibs] Process Annotation Labels')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
-    result_list = label_aid_list(ibs, aid_list)
+    depc = ibs.depc_annot
+    config = {
+        'dim_size' : (128, 128),
+        'resize_dim' : 'wh',
+    }
+    chip_list = depc.get_property('chips', aid_list, 'img', config=config)
+    result_list = label_chip_list(chip_list)
     # yield detections
     for result in result_list:
         yield result

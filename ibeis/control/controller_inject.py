@@ -521,6 +521,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         return text
 
                     __format__ = False  # Default __format__ value
+                    ignore_cookie_set = False
                     try:
                         #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
                         # Pipe web input into Python web call
@@ -537,7 +538,6 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         #print('COOKIES: %s' % (request.cookies, ))
                         __format__ = request.cookies.get('__format__', None)
                         __format__ = kwargs.pop('__format__', __format__)
-                        ignore_cookie_set = False
                         if __format__ is not None:
                             __format__ = str(__format__).lower()
                             ignore_cookie_set = __format__ in ['onetime', 'true']
