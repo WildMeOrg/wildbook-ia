@@ -1805,17 +1805,25 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         is_extern = table.get_intern_data_col_attr('is_external_pointer')
         extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
         if len(extern_colnames) > 0:
+            cache_dpath = table.depc.cache_dpath
+            extern_dname = 'extern_' + table.tablename
+            extern_dpath = join(cache_dpath, extern_dname)
+
             uri_list = table.get_internal_columns(rowid_list,
                                                   extern_colnames,
                                                   unpack_scalars=False,
                                                   keepwrap=False)
             fpath_list = ut.flatten(uri_list)
+            abs_fpath_list = [
+                join(extern_dpath, fpath)
+                for fpath in fpath_list
+            ]
             if delete_extern:
-                print('fpath_list = %r' % (fpath_list,))
+                print('abs_fpath_list = %r' % (abs_fpath_list,))
                 print('deleting internal files')
-                ut.remove_file_list(fpath_list)
+                ut.remove_file_list(abs_fpath_list)
             else:
-                print('would delete fpath_list = %r' % (fpath_list,))
+                print('would delete abs_fpath_list = %r' % (abs_fpath_list,))
 
         # DELETE EXPLICITLY DEFINED CHILDREN
         # (TODO: handle implicit definitions)
