@@ -597,6 +597,8 @@ def show_if_requested(N=1):
                 unflat_fpath_list = ut.list_reshape(fpath_list, newshape, trail=True)
                 fpath_list = ut.flatten(ut.list_transpose(unflat_fpath_list))
 
+            caplbl_str = '\caplbl{' + label_str +  '}'
+            caption_str = caplbl_str + caption_str
             figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
                                                              label_str=label_str,
                                                              caption_str=caption_str,
