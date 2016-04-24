@@ -572,8 +572,9 @@ def show_if_requested(N=1):
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
         print('width_str = %r' % (width_str,))
         height_str  = ut.get_argval('--height', type_=str, default=None)
+        caplbl_str =  label_str
 
-        if ut.is_developer() and len(fpath_list) < 4:
+        if ut.is_developer() and len(fpath_list) <= 4:
             if len(fpath_list) == 1:
                 latex_block = (
                     '\ImageCommandII{' + ''.join(fpath_list) + '}{' +
@@ -581,8 +582,8 @@ def show_if_requested(N=1):
             else:
                 width_str = '1'
                 latex_block = (
-                    '\MultiImageCommand' '{' + label_str + '}' +
-                    '{' + width_str + '}' + '{\n' + caption_str + '\n}'
+                    '\MultiImageCommandII' + '{' + label_str + '}' +
+                    '{' + width_str + '}' + '{' + caplbl_str + '}' + '{\n' + caption_str + '\n}'
                     '{' + '}{'.join(fpath_list) + '}'
                 )
             # HACK
@@ -597,8 +598,7 @@ def show_if_requested(N=1):
                 unflat_fpath_list = ut.list_reshape(fpath_list, newshape, trail=True)
                 fpath_list = ut.flatten(ut.list_transpose(unflat_fpath_list))
 
-            caplbl_str = '\caplbl{' + label_str +  '}'
-            caption_str = caplbl_str + caption_str
+            caption_str = '\caplbl{' + caplbl_str + '}' + caption_str
             figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
                                                              label_str=label_str,
                                                              caption_str=caption_str,
