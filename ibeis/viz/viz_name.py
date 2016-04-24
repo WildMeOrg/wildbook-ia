@@ -147,7 +147,9 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
             ax = df2.gca()
             ax_list2.append(_ax2)
 
-            if ut.get_argflag('--numlbl'):
+            if ut.get_argflag('--chrlbl'):
+                ax.set_xlabel('(' + chr(ord('a') - start + px) + ')')
+            elif ut.get_argflag('--numlbl'):
                 ax.set_xlabel('(' + str(px - start + 1) + ')')
 
             if ut.get_argflag('--qualtitle'):
