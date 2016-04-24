@@ -3,6 +3,120 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
 
 
+def event_space():
+    """
+    pip install matplotlib-venn
+    """
+    from matplotlib import pyplot as plt
+    import numpy as np
+    from matplotlib_venn import venn3, venn2, venn3_circles
+    plt.figure(figsize=(4, 4))
+    v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels = ('A', 'B', 'C'))
+    v.get_patch_by_id('100').set_alpha(1.0)
+    v.get_patch_by_id('100').set_color('white')
+    v.get_label_by_id('100').set_text('Unknown')
+    v.get_label_by_id('A').set_text('Set "A"')
+    c = venn3_circles(subsets=(1, 1, 1, 1, 1, 1, 1), linestyle='dashed')
+    c[0].set_lw(1.0)
+    c[0].set_ls('dotted')
+    plt.show()
+
+    same = set(['comparable', 'incomparable', 'same'])
+    diff = set(['comparable', 'incomparable', 'diff'])
+    # comparable = set(['comparable', 'same', 'diff'])
+    # incomparable = set(['incomparable', 'same', 'diff'])
+    subsets = [same, diff]  # , comparable, incomparable]
+    set_labels = ('same', 'diff')  # , 'comparable', 'incomparable')
+    venn3(subsets=subsets, set_labels=set_labels)
+    plt.show()
+
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+    from matplotlib_subsets import treesets_rectangles
+    tree = (
+        (120, 'Same', None), [
+            ((50, 'comparable', None), []),
+            ((50, 'incomparable', None), [])
+        ]
+        (120, 'Diff', None), [
+            ((50, 'comparable', None), []),
+            ((50, 'incomparable', None), [])
+        ]
+    )
+
+    treesets_rectangles(tree)
+    plt.show()
+
+    from matplotlib import pyplot as plt
+    from matplotlib_venn import venn2, venn2_circles
+
+    # Subset sizes
+    s = (
+        2,  # Ab
+        3,  # aB
+        1,  # AB
+    )
+
+    v = venn2(subsets=s, set_labels=('A', 'B'))
+
+    # Subset labels
+    v.get_label_by_id('10').set_text('A but not B')
+    v.get_label_by_id('01').set_text('B but not A')
+    v.get_label_by_id('11').set_text('A and B')
+
+    # Subset colors
+    v.get_patch_by_id('10').set_color('c')
+    v.get_patch_by_id('01').set_color('#993333')
+    v.get_patch_by_id('11').set_color('blue')
+
+    # Subset alphas
+    v.get_patch_by_id('10').set_alpha(0.4)
+    v.get_patch_by_id('01').set_alpha(1.0)
+    v.get_patch_by_id('11').set_alpha(0.7)
+
+    # Border styles
+    c = venn2_circles(subsets=s, linestyle='solid')
+    c[0].set_ls('dashed')  # Line style
+    c[0].set_lw(2.0)       # Line width
+
+    plt.show()
+    # plt.savefig('example_tree.pdf', bbox_inches='tight')
+    # plt.close()
+
+    venn2(subsets=(25, 231+65, 8+15))
+
+    # Find out the location of the two circles
+    # (you can look up how its done in the first lines
+    # of the venn2 function)
+
+    from matplotlib_venn._venn2 import compute_venn2_areas, solve_venn2_circles
+    subsets = (25, 231+65, 8+15)
+    areas = compute_venn2_areas(subsets, normalize_to=1.0)
+    centers, radii = solve_venn2_circles(areas)
+
+    # Now draw the third circle.
+    # Its area is (15+65)/(25+8+15) times
+    # that of the first circle,
+    # hence its radius must be
+
+    r3 = radii[0]*sqrt((15+65.0)/(25+8+15))
+
+    # Its position must be such that the intersection
+    # area  with C1 is  15/(15+8+25) of C1's area.
+    # The way to compute the distance between
+    # the circles by area can be looked up in
+    # solve_venn2_circles
+
+    from matplotlib_venn._math import find_distance_by_area
+    distance = find_distance_by_area(radii[0], r3,
+                15.0/(15+8+25)*np.pi*radii[0]*radii[0])
+    ax = gca()
+    ax.add_patch(Circle(centers[0] + np.array([distance, 0]),
+                 r3, alpha=0.5, edgecolor=None,
+                 facecolor='red', linestyle=None,
+                 linewidth=0))
+
+
 def double_depcache_graph():
     r"""
     CommandLine:
