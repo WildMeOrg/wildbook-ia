@@ -127,6 +127,8 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
             df2.draw_border(ax, df2.GREEN, 4)
         if ut.get_argflag('--numlbl') and not DOBOTH:
             ax.set_xlabel('(' + str(px + 1) + ')')
+        elif ut.get_argflag('--chrlbl') and not DOBOTH:
+            ax.set_xlabel('(' + chr(ord('a') - 1 + px) + ')')
         #plot_aid3(ibs, aid)
 
     # HACK to show in image and not in image
