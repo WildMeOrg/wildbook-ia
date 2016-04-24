@@ -71,9 +71,10 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2 --doboth  --show --notitle --trydrawline
+
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2,3,4,5 --doboth --rc=2,5 --show --chrlbl --trydrawline --qualtitle --no-figtitle --notitle
         --doboth
         --doboth --show
 
@@ -120,15 +121,16 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
     fig.clf()
     ax_list1 = []
     for px, aid in enumerate(aid_list):
+        print('px = %r' % (px,))
         _fig, _ax1 = viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
         ax = df2.gca()
         ax_list1.append(_ax1)
         if aid in sel_aids:
             df2.draw_border(ax, df2.GREEN, 4)
-        if ut.get_argflag('--numlbl') and not DOBOTH:
-            ax.set_xlabel('(' + str(px + 1) + ')')
-        elif ut.get_argflag('--chrlbl') and not DOBOTH:
+        if ut.get_argflag('--chrlbl') and not DOBOTH:
             ax.set_xlabel('(' + chr(ord('a') - 1 + px) + ')')
+        elif ut.get_argflag('--numlbl') and not DOBOTH:
+            ax.set_xlabel('(' + str(px + 1) + ')')
         #plot_aid3(ibs, aid)
 
     # HACK to show in image and not in image
@@ -231,7 +233,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
                         xyA=vert1, xyB=vert2, coordsA=coordsA,
                         coordsB=coordsB,
                         axesA=ax1, axesB=ax2,
-                        linewidth=1)
+                        linewidth=1, color='k')
                     #, arrowstyle="-")
 
                     #ut.embed()
