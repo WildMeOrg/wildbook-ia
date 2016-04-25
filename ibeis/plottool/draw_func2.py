@@ -497,8 +497,13 @@ def show_if_requested(N=1):
                     items += ax.get_xticklabels() + ax.get_yticklabels()
                     items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
                     items += [ax, ax.title]
+                    #items += ax.lines
+                    #items += ax.patches
                 bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
-                return bbox.expanded(1.0 + pad, 1.0 + pad)
+                #mpl.transforms.Affine2D().scale(1.1)
+                #pad = .05
+                extent = bbox.expanded(1.0 + pad, 1.0 + pad)
+                return extent
 
             subpath_list = []
 
@@ -512,10 +517,26 @@ def show_if_requested(N=1):
                     seen_.add(ax)
                     seen_.update(set(df2_div_axes))
                     atomic_axes.append([ax] + df2_div_axes)
+                    # TODO: pad these a bit
                 else:
                     if ax not in seen_:
                         atomic_axes.append([ax])
                         seen_.add(ax)
+
+            hack_axes_group_row = ut.get_argflag('--grouprows')
+            if hack_axes_group_row:
+                groupid_list = []
+                for axs in atomic_axes:
+                    for ax in axs:
+                        groupid = ax.colNum
+                    groupid_list.append(groupid)
+
+                groupxs = ut.group_indices(groupid_list)[1]
+                new_groups = ut.lmap(ut.flatten, ut.apply_grouping(atomic_axes, groupxs))
+                atomic_axes = new_groups
+                #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
+                # save all rows of each column
+                pass
 
             for count, axs in ut.ProgressIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
                 subpath = ut.augpath(fpath_strict, chr(count + 65))
