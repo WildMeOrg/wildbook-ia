@@ -2798,9 +2798,15 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 #    plt_imshow_kwargs['vmax'] = 1
                 #    #del plt_imshow_kwargs['vmin']
                 #    #del plt_imshow_kwargs['vmax']
-            imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
-            #print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
-            ax.imshow(imgRGB, **plt_imshow_kwargs)
+            if img.shape[2] == 3:
+                imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
+                #print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
+                ax.imshow(imgRGB, **plt_imshow_kwargs)
+            else:
+                imgBGRA = imgBGR
+                imgRGBA = cv2.cvtColor(imgBGRA, cv2.COLOR_BGRA2RGBA)
+                #print('plt_imshow_kwargs = %r' % (plt_imshow_kwargs,))
+                ax.imshow(imgRGBA, **plt_imshow_kwargs)
         elif len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
             # img is in grayscale
             if len(img.shape) == 3:
