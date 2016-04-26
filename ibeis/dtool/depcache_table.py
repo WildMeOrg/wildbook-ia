@@ -10,7 +10,7 @@ import utool as ut
 import six
 from six.moves import zip, range
 from os.path import join, exists
-from dtool import __SQLITE__ as lite
+from dtool import __SQLITE__ as lite  # NOQA
 import networkx as nx
 import re
 (print, rrr, profile) = ut.inject2(__name__, '[depcache_table]')
@@ -710,8 +710,8 @@ class _TableGeneralHelper(ut.NiceRepr):
                 # External class column
                 assert (hasattr(coltype, '__getstate__') and
                         hasattr(coltype, '__setstate__')), (
-                        'External classes must have __getstate__ and '
-                        '__setstate__ methods')
+                            'External classes must have __getstate__ and '
+                            '__setstate__ methods')
                 read_func, write_func = make_extern_io_funcs(table, coltype)
                 sqltype = lite.TYPE_TO_SQLTYPE[str]
                 intern_colname = colname + EXTERN_SUFFIX
@@ -973,6 +973,19 @@ class _TableConfigHelper(object):
             ancestor_configs = parent_tbl.get_config_history(ids)
             ret_list.extend(ancestor_configs)
         return ret_list
+
+    def get_ancestor_rowids(table, rowid_list, target_table):
+        parent_rowids = table.get_parent_rowids(rowid_list)
+        depc = table.depc
+        for tblname, ids in zip(table.parent_id_tablenames,
+                                ut.list_transpose(parent_rowids)):
+            if tblname == target_table:
+                return ids
+            parent_tbl = depc[tblname]
+            ancestor_ids = parent_tbl.get_ancestor_rowids(ids, target_table)
+            if ancestor_ids is not None:
+                return ancestor_ids
+        return None  # Base case
 
     def get_row_cfgid(table, rowid_list):
         """

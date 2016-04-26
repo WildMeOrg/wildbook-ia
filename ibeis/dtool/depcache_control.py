@@ -281,7 +281,7 @@ class _CoreDependencyCache(object):
 
     def get_dependants(depc, tablename):
         """
-        gets level dependences table to the leaves. ie anscestors
+        gets level dependences table to the leaves. ie ancestors
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -857,17 +857,19 @@ class _CoreDependencyCache(object):
             print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
 
-    def get_ancestor_rowids(depc, tablename, native_rowids, anscestor_tablename=None):
+    def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
         """
-        anscestor_tablename = depc.root
+        ancestor_tablename = depc.root
         native_rowids = cid_list
         tablename = const.CHIP_TABLE
         """
-        if anscestor_tablename is None:
-            anscestor_tablename = depc.root
-        rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
-        anscestor_rowids = list(rowid_dict[anscestor_tablename])
-        return anscestor_rowids
+        if ancestor_tablename is None:
+            ancestor_tablename = depc.root
+        # rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
+        # ancestor_rowids = list(rowid_dict[ancestor_tablename])
+        table = depc[tablename]
+        ancestor_rowids = table.get_ancestor_rowids(native_rowids, ancestor_tablename)
+        return ancestor_rowids
 
     def _get_parent_input(depc, tablename, root_rowids, config, ensure=True,
                           _debug=None, recompute=False, recompute_all=False,
