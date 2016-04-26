@@ -98,12 +98,8 @@ def REGISTER_SQLITE3_TYPES():
     def _read_dict_from_sqlite3(blob):
         return ut.from_json(blob)
         #return uuid.UUID(bytes_le=blob)
-    if six.PY2:
-        def _write_dict_to_sqlite3(dict_):
-            return ut.to_json(dict_)
-    elif six.PY3:
-        def _write_dict_to_sqlite3(dict_):
-            return ut.to_json(dict_)
+    def _write_dict_to_sqlite3(dict_):
+        return ut.to_json(dict_)
 
     def register_numpy():
         """
@@ -124,11 +120,16 @@ def REGISTER_SQLITE3_TYPES():
         register_adapter(uuid.UUID, _write_uuid_to_sqlite3)
 
     def register_dict():
-        """ Utility function allowing uuids to be stored in sqlite """
         if VERBOSE_SQL:
             print('Register DICT with SQLite3')
         register_converter('DICT', _read_dict_from_sqlite3)
         register_adapter(dict, _write_dict_to_sqlite3)
+
+    def register_list():
+        if VERBOSE_SQL:
+            print('Register LIST with SQLite3')
+        register_converter('LIST', ut.from_json)
+        register_adapter(list, ut.to_json)
 
     register_numpy_dtypes()
     register_numpy()
@@ -156,6 +157,7 @@ TYPE_TO_SQLTYPE = {
     str: 'TEXT',
     bool: 'INTEGER',
     dict: 'DICT',
+    list: 'LIST',
 }
 
 if six.PY2:
