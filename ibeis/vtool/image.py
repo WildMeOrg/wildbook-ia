@@ -1077,14 +1077,20 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> target_size = tuple(np.array(vt.get_size(img)) * 3)
-        >>> img_origin = (.5, .1)
-        >>> target_origin = (0, .3)
-        >>> img_square = embed_in_square_image(img, target_size)
+        >>> img_origin = (.5, .5)
+        >>> target_origin = (.5, .5)
+        >>> img_square = embed_in_square_image(img, target_size, img_origin, target_origin)
+        >>> assert img_square.sum() == img.sum()
+        >>> assert vt.get_size(img_square) == target_size
+        >>> img_origin = (0, 0)
+        >>> target_origin = (0, 0)
+        >>> img_square2 = embed_in_square_image(img, target_size, img_origin, target_origin)
         >>> assert img_square.sum() == img.sum()
         >>> assert vt.get_size(img_square) == target_size
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.imshow(img_square)
+        >>> pt.imshow(img_square, pnum=(1, 2, 1))
+        >>> pt.imshow(img_square2, pnum=(1, 2, 2))
         >>> ut.show_if_requested()
     """
     # Allocate large image
@@ -1096,8 +1102,8 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
     target_rc = np.array(target_shape[0:2])
     img_rc = np.array(img.shape[0:2])
 
-    #img_origin_abs = np.array(img_origin)[::-1] * img_rc
-    #target_origin_abs = np.array(target_origin)[::-1] * target_rc
+    img_origin_abs = np.array(img_origin)[::-1] * img_rc
+    target_origin_abs = np.array(target_origin)[::-1] * target_rc
 
     #img_left_rc = img_rc - img_origin_abs
     #img_right_rc = img_origin_abs
@@ -1112,8 +1118,24 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
     #print('target_origin_abs = %r' % (target_origin_abs,))
 
     ## Find start slice in the target image
-    #target_rc_hangstart = np.floor(target_origin_abs - img_origin_abs)
-    #target_rc_start = -np.minimum(target_rc_hangstart, 0)
+    target_diff = np.floor(target_origin_abs - img_origin_abs)
+    target_rc_start = np.maximum(target_diff, 0)
+
+    img_rc_start = -(target_diff - target_rc_start)
+    img_clip_rc_low = img_rc - img_rc_start
+
+    end_hang = np.maximum((target_rc_start + img_clip_rc_low) - target_rc, 0)
+    img_clip_rc = img_clip_rc_low - end_hang
+
+    img_rc_end = img_rc_start + img_clip_rc
+    target_rc_end = target_rc_start + img_clip_rc
+
+    img_rc_slice = [slice(b, e) for (b, e) in zip(img_rc_start, img_rc_end)]
+    target_rc_slice = [slice(b, e) for (b, e) in zip(target_rc_start, target_rc_end)]
+
+    # embed image at position
+    img_sqare[target_rc_slice[0], target_rc_slice[1]] = img[img_rc_slice[0], img_rc_slice[1]]
+
     #target_rc_overhang = target_rc_start - target_rc_hangstart
 
     ##-np.minimum(np.floor(img_origin_abs - target_origin_abs), 0)
@@ -1130,12 +1152,13 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
     #image_rc_start = np.maximum(-target_rc_start, 0)
     #image_rc_end = img_rc - image_rc_start
 
-    rc_diff = target_rc - img_rc  # amount of extra space in target
-    rc_start = np.floor(rc_diff / 2)
-    rc_end  =  [None if e == 0 else e for e in (rc_start - rc_diff)]
-    rc_slice = [slice(b, e) for (b, e) in zip(rc_start, rc_end)]
-    # embed image at center
-    img_sqare[rc_slice[0], rc_slice[1]] = img
+    if False:
+        rc_diff = target_rc - img_rc  # amount of extra space in target
+        rc_start = np.floor(rc_diff / 2)
+        rc_end  =  [None if e == 0 else e for e in (rc_start - rc_diff)]
+        rc_slice = [slice(b, e) for (b, e) in zip(rc_start, rc_end)]
+        # embed image at center
+        img_sqare[rc_slice[0], rc_slice[1]] = img
     return img_sqare
 
 
