@@ -24,6 +24,36 @@ def testdata_hist():
     return hist1, hist2
 
 
+def testdata_sift2():
+    sift1 = np.zeros(128)
+    sift2 = np.ones(128)
+    sift3 = np.zeros(128)
+    sift4 = np.zeros(128)
+    sift5 = np.zeros(128)
+    sift1[0] = 1
+    sift3[-1] = 1
+    sift4[0::2] = 1
+    sift5[1::2] = 1
+
+    def normalize_sift(sift):
+        # normalize
+        sift_norm = sift / np.linalg.norm(sift)
+        # clip
+        sift_norm = np.clip(sift_norm, 0, .2)
+        # re-normalize
+        sift_norm = sift_norm / np.linalg.norm(sift_norm)
+        # cast hack
+        sift_norm = np.clip(sift_norm * 512.0, 0, 255).astype(np.uint8)
+        return sift_norm
+    sift1 = normalize_sift(sift1)
+    sift2 = normalize_sift(sift2)
+    sift3 = normalize_sift(sift3)
+    sift4 = normalize_sift(sift4)
+    sift5 = normalize_sift(sift5)
+
+    return sift1, sift2, sift2, sift3, sift4
+
+
 def wrapped_distance(arr1, arr2, base, out=None):
     """
     base = TAU corresponds to ori diff
@@ -454,11 +484,18 @@ def L2_sift(hist1, hist2):
         >>> # ENABLE_DOCTEST
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
-        >>> l2_dist = L2_sift(hist1, hist2)
+        >>> sift1, sift2, sift3, sift4, sift5 = testdata_sift2()
+        >>> #l2_dist = L2_sift(hist1, hist2)
+        >>> #l2_dist1 = L2_sift(sift1, sift2)
+        >>> #l2_dist2 = L2_sift(sift1, sift3)
+        >>> #L2_sift(sift2, sift3)
+        >>> max_dist = L2_sift(sift4, sift5)
+        >>> assert np.isclose(max_dist, 1.0)
         >>> result = ut.repr2(l2_dist, precision=2)
         >>> print(result)
         np.array([ 0.45,  0.49,  0.51,  0.49,  0.51,  0.48,  0.52,  0.52,  0.49,  0.55])
     """
+    # The corret number is 512, because thats what is used in siftdesc.cpp
     # remove the pseudo max hack
     psuedo_max = 512.0
     max_l2_dist = np.sqrt(2)  # maximum L2 distance should always be sqrt 2

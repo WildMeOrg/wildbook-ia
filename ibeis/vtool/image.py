@@ -1054,13 +1054,87 @@ def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
     return img3
 
 
-def embed_in_square_image(img, target_size):
-    target_shape = target_size[::-1] if get_num_channels(img) == 1 else target_size[::-1] + (3,)
-    rc_diff = (np.array(target_shape[0:2]) - np.array(img.shape[0:2]))
+def embed_in_square_image(img, target_size, img_origin=(.5, .5),
+                          target_origin=(.5, .5)):
+    r"""
+    Embeds an image in the center of an empty image
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        target_size (tuple):
+        offset (tuple): position of
+
+    Returns:
+        ndarray: img_sqare
+
+    CommandLine:
+        python -m vtool.image embed_in_square_image --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath)
+        >>> target_size = tuple(np.array(vt.get_size(img)) * 3)
+        >>> img_origin = (.5, .1)
+        >>> target_origin = (0, .3)
+        >>> img_square = embed_in_square_image(img, target_size)
+        >>> assert img_square.sum() == img.sum()
+        >>> assert vt.get_size(img_square) == target_size
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img_square)
+        >>> ut.show_if_requested()
+    """
+    # Allocate large image
+    num_channels = get_num_channels(img)
+    target_shape = (target_size[::-1] if num_channels == 1 else
+                    tuple(target_size)[::-1] + (num_channels,))
+    img_sqare = np.zeros(target_shape, dtype=img.dtype)
+    # Determine slice of target shape that places img_origin at target_origin
+    target_rc = np.array(target_shape[0:2])
+    img_rc = np.array(img.shape[0:2])
+
+    #img_origin_abs = np.array(img_origin)[::-1] * img_rc
+    #target_origin_abs = np.array(target_origin)[::-1] * target_rc
+
+    #img_left_rc = img_rc - img_origin_abs
+    #img_right_rc = img_origin_abs
+    # TODO: allow image to hang off edge
+
+    #print('img_rc = %r' % (img_rc,))
+    #print('img_origin = %r' % (img_origin,))
+    #print('img_origin_abs = %r' % (img_origin_abs,))
+
+    #print('target_rc = %r' % (target_rc,))
+    #print('target_origin = %r' % (target_origin,))
+    #print('target_origin_abs = %r' % (target_origin_abs,))
+
+    ## Find start slice in the target image
+    #target_rc_hangstart = np.floor(target_origin_abs - img_origin_abs)
+    #target_rc_start = -np.minimum(target_rc_hangstart, 0)
+    #target_rc_overhang = target_rc_start - target_rc_hangstart
+
+    ##-np.minimum(np.floor(img_origin_abs - target_origin_abs), 0)
+    ##img_origin_abs - target_rc_overhang
+
+    ## Find start slice in the given image
+    #img_rc_start = img_rc - target_rc_overhang
+    #cliped_img_rc = img_rc - img_rc_start
+
+    #(target_rc_start + cliped_img_rc) - target_rc
+
+    #image_rc_start = np.maximum(target_rc_overhang, 0)
+    #image_rc_end = img_rc - image_rc_start
+    #image_rc_start = np.maximum(-target_rc_start, 0)
+    #image_rc_end = img_rc - image_rc_start
+
+    rc_diff = target_rc - img_rc  # amount of extra space in target
     rc_start = np.floor(rc_diff / 2)
     rc_end  =  [None if e == 0 else e for e in (rc_start - rc_diff)]
     rc_slice = [slice(b, e) for (b, e) in zip(rc_start, rc_end)]
-    img_sqare = np.zeros(target_shape, dtype=img.dtype)
+    # embed image at center
     img_sqare[rc_slice[0], rc_slice[1]] = img
     return img_sqare
 
