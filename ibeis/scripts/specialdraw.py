@@ -856,24 +856,59 @@ def scalespace():
     # stack images in pyramid
     # boarder?
 
-    imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
-    size = np.array(vt.get_size(imgBGR))
-    pts1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)]) * size
-    #pts2 = np.array([(0, 0), (.1, .8), (.8, .8), (1, 0)]) * size
-    x_adjust = .15
-    y_adjust = .5
-    pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
-    H = cv2.findHomography(pts1, pts2)[0]
-    imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
+    #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
+    imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
 
-    dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(np.int)
-    warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
-    imgBGRA_warped = cv2.warpPerspective(imgBGRA, H, tuple(dsize), **warpkw)
+    def makewarp(imgBGR):
+        size = np.array(vt.get_size(imgBGR))
+        pts1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)]) * size
+        #pts2 = np.array([(0, 0), (.1, .8), (.8, .8), (1, 0)]) * size
+        x_adjust = .15
+        y_adjust = .5
+        pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
+        H = cv2.findHomography(pts1, pts2)[0]
+        imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
 
+        dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(np.int)
+        warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+        imgBGRA_warped = cv2.warpPerspective(imgBGRA, H, tuple(dsize), **warpkw)
+        return imgBGRA_warped
+
+    octave1 = makewarp(imgBGR)
+    octave2 = makewarp(vt.resize_image_by_scale(imgBGR, .5))
+    octave3 = makewarp(vt.resize_image_by_scale(imgBGR, .25))
+    octave4 = makewarp(vt.resize_image_by_scale(imgBGR, .125))
+
+    framesize = (700, 350)
+
+    octave1_base = 1.0
+    step1 = .04
+    step2 = .03
+    step3 = .02
+    numintervals = 4
+    # FIXME: generalize
+    octave2_base = octave1_base - ((octave1.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step1))
+    octave3_base = octave2_base - ((octave2.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step2))
+    octave4_base = octave3_base - ((octave3.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step3))
+
+    #pt.imshow(imgBGRA_warped)
     #pt.imshow(image)
-    imgRGBA_warped = cv2.cvtColor(imgBGRA_warped, cv2.COLOR_BGRA2RGBA)
-    pt.plt.imshow(imgRGBA_warped)
-    pt.plt.imshow(vt.embed_in_square_image(imgRGBA_warped, (1000, 1000)))
+
+    def temprange(stop, step, num):
+        return [stop - (x * step) for x in  range(num)]
+
+    layers = ut.flatten([
+        [vt.embed_in_square_image(octave1, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+         for ty in  temprange(octave1_base, step1, numintervals)],
+        [vt.embed_in_square_image(octave2, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+         for ty in  temprange(octave2_base, step2, numintervals)],
+        [vt.embed_in_square_image(octave3, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+         for ty in  temprange(octave3_base, step3, numintervals)],
+        [vt.embed_in_square_image(octave4, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+         for ty in  temprange(octave4_base, .01, numintervals)],
+    ])
+    for layer in layers:
+        pt.imshow(layer)
 
     pt.plt.grid(False)
 
