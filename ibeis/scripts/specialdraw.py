@@ -820,6 +820,64 @@ def intraoccurrence_connected():
     #           as_directed=False, framewidth=True,)
 
 
+def scalespace():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from skimage import data
+    from skimage.transform import pyramid_gaussian
+
+    image = data.astronaut()
+    rows, cols, dim = image.shape
+    pyramid = tuple(pyramid_gaussian(image, downscale=2))
+
+    composite_image = np.zeros((rows, cols + cols / 2, 3), dtype=np.double)
+
+    composite_image[:rows, :cols, :] = pyramid[0]
+
+    i_row = 0
+    for p in pyramid[1:]:
+        n_rows, n_cols = p.shape[:2]
+        composite_image[i_row:i_row + n_rows, cols:cols + n_cols] = p
+        i_row += n_rows
+
+    #fig, ax = plt.subplots()
+    #ax.imshow(composite_image)
+    #plt.show()
+
+    # hack a projection matrix using dummy homogrpahy
+    import cv2
+    import vtool as vt
+    import plottool as pt
+    pt.qt4ensure()
+
+    # TODO:
+    # alpha background
+    # stack images in pyramid
+    # boarder?
+
+    imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
+    size = np.array(vt.get_size(imgBGR))
+    pts1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)]) * size
+    #pts2 = np.array([(0, 0), (.1, .8), (.8, .8), (1, 0)]) * size
+    x_adjust = .15
+    y_adjust = .5
+    pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
+    H = cv2.findHomography(pts1, pts2)[0]
+    imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
+
+    dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(np.int)
+    warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+    imgBGRA_warped = cv2.warpPerspective(imgBGRA, H, tuple(dsize), **warpkw)
+
+    #pt.imshow(image)
+    imgRGBA_warped = cv2.cvtColor(imgBGRA_warped, cv2.COLOR_BGRA2RGBA)
+    pt.plt.imshow(imgRGBA_warped)
+    pt.plt.imshow(vt.embed_in_square_image(imgRGBA_warped, (1000, 1000)))
+
+    pt.plt.grid(False)
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
