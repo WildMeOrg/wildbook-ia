@@ -860,6 +860,32 @@ def get_image_uuids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/image/uuids/valid/', methods=['GET'])
+def get_valid_image_uuids(ibs):
+    r"""
+    Returns:
+        list_ (list): a list of image uuids for all valid gids
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        list: image_uuid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/uuids/valid/
+    """
+    gid_list = ibs.get_valid_gids()
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    return image_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/image/contributor_rowid/', methods=['GET'])
 def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
     r"""

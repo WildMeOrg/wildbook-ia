@@ -278,9 +278,9 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
                 'height'     : bbox[3],
                 'theta'      : round(theta, 4),
                 'confidence' : round(conf, 4),
-                'class'      : class_,
+                'class'      : species,
             }
-            for bbox, theta, conf, class_ in zip(*zipped[0][1:])
+            for bbox, theta, species, viewpoint, conf in zip(*zipped[0][1:])
         ]
         for zipped in zipped_list
     ]
@@ -321,8 +321,8 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
         >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> gid_list = ibs.get_valid_gids()[0:2]
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> gid_list = ibs.get_valid_gids()[:5]
         >>> # execute function
         >>> aids_list = ibs.detect_cnn_yolo(gid_list)
         >>> # Visualize results
@@ -348,19 +348,20 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
 def commit_detection_results(ibs, gid_list, results_list, note=None):
     zipped_list = zip(gid_list, results_list)
     aids_list = []
-    for gid, (score, bbox_list, theta_list, conf_list, class_list) in zipped_list:
+    for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
         num = len(bbox_list)
         notes_list = None if note is None else [note] * num
         aid_list = ibs.add_annots(
             [gid] * num,
             bbox_list,
             theta_list,
-            class_list,
+            species_list,
             detect_confidence_list=conf_list,
             notes_list=notes_list,
             quiet_delete_thumbs=True,
             skip_cleaning=True
         )
+        ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
         aids_list.append(aid_list)
     ibs._clean_species()
     return aids_list

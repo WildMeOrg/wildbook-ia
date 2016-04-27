@@ -11,6 +11,25 @@ except:
     JPCNN_Auto_Model = object
     pass
 
+label_list = [
+    'ignore',
+    'zebra_plains:left',
+    'zebra_plains:frontleft',
+    'zebra_plains:front',
+    'zebra_plains:frontright',
+    'zebra_plains:right',
+    'zebra_plains:backright',
+    'zebra_plains:back',
+    'zebra_plains:backleft',
+    'zebra_grevys:left',
+    'zebra_grevys:frontleft',
+    'zebra_grevys:front',
+    'zebra_grevys:frontright',
+    'zebra_grevys:right',
+    'zebra_grevys:backright',
+    'zebra_grevys:back',
+    'zebra_grevys:backleft',
+]
 
 label_mapping_dict = {
     'left'       : 'right',
@@ -117,26 +136,7 @@ class Labeler_Model(JPCNN_Auto_Model):
         return correct / total
 
     def label_order_mapping(model, label_list):
-        correct_list = [
-            'ignore',
-            'zebra_plains:left',
-            'zebra_plains:frontleft',
-            'zebra_plains:front',
-            'zebra_plains:frontright',
-            'zebra_plains:right',
-            'zebra_plains:backright',
-            'zebra_plains:back',
-            'zebra_plains:backleft',
-            'zebra_grevys:left',
-            'zebra_grevys:frontleft',
-            'zebra_grevys:front',
-            'zebra_grevys:frontright',
-            'zebra_grevys:right',
-            'zebra_grevys:backright',
-            'zebra_grevys:back',
-            'zebra_grevys:backleft',
-        ]
-        return { key: index for index, key in enumerate(correct_list) }
+        return { key: index for index, key in enumerate(label_list) }
 
     def _loss_function(model, prediction, target):
         loss = _theano.T.nnet.categorical_crossentropy(prediction, target)

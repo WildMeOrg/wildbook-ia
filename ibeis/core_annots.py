@@ -227,12 +227,15 @@ def compute_chip(depc, aid_list, config=None):
     if config['adapteq']:
         filterfn_list.append(image_filters.adapteq_fn)
 
+    last_gid = None
     for tup in ut.ProgIter(arg_list, lbl='computing chips'):
         # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
         #cfpath, gid, new_size, M = tup
         gid, new_size, M = tup
         # Read parent image # TODO: buffer this
-        imgBGR = ibs.get_images(gid)
+        if gid != last_gid:  # We assume the gids are nicely ordered, no need to load the image more than once, if so
+            imgBGR = ibs.get_images(gid)
+            last_gid = gid
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
         for filtfn in filterfn_list:
@@ -1351,7 +1354,7 @@ class LabelerConfig(dtool.Config):
     fname='chipcache4',
     chunksize=32,
 )
-def compute_labels(depc, aid_list, config=None):
+def compute_labels_annotations(depc, aid_list, config=None):
     r"""
     Extracts the detections for a given input image
 
@@ -1364,7 +1367,7 @@ def compute_labels(depc, aid_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_labels
+        ibeis compute_labels_annotations
 
     Example:
         >>> # DISABLE_DOCTEST

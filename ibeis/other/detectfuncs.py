@@ -255,7 +255,7 @@ def imageset_train_test_split(ibs, train_split=0.8):
 
 
 @register_ibs_method
-def detect_distributions(ibs):
+def localizer_distributions(ibs):
     # Process distributions of densities
     gid_list = ibs.get_valid_gids()
     aids_list = ibs.get_image_aids(gid_list)
@@ -310,7 +310,152 @@ def plot_distrobutions(distro_dict):
     plt.show()
 
 
-def detect_intersection_over_union(bbox1, bbox2):
+def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=10000, **kwargs):
+    def errors(zipped, conf):
+        error_list = [0, 0, 0, 0]
+        for index, (label, confidence) in enumerate(zipped):
+            if label == category and conf <= confidence:
+                error_list[0] += 1
+            elif label != category and conf <= confidence:
+                error_list[2] += 1
+            elif label == category:
+                error_list[3] += 1
+            elif label != category:
+                error_list[1] += 1
+        return error_list
+
+    zipped = list(zip(label_list, confidence_list))
+    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
+    conf_dict = {}
+    for conf in conf_list:
+        conf_dict[conf] = errors(zipped, conf)
+
+    conf_list_ = [-1.0]
+    pr_list = [1.0]
+    re_list = [0.0]
+    tpr_list = [0.0]
+    fpr_list = [0.0]
+    for conf in sorted(conf_dict.keys(), reverse=True):
+        error_list = conf_dict[conf]
+        tp, tn, fp, fn = error_list
+        pr = tp / (tp + fp)
+        re = tp / (tp + fn)
+        tpr = tp / (tp + fn)
+        fpr = fp / (fp + tn)
+        conf_list_.append(conf)
+        pr_list.append(pr)
+        re_list.append(re)
+        tpr_list.append(tpr)
+        fpr_list.append(fpr)
+
+    return conf_list_, pr_list, re_list, tpr_list, fpr_list
+
+
+def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_limit=0.9):
+    best_length = np.inf
+    best_conf_list = []
+    best_x_list = []
+    best_y_list = []
+    for conf, x, y in zip(conf_list, x_list, y_list):
+        x_ = 1.0 - x if not invert else x
+        if x_ > 1.0 - x_limit:
+            continue
+        y_ = 1.0 - y
+        length = np.sqrt(x_ * x_ + y_ * y_)
+        if length < best_length:
+            best_length = length
+            best_conf_list = [conf]
+            best_x_list = [x]
+            best_y_list = [y]
+        elif length == best_length:
+            flag_list = [ abs(best_conf - conf) > 0.01 for best_conf in best_conf_list ]
+            if False in flag_list:
+                continue
+            best_conf_list.append(conf)
+            best_x_list.append(x)
+            best_y_list.append(y)
+
+    return best_conf_list, best_x_list, best_y_list
+
+
+def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b', invert=False, x_limit=0.9, **kwargs):
+    import matplotlib.pyplot as plt
+    best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
+    best_conf = best_conf_list[0]
+    # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
+    # label = '%s [OP = %s]' % (label, best_conf_list_, )
+    label = '%s [OP = %0.02f]' % (label, best_conf, )
+    plt.plot(x_list, y_list, '%s-' % (color, ), label=label)
+    plt.plot(best_x_list, best_y_list, '%so' % (color, ))
+    area = np.trapz(y_list, x=x_list)
+    if len(best_conf_list) > 1:
+        print('WARNING: %r' % (best_conf_list, ))
+    tup = general_identify_operating_point(conf_list, x_list, y_list, x_limit=x_limit)
+    return area, best_conf, tup
+
+
+def general_confusion_matrix_algo(label_correct_list, label_predict_list,
+                                  category_list, category_mapping,
+                                  fig_, axes_, fuzzy_dict=None, **kwargs):
+    # import matplotlib.colors as colors
+    import matplotlib.pyplot as plt
+    # Get the number of categories
+    num_categories = len(category_list)
+
+    # Build the confusion matrix
+    confusion_matrix = np.zeros((num_categories, num_categories))
+    zipped = zip(label_correct_list, label_predict_list)
+    for label_correct, label_predict, in zipped:
+        # Perform any mapping that needs to be done
+        correct_ = category_mapping[label_correct]
+        predict_ = category_mapping[label_predict]
+        # Add to the confidence matrix
+        confusion_matrix[correct_][predict_] += 1
+
+    # Normalize the confusion matrix using the rows
+    row_normalizer = np.sum(confusion_matrix, axis=1)
+    confusion_normalized = np.array((confusion_matrix.T / row_normalizer).T)
+
+    # Draw the confusion matrix
+    res = axes_.imshow(confusion_normalized, cmap=plt.cm.jet,
+                       interpolation='nearest')
+
+    correct = 0.0
+    fuzzy = 0.0
+    total = 0.0
+    for x in range(num_categories):
+        for y in range(num_categories):
+            number = int(confusion_matrix[x][y])
+            if x == y:
+                correct += number
+            if fuzzy is not None and (y in fuzzy_dict[x] or x in fuzzy_dict[y]):
+                fuzzy += number
+            total += number
+            axes_.annotate(
+                str(number), xy=(y, x),
+                horizontalalignment='center',
+                verticalalignment='center'
+            )
+
+    cb = fig_.colorbar(res)  # NOQA
+    cb.set_clim(0.0, 1.0)
+    plt.xticks(np.arange(num_categories), category_list, rotation=90)
+    plt.yticks(np.arange(num_categories), category_list)
+    margin_small = 0.1
+    margin_large = 0.9
+    plt.subplots_adjust(
+        left=margin_small,
+        right=margin_large,
+        bottom=margin_small,
+        top=margin_large
+    )
+
+    correct_rate = correct / total
+    fuzzy_rate = fuzzy / total
+    return correct_rate, fuzzy_rate
+
+
+def localizer_intersection_over_union(bbox1, bbox2):
     x_overlap = max(0.0,
                     min(bbox1['xtl'] + bbox1['width'], bbox2['xtl'] + bbox2['width']) -
                     max(bbox1['xtl'], bbox2['xtl']))
@@ -321,16 +466,16 @@ def detect_intersection_over_union(bbox1, bbox2):
     return intersection / union
 
 
-def detect_overlap(gt_list, pred_list):
+def localizer_overlap(gt_list, pred_list):
     overlap = np.zeros((len(gt_list), len(pred_list)), dtype=np.float32)
     for i, gt in enumerate(gt_list):
         for j, pred in enumerate(pred_list):
-            overlap[i, j] = detect_intersection_over_union(gt, pred)
+            overlap[i, j] = localizer_intersection_over_union(gt, pred)
     return overlap
 
 
-def detect_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True, **kwargs):
-    overlap = detect_overlap(gt_list, pred_list)
+def localizer_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True, **kwargs):
+    overlap = localizer_overlap(gt_list, pred_list)
     num_gt, num_pred = overlap.shape
     if num_gt == 0:
         tp = 0.0
@@ -361,7 +506,7 @@ def detect_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True, **kw
     return tp, fp, fn
 
 
-def detect_parse_gt(ibs, test_gid_set=None):
+def localizer_parse_gt(ibs, test_gid_set=None):
     if test_gid_set is None:
         test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
@@ -388,7 +533,7 @@ def detect_parse_gt(ibs, test_gid_set=None):
     return gt_dict
 
 
-def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
+def localizer_parse_pred(ibs, test_gid_set=None, **kwargs):
     depc = ibs.depc_image
 
     if test_gid_set is None:
@@ -407,7 +552,7 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
         species = kwargs.get('species', None)
         if species is not None:
             config['species'] = species
-    results_list = depc.get_property('detections', test_gid_set, None, config=config)
+    results_list = depc.get_property('localizations', test_gid_set, None, config=config)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
     # Reformat results for json
@@ -435,16 +580,16 @@ def detect_parse_pred(ibs, test_gid_set=None, **kwargs):
     return pred_dict
 
 
-def detect_precision_recall_algo(ibs, samples=1000, force_serial=True, **kwargs):
+def localizer_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs):
     # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
-    gt_dict = detect_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = localizer_parse_gt(ibs, test_gid_set=test_gid_set)
 
     print('\tGather Predictions')
-    pred_dict = detect_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = localizer_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
@@ -456,11 +601,13 @@ def detect_precision_recall_algo(ibs, samples=1000, force_serial=True, **kwargs)
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     arg_list = list(arg_iter)
-    pr_re_gen = ut.generate(detect_precision_recall_algo_worker, arg_list,
+    pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_list,
                             nTasks=len(arg_list), ordered=True, verbose=False,
                             quiet=True, chunksize=64, force_serial=force_serial)
 
-    conf_list_, pr_list, re_list = [-1.0], [1.0], [0.0]
+    conf_list_ = [-1.0]
+    pr_list = [1.0]
+    re_list = [0.0]
     for conf, pr, re in pr_re_gen:
         conf_list_.append(conf)
         pr_list.append(pr)
@@ -470,7 +617,7 @@ def detect_precision_recall_algo(ibs, samples=1000, force_serial=True, **kwargs)
     return conf_list_, pr_list, re_list
 
 
-def detect_precision_recall_algo_worker(tup):
+def localizer_precision_recall_algo_worker(tup):
     conf, uuid_list, gt_dict, pred_dict, kwargs = tup
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
@@ -480,7 +627,7 @@ def detect_precision_recall_algo_worker(tup):
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp_, fp_, fn_ = detect_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp_, fp_, fn_ = localizer_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
             tp += tp_
             fp += fp_
             fn += fn_
@@ -489,14 +636,14 @@ def detect_precision_recall_algo_worker(tup):
     return (conf, pr, re)
 
 
-def detect_precision_recall_algo_plot(ibs, **kwargs):
+def localizer_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
     print('Processing Precision-Recall for: %r' % (label, ))
-    conf_list, pr_list, re_list = detect_precision_recall_algo(ibs, **kwargs)
+    conf_list, pr_list, re_list = localizer_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def detect_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
+def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
     # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
@@ -504,10 +651,10 @@ def detect_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
-    gt_dict = detect_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = localizer_parse_gt(ibs, test_gid_set=test_gid_set)
 
     print('\tGather Predictions')
-    pred_dict = detect_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = localizer_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
 
     label_list = []
     prediction_list = []
@@ -518,7 +665,7 @@ def detect_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp, fp, fn = detect_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp, fp, fn = localizer_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -539,7 +686,7 @@ def detect_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
 
 
 @register_ibs_method
-def detect_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), **kwargs):
+def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), **kwargs):
     import matplotlib.pyplot as plt
 
     fig_ = plt.figure(figsize=figsize)
@@ -565,10 +712,10 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), 
         'Retrained (GRID)',
     ]
     ret_list = []
-    ret_list.append(detect_precision_recall_algo_plot(ibs, label=name_list[0], color='r', **kwargs_list[0]))
-    ret_list.append(detect_precision_recall_algo_plot(ibs, label=name_list[1], color='b', **kwargs_list[1]))
-    ret_list.append(detect_precision_recall_algo_plot(ibs, label=name_list[2], color='k', **kwargs_list[2]))
-    ret_list.append(detect_precision_recall_algo_plot(ibs, label=name_list[3], color='g', **kwargs_list[3]))
+    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[0], color='r', **kwargs_list[0]))
+    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[1], color='b', **kwargs_list[1]))
+    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[2], color='k', **kwargs_list[2]))
+    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[3], color='g', **kwargs_list[3]))
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
@@ -577,19 +724,19 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), 
     best_kwargs = kwargs_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f )' % (best_name, best_area, ), y=1.13)
+    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_name, best_area, ), y=1.13)
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
     axes_ = plt.subplot(132)
-    axes_.set_xlabel('Predicted')
-    axes_.set_ylabel('Ground-Truth')
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate = detect_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
-    plt.title('P-R Confusion Matrix (Best: %s, Correct = %0.02f%%)' % (best_name, correct_rate * 100.0, ), y=1.26)
+    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix [Algo: %s, OP = %0.02f]' % (best_name, best_conf, ), y=1.26)
 
     best_index = None
     best_conf = None
@@ -599,7 +746,6 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), 
     for index, tup in enumerate(tup_list):
         for conf, re, pr in zip(*tup):
             if pr > best_pr:
-                print(index, conf, re, pr)
                 best_index = index
                 best_conf = conf
                 best_pr = pr
@@ -613,43 +759,30 @@ def detect_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), 
         best_kwargs = kwargs_list[best_index]
 
         axes_ = plt.subplot(133)
-        axes_.set_xlabel('Predicted')
-        axes_.set_ylabel('Ground-Truth')
         axes_.set_aspect(1)
         gca_ = plt.gca()
         gca_.grid(False)
-        correct_rate = detect_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
-        plt.title('P-R Confusion Matrix (Best: %s, Correct = %0.02f%%)' % (best_name, correct_rate * 100.0, ), y=1.26)
+        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('P-R Confusion Matrix [Algo: %s, OP = %0.02f]' % (best_name, best_conf, ), y=1.26)
 
     # plt.show()
-    fig_filename = 'detection-precision-recall-%0.2f.png' % (min_overlap, )
+    fig_filename = 'localizer-precision-recall-%0.2f.png' % (min_overlap, )
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
 
 @register_ibs_method
-def detect_precision_recall_algo_display_animate(ibs, **kwargs):
+def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
     for value in range(10):
         min_overlap = value / 10.0
         print('Processing: %r' % (min_overlap, ))
-        ibs.detect_precision_recall_algo_display(min_overlap=min_overlap)
+        ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap)
 
 
 @register_ibs_method
-def classifier_precision_recall_algo(ibs, samples=10000, **kwargs):
-    def errors(zipped, conf):
-        error_list = [0, 0, 0, 0]
-        for index, (label, confidence) in enumerate(zipped):
-            if label == 'positive' and conf <= confidence:
-                error_list[0] += 1
-            elif label == 'negative' and conf <= confidence:
-                error_list[2] += 1
-            elif label == 'positive':
-                error_list[3] += 1
-            elif label == 'negative':
-                error_list[1] += 1
-        return error_list
-
+def classifier_precision_recall_algo(ibs, **kwargs):
     depc = ibs.depc_image
     category_set = set(['zebra_plains', 'zebra_grevys'])
     gid_list = ibs.get_valid_gids()
@@ -668,59 +801,7 @@ def classifier_precision_recall_algo(ibs, samples=10000, **kwargs):
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence  in zip(prediction_list, confidence_list)
     ]
-
-    zipped = list(zip(label_list, confidence_list))
-    conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-    conf_dict = {}
-    for conf in conf_list:
-        conf_dict[conf] = errors(zipped, conf)
-
-    conf_list = [-1.0]
-    pr_list = [1.0]
-    re_list = [0.0]
-    tpr_list = [0.0]
-    fpr_list = [0.0]
-    for conf in sorted(conf_dict.keys(), reverse=True):
-        error_list = conf_dict[conf]
-        tp, tn, fp, fn = error_list
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-        tpr = tp / (tp + fn)
-        fpr = fp / (fp + tn)
-        conf_list.append(conf)
-        pr_list.append(pr)
-        re_list.append(re)
-        tpr_list.append(tpr)
-        fpr_list.append(fpr)
-
-    return conf_list, pr_list, re_list, tpr_list, fpr_list
-
-
-def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_limit=0.9):
-    best_length = np.inf
-    best_conf_list = []
-    best_x_list = []
-    best_y_list = []
-    for conf, x, y in zip(conf_list, x_list, y_list):
-        x_ = 1.0 - x if not invert else x
-        if x_ > 1.0 - x_limit:
-            continue
-        y_ = 1.0 - y
-        length = np.sqrt(x_ * x_ + y_ * y_)
-        if length < best_length:
-            best_length = length
-            best_conf_list = [conf]
-            best_x_list = [x]
-            best_y_list = [y]
-        elif length == best_length:
-            flag_list = [ abs(best_conf - conf) > 0.01 for best_conf in best_conf_list ]
-            if False in flag_list:
-                continue
-            best_conf_list.append(conf)
-            best_x_list.append(x)
-            best_y_list.append(y)
-
-    return best_conf_list, best_x_list, best_y_list
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
 def classifier_precision_recall_algo_plot(ibs, **kwargs):
@@ -736,63 +817,6 @@ def classifier_roc_algo_plot(ibs, **kwargs):
     print('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
-
-
-def general_confusion_matrix_algo(label_correct_list, label_predict_list,
-                                  category_list, category_mapping,
-                                  fig_, axes_, **kwargs):
-    # import matplotlib.colors as colors
-    import matplotlib.pyplot as plt
-    # Get the number of categories
-    num_categories = len(category_list)
-
-    # Build the confusion matrix
-    confusion_matrix = np.zeros((num_categories, num_categories))
-    zipped = zip(label_correct_list, label_predict_list)
-    for label_correct, label_predict, in zipped:
-        # Perform any mapping that needs to be done
-        correct_ = category_mapping[label_correct]
-        predict_ = category_mapping[label_predict]
-        # Add to the confidence matrix
-        confusion_matrix[correct_][predict_] += 1
-
-    # Normalize the confusion matrix using the rows
-    row_normalizer = np.sum(confusion_matrix, axis=1)
-    confusion_normalized = np.array((confusion_matrix.T / row_normalizer).T)
-
-    # Draw the confusion matrix
-    res = axes_.imshow(confusion_normalized, cmap=plt.cm.jet,
-                       interpolation='nearest')
-
-    correct = 0.0
-    total = 0.0
-    for x in range(num_categories):
-        for y in range(num_categories):
-            number = int(confusion_matrix[x][y])
-            if x == y:
-                correct += number
-            total += number
-            axes_.annotate(
-                str(number), xy=(y, x),
-                horizontalalignment='center',
-                verticalalignment='center'
-            )
-
-    cb = fig_.colorbar(res)  # NOQA
-    cb.set_clim(0.0, 1.0)
-    plt.xticks(np.arange(num_categories), category_list, rotation=90)
-    plt.yticks(np.arange(num_categories), category_list)
-    margin_small = 0.1
-    margin_large = 0.9
-    plt.subplots_adjust(
-        left=margin_small,
-        right=margin_large,
-        bottom=margin_small,
-        top=margin_large
-    )
-
-    correct_rate = correct / total
-    return correct_rate
 
 
 def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
@@ -855,192 +879,244 @@ def classifier_precision_recall_algo_display(ibs, figsize=(14, 14), **kwargs):
                borderaxespad=0.0)
 
     axes_ = plt.subplot(223)
-    axes_.set_xlabel('Predicted')
-    axes_.set_ylabel('Ground-Truth')
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_)
-    plt.title('P-R Confusion Matrix (Correct = %0.02f%%)' % (correct_rate * 100.0, ), y=1.15)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix [OP = %0.02f]' % (best_conf1, ), y=1.15)
 
     axes_ = plt.subplot(224)
-    axes_.set_xlabel('Predicted')
-    axes_.set_ylabel('Ground-Truth')
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_)
-    plt.title('ROC Confusion Matrix (Correct = %0.02f%%)' % (correct_rate * 100.0, ), y=1.15)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix [OP = %0.02f]' % (best_conf2, ), y=1.15)
 
     fig_filename = 'classifier-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-@register_ibs_method
-def labeler_precision_recall_algo(ibs, samples=10000, **kwargs):
-    def errors(zipped, conf):
+def labeler_tp_tn_fp_fn(ibs, samples=10000, **kwargs):
+    from ibeis.algo.detect.labeler.model import label_list as category_list
+
+    def errors(zipped, conf, category):
         error_list = [0, 0, 0, 0]
         for index, (label, confidence) in enumerate(zipped):
-            if label == 'positive' and conf <= confidence:
+            if label == category and conf <= confidence:
                 error_list[0] += 1
-            elif label == 'negative' and conf <= confidence:
+            elif label != category and conf <= confidence:
                 error_list[2] += 1
-            elif label == 'positive':
+            elif label == category:
                 error_list[3] += 1
-            elif label == 'negative':
+            elif label != category:
                 error_list[1] += 1
         return error_list
 
     depc = ibs.depc_annot
-    category_set = set(['zebra_plains', 'zebra_grevys'])
     aid_list = ibs.get_valid_aids()
     species_list = ibs.get_annot_species_texts(aid_list)
     yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    category_set = set(['zebra_plains', 'zebra_grevys'])
     label_list = [
         '%s:%s' % (species, yaw, ) if species in category_set else 'ignore'
         for species, yaw in zip(species_list, yaw_list)
     ]
-    prediction_list = depc.get_property('labeler', aid_list, 'class')
-    confidence_list = depc.get_property('labeler', aid_list, 'score')
-    confidence_list = [
-        confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
-    ]
-
-    zipped = list(zip(label_list, confidence_list))
+    probability_dict_list = depc.get_property('labeler', aid_list, 'probs')
+    probability_dict_list = probability_dict_list
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
-    conf_dict = {}
-    for conf in conf_list:
-        conf_dict[conf] = errors(zipped, conf)
 
-    conf_list = [-1.0]
+    label_dict = {}
+    for category in category_list:
+        print('\t%r' % (category, ))
+        conf_dict = {}
+        confidence_list = [
+            probability_dict[category]
+            for probability_dict in probability_dict_list
+        ]
+        zipped = list(zip(label_list, confidence_list))
+        for conf in conf_list:
+            conf_dict[conf] = errors(zipped, conf, category)
+        label_dict[category] = conf_dict
+    return label_dict
+
+
+@register_ibs_method
+def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
+
+    global_conf_dict = {}
+    for category in category_list:
+        conf_dict = label_dict[category]
+        for conf in conf_dict:
+            new_list = conf_dict[conf]
+            if conf not in global_conf_dict:
+                global_conf_dict[conf] = new_list
+            else:
+                cur_list = global_conf_dict[conf]
+                zipped_ = zip(cur_list, new_list)
+                global_conf_dict[conf] = [cur + new for cur, new in zipped_]
+
+    conf_list_ = [-1.0]
     pr_list = [1.0]
     re_list = [0.0]
     tpr_list = [0.0]
     fpr_list = [0.0]
-    for conf in sorted(conf_dict.keys(), reverse=True):
-        error_list = conf_dict[conf]
+    for conf in sorted(global_conf_dict.keys(), reverse=True):
+        error_list = global_conf_dict[conf]
         tp, tn, fp, fn = error_list
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-        tpr = tp / (tp + fn)
-        fpr = fp / (fp + tn)
-        conf_list.append(conf)
+        try:
+            pr = tp / (tp + fp)
+            re = tp / (tp + fn)
+            tpr = tp / (tp + fn)
+            fpr = fp / (fp + tn)
+        except ZeroDivisionError:
+            print('\tbad conf %0.05f - %d %d %d %d' % (conf, tp, tn, fp, fn, ))
+            continue
+        conf_list_.append(conf)
         pr_list.append(pr)
         re_list.append(re)
         tpr_list.append(tpr)
         fpr_list.append(fpr)
 
-    return conf_list, pr_list, re_list, tpr_list, fpr_list
-
-
-def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b', invert=False, x_limit=0.9, **kwargs):
-    import matplotlib.pyplot as plt
-    best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
-    best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
-    label = '%s [OP = %s]' % (label, best_conf_list_, )
-    plt.plot(x_list, y_list, '%s-' % (color, ), label=label)
-    plt.plot(best_x_list, best_y_list, '%so' % (color, ))
-    area = np.trapz(y_list, x=x_list)
-    if len(best_conf_list) > 1:
-        print('WARNING: %r' % (best_conf_list, ))
-    best_conf = best_conf_list[0]
-    tup = general_identify_operating_point(conf_list, x_list, y_list, x_limit=x_limit)
-    return area, best_conf, tup
+    return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
 
 def labeler_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    category_list = kwargs['category_list']
+    print('Processing Precision-Recall for: %r (category_list = %r)' % (label, category_list, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def labeler_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
+    category_list = kwargs['category_list']
     kwargs['invert'] = True
-    print('Processing ROC for: %r' % (label, ))
+    print('Processing ROC for: %r (category_list = %r)' % (label, category_list, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = labeler_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
 
 
-def labeler_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+def labeler_confusion_matrix_algo_plot(ibs, label, color, **kwargs):
+    def simpler(label):
+        if label == 'ignore':
+            return 'IGNORE'
+        label = label.replace('zebra_plains', 'PZ')
+        label = label.replace('zebra_grevys', 'GZ')
+        label = label.replace('frontleft',    'FL')
+        label = label.replace('frontright',   'FR')
+        label = label.replace('backleft',     'BL')
+        label = label.replace('backright',    'BR')
+        label = label.replace('front',        'F')
+        label = label.replace('back',         'B')
+        label = label.replace('left',         'L')
+        label = label.replace('right',        'R')
+        return label
+
+    from ibeis.algo.detect.labeler.model import label_list as category_list
+    print('Processing Confusion Matrix for: %r' % (label, ))
     depc = ibs.depc_annot
+    aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
     category_set = set(['zebra_plains', 'zebra_grevys'])
-    gid_list = ibs.get_valid_gids()
-    aids_list = ibs.get_image_aids(gid_list)
-    species_set_list = [
-        set(ibs.get_annot_species_texts(aid_list))
-        for aid_list in aids_list
-    ]
     label_list = [
-        'negative' if len(species_set & category_set) == 0 else 'positive'
-        for species_set in species_set_list
+        '%s:%s' % (species, yaw, ) if species in category_set else 'ignore'
+        for species, yaw in zip(species_list, yaw_list)
     ]
-    confidence_list = depc.get_property('labeler', gid_list, 'score')
+    species_list = depc.get_property('labeler', aid_list, 'species')
+    yaw_list = depc.get_property('labeler', aid_list, 'viewpoint')
     prediction_list = [
-        'positive' if confidence >= conf else 'negative'
-        for confidence in confidence_list
+        '%s:%s' % (species, yaw, ) if species in category_set else 'ignore'
+        for species, yaw in zip(species_list, yaw_list)
     ]
 
-    category_list = ['positive', 'negative']
-    category_mapping = {
-        'positive': 0,
-        'negative': 1,
-    }
+    category_list = map(simpler, category_list)
+    label_list = map(simpler, label_list)
+    prediction_list = map(simpler, prediction_list)
+    category_mapping = { key: index for index, key in enumerate(category_list) }
     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-                                         category_mapping, **kwargs)
+                                                 category_mapping, **kwargs)
 
 
 @register_ibs_method
-def labeler_precision_recall_algo_display(ibs, figsize=(14, 14), **kwargs):
+def labeler_precision_recall_algo_display(ibs, figsize=(24, 7), **kwargs):
     import matplotlib.pyplot as plt
+    from ibeis.algo.detect.labeler.model import label_list
 
-    fig_ = plt.figure(figsize=figsize)
+    print('Compiling raw numebrs...')
+    label_dict = labeler_tp_tn_fp_fn(ibs, **kwargs)
 
-    axes_ = plt.subplot(221)
+    category_color_list = [
+        (None          , 'b', 'All'),
+        (':'           , 'y', 'Zebras'),
+        ('zebra_plains', 'r', 'Plains Only'),
+        ('zebra_grevys', 'g', 'Grevy\'s Only'),
+        ('ignore'      , 'k', 'Ignore Only'),
+    ]
+
+    fig_ = plt.figure(figsize=figsize)  # NOQA
+
+    axes_ = plt.subplot(131)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf1, _ = labeler_precision_recall_algo_plot(ibs, label='V1', color='r')
-    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    area_list = []
+    conf_list = []
+    for category, color, label_ in category_color_list:
+        category_list = [ label for label in label_list if category is None or category in label ]
+        area, conf, _ = labeler_precision_recall_algo_plot(ibs, category_list=category_list, label=label_, color=color, label_dict=label_dict)
+        area_list.append(area)
+        conf_list.append(conf)
+    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(222)
+    axes_ = plt.subplot(132)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('False-Positive Rate')
     axes_.set_ylabel('True-Positive Rate')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf2, _ = labeler_roc_algo_plot(ibs, label='V1', color='r')
-    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    area_list = []
+    conf_list = []
+    for category, color, label_ in category_color_list:
+        category_list = [ label for label in label_list if category is None or category in label ]
+        area, conf, _ = labeler_roc_algo_plot(ibs, category_list=category_list, label=label_, color=color, label_dict=label_dict)
+        area_list.append(area)
+        conf_list.append(conf)
+    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.19)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(223)
-    axes_.set_xlabel('Predicted')
-    axes_.set_ylabel('Ground-Truth')
+    fuzzy_dict = {}
+    for index1, label1 in enumerate(label_list):
+        if label1 == 'ignore':
+            fuzzy_list = []
+        else:
+            species, viewpoint = label1.strip().split(':')
+            fuzzy_list = []
+            for index2, label2 in enumerate(label_list):
+                if species in label2:
+                    fuzzy_list.append(index2)
+        fuzzy_dict[index1] = set(fuzzy_list)
+    axes_ = plt.subplot(133)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_)
-    plt.title('P-R Confusion Matrix (Correct = %0.02f%%)' % (correct_rate * 100.0, ) , y=1.15)
-
-    axes_ = plt.subplot(224)
-    axes_.set_xlabel('Predicted')
+    correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_)
-    plt.title('ROC Confusion Matrix (Correct = %0.02f%%)' % (correct_rate * 100.0, ) , y=1.15)
+    plt.title('P-R Confusion Matrix', y=1.35)
 
     fig_filename = 'labeler-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -1091,6 +1167,13 @@ def detect_write_detection_all(ibs):
         write_filepath = join(write_path, '%d.jpg' % (index, ))
         print(write_filepath)
         cv2.imwrite(write_filepath, test_image)
+
+
+@register_ibs_method
+def detector_metric_graphs(ibs):
+    ibs.classifier_precision_recall_algo_display()
+    ibs.localizer_precision_recall_algo_display()
+    ibs.labeler_precision_recall_algo_display()
 
 
 @register_ibs_method

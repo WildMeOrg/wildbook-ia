@@ -316,7 +316,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         notes_list               (list):
         vert_list                (list): alternative to bounding box
         annot_uuid_list          (list):
-        yaw_list           (list):
+        yaw_list                 (list):
         annot_visual_uuid_list   (list):
         annot_semantic_uuid_list (list):
         quiet_delete_thumbs      (bool):
@@ -1371,7 +1371,7 @@ def get_annot_thetas(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot/uuids/', methods=['GET', 'POST'])
+@register_api('/api/annot/uuids/', methods=['GET'])
 def get_annot_uuids(ibs, aid_list):
     r"""
     Returns:
@@ -1382,6 +1382,23 @@ def get_annot_uuids(ibs, aid_list):
         URL:    /api/annot/uuids/
     """
     annot_uuid_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_uuid',), aid_list)
+    return annot_uuid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/uuids/valid/', methods=['GET'])
+def get_valid_annot_uuids(ibs):
+    r"""
+    Returns:
+        list: annot_uuid_list a list of image uuids for all valid aids
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/uuids/
+    """
+    aid_list = ibs.get_valid_aids()
+    annot_uuid_list = ibs.get_annot_uuids(aid_list)
     return annot_uuid_list
 
 
