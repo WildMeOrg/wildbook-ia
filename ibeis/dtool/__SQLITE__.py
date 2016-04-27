@@ -135,6 +135,7 @@ def REGISTER_SQLITE3_TYPES():
     register_numpy()
     register_uuid()
     register_dict()
+    register_list()
 REGISTER_SQLITE3_TYPES()
 
 
