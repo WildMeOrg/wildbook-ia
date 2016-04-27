@@ -435,6 +435,7 @@ class DetectorConfig(dtool.Config):
         ut.ParamInfo('localizer_weight_filepath', 'v2'),
         ut.ParamInfo('localizer_grid',            False),
         ut.ParamInfo('localizer_sensitivity',     0.16),
+        ut.ParamInfo('labeler_sensitivity',       0.39),
     ]
     _sub_config_list = [
         ThumbnailConfig,
@@ -506,7 +507,8 @@ def compute_detections(depc, gid_list, config=None):
     thetas_list = depc.get_property('localizations', gid_list_, 'thetas', config=localizer_config)
     confses_list = depc.get_property('localizations', gid_list_, 'confs', config=localizer_config)
     specieses_list   = depc.get_property('labeler',  gid_list_, 'species', config=localizer_config)
-    viewpoints_list   = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
+    viewpoints_list  = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
+    scores_list      = depc.get_property('labeler', gid_list_, 'score', config=localizer_config)
 
     # Collect the detections, filtering by the localization confidence
     detect_dict = {}
@@ -515,12 +517,13 @@ def compute_detections(depc, gid_list, config=None):
         theta_list = thetas_list[index]
         species_list = specieses_list[index]
         viewpoint_list = viewpoints_list[index]
-        confs_list = confses_list[index]
-        zipped = zip(bbox_list, theta_list, species_list, viewpoint_list, confs_list)
+        conf_list = confses_list[index]
+        score_list = scores_list[index]
+        zipped = zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list, score_list)
         zipped = [
-            tup
-            for tup in zipped
-            if tup[-1] >= config['localizer_sensitivity']
+            [bbox, theta, species, viewpoint, conf * score]
+            for bbox, theta, species, viewpoint, conf, score in zipped
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
         ]
         detect_list = tuple([0.0] + [np.array(_) for _ in zip(*zipped)])
         detect_dict[gid] = detect_list
