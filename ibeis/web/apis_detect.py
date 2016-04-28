@@ -96,8 +96,9 @@ def review_detection_test():
         }
         for aid, (xtl, ytl, width, height), species in zipped
     ]
-    callback_url = url_for('process_detection_html')
-    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, include_jquery=True)
+    callback_url = request.args.get('callback_url', url_for('process_detection_html'))
+    callback_method = request.args.get('callback_method', 'POST')
+    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
     template_html = '''
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
         %s
