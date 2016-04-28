@@ -4,7 +4,6 @@
     {{ EMBEDDED_CSS|safe }}
   {% endif %}
 
-  <!-- <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-detection-form" enctype="application/x-www-form-urlencoded"> -->
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-detection-form">
     <div id="ia-bbox-annotator"></div>
     <div style="text-align: center; color: #aaa;">
