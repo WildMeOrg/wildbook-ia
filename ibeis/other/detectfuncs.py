@@ -44,7 +44,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
     information = {
         'database_name' : ibs.get_dbname()
     }
-    datadir = ibs._ibsdb + '/LearningData/'
+    datadir = ibs.get_cachedir() + '/LearningData/'
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
@@ -499,7 +499,8 @@ def general_overlap(gt_list, pred_list):
     return overlap
 
 
-def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True, **kwargs):
+def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
+                     check_species=False, check_viewpoint=False, **kwargs):
     overlap = general_overlap(gt_list, pred_list)
     num_gt, num_pred = overlap.shape
     if num_gt == 0:
@@ -526,6 +527,14 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True, **k
                 if key not in index_list_:
                     del assignment_dict[key]
             tp = len(assignment_dict.keys())
+        if check_species or check_viewpoint:
+            for gt, pred in assignment_dict.iteritems():
+                print(gt_list[gt]['species'], pred_list[pred]['species'])
+                print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
+                if gt_list[gt]['species'] != pred_list[pred]['species']:
+                    tp -= 1
+                elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
+                    tp -= 1
         fp = num_pred - tp
         fn = num_gt - tp
     return tp, fp, fn
@@ -1155,7 +1164,7 @@ def labeler_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     correct_rate, fuzzy_rate = labeler_confusion_matrix_algo_plot(ibs, 'V1', 'r', fig_=fig_, axes_=axes_, fuzzy_dict=fuzzy_dict, conf=best_conf)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%, Species = %0.02f%%)' % (correct_rate * 100.0, fuzzy_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Algo: All, OP = %0.02f%%)' % (best_conf, ), y=1.15)
+    plt.title('P-R Confusion Matrix (Algo: All, OP = %0.02f)' % (best_conf, ), y=1.15)
 
     fig_filename = 'labeler-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -1170,17 +1179,14 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     config = {
-        'algo'            : 'yolo',
-        'sensitivity'     : 0.0,
-        'config_filepath' : None,
-        'weight_filepath' : None,
-        'grid'            : False,
+        'classifier_sensitivity'    : 0.82,
+        'localizer_config_filepath' : 'v2',
+        'localizer_weight_filepath' : 'v2',
+        'localizer_grid'            : False,
+        'localizer_sensitivity'     : 0.16,
+        'labeler_sensitivity'       : 0.42,
     }
     config = ut.update_existing(config, kwargs)
-    if config.get('algo', None) == 'rf':
-        species = kwargs.get('species', None)
-        if species is not None:
-            config['species'] = species
 
     results_list = depc.get_property('detections', test_gid_set, None, config=config)
     size_list = ibs.get_image_sizes(test_gid_set)
@@ -1196,6 +1202,7 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
                 'theta'      : theta,  # round(theta, 4),
                 'confidence' : conf,   # round(conf, 4),
                 'species'    : species_,
+                'viewpoint'  : viewpoint,
             }
             for bbox, theta, species_, viewpoint, conf in zip(*zipped[0][1:])
         ]
@@ -1331,26 +1338,31 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     kwargs_list = [
         {'min_overlap' : min_overlap},
         {'min_overlap' : min_overlap, 'check_species' : True},
-        {'min_overlap' : min_overlap, 'check_species' : True, 'check_viewpoint' : True},
+        {'min_overlap' : min_overlap, 'check_viewpoint' : True},
     ]
-    name_list = [
-        'BBox',
-        'BBox+S',
-        'BBox+S+V',
+    label_list = [
+        'Opt L',
+        'Opt L+S'
+        'Opt L+S+V',
     ]
-    ret_list = []
-    ret_list.append(detector_precision_recall_algo_plot(ibs, label=name_list[0], color='r', **kwargs_list[0]))
-    ret_list.append(detector_precision_recall_algo_plot(ibs, label=name_list[1], color='b', **kwargs_list[1]))
-    ret_list.append(detector_precision_recall_algo_plot(ibs, label=name_list[2], color='g', **kwargs_list[2]))
+    color_list = [
+        'r',
+        'b',
+        'g',
+    ]
+    ret_list = [
+        detector_precision_recall_algo_plot(ibs, label=label, color=color, **kwargs_)
+        for label, color, kwargs_ in zip(label_list, color_list, kwargs_list)
+    ]
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     index = np.argmax(area_list)
-    best_name = name_list[index]
+    best_label = label_list[index]
     best_kwargs = kwargs_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_name, best_area, ), y=1.13)
+    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1362,7 +1374,7 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_name, best_conf, ), y=1.26)
+    plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
 
     # best_index = None
     # best_conf = None
@@ -1404,7 +1416,55 @@ def detector_metric_graphs(ibs):
     ibs.classifier_precision_recall_algo_display()
     ibs.localizer_precision_recall_algo_display()
     ibs.labeler_precision_recall_algo_display()
-    ibs.detector_precision_recall_algo_display()
+    # ibs.detector_precision_recall_algo_display()
+
+
+@register_ibs_method
+def classifier_train(ibs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_training_images
+    from ibeis.algo.detect.classifier.classifier import train_classifier
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    get_cnn_classifier_training_images(ibs, data_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'classifier')
+    model_path = train_classifier(output_path, source_path=data_path)
+    return model_path
+
+
+@register_ibs_method
+def localizer_train(ibs):
+    from pydarknet import Darknet_YOLO_Detector
+    data_path = ibs.export_to_xml()
+    output_path = join(ibs.get_cachedir(), 'training', 'localizer')
+    ut.ensuredir(output_path)
+    dark = Darknet_YOLO_Detector()
+    model_path = dark.train(data_path, output_path)
+    return model_path
+
+
+@register_ibs_method
+def labeler_train(ibs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
+    from ibeis.algo.detect.labeler.labeler import train_labeler
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    get_cnn_labeler_training_images(ibs, data_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'labeler')
+    model_path = train_labeler(output_path, source_path=data_path)
+    return model_path
+
+
+@register_ibs_method
+def detector_train(ibs):
+    results = ibs.localizer_train()
+    localizer_weight_path, localizer_config_path, localizer_class_path = results
+    classifier_model_path = ibs.classifier_train()
+    labeler_model_path = ibs.labeler_train()
+    output_path = join(ibs.get_cachedir(), 'training', 'detector')
+    ut.ensuredir(output_path)
+    ut.copy(localizer_weight_path, join(output_path, 'localizer.weights'))
+    ut.copy(localizer_config_path, join(output_path, 'localizer.config'))
+    ut.copy(localizer_class_path,  join(output_path, 'localizer.classes'))
+    ut.copy(classifier_model_path, join(output_path, 'classifier.npy'))
+    ut.copy(labeler_model_path,    join(output_path, 'labeler.npy'))
 
 
 def _resize(image, t_width=None, t_height=None):

@@ -43,7 +43,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
     print("[randomforest.train()] training with %d gids and species=%r" % (
         len(gid_list), species, ))
     if trees_path is None and species is not None:
-        trees_path = join(ibs.get_treesdir(), species)
+        trees_path = join(ibs.get_cachedir(), 'trees', species)
 
     # Get positive chip paths
     if species is None:
@@ -51,7 +51,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
     else:
         aids_list = ibs.get_image_aids_of_species(gid_list, species)
 
-    ##### TEMP #####
+    # ##### TEMP #####
     # gid_list_ = []
     # aids_list_ = []
     # for gid, aid_list in zip(gid_list, aids_list):
@@ -66,7 +66,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
     # gid_list = gid_list_
     # aids_list = aids_list_
     # kwargs['trees_max_patches'] = 100000
-    ##### TEMP #####
+    # ##### TEMP #####
 
     aid_list = ut.flatten(aids_list)
     train_pos_cpath_list = ibs.get_annot_chip_fpath(aid_list)

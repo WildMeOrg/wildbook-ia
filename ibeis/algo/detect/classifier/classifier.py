@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 import ibeis
-from os.path import isfile, join, exists
+from os.path import isfile, join, exists, expanduser
 from ibeis.algo.detect.classifier.model import Classifier_Model
 from os import listdir
 import utool as ut
@@ -24,20 +24,22 @@ MODEL_URLS = {
 }
 
 
-def load_classifier(source_path='classifier',
-                     cache_data_filename='data.npy',
-                     cache_labels_filename='labels.npy',
-                     cache=True):
+def load_classifier(source_path=None, source_name='classifier',
+                    cache_data_filename='data.npy',
+                    cache_labels_filename='labels.npy',
+                    cache=True, **kwargs):
+    if source_path is None:
+        source_path = expanduser(join('~', 'Desktop', 'extracted'))
 
-    cache_data_filepath = join('extracted', cache_data_filename)
-    cache_labels_filepath = join('extracted', cache_labels_filename)
+    cache_data_filepath = join(source_path, source_name, cache_data_filename)
+    cache_labels_filepath = join(source_path, source_name, cache_labels_filename)
 
     if exists(cache_data_filepath) and exists(cache_labels_filepath) and cache:
         data_list = np.load(cache_data_filepath)
         label_list = np.load(cache_labels_filepath)
         return data_list, label_list
 
-    label_filepath = join('extracted', 'labels', source_path, 'labels.csv')
+    label_filepath = join(source_path, source_name, 'labels', 'labels.csv')
     label_dict = {}
     with open(label_filepath) as labels:
         label_list = labels.read().split()
@@ -47,7 +49,7 @@ def load_classifier(source_path='classifier',
             class_ = label_list[1]
             label_dict[filename] = class_
 
-    background_path = join('extracted', 'raw', source_path)
+    background_path = join(source_path, source_name, 'raw')
     filename_list = [
         f for f in listdir(background_path)
         if isfile(join(background_path, f))
@@ -78,9 +80,9 @@ def load_classifier(source_path='classifier',
     return data_list, label_list
 
 
-def train_classifier(output_path):
+def train_classifier(output_path, **kwargs):
     print('[classifier] Loading the classifier training data')
-    data_list, label_list = load_classifier()
+    data_list, label_list = load_classifier(**kwargs)
 
     print('[classifier] Loading the data into a JPCNN_Data')
     data = JPCNN_Data()
@@ -92,13 +94,14 @@ def train_classifier(output_path):
 
     print('[classifier] Create the JPCNN_network and start training')
     net = JPCNN_Network(model, data)
-    net.train(
+    model_path = net.train(
         output_path,
         train_learning_rate=0.01,
         train_batch_size=64,
         train_max_epochs=40,
         train_mini_batch_augment=False,
     )
+    return model_path
 
 
 def load_images(cache_data_filename='test_data.npy',

@@ -283,7 +283,7 @@ def compute_localizations(depc, gid_list, config=None):
             np.array([ _[6]   for _ in temp ]),
         )
 
-    print('[ibs] Preprocess Detections')
+    print('[ibs] Preprocess Localizations')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
@@ -435,7 +435,7 @@ class DetectorConfig(dtool.Config):
         ut.ParamInfo('localizer_weight_filepath', 'v2'),
         ut.ParamInfo('localizer_grid',            False),
         ut.ParamInfo('localizer_sensitivity',     0.16),
-        ut.ParamInfo('labeler_sensitivity',       0.39),
+        ut.ParamInfo('labeler_sensitivity',       0.42),
     ]
     _sub_config_list = [
         ThumbnailConfig,
@@ -477,7 +477,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
-    print('[ibs] Preprocess Detections (Filtered)')
+    print('[ibs] Preprocess Detections')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
@@ -503,14 +503,15 @@ def compute_detections(depc, gid_list, config=None):
         'weight_filepath' : config['localizer_weight_filepath'],
         'grid'            : config['localizer_grid'],
     }
-    bboxes_list = depc.get_property('localizations', gid_list_, 'bboxes', config=localizer_config)
-    thetas_list = depc.get_property('localizations', gid_list_, 'thetas', config=localizer_config)
-    confses_list = depc.get_property('localizations', gid_list_, 'confs', config=localizer_config)
-    specieses_list   = depc.get_property('labeler',  gid_list_, 'species', config=localizer_config)
-    viewpoints_list  = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
-    scores_list      = depc.get_property('labeler', gid_list_, 'score', config=localizer_config)
+    bboxes_list  = depc.get_property('localizations', gid_list_, 'bboxes',    config=localizer_config)
+    thetas_list  = depc.get_property('localizations', gid_list_, 'thetas',    config=localizer_config)
+    confses_list = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
+    specieses_list     = depc.get_property('labeler', gid_list_, 'species',   config=localizer_config)
+    viewpoints_list    = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
+    scores_list        = depc.get_property('labeler', gid_list_, 'score',     config=localizer_config)
 
     # Collect the detections, filtering by the localization confidence
+    empty_list = [0.0, np.array([]), np.array([]), np.array([]), np.array([]), np.array([])]
     detect_dict = {}
     for index, gid in enumerate(gid_list_):
         bbox_list = bboxes_list[index]
@@ -525,17 +526,21 @@ def compute_detections(depc, gid_list, config=None):
             for bbox, theta, species, viewpoint, conf, score in zipped
             if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
         ]
-        detect_list = tuple([0.0] + [np.array(_) for _ in zip(*zipped)])
+        if len(zipped) == 0:
+            detect_list = list(empty_list)
+        else:
+            detect_list = [0.0] + [np.array(_) for _ in zip(*zipped)]
         detect_dict[gid] = detect_list
 
     # Filter the annotations by the localizer operating point
     for gid in gid_list:
         if gid not in gid_set_:
             assert gid not in detect_dict
-            yield 0.0, np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+            result = list(empty_list)
         else:
             assert gid in detect_dict
-            yield detect_dict[gid]
+            result = detect_dict[gid]
+        yield tuple(result)
 
 
 if __name__ == '__main__':
