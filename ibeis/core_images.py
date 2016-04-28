@@ -360,6 +360,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
+
     gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
     assert len(gid_list_) == len(loc_id_list)
 
@@ -435,8 +436,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
 class DetectorConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_sensitivity',    0.82),
-        ut.ParamInfo('localizer_config_filepath', 'v2'),
-        ut.ParamInfo('localizer_weight_filepath', 'v2'),
+        ut.ParamInfo('localizer_config_filepath', None),
+        ut.ParamInfo('localizer_weight_filepath', None),
         ut.ParamInfo('localizer_grid',            False),
         ut.ParamInfo('localizer_sensitivity',     0.16),
         ut.ParamInfo('labeler_sensitivity',       0.42),
@@ -474,10 +475,14 @@ def compute_detections(depc, gid_list, config=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> # defaultdb = 'PZ_MTEST'
+        >>> # ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> # dbdir = '/Users/bluemellophone/Desktop/GGR-IBEIS-TEST/'
+        >>> dbdir = '/media/danger/GGR/GGR-IBEIS-TEST/'
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:2]
+        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> depc.delete_property('detections', gid_list)
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
@@ -521,6 +526,14 @@ def compute_detections(depc, gid_list, config=None):
         bbox_list = bboxes_list[index]
         theta_list = thetas_list[index]
         species_list = specieses_list[index]
+        species_dict = {}
+        for species in species_list:
+            if species not in species_dict:
+                species_dict[species] = 0
+            species_dict[species] += 1
+        for tup in species_dict.iteritems():
+            print('\t%r' % (tup, ))
+        print('----')
         viewpoint_list = viewpoints_list[index]
         conf_list = confses_list[index]
         score_list = scores_list[index]
@@ -544,6 +557,12 @@ def compute_detections(depc, gid_list, config=None):
         else:
             assert gid in detect_dict
             result = detect_dict[gid]
+        print(result)
+        print('')
+        # image = ibs.get_images(gid)
+        # image = vt.resize(image, (500, 500))
+        # cv2.imshow('', image)
+        # cv2.waitKey(0)
         yield tuple(result)
 
 
