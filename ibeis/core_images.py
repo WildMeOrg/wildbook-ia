@@ -475,11 +475,11 @@ def compute_detections(depc, gid_list, config=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> # defaultdb = 'PZ_MTEST'
-        >>> # ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> # dbdir = '/Users/bluemellophone/Desktop/GGR-IBEIS-TEST/'
-        >>> dbdir = '/media/danger/GGR/GGR-IBEIS-TEST/'
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> # dbdir = '/media/danger/GGR/GGR-IBEIS-TEST/'
+        >>> # ibs = ibeis.opendb(dbdir=dbdir)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:10]
         >>> depc.delete_property('detections', gid_list)
@@ -526,14 +526,14 @@ def compute_detections(depc, gid_list, config=None):
         bbox_list = bboxes_list[index]
         theta_list = thetas_list[index]
         species_list = specieses_list[index]
-        species_dict = {}
-        for species in species_list:
-            if species not in species_dict:
-                species_dict[species] = 0
-            species_dict[species] += 1
-        for tup in species_dict.iteritems():
-            print('\t%r' % (tup, ))
-        print('----')
+        # species_dict = {}
+        # for species in species_list:
+        #     if species not in species_dict:
+        #         species_dict[species] = 0
+        #     species_dict[species] += 1
+        # for tup in species_dict.iteritems():
+        #     print('\t%r' % (tup, ))
+        # print('----')
         viewpoint_list = viewpoints_list[index]
         conf_list = confses_list[index]
         score_list = scores_list[index]
@@ -557,8 +557,8 @@ def compute_detections(depc, gid_list, config=None):
         else:
             assert gid in detect_dict
             result = detect_dict[gid]
-        print(result)
-        print('')
+        # print(result)
+        # print('')
         # image = ibs.get_images(gid)
         # image = vt.resize(image, (500, 500))
         # cv2.imshow('', image)
