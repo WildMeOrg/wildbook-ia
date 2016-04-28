@@ -66,8 +66,10 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {'algo': 'pyrf', 'species': species}
-    results_list = depc.get_property('detections', gid_list, None, config=config)
-    aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
+    # results_list = depc.get_property('detections', gid_list, None, config=config)
+    results_list = depc.get_property('localizations', gid_list, None, config=config)
+    # aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
+    aids_list = ibs.commit_localization_results(gid_list, results_list, note='pyrfdetect')
     return aids_list
 
 
@@ -265,7 +267,8 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
     depc = ibs.depc_image
     # Get detections from depc
     config = {'algo': 'yolo'}
-    results_list = depc.get_property('detections', gid_list, None, config=config)
+    # results_list = depc.get_property('detections', gid_list, None, config=config)
+    results_list = depc.get_property('localizations', gid_list, None, config=config)
     score_list = [ results[0] for results in results_list ]
     zipped_list = zip(results_list)
     # Reformat results for json
@@ -278,9 +281,10 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
                 'height'     : bbox[3],
                 'theta'      : round(theta, 4),
                 'confidence' : round(conf, 4),
-                'class'      : species,
+                'class'      : class_,
             }
-            for bbox, theta, species, viewpoint, conf in zip(*zipped[0][1:])
+            # for bbox, theta, class_, viewpoint, conf in zip(*zipped[0][1:])
+            for bbox, theta, conf, class_ in zip(*zipped[0][1:])
         ]
         for zipped in zipped_list
     ]
@@ -338,10 +342,35 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {'algo': 'yolo'}
-    results_list = depc.get_property('detections', gid_list, None, config=config)
+    # results_list = depc.get_property('detections', gid_list, None, config=config)
+    results_list = depc.get_property('localizations', gid_list, None, config=config)
     if commit:
-        aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
+        # aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
+        aids_list = ibs.commit_localization_results(gid_list, results_list, note='cnnyolodetect')
         return aids_list
+
+
+@register_ibs_method
+def commit_localization_results(ibs, gid_list, results_list, note=None):
+    zipped_list = zip(gid_list, results_list)
+    aids_list = []
+    for gid, (score, bbox_list, theta_list, conf_list, class_list) in zipped_list:
+        num = len(bbox_list)
+        notes_list = None if note is None else [note] * num
+        aid_list = ibs.add_annots(
+            [gid] * num,
+            bbox_list,
+            theta_list,
+            class_list,
+            detect_confidence_list=conf_list,
+            notes_list=notes_list,
+            quiet_delete_thumbs=True,
+            skip_cleaning=True
+        )
+        # ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
+        aids_list.append(aid_list)
+    ibs._clean_species()
+    return aids_list
 
 
 @register_ibs_method

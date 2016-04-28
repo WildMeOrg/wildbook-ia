@@ -38,6 +38,7 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import cv2
+import ibeis.constants as const
 from ibeis.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
@@ -350,6 +351,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> # depc.delete_property('labeler', gid_list)
         >>> results = depc.get_property('labeler', gid_list, None)
+        >>> results = depc.get_property('labeler', gid_list, 'species')
         >>> print(results)
     """
     from ibeis.algo.detect.labeler.labeler import label_chip_list
@@ -398,6 +400,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
             img = ibs.get_images(gid)
             last_gid = gid
         chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
+        # cv2.imshow('', chip)
+        # cv2.waitKey()
         assert chip.shape[0] == 128 and chip.shape[1] == 128
         chip_list.append(chip)
 
@@ -524,7 +528,7 @@ def compute_detections(depc, gid_list, config=None):
         zipped = [
             [bbox, theta, species, viewpoint, conf * score]
             for bbox, theta, species, viewpoint, conf, score in zipped
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and species not in [const.UNKNOWN]
         ]
         if len(zipped) == 0:
             detect_list = list(empty_list)
