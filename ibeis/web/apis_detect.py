@@ -65,7 +65,7 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
-    config = {'algo': 'pyrf', 'species': species}
+    config = {'algo': 'pyrf', 'species': species, 'sensitivity' : 0.2}
     # results_list = depc.get_property('detections', gid_list, None, config=config)
     results_list = depc.get_property('localizations', gid_list, None, config=config)
     # aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
@@ -266,7 +266,7 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
     ibs.assert_valid_gids(gid_list)
     depc = ibs.depc_image
     # Get detections from depc
-    config = {'algo': 'yolo'}
+    config = {'algo': 'yolo', 'sensitivity' : 0.2}
     # results_list = depc.get_property('detections', gid_list, None, config=config)
     results_list = depc.get_property('localizations', gid_list, None, config=config)
     score_list = [ results[0] for results in results_list ]
@@ -341,7 +341,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
-    config = {'algo': 'yolo'}
+    config = {'algo': 'yolo', 'sensitivity' : 0.2}
     # results_list = depc.get_property('detections', gid_list, None, config=config)
     results_list = depc.get_property('localizations', gid_list, None, config=config)
     if commit:
