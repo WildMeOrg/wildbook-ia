@@ -1416,7 +1416,7 @@ def detector_metric_graphs(ibs):
     ibs.classifier_precision_recall_algo_display()
     ibs.localizer_precision_recall_algo_display()
     ibs.labeler_precision_recall_algo_display()
-    # ibs.detector_precision_recall_algo_display()
+    ibs.detector_precision_recall_algo_display()
 
 
 @register_ibs_method
