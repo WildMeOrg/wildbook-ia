@@ -574,19 +574,7 @@ def localizer_parse_pred(ibs, test_gid_set=None, **kwargs):
         test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
-    config = {
-        'algo'            : 'yolo',
-        'sensitivity'     : 0.0,
-        'config_filepath' : None,
-        'weight_filepath' : None,
-        'grid'            : False,
-    }
-    config = ut.update_existing(config, kwargs)
-    if config.get('algo', None) == 'rf':
-        species = kwargs.get('species', None)
-        if species is not None:
-            config['species'] = species
-    results_list = depc.get_property('localizations', test_gid_set, None, config=config)
+    results_list = depc.get_property('localizations', test_gid_set, None, config=kwargs)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
     # Reformat results for json
@@ -734,10 +722,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'min_overlap' : min_overlap, 'grid' : True},
+        {'min_overlap' : min_overlap, 'grid' : False},
         {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
     ]
     name_list = [
         'Original',
@@ -1178,17 +1166,7 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
         test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
-    config = {
-        'classifier_sensitivity'    : 0.82,
-        'localizer_config_filepath' : 'v2',
-        'localizer_weight_filepath' : 'v2',
-        'localizer_grid'            : False,
-        'localizer_sensitivity'     : 0.16,
-        'labeler_sensitivity'       : 0.42,
-    }
-    config = ut.update_existing(config, kwargs)
-
-    results_list = depc.get_property('detections', test_gid_set, None, config=config)
+    results_list = depc.get_property('detections', test_gid_set, None, config=kwargs)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
     # Reformat results for json
