@@ -1336,22 +1336,52 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap},
-        {'min_overlap' : min_overlap, 'check_species' : True},
-        {'min_overlap' : min_overlap, 'check_viewpoint' : True},
+        {},  # All defaults
+        {
+            'check_species'          : True,
+        },
+        {
+            'check_viewpoint'        : True,
+        },
+        {
+            'classifier_sensitivity' : 0.03,
+            'localizer_grid'         : True,
+            'localizer_sensitivity'  : 0.05,
+            'labeler_sensitivity'    : 0.39,
+        },
+        {
+            'classifier_sensitivity' : 0.03,
+            'localizer_grid'         : True,
+            'localizer_sensitivity'  : 0.05,
+            'labeler_sensitivity'    : 0.39,
+            'check_species'          : True,
+        },
+        {
+            'classifier_sensitivity' : 0.03,
+            'localizer_grid'         : True,
+            'localizer_sensitivity'  : 0.05,
+            'labeler_sensitivity'    : 0.39,
+            'check_viewpoint'        : True,
+        },
     ]
     label_list = [
         'Opt L',
         'Opt L+S'
         'Opt L+S+V',
+        'Rec L',
+        'Rec L+S'
+        'Rec L+S+V',
     ]
     color_list = [
         'r',
         'b',
         'g',
+        'b',
+        'y',
+        'c',
     ]
     ret_list = [
-        detector_precision_recall_algo_plot(ibs, label=label, color=color, **kwargs_)
+        detector_precision_recall_algo_plot(ibs, label=label, color=color, min_overlap=min_overlap, **kwargs_)
         for label, color, kwargs_ in zip(label_list, color_list, kwargs_list)
     ]
 

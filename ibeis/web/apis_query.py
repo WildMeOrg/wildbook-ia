@@ -111,6 +111,17 @@ def query_chips_dict(ibs, *args, **kwargs):
 
 
 @register_ibs_method
+@register_api('/test/query/chips/', methods=['GET'])
+def query_chips_test(ibs):
+    from random import shuffle
+    aid_list = ibs.get_valid_aids()
+    shuffle(aid_list)
+    qaid_list = aid_list[:5]
+    daid_list = aid_list[:10]
+    return ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list)
+
+
+@register_ibs_method
 @register_api('/api/query/chips/', methods=['GET'])
 def query_chips(ibs, qaid_list=None,
                 daid_list=None,
