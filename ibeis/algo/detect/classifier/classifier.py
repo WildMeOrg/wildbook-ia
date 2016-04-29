@@ -215,7 +215,13 @@ def classify_thumbnail_list(thumbnail_list, model='v1'):
     prediction_list = test_results['label_list']
     confidence_list = test_results['confidence_list']
 
-    result_list = zip(confidence_list, prediction_list)
+    result_list = list(zip(confidence_list, prediction_list))
+
+    # Release memory
+    data = None
+    model = None
+    net = None
+
     return result_list
 
 

@@ -1477,6 +1477,7 @@ def localizer_train(ibs):
     ut.ensuredir(output_path)
     dark = Darknet_YOLO_Detector()
     model_path = dark.train(data_path, output_path)
+    del dark
     return model_path
 
 

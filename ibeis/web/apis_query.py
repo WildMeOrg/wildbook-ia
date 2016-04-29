@@ -114,42 +114,26 @@ def query_chips_dict(ibs, *args, **kwargs):
 
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
-    import random
+    from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
+    ibs = current_app.ibs
+    result_list = ibs.query_chips_test()
+    result = result_list[0]
 
-    # from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
+    print(result)
     # qreq_ = ChipMatch(**result)
-    # result = result_list[0]
     # aid = cm.get_top_aids()[0]
     # vis.imwrite_single_annotmatch()
 
-    ibs = current_app.ibs
-    gid_list = ibs.get_valid_gids()
-    gid = random.choice(gid_list)
-    image_uuid = ibs.get_image_uuids(gid)
-    aid_list = ibs.get_image_aids(gid)
-    bbox_list = ibs.get_annot_bboxes(aid_list)
-    species_list = ibs.get_annot_species_texts(aid_list)
-    zipped = zip(aid_list, bbox_list, species_list)
-    result_list = [
-        {
-            'xtl'        : xtl,
-            'ytl'        : ytl,
-            'width'      : width,
-            'height'     : height,
-            'class'      : species,
-            'confidence' : 0.0,
-            'theta'      : 0.0,
-        }
-        for aid, (xtl, ytl, width, height), species in zipped
-    ]
-    callback_url = request.args.get('callback_url', url_for('process_detection_html'))
-    callback_method = request.args.get('callback_method', 'POST')
-    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
-    template_html = '''
-        <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
-        %s
-    ''' % (template_html, )
-    return template_html
+    # callback_url = request.args.get('callback_url', url_for('process_detection_html'))
+    # callback_method = request.args.get('callback_method', 'POST')
+    # template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
+    # template_html = '''
+    #     <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
+    #     %s
+    # ''' % (template_html, )
+    # return template_html
+
+    return 'test'
 
 
 @register_ibs_method
@@ -158,8 +142,8 @@ def query_chips_test(ibs):
     from random import shuffle
     aid_list = ibs.get_valid_aids()
     shuffle(aid_list)
-    qaid_list = aid_list[:1]
-    daid_list = aid_list[-5:]
+    qaid_list = aid_list[:3]
+    daid_list = aid_list[-10:]
     query_resut_list = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list)
     result_list = [
         {

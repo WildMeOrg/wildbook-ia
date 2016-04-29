@@ -244,8 +244,14 @@ def label_chip_list(chip_list, model='v1'):
         }
         probability_dict_list.append(probability_dict)
 
-    result_list = zip(confidence_list, species_list, viewpoint_list,
-                      quality_list, orientation_list, probability_dict_list)
+    result_list = list(zip(confidence_list, species_list, viewpoint_list,
+                       quality_list, orientation_list, probability_dict_list))
+
+    # Release memory
+    data = None
+    model = None
+    net = None
+
     return result_list
 
 

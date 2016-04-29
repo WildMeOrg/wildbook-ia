@@ -75,30 +75,10 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
 
 @register_route('/test/review/detect/cnn/yolo/', methods=['GET'])
 def review_detection_test():
-    import random
     ibs = current_app.ibs
-    gid_list = ibs.get_valid_gids()
-    gid = random.choice(gid_list)
-    results_dict = ibs.detect_cnn_yolo_json([gid])
+    results_dict = ibs.detection_yolo_test()
     image_uuid = results_dict['image_uuid_list'][0]
     result_list = results_dict['results_list'][0]
-    # image_uuid = ibs.get_image_uuids(gid)
-    # aid_list = ibs.get_image_aids(gid)
-    # bbox_list = ibs.get_annot_bboxes(aid_list)
-    # species_list = ibs.get_annot_species_texts(aid_list)
-    # zipped = zip(aid_list, bbox_list, species_list)
-    # result_list = [
-    #     {
-    #         'xtl'        : xtl,
-    #         'ytl'        : ytl,
-    #         'width'      : width,
-    #         'height'     : height,
-    #         'class'      : species,
-    #         'confidence' : 0.0,
-    #         'theta'      : 0.0,
-    #     }
-    #     for aid, (xtl, ytl, width, height), species in zipped
-    # ]
     callback_url = request.args.get('callback_url', url_for('process_detection_html'))
     callback_method = request.args.get('callback_method', 'POST')
     template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
@@ -107,6 +87,17 @@ def review_detection_test():
         %s
     ''' % (template_html, )
     return template_html
+
+
+@register_ibs_method
+@register_api('/test/detect/cnn/yolo/', methods=['GET'])
+def detection_yolo_test(ibs):
+    from random import shuffle
+    gid_list = ibs.get_valid_gids()
+    shuffle(gid_list)
+    gid_list = gid_list[:3]
+    results_dict = ibs.detect_cnn_yolo_json(gid_list)
+    return results_dict
 
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
