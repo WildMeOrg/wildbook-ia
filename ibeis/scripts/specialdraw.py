@@ -8,7 +8,7 @@ def event_space():
     pip install matplotlib-venn
     """
     from matplotlib import pyplot as plt
-    import numpy as np
+    # import numpy as np
     from matplotlib_venn import venn3, venn2, venn3_circles
     plt.figure(figsize=(4, 4))
     v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels = ('A', 'B', 'C'))
@@ -48,7 +48,7 @@ def event_space():
     plt.show()
 
     from matplotlib import pyplot as plt
-    from matplotlib_venn import venn2, venn2_circles
+    from matplotlib_venn import venn2, venn2_circles  # NOQA
 
     # Subset sizes
     s = (
@@ -83,38 +83,38 @@ def event_space():
     # plt.savefig('example_tree.pdf', bbox_inches='tight')
     # plt.close()
 
-    venn2(subsets=(25, 231+65, 8+15))
+    # venn2(subsets=(25, 231+65, 8+15))
 
-    # Find out the location of the two circles
-    # (you can look up how its done in the first lines
-    # of the venn2 function)
+    # # Find out the location of the two circles
+    # # (you can look up how its done in the first lines
+    # # of the venn2 function)
 
-    from matplotlib_venn._venn2 import compute_venn2_areas, solve_venn2_circles
-    subsets = (25, 231+65, 8+15)
-    areas = compute_venn2_areas(subsets, normalize_to=1.0)
-    centers, radii = solve_venn2_circles(areas)
+    # from matplotlib_venn._venn2 import compute_venn2_areas, solve_venn2_circles
+    # subsets = (25, 231+65, 8+15)
+    # areas = compute_venn2_areas(subsets, normalize_to=1.0)
+    # centers, radii = solve_venn2_circles(areas)
 
-    # Now draw the third circle.
-    # Its area is (15+65)/(25+8+15) times
-    # that of the first circle,
-    # hence its radius must be
+    # # Now draw the third circle.
+    # # Its area is (15+65)/(25+8+15) times
+    # # that of the first circle,
+    # # hence its radius must be
 
-    r3 = radii[0]*sqrt((15+65.0)/(25+8+15))
+    # r3 = radii[0]*sqrt((15+65.0)/(25+8+15))
 
-    # Its position must be such that the intersection
-    # area  with C1 is  15/(15+8+25) of C1's area.
-    # The way to compute the distance between
-    # the circles by area can be looked up in
-    # solve_venn2_circles
+    # # Its position must be such that the intersection
+    # # area  with C1 is  15/(15+8+25) of C1's area.
+    # # The way to compute the distance between
+    # # the circles by area can be looked up in
+    # # solve_venn2_circles
 
-    from matplotlib_venn._math import find_distance_by_area
-    distance = find_distance_by_area(radii[0], r3,
-                15.0/(15+8+25)*np.pi*radii[0]*radii[0])
-    ax = gca()
-    ax.add_patch(Circle(centers[0] + np.array([distance, 0]),
-                 r3, alpha=0.5, edgecolor=None,
-                 facecolor='red', linestyle=None,
-                 linewidth=0))
+    # from matplotlib_venn._math import find_distance_by_area
+    # distance = find_distance_by_area(radii[0], r3,
+    #             15.0/(15+8+25)*np.pi*radii[0]*radii[0])
+    # ax = gca()
+    # ax.add_patch(Circle(centers[0] + np.array([distance, 0]),
+    #              r3, alpha=0.5, edgecolor=None,
+    #              facecolor='red', linestyle=None,
+    #              linewidth=0))
 
 
 def double_depcache_graph():
@@ -821,53 +821,62 @@ def intraoccurrence_connected():
 
 
 def scalespace():
+    r"""
+    THIS DOES NOT SHOW A REAL SCALE SPACE PYRAMID YET. FIXME.
+
+    Returns:
+        ?: imgBGRA_warped
+
+    CommandLine:
+        python -m ibeis.scripts.specialdraw scalespace --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> imgBGRA_warped = scalespace()
+        >>> result = ('imgBGRA_warped = %s' % (ut.repr2(imgBGRA_warped),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     import numpy as np
-    import matplotlib.pyplot as plt
-
-    from skimage import data
-    from skimage.transform import pyramid_gaussian
-
-    image = data.astronaut()
-    rows, cols, dim = image.shape
-    pyramid = tuple(pyramid_gaussian(image, downscale=2))
-
-    composite_image = np.zeros((rows, cols + cols / 2, 3), dtype=np.double)
-
-    composite_image[:rows, :cols, :] = pyramid[0]
-
-    i_row = 0
-    for p in pyramid[1:]:
-        n_rows, n_cols = p.shape[:2]
-        composite_image[i_row:i_row + n_rows, cols:cols + n_cols] = p
-        i_row += n_rows
-
-    #fig, ax = plt.subplots()
-    #ax.imshow(composite_image)
-    #plt.show()
-
-    # hack a projection matrix using dummy homogrpahy
+    # import matplotlib.pyplot as plt
     import cv2
     import vtool as vt
     import plottool as pt
     pt.qt4ensure()
 
+    #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
+    imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
+    # imgBGR = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+
+    # fig, ax = plt.subplots()
+    # ax.imshow(composite_image)
+    # plt.show()
+
+    # hack a projection matrix using dummy homogrpahy
+
     # TODO:
-    # alpha background
     # stack images in pyramid
     # boarder?
 
-    #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
-    imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
+    sigma = 2 / 6
 
     def makewarp(imgBGR):
-        size = np.array(vt.get_size(imgBGR))
+        print('makewarp = %r' % (makewarp,))
+        imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+        imgBGR = cv2.cvtColor(imgGray, cv2.COLOR_GRAY2BGR)
+        imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
+        imgBGRA[:, :, 3] = .87 * 255
+        imgBGRA = vt.pad_image(imgBGRA, 2, value=[0, 0, 255, 255])
+        size = np.array(vt.get_size(imgBGRA))
         pts1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)]) * size
         #pts2 = np.array([(0, 0), (.1, .8), (.8, .8), (1, 0)]) * size
         x_adjust = .15
         y_adjust = .5
         pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
         H = cv2.findHomography(pts1, pts2)[0]
-        imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
 
         dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(np.int)
         warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
@@ -879,17 +888,24 @@ def scalespace():
     octave3 = makewarp(vt.resize_image_by_scale(imgBGR, .25))
     octave4 = makewarp(vt.resize_image_by_scale(imgBGR, .125))
 
-    framesize = (700, 350)
+    octaves = [octave1, octave2, octave3, octave4]
 
-    octave1_base = 1.0
-    step1 = .04
-    step2 = .03
-    step3 = .02
+    framesize = (700, 500)
+
+    steps = np.array([.04, .03, .02, .01]) * 1.8
+
     numintervals = 4
+    octave_ty_starts = [1.0]
+    for i in range(1, 4):
+        print('1) i = %r' % (i,))
+        prev_ty = octave_ty_starts[-1]
+        prev_base = octaves[i - 1]
+        next_ty = prev_ty - ((prev_base.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (steps[i - 1]))
+        octave_ty_starts.append(next_ty)
     # FIXME: generalize
-    octave2_base = octave1_base - ((octave1.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step1))
-    octave3_base = octave2_base - ((octave2.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step2))
-    octave4_base = octave3_base - ((octave3.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step3))
+    # octave2_base = octave1_base - ((octave1.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step1))
+    # octave3_base = octave2_base - ((octave2.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step2))
+    # octave4_base = octave3_base - ((octave3.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step3))
 
     #pt.imshow(imgBGRA_warped)
     #pt.imshow(image)
@@ -897,16 +913,36 @@ def scalespace():
     def temprange(stop, step, num):
         return [stop - (x * step) for x in  range(num)]
 
-    layers = ut.flatten([
-        [vt.embed_in_square_image(octave1, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-         for ty in  temprange(octave1_base, step1, numintervals)],
-        [vt.embed_in_square_image(octave2, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-         for ty in  temprange(octave2_base, step2, numintervals)],
-        [vt.embed_in_square_image(octave3, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-         for ty in  temprange(octave3_base, step3, numintervals)],
-        [vt.embed_in_square_image(octave4, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-         for ty in  temprange(octave4_base, .01, numintervals)],
-    ])
+    layers = []
+    # Make intervals
+    for i in range(0, 4):
+        print('2) i = %r' % (i,))
+        octave = octaves[i]
+        ty_start = octave_ty_starts[i]
+        step = steps[i]
+        ksize = (3, 3)
+        intervals = [cv2.GaussianBlur(octave, ksize, sigmaX=sigma * (2 + i),
+                                      sigmaY=sigma * i,
+                                      borderType=cv2.BORDER_REPLICATE)
+                     for i in range(numintervals)]
+        ty_range = temprange(ty_start, step, numintervals)
+        nextpart = [
+            vt.embed_in_square_image(interval, framesize, img_origin=(.5, 1),
+                                     target_origin=(.5, ty))
+            for ty, interval in  zip(ty_range, intervals)
+        ]
+        layers += nextpart
+
+    # layers = ut.flatten([
+    #     [vt.embed_in_square_image(octave1, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+    #      for ty in  temprange(octave1_base, step1, numintervals)],
+    #     [vt.embed_in_square_image(octave2, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+    #      for ty in  temprange(octave2_base, step2, numintervals)],
+    #     [vt.embed_in_square_image(octave3, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+    #      for ty in  temprange(octave3_base, step3, numintervals)],
+    #     [vt.embed_in_square_image(octave4, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
+    #      for ty in  temprange(octave4_base, .01, numintervals)],
+    # ])
     for layer in layers:
         pt.imshow(layer)
 
