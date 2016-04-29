@@ -530,8 +530,8 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
             tp = len(assignment_dict.keys())
         if check_species or check_viewpoint:
             for gt, pred in assignment_dict.iteritems():
-                print(gt_list[gt]['species'], pred_list[pred]['species'])
-                print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
+                # print(gt_list[gt]['species'], pred_list[pred]['species'])
+                # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
                 if gt_list[gt]['species'] != pred_list[pred]['species']:
                     tp -= 1
                 elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
@@ -1197,7 +1197,7 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
         test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
-    depc.delete_property('detections', test_gid_set, config=kwargs)
+    # depc.delete_property('detections', test_gid_set, config=kwargs)
     results_list = depc.get_property('detections', test_gid_set, None, config=kwargs)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
@@ -1223,7 +1223,7 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
         uuid_ : result_list
         for uuid_, result_list in zip(uuid_list, results_list)
     }
-    print(pred_dict)
+    # print(pred_dict)
     return pred_dict
 
 

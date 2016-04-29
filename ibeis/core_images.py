@@ -532,14 +532,14 @@ def compute_detections(depc, gid_list, config=None):
         bbox_list = bboxes_list[index]
         theta_list = thetas_list[index]
         species_list = specieses_list[index]
-        species_dict = {}
-        for species in species_list:
-            if species not in species_dict:
-                species_dict[species] = 0
-            species_dict[species] += 1
-        for tup in species_dict.iteritems():
-            print('\t%r' % (tup, ))
-        print('----')
+        # species_dict = {}
+        # for species in species_list:
+        #     if species not in species_dict:
+        #         species_dict[species] = 0
+        #     species_dict[species] += 1
+        # for tup in species_dict.iteritems():
+        #     print('\t%r' % (tup, ))
+        # print('----')
         viewpoint_list = viewpoints_list[index]
         conf_list = confses_list[index]
         score_list = scores_list[index]
@@ -564,7 +564,7 @@ def compute_detections(depc, gid_list, config=None):
         else:
             assert gid in detect_dict
             result = detect_dict[gid]
-        print(result)
+        # print(result)
         # raw_input()
         # print('')
         # image = ibs.get_images(gid)
