@@ -434,7 +434,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
             np.array(zipped_list[4]),
             list(zipped_list[5]),
         )
-        print(ret_tuple)
+        print(ret_tuple[:-1])
         print('-------')
         yield ret_tuple
 
