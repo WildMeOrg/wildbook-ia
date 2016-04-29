@@ -1276,7 +1276,7 @@ class _TableComputeHelper(object):
                 argsT = [table.depc.get_obj(parent, rowids)
                          for parent, rowids in zip(table.parents(),
                                                    dirty_parent_ids)]
-            # hack out config if given a request
+            # HACK extract config if given a request
             config_ = config.config if hasattr(config, 'config') else config
             # call registered worker function
             onthefly = None
@@ -1294,13 +1294,15 @@ class _TableComputeHelper(object):
                 config_rowid, config_)
             #dirty_params_iter = list(dirty_params_iter)
             # Break iterator into chunks
-            chunksize = ut.ifnone(len(dirty_parent_ids), table.chunksize)
             nInput = len(dirty_parent_ids)
+            if verbose:
+                print('[depc.compute] nInput = %r' % (nInput,))
+                print('[depc.compute] table.chunksize = %r' % (table.chunksize,))
+            chunksize = nInput if table.chunksize is None else table.chunksize
             # Report computation progress
             prog_iter = ut.ProgChunks(dirty_params_iter, chunksize, nInput,
                                       lbl='add %s chunk' % (table.tablename))
             # TODO: Separate into func which can be specified as a callback.
-            #colnames =
             intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
             insertable_flags = [not colattr.get('isprimary')
                                 for colattr in table.internal_col_attrs]
@@ -1309,9 +1311,9 @@ class _TableComputeHelper(object):
                 # None data means that there was an error for a specific row
                 if ALLOW_NONE_YIELD:
                     dirty_params_chunk = ut.filter_Nones(dirty_params_chunk)
-                nInput = len(dirty_params_chunk)
+                nChunkInput = len(dirty_params_chunk)
                 table.db._add(table.tablename, colnames, dirty_params_chunk,
-                              nInput=nInput)
+                              nInput=nChunkInput)
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table', 'table.parents()', 'parent_ids_', 'config', 'argsT',
