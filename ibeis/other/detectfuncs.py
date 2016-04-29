@@ -13,6 +13,7 @@ TODO: need to split up into sub modules:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
 from os.path import exists, expanduser, join, abspath
+import ibeis.constants as const
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -1159,6 +1160,36 @@ def labeler_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     plt.savefig(fig_path, bbox_inches='tight')
 
 
+def detector_parse_gt(ibs, test_gid_set=None):
+    if test_gid_set is None:
+        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+    uuid_list = ibs.get_image_uuids(test_gid_set)
+    gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+
+    gt_dict = {}
+    for gid, uuid in zip(gid_list, uuid_list):
+        width, height = ibs.get_image_sizes(gid)
+        aid_list = ibs.get_image_aids(gid)
+        temp_list = []
+        for aid in aid_list:
+            bbox = ibs.get_annot_bboxes(aid)
+            temp = {
+                'xtl'        : bbox[0] / width,
+                'ytl'        : bbox[1] / height,
+                'width'      : bbox[2] / width,
+                'height'     : bbox[3] / height,
+                'species'    : ibs.get_annot_species_texts(aid),
+                'viewpoint'  : ibs.get_annot_yaw_texts(aid),
+                'confidence' : 1.0,
+            }
+            if temp['species'] not in ['zebra_grevys', 'zebra_plains']:
+                temp['species'] = const.UNKNOWN
+                temp['viewpoint'] = None
+            temp_list.append(temp)
+        gt_dict[uuid] = temp_list
+    return gt_dict
+
+
 def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
     depc = ibs.depc_image
 
@@ -1202,7 +1233,7 @@ def detector_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
-    gt_dict = general_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = detector_parse_gt(ibs, test_gid_set=test_gid_set)
 
     print('\tGather Predictions')
     pred_dict = detector_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
@@ -1267,7 +1298,7 @@ def detector_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
-    gt_dict = general_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = detector_parse_gt(ibs, test_gid_set=test_gid_set)
 
     print('\tGather Predictions')
     pred_dict = detector_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
