@@ -114,15 +114,19 @@ def query_chips_dict(ibs, *args, **kwargs):
 
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
-    from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
+    from ibeis.algo.hots.chip_match import ChipMatch
+    import simplejson as json
     ibs = current_app.ibs
     result_list = ibs.query_chips_test()
     result = result_list[0]
 
     print(result)
-    # qreq_ = ChipMatch(**result)
-    # aid = cm.get_top_aids()[0]
-    # vis.imwrite_single_annotmatch()
+    qreq_ = json.dump(result.pop('qreq_'))
+    print(qreq_)
+    cm = ChipMatch(**result)
+    aid = cm.get_top_aids()[0]
+    # qreq_ =
+    # cm.imwrite_single_annotmatch(qreq_, aid)
 
     # callback_url = request.args.get('callback_url', url_for('process_detection_html'))
     # callback_method = request.args.get('callback_method', 'POST')
@@ -144,7 +148,7 @@ def query_chips_test(ibs):
     shuffle(aid_list)
     qaid_list = aid_list[:3]
     daid_list = aid_list[-10:]
-    query_resut_list = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list)
+    query_resut_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list, return_request=True)
     result_list = [
         {
             'qaid'              : qr.qaid,
@@ -154,6 +158,7 @@ def query_chips_test(ibs):
             'name_score_list'   : qr.name_score_list,
             'fm_list'           : qr.fm_list,
             'fsv_list'          : qr.fsv_list,
+            'qreq_'             : qreq_,
         }
         for qr in query_resut_list
     ]

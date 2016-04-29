@@ -722,16 +722,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : True},
         {'min_overlap' : min_overlap, 'grid' : False},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'min_overlap' : min_overlap, 'grid' : True},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
     ]
     name_list = [
-        'Original',
         'Retrained',
-        'Original (GRID)',
         'Retrained (GRID)',
+        'Original',
+        'Original (GRID)',
     ]
     ret_list = []
     ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[0], color='r', **kwargs_list[0]))
@@ -1345,28 +1345,41 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {},  # All Defaults
         {
+            'classifier_sensitivity' : 0.64,
+            'localizer_grid'         : False,
+            'localizer_sensitivity'  : 0.16,
+            'labeler_sensitivity'    : 0.42,
+        },
+        {
+            'classifier_sensitivity' : 0.64,
+            'localizer_grid'         : False,
+            'localizer_sensitivity'  : 0.16,
+            'labeler_sensitivity'    : 0.42,
             'check_species'          : True,
         },
         {
+            'classifier_sensitivity' : 0.64,
+            'localizer_grid'         : False,
+            'localizer_sensitivity'  : 0.16,
+            'labeler_sensitivity'    : 0.42,
             'check_viewpoint'        : True,
         },
         {
-            'classifier_sensitivity' : 0.03,
+            'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
         },
         {
-            'classifier_sensitivity' : 0.03,
+            'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
             'check_species'          : True,
         },
         {
-            'classifier_sensitivity' : 0.03,
+            'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
