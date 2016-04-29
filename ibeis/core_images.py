@@ -488,7 +488,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
-    print('[ibs] Preprocess Detections (len = %d)' % (gid_list, ))
+    print('[ibs] Preprocess Detections (len = %d)' % (len(gid_list), ))
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
