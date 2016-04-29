@@ -1377,10 +1377,10 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     ]
     label_list = [
         'Opt L',
-        'Opt L+S'
+        'Opt L+S',
         'Opt L+S+V',
         'Rec L',
-        'Rec L+S'
+        'Rec L+S',
         'Rec L+S+V',
     ]
     color_list = [
