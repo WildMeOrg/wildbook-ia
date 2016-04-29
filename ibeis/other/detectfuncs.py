@@ -1166,6 +1166,7 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
         test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
+    depc.delete_property('detections', test_gid_set, config=kwargs)
     results_list = depc.get_property('detections', test_gid_set, None, config=kwargs)
     size_list = ibs.get_image_sizes(test_gid_set)
     zipped_list = zip(results_list)
@@ -1191,6 +1192,7 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
         uuid_ : result_list
         for uuid_, result_list in zip(uuid_list, results_list)
     }
+    print(pred_dict)
     return pred_dict
 
 
@@ -1314,7 +1316,7 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {},  # All defaults
+        {},  # All Defaults
         {
             'check_species'          : True,
         },

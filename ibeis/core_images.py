@@ -361,6 +361,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_image
 
+    loc_id_list = loc_id_list[:20]
+
     gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
     assert len(gid_list_) == len(loc_id_list)
 
@@ -368,8 +370,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
     gids_list   = [
-        np.array([gid] * len(theta_list))
-        for gid, theta_list in zip(gid_list_, thetas_list)
+        np.array([gid] * len(bbox_list))
+        for gid, bbox_list in zip(gid_list_, bboxes_list)
     ]
 
     # Flatten all of these lists for efficiency
@@ -408,6 +410,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
 
     # Get the results from the algorithm
     result_list = label_chip_list(chip_list)
+    print(result_list)
     assert len(gid_list) == len(result_list)
 
     # Group the results
@@ -421,6 +424,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     # Return the results
     for gid in gid_list_:
         result_list = group_dict[gid]
+        print(result_list)
         zipped_list = zip(*result_list)
         ret_tuple = (
             np.array(zipped_list[0]),
@@ -430,6 +434,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
             np.array(zipped_list[4]),
             list(zipped_list[5]),
         )
+        print(ret_tuple)
+        print('-------')
         yield ret_tuple
 
 
@@ -515,6 +521,8 @@ def compute_detections(depc, gid_list, config=None):
     bboxes_list  = depc.get_property('localizations', gid_list_, 'bboxes',    config=localizer_config)
     thetas_list  = depc.get_property('localizations', gid_list_, 'thetas',    config=localizer_config)
     confses_list = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
+
+    depc.delete_property('labeler', gid_list_, config=localizer_config)
     specieses_list     = depc.get_property('labeler', gid_list_, 'species',   config=localizer_config)
     viewpoints_list    = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
     scores_list        = depc.get_property('labeler', gid_list_, 'score',     config=localizer_config)
@@ -526,14 +534,14 @@ def compute_detections(depc, gid_list, config=None):
         bbox_list = bboxes_list[index]
         theta_list = thetas_list[index]
         species_list = specieses_list[index]
-        # species_dict = {}
-        # for species in species_list:
-        #     if species not in species_dict:
-        #         species_dict[species] = 0
-        #     species_dict[species] += 1
-        # for tup in species_dict.iteritems():
-        #     print('\t%r' % (tup, ))
-        # print('----')
+        species_dict = {}
+        for species in species_list:
+            if species not in species_dict:
+                species_dict[species] = 0
+            species_dict[species] += 1
+        for tup in species_dict.iteritems():
+            print('\t%r' % (tup, ))
+        print('----')
         viewpoint_list = viewpoints_list[index]
         conf_list = confses_list[index]
         score_list = scores_list[index]
@@ -541,7 +549,7 @@ def compute_detections(depc, gid_list, config=None):
         zipped = [
             [bbox, theta, species, viewpoint, conf * score]
             for bbox, theta, species, viewpoint, conf, score in zipped
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and species not in [const.UNKNOWN]
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']  # and species not in [const.UNKNOWN]
         ]
         if len(zipped) == 0:
             detect_list = list(empty_list)
@@ -557,12 +565,12 @@ def compute_detections(depc, gid_list, config=None):
         else:
             assert gid in detect_dict
             result = detect_dict[gid]
-        # print(result)
-        # print('')
-        # image = ibs.get_images(gid)
-        # image = vt.resize(image, (500, 500))
-        # cv2.imshow('', image)
-        # cv2.waitKey(0)
+        print(result)
+        print('')
+        image = ibs.get_images(gid)
+        image = vt.resize(image, (500, 500))
+        cv2.imshow('', image)
+        cv2.waitKey(0)
         yield tuple(result)
 
 

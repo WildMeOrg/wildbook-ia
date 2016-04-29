@@ -116,9 +116,29 @@ def query_chips_test(ibs):
     from random import shuffle
     aid_list = ibs.get_valid_aids()
     shuffle(aid_list)
-    qaid_list = aid_list[:5]
-    daid_list = aid_list[:10]
-    return ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list)
+    qaid_list = aid_list[:1]
+    daid_list = aid_list[-5:]
+    query_resut_list = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list)
+    result_list = [
+        {
+            'qaid'              : qr.qaid,
+            'score_list'        : qr.score_list,
+            'daid_list'         : qr.daid_list,
+            'annot_score_list'  : qr.annot_score_list,
+            'name_score_list'   : qr.name_score_list,
+            'fm_list'           : qr.fm_list,
+            'fsv_list'          : qr.fsv_list,
+        }
+        for qr in query_resut_list
+    ]
+
+    # from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
+    # qreq_ = ChipMatch(**result)
+    # result = result_list[0]
+    # aid = cm.get_top_aids()[0]
+    # vis.imwrite_single_annotmatch()
+
+    return result_list
 
 
 @register_ibs_method
