@@ -565,7 +565,7 @@ def compute_detections(depc, gid_list, config=None):
             assert gid in detect_dict
             result = detect_dict[gid]
         print(result)
-        raw_input()
+        # raw_input()
         # print('')
         # image = ibs.get_images(gid)
         # image = vt.resize(image, (500, 500))
