@@ -5,8 +5,9 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo.hots import pipeline
-from flask import url_for, request, current_app
+from flask import url_for, request, current_app  # NOQA
 import utool as ut
+import cv2
 import dtool
 
 
@@ -114,42 +115,27 @@ def query_chips_dict(ibs, *args, **kwargs):
 
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
-    import random
-
-    # from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
-    # qreq_ = ChipMatch(**result)
-    # result = result_list[0]
-    # aid = cm.get_top_aids()[0]
-    # vis.imwrite_single_annotmatch()
-
+    from ibeis.algo.hots.chip_match import ChipMatch
+    from ibeis.algo.hots.query_request import QueryRequest
     ibs = current_app.ibs
-    gid_list = ibs.get_valid_gids()
-    gid = random.choice(gid_list)
-    image_uuid = ibs.get_image_uuids(gid)
-    aid_list = ibs.get_image_aids(gid)
-    bbox_list = ibs.get_annot_bboxes(aid_list)
-    species_list = ibs.get_annot_species_texts(aid_list)
-    zipped = zip(aid_list, bbox_list, species_list)
-    result_list = [
-        {
-            'xtl'        : xtl,
-            'ytl'        : ytl,
-            'width'      : width,
-            'height'     : height,
-            'class'      : species,
-            'confidence' : 0.0,
-            'theta'      : 0.0,
-        }
-        for aid, (xtl, ytl, width, height), species in zipped
-    ]
-    callback_url = request.args.get('callback_url', url_for('process_detection_html'))
-    callback_method = request.args.get('callback_method', 'POST')
-    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
-    template_html = '''
-        <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
-        %s
-    ''' % (template_html, )
-    return template_html
+    result_list = ibs.query_chips_test()
+    result = result_list[0]
+
+    state_dict = result.pop('qreq_').__getstate__()
+    cm = ChipMatch(**result)
+    qreq_ = QueryRequest()
+    qreq_.__setstate__(state_dict)
+    aid = cm.get_top_aids()[0]
+    image = cm.render_single_annotmatch(qreq_, aid)
+    # callback_url = request.args.get('callback_url', url_for('process_detection_html'))
+    # callback_method = request.args.get('callback_method', 'POST')
+    # template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
+    # template_html = '''
+    #     <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
+    #     %s
+    # ''' % (template_html, )
+    # return template_html
+    return 'done'
 
 
 @register_ibs_method
@@ -158,9 +144,9 @@ def query_chips_test(ibs):
     from random import shuffle
     aid_list = ibs.get_valid_aids()
     shuffle(aid_list)
-    qaid_list = aid_list[:1]
-    daid_list = aid_list[-5:]
-    query_resut_list = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list)
+    qaid_list = aid_list[:3]
+    daid_list = aid_list[-10:]
+    query_resut_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list, return_request=True)
     result_list = [
         {
             'qaid'              : qr.qaid,
@@ -170,6 +156,7 @@ def query_chips_test(ibs):
             'name_score_list'   : qr.name_score_list,
             'fm_list'           : qr.fm_list,
             'fsv_list'          : qr.fsv_list,
+            'qreq_'             : qreq_,
         }
         for qr in query_resut_list
     ]

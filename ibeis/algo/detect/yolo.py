@@ -84,5 +84,6 @@ def detect(gpath_list, detector=None, config_filepath=None, weight_filepath=None
         detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
                                                    weight_filepath=weight_filepath,
                                                    verbose=verbose)
-    results_iter = detector.detect(gpath_list, **kwargs)
+    results_iter = list(detector.detect(gpath_list, **kwargs))
+    del detector
     return results_iter

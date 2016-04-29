@@ -166,7 +166,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=32,
+    chunksize=128,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""
@@ -232,7 +232,7 @@ class LocalizerConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerConfig,
     fname='detectcache',
-    chunksize=32,
+    chunksize=256,
 )
 def compute_localizations(depc, gid_list, config=None):
     r"""
@@ -283,7 +283,7 @@ def compute_localizations(depc, gid_list, config=None):
             np.array([ _[6]   for _ in temp ]),
         )
 
-    print('[ibs] Preprocess Localizations (len = %d)' % (len(gid_list, )))
+    print('[ibs] Preprocess Localizations')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
@@ -302,8 +302,7 @@ def compute_localizations(depc, gid_list, config=None):
         base_key_list[6] = (config['species'], )  # class == species
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
     else:
-        print(config)
-        raise ValueError('specified detection algo is not supported')
+        raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 
     # yield detections
     for gid, gpath, result_list in detect_gen:
@@ -323,7 +322,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=32,
+    chunksize=128,
 )
 def compute_labels_localizations(depc, loc_id_list, config=None):
     r"""
@@ -354,8 +353,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         >>> print(results)
     """
     from ibeis.algo.detect.labeler.labeler import label_chip_list
-    print('[ibs] Process Localization Labels (len = %d)' % (len(loc_id_list), ))
-    assert len(loc_id_list) <= 32, 'Got %d > 32 ids' % (len(loc_id_list), )
+    print('[ibs] Process Localization Labels')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
@@ -371,7 +369,6 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         np.array([gid] * len(bbox_list))
         for gid, bbox_list in zip(gid_list_, bboxes_list)
     ]
-    print(len(gids_list))
 
     # Flatten all of these lists for efficiency
     bbox_list      = ut.flatten(bboxes_list)
@@ -431,8 +428,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
             np.array(zipped_list[4]),
             list(zipped_list[5]),
         )
-        print(ret_tuple[:-1])
-        print('-------')
+        # print(ret_tuple[:-1])
+        # print('-------')
         yield ret_tuple
 
 
@@ -457,7 +454,7 @@ class DetectorConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=DetectorConfig,
     fname='detectcache',
-    chunksize=32,
+    chunksize=256,
 )
 def compute_detections(depc, gid_list, config=None):
     r"""
@@ -489,7 +486,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
-    print('[ibs] Preprocess Detections (len = %d)' % (len(gid_list), ))
+    print('[ibs] Preprocess Detections')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
@@ -548,7 +545,6 @@ def compute_detections(depc, gid_list, config=None):
             for bbox, theta, species, viewpoint, conf, score in zipped
             if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
         ]
-        print(zipped)
         if len(zipped) == 0:
             detect_list = list(empty_list)
         else:

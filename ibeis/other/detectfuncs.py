@@ -722,16 +722,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : True},
         {'min_overlap' : min_overlap, 'grid' : False},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'min_overlap' : min_overlap, 'grid' : True},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
     ]
     name_list = [
-        'Original',
         'Retrained',
-        'Original (GRID)',
         'Retrained (GRID)',
+        'Original',
+        'Original (GRID)',
     ]
     ret_list = []
     ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[0], color='r', **kwargs_list[0]))
@@ -1345,28 +1345,41 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {},  # All Defaults
         {
+            'classifier_sensitivity' : 0.64,
+            'localizer_grid'         : False,
+            'localizer_sensitivity'  : 0.16,
+            'labeler_sensitivity'    : 0.42,
+        },
+        {
+            'classifier_sensitivity' : 0.64,
+            'localizer_grid'         : False,
+            'localizer_sensitivity'  : 0.16,
+            'labeler_sensitivity'    : 0.42,
             'check_species'          : True,
         },
         {
+            'classifier_sensitivity' : 0.64,
+            'localizer_grid'         : False,
+            'localizer_sensitivity'  : 0.16,
+            'labeler_sensitivity'    : 0.42,
             'check_viewpoint'        : True,
         },
         {
-            'classifier_sensitivity' : 0.03,
+            'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
         },
         {
-            'classifier_sensitivity' : 0.03,
+            'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
             'check_species'          : True,
         },
         {
-            'classifier_sensitivity' : 0.03,
+            'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
@@ -1406,14 +1419,14 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(132)
-    axes_.set_aspect(1)
-    gca_ = plt.gca()
-    gca_.grid(False)
-    correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
-    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
+    # axes_ = plt.subplot(132)
+    # axes_.set_aspect(1)
+    # gca_ = plt.gca()
+    # gca_.grid(False)
+    # correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    # axes_.set_ylabel('Ground-Truth')
+    # plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
 
     # best_index = None
     # best_conf = None
@@ -1477,6 +1490,7 @@ def localizer_train(ibs):
     ut.ensuredir(output_path)
     dark = Darknet_YOLO_Detector()
     model_path = dark.train(data_path, output_path)
+    del dark
     return model_path
 
 

@@ -438,6 +438,40 @@ class _ChipMatchVisualization(object):
         #    ut.startfile(img_fpath)
         return img_fpath
 
+    def render_single_annotmatch(cm, qreq_, aid, **kwargs):
+        import io
+        import cv2
+        import plottool as pt
+        import matplotlib as mpl
+        # Pop save kwargs from kwargs
+        save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
+        save_vals = ut.dict_take_pop(kwargs, save_keys, None)
+        savekw = dict(zip(save_keys, save_vals))
+        was_interactive = mpl.is_interactive()
+        if was_interactive:
+            mpl.interactive(False)
+        # Make new figure
+        fnum = pt.ensure_fnum(kwargs.pop('fnum', None))
+        #fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        fig = pt.plt.figure(fnum)
+        fig.clf()
+        # Draw Matches
+        cm.show_single_annotmatch(qreq_, aid, colorbar_=False, fnum=fnum, **kwargs)
+        #if not kwargs.get('notitle', False):
+        #    pt.set_figtitle(cm.make_smaller_title())
+        # Save Figure
+        # Setting fig=fig might make the dpi and figsize code not work
+        with io.BytesIO() as stream:
+            fig.savefig(stream, **savekw)
+            stream.seek(0)
+            data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+        image = cv2.imdecode(data, 1)
+        # Ensure that this figure will not pop up
+        pt.plt.close(fig)
+        if was_interactive:
+            mpl.interactive(was_interactive)
+        return image
+
     def qt_inspect_gui(cm, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
         r"""
         Args:
