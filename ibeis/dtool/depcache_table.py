@@ -1266,53 +1266,56 @@ class _TableComputeHelper(object):
         """
         dirty_parent_ids  = ut.compress(parent_ids_, isdirty_list)
         dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
+        # Break iterator into chunks
+        nInput = len(dirty_parent_ids)
+        if verbose:
+            print('[depc.compute] nInput = %r' % (nInput,))
+            print('[depc.compute] table.chunksize = %r' % (table.chunksize,))
+        chunksize = nInput if table.chunksize is None else table.chunksize
+
+        # Report computation progress
+        dirty_iter = zip(dirty_parent_ids, dirty_preproc_args)
+        prog_iter = ut.ProgChunks(dirty_iter, chunksize, nInput,
+                                  lbl='add %s chunk' % (table.tablename))
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
-            # Pack arguments into column-wise order to send to the func
-            argsT = zip(*dirty_preproc_args)
-            argsT = list(argsT)  # TODO: remove
-            if table._asobject:
-                # Convinience
-                argsT = [table.depc.get_obj(parent, rowids)
-                         for parent, rowids in zip(table.parents(),
-                                                   dirty_parent_ids)]
-            # HACK extract config if given a request
-            config_ = config.config if hasattr(config, 'config') else config
-            # call registered worker function
-            onthefly = None
-            if table.default_onthefly or onthefly:
-                assert not table.ismulti, ('cannot onthefly multi tables')
-                proptup_gen = [tuple([None] * len(table.data_col_attrs))
-                               for _ in range(len(dirty_parent_ids))]
-            else:
-                proptup_gen = table.preproc_func(table.depc, *argsT,
-                                                 config=config_)
-            #proptup_gen = list(proptup_gen)
-            # Append rowids and rectify nested and external columns
-            dirty_params_iter = table.prepare_storage(
-                dirty_parent_ids, proptup_gen, dirty_preproc_args,
-                config_rowid, config_)
-            #dirty_params_iter = list(dirty_params_iter)
-            # Break iterator into chunks
-            nInput = len(dirty_parent_ids)
-            if verbose:
-                print('[depc.compute] nInput = %r' % (nInput,))
-                print('[depc.compute] table.chunksize = %r' % (table.chunksize,))
-            chunksize = nInput if table.chunksize is None else table.chunksize
-            # Report computation progress
-            prog_iter = ut.ProgChunks(dirty_params_iter, chunksize, nInput,
-                                      lbl='add %s chunk' % (table.tablename))
-            # TODO: Separate into func which can be specified as a callback.
-            intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
-            insertable_flags = [not colattr.get('isprimary')
-                                for colattr in table.internal_col_attrs]
-            colnames = tuple(ut.compress(intern_colnames, insertable_flags))
-            for dirty_params_chunk in prog_iter:
+            for dirty_chunk in prog_iter:
+                dirty_parent_ids_chunk, dirty_preproc_args_chunk = zip(*dirty_chunk)
+                # Pack arguments into column-wise order to send to the func
+                argsT = zip(*dirty_preproc_args_chunk)
+                argsT = list(argsT)  # TODO: remove
+                if table._asobject:
+                    # Convinience
+                    argsT = [table.depc.get_obj(parent, rowids)
+                             for parent, rowids in zip(table.parents(),
+                                                       dirty_parent_ids_chunk)]
+                # HACK extract config if given a request
+                config_ = config.config if hasattr(config, 'config') else config
+                # call registered worker function
+                onthefly = None
+                if table.default_onthefly or onthefly:
+                    assert not table.ismulti, ('cannot onthefly multi tables')
+                    proptup_gen = [tuple([None] * len(table.data_col_attrs))
+                                   for _ in range(len(dirty_parent_ids_chunk))]
+                else:
+                    proptup_gen = table.preproc_func(table.depc, *argsT,
+                                                     config=config_)
+                #proptup_gen = list(proptup_gen)
+                # Append rowids and rectify nested and external columns
+                dirty_params_iter = table.prepare_storage(
+                    dirty_parent_ids_chunk, proptup_gen, dirty_preproc_args_chunk,
+                    config_rowid, config_)
+                #dirty_params_iter = list(dirty_params_iter)
+                # TODO: Separate into func which can be specified as a callback.
+                intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
+                insertable_flags = [not colattr.get('isprimary')
+                                    for colattr in table.internal_col_attrs]
+                colnames = tuple(ut.compress(intern_colnames, insertable_flags))
                 # None data means that there was an error for a specific row
                 if ALLOW_NONE_YIELD:
-                    dirty_params_chunk = ut.filter_Nones(dirty_params_chunk)
-                nChunkInput = len(dirty_params_chunk)
-                table.db._add(table.tablename, colnames, dirty_params_chunk,
+                    dirty_params_iter = ut.filter_Nones(dirty_params_iter)
+                nChunkInput = len(dirty_params_iter)
+                table.db._add(table.tablename, colnames, dirty_params_iter,
                               nInput=nChunkInput)
         except Exception as ex:
             ut.printex(ex, 'error in add_rowids', keys=[
