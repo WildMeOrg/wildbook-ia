@@ -597,6 +597,12 @@ def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
     return out_fpath_
 
 
+def pad_image(imgBGR, pad_, value=0, borderType=cv2.BORDER_CONSTANT):
+    imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_,
+                                 borderType=cv2.BORDER_CONSTANT, value=value)
+    return imgBGR2
+
+
 def get_pixel_dist(img, pixel, channel=None):
     """
     pixel = fillval
