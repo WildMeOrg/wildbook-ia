@@ -520,7 +520,7 @@ def compute_detections(depc, gid_list, config=None):
     thetas_list  = depc.get_property('localizations', gid_list_, 'thetas',    config=localizer_config)
     confses_list = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
 
-    depc.delete_property('labeler', gid_list_, config=localizer_config)
+    # depc.delete_property('labeler', gid_list_, config=localizer_config)
     specieses_list     = depc.get_property('labeler', gid_list_, 'species',   config=localizer_config)
     viewpoints_list    = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
     scores_list        = depc.get_property('labeler', gid_list_, 'score',     config=localizer_config)
@@ -549,6 +549,7 @@ def compute_detections(depc, gid_list, config=None):
             for bbox, theta, species, viewpoint, conf, score in zipped
             if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']  # and species not in [const.UNKNOWN]
         ]
+        print(zipped)
         if len(zipped) == 0:
             detect_list = list(empty_list)
         else:
