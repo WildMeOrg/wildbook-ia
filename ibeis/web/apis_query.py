@@ -5,8 +5,9 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo.hots import pipeline
-from flask import url_for, request, current_app
+from flask import url_for, request, current_app  # NOQA
 import utool as ut
+import cv2
 import dtool
 
 
@@ -115,19 +116,17 @@ def query_chips_dict(ibs, *args, **kwargs):
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
     from ibeis.algo.hots.chip_match import ChipMatch
-    import simplejson as json
+    from ibeis.algo.hots.query_request import QueryRequest
     ibs = current_app.ibs
     result_list = ibs.query_chips_test()
     result = result_list[0]
 
-    print(result)
-    qreq_ = json.dump(result.pop('qreq_'))
-    print(qreq_)
+    state_dict = result.pop('qreq_').__getstate__()
     cm = ChipMatch(**result)
+    qreq_ = QueryRequest()
+    qreq_.__setstate__(state_dict)
     aid = cm.get_top_aids()[0]
-    # qreq_ =
-    # cm.imwrite_single_annotmatch(qreq_, aid)
-
+    image = cm.render_single_annotmatch(qreq_, aid)
     # callback_url = request.args.get('callback_url', url_for('process_detection_html'))
     # callback_method = request.args.get('callback_method', 'POST')
     # template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
@@ -136,8 +135,7 @@ def review_query_chips_test():
     #     %s
     # ''' % (template_html, )
     # return template_html
-
-    return 'test'
+    return 'done'
 
 
 @register_ibs_method
