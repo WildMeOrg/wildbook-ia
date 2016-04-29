@@ -355,6 +355,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     """
     from ibeis.algo.detect.labeler.labeler import label_chip_list
     print('[ibs] Process Localization Labels (len = %d)' % (len(loc_id_list), ))
+    assert len(loc_id_list) <= 32
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
