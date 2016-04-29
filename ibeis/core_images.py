@@ -283,7 +283,7 @@ def compute_localizations(depc, gid_list, config=None):
             np.array([ _[6]   for _ in temp ]),
         )
 
-    print('[ibs] Preprocess Localizations')
+    print('[ibs] Preprocess Localizations (len = %d)' % (len(gid_list, )))
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
@@ -347,8 +347,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:2]
-        >>> # depc.delete_property('labeler', gid_list)
+        >>> gid_list = ibs.get_valid_gids()[0:100]
+        >>> depc.delete_property('labeler', gid_list)
         >>> results = depc.get_property('labeler', gid_list, None)
         >>> results = depc.get_property('labeler', gid_list, 'species')
         >>> print(results)
