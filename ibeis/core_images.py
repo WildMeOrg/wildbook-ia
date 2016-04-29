@@ -564,11 +564,12 @@ def compute_detections(depc, gid_list, config=None):
             assert gid in detect_dict
             result = detect_dict[gid]
         print(result)
-        print('')
-        image = ibs.get_images(gid)
-        image = vt.resize(image, (500, 500))
-        cv2.imshow('', image)
-        cv2.waitKey(0)
+        raw_input()
+        # print('')
+        # image = ibs.get_images(gid)
+        # image = vt.resize(image, (500, 500))
+        # cv2.imshow('', image)
+        # cv2.waitKey(0)
         yield tuple(result)
 
 
