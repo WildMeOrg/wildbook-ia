@@ -361,7 +361,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_image
 
-    loc_id_list = loc_id_list[:20]
+    # loc_id_list = loc_id_list[:20]
 
     gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
     assert len(gid_list_) == len(loc_id_list)
@@ -410,7 +410,6 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
 
     # Get the results from the algorithm
     result_list = label_chip_list(chip_list)
-    print(result_list)
     assert len(gid_list) == len(result_list)
 
     # Group the results
@@ -424,7 +423,6 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     # Return the results
     for gid in gid_list_:
         result_list = group_dict[gid]
-        print(result_list)
         zipped_list = zip(*result_list)
         ret_tuple = (
             np.array(zipped_list[0]),
