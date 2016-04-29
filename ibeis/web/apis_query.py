@@ -5,6 +5,7 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo.hots import pipeline
+from flask import url_for, request, current_app
 import utool as ut
 import dtool
 
@@ -12,6 +13,7 @@ import dtool
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 @register_ibs_method
@@ -110,6 +112,46 @@ def query_chips_dict(ibs, *args, **kwargs):
     return ibs.query_chips(*args, **kwargs)
 
 
+@register_route('/test/review/query/chips/', methods=['GET'])
+def review_query_chips_test():
+    import random
+
+    # from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
+    # qreq_ = ChipMatch(**result)
+    # result = result_list[0]
+    # aid = cm.get_top_aids()[0]
+    # vis.imwrite_single_annotmatch()
+
+    ibs = current_app.ibs
+    gid_list = ibs.get_valid_gids()
+    gid = random.choice(gid_list)
+    image_uuid = ibs.get_image_uuids(gid)
+    aid_list = ibs.get_image_aids(gid)
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+    zipped = zip(aid_list, bbox_list, species_list)
+    result_list = [
+        {
+            'xtl'        : xtl,
+            'ytl'        : ytl,
+            'width'      : width,
+            'height'     : height,
+            'class'      : species,
+            'confidence' : 0.0,
+            'theta'      : 0.0,
+        }
+        for aid, (xtl, ytl, width, height), species in zipped
+    ]
+    callback_url = request.args.get('callback_url', url_for('process_detection_html'))
+    callback_method = request.args.get('callback_method', 'POST')
+    template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
+    template_html = '''
+        <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
+        %s
+    ''' % (template_html, )
+    return template_html
+
+
 @register_ibs_method
 @register_api('/test/query/chips/', methods=['GET'])
 def query_chips_test(ibs):
@@ -131,13 +173,6 @@ def query_chips_test(ibs):
         }
         for qr in query_resut_list
     ]
-
-    # from ibeis.algo.hots.chip_match import ChipMatch, _ChipMatchVisualization
-    # qreq_ = ChipMatch(**result)
-    # result = result_list[0]
-    # aid = cm.get_top_aids()[0]
-    # vis.imwrite_single_annotmatch()
-
     return result_list
 
 

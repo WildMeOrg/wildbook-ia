@@ -354,13 +354,11 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         >>> print(results)
     """
     from ibeis.algo.detect.labeler.labeler import label_chip_list
-    print('[ibs] Process Localization Labels')
+    print('[ibs] Process Localization Labels (len = %d)' % (len(loc_id_list), ))
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
-
-    # loc_id_list = loc_id_list[:20]
 
     gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
     assert len(gid_list_) == len(loc_id_list)
@@ -372,6 +370,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         np.array([gid] * len(bbox_list))
         for gid, bbox_list in zip(gid_list_, bboxes_list)
     ]
+    print(len(gids_list))
 
     # Flatten all of these lists for efficiency
     bbox_list      = ut.flatten(bboxes_list)
