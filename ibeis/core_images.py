@@ -232,7 +232,7 @@ class LocalizerConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=256,
 )
 def compute_localizations(depc, gid_list, config=None):
     r"""
@@ -302,8 +302,7 @@ def compute_localizations(depc, gid_list, config=None):
         base_key_list[6] = (config['species'], )  # class == species
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
     else:
-        print(config)
-        raise ValueError('specified detection algo is not supported')
+        raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 
     # yield detections
     for gid, gpath, result_list in detect_gen:
@@ -429,8 +428,8 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
             np.array(zipped_list[4]),
             list(zipped_list[5]),
         )
-        print(ret_tuple[:-1])
-        print('-------')
+        # print(ret_tuple[:-1])
+        # print('-------')
         yield ret_tuple
 
 
@@ -455,7 +454,7 @@ class DetectorConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=DetectorConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=256,
 )
 def compute_detections(depc, gid_list, config=None):
     r"""
@@ -546,7 +545,6 @@ def compute_detections(depc, gid_list, config=None):
             for bbox, theta, species, viewpoint, conf, score in zipped
             if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
         ]
-        print(zipped)
         if len(zipped) == 0:
             detect_list = list(empty_list)
         else:
