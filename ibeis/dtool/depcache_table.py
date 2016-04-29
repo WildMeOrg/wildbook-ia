@@ -1269,8 +1269,8 @@ class _TableComputeHelper(object):
         # Break iterator into chunks
         nInput = len(dirty_parent_ids)
         if verbose:
-            print('[depc.compute] nInput = %r' % (nInput,))
-            print('[depc.compute] table.chunksize = %r' % (table.chunksize,))
+            print('[deptbl.compute] nInput = %r' % (nInput,))
+            print('[deptbl.compute] table.chunksize = %r' % (table.chunksize,))
         chunksize = nInput if table.chunksize is None else table.chunksize
 
         # Report computation progress
