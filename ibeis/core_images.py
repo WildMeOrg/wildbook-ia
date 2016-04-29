@@ -38,7 +38,6 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import cv2
-import ibeis.constants as const
 from ibeis.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 
@@ -218,8 +217,8 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('algo', 'yolo'),
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
-        ut.ParamInfo('config_filepath', None, hideif=None),
-        ut.ParamInfo('weight_filepath', None, hideif=None),
+        ut.ParamInfo('config_filepath', None),
+        ut.ParamInfo('weight_filepath', None),
         ut.ParamInfo('grid', False),
     ]
     _sub_config_list = [
@@ -547,7 +546,7 @@ def compute_detections(depc, gid_list, config=None):
         zipped = [
             [bbox, theta, species, viewpoint, conf * score]
             for bbox, theta, species, viewpoint, conf, score in zipped
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']  # and species not in [const.UNKNOWN]
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
         ]
         print(zipped)
         if len(zipped) == 0:

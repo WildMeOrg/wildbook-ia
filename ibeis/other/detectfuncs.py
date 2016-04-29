@@ -623,7 +623,7 @@ def localizer_precision_recall_algo(ibs, samples=500, force_serial=True, **kwarg
     pred_dict_list = [ pred_dict for _ in conf_list ]
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
-    arg_list = list(arg_iter)
+    arg_list = arg_iter
     pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_list,
                             nTasks=len(arg_list), ordered=True, verbose=False,
                             quiet=True, chunksize=64, force_serial=force_serial)
@@ -1247,7 +1247,7 @@ def detector_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs
     pred_dict_list = [ pred_dict for _ in conf_list ]
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
-    arg_list = list(arg_iter)
+    arg_list = arg_iter
     pr_re_gen = ut.generate(detector_precision_recall_algo_worker, arg_list,
                             nTasks=len(arg_list), ordered=True, verbose=False,
                             quiet=True, chunksize=64, force_serial=force_serial)
