@@ -851,28 +851,46 @@ def scalespace():
     imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
     # imgBGR = vt.imread(ut.grab_test_imgpath('carl.jpg'))
 
-    # fig, ax = plt.subplots()
-    # ax.imshow(composite_image)
-    # plt.show()
+    # Convert to colored intensity image
+    imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+    imgBGR = cv2.cvtColor(imgGray, cv2.COLOR_GRAY2BGR)
+    imgRaw = imgBGR
 
-    # hack a projection matrix using dummy homogrpahy
+    # TODO: # stack images in pyramid # boarder?
+    initial_sigma = 1.6
+    num_intervals = 4
 
-    # TODO:
-    # stack images in pyramid
-    # boarder?
+    def makepyramid_octave(imgRaw, level, num_intervals):
+        # Downsample image to take sigma to a power of level
+        step = (2 ** (level))
+        img_level = imgRaw[::step, ::step]
+        # Compute interval relative scales
+        interval = np.array(list(range(num_intervals)))
+        relative_scales = (2 ** ((interval / num_intervals)))
+        sigma_intervals = initial_sigma * relative_scales
+        octave_intervals = []
+        for sigma in sigma_intervals:
+            sizex = int(6. * sigma + 1.) + int(1 - (int(6. * sigma + 1.) % 2))
+            ksize = (sizex, sizex)
+            img_blur = cv2.GaussianBlur(img_level, ksize, sigmaX=sigma,
+                                        sigmaY=sigma,
+                                        borderType=cv2.BORDER_REPLICATE)
+            octave_intervals.append(img_blur)
+        return octave_intervals
 
-    sigma = 2 / 6
+    pyramid = []
+    num_octaves = 4
+    for level in range(num_octaves):
+        octave = makepyramid_octave(imgRaw, level, num_intervals)
+        pyramid.append(octave)
 
     def makewarp(imgBGR):
-        print('makewarp = %r' % (makewarp,))
-        imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
-        imgBGR = cv2.cvtColor(imgGray, cv2.COLOR_GRAY2BGR)
+        # hack a projection matrix using dummy homogrpahy
         imgBGRA = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2BGRA)
-        imgBGRA[:, :, 3] = .87 * 255
+        imgBGRA[:, :, 3] = .87 * 255  # hack alpha
         imgBGRA = vt.pad_image(imgBGRA, 2, value=[0, 0, 255, 255])
         size = np.array(vt.get_size(imgBGRA))
         pts1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)]) * size
-        #pts2 = np.array([(0, 0), (.1, .8), (.8, .8), (1, 0)]) * size
         x_adjust = .15
         y_adjust = .5
         pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
@@ -883,66 +901,33 @@ def scalespace():
         imgBGRA_warped = cv2.warpPerspective(imgBGRA, H, tuple(dsize), **warpkw)
         return imgBGRA_warped
 
-    octave1 = makewarp(imgBGR)
-    octave2 = makewarp(vt.resize_image_by_scale(imgBGR, .5))
-    octave3 = makewarp(vt.resize_image_by_scale(imgBGR, .25))
-    octave4 = makewarp(vt.resize_image_by_scale(imgBGR, .125))
-
-    octaves = [octave1, octave2, octave3, octave4]
-
     framesize = (700, 500)
-
-    steps = np.array([.04, .03, .02, .01]) * 1.8
+    steps = np.array([.04, .03, .02, .01]) * 1.3
 
     numintervals = 4
     octave_ty_starts = [1.0]
     for i in range(1, 4):
-        print('1) i = %r' % (i,))
         prev_ty = octave_ty_starts[-1]
-        prev_base = octaves[i - 1]
+        prev_base = pyramid[i - 1][0]
         next_ty = prev_ty - ((prev_base.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (steps[i - 1]))
         octave_ty_starts.append(next_ty)
-    # FIXME: generalize
-    # octave2_base = octave1_base - ((octave1.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step1))
-    # octave3_base = octave2_base - ((octave2.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step2))
-    # octave4_base = octave3_base - ((octave3.shape[0] / framesize[1]) / 2 + (numintervals - 1) * (step3))
-
-    #pt.imshow(imgBGRA_warped)
-    #pt.imshow(image)
 
     def temprange(stop, step, num):
         return [stop - (x * step) for x in  range(num)]
 
     layers = []
-    # Make intervals
     for i in range(0, 4):
-        print('2) i = %r' % (i,))
-        octave = octaves[i]
         ty_start = octave_ty_starts[i]
         step = steps[i]
-        ksize = (3, 3)
-        intervals = [cv2.GaussianBlur(octave, ksize, sigmaX=sigma * (2 + i),
-                                      sigmaY=sigma * i,
-                                      borderType=cv2.BORDER_REPLICATE)
-                     for i in range(numintervals)]
+        intervals = pyramid[i]
         ty_range = temprange(ty_start, step, numintervals)
         nextpart = [
-            vt.embed_in_square_image(interval, framesize, img_origin=(.5, 1),
-                                     target_origin=(.5, ty))
+            vt.embed_in_square_image(makewarp(interval), framesize, img_origin=(.5, .5),
+                                     target_origin=(.5, ty / 2))
             for ty, interval in  zip(ty_range, intervals)
         ]
         layers += nextpart
 
-    # layers = ut.flatten([
-    #     [vt.embed_in_square_image(octave1, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-    #      for ty in  temprange(octave1_base, step1, numintervals)],
-    #     [vt.embed_in_square_image(octave2, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-    #      for ty in  temprange(octave2_base, step2, numintervals)],
-    #     [vt.embed_in_square_image(octave3, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-    #      for ty in  temprange(octave3_base, step3, numintervals)],
-    #     [vt.embed_in_square_image(octave4, framesize, img_origin=(.5, 1), target_origin=(.5, ty))
-    #      for ty in  temprange(octave4_base, .01, numintervals)],
-    # ])
     for layer in layers:
         pt.imshow(layer)
 

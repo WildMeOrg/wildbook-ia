@@ -584,6 +584,8 @@ class FeatConfig(dtool.Config):
         >>> print(result)
         <FeatConfig(hesaff+sift)>
     """
+    # TODO: FIXME
+    #_parents = [ChipConfig]
 
     def get_param_info_list(self):
         import pyhesaff
@@ -772,6 +774,8 @@ class FeatWeightConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('featweight_enabled', True, 'enabled='),
     ]
+    # FIXME: incorporate config dependencies in dtool
+    #_parents = [FeatConfig, ProbchipConfig]
 
 
 @register_preproc(
