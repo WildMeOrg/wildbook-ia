@@ -2827,6 +2827,7 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/sex/', methods=['GET'])
 def get_annot_sex(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -2874,6 +2875,7 @@ def set_annot_sex(ibs, aid_list, name_sex_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.setter
 @register_api('/api/annot/sex_texts/', methods=['PUT'])
 def set_annot_sex_texts(ibs, aid_list, name_sex_text_list, eager=True, nInput=None):
     r"""
@@ -2891,6 +2893,7 @@ def set_annot_sex_texts(ibs, aid_list, name_sex_text_list, eager=True, nInput=No
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/age_months_est_min/', methods=['GET'])
 def get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -2925,6 +2928,7 @@ def get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/age_months_est_max/', methods=['GET'])
 def get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -2959,6 +2963,7 @@ def get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/age_months_est/', methods=['GET'])
 def get_annot_age_months_est(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -2986,6 +2991,7 @@ def get_annot_age_months_est(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/age_months_est_min_texts/', methods=['GET'])
 def get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -3012,6 +3018,7 @@ def get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/age_months_est_max_texts/', methods=['GET'])
 def get_annot_age_months_est_max_texts(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -3038,6 +3045,7 @@ def get_annot_age_months_est_max_texts(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/annot/age_months_est_texts/', methods=['GET'])
 def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -3068,6 +3076,7 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.setter
 @register_api('/api/annot/age_months_est_min/', methods=['PUT'])
 def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list,
                                  duplicate_behavior='error'):
@@ -3094,6 +3103,7 @@ def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list,
 
 
 @register_ibs_method
+@accessor_decors.setter
 @register_api('/api/annot/age_months_est_max/', methods=['PUT'])
 def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list,
                                  duplicate_behavior='error'):
@@ -3133,6 +3143,39 @@ def get_annot_image_contributor_tag(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
     contrib_tag_list = ibs.get_image_contributor_tag(gid_list)
     return contrib_tag_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+@register_api('/api/annot/image_contributor_tag/', methods=['GET'])
+def get_annot_image_set_texts(ibs, aid_list):
+    r"""
+    Auto-docstr for 'get_annot_image_contributor_tag'
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/image_contributor_tag/
+    """
+    gid_list = ibs.get_annot_gids(aid_list)
+    imagesettext_list = ibs.get_image_imagesettext(gid_list)
+    filter_imageset_set = set([
+        '*Exemplars',
+        '*All Images',
+        '*Ungrouped Images',
+    ])
+    filtered_imagesettext_list = [
+        [
+            imageset
+            for imageset in imagesettext
+            if imageset not in filter_imageset_set
+        ]
+        for imagesettext in imagesettext_list
+    ]
+    imagesettext_list = [
+        ','.join(map(str, imagesettext))
+        for imagesettext in filtered_imagesettext_list
+    ]
+    return imagesettext_list
 
 
 @register_ibs_method
