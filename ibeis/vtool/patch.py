@@ -208,61 +208,6 @@ def get_stripe_patch(jitter=False):
     return patch
 
 
-def gaussian_average_patch(patch, sigma=None):
-    """
-
-    Args:
-        patch (ndarray):
-        sigma (float):
-
-    CommandLine:
-        python -m vtool.patch --test-gaussian_average_patch
-
-    References:
-        http://docs.opencv.org/modules/imgproc/doc/filtering.html#getgaussiankernel
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.patch import *  # NOQA
-        >>> patch = get_star_patch()
-        >>> #sigma = 1.6
-        >>> sigma = None
-        >>> result = gaussian_average_patch(patch, sigma)
-        >>> print(result)
-        0.414210641527
-
-    Ignore:
-        import utool as ut
-        import plottool as pt
-        import vtool as vt
-        import cv2
-        gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
-        gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
-        weighted_patch = patch.copy()
-        weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
-        weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T
-        gaussian_kern2 = gauss_kernel_d0.dot(gauss_kernel_d1.T)
-        fig = pt.figure(fnum=1, pnum=(1, 3, 1), doclf=True, docla=True)
-        pt.imshow(patch * 255)
-        fig = pt.figure(fnum=1, pnum=(1, 3, 2))
-        pt.imshow(ut.norm_zero_one(gaussian_kern2) * 255.0)
-        fig = pt.figure(fnum=1, pnum=(1, 3, 3))
-        pt.imshow(ut.norm_zero_one(weighted_patch) * 255.0)
-        pt.update()
-    """
-    if sigma is None:
-        sigma = 0.3 * ((min(patch.shape[0:1]) - 1) * 0.5 - 1) + 0.8
-    gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
-    gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
-    # assert gauss_kernel_d0.dot(gauss_kernel_d1.T).sum() == 1
-    weighted_patch = patch.copy()
-    weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
-    weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T
-    # TODO: use new guass patch weighting function here
-    average = weighted_patch.sum()
-    return average
-
-
 def test_show_gaussian_patches2(shape=(19, 19)):
     r"""
     CommandLine:
@@ -676,7 +621,7 @@ def intern_warp_single_patch(img, x, y, ori, V,
     X = ltool.translation_mat3x3(half_patch_size, half_patch_size)  # Translate back to patch-image coordinates
     M = X.dot(S).dot(R).dot(V).dot(T)
     # Prepare to warp
-    dsize = np.array(np.ceil(np.array([patch_size, patch_size])), dtype=int)
+    dsize = np.ceil([patch_size, patch_size]).astype(np.int)
     # Warp
     #warped_patch = gtool.warpAffine(img, M, dsize)
     warped_patch = cv2.warpAffine(img, M[0:2], tuple(dsize), **cv2_warp_kwargs)
@@ -695,6 +640,126 @@ def intern_warp_single_patch(img, x, y, ori, V,
         sigma = 1.5
         GaussianBlurInplace(warped_patch, sigma)
     return warped_patch, wkp
+
+
+def generate_to_patch_transforms(kpts, patch_size=41):
+    import vtool as vt
+    xs, ys = vt.get_xys(kpts)
+    # rotate relative to the gravity vector
+    oris = vt.get_oris(kpts)
+    invV_mats = vt.get_invV_mats(kpts, with_trans=False, ashomog=True)
+    V_mats = vt.invert_invV_mats(invV_mats)
+    kpts_iter = zip(xs, ys, V_mats, oris)
+
+    half_patch_size = patch_size / 2.0
+    ss = np.sqrt(patch_size) * 3.0
+
+    for x, y, V, ori in kpts_iter:
+        T = vt.translation_mat3x3(-x, -y)  # Center the patch
+        # V - reshape and scale the centered patch to the unit circle
+        R = vt.rotation_mat3x3(-ori)  # Rotate the centered unit circle patch
+        S = vt.scale_mat3x3(ss)  # scale from unit circle to the patch size
+        X = vt.translation_mat3x3(half_patch_size, half_patch_size)  # Translate back to patch-image coordinates
+        M = X.dot(S).dot(R).dot(V).dot(T)
+        yield M
+
+
+def patch_gaussian_weighted_average_intensities(probchip, kpts_):
+    """
+    """
+    import vtool as vt
+    patch_size = 41
+    M_iter = vt.generate_to_patch_transforms(kpts_, patch_size)
+    dsize = np.ceil([patch_size, patch_size]).astype(np.int)
+    # Preallocate patch
+    patch = np.empty(dsize[::-1], dtype=np.uint8)
+    weighted_patch = np.empty(dsize[::-1], dtype=np.float64)
+    weight_list = []
+    sigma = 0.3 * ((min(patch.shape[0:1]) - 1) * 0.5 - 1) + 0.8
+    gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
+    gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma)).T
+    warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REPLICATE)
+    for M in M_iter:
+        patch = cv2.warpAffine(probchip, M[0:2], tuple(dsize), dst=patch, **warpkw)
+        vt.GaussianBlurInplace(patch, 1.5)
+        weighted_patch = np.divide(patch, 255., out=weighted_patch)
+        weighted_patch = np.multiply(weighted_patch, gauss_kernel_d0, out=weighted_patch)
+        weighted_patch = np.multiply(weighted_patch, gauss_kernel_d1, out=weighted_patch)
+        weight = weighted_patch.sum()
+        weight_list.append(weight)
+    return weight_list
+
+
+def gaussian_average_patch(patch, sigma=None, copy=True):
+    """
+
+    Args:
+        patch (ndarray):
+        sigma (float):
+
+    CommandLine:
+        python -m vtool.patch --test-gaussian_average_patch
+
+    References:
+        http://docs.opencv.org/modules/imgproc/doc/filtering.html#getgaussiankernel
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> patch = get_star_patch()
+        >>> #sigma = 1.6
+        >>> sigma = None
+        >>> result = gaussian_average_patch(patch, sigma)
+        >>> print(result)
+        0.414210641527
+
+    Ignore:
+        import utool as ut
+        import plottool as pt
+        import vtool as vt
+        import cv2
+        gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
+        gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
+        weighted_patch = patch.copy()
+        weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
+        weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T
+        gaussian_kern2 = gauss_kernel_d0.dot(gauss_kernel_d1.T)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 1), doclf=True, docla=True)
+        pt.imshow(patch * 255)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 2))
+        pt.imshow(ut.norm_zero_one(gaussian_kern2) * 255.0)
+        fig = pt.figure(fnum=1, pnum=(1, 3, 3))
+        pt.imshow(ut.norm_zero_one(weighted_patch) * 255.0)
+        pt.update()
+    """
+    if sigma is None:
+        sigma = 0.3 * ((min(patch.shape[0:1]) - 1) * 0.5 - 1) + 0.8
+    gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma))
+    gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma))
+    # assert gauss_kernel_d0.dot(gauss_kernel_d1.T).sum() == 1
+    if copy:
+        weighted_patch = patch.copy()
+    else:
+        weighted_patch = patch
+    weighted_patch = np.multiply(weighted_patch,   gauss_kernel_d0)
+    weighted_patch = np.multiply(weighted_patch.T, gauss_kernel_d1).T
+    # TODO: use new guass patch weighting function here
+    average = weighted_patch.sum()
+    return average
+
+
+def gaussian_weight_patch(patch):
+    #patch = np.ones(patch.shape)
+    sigma0 = (patch.shape[0] / 2) * .95
+    sigma1 = (patch.shape[1] / 2) * .95
+    #sigma0 = (patch.shape[0] / 2) * .5
+    #sigma1 = (patch.shape[1] / 2) * .5
+    gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma0))
+    gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma1))
+    gauss_kernel_d0 /= gauss_kernel_d0.max()
+    gauss_kernel_d1 /= gauss_kernel_d1.max()
+    weighted_patch = (patch * gauss_kernel_d0.T) * gauss_kernel_d1
+    return weighted_patch
 
 
 @profile
@@ -1255,20 +1320,6 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     hist, edges = htool.wrap_histogram(hist_, edges_, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     centers = htool.hist_edges_to_centers(edges)
     return hist, centers
-
-
-def gaussian_weight_patch(patch):
-    #patch = np.ones(patch.shape)
-    sigma0 = (patch.shape[0] / 2) * .95
-    sigma1 = (patch.shape[1] / 2) * .95
-    #sigma0 = (patch.shape[0] / 2) * .5
-    #sigma1 = (patch.shape[1] / 2) * .5
-    gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma0))
-    gauss_kernel_d1 = (cv2.getGaussianKernel(patch.shape[1], sigma1))
-    gauss_kernel_d0 /= gauss_kernel_d0.max()
-    gauss_kernel_d1 /= gauss_kernel_d1.max()
-    weighted_patch = (patch * gauss_kernel_d0.T) * gauss_kernel_d1
-    return weighted_patch
 
 
 if __name__ == '__main__':
