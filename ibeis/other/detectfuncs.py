@@ -1346,12 +1346,14 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
 
     kwargs_list = [
         {
+            'min_overlap'            : min_overlap,
             'classifier_sensitivity' : 0.64,
             'localizer_grid'         : False,
             'localizer_sensitivity'  : 0.16,
             'labeler_sensitivity'    : 0.42,
         },
         {
+            'min_overlap'            : min_overlap,
             'classifier_sensitivity' : 0.64,
             'localizer_grid'         : False,
             'localizer_sensitivity'  : 0.16,
@@ -1359,6 +1361,7 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
             'check_species'          : True,
         },
         {
+            'min_overlap'            : min_overlap,
             'classifier_sensitivity' : 0.64,
             'localizer_grid'         : False,
             'localizer_sensitivity'  : 0.16,
@@ -1366,12 +1369,14 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
             'check_viewpoint'        : True,
         },
         {
+            'min_overlap'            : min_overlap,
             'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
             'labeler_sensitivity'    : 0.39,
         },
         {
+            'min_overlap'            : min_overlap,
             'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
@@ -1379,6 +1384,7 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
             'check_species'          : True,
         },
         {
+            'min_overlap'            : min_overlap,
             'classifier_sensitivity' : 0.04,
             'localizer_grid'         : True,
             'localizer_sensitivity'  : 0.05,
@@ -1398,12 +1404,12 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
         'r',
         'b',
         'g',
-        'b',
+        'k',
         'y',
         'c',
     ]
     ret_list = [
-        detector_precision_recall_algo_plot(ibs, label=label, color=color, min_overlap=min_overlap, **kwargs_)
+        detector_precision_recall_algo_plot(ibs, label=label, color=color, x_limit=0.5, **kwargs_)
         for label, color, kwargs_ in zip(label_list, color_list, kwargs_list)
     ]
 
@@ -1414,48 +1420,48 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
     best_kwargs = kwargs_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
+    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.20)
     # Display graph
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    # axes_ = plt.subplot(132)
-    # axes_.set_aspect(1)
-    # gca_ = plt.gca()
-    # gca_.grid(False)
-    # correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
-    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    # axes_.set_ylabel('Ground-Truth')
-    # plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
+    axes_ = plt.subplot(132)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
 
-    # best_index = None
-    # best_conf = None
-    # best_pr = 0.0
-    # best_re = 0.0
-    # tup_list  = [ ret[2] for ret in ret_list ]
-    # for index, tup in enumerate(tup_list):
-    #     for conf, re, pr in zip(*tup):
-    #         if pr > best_pr:
-    #             best_index = index
-    #             best_conf = conf
-    #             best_pr = pr
-    #             best_re = re
+    best_index = None
+    best_conf = None
+    best_pr = 0.0
+    best_re = 0.0
+    tup_list  = [ ret[2] for ret in ret_list ]
+    for index, tup in enumerate(tup_list):
+        for conf, re, pr in zip(*tup):
+            if pr > best_pr:
+                best_index = index
+                best_conf = conf
+                best_pr = pr
+                best_re = re
 
-    # if best_index is not None:
-    #     axes_ = plt.subplot(131)
-    #     plt.plot([best_re], [best_pr], 'yo')
+    if best_index is not None:
+        axes_ = plt.subplot(131)
+        plt.plot([best_re], [best_pr], 'yo')
 
-    #     best_name = name_list[best_index]
-    #     best_kwargs = kwargs_list[best_index]
+        best_label = label_list[best_index]
+        best_kwargs = kwargs_list[best_index]
 
-    #     axes_ = plt.subplot(133)
-    #     axes_.set_aspect(1)
-    #     gca_ = plt.gca()
-    #     gca_.grid(False)
-    #     correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
-    #     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    #     axes_.set_ylabel('Ground-Truth')
-    #     plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_name, best_conf, ), y=1.26)
+        axes_ = plt.subplot(133)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
+        correct_rate, _ = detector_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_label, best_conf, ), y=1.26)
 
     # plt.show()
     fig_filename = 'detector-precision-recall-%0.2f.png' % (min_overlap, )

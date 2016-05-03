@@ -1068,6 +1068,7 @@ def get_name_sex(ibs, name_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.setter
 @register_api('/api/name/sex/', methods=['PUT'])
 def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'):
     r"""
@@ -1093,6 +1094,7 @@ def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/name/sex_text/', methods=['GET'])
 def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
     r"""
@@ -1107,6 +1109,7 @@ def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@accessor_decors.setter
 @register_api('/api/name/sex_text/', methods=['PUT'])
 def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
     r"""
