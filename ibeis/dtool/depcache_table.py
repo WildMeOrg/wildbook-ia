@@ -960,8 +960,7 @@ class _TableConfigHelper(object):
         cfgid2_rowids = ut.group_items(rowid_list, tbl_cfgids)
         unique_cfgids = cfgid2_rowids.keys()
         unique_configs = table.get_config_from_rowid(unique_cfgids)
-        print('unique_configs = %r' % (unique_configs,))
-
+        #print('unique_configs = %r' % (unique_configs,))
         parent_rowids = table.get_parent_rowids(rowid_list)
         ret_list = [unique_configs]
         depc = table.depc
@@ -1257,6 +1256,9 @@ class _TableComputeHelper(object):
         ]
         return fname_list
 
+    def _raw_call():
+        pass
+
     @profile
     def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
                             isdirty_list, config, verbose=True):
@@ -1268,18 +1270,34 @@ class _TableComputeHelper(object):
         dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
         # Break iterator into chunks
         nInput = len(dirty_parent_ids)
+
         if verbose:
             print('[deptbl.compute] nInput = %r' % (nInput,))
             print('[deptbl.compute] table.chunksize = %r' % (table.chunksize,))
+            # check parent configs we are working with
+            for x, parname in enumerate(table.parents()):
+                if parname == table.depc.root:
+                    continue
+                parent_table = table.depc[parname]
+                ut.take_column(parent_ids_, x)
+                parent_history = parent_table.get_config_history(ut.take_column(parent_ids_, x))
+                print('parent_history = %r' % (parent_history,))
+
         chunksize = nInput if table.chunksize is None else table.chunksize
 
         # Report computation progress
-        dirty_iter = zip(dirty_parent_ids, dirty_preproc_args)
+        dirty_iter = list(zip(dirty_parent_ids, dirty_preproc_args))
         prog_iter = ut.ProgChunks(dirty_iter, chunksize, nInput,
-                                  lbl='add %s chunk' % (table.tablename))
+                                  lbl='[depc.compute] add %s chunk' % (table.tablename))
+        # These are the colnames that we expect to be computed
+        intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
+        insertable_flags = [not colattr.get('isprimary')
+                            for colattr in table.internal_col_attrs]
+        colnames = tuple(ut.compress(intern_colnames, insertable_flags))
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
             for dirty_chunk in prog_iter:
+                nChunkInput = len(dirty_chunk)
                 dirty_parent_ids_chunk, dirty_preproc_args_chunk = zip(*dirty_chunk)
                 # Pack arguments into column-wise order to send to the func
                 argsT = zip(*dirty_preproc_args_chunk)
@@ -1300,21 +1318,22 @@ class _TableComputeHelper(object):
                 else:
                     proptup_gen = table.preproc_func(table.depc, *argsT,
                                                      config=config_)
-                #proptup_gen = list(proptup_gen)
+                DEBUG_LIST_MODE = True
+                if DEBUG_LIST_MODE:
+                    proptup_gen = list(proptup_gen)
+                    assert len(proptup_gen) == nChunkInput
                 # Append rowids and rectify nested and external columns
                 dirty_params_iter = table.prepare_storage(
                     dirty_parent_ids_chunk, proptup_gen, dirty_preproc_args_chunk,
                     config_rowid, config_)
-                #dirty_params_iter = list(dirty_params_iter)
+                if DEBUG_LIST_MODE:
+                    dirty_params_iter = list(dirty_params_iter)
+                    assert len(dirty_params_iter) == nChunkInput
                 # TODO: Separate into func which can be specified as a callback.
-                intern_colnames = ut.take_column(table.internal_col_attrs, 'intern_colname')
-                insertable_flags = [not colattr.get('isprimary')
-                                    for colattr in table.internal_col_attrs]
-                colnames = tuple(ut.compress(intern_colnames, insertable_flags))
                 # None data means that there was an error for a specific row
                 if ALLOW_NONE_YIELD:
                     dirty_params_iter = ut.filter_Nones(dirty_params_iter)
-                nChunkInput = len(dirty_params_iter)
+                    nChunkInput = len(dirty_params_iter)
                 table.db._add(table.tablename, colnames, dirty_params_iter,
                               nInput=nChunkInput)
         except Exception as ex:
