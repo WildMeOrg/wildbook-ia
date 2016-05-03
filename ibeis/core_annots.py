@@ -600,7 +600,7 @@ class FeatConfig(dtool.Config):
             for name, default in default_items
         }
         #param_info_dict['scale_max'].default = -1
-        param_info_dict['scale_max'].default = 50
+        #param_info_dict['scale_max'].default = 50
         param_info_list += ut.dict_take(param_info_dict, default_keys)
         return param_info_list
 
@@ -1027,7 +1027,9 @@ def test_cut(ibs, parent_rowids_T, score_list2):
     colnames=['score', 'match'], coltypes=[float, ChipMatch],
     requestclass=VsOneRequest,
     configclass=VsOneConfig,
-    chunksize=128, fname='vsone',
+    chunksize=128,
+    #chunksize=16,
+    fname='vsone',
 )
 def compute_one_vs_one(depc, qaids, daids, config):
     r"""
@@ -1103,6 +1105,9 @@ def compute_one_vs_one(depc, qaids, daids, config):
     unique_daids = np.unique(daids)
 
     # TODO: Ensure entire pipeline can use new dependencies
+    # DEPC Precompute
+    ibs.depc.d.get_feat_rowids(unique_qaids, config=qconfig2_)
+    ibs.depc.d.get_feat_rowids(unique_daids, config=dconfig2_)
     if True:
         annot1_list = [ibs.get_annot_lazy_dict2(qaid, config=qconfig2_)
                        for qaid in unique_qaids]
@@ -1131,8 +1136,9 @@ def compute_one_vs_one(depc, qaids, daids, config):
     #all_aids = np.unique(ut.flatten([qaids, daids]))
     verbose = False
     #yeild_ = []
+    #print("START VSONE")
     for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
-                                   lbl='compute vsone'):
+                                   lbl='compute vsone', backspace=True, freq=1):
         annot1 = qaid_to_annot[qaid]
         annot2 = daid_to_annot[daid]
         metadata = {
