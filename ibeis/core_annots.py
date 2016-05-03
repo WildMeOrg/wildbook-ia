@@ -599,7 +599,8 @@ class FeatConfig(dtool.Config):
             name: ut.ParamInfo(name, default, hideif=default)
             for name, default in default_items
         }
-        param_info_dict['scale_max'].default = -1
+        #param_info_dict['scale_max'].default = -1
+        param_info_dict['scale_max'].default = 50
         param_info_list += ut.dict_take(param_info_dict, default_keys)
         return param_info_list
 
@@ -616,7 +617,7 @@ class FeatConfig(dtool.Config):
     colnames=['num_feats', 'kpts', 'vecs'],
     coltypes=[int, np.ndarray, np.ndarray],
     configclass=FeatConfig,
-    fname='featcache',
+    fname='featcache', chunksize=1024,
 )
 def compute_feats(depc, cid_list, config=None):
     r"""
@@ -783,7 +784,7 @@ class FeatWeightConfig(dtool.Config):
     colnames=['fwg'],
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
-    fname='featcache',
+    fname='featcache', chunksize=1024,
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
@@ -872,16 +873,20 @@ def gen_featweight_worker(tup):
     (kpts, probchip, chipsize) = tup
     if probchip is None:
         # hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4
+        assert False, 'should not be in this state'
         weights = np.full(len(kpts), .25, dtype=np.float32)
     else:
         sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
         kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
         #vtpatch.get_warped_patches()
-        # VERY SLOW
-        patch_list  = [vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
-                       for kp in kpts_]
-        weight_list = [vt.gaussian_average_patch(patch) for patch in patch_list]
-        #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+        if False:
+            # VERY SLOW
+            patch_list1  = [vt.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts_]
+            weight_list = [vt.gaussian_average_patch(patch1) for patch1 in patch_list1]
+            #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
+        else:
+            # New way
+            weight_list = vt.patch_gaussian_weighted_average_intensities(probchip, kpts_)
         weights = np.array(weight_list, dtype=np.float32)
     return weights
 

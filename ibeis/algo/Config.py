@@ -748,6 +748,11 @@ class QueryConfig(ConfigBase):
             raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
+            # HACK: featweight_cfg used to include chip and feat
+            # but they arent working now due to new structures, so they are hacked in here
+            # This whole file will eventually be depricated
+            cfgstr_list += query_cfg._featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
+            cfgstr_list += query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr_list(**kwargs)
 
         if query_cfg.augment_queryside_hack:
             # HACK

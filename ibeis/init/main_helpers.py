@@ -185,7 +185,7 @@ def testdata_expts(defaultdb='testdb1',
     # Hack a cache here
     use_bigtest_cache3 = not ut.get_argflag(('--nocache', '--nocache-hs'))
     use_bigtest_cache3 &= ut.is_developer()
-    #use_bigtest_cache3 &= False
+    use_bigtest_cache3 &= False
     #use_bigtest_cache3 = True
     if use_bigtest_cache3:
         from os.path import dirname, join

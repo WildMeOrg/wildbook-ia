@@ -215,8 +215,6 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     # Run each pipeline configuration
     for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
-        import utool
-        utool.embed()
 
         ut.colorprint('testnameid=%r' % (
             testnameid,), 'green')
