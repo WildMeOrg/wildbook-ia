@@ -650,7 +650,7 @@ def generate_to_patch_transforms(kpts, patch_size=41):
     invV_mats = vt.get_invV_mats(kpts, with_trans=False, ashomog=True)
     V_mats = vt.invert_invV_mats(invV_mats)
     kpts_iter = zip(xs, ys, V_mats, oris)
-
+    # HACK, this is using the old method
     half_patch_size = patch_size / 2.0
     ss = np.sqrt(patch_size) * 3.0
 
