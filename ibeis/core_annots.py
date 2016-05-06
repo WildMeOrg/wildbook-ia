@@ -216,10 +216,6 @@ def compute_chip(depc, aid_list, config=None):
     arg_iter = zip(gid_list, newsize_list, M_list)
     arg_list = list(arg_iter)
 
-    flags = cv2.INTER_LANCZOS4
-    borderMode = cv2.BORDER_CONSTANT
-    warpkw = dict(flags=flags, borderMode=borderMode)
-
     filterfn_list = []
     from vtool import image_filters
     if config['histeq']:
@@ -227,8 +223,10 @@ def compute_chip(depc, aid_list, config=None):
     if config['adapteq']:
         filterfn_list.append(image_filters.adapteq_fn)
 
+    warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+
     last_gid = None
-    for tup in ut.ProgIter(arg_list, lbl='computing chips'):
+    for tup in ut.ProgIter(arg_list, lbl='computing chips', backspace=True):
         # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
         #cfpath, gid, new_size, M = tup
         gid, new_size, M = tup
@@ -457,7 +455,7 @@ def compute_probchip(depc, aid_list, config=None):
     grouped_probchips = []
     _iter = zip(grouped_aids, unique_species, grouped_ppaths, grouped_mpaths)
     _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
-                        lbl='probchip for species', enabled=ut.VERBOSE)
+                        lbl='probchip for species', enabled=ut.VERBOSE, backspace=True)
 
     if fw_detector == 'rf':
         for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
@@ -496,8 +494,8 @@ def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_th
     # dont use extrmargin here (for now)
     mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
     _iter = zip(probchip_fpath_list, mask_gen)
-    for chunk in ut.ichunks(_iter, 64):
-        _progiter = ut.ProgIter(chunk, lbl='compute probchip chunk', adjust=True, time_thresh=30.0)
+    for chunk in ut.ichunks(_iter, 256):
+        _progiter = ut.ProgIter(chunk, lbl='compute probchip chunk', adjust=True, time_thresh=30.0, backspace=True)
         for probchip_fpath, probchip in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
                 probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
@@ -784,7 +782,7 @@ class FeatWeightConfig(dtool.Config):
     colnames=['fwg'],
     coltypes=[np.ndarray],
     configclass=FeatWeightConfig,
-    fname='featcache', chunksize=1024,
+    fname='featcache', chunksize=512,
 )
 def compute_fgweights(depc, fid_list, pcid_list, config=None):
     """
@@ -806,6 +804,7 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
         >>> result = np.array_str(featweight_list[0][0:3], precision=3)
         >>> print(result)
     """
+    ibs = depc.controller
     nTasks = len(fid_list)
     print('[compute_fgweights] Computing %d fgweights' % (nTasks,))
     #aid_list = depc.get_ancestor_rowids('feat', fid_list, 'annotations')
@@ -822,7 +821,8 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     #                               force_serial=ibs.force_serial)
     featweight_gen = ut.generate(gen_featweight_worker, arg_iter,
                                  nTasks=nTasks, ordered=True, freq=10,
-                                 force_serial=True)
+                                 force_serial=ibs.force_serial
+                                 )
     featweight_list = list(featweight_gen)
     print('[compute_fgweights] Done computing %d fgweights' % (nTasks,))
     for fw in featweight_list:
