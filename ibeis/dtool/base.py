@@ -179,6 +179,17 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         param_info_dict = {pi.varname: pi for pi in param_info_list}
         return param_info_dict
 
+    def assert_self_types(cfg, verbose=True):
+        if verbose:
+            print('Assert self types of cfg=%r' % (cfg,))
+        pi_dict = cfg.get_param_info_dict()
+        for key in cfg.keys():
+            pi = pi_dict[key]
+            value = cfg[key]
+            pi.error_if_invalid_value(value)
+        if verbose:
+            print('... checks passed')
+
     def getinfo(cfg, key):
         pass
 
