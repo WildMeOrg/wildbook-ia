@@ -192,12 +192,17 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> # ENABLE_DOCTEST
         >>> from vtool.geometry import *  # NOQA
         >>> import vtool as vt
+        >>> #bbox = np.array([10, 10, 10, 10], dtype=np.float)
+        >>> #verts_ = np.array(vt.verts_from_bbox(bbox, close=True))
+        >>> #R = vt.rotation_around_bbox_mat3x3(vt.TAU / 3, bbox)
+        >>> #verts = vt.transform_points_with_homography(R, verts_.T).T
+        >>> verts = np.array([[ 21.83012702,  13.16987298],
+        >>>                   [ 16.83012702,  21.83012702],
+        >>>                   [  8.16987298,  16.83012702],
+        >>>                   [ 13.16987298,   8.16987298],
+        >>>                   [ 21.83012702,  13.16987298]])
         >>> rng = np.random.RandomState(0)
         >>> p_list = rng.rand(64, 2) * 20 + 5
-        >>> bbox = np.array([10, 10, 10, 10], dtype=np.float)
-        >>> verts_ = np.array(vt.verts_from_bbox(bbox, close=True))
-        >>> R = vt.rotation_around_bbox_mat3x3(vt.TAU / 3, bbox)
-        >>> verts = vt.transform_points_with_homography(R, verts_.T).T
         >>> close_pts = np.array([closest_point_on_verts(p, verts) for p in p_list])
         >>> import plottool as pt
         >>> pt.ensure_pylab_qt4()
