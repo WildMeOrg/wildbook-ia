@@ -18,6 +18,131 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     pt.interactions.zoom_factory()
 
 
+def random_test_case(num_names=5, rng=np.random):
+    from ibeis import constants as const
+    # num_names = 10
+    valid_names = list(range(num_names))
+    valid_views = list(const.YAWALIAS.values())
+    # valid_views.remove('
+    valid_quals = list(const.QUALITY_INT_TO_TEXT.keys())
+    valid_quals.remove(-1)
+    valid_quals.remove(0)
+    valid_quals.remove(None)
+    def sampleone(list_):
+        return ut.random_sample(list_, 1, rng=rng)[0]
+    view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
+    case = {
+        'nfeats': np.clip(rng.normal(1000, 300, size=1)[0], 0, np.inf).astype(np.int),
+        'name': sampleone(valid_names),
+        'view': sampleone(valid_views),
+        'qual': sampleone(valid_quals),
+    }
+    case['yaw'] = view_to_ori[case['view']]
+    return case
+
+
+def random_case_set():
+    rng = np.random.RandomState(0)
+    case_params = dict(num_names=5, rng=rng)
+    num_annots = 600
+    test_cases = [random_test_case(**case_params) for _ in range(num_annots)]
+    pairxs = list(ut.product_nonsame(range(num_annots), range(num_annots)))
+    test_pairs = list(ut.unflat_take(test_cases, pairxs))
+    labels = np.array([make_test_pairwise_labels(case1, case2)
+                       for case1, case2 in ut.ProgIter(test_pairs, backspace=True)])
+    pairwise_feats_ = [make_test_pairwise_fetaures(case1, case2, label, rng)
+                       for label, (case1, case2) in ut.ProgIter(zip(labels, test_pairs), backspace=True)]
+    pairwise_feats = np.vstack(pairwise_feats_)
+    print(ut.dict_hist(labels))
+    return labels, pairwise_feats
+
+
+def test_rf_classifier():
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.metrics import log_loss
+
+    # http://scikit-learn.org/stable/auto_examples/calibration/plot_calibration_multiclass.html
+    pairwise_feats, labels = random_case_set()
+    X = pairwise_feats
+    y = labels
+    X_train, y_train = X[:600], y[:600]
+    X_valid, y_valid = X[600:800], y[600:800]
+    X_train_valid, y_train_valid = X[:800], y[:800]
+    X_test, y_test = X[800:], y[800:]
+
+    # Train uncalibrated random forest classifier on whole train and validation
+    # data and evaluate on test data
+    clf = RandomForestClassifier(n_estimators=25)
+    clf.fit(X_train_valid, y_train_valid)
+    clf_probs = clf.predict_proba(X_test)
+    score = log_loss(y_test, clf_probs)
+    print('score = %r' % (score,))
+
+    # Train random forest classifier, calibrate on validation data and evaluate
+    # on test data
+    clf = RandomForestClassifier(n_estimators=25)
+    clf.fit(X_train, y_train)
+    clf_probs = clf.predict_proba(X_test)
+    sig_clf = CalibratedClassifierCV(clf, method="sigmoid", cv="prefit")
+    sig_clf.fit(X_valid, y_valid)
+    sig_clf_probs = sig_clf.predict_proba(X_test)
+    sig_score = log_loss(y_test, sig_clf_probs)
+    print('sig_score = %r' % (sig_score,))
+
+
+def make_test_pairwise_fetaures(case1, case2, label, rng):
+    import vtool as vt
+    mu_fm = 50 if label == 1 else 10
+    sigma_fm = 10 if label == 1 else 20
+    mu_fs = .2 if label == 1 else .4
+    sigma_fs = .1 if label == 1 else .1
+    num_top = 4
+    max_feats = min(case1['nfeats'], case2['nfeats'])
+    num_matches = np.clip(rng.normal(mu_fm, sigma_fm, size=1)[0], num_top + 1, max_feats).astype(np.int),
+    perb = np.abs(rng.normal(.001, .001, size=num_matches))
+    sift_dists = np.clip(rng.normal(mu_fs, sigma_fs, size=num_matches), 0, 1) + perb
+    sortx = np.argsort(sift_dists)
+    local_feat_simvecs = np.vstack([sift_dists]).T[sortx]
+    local_simvec = local_feat_simvecs[0:num_top]
+    yaw1 = case1['yaw']
+    yaw2 = case2['yaw']
+    global_simvec = np.array([
+        case1['qual'],
+        case2['qual'],
+        yaw1 / vt.TAU,
+        yaw2 / vt.TAU,
+        vt.ori_distance(yaw1, yaw2) / np.pi,
+        np.abs(case1['qual'] - case1['qual']),
+    ])
+    simvec = np.hstack([global_simvec, local_simvec.ravel()])
+    return simvec
+
+
+def make_test_pairwise_labels(case1, case2):
+    from ibeis import constants as const
+    import vtool as vt
+    view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
+    is_same = case1['name'] == case2['name']
+    yaw1 = view_to_ori[case1['view']]
+    yaw2 = view_to_ori[case2['view']]
+    yaw_dist = vt.ori_distance(yaw1, yaw2) / np.pi
+    if case1['qual'] < 2 or case2['qual'] < 2:
+        # Bad quality means not comparable
+        is_comp = False
+    else:
+        if case1['qual'] > 3 or case2['qual'] > 3:
+            # Better quality, better chance of being comparable
+            is_comp = yaw_dist <= (1 / 4)
+        else:
+            is_comp = yaw_dist <= (1 / 8)
+    if is_comp:
+        label = int(is_same)
+    else:
+        label = 2
+    return label
+
+
 def test_em():
     """
     CommandLine:
@@ -55,13 +180,16 @@ def test_em():
         #    True:  {'mu': 0.9, 'sigma': .1},
         #    False: {'mu': 0.1, 'sigma': .4}
         #}
-        tau = np.pi * 2
-        view_to_ori = {
-            'F': -1 * tau / 4,
-            'L':  0 * tau / 4,
-            'B':  1 * tau / 4,
-            'R':  2 * tau / 4,
-        }
+        # tau = np.pi * 2
+        from ibeis import constants as const
+        # view_to_ori = const.VIEWTEXT_TO_YAW_RADIANS
+        view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
+        # view_to_ori = {
+        #     'F': -1 * tau / 4,
+        #     'L':  0 * tau / 4,
+        #     'B':  1 * tau / 4,
+        #     'R':  2 * tau / 4,
+        # }
         import vtool as vt
 
         nid_list = np.array(ut.dict_take_column(test_case, 'name'))
