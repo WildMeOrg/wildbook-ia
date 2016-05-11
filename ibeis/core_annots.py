@@ -1073,7 +1073,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> _, aids = ut.items_sorted_by_value(ut.group_items(aid_list, ibs.get_annot_occurrence_text(aid_list)), key=len)[-1]
         >>> aid_list = aids
         >>> depc = ibs.depc_annot
-        >>> request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
+        >>> request = depc.new_request('vsone', aid_list, aid_list, {'resize_dim': 'width', 'dim_size': 450})
         >>> config = request.config
         >>> parent_rowids_T = request.parent_rowids_T
         >>> qaids, daids = request.parent_rowids_T
@@ -1094,7 +1094,9 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> match = res_list2[0]
         >>> match.print_inspect_str(request)
         >>> #match.show_analysis(qreq_=request)
-        >>> match.ishow_analysis(qreq_=request)
+        >>> #match.ishow_analysis(qreq_=request)
+        >>> #match.ishow_single_annotmatch(qreq_=request)
+        >>> match.show_single_annotmatch(qreq_=request, vert=False)
         >>> ut.show_if_requested()
     """
     import ibeis

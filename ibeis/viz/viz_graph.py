@@ -493,7 +493,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             #print(ax)
             #print(event.x)
             #print(event.y)
-            pos = self.plotinfo['pos']
+            pos = self.plotinfo['node']['pos']
             aids = list(pos.keys())
             pos_list = ut.dict_take(pos, aids)
 

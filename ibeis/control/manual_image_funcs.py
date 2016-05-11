@@ -792,15 +792,23 @@ def get_image_thumbpath(ibs, gid_list, **config):
         Method: GET
         URL:    /api/image/thumbpath/
     """
+    print('get_image_thumbpath for %d gids' % (len(gid_list)))
+    #raise Exception("FOOBAR")
     depc = ibs.depc_image
-    import dtool
-    try:
-        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
-                                   read_extern=False)
-    except dtool.ExternalStorageException:
-        # TODO; this check might go in dtool itself
-        thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
-                                   read_extern=False)
+    # Do not force computation just ask where the thumbs will go
+    # This will allow the frontend to know where to read the images when they
+    # are ready. They should be computed in the background.
+    # HACK: this is hacked into the depcache to force it to work
+    # It is not gaurneteed that it will ever work
+    # FIXME: I think Qt will end up computing these thumbnails and writing them
+    # to where the depcache expects them. I think the depcache will then
+    # override them but this may cause unexpected results.
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                               read_extern=False, ensure=False, hack_paths=True)
+    #except dtool.ExternalStorageException:
+    #    # TODO; this check might go in dtool itself
+    #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+    #                               read_extern=False)
     return thumbpath_list
 
 

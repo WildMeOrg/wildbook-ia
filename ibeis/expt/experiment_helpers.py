@@ -423,7 +423,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
     if _qaids is not None:
         expanded_aids_list = [(_qaids, daids) for qaids, daids in expanded_aids_list]
     # more hack for daids
-    _daids = ut.get_argval('--daids-override', type_=list, default=daid_override)
+    _daids = ut.get_argval(('--daids-override', '--daid-override'), type_=list, default=daid_override)
     if _daids is not None:
         expanded_aids_list = [(qaids, _daids) for qaids, daids in expanded_aids_list]
     # L___

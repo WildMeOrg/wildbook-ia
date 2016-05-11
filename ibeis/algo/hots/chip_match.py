@@ -175,6 +175,11 @@ class _ChipMatchVisualization(object):
         """
         TODO: rename daid to aid2
 
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match show_single_annotmatch --show
+
+            python -m ibeis.algo.hots.chip_match show_single_annotmatch --show --qaids=5245 --daids=5161 --db PZ_Master1
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA

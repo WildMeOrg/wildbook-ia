@@ -297,6 +297,8 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
 def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
                   return_acfg=False, verbose=None, default_aids=None):
     r"""
+    Grabs default testdata for functions, but is command line overrideable
+
     CommandLine:
         python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
         python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'

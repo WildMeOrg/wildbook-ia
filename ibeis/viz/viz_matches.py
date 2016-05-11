@@ -602,7 +602,6 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     #vert = True if len(rchip2_list) > 1 else False
     vert = True if len(rchip2_list) > 1 else None
     #num = 0
-    #vert = False
 
     if False and kwargs.get('fastmode', False):
         # This doesn't actually help the speed very much
