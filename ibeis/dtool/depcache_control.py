@@ -897,7 +897,8 @@ class _CoreDependencyCache(object):
     def get_property(depc, tablename, root_rowids, colnames=None, config=None,
                      ensure=True, _debug=None, recompute=False,
                      recompute_all=False, eager=True, nInput=None,
-                     read_extern=True, onthefly=False, num_retries=1):
+                     read_extern=True, onthefly=False, num_retries=1,
+                     hack_paths=False):
         """
         Primary function to load or compute values in the dependency cache.
 
@@ -910,6 +911,8 @@ class _CoreDependencyCache(object):
             root_rowids (List[int]): ids of the root object
             colnames (None): desired property (default = None)
             config (None): (default = None)
+            read_extern: if False then only returns extern URI
+            hack_paths: if False then does not compute extern info just returns path that it will be located at
 
         Returns:
             list: prop_list
@@ -942,6 +945,22 @@ class _CoreDependencyCache(object):
                 print(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
                 print(' * colnames = %r' % (colnames,))
                 print(' * config = %r' % (config,))
+
+            if hack_paths and not ensure and not read_extern:
+                # HACK: should be able to not compute rows to get certain properties
+                from os.path import join
+                #recompute_ = recompute or recompute_all
+                parent_rowids = depc._get_parent_input(
+                    tablename, root_rowids, config, ensure=True, _debug=None,
+                    recompute=False, recompute_all=False, eager=True,
+                    nInput=None)
+                config_ = depc._ensure_config(tablename, config)
+                table = depc[tablename]
+                extern_dpath = table.extern_dpath
+                ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
+                fname_list = table.get_extern_fnames(parent_rowids, config=config_, extern_col_index=0)
+                fpath_list = [join(extern_dpath, fname) for fname in fname_list]
+                return fpath_list
 
             for trynum in range(num_retries):
                 try:
