@@ -779,6 +779,12 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         cm.nid2_nidx = None  # maps onto cm.unique_nids
         cm.name_groupxs = None
 
+    def as_simple_dict(cm, keys=[]):
+        state_dict = cm.__getstate__()
+        keys = ['qaid', 'daid_list', 'score_list'] + keys
+        simple_dict = ut.dict_subset(state_dict, keys)
+        return simple_dict
+
     def _custom_str(cm):
         r"""
         Example:
@@ -1782,12 +1788,6 @@ class ChipMatch(_ChipMatchVisualization,
 
     def as_dict(cm):
         return cm.__getstate__()
-
-    def as_simple_dict(cm, keys=[]):
-        state_dict = cm.__getstate__()
-        keys = ['qaid', 'daid_list', 'score_list'] + keys
-        simple_dict = ut.dict_subset(state_dict, keys)
-        return simple_dict
 
     # --- IO
 
