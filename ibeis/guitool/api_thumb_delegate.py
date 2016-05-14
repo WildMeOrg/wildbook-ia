@@ -7,22 +7,17 @@ from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
 #import cv2  # NOQA
 #import numpy as np
-import utool
 #import time
 #from six.moves import zip
-from os.path import exists
 import vtool as vt
-#from vtool import linalg, geometry
+from os.path import exists
 from vtool import geometry
-#from multiprocessing import Process
-#from guitool import guitool_components as comp
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIThumbDelegate]', DEBUG=False)
 import utool as ut
-ut.noinject(__name__, '[APIThumbDelegate]', DEBUG=False)
+ut.noinject(__name__, '[APIThumbDelegate]')
 
 
 VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
-VERBOSE_THUMB = utool.VERBOSE or ut.get_argflag(('--verbose-thumb', '--verbthumb')) or VERBOSE_QT
+VERBOSE_THUMB = ut.VERBOSE or ut.get_argflag(('--verbose-thumb', '--verbthumb')) or VERBOSE_QT
 
 
 MAX_NUM_THUMB_THREADS = 1
@@ -221,7 +216,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 print('[thumb_delegate] something is wrong')
                 return
         except AssertionError as ex:
-            utool.printex(ex, 'error getting thumbnail data')
+            ut.printex(ex, 'error getting thumbnail data')
             return
 
         # Check if still in viewport
@@ -308,7 +303,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         except Exception as ex:
             # PSA: Always report errors on Exceptions!
             print('Error in APIThumbDelegate')
-            utool.printex(ex, 'Error in APIThumbDelegate')
+            ut.printex(ex, 'Error in APIThumbDelegate')
             painter.save()
             painter.restore()
 
@@ -326,7 +321,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return QtCore.QSize()
         except Exception as ex:
             print("Error in APIThumbDelegate")
-            utool.printex(ex, 'Error in APIThumbDelegate', tb=True)
+            ut.printex(ex, 'Error in APIThumbDelegate', tb=True)
             return QtCore.QSize()
 
 
@@ -366,11 +361,11 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
         ((128, 64), [[[21, 11], [107, 11], [107, 53], [21, 53], [21, 11]]])
 
     """
-    theta_list = [theta_list] if not utool.is_listlike(theta_list) else theta_list
+    theta_list = [theta_list] if not ut.is_listlike(theta_list) else theta_list
     max_dsize = (thumbsize, thumbsize)
-    dsize, sx, sy = vt.image.resized_clamped_thumb_dims(img_size, max_dsize)
+    dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
     # Compute new verts list
-    new_verts_list = list(vt.image.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
+    new_verts_list = list(vt.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
     return dsize, new_verts_list
 
 
@@ -482,7 +477,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         try:
             thread._run()
         except Exception as ex:
-            utool.printex(ex, 'thread failed', tb=True)
+            ut.printex(ex, 'thread failed', tb=True)
             #raise
 
     #def __del__(self):
