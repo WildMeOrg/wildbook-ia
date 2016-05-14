@@ -2786,7 +2786,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             imgBGR = img
 
             if imgBGR.dtype == np.float64:
-                if imgBGR.max() <= 1:
+                if imgBGR.max() <= 1.01:
                     imgBGR = np.array(imgBGR, dtype=np.float32)
                 else:
                     imgBGR = np.array(imgBGR, dtype=np.uint8)
@@ -2817,6 +2817,9 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 cmap = plt.get_cmap('gray')
             if isinstance(cmap, six.string_types):
                 cmap = plt.get_cmap(cmap)
+            # for some reason gray floats aren't working right
+            if imgGRAY.max() <= 1.01 and imgGRAY.min() >= -1E-9:
+                imgGRAY = (imgGRAY * 255).astype(np.uint8)
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
             raise AssertionError(
