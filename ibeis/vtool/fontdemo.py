@@ -28,7 +28,6 @@ References:
     https://gist.github.com/dbader/5488053#file-fontdemo-py-L244
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import freetype
 
 
 class Bitmap(object):
@@ -109,10 +108,12 @@ class Glyph(object):
 
 class Font(object):
     def __init__(self, filename, size):
+        import freetype
         self.face = freetype.Face(filename)
         self.face.set_pixel_sizes(0, size)
 
     def glyph_for_character(self, char):
+        import freetype
         self.face.load_char(char, freetype.FT_LOAD_RENDER | freetype.FT_LOAD_TARGET_MONO)
         return Glyph.from_glyphslot(self.face.glyph)
 

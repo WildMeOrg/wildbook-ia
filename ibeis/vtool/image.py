@@ -10,12 +10,9 @@ try:
 except ImportError as ex:
     print('WARNING: import cv2 is failing!')
     cv2 = None
-from vtool import linalg
-from vtool import geometry
 from vtool import exif
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[img]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[img]')
 
 
 TAU = np.pi * 2
@@ -44,6 +41,12 @@ else:
     cv2.CV_AA = None
     cv2.FONT_HERSHEY_SIMPLEX = None
     cv2.INTER_NEAREST = None
+
+
+try:
+    LINE_AA = cv2.LINE_AA
+except AttributeError:
+    LINE_AA = cv2.CV_AA
 
 #cv2.BORDER_CONSTANT     cv2.BORDER_REFLECT      cv2.BORDER_REPLICATE
 #cv2.BORDER_DEFAULT      cv2.BORDER_REFLECT101   cv2.BORDER_TRANSPARENT
@@ -937,15 +940,17 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
 
 
 def rectify_to_float01(img, dtype=np.float32):
+    """ Ensure that an image is encoded using a float properly """
     if ut.is_int(img):
         assert img.max() <= 255
         img_ = img.astype(dtype) / 255.0
     else:
-        img_ = img
+        img_ = img.astype(dtype)
     return img_
 
 
 def rectify_to_uint8(img):
+    """ Ensure that an image is encoded in uint8 properly """
     if ut.is_float(img):
         assert img.max() <= 1.0
         assert img.min() >= 0.0
@@ -988,10 +993,68 @@ def _lookup_colorspace_code(colorspace, src_colorspace='BGR'):
 
 
 def convert_colorspace(img, colorspace, src_colorspace='BGR'):
+    r"""
+    Converts colorspace of img.
+    Convinience function around cv2.cvtColor
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        colorspace (str): RGB, LAB, etc
+        src_colorspace (unicode): (default = u'BGR')
+
+    Returns:
+        ndarray[uint8_t, ndim=2]: img -  image data
+
+    CommandLine:
+        python -m vtool.image convert_colorspace --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('zebra.png')
+        >>> img_fpath = ut.grab_file_url('http://itsnasb.com/wp-content/uploads/2013/03/lisa-frank-logo1.jpg')
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath)
+        >>> img_float = vt.rectify_to_float01(img, np.float32)
+        >>> colorspace = 'LAB'
+        >>> src_colorspace = 'BGR'
+        >>> imgLAB = convert_colorspace(img, colorspace, src_colorspace)
+        >>> imgL = imgLAB[:, :, 0]
+        >>> fillL = imgL.mean()
+        >>> fillAB = 0 if ut.is_float(img) else 128
+        >>> imgAB_LAB = vt.embed_channels(imgLAB[:, :, 1:3], (1, 2), fill=fillL)
+        >>> imgA_LAB  = vt.embed_channels(imgLAB[:, :, 1], (1,), fill=(fillL, fillAB))
+        >>> imgB_LAB  = vt.embed_channels(imgLAB[:, :, 2], (2,), fill=(fillL, fillAB))
+        >>> imgAB_BGR = convert_colorspace(imgAB_LAB, src_colorspace, colorspace)
+        >>> imgA_BGR = convert_colorspace(imgA_LAB, src_colorspace, colorspace)
+        >>> imgB_BGR = convert_colorspace(imgB_LAB, src_colorspace, colorspace)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> #imgAB_HSV = convert_colorspace(convert_colorspace(imgAB_LAB, 'LAB', 'BGR'), 'BGR', 'HSV')
+        >>> imgAB_HSV = convert_colorspace(img, 'HSV', 'BGR')
+        >>> imgAB_HSV[:, :, 1:3] = .6 if ut.is_float(img) else 128
+        >>> imgCOLOR_BRG = convert_colorspace(imgAB_HSV, 'BGR', 'HSV')
+        >>> pt.imshow(img, pnum=(3, 4, 1), title='input')
+        >>> pt.imshow(imgL, pnum=(3, 4, 2), title='L (lightness)')
+        >>> pt.imshow((imgLAB[:, :, 1]), pnum=(3, 4, 3), title='A (grayscale)')
+        >>> pt.imshow((imgLAB[:, :, 2]), pnum=(3, 4, 4), title='B (grayscale)')
+        >>> pt.imshow(imgCOLOR_BRG, pnum=(3, 4, 5), title='Hue')
+        >>> pt.imshow(imgAB_BGR, pnum=(3, 4, 6), title='A+B (color overlay)')
+        >>> pt.imshow(imgA_BGR, pnum=(3, 4, 7), title='A (Red-Green)')
+        >>> pt.imshow(imgB_BGR, pnum=(3, 4, 8), title='B (Blue-Yellow)')
+        >>> rgblind_LAB = vt.embed_channels(imgLAB[:, :, (0, 2)], (0, 2), fill=fillAB)
+        >>> rgblind_BRG = convert_colorspace(rgblind_LAB, src_colorspace, colorspace)
+        >>> byblind_LAB = vt.embed_channels(imgLAB[:, :, (0, 1)], (0, 1), fill=fillAB)
+        >>> byblind_BGR = convert_colorspace(byblind_LAB, src_colorspace, colorspace)
+        >>> pt.imshow(byblind_BGR, title='colorblind B-Y', pnum=(3, 4, 11))
+        >>> pt.imshow(rgblind_BRG, title='colorblind R-G', pnum=(3, 4, 12))
+        >>> ut.show_if_requested()
+    """
     src_colorspace = src_colorspace.upper()
     colorspace = colorspace.upper()
     if colorspace == src_colorspace:
-        return img
+        return img  # FIXME copy?
     code = _lookup_colorspace_code(colorspace, src_colorspace)
     img2 = cv2.cvtColor(img, code)
     return img2
@@ -1263,65 +1326,10 @@ def resize_thumb(img, max_dsize=(64, 64)):
     img_size = (width, height)
     dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
     if ratio > 1:
-        return cvt_BGR2RGB(img)
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # return cvt_BGR2RGB(img)
     else:
         return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
-
-
-def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
-    r"""
-    Helps with drawing scaled bbounding boxes on thumbnails
-
-    Args:
-        bbox_list (list): bboxes in x,y,w,h format
-        theta_list (list): rotation of bounding boxes
-        sx (float): x scale factor
-        sy (float): y scale factor
-
-    Yeilds:
-        new_verts - vertices of scaled bounding box for every input
-
-    CommandLine:
-        python -m vtool.image --test-scaled_verts_from_bbox_gen
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> # build test data
-        >>> bbox_list = [(10, 10, 100, 100)]
-        >>> theta_list = [0]
-        >>> sx = .5
-        >>> sy = .5
-        >>> # execute function
-        >>> new_verts_list = list(scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
-        >>> result = str(new_verts_list)
-        >>> # verify results
-        >>> print(result)
-        [[[5, 5], [55, 5], [55, 55], [5, 55], [5, 5]]]
-    """
-    # TODO: input verts support and better name
-    for bbox, theta in zip(bbox_list, theta_list):
-        new_verts = scaled_verts_from_bbox(bbox, theta, sx, sy)
-        yield new_verts
-
-
-def scaled_verts_from_bbox(bbox, theta, sx, sy):
-    """
-    Helps with drawing scaled bbounding boxes on thumbnails
-
-    """
-    if bbox is None:
-        return None
-    # Transformation matrixes
-    R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
-    S = linalg.scale_mat3x3(sx, sy)
-    # Get verticies of the annotation polygon
-    verts = geometry.verts_from_bbox(bbox, close=True)
-    # Rotate and transform to thumbnail space
-    xyz_pts = linalg.add_homogenous_coordinate(np.array(verts).T)
-    trans_pts = linalg.remove_homogenous_coordinate(S.dot(R).dot(xyz_pts))
-    new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
-    return new_verts
 
 
 def _trimread(gpath):
@@ -1339,21 +1347,6 @@ def get_scale_factor(src_img, dst_img):
     sx = dst_w / src_w
     sy = dst_h / src_h
     return (sx, sy)
-
-
-def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
-    """ Converts bbox to thumb format with a scale factor"""
-    import vtool as vt
-    (x1, y1, _w, _h) = xywh
-    x2 = (x1 + _w)
-    y2 = (y1 + _h)
-    if round_:
-        pt1 = (vt.iround(x1 * sx), vt.iround(y1 * sy))
-        pt2 = (vt.iround(x2 * sx), vt.iround(y2 * sy))
-    else:
-        pt1 = ((x1 * sx), (y1 * sy))
-        pt2 = ((x2 * sx), (y2 * sy))
-    return (pt1, pt2)
 
 
 # Parallel code for resizing many images
@@ -1456,12 +1449,6 @@ def find_pixel_value_index(img, pixel):
     mask2d = get_pixel_dist(img, pixel) == 0
     pixel_locs = np.column_stack(np.where(mask2d))
     return pixel_locs
-
-
-try:
-    LINE_AA = cv2.LINE_AA
-except AttributeError:
-    LINE_AA = cv2.CV_AA
 
 
 def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
@@ -2004,10 +1991,49 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         return imgB
 
 
+def embed_channels(img, input_channels=(0,), nchannels=3, fill=0):
+    r"""
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        input_channels (tuple): (default = (0,))
+        nchannels (int): (default = 3)
+
+    CommandLine:
+        python -m vtool.image embed_channels --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> # Embed a (N,M,2) image into an (N,M,3) image
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath).T[1:3].T
+        >>> input_channels = (1, 2)
+        >>> nchannels = 3
+        >>> newimg = embed_channels(img, input_channels, nchannels)
+        >>> assert newimg.shape[-1] == 3
+        >>> assert np.all(newimg[:, :, input_channels] == img)
+    """
+    import vtool as vt
+    new_shape = img.shape[0:2] + (nchannels,)
+    if not isinstance(fill, tuple):
+        fill = (fill,)
+    newimg = np.empty(new_shape, dtype=img.dtype)
+    fill_dims = np.setdiff1d(np.arange(nchannels), input_channels)
+    for dim, val in zip(fill_dims, fill):
+        newimg[:, :, dim] = val
+    # newimg[:, :, tuple(fill_dims.tolist())] = vt.atleast_nd([fill], 3, True)
+    newimg[:, :, input_channels] = vt.atleast_nd(img, 3)
+    return newimg
+
+
 def ensure_3channel(patch):
     r"""
+    Ensures that there are 3 channels in the image
+
     Args:
-        patch (ndarray[N, M, ...]):
+        patch (ndarray[N, M, ...]): the image
 
     Returns:
         ndarray: [N, M, 3]
@@ -2028,6 +2054,9 @@ def ensure_3channel(patch):
         >>> assert res1.shape[0:2] == patch1.shape[0:2], 'failed test1'
         >>> assert res2.shape[0:2] == patch2.shape[0:2], 'failed test2'
         >>> assert res3.shape[0:2] == patch3.shape[0:2], 'failed test3'
+        >>> assert res1.shape[-1] == 3
+        >>> assert res2.shape[-1] == 3
+        >>> assert res3.shape[-1] == 3
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(res1, pnum=(1, 3, 1), fnum=1)
@@ -2035,12 +2064,19 @@ def ensure_3channel(patch):
         >>> pt.imshow(res3, pnum=(1, 3, 3), fnum=1)
         >>> ut.show_if_requested()
     """
+    # TODO: should this use atleast_nd as a subroutine?
+    # res = vt.atleast_nd(patch, 3)
+    # if res.shape[-1] == 1:
+    #     res = np.tile(res, 3)
+    # import utool
+    # utool.embed()
     if len(patch.shape) == 2:
-        return np.tile(patch[:, :, None], 3)
+        res = np.tile(patch[:, :, None], 3)
     elif len(patch.shape) == 3 and patch.shape[-1] == 1:
-        return np.tile(patch, 3)
+        res = np.tile(patch, 3)
     else:
-        return patch.copy()
+        res = patch.copy()
+    return res
 
 
 def infer_vert(img1, img2, vert):

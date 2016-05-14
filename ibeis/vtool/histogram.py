@@ -651,6 +651,8 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>> for x_pts, y_pts in zip(xpoints, ypoints):
         >>>     pt.plt.plot(x_pts, y_pts, 'g--', lw=2)
         >>> pt.show_if_requested()
+        (array([ 0.14597723,  3.0318792 ,  5.11      ]), array([  9.20251557,  37.19208239,   0.        ]))
+
         (array([ 0.14597723,  3.0318792 ]), array([  9.20251557,  37.19208239]))
 
     Ignore:

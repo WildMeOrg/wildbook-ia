@@ -317,6 +317,78 @@ def get_pointset_extent_wh(pts):
     return extent_w, extent_h
 
 
+def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
+    """ Converts bbox to thumb format with a scale factor"""
+    import vtool as vt
+    (x1, y1, _w, _h) = xywh
+    x2 = (x1 + _w)
+    y2 = (y1 + _h)
+    if round_:
+        pt1 = (vt.iround(x1 * sx), vt.iround(y1 * sy))
+        pt2 = (vt.iround(x2 * sx), vt.iround(y2 * sy))
+    else:
+        pt1 = ((x1 * sx), (y1 * sy))
+        pt2 = ((x2 * sx), (y2 * sy))
+    return (pt1, pt2)
+
+
+def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
+    r"""
+    Helps with drawing scaled bbounding boxes on thumbnails
+
+    Args:
+        bbox_list (list): bboxes in x,y,w,h format
+        theta_list (list): rotation of bounding boxes
+        sx (float): x scale factor
+        sy (float): y scale factor
+
+    Yeilds:
+        new_verts - vertices of scaled bounding box for every input
+
+    CommandLine:
+        python -m vtool.image --test-scaled_verts_from_bbox_gen
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> # build test data
+        >>> bbox_list = [(10, 10, 100, 100)]
+        >>> theta_list = [0]
+        >>> sx = .5
+        >>> sy = .5
+        >>> # execute function
+        >>> new_verts_list = list(scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
+        >>> result = str(new_verts_list)
+        >>> # verify results
+        >>> print(result)
+        [[[5, 5], [55, 5], [55, 55], [5, 55], [5, 5]]]
+    """
+    # TODO: input verts support and better name
+    for bbox, theta in zip(bbox_list, theta_list):
+        new_verts = scaled_verts_from_bbox(bbox, theta, sx, sy)
+        yield new_verts
+
+
+def scaled_verts_from_bbox(bbox, theta, sx, sy):
+    """
+    Helps with drawing scaled bbounding boxes on thumbnails
+
+    """
+    if bbox is None:
+        return None
+    from vtool import linalg
+    # Transformation matrixes
+    R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+    S = linalg.scale_mat3x3(sx, sy)
+    # Get verticies of the annotation polygon
+    verts = verts_from_bbox(bbox, close=True)
+    # Rotate and transform to thumbnail space
+    xyz_pts = linalg.add_homogenous_coordinate(np.array(verts).T)
+    trans_pts = linalg.remove_homogenous_coordinate(S.dot(R).dot(xyz_pts))
+    new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
+    return new_verts
+
+
 if __name__ == '__main__':
     """
     CommandLine:

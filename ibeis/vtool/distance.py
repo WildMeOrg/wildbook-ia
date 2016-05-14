@@ -51,7 +51,7 @@ def testdata_sift2():
     sift4 = normalize_sift(sift4)
     sift5 = normalize_sift(sift5)
 
-    return sift1, sift2, sift2, sift3, sift4
+    return sift1, sift2, sift3, sift4, sift5
 
 
 def wrapped_distance(arr1, arr2, base, out=None):
@@ -485,7 +485,7 @@ def L2_sift(hist1, hist2):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> sift1, sift2, sift3, sift4, sift5 = testdata_sift2()
-        >>> #l2_dist = L2_sift(hist1, hist2)
+        >>> l2_dist = L2_sift(hist1, hist2)
         >>> #l2_dist1 = L2_sift(sift1, sift2)
         >>> #l2_dist2 = L2_sift(sift1, sift3)
         >>> #L2_sift(sift2, sift3)
@@ -502,7 +502,8 @@ def L2_sift(hist1, hist2):
     sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
     sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
     l2_dist = L2(sift1, sift2)
-    return l2_dist / max_l2_dist
+    sift_dist = l2_dist / max_l2_dist
+    return sift_dist
 
 
 def L2_root_sift(hist1, hist2):
