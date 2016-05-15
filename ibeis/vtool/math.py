@@ -638,6 +638,11 @@ def logistic_01(x):
     # return L / (1 + np.exp(-k * (x - x0)))
 
 
+def logit(x):
+    from scipy.special import logit
+    return logit(x)
+
+
 def beaton_tukey_loss(u, a=1):
     """
     CommandLine:
