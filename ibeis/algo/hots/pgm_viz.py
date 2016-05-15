@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import networkx as netx
+import networkx as nx
 import six  # NOQA
 import utool as ut
 import numpy as np
@@ -16,14 +16,14 @@ def print_ascii_graph(model_):
     """
     from PIL import Image  # NOQA
     from six.moves import StringIO
-    #import networkx as netx
+    #import networkx as nx
     import copy
     model = copy.deepcopy(model_)
     assert model is not model_
     # model.graph.setdefault('graph', {})['size'] = '".4,.4"'
     model.graph.setdefault('graph', {})['size'] = '".3,.3"'
     model.graph.setdefault('graph', {})['height'] = '".3,.3"'
-    pydot_graph = netx.to_pydot(model)
+    pydot_graph = nx.to_pydot(model)
     png_str = pydot_graph.create_png(prog='dot')
     sio = StringIO()
     sio.write(png_str)
@@ -160,7 +160,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
     Ensures ordering of layers is in order of addition via templates
     """
     import pygraphviz
-    import networkx as netx
+    import networkx as nx
     # Add "invisible" edges to induce an ordering
     # Hack for layout (ordering of top level nodes)
     netx_graph2 = model.copy()
@@ -176,11 +176,11 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
             netx_graph2.add_edges_from(invis_edges)
             grouped_nodes.append(ttype_nodes)
 
-        agraph = netx.to_agraph(netx_graph2)
+        agraph = nx.to_agraph(netx_graph2)
         for nodes in grouped_nodes:
             agraph.add_subgraph(nodes, rank='same')
     else:
-        agraph = netx.to_agraph(netx_graph2)
+        agraph = nx.to_agraph(netx_graph2)
 
     args = ''
     agraph.layout(prog=prog, args=args)
@@ -218,9 +218,9 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
     var2_post = {f.variables[0]: f for f in factor_list}
 
     pos_dict = get_bayesnet_layout(model)
-    #pos_dict = netx.pygraphviz_layout(netx_graph)
-    #pos_dict = netx.pydot_layout(netx_graph, prog='dot')
-    #pos_dict = netx.graphviz_layout(netx_graph)
+    #pos_dict = nx.pygraphviz_layout(netx_graph)
+    #pos_dict = nx.pydot_layout(netx_graph, prog='dot')
+    #pos_dict = nx.graphviz_layout(netx_graph)
 
     netx_nodes = model.nodes(data=True)
     node_key_list = ut.get_list_column(netx_nodes, 0)
@@ -395,7 +395,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
         model = model.to_bayesian_model()
 
     import plottool as pt
-    import networkx as netx
+    import networkx as nx
     kwargs = kwargs.copy()
     factor_list = kwargs.pop('factor_list', [])
 
@@ -414,9 +414,13 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
 
     fig = pt.figure(fnum=fnum, pnum=pnum, doclf=True)  # NOQA
     ax = pt.gca()
-    drawkw = dict(pos=pos_dict, ax=ax, with_labels=True, node_size=1100,
-                  node_color=node_color)
-    netx.draw(model, **drawkw)
+    if False:
+        drawkw = dict(pos=pos_dict, ax=ax, with_labels=True, node_size=1100,
+                      node_color=node_color)
+        nx.draw(model, **drawkw)
+    else:
+        pt.show_nx(model)
+        pass
     hacks = [pt.draw_text_annotations(textprops=textprops, **takw)
              for takw in takws if takw]
 
@@ -481,13 +485,13 @@ def draw_markov_model(model, fnum=None, **kwargs):
         markovmodel = model
     else:
         markovmodel = model.to_markov_model()
-    # pos = netx.nx_agraph.pydot_layout(markovmodel)
-    pos = netx.nx_agraph.pygraphviz_layout(markovmodel)
+    # pos = nx.nx_agraph.pydot_layout(markovmodel)
+    pos = nx.nx_agraph.pygraphviz_layout(markovmodel)
     # Referenecs:
     # https://groups.google.com/forum/#!topic/networkx-discuss/FwYk0ixLDuY
 
-    # pos = netx.spring_layout(markovmodel)
-    # pos = netx.circular_layout(markovmodel)
+    # pos = nx.spring_layout(markovmodel)
+    # pos = nx.circular_layout(markovmodel)
     # curved-arrow
     # markovmodel.edge_attr['curved-arrow'] = True
     # markovmodel.graph.setdefault('edge', {})['splines'] = 'curved'
@@ -530,7 +534,7 @@ def draw_markov_model(model, fnum=None, **kwargs):
             seen[(u, v)] = rad
             ax.add_patch(e)
         return e
-    # netx.draw(markovmodel, **drawkw)
+    # nx.draw(markovmodel, **drawkw)
     draw_network(markovmodel, pos, ax)
     ax.autoscale()
     pt.plt.axis('equal')
@@ -563,13 +567,13 @@ def draw_junction_tree(model, fnum=None, **kwargs):
     netx_graph.edge = e
     netx_graph.adj = a
     #netx_graph = model.to_markov_model()
-    #pos = netx.nx_agraph.pygraphviz_layout(netx_graph)
-    #pos = netx.nx_agraph.graphviz_layout(netx_graph)
-    pos = netx.pydot_layout(netx_graph)
+    #pos = nx.nx_agraph.pygraphviz_layout(netx_graph)
+    #pos = nx.nx_agraph.graphviz_layout(netx_graph)
+    pos = nx.pydot_layout(netx_graph)
     node_color = [pt.NEUTRAL] * len(pos)
     drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
                   node_size=2000)
-    netx.draw(netx_graph, **drawkw)
+    nx.draw(netx_graph, **drawkw)
     if kwargs.get('show_title', True):
         pt.set_figtitle('Junction / Clique Tree / Cluster Graph')
 

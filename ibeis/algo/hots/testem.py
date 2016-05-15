@@ -4,17 +4,78 @@ import utool as ut
 
 def draw_em_graph(P, Pn, PL, gam, num_labels):
     num_labels = PL.shape[1]
-    lset_nodes = list(range(1, num_labels + 1))
-    uset_nodes = ut.chr_range(len(Pn), base='a')
-    nodes = lset_nodes + uset_nodes
+    name_nodes = list(range(1, num_labels + 1))
+    annot_nodes = ut.chr_range(len(Pn), base='A')
+
+    # annot_nodes = list(range(1, len(Pn) + 1))
+    # name_nodes = ut.chr_range(num_labels, base='A')
+
+    nodes = name_nodes + annot_nodes
+
+    PL2 = gam[:, num_labels:].T
+    PL2 += .01
+    PL2 = PL2 / PL2.sum(axis=1)[:, None]
+    # PL2 = PL2 / np.linalg.norm(PL2, axis=0)
+    zero_part = np.zeros((num_labels, len(Pn) + num_labels))
+    prob_part = np.hstack([PL2, Pn])
+    print(ut.hz_str(' PL2 = ', ut.array_repr2(PL2, precision=2)))
+    # Redo p with posteriors
+    P = np.vstack([zero_part, prob_part])
+
     weight_matrix = P  # NOQA
     graph = ut.nx_from_matrix(P, nodes=nodes)
     import plottool as pt
     import networkx as nx
-    nx.set_node_attributes(graph, 'groupid', {node: 'lset' for node in lset_nodes})
-    nx.set_node_attributes(graph, 'color', {node: pt.RED for node in lset_nodes})
-    nx.set_node_attributes(graph, 'groupid', {node: 'uset' for node in uset_nodes})
-    pt.show_nx(graph, fontsize=10, prog='neato', layoutkw={'splines': 'spline', 'prog': 'neato', 'sep': 2.0}, verbose=0)
+
+    if len(name_nodes) == 3 and len(annot_nodes) == 4:
+        graph.node['A']['pos'] = (20.,  100.)
+        graph.node['B']['pos'] = (220., 100.)
+        graph.node['C']['pos'] = (20.,  200.)
+        graph.node['D']['pos'] = (220., 200.)
+        graph.node[1]['pos'] = (10., 300.)
+        graph.node[2]['pos'] = (120., 300.)
+        graph.node[3]['pos'] = (230., 300.)
+        nx.set_node_attributes(graph, 'pin', 'true')
+    # import itertools
+    # name_const_edges = [(u, v, {'style': 'invis'}) for u, v in itertools.combinations(name_nodes, 2)]
+    # graph.add_edges_from(name_const_edges)
+    # nx.set_edge_attributes(graph, 'constraint', {edge: False for edge in graph.edges() if edge[0] == 'b' or edge[1] == 'b'})
+    # nx.set_edge_attributes(graph, 'constraint', {edge: False for edge in graph.edges() if edge[0] in annot_nodes and edge[1] in annot_nodes})
+    # nx.set_edge_attributes(graph, 'constraint', {edge: True for edge in graph.edges() if edge[0] in name_nodes or edge[1] in name_nodes})
+    # nx.set_edge_attributes(graph, 'constraint', {edge: True for edge in graph.edges() if (edge[0] in ['a', 'b'] and edge[1] in ['a', 'b']) and edge[0] in annot_nodes and edge[1] in annot_nodes})
+    # nx.set_edge_attributes(graph, 'constraint', {edge: True for edge in graph.edges() if (edge[0] in ['c'] or edge[1] in ['c']) and edge[0] in annot_nodes and edge[1] in annot_nodes})
+    # nx.set_edge_attributes(graph, 'constraint', {edge: True for edge in graph.edges() if (edge[0] in ['a'] or edge[1] in ['a']) and edge[0] in annot_nodes and edge[1] in annot_nodes})
+    # nx.set_edge_attributes(graph, 'constraint', {edge: True for edge in graph.edges() if (edge[0] in ['b'] or edge[1] in ['b']) and edge[0] in annot_nodes and edge[1] in annot_nodes})
+    # graph.add_edges_from([('root', n) for n in nodes])
+    # {node: 'names' for node in name_nodes})
+    nx.set_node_attributes(graph, 'color', {node: pt.RED for node in name_nodes})
+    # nx.set_node_attributes(graph, 'width', {node: 20 for node in nodes})
+    # nx.set_node_attributes(graph, 'height', {node: 20 for node in nodes})
+    #nx.set_node_attributes(graph, 'group', {node: 'names' for node in name_nodes})
+    #nx.set_node_attributes(graph, 'group', {node: 'annots' for node in annot_nodes})
+    nx.set_node_attributes(graph, 'groupid', {node: 'names' for node in name_nodes})
+    nx.set_node_attributes(graph, 'groupid', {node: 'annots' for node in annot_nodes})
+    graph.graph['clusterrank'] = 'local'
+    # graph.graph['groupattrs'] = {
+    #     'names': {'rankdir': 'LR', 'rank': 'source'},
+    #     'annots': {'rankdir': 'TB', 'rank': 'source'},
+    # }
+    ut.nx_delete_edge_attr(graph, 'weight')
+    # pt.show_nx(graph, fontsize=10, layoutkw={'splines': 'spline', 'prog': 'dot', 'sep': 2.0}, verbose=1)
+    layoutkw = {
+        # 'rankdir': 'LR',
+        'splines': 'spline',
+        # 'splines': 'ortho',
+        # 'splines': 'curved',
+        # 'compound': 'True',
+        # 'prog': 'dot',
+        'prog': 'neato',
+        # 'packMode': 'clust',
+        # 'sep': 4,
+        # 'nodesep': 1,
+        # 'ranksep': 1,
+    }
+    pt.show_nx(graph, fontsize=12, layoutkw=layoutkw, verbose=0)
     pt.interactions.zoom_factory()
 
 
@@ -238,9 +299,26 @@ def test_em():
             .3 .2 .8;
             .5 .5 .8
             """))
+
+    if True:
+        Pn = np.array(np.matrix(
+            b"""
+            1.0  0.7  0.4  0.2;
+            0.7  1.0  0.4  0.4;
+            0.4  0.4  1.0  0.6;
+            0.2  0.4  0.6  1.0
+            """))
+
+        PL = np.array(np.matrix(
+            b"""
+            0.7  0.5  0.5;
+            0.8  0.4  0.3;
+            0.5  0.7  0.3;
+            0.5  0.8  0.4
+            """))
     num_nodes = Pn.shape[0]
 
-    for num_labels in range(1, 6):
+    for num_labels in range(1, 2):
         #Pn = np.array(np.matrix(
         #    b"""
         #    .0 .7 .3 .2 .4 .5;
@@ -252,12 +330,15 @@ def test_em():
         #    """))
 
         # Uniform distribution over labels
-        PL = np.ones((num_nodes, num_labels)) / num_labels
-        # Give nodes preferences
-        PL[np.diag_indices(num_labels)] *= 1.01
-        PL /= np.linalg.norm(PL, axis=0)
-        # PL[0, :] = .01 / (num_labels - 1)
-        # PL[0, 0] = .99
+        if 0:
+            PL = np.ones((num_nodes, num_labels)) / num_labels
+            # Give nodes preferences
+            PL[np.diag_indices(num_labels)] *= 1.01
+            PL /= np.linalg.norm(PL, axis=0)
+            # PL[0, :] = .01 / (num_labels - 1)
+            # PL[0, 0] = .99
+        else:
+            PL /= np.linalg.norm(PL, axis=0)
 
         # Number of nodes
         num_nodes = Pn.shape[0]
@@ -283,13 +364,15 @@ def test_em():
 
         print('Initialize')
         print('num_labels = %r' % (num_labels,))
-        #print(ut.hz_str(' gamma = ', ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        # print(ut.hz_str(' gamma = ', ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
 
         delta_i = np.zeros(num_labels)
         def dErr(i, gam, P, delta_i=delta_i):
             # exepcted liklihood is cross entropy error
             delta_i[:] = 0
             # Compute the gradient of the cross entropy error
+            # This is over both names and annotations
             for j in range(d):
                 if i != j:
                     delta_i += gam[:, j] * np.log(P[i, j] / (1 - P[i, j]))
@@ -301,18 +384,20 @@ def test_em():
         learn_rate = 0.05
         num_iters = 1000
         dGam = np.zeros(gam.shape)
-        #for j in ut.ProgIter(range(num_iters), label='EM'):
-        for j in range(num_iters):
+        # for count in range(num_iters):
+        for count in ut.ProgIter(range(num_iters), label='EM', bs=True):
             # Compute error gradient
             for i in range(num_labels, d):
                 dGam[:, i] = dErr(i, gam, P)
             # Make a step in the gradient direction
+            # print(ut.hz_str(' dGam = ', ut.array_repr2(dGam, max_line_width=140, precision=2)))
             gam = gam + learn_rate * dGam
             # Normalize
             gam = np.clip(gam, 0, 1)
             for i in range(num_labels, d):
                 gam[:, i] = gam[:, i] / np.sum(gam[:, i])
-        print(ut.hz_str(' gamma = ', ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
+        # print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
+        # print(ut.hz_str(' gamma = ', ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
         print('Finished')
     return P, Pn, PL, gam, num_labels
 
