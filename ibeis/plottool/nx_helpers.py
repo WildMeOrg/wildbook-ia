@@ -286,7 +286,35 @@ class GraphVizLayoutConfig(dtool.Config):
 
 
 def get_explicit_graph(graph):
-    explicit_graph = graph.__class__()
+    """
+    Args:
+        graph (nx.Graph)
+    """
+
+    def get_nx_base(graph):
+        import networkx as nx
+        if isinstance(graph, nx.MultiDiGraph):
+            base_class = nx.MultiDiGraph
+        elif isinstance(graph, nx.MultiGraph):
+            base_class = nx.MultiGraph
+        elif isinstance(graph, nx.DiGraph):
+            base_class = nx.DiGraph
+        elif isinstance(graph, nx.Graph):
+            base_class = nx.Graph
+        else:
+            assert False
+        return base_class
+
+    base_class = get_nx_base(graph)
+    # base_class = graph.__class__
+    # import utool
+    # utool.embed()
+    # explicit_graph = graph.copy()
+    # explicit_graph.clear()
+    explicit_graph = base_class()
+    import copy
+    explicit_graph.graph = copy.deepcopy(graph.graph)
+
     explicit_nodes = graph.nodes(data=True)
     explicit_edges = [
         (n1, n2, data) for (n1, n2, data) in graph.edges(data=True)
@@ -403,11 +431,14 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     agraph = nx.nx_agraph.to_agraph(graph_)
     # Add subgraphs labels
     # TODO: subgraph attrs
+    group_attrs = graph.graph.get('groupattrs', {})
     for groupid, nodes in groupid_to_nodes.items():
-        subgraph_attrs = {}
-        #subgraph_attrs = dict(rankdir='LR')
-        #subgraph_attrs['rank'] = 'min'
-        subgraph_attrs['rank'] = 'source'
+        # subgraph_attrs = {}
+        subgraph_attrs = group_attrs.get(groupid, {})
+        # subgraph_attrs = dict(rankdir='LR')
+        # subgraph_attrs = dict(rankdir='LR')
+        # subgraph_attrs['rank'] = 'min'
+        # subgraph_attrs['rank'] = 'source'
         name = groupid
         name = 'cluster_' + groupid
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
@@ -415,12 +446,18 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
         # force pinning of node points
         anode = pygraphviz.Node(agraph, node)
         if anode.attr['pin'] == 'true':
-            if anode.attr['pos'] is not None and not anode.attr['pos'].endswith('!'):
+            if anode.attr['pos'] is not None and len(anode.attr['pos']) > 0 and not anode.attr['pos'].endswith('!'):
                 import re
                 #utool.embed()
-                ptstr = anode.attr['pos'].strip('[]').strip(' ')
-                ptstr_list = re.split(r'\s+', ptstr)
-                pt_arr = np.array(list(map(float, ptstr_list))) / 72.0
+                ptstr_ = anode.attr['pos']
+                print('ptstr_ = %r' % (ptstr_,))
+                ptstr = ptstr_.strip('[]').strip(' ').strip('()')
+                print('ptstr = %r' % (ptstr,))
+                ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
+                print('ptstr_list = %r' % (ptstr_list,))
+                pt_list = list(map(float, ptstr_list))
+                print('pt_list = %r' % (pt_list,))
+                pt_arr = np.array(pt_list) / 72.0
                 print('pt_arr = %r' % (pt_arr,))
                 new_ptstr_list = list(map(str, pt_arr))
                 new_ptstr = ','.join(new_ptstr_list) + '!'
