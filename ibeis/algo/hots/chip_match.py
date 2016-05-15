@@ -175,6 +175,11 @@ class _ChipMatchVisualization(object):
         """
         TODO: rename daid to aid2
 
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match show_single_annotmatch --show
+
+            python -m ibeis.algo.hots.chip_match show_single_annotmatch --show --qaids=5245 --daids=5161 --db PZ_Master1
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
@@ -773,6 +778,12 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         cm.daid2_idx = None  # maps onto cm.daid_list
         cm.nid2_nidx = None  # maps onto cm.unique_nids
         cm.name_groupxs = None
+
+    def as_simple_dict(cm, keys=[]):
+        state_dict = cm.__getstate__()
+        keys = ['qaid', 'daid_list', 'score_list'] + keys
+        simple_dict = ut.dict_subset(state_dict, keys)
+        return simple_dict
 
     def _custom_str(cm):
         r"""
@@ -1777,12 +1788,6 @@ class ChipMatch(_ChipMatchVisualization,
 
     def as_dict(cm):
         return cm.__getstate__()
-
-    def as_simple_dict(cm, keys=[]):
-        state_dict = cm.__getstate__()
-        keys = ['qaid', 'daid_list', 'score_list'] + keys
-        simple_dict = ut.dict_subset(state_dict, keys)
-        return simple_dict
 
     # --- IO
 

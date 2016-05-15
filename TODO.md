@@ -35,4 +35,4 @@
  - Can add some error pertibation whenever pitch (middle gimble) approaches 90
    degrees to account for gimble lock.
 
-
+* Look into GIF image failures (and add tests)

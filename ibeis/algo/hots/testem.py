@@ -119,6 +119,10 @@ def random_case_set():
 
 
 def test_rf_classifier():
+    # TODO: Evaluate TPOT
+    # http://www.randalolson.com/2016/05/08/tpot-a-python-tool-for-automating-data-science/
+    # https://www.reddit.com/r/MachineLearning/comments/4ij8dw/tpot_a_python_tool_for_automating_machine_learning/
+    # http://keras.io/ --- unifies tensorflow / theano
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.calibration import CalibratedClassifierCV
     from sklearn.metrics import log_loss
