@@ -32,6 +32,12 @@ import dtool
 (print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
 
 
+def dump_nx_ondisk(graph, fpath):
+    agraph = make_agraph(graph)
+    agraph.layout(prog='dot')
+    agraph.draw(ut.truepath(fpath))
+
+
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
             ax=None, pos=None, img_dict=None, title=None, layoutkw=None,
             verbose=None, **kwargs):
@@ -370,6 +376,84 @@ def apply_graph_layout_attrs(graph, layout_info):
     for key, vals in layout_info['edge'].items():
         nx.set_edge_attributes(graph, key, vals)
     graph.graph.update(layout_info['graph'])
+
+
+def make_agraph(graph):
+    # FIXME; use this in nx_agraph_layout instead to comparementalize more
+    import networkx as nx
+    import pygraphviz
+    # Convert to agraph format
+    graph_ = graph.copy()
+
+    ut.nx_ensure_agraph_color(graph_)
+    # Reduce size to be in inches not pixels
+    # FIXME: make robust to param settings
+    # Hack to make the w/h of the node take thae max instead of
+    # dot which takes the minimum
+    shaped_nodes = [n for n, d in graph_.nodes(data=True) if 'width' in d]
+    node_attrs = ut.dict_take(graph_.node, shaped_nodes)
+    width_px = np.array(ut.take_column(node_attrs, 'width'))
+    height_px = np.array(ut.take_column(node_attrs, 'height'))
+    scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
+
+    width_in = width_px / 72.0 * scale
+    height_in = height_px / 72.0 * scale
+    width_in_dict = dict(zip(shaped_nodes, width_in))
+    height_in_dict = dict(zip(shaped_nodes, height_in))
+    nx.set_node_attributes(graph_, 'width', width_in_dict)
+    nx.set_node_attributes(graph_, 'height', height_in_dict)
+    ut.nx_delete_node_attr(graph_, 'scale')
+
+    # Check for any nodes with groupids
+    node_to_groupid = nx.get_node_attributes(graph_, 'groupid')
+    if node_to_groupid:
+        groupid_to_nodes = ut.group_items(*zip(*node_to_groupid.items()))
+    else:
+        groupid_to_nodes = {}
+    # Initialize agraph format
+    #import utool
+    #utool.embed()
+    ut.nx_delete_None_edge_attr(graph_)
+    agraph = nx.nx_agraph.to_agraph(graph_)
+    # Add subgraphs labels
+    # TODO: subgraph attrs
+    for groupid, nodes in groupid_to_nodes.items():
+        subgraph_attrs = {}
+        #subgraph_attrs = dict(rankdir='LR')
+        #subgraph_attrs['rank'] = 'min'
+        subgraph_attrs['rank'] = 'source'
+        name = groupid
+        name = 'cluster_' + groupid
+        agraph.add_subgraph(nodes, name, **subgraph_attrs)
+    for node in graph_.nodes():
+        # force pinning of node points
+        anode = pygraphviz.Node(agraph, node)
+        if anode.attr['pin'] == 'true':
+            if anode.attr['pos'] is not None and not anode.attr['pos'].endswith('!'):
+                import re
+                #utool.embed()
+                ptstr = anode.attr['pos'].strip('[]').strip(' ')
+                ptstr_list = re.split(r'\s+', ptstr)
+                pt_arr = np.array(list(map(float, ptstr_list))) / 72.0
+                print('pt_arr = %r' % (pt_arr,))
+                new_ptstr_list = list(map(str, pt_arr))
+                new_ptstr = ','.join(new_ptstr_list) + '!'
+                print('new_ptstr = %r' % (new_ptstr,))
+                anode.attr['pos'] = new_ptstr
+    return agraph
+
+
+def make_agraph_args(kwargs):
+    kwargs = kwargs.copy()
+    prog = kwargs.pop('prog', 'dot')
+    if prog != 'dot':
+        kwargs['overlap'] = kwargs.get('overlap', 'false')
+    kwargs['splines'] = kwargs.get('splines', 'spline')
+    kwargs['notranslate'] = 'true'  # for neato postprocessing
+    argparts = ['-G%s=%s' % (key, str(val))
+                for key, val in kwargs.items()]
+    args = ' '.join(argparts)
+    return args
 
 
 def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwargs):

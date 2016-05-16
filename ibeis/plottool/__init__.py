@@ -125,7 +125,7 @@ if DOELSE:
     from plottool.plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw, 
                                        ensure_pylab_qt4, get_bbox_centers, 
                                        get_plotdat, get_plotdat_dict, 
-                                       get_square_row_cols, kp_info, 
+                                       get_square_row_cols, kp_info, qt4ensure, 
                                        set_plotdat,) 
     from plottool.fig_presenter import (SLEEP_TIME, VERBOSE, 
                                         all_figures_bring_to_front, 
@@ -186,7 +186,8 @@ if DOELSE:
                                      adjust_subplots2, adjust_subplots_safe, 
                                      append_phantom_legend_label, 
                                      ax_absolute_text, ax_relative_text, 
-                                     axes_bottom_button_bar, color_orimag, 
+                                     axes_bottom_button_bar, 
+                                     cartoon_stacked_rects, color_orimag, 
                                      color_orimag_colorbar, colorbar, 
                                      customize_colormap, dark_background, 
                                      distinct_colors, distinct_markers, 
@@ -206,11 +207,12 @@ if DOELSE:
                                      imshow, imshow_null, is_texmode, 
                                      label_to_colors, legend, lighten_rgb, 
                                      lowerright_text, make_axes_locatable, 
-                                     make_bbox_positioners, make_fnum_nextgen, 
-                                     make_ori_legend_img, make_pnum_nextgen, 
-                                     next_fnum, overlay_icon, pad_axes, 
-                                     param_plot_iterator, plot, plot2, 
-                                     plotWidget, plot_bars, 
+                                     make_bbox, make_bbox_positioners, 
+                                     make_fnum_nextgen, make_ori_legend_img, 
+                                     make_pnum_nextgen, next_fnum, 
+                                     overlay_icon, pad_axes, 
+                                     param_plot_iterator, parse_fontkw, plot, 
+                                     plot2, plotWidget, plot_bars, 
                                      plot_descriptor_signature, plot_fmatch, 
                                      plot_func, plot_hist, plot_histpdf, 
                                      plot_sift_signature, plot_surface3d, 
@@ -232,17 +234,22 @@ if DOELSE:
     from plottool.interact_impaint import (PAINTER_BASE, PaintInteraction, 
                                            draw_demo, impaint_mask2,) 
     from plottool.interactions import (ExpandableInteraction, 
-                                       check_if_subinteract,) 
+                                       check_if_subinteract, zoom_factory,) 
     from plottool.interact_multi_image import (BASE_CLASS, Button, 
                                                MultiImageInteraction,) 
     from plottool.interact_keypoints import (KeypointInteraction, 
                                              draw_feat_row, ishow_keypoints, 
                                              show_keypoints,) 
     from plottool.interact_matches import (MatchInteraction2,) 
-    from plottool.nx_helpers import (GraphVizConfig, draw_network2, 
+    from plottool.nx_helpers import (GraphVizLayoutConfig, 
+                                     apply_graph_layout_attrs, draw_network2, 
+                                     format_anode_pos, get_explicit_graph, 
                                      get_nx_layout, 
                                      netx_draw_images_at_positions, 
-                                     nx_agraph_layout, show_nx,) 
+                                     nx_agraph_layout, 
+                                     parse_aedge_layout_attrs, 
+                                     parse_anode_layout_attrs, parse_point, 
+                                     show_nx,) 
     import utool
     print, rrr, profile = utool.inject2(__name__, '[plottool]')
     
