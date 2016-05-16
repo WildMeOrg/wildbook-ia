@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+TODO: move to ibeis/scripts
+"""
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 
@@ -79,16 +84,33 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     pt.interactions.zoom_factory()
 
 
-def random_test_case(num_names=5, rng=np.random):
+def random_test_annot(num_names=5, rng=np.random):
+    """
+    Create a single test annotation with random properties
+
+    Args:
+        num_names (int): (default = 5)
+        rng (module):  random number generator (default = numpy.random)
+
+    CommandLine:
+        python -m ibeis.algo.hots.testem random_test_annot --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.testem import *  # NOQA
+        >>> num_names = 5
+        >>> rng = np.random.RandomState(0)
+        >>> result = random_test_annot(num_names, rng)
+        >>> print(result)
+        {u'qual': 1, u'yaw': 0.0, u'nfeats': 1529, u'name': 0, u'view': u'R'}
+    """
     from ibeis import constants as const
     # num_names = 10
     valid_names = list(range(num_names))
     valid_views = list(const.YAWALIAS.values())
     # valid_views.remove('
     valid_quals = list(const.QUALITY_INT_TO_TEXT.keys())
-    valid_quals.remove(-1)
-    valid_quals.remove(0)
-    valid_quals.remove(None)
+    ut.delete_list_items(valid_quals, [-1, 0, None])
     def sampleone(list_):
         return ut.random_sample(list_, 1, rng=rng)[0]
     view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
@@ -103,16 +125,38 @@ def random_test_case(num_names=5, rng=np.random):
 
 
 def random_case_set():
+    r"""
+    Returns:
+        tuple: (labels, pairwise_feats)
+
+    CommandLine:
+        python -m ibeis.algo.hots.testem random_case_set --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.testem import *  # NOQA
+        >>> (labels, pairwise_feats) = random_case_set()
+        >>> result = ('(labels, pairwise_feats) = %s' % (ut.repr2((labels, pairwise_feats)),))
+        >>> print(result)
+    """
     rng = np.random.RandomState(0)
     case_params = dict(num_names=5, rng=rng)
     num_annots = 600
-    test_cases = [random_test_case(**case_params) for _ in range(num_annots)]
+    test_cases = [random_test_annot(**case_params) for _ in ut.ProgIter(range(num_annots), bs=1)]
     pairxs = list(ut.product_nonsame(range(num_annots), range(num_annots)))
+    import utool
+    utool.embed()
+
     test_pairs = list(ut.unflat_take(test_cases, pairxs))
-    labels = np.array([make_test_pairwise_labels(case1, case2)
-                       for case1, case2 in ut.ProgIter(test_pairs, backspace=True)])
+    cases1 = ut.make_instancelist(ut.take_column(test_pairs, 0), check=False)
+    cases2 = ut.make_instancelist(ut.take_column(test_pairs, 1), check=False)
+    # FIXME
+    labels = labels1 = make_test_pairwise_labels2(cases1, cases2)
+
+    #labels = np.array([make_test_pairwise_labels(case1, case2)
+    #                   for case1, case2 in ut.ProgIter(test_pairs, bs=1)])
     pairwise_feats_ = [make_test_pairwise_fetaures(case1, case2, label, rng)
-                       for label, (case1, case2) in ut.ProgIter(zip(labels, test_pairs), backspace=True)]
+                       for label, (case1, case2) in ut.ProgIter(list(zip(labels, test_pairs)), bs=1)]
     pairwise_feats = np.vstack(pairwise_feats_)
     print(ut.dict_hist(labels))
     return labels, pairwise_feats
@@ -185,12 +229,10 @@ def make_test_pairwise_fetaures(case1, case2, label, rng):
 
 
 def make_test_pairwise_labels(case1, case2):
-    from ibeis import constants as const
     import vtool as vt
-    view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
     is_same = case1['name'] == case2['name']
-    yaw1 = view_to_ori[case1['view']]
-    yaw2 = view_to_ori[case2['view']]
+    yaw1 = case1['yaw']
+    yaw2 = case2['yaw']
     yaw_dist = vt.ori_distance(yaw1, yaw2) / np.pi
     if case1['qual'] < 2 or case2['qual'] < 2:
         # Bad quality means not comparable
@@ -205,6 +247,31 @@ def make_test_pairwise_labels(case1, case2):
         label = int(is_same)
     else:
         label = 2
+    return label
+
+
+def make_test_pairwise_labels2(cases1, cases2):
+    import vtool as vt
+    is_same = np.array(cases1['name']) == np.array(cases2['name'])
+    yaw1 = np.array(cases1['yaw'])
+    yaw2 = np.array(cases2['yaw'])
+    yaw_dist = vt.ori_distance(yaw1, yaw2) / np.pi
+
+    qual1 = np.array(cases1['qual'])
+    qual2 = np.array(cases2['qual'])
+
+    _and = np.logical_and
+    _or = np.logical_or
+    _not = np.logical_not
+
+    poorqual = _or(qual1 < 2, qual2 < 2)
+    bestqual = _and(_or(qual1 > 3, qual2 > 3), _not(poorqual))
+    goodqual = _and(_not(bestqual), _not(poorqual))
+
+    is_comp = _or.reduce([_not(poorqual), _and(bestqual, yaw_dist <= (1 / 4)), _and(goodqual, yaw_dist <= (1 / 8))])
+
+    label = is_same.astype(np.int32)
+    label[_not(is_comp)] = 2
     return label
 
 

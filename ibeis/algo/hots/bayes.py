@@ -151,6 +151,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
     match_cpd_t = pgm_ext.TemplateCPD(
         'match', match_states,
         evidence_ttypes=[name_cpd_t, name_cpd_t], pmf_func=match_pmf)
+    #match_cpd_t.varpref = 'S'
     namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
     match_cpds = [match_cpd_t.new_cpd(parents=cpds)
                   for cpds in namepair_cpds]
@@ -175,6 +176,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
     score_cpd_t = pgm_ext.TemplateCPD(
         'score', score_states,
         evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
+    #match_cpd_t.varpref = 'P'
     score_cpds = [score_cpd_t.new_cpd(parents=cpds)
                   for cpds in zip(match_cpds)]
     cpd_list.extend(score_cpds)

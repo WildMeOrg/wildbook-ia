@@ -383,6 +383,24 @@ def print_factors(model, factor_list):
 class TemplateCPD(object):
     """
     Factory for templated cpds
+
+    Args:
+        ttype (?):
+        basis (?):
+        varpref (None): Letter to use as the random variable
+        evidence_ttypes (None): (default = None)
+        pmf_func (None): (default = None)
+        special_basis_pool (None): (default = None)
+
+    CommandLine:
+        python -m ibeis.algo.hots.pgm_ext TemplateCPD --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+        >>> self = TemplateCPD('coin', ['fair', 'bias'], varpref='C')
+        >>> cpd = self.new_cpd(0)
+        >>> print(cpd)
     """
     def __init__(self, ttype, basis, varpref=None, evidence_ttypes=None,
                  pmf_func=None, special_basis_pool=None):

@@ -176,11 +176,11 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
             netx_graph2.add_edges_from(invis_edges)
             grouped_nodes.append(ttype_nodes)
 
-        agraph = nx.to_agraph(netx_graph2)
+        agraph = nx.nx_agraph.to_agraph(netx_graph2)
         for nodes in grouped_nodes:
             agraph.add_subgraph(nodes, rank='same')
     else:
-        agraph = nx.to_agraph(netx_graph2)
+        agraph = nx.nx_agraph.to_agraph(netx_graph2)
 
     args = ''
     agraph.layout(prog=prog, args=args)
