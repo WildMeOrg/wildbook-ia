@@ -435,10 +435,10 @@ def make_agraph(graph):
                 ptstr = anode.attr['pos'].strip('[]').strip(' ')
                 ptstr_list = re.split(r'\s+', ptstr)
                 pt_arr = np.array(list(map(float, ptstr_list))) / 72.0
-                print('pt_arr = %r' % (pt_arr,))
+                #print('pt_arr = %r' % (pt_arr,))
                 new_ptstr_list = list(map(str, pt_arr))
                 new_ptstr = ','.join(new_ptstr_list) + '!'
-                print('new_ptstr = %r' % (new_ptstr,))
+                #print('new_ptstr = %r' % (new_ptstr,))
                 anode.attr['pos'] = new_ptstr
     return agraph
 
@@ -534,18 +534,18 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
                 import re
                 #utool.embed()
                 ptstr_ = anode.attr['pos']
-                print('ptstr_ = %r' % (ptstr_,))
+                #print('ptstr_ = %r' % (ptstr_,))
                 ptstr = ptstr_.strip('[]').strip(' ').strip('()')
-                print('ptstr = %r' % (ptstr,))
+                #print('ptstr = %r' % (ptstr,))
                 ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
-                print('ptstr_list = %r' % (ptstr_list,))
+                #print('ptstr_list = %r' % (ptstr_list,))
                 pt_list = list(map(float, ptstr_list))
-                print('pt_list = %r' % (pt_list,))
+                #print('pt_list = %r' % (pt_list,))
                 pt_arr = np.array(pt_list) / 72.0
-                print('pt_arr = %r' % (pt_arr,))
+                #print('pt_arr = %r' % (pt_arr,))
                 new_ptstr_list = list(map(str, pt_arr))
                 new_ptstr = ','.join(new_ptstr_list) + '!'
-                print('new_ptstr = %r' % (new_ptstr,))
+                #print('new_ptstr = %r' % (new_ptstr,))
                 anode.attr['pos'] = new_ptstr
 
     # Run layout
@@ -911,7 +911,6 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             color = data.get('color', defaultcolor)
             if color is None:
                 color = defaultcolor
-
             if isinstance(color, six.string_types) and color.startswith('#'):
                 import matplotlib.colors as colors
                 color = colors.hex2color(color[0:7])
@@ -1016,19 +1015,30 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             #ha = 'right'
             ha = 'center'
             va = 'center'
+            labelcolor = color  # TODO allow for different colors
+
+            labelcolor = data.get('labelcolor', color)
+            if isinstance(color, six.string_types) and labelcolor.startswith('#'):
+                import matplotlib.colors as colors
+                labelcolor = colors.hex2color(color[0:7])
+            labelcolor = labelcolor[0:3]
+
             if taillabel:
                 taillabel_pos = layout_info['edge']['tail_lp'][edge]
                 ax.annotate(taillabel, xy=taillabel_pos, xycoords='data',
+                            color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
             headlabel = layout_info['edge']['headlabel'][edge]
             if headlabel:
                 headlabel_pos = layout_info['edge']['head_lp'][edge]
                 ax.annotate(headlabel, xy=headlabel_pos, xycoords='data',
+                            color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
             label = layout_info['edge']['label'][edge]
             if label:
                 label_pos = layout_info['edge']['lp'][edge]
                 ax.annotate(label, xy=label_pos, xycoords='data',
+                            color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
             ax.add_patch(patch)
 
