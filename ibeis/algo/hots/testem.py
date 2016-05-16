@@ -8,11 +8,14 @@ import utool as ut
 
 
 def draw_em_graph(P, Pn, PL, gam, num_labels):
+    """
+        python -m ibeis.algo.hots.testem test_em --show --no-cnn
+    """
     num_labels = PL.shape[1]
-    name_nodes = list(range(1, num_labels + 1))
-    annot_nodes = ut.chr_range(len(Pn), base='A')
+    name_nodes = ['N%d' % x for x in list(range(1, num_labels + 1))]
+    #annot_nodes = ut.chr_range(len(Pn), base='A')
+    annot_nodes = ['X%d' % x for x in list(range(1, len(Pn) + 1))]
 
-    # annot_nodes = list(range(1, len(Pn) + 1))
     # name_nodes = ut.chr_range(num_labels, base='A')
 
     nodes = name_nodes + annot_nodes
@@ -25,22 +28,57 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     prob_part = np.hstack([PL2, Pn])
     print(ut.hz_str(' PL2 = ', ut.array_repr2(PL2, precision=2)))
     # Redo p with posteriors
-    P = np.vstack([zero_part, prob_part])
+    if ut.get_argflag('--postem'):
+        P = np.vstack([zero_part, prob_part])
 
     weight_matrix = P  # NOQA
     graph = ut.nx_from_matrix(P, nodes=nodes)
+    graph = graph.to_directed()
+    # delete graph
+    dup_edges = []
+    seen_ = set([])
+    for u, v in graph.edges():
+        if u < v:
+            u, v = v, u
+        if (u, v) not in seen_:
+            seen_.add((u, v))
+        else:
+            dup_edges.append((u, v))
+    graph.remove_edges_from(dup_edges)
     import plottool as pt
     import networkx as nx
 
     if len(name_nodes) == 3 and len(annot_nodes) == 4:
-        graph.node['A']['pos'] = (20.,  100.)
-        graph.node['B']['pos'] = (220., 100.)
-        graph.node['C']['pos'] = (20.,  200.)
-        graph.node['D']['pos'] = (220., 200.)
-        graph.node[1]['pos'] = (10., 300.)
-        graph.node[2]['pos'] = (120., 300.)
-        graph.node[3]['pos'] = (230., 300.)
+        graph.node[annot_nodes[0]]['pos'] = (20.,  200.)
+        graph.node[annot_nodes[1]]['pos'] = (220., 200.)
+        graph.node[annot_nodes[2]]['pos'] = (20.,  100.)
+        graph.node[annot_nodes[3]]['pos'] = (220., 100.)
+        graph.node[name_nodes[0]]['pos'] = (10., 300.)
+        graph.node[name_nodes[1]]['pos'] = (120., 300.)
+        graph.node[name_nodes[2]]['pos'] = (230., 300.)
         nx.set_node_attributes(graph, 'pin', 'true')
+
+        print('annot_nodes = %r' % (annot_nodes,))
+        print('name_nodes = %r' % (name_nodes,))
+
+        for u in annot_nodes:
+            for v in name_nodes:
+                if graph.has_edge(u, v):
+                    print('1) u, v = %r' % ((u, v),))
+                    graph.edge[u][v]['taillabel'] = graph.edge[u][v]['label']
+                    graph.edge[u][v]['color'] = pt.ORANGE
+                    graph.edge[u][v]['labelcolor'] = pt.BLUE
+                    del graph.edge[u][v]['label']
+                elif graph.has_edge(v, u):
+                    print('2) u, v = %r' % ((u, v),))
+                    graph.edge[v][u]['headlabel'] = graph.edge[v][u]['label']
+                    graph.edge[v][u]['color'] = pt.ORANGE
+                    graph.edge[v][u]['labelcolor'] = pt.BLUE
+                    del graph.edge[v][u]['label']
+                else:
+                    print((u, v))
+                    print('!!')
+
     # import itertools
     # name_const_edges = [(u, v, {'style': 'invis'}) for u, v in itertools.combinations(name_nodes, 2)]
     # graph.add_edges_from(name_const_edges)
@@ -80,7 +118,8 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         # 'nodesep': 1,
         # 'ranksep': 1,
     }
-    pt.show_nx(graph, fontsize=12, layoutkw=layoutkw, verbose=0)
+    #pt.show_nx(graph, fontsize=12, layoutkw=layoutkw, verbose=0, as_directed=False)
+    pt.show_nx(graph, fontsize=6, fontname='Ubuntu', layoutkw=layoutkw, verbose=0, as_directed=False)
     pt.interactions.zoom_factory()
 
 
@@ -151,7 +190,7 @@ def random_case_set():
     cases1 = ut.make_instancelist(ut.take_column(test_pairs, 0), check=False)
     cases2 = ut.make_instancelist(ut.take_column(test_pairs, 1), check=False)
     # FIXME
-    labels = labels1 = make_test_pairwise_labels2(cases1, cases2)
+    labels = labels1 = make_test_pairwise_labels2(cases1, cases2)  # NOQA
 
     #labels = np.array([make_test_pairwise_labels(case1, case2)
     #                   for case1, case2 in ut.ProgIter(test_pairs, bs=1)])
