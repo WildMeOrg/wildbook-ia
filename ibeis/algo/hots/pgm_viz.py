@@ -181,6 +181,7 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
             agraph.add_subgraph(nodes, rank='same')
     else:
         agraph = nx.nx_agraph.to_agraph(netx_graph2)
+    print(agraph)
 
     args = ''
     agraph.layout(prog=prog, args=args)
@@ -218,6 +219,7 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
     var2_post = {f.variables[0]: f for f in factor_list}
 
     pos_dict = get_bayesnet_layout(model)
+
     #pos_dict = nx.pygraphviz_layout(netx_graph)
     #pos_dict = nx.pydot_layout(netx_graph, prog='dot')
     #pos_dict = nx.graphviz_layout(netx_graph)
@@ -412,14 +414,38 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
     # draw graph
     has_infered = evidence or 'factor_list' in kwargs
 
-    fig = pt.figure(fnum=fnum, pnum=pnum, doclf=True)  # NOQA
-    ax = pt.gca()
     if False:
+        fig = pt.figure(fnum=fnum, pnum=pnum, doclf=True)  # NOQA
+        ax = pt.gca()
         drawkw = dict(pos=pos_dict, ax=ax, with_labels=True, node_size=1100,
                       node_color=node_color)
         nx.draw(model, **drawkw)
     else:
-        pt.show_nx(model)
+        # BE VERY CAREFUL
+        if 1:
+            graph = model.copy()
+            graph.__class__ = nx.DiGraph
+            graph.graph['groupattrs'] = ut.ddict(dict)
+            #graph = model.
+            if getattr(graph, 'ttype2_cpds', None) is not None:
+                # Add invis edges and ttype groups
+                for ttype in model.ttype2_cpds.keys():
+                    ttype_cpds = model.ttype2_cpds[ttype]
+                    # use defined ordering
+                    ttype_nodes = ut.list_getattr(ttype_cpds, 'variable')
+                    # ttype_nodes = sorted(ttype_nodes)
+                    invis_edges = list(ut.itertwo(ttype_nodes))
+                    graph.add_edges_from(invis_edges)
+                    nx.set_edge_attributes(graph, 'style', {edge: 'invis' for edge in invis_edges})
+                    nx.set_node_attributes(graph, 'groupid', {node: ttype for node in ttype_nodes})
+                    graph.graph['groupattrs'][ttype]['rank'] = 'same'
+                    graph.graph['groupattrs'][ttype]['cluster'] = False
+        else:
+            graph = model
+        pt.show_nx(graph, layout_kw={'prog': 'dot'}, fnum=fnum, pnum=pnum, verbose=1)
+        pt.zoom_factory()
+        fig = pt.gcf()
+        ax = pt.gca()
         pass
     hacks = [pt.draw_text_annotations(textprops=textprops, **takw)
              for takw in takws if takw]
