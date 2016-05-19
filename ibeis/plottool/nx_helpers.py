@@ -91,6 +91,10 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     draw_network2(graph, layout_info, ax, **kwargs)
     ax.grid(False)
     pt.plt.axis('equal')
+    ax.axesPatch.set_facecolor('white')
+    #axes.facecolor
+    #import utool
+    #utool.embed()
 
     ax.autoscale()
     ax.autoscale_view(True, True, True)
@@ -421,7 +425,7 @@ def make_agraph(graph):
         subgraph_attrs = {}
         #subgraph_attrs = dict(rankdir='LR')
         #subgraph_attrs['rank'] = 'min'
-        subgraph_attrs['rank'] = 'source'
+        subgraph_attrs['rank'] = 'same'
         name = groupid
         name = 'cluster_' + groupid
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
@@ -518,13 +522,22 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     group_attrs = graph.graph.get('groupattrs', {})
     for groupid, nodes in groupid_to_nodes.items():
         # subgraph_attrs = {}
-        subgraph_attrs = group_attrs.get(groupid, {})
+        subgraph_attrs = group_attrs.get(groupid, {}).copy()
+        cluster_flag = True
+        # FIXME: make this more natural to specify
+        if 'cluster' in subgraph_attrs:
+            cluster_flag = subgraph_attrs['cluster']
+            del subgraph_attrs['cluster']
         # subgraph_attrs = dict(rankdir='LR')
         # subgraph_attrs = dict(rankdir='LR')
         # subgraph_attrs['rank'] = 'min'
         # subgraph_attrs['rank'] = 'source'
         name = groupid
-        name = 'cluster_' + groupid
+        if cluster_flag:
+            # graphviz treast subgraphs labeld with cluster differently
+            name = 'cluster_' + groupid
+        else:
+            name = groupid
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
     for node in graph_.nodes():
         # force pinning of node points
@@ -550,11 +563,11 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
 
     # Run layout
     print('prog = %r' % (prog,))
-    if ut.VERBOSE or verbose:
+    if ut.VERBOSE or verbose > 0:
         print('BEFORE LAYOUT\n' + str(agraph))
     agraph.layout(prog=prog, args=args)
     agraph.draw(ut.truepath('~/test_graphviz_draw.png'))
-    if ut.VERBOSE or verbose:
+    if ut.VERBOSE or verbose > 1:
         print('AFTER LAYOUT\n' + str(agraph))
 
     # TODO: just replace with a single dict of attributes

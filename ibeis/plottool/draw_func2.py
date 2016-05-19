@@ -3675,6 +3675,9 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
     CommandLine:
         python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=np.exp
         python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(((x * 2) - 1.0) * 6)"
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(-6 + 12 * x)"
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,4 --func="lambda x: vt.logistic_01((-1 + x) * 2)"
         python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: np.tan((x - .5) * np.pi)" --ylim=-10,10
         python -m plottool.draw_func2 --exec-plot_func --show --range=0,3 --func=np.tan
         python -m plottool.draw_func2 --exec-plot_func --show --range=0,50 --func="lambda x: np.exp(-x / 50)"
@@ -3684,6 +3687,8 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
+        >>> import scipy
+        >>> import scipy.special  # NOQA
         >>> func_list = ut.get_argval('--func', type_=list, default=['np.exp'])
         >>> #funcs = [eval(f) for f in func_list]
         >>> funcs = func_list
@@ -3707,9 +3712,15 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
     labels = [func if isinstance(func, six.string_types)
               else ut.get_callable_name(func)
               for func in funcs]
-    funcs  = [eval(func) if isinstance(func, six.string_types)
-              else func for func in funcs]
-    ydatas = [func(xdata) for func in funcs]
+    try:
+        funcs_  = [eval(func) if isinstance(func, six.string_types)
+                   else func for func in funcs]
+        ydatas = [func(xdata) for func in funcs_]
+    except NameError:
+        funcs_  = [eval(func, locals()) if isinstance(func, six.string_types)
+                   else func for func in funcs]
+        ydatas = [func(xdata) for func in funcs_]
+        pass
     fnum = pt.ensure_fnum(fnum)
     pt.multi_plot(xdata, ydatas, label_list=labels, marker='', fnum=fnum,
                   pnum=pnum)  # yscale='log')
