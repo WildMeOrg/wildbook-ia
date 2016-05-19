@@ -512,6 +512,93 @@ def test_em():
     return P, Pn, PL, gam, num_labels
 
 
+def test_em2(prob_names, prob_annots=None):
+    """
+    assert prob_names.shape == (nAnnots, nNames)
+    """
+    learn_rate = 0.05
+    num_iters = 1
+
+    # Matrix if unary probabilites, The probability that each node takes on a
+    # given label, independent of its edges.
+    num_annots, num_names = prob_names.shape
+
+    # prevent zero probabilities
+    prob_names_ = prob_names + 1E-9
+    prob_names_ /= prob_names_.sum(axis=1)[:, None]
+
+    if prob_annots is None:
+        prob_annots_ = np.full((num_annots, num_annots), 1 / num_annots)
+        prob_annots_[np.diag_indices(num_annots)] *= 1.01
+        # perterb
+        rng = np.random.RandomState(0)
+        prob_annots_ += (rng.randn(*prob_annots_.shape)) / 100
+        prob_annots_ /= prob_annots_.sum(axis=1)[:, None]
+        prob_annots_ = (prob_annots_.T + prob_annots_) / 2
+    else:
+        prob_annots_ = prob_annots + 1E-9
+        prob_annots_ /= prob_annots_.sum(axis=1)[:, None]
+
+    # Stack everything into a single matrix
+    prob_part = np.hstack([prob_names_, prob_annots_])
+    zero_part = np.zeros((num_names, num_annots + num_names))
+    prior = np.vstack([zero_part, prob_part])
+
+    # Gamma will hold a probability distribution over the nodes
+    # The labeled nodes must match themselves.
+    # The unlabeld nodes are initialized with a uniform distribution.
+    gam = np.hstack([np.eye(num_names), np.ones((num_names, num_annots)) / num_names])
+
+    verbose = 1
+    if verbose:
+        print('Initialize')
+        print('num_names = %r' % (num_names,))
+        print(ut.hz_str('prior = ', ut.array2string2(prob_part[:, :], precision=2, max_line_width=140, suppress_small=True)))
+        print(ut.hz_str('gamma = ', ut.array2string2(gam[:, :], max_line_width=140, precision=2, suppress_small=True)))
+    #print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
+
+    delta_i = np.zeros(num_names)
+    def dErr(i, gam, prior, delta_i=delta_i, num_names=num_names):
+        # exepcted liklihood is cross entropy error
+        delta_i[:] = 0
+        # Compute the gradient of the cross entropy error
+        # This is over both names and annotations
+        jdxs = [j for j in range(prior.shape[0]) if j != i]
+        prior_ij = prior[i, jdxs]
+        np.log(prior_ij / (1 - prior_ij))
+        gam[:, jdxs]
+
+        for j in range(prior.shape[0]):
+            if i != j:
+                delta_i += gam[:, j] * np.log(prior[i, j] / (1 - prior[i, j]))
+        # compute the projected gradient
+        delta_i_hat = delta_i - delta_i.sum() / num_names
+        return delta_i_hat
+
+    # Build node for each annot and each name
+    num_nodes = num_annots + num_names
+
+    # Maximies the expected liklihood of gamma
+    dGam = np.zeros(gam.shape)
+    # for count in range(num_iters):
+    for count in ut.ProgIter(range(num_iters), label='EM', bs=True):
+        # Compute error gradient
+        for i in range(num_names, num_nodes):
+            dGam[:, i] = dErr(i, gam, prior)
+        # Make a step in the gradient direction
+        # print(ut.hz_str(' dGam = ', ut.array_repr2(dGam, max_line_width=140, precision=2)))
+        gam = gam + learn_rate * dGam
+        # Normalize
+        gam = np.clip(gam, 0, 1)
+        for i in range(num_names, num_nodes):
+            gam[:, i] = gam[:, i] / np.sum(gam[:, i])
+    # print(ut.hz_str(' gamma = ', ut.array_repr2(gam, max_line_width=140, precision=2)))
+    if verbose:
+        print(ut.hz_str(' gamma = ', ut.array2string2(gam[:, num_names:], max_line_width=140, precision=2, suppress_small=True)))
+        print('Finished')
+    return gam
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

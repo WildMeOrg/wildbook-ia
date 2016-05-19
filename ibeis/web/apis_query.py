@@ -7,7 +7,7 @@ from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
 import utool as ut
-import cv2
+import cv2  # NOQA
 import dtool
 
 
@@ -127,6 +127,7 @@ def review_query_chips_test():
     qreq_.__setstate__(state_dict)
     aid = cm.get_top_aids()[0]
     image = cm.render_single_annotmatch(qreq_, aid)
+    image
     # callback_url = request.args.get('callback_url', url_for('process_detection_html'))
     # callback_method = request.args.get('callback_method', 'POST')
     # template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
@@ -181,10 +182,6 @@ def query_chips(ibs, qaid_list=None,
     r"""
     Submits a query request to the hotspotter recognition pipeline. Returns
     a list of QueryResult objects.
-
-    Note:
-        In the future the QueryResult objects will be replaced by ChipMatch
-        objects
 
     Args:
         qaid_list (list): a list of annotation ids to be submitted as

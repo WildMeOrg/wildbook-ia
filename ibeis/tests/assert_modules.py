@@ -199,7 +199,8 @@ def pillow_version():
         Image, versionattr='PILLOW_VERSION', image_version=Image.VERSION, pil_path=pil_path)
 
 
-@checkinfo('1.3.1')
+#@checkinfo('1.3.1')
+@checkinfo('1.5.1')
 def matplotlib_version():
     import matplotlib as mpl
     return module_stdinfo_dict(mpl)

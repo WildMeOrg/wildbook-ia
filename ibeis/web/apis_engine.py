@@ -439,8 +439,8 @@ def test_zmq_task():
     client_id = np.random.randint(1000)
     jobiface = JobInterface(client_id)
     reciever = JobBackend()
+    from ibeis.init import sysres
     if ut.get_argflag('--bg'):
-        from ibeis.init import sysres
         dbdir = sysres.get_args_dbdir('cache', False, None, None,
                                       cache_priority=False)
         reciever.initialize_background_processes(dbdir)

@@ -313,10 +313,13 @@ TPL_MODULES_AND_REPOS = [
     ('pyflann', 'https://github.com/Erotemic/flann.git', True),
     #('yael',    'https://github.com/Erotemic/yael.git'),
     (('PyQt5', 'PyQt4'),   None, FORCE_GUI)
-    # TODO: integrate into super_setup.py
-    # to access a system PyQt4 from a virtualenv:
-    # ln -s /usr/lib/python2.7/dist-packages/PyQt4/ virtualenv/local/lib/python2.7/site-packages/PyQt4 
 ]
+
+# TODO: integrate PyQt4 into super_setup.py
+# to access a system PyQt4 from a virtualenv:
+# ln -s /usr/lib/python2.7/dist-packages/PyQt4/ virtualenv/local/lib/python2.7/site-packages/PyQt4
+# ln -s /usr/lib/python2.7/dist-packages/sip*.so virtualenv/local/lib/python2.7/site-packages/
+# ln -s /usr/lib/python2.7/dist-packages/sip*.py virtualenv/local/lib/python2.7/site-packages/
 
 
 def register_custom_build_script(scriptname, script):

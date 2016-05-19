@@ -13,11 +13,16 @@ class AlignedListDictProxy(ut.DictLike_old):
     when there are many instances of this class, then key2_idx can be shared between
     them. Ideally this class wont be used and will disappear when the parallel
     lists are being used properly.
+
+    DEPCIRATE AlignedListDictProxy's defaultdict behavior is weird
     """
     def __init__(self, key2_idx, key_list, val_list):
+        #if isinstance(key_list, np.ndarray):
+        #    key_list = key_list.tolist()
         self.key_list = key_list
         self.val_list = val_list
         self.key2_idx = key2_idx
+        self.default_function = None
 
     def __eq__(self, key):
         raise NotImplementedError()
@@ -27,11 +32,15 @@ class AlignedListDictProxy(ut.DictLike_old):
 
     def __getitem__(self, key):
         try:
-            return self.val_list[self.key2_idx[key]]
+            idx = self.key2_idx[key]
         except (KeyError, IndexError):
-            # behave like a default dict here
-            self[key] = []
-            return self[key]
+            if self.default_function is not None:
+                # behave like a default dict here
+                self[key] = self.default_function()
+                return self[key]
+            else:
+                raise
+        return self.val_list[idx]
         #return ut.take(self.val_list, ut.dict_take(self.key2_idx, key))
 
     def __setitem__(self, key, val):
@@ -163,8 +172,15 @@ class _OldStyleChipMatchSimulator(object):
 
     @property
     def nid2_name_score(cm):
+        """ DEPCIRATE AlignedListDictProxy's defaultdict behavior is weird """
         return ({} if cm.score_list is None else
                 AlignedListDictProxy(cm.nid2_nidx, cm.unique_nids, cm.name_score_list))
+
+    @property
+    def aid2_annot_score(cm):
+        """ DEPCIRATE AlignedListDictProxy's defaultdict behavior is weird """
+        return ({} if cm.annot_score_list is None else
+                AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.annot_score_list))
 
     def get_nscoretup(cm):
         return cm.get_ranked_nids_and_aids()

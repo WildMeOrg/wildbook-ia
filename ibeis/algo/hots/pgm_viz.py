@@ -442,7 +442,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
                     graph.graph['groupattrs'][ttype]['cluster'] = False
         else:
             graph = model
-        pt.show_nx(graph, layout_kw={'prog': 'dot'}, fnum=fnum, pnum=pnum, verbose=1)
+        pt.show_nx(graph, layout_kw={'prog': 'dot'}, fnum=fnum, pnum=pnum, verbose=0)
         pt.zoom_factory()
         fig = pt.gcf()
         ax = pt.gca()

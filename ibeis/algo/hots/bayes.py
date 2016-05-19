@@ -106,8 +106,8 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
                     special_names=None):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --show
-        python -m ibeis.algo.hots.bayes --exec-make_name_model
+        python -m ibeis.algo.hots.bayes --exec-make_name_model --no-cnn
+        python -m ibeis.algo.hots.bayes --exec-make_name_model --show --no-cnn
         python -m ibeis.algo.hots.bayes --exec-make_name_model --num-annots=3
 
     Example:
@@ -570,9 +570,8 @@ def compute_reduced_joint(model, query_vars, evidence, method,
         print('M_chernoff = %r' % (M_chernoff,))
         print('size = %r' % (size,))
         #np.log(2 / .1) / (2 * (.2 ** 2))
-
-        sampled = infr.likelihood_weighted_sample(
-            evidence=evidence_, size=size)
+        sampled = infr.likelihood_weighted_sample(evidence=evidence_,
+                                                  size=size)
         reduced_joint = pgm_ext.ApproximateFactor.from_sampled(sampled,
                                                                query_vars,
                                                                statename_dict=model.statename_dict)

@@ -147,6 +147,9 @@ class ApproximateFactor(object):
                 if inplace=True (default) returns None
                 if inplace=False returns a new `Factor` instance.
 
+        CommandLine:
+            python -m ibeis.algo.hots.pgm_ext marginalize --show
+
         Example:
             >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
             >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
@@ -188,8 +191,8 @@ class ApproximateFactor(object):
 
     def _compute_unique_state_ids(self):
         import vtool as vt
-        data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
-        #data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))
+        #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
+        data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))
         return data_ids
 
     def consolidate(self, inplace=False):
@@ -216,8 +219,8 @@ class ApproximateFactor(object):
         import vtool as vt
 
         phi = self.copy() if inplace else self
-
-        data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
+        #data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
+        data_ids = self._compute_unique_state_ids()
         unique_ids, groupxs = vt.group_indices(data_ids)
         #assert len(unique_ids) == len(np.unique(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs)))))
         if len(data_ids) != len(unique_ids):
@@ -231,7 +234,6 @@ class ApproximateFactor(object):
             #print('[pgm] Consolidated %r states into %r states' % (len(data_ids), len(unique_ids),))
         #else:
         #    print('[pgm] Cannot consolidated %r unique states' % (len(data_ids),))
-
         if not inplace:
             return phi
 
@@ -531,7 +533,8 @@ class TemplateCPD(object):
                 values=values,
                 evidence=evidence,
                 evidence_card=evidence_card,
-                statename_dict=statename_dict,
+                #statename_dict=statename_dict,
+                state_names=statename_dict,
             )
         except Exception as ex:
             ut.printex(ex, 'Failed to create TabularCPD',
@@ -543,6 +546,7 @@ class TemplateCPD(object):
                            'evidence',
                            'values.shape',
                        ])
+            ut.embed()
             raise
 
         cpd.ttype = self.ttype

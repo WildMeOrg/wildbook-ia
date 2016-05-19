@@ -591,6 +591,7 @@ def intraoccurrence_connected():
     CommandLine:
         python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
         python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --postcut
+        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --smaller
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -624,10 +625,14 @@ def intraoccurrence_connected():
         6537: [7017, 7206],
         6653: [7660]
     }
-    if ut.get_argflag('--small'):
+    if ut.get_argflag('--small') or ut.get_argflag('--smaller'):
         del nid2_aid[6630]
         del nid2_aid[6537]
         del nid2_dbaids[6537]
+        if ut.get_argflag('--smaller'):
+            nid2_dbaids[4880].remove(33)
+            nid2_aid[4880].remove(3690)
+            nid2_aid[6610].remove(7408)
         #del nid2_aid[4880]
         #del nid2_dbaids[4880]
 
@@ -732,7 +737,14 @@ def intraoccurrence_connected():
     _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
                                          inplace=True, **layoutkw)
 
-    if ut.get_argflag('--small'):
+    if ut.get_argflag('--smaller'):
+        graph.node[7660]['pos'] = np.array([550, 350])
+        graph.node[6120]['pos'] = np.array([200, 600]) + np.array([350, -400])
+        graph.node[7164]['pos'] = np.array([200, 480]) + np.array([350, -400])
+        nx.set_node_attributes(graph, 'pin', 'true')
+        _, layout_info = pt.nx_agraph_layout(graph,
+                                             inplace=True, **layoutkw)
+    elif ut.get_argflag('--small'):
         graph.node[7660]['pos'] = np.array([750, 350])
         graph.node[33]['pos'] = np.array([300, 600]) + np.array([350, -400])
         graph.node[6120]['pos'] = np.array([500, 600]) + np.array([350, -400])
