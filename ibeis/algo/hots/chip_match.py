@@ -119,7 +119,7 @@ class AnnotInference(object):
 
         # Normalize to row stochastic matrix
         prob_names /= prob_names.sum(axis=1)[:, None]
-        print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
+        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
         #prob_annots /= prob_annots.sum(axis=1)[:, None]
 
         # Find connected components
@@ -209,7 +209,7 @@ class AnnotInference(object):
                 # TODO: set a and b based on dbsize
                 a = 1.5
                 b = 5
-                p_same = scipy.special.expit(b * raw_scores - a)
+                p_same = scipy.special.expit(b * raw_score - a)
                 p_diff = 1 - p_same
                 decision = 'same' if confidence > thresh else 'diff'
                 confidence = p_same if confidence > thresh else p_diff
@@ -217,10 +217,12 @@ class AnnotInference(object):
                 needs_review_list.append(tup)
         sortx = ut.argsort(ut.take_column(needs_review_list, 3))[::-1]
         needs_review_list = ut.take(needs_review_list, sortx)
-        print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
 
         self.needs_review_list = needs_review_list
         self.cluster_tuples = cluster_tuples
+
+        print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
+        print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
 
         #prob_annots = None
         #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
