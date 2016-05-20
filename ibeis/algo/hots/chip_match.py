@@ -174,6 +174,8 @@ class AnnotInference(object):
             new_name = len(nids) == 0
 
             error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
+            strflags = ['split', 'merge', 'new']
+            error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
             #error_flag = split_case or merge_case
 
             if not error_flag and not new_name:
@@ -203,17 +205,19 @@ class AnnotInference(object):
                 scorex = scores.argmax()
                 raw_score = raw_scores[scorex]
                 daid = daids[scorex]
-                confidence = scores[scorex]
                 import scipy.special
                 # SUPER HACK: these are not probabilities
                 # TODO: set a and b based on dbsize
-                a = 1.5
-                b = 5
+                # python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(2 * x - 2)"
+                a = 2.0
+                b = 2
                 p_same = scipy.special.expit(b * raw_score - a)
-                p_diff = 1 - p_same
-                decision = 'same' if confidence > thresh else 'diff'
-                confidence = p_same if confidence > thresh else p_diff
-                tup = (cm.qaid, daid, decision, confidence, raw_score)
+                #confidence = scores[scorex]
+                #p_diff = 1 - p_same
+                #decision = 'same' if confidence > thresh else 'diff'
+                #confidence = p_same if confidence > thresh else p_diff
+                #tup = (cm.qaid, daid, decision, confidence, raw_score)
+                tup = (cm.qaid, daid, p_same, raw_score)
                 needs_review_list.append(tup)
         sortx = ut.argsort(ut.take_column(needs_review_list, 3))[::-1]
         needs_review_list = ut.take(needs_review_list, sortx)
