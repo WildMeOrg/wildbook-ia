@@ -85,10 +85,10 @@ class AnnotInference(object):
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> import ibeis
         >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='ctrl:qsize=5,excluderef=True')
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qsize=10,excluderef=True,qpername=2,dpername=2')
         >>> cm_list = qreq_.execute()
         >>> self = AnnotInference(cm_list)
-        >>> print('inference_dict = ' + ut.repr3(self.make_annot_inference_dict(qreq_.ibs), nl=3))
+        >>> print('inference_dict = ' + ut.repr3(self.make_annot_inference_dict(qreq_.ibs), nl=2))
     """
 
     def __init__(self, cm_list):
@@ -125,11 +125,51 @@ class AnnotInference(object):
 
         # Find connected components
         #thresh = .25
-        thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
+        #thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
 
         qaid_list = [cm.qaid for cm in cm_list]
 
+        nscores = np.sort(prob_names.flatten())
+        x = np.gradient(nscores).argmax()
+        x = (np.gradient(np.gradient(nscores)) ** 2).argmax()
+        thresh = nscores[x]
+
+        # http://stackoverflow.com/questions/2018178/finding-the-best-trade-off-point-on-a-curve
+        curve = nscores
+        def find_tradeoff_point(curve):
+            nPoints = len(curve)
+            allCoord = np.vstack((range(nPoints), curve)).T
+            np.array([range(nPoints), curve])
+            firstPoint = allCoord[0]
+            lineVec = allCoord[-1] - allCoord[0]
+            lineVecNorm = lineVec / np.sqrt(np.sum(lineVec**2))
+            vecFromFirst = allCoord - firstPoint
+            scalarProduct = np.sum(vecFromFirst * np.tile(lineVecNorm, (nPoints, 1)), axis=1)
+            vecFromFirstParallel = np.outer(scalarProduct, lineVecNorm)
+            vecToLine = vecFromFirst - vecFromFirstParallel
+            distToLine = np.sqrt(np.sum(vecToLine ** 2, axis=1))
+            idxOfBestPoint = np.argmax(distToLine)
+            return idxOfBestPoint
+        idx1 = find_tradeoff_point(curve)
+        idx2 = find_tradeoff_point(curve[idx1:]) + idx1
+        idx3 = find_tradeoff_point(curve[idx1:idx2 + 1]) + idx1
+        if False:
+            import plottool as pt
+            pt.plot(curve)
+            pt.plot(idx1, curve[idx1], 'bo')
+            pt.plot(idx2, curve[idx2], 'ro')
+            pt.plot(idx3, curve[idx3], 'go')
+            nscores[idx1]
+            nscores[idx2]
+            nscores[idx3]
+        thresh = nscores[idx2]
+        print('thresh = %r' % (thresh,))
+
         qxs, nxs = np.where(prob_names > thresh)
+        print(ut.hz_str('prob_names = ', ut.array2string2((prob_names), precision=2, max_line_width=140, suppress_small=True)))
+        x = prob_names > thresh
+        print(ut.hz_str('chosen_names = ', ut.array2string2((x).astype(np.int), precision=2, max_line_width=140, suppress_small=True)))
+
         def hacknn(list_):
             return [('nid', l) for l in list_]
 
