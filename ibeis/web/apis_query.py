@@ -148,19 +148,20 @@ def query_chips_test(ibs):
     qaid_list = aid_list[:3]
     daid_list = aid_list[-10:]
     query_resut_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list, return_request=True)
-    result_list = [
-        {
-            'qaid'              : qr.qaid,
-            'score_list'        : qr.score_list,
+    result_list = {
+        qr.qaid: {
             'daid_list'         : qr.daid_list,
+            'dnid_list'         : qr.dnid_list,
+            'score_list'        : qr.score_list,
             'annot_score_list'  : qr.annot_score_list,
-            'name_score_list'   : qr.name_score_list,
             'fm_list'           : qr.fm_list,
             'fsv_list'          : qr.fsv_list,
-            'qreq_'             : qreq_,
+            # Non-corresponding lists to above
+            'unique_nid_list'   : qr.unique_nids,
+            'name_score_list'   : qr.name_score_list,
         }
         for qr in query_resut_list
-    ]
+    }
     return result_list
 
 
