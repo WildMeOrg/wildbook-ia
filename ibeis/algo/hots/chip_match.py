@@ -231,6 +231,31 @@ class AnnotInference(object):
         #prob_annots = None
         #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
 
+    def make_annot_inference_dict(self, ibs):
+        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'error_flag_list']
+        cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
+        cluster_dict['annot_uuid_list'] = ibs.get_annot_uuids(cluster_dict['aid_list'])
+        cluster_dict.pop('aid_list')
+
+        col_list = ['qaid_list', 'daid_list', 'p_same_list', 'raw_score_list']
+        matching_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
+        matching_dict['qannot_uuid_list'] = ibs.get_annot_uuids(matching_dict['qaid_list'])
+        matching_dict['dannot_uuid_list'] = ibs.get_annot_uuids(matching_dict['daid_list'])
+        matching_dict['prior_matching_state_list'] = [
+            (p_same, 1.0 - p_same, 0.0)
+            for p_same in matching_dict['p_same_list']
+        ]
+        matching_dict['confidence_list'] = 2.0 * np.abs(0.5 - matching_dict['p_same_list'])
+
+        key_list = ['qannot_uuid_list', 'dannot_uuid_list', 'prior_matching_state_list', 'confidence_list']
+        annot_pair_dict = ut.dict_subset(matching_dict, key_list)
+        inference_dict = {
+            'cluster_dict'    : cluster_dict,
+            'annot_pair_dict' : annot_pair_dict,
+            '_internal_state' : None,
+        }
+        return inference_dict
+
 
 class _ChipMatchVisualization(object):
     """
@@ -239,7 +264,7 @@ class _ChipMatchVisualization(object):
 
     def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None,
                               homog=ut.get_argflag('--homog'), **kwargs):
-        """
+        r"""
         CommandLine:
             python -m ibeis --tf ChipMatch.show_single_namematch --show
             python -m ibeis --tf ChipMatch.show_single_namematch --show --qaid 1
@@ -1355,7 +1380,7 @@ class ChipMatch(_ChipMatchVisualization,
         # HACKY normalizer info
         cm.filtnorm_aids = filtnorm_aids
         cm.filtnorm_fxs = filtnorm_fxs
-        ## TODO: have subclass or dict for special scores
+        # TODO: have subclass or dict for special scores
         if autoinit:
             cm._update_daid_index()
             if cm.dnid_list is not None:

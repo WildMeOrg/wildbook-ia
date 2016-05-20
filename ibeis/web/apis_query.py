@@ -119,8 +119,8 @@ def review_query_chips_test():
     from ibeis.algo.hots.query_request import QueryRequest
     ibs = current_app.ibs
     result_list = ibs.query_chips_test()
-    result = result_list[0]
 
+    result = result_list[0]
     state_dict = result.pop('qreq_').__getstate__()
     cm = ChipMatch(**result)
     qreq_ = QueryRequest()
@@ -141,28 +141,42 @@ def review_query_chips_test():
 
 @register_ibs_method
 @register_api('/test/query/chips/', methods=['GET'])
-def query_chips_test(ibs):
+def query_chips_test(ibs, pipecfg={}, echo_query_params=True):
+    from ibeis.algo.hots.chip_match import AnnotInference
     from random import shuffle
+    # COmpile test data
     aid_list = ibs.get_valid_aids()
     shuffle(aid_list)
     qaid_list = aid_list[:3]
     daid_list = aid_list[-10:]
-    query_resut_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list, return_request=True)
-    result_list = {
-        qr.qaid: {
-            'daid_list'         : qr.daid_list,
-            'dnid_list'         : qr.dnid_list,
-            'score_list'        : qr.score_list,
-            'annot_score_list'  : qr.annot_score_list,
-            'fm_list'           : qr.fm_list,
-            'fsv_list'          : qr.fsv_list,
+    cm_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list,
+                                     cfgdict=pipecfg, return_request=True)
+    cm_dict = {
+        ibs.get_annot_uuids(cm.qaid): {
+            'qaid'              : cm.qaid,
+            'daid_list'         : cm.daid_list,
+            'dnid_list'         : cm.dnid_list,
+            'score_list'        : cm.score_list,
+            'annot_score_list'  : cm.annot_score_list,
+            'fm_list'           : cm.fm_list,
+            'fsv_list'          : cm.fsv_list,
             # Non-corresponding lists to above
-            'unique_nid_list'   : qr.unique_nids,
-            'name_score_list'   : qr.name_score_list,
+            'unique_nid_list'   : cm.unique_nids,
+            'name_score_list'   : cm.name_score_list,
         }
-        for qr in query_resut_list
+        for cm in cm_list
     }
-    return result_list
+    annot_inference = AnnotInference(cm_list)
+    inference_dict = annot_inference.make_annot_inference_dict(ibs)
+    result_dict = {
+        'cm_dict'                  : cm_dict,
+        'inference_dict'           : inference_dict,
+    }
+    if echo_query_params:
+        result_dict['query_annot_uuid_list'] = ibs.get_annot_uuids(qaid_list)
+        result_dict['database_annot_uuid_list'] = ibs.get_annot_uuids(daid_list)
+        result_dict['query_config_dict'] = pipecfg
+    return result_dict
 
 
 @register_ibs_method
