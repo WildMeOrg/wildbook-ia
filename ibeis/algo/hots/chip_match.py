@@ -79,7 +79,7 @@ class AnnotInference(object):
     """ Make name inferences about a series of AnnotMatches
 
     CommandLine:
-        python -m ibeis.algo.hots.chip_match AnnotInference --show
+        python -m ibeis.algo.hots.chip_match AnnotInference --show --no-cnn
 
     Example:
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
@@ -88,6 +88,7 @@ class AnnotInference(object):
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='ctrl:qsize=5,excluderef=True')
         >>> cm_list = qreq_.execute()
         >>> self = AnnotInference(cm_list)
+        >>> print('inference_dict = ' + ut.repr3(self.make_annot_inference_dict(qreq_.ibs), nl=3))
     """
 
     def __init__(self, cm_list):
@@ -192,10 +193,16 @@ class AnnotInference(object):
 
         # Make pair list for output
         needs_review_list = []
+        num_top = 2
         for cm, row in zip(cm_list, prob_names):
-            idxs = row.argsort()
-            nids = ut.take(unique_nids, idxs[-2:])
-            daids_list = ut.take(cm.daid_list, ut.take(cm.name_groupxs, ut.take(cm.nid2_nidx, nids)))
+            # Find top scoring names for this chip match in the posterior distribution
+            idxs = row.argsort()[::-1]
+            top_idxs = idxs[:num_top]
+            nids = ut.take(unique_nids, top_idxs)
+            # Find the matched annotations in the pairwise prior distributions
+            nidxs = ut.dict_take(cm.nid2_nidx, nids, None)
+            name_groupxs = ut.take(cm.name_groupxs, ut.filter_Nones(nidxs))
+            daids_list = ut.take(cm.daid_list, name_groupxs)
             for daids in daids_list:
                 ut.take(cm.score_list, ut.take(cm.daid2_idx, daids))
                 scores_all = cm.score_list / cm.score_list.sum()
@@ -217,9 +224,12 @@ class AnnotInference(object):
                 #decision = 'same' if confidence > thresh else 'diff'
                 #confidence = p_same if confidence > thresh else p_diff
                 #tup = (cm.qaid, daid, decision, confidence, raw_score)
-                tup = (cm.qaid, daid, p_same, raw_score)
+                confidence = (2 * np.abs(0.5 - p_same)) ** 2
+                tup = (cm.qaid, daid, p_same, confidence, raw_score)
                 needs_review_list.append(tup)
-        sortx = ut.argsort(ut.take_column(needs_review_list, 3))[::-1]
+
+        # Sort resulting list by confidence
+        sortx = ut.argsort(ut.take_column(needs_review_list, 3))
         needs_review_list = ut.take(needs_review_list, sortx)
 
         self.needs_review_list = needs_review_list
@@ -237,23 +247,22 @@ class AnnotInference(object):
         cluster_dict['annot_uuid_list'] = ibs.get_annot_uuids(cluster_dict['aid_list'])
         cluster_dict.pop('aid_list')
 
-        col_list = ['qaid_list', 'daid_list', 'p_same_list', 'raw_score_list']
-        matching_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
+        col_list = ['qaid_list', 'daid_list', 'p_same_list', 'confidence_list', 'raw_score_list']
+        matching_dict = dict(zip(col_list, ut.listT(self.needs_review_list)))
         matching_dict['qannot_uuid_list'] = ibs.get_annot_uuids(matching_dict['qaid_list'])
         matching_dict['dannot_uuid_list'] = ibs.get_annot_uuids(matching_dict['daid_list'])
         matching_dict['prior_matching_state_list'] = [
             (p_same, 1.0 - p_same, 0.0)
             for p_same in matching_dict['p_same_list']
         ]
-        matching_dict['confidence_list'] = 2.0 * np.abs(0.5 - matching_dict['p_same_list'])
 
         key_list = ['qannot_uuid_list', 'dannot_uuid_list', 'prior_matching_state_list', 'confidence_list']
         annot_pair_dict = ut.dict_subset(matching_dict, key_list)
-        inference_dict = {
-            'cluster_dict'    : cluster_dict,
-            'annot_pair_dict' : annot_pair_dict,
-            '_internal_state' : None,
-        }
+        inference_dict = ut.odict([
+            ('cluster_dict', cluster_dict),
+            ('annot_pair_dict', annot_pair_dict),
+            ('_internal_state', None),
+        ])
         return inference_dict
 
 
