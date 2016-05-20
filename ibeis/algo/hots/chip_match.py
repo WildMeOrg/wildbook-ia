@@ -74,6 +74,158 @@ def check_arrs_eq(arr1, arr2):
         return False
 
 
+@six.add_metaclass(ut.ReloadingMetaclass)
+class AnnotInference(object):
+    """ Make name inferences about a series of AnnotMatches
+
+    CommandLine:
+        python -m ibeis.algo.hots.chip_match AnnotInference --show
+
+    Example:
+        >>> from ibeis.algo.hots.chip_match import *  # NOQA
+        >>> import ibeis
+        >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='ctrl:qsize=5,excluderef=True')
+        >>> cm_list = qreq_.execute()
+        >>> self = AnnotInference(cm_list)
+    """
+
+    def __init__(self, cm_list):
+        self.needs_review_list = []
+        self.cluster_tuples = []
+        self.make_inference(cm_list)
+
+    def make_inference(self, cm_list):
+        # Consolodate information from a series of chip matches
+        unique_nids = sorted(ut.list_union(*[cm.unique_nids for cm in cm_list]))
+        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]))
+        #nid2_nidx = ut.make_index_lookup(unique_nids)
+        # Populate matrix of raw name scores
+        prob_names = np.zeros((len(cm_list), len(unique_nids)))
+        for count, cm in enumerate(cm_list):
+            name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
+            prob_names[count][:] = name_scores
+
+        if False:
+            aid2_didx = ut.make_index_lookup(unique_aids)
+            prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
+            for count, cm in enumerate(cm_list):
+                idx = aid2_didx[cm.qaid]
+                annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
+                prob_annots[idx][:] = annot_scores
+            prob_annots += 1E-9
+        else:
+            prob_annots = None
+
+        # Normalize to row stochastic matrix
+        prob_names /= prob_names.sum(axis=1)[:, None]
+        print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
+        #prob_annots /= prob_annots.sum(axis=1)[:, None]
+
+        # Find connected components
+        #thresh = .25
+        thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
+
+        qaid_list = [cm.qaid for cm in cm_list]
+
+        qxs, nxs = np.where(prob_names > thresh)
+        def hacknn(list_):
+            return [('nid', l) for l in list_]
+
+        matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
+        db_aid_nid_edges = list(zip(cm.daid_list, hacknn(cm.dnid_list)))
+        query_aid_nid_edges = list(zip(ut.take(qaid_list, qxs), hacknn(ut.take(unique_nids, nxs))))
+        import networkx as nx
+        G = nx.Graph()
+        G.add_nodes_from(matchless_quries)
+        G.add_edges_from(db_aid_nid_edges)
+        G.add_edges_from(query_aid_nid_edges)
+
+        # hack for orig aids
+        orig_aid2_nid = {}
+        for cm in cm_list:
+            orig_aid2_nid[cm.qaid] = cm.qnid
+            for daid, dnid in zip(cm.daid_list, cm.dnid_list):
+                orig_aid2_nid[daid] = dnid
+
+        cluster_aids = []
+        cluster_nids = []
+        connected = list(nx.connected_components(G))
+        for comp in connected:
+            cluster_nids.append([])
+            cluster_aids.append([])
+            for x in comp:
+                if isinstance(x, tuple):
+                    cluster_nids[-1].append(x[1])
+                else:
+                    cluster_aids[-1].append(x)
+
+        # Make first part of inference output
+        import itertools
+        qaid_set = set(qaid_list)
+        next_new_nid = itertools.count(9001)
+        cluster_tuples = []
+        for aids, nids in zip(cluster_aids, cluster_nids):
+            other_nid_clusters = cluster_nids[:]
+            other_nid_clusters.remove(nids)
+            other_nids = ut.flatten(other_nid_clusters)
+            split_case = len(ut.list_intersection(other_nids, nids)) > 0
+            merge_case = len(nids) > 1
+            new_name = len(nids) == 0
+
+            error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
+            #error_flag = split_case or merge_case
+
+            if not error_flag and not new_name:
+                new_nid = nids[0]
+            else:
+                new_nid = six.next(next_new_nid)
+            for aid in aids:
+                if aid not in qaid_set:
+                    continue
+                orig_nid = orig_aid2_nid[aid]
+                #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
+                tup = (aid, orig_nid, new_nid, error_flag)
+                cluster_tuples.append(tup)
+
+        # Make pair list for output
+        needs_review_list = []
+        for cm, row in zip(cm_list, prob_names):
+            idxs = row.argsort()
+            nids = ut.take(unique_nids, idxs[-2:])
+            daids_list = ut.take(cm.daid_list, ut.take(cm.name_groupxs, ut.take(cm.nid2_nidx, nids)))
+            for daids in daids_list:
+                ut.take(cm.score_list, ut.take(cm.daid2_idx, daids))
+                scores_all = cm.score_list / cm.score_list.sum()
+                idxs = ut.take(cm.daid2_idx, daids)
+                scores = scores_all.take(idxs)
+                raw_scores = cm.score_list.take(idxs)
+                scorex = scores.argmax()
+                raw_score = raw_scores[scorex]
+                daid = daids[scorex]
+                confidence = scores[scorex]
+                import scipy.special
+                # SUPER HACK: these are not probabilities
+                # TODO: set a and b based on dbsize
+                a = 1.5
+                b = 5
+                p_same = scipy.special.expit(b * raw_scores - a)
+                p_diff = 1 - p_same
+                decision = 'same' if confidence > thresh else 'diff'
+                confidence = p_same if confidence > thresh else p_diff
+                tup = (cm.qaid, daid, decision, confidence, raw_score)
+                needs_review_list.append(tup)
+        sortx = ut.argsort(ut.take_column(needs_review_list, 3))[::-1]
+        needs_review_list = ut.take(needs_review_list, sortx)
+        print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
+
+        self.needs_review_list = needs_review_list
+        self.cluster_tuples = cluster_tuples
+
+        #prob_annots = None
+        #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
+
+
 class _ChipMatchVisualization(object):
     """
     Abstract class containing the visualization function for ChipMatch
@@ -1115,152 +1267,6 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
             name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
             pnum=pnum, **kwargs)
         return _
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInference(object):
-    """ Make name inferences about a series of AnnotMatches
-
-    CommandLine:
-        python -m ibeis.algo.hots.chip_match AnnotInference --show
-
-    Example:
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> import ibeis
-        >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='ctrl:qsize=5,excluderef=True')
-        >>> cm_list = qreq_.execute()
-        >>> self = AnnotInference(cm_list)
-    """
-    def __init__(self, cm_list):
-        # Consolodate information from a series of chip matches
-        unique_nids = sorted(ut.list_union(*[cm.unique_nids for cm in cm_list]))
-        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]))
-        #nid2_nidx = ut.make_index_lookup(unique_nids)
-        # Populate matrix of raw name scores
-        prob_names = np.zeros((len(cm_list), len(unique_nids)))
-        for count, cm in enumerate(cm_list):
-            name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
-            prob_names[count][:] = name_scores
-
-        if False:
-            aid2_didx = ut.make_index_lookup(unique_aids)
-            prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
-            for count, cm in enumerate(cm_list):
-                idx = aid2_didx[cm.qaid]
-                annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
-                prob_annots[idx][:] = annot_scores
-            prob_annots += 1E-9
-        else:
-            prob_annots = None
-
-        # Normalize to row stochastic matrix
-        prob_names /= prob_names.sum(axis=1)[:, None]
-        print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
-        #prob_annots /= prob_annots.sum(axis=1)[:, None]
-
-        # Find connected components
-        #thresh = .25
-        thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
-
-        qaid_list = [cm.qaid for cm in cm_list]
-
-        qxs, nxs = np.where(prob_names > thresh)
-        def hacknn(list_):
-            return [('nid', l) for l in list_]
-
-        matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
-        db_aid_nid_edges = list(zip(cm.daid_list, hacknn(cm.dnid_list)))
-        query_aid_nid_edges = list(zip(ut.take(qaid_list, qxs), hacknn(ut.take(unique_nids, nxs))))
-        import networkx as nx
-        G = nx.Graph()
-        G.add_nodes_from(matchless_quries)
-        G.add_edges_from(db_aid_nid_edges)
-        G.add_edges_from(query_aid_nid_edges)
-
-        # hack for orig aids
-        orig_aid2_nid = {}
-        for cm in cm_list:
-            orig_aid2_nid[cm.qaid] = cm.qnid
-            for daid, dnid in zip(cm.daid_list, cm.dnid_list):
-                orig_aid2_nid[daid] = dnid
-
-        cluster_aids = []
-        cluster_nids = []
-        connected = list(nx.connected_components(G))
-        for comp in connected:
-            cluster_nids.append([])
-            cluster_aids.append([])
-            for x in comp:
-                if isinstance(x, tuple):
-                    cluster_nids[-1].append(x[1])
-                else:
-                    cluster_aids[-1].append(x)
-
-        # Make first part of inference output
-        import itertools
-        qaid_set = set(qaid_list)
-        next_new_nid = itertools.count(9001)
-        cluster_tuples = []
-        for aids, nids in zip(cluster_aids, cluster_nids):
-            other_nid_clusters = cluster_nids[:]
-            other_nid_clusters.remove(nids)
-            other_nids = ut.flatten(other_nid_clusters)
-            split_case = len(ut.list_intersection(other_nids, nids)) > 0
-            merge_case = len(nids) > 1
-            new_name = len(nids) == 0
-
-            error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
-            #error_flag = split_case or merge_case
-
-            if not error_flag and not new_name:
-                new_nid = nids[0]
-            else:
-                new_nid = six.next(next_new_nid)
-            for aid in aids:
-                if aid not in qaid_set:
-                    continue
-                orig_nid = orig_aid2_nid[aid]
-                #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
-                tup = (aid, orig_nid, new_nid, error_flag)
-                cluster_tuples.append(tup)
-
-        # Make pair list for output
-        needs_review_list = []
-        for cm, row in zip(cm_list, prob_names):
-            idxs = row.argsort()
-            nids = ut.take(unique_nids, idxs[-2:])
-            daids_list = ut.take(cm.daid_list, ut.take(cm.name_groupxs, ut.take(cm.nid2_nidx, nids)))
-            for daids in daids_list:
-                ut.take(cm.score_list, ut.take(cm.daid2_idx, daids))
-                scores_all = cm.score_list / cm.score_list.sum()
-                idxs = ut.take(cm.daid2_idx, daids)
-                scores = scores_all.take(idxs)
-                raw_scores = cm.score_list.take(idxs)
-                scorex = scores.argmax()
-                raw_score = raw_scores[scorex]
-                daid = daids[scorex]
-                confidence = scores[scorex]
-                import scipy.special
-                # SUPER HACK: these are not probabilities
-                # TODO: set a and b based on dbsize
-                a = 1.5
-                b = 5
-                p_same = scipy.special.expit(b * raw_scores - a)
-                p_diff = 1 - p_same
-                decision = 'same' if confidence > thresh else 'diff'
-                confidence = p_same if confidence > thresh else p_diff
-                tup = (cm.qaid, daid, decision, confidence, raw_score)
-                needs_review_list.append(tup)
-
-        sortx = ut.argsort(ut.take_column(needs_review_list, 3))[::-1]
-        needs_review_list = ut.take(needs_review_list, sortx)
-
-        self.needs_review_list = needs_review_list
-        self.cluster_tuples = cluster_tuples
-
-        #prob_annots = None
-        #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
