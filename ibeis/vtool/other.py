@@ -2094,7 +2094,7 @@ def greedy_setcover(universe, subsets, weights=None):
     Copied implmentation of greedy set cover from stack overflow. Needs work.
 
     References:
-        http://stackoverflow.com/questions/7942312/how-do-i-make-my-implementation-of-greedy-set-cover-faster
+        http://stackoverflow.com/questions/7942312/of-greedy-set-cover-faster
 
     Example:
         >>> # SLOW_DOCTEST
@@ -2133,6 +2133,62 @@ def greedy_setcover(universe, subsets, weights=None):
         uncovered = uncovered.difference(S_i)
         costs.append(cost)
     return chosen, costs
+
+
+def find_elbow_point(curve):
+    """
+    Finds the on the curve point furthest from the line defined by the
+    endpoints of the curve.
+
+    Args:
+        curve (ndarray): a monotonic curve
+
+    Returns:
+        int: tradeoff_idx - this is an elbow point in the curve
+
+    References:
+        http://stackoverflow.com/questions/2018178/trade-off-point-on-curve
+
+    CommandLine:
+        python -m vtool.other find_elbow_point --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> curve = np.exp(np.linspace(0, 10, 100))
+        >>> tradeoff_idx = find_elbow_point(curve)
+        >>> result = ('tradeoff_idx = %s' % (ut.repr2(tradeoff_idx),))
+        >>> print(result)
+        >>> assert tradeoff_idx == 76
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> import vtool as vt
+        >>> point = [tradeoff_idx, curve[tradeoff_idx]]
+        >>> segment = np.array([[0, len(curve) - 1], [curve[0], curve[-1]]])
+        >>> e1, e2 = segment.T
+        >>> dist_point = vt.closest_point_on_line_segment(point, e1, e2)
+        >>> dist_line = np.array([dist_point, point]).T
+        >>> pt.plot(curve, 'r', label='curve')
+        >>> pt.plot(point[0], point[1], 'go', markersize=10, label='tradeoff point')
+        >>> pt.plot(dist_line[0], dist_line[1], '-xb')
+        >>> pt.plot(segment[0], segment[1], '-xb')
+        >>> pt.legend()
+        >>> ut.show_if_requested()
+    """
+    num_points = len(curve)
+    all_coords = np.vstack((np.arange(num_points), curve)).T
+    np.array([np.arange(num_points), curve])
+    first_point = all_coords[0]
+    line_vec = all_coords[-1] - all_coords[0]
+    line_vec_norm = line_vec / np.sqrt(np.sum(line_vec ** 2))
+    vec_from_first = all_coords - first_point
+    tiled_line_vec_norm = np.tile(line_vec_norm, (num_points, 1))
+    scalar_product = np.sum(vec_from_first * tiled_line_vec_norm, axis=1)
+    vec_from_first_parallel = np.outer(scalar_product, line_vec_norm)
+    vec_to_line = vec_from_first - vec_from_first_parallel
+    dist_to_line = np.sqrt(np.sum(vec_to_line ** 2, axis=1))
+    tradeoff_idx = np.argmax(dist_to_line)
+    return tradeoff_idx
 
 
 if __name__ == '__main__':
