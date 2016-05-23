@@ -112,6 +112,7 @@ class AnnotInference(object):
         #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
         return unique_aids, prob_annots
 
+    @ut.memoize()
     def make_prob_names(self):
         cm_list = self.cm_list
         # Consolodate information from a series of chip matches
