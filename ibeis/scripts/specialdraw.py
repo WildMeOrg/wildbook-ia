@@ -501,7 +501,8 @@ def setcover_example():
         for a in aids:
             print(ut.repr3(ibs.get_annot_stats_dict(a)))
         print(aids[-2])
-    aids = [78, 79, 80, 81, 88, 91]
+    #aids = [78, 79, 80, 81, 88, 91]
+    aids = [78, 79, 81, 88, 91]
     qreq_ = ibs.depc.new_request('vsone', aids, aids, cfgdict={})
     cm_list = qreq_.execute()
     from ibeis.algo.hots import chip_match
@@ -554,8 +555,9 @@ def setcover_example():
     viz_graph.ensure_node_images(ibs, graph)
 
     nx.set_node_attributes(graph, 'framewidth', False)
-    nx.set_node_attributes(graph,  'framewidth', {aid: 4.0 for aid in exemplars})
+    nx.set_node_attributes(graph, 'framewidth', {aid: 4.0 for aid in exemplars})
     nx.set_edge_attributes(graph, 'color', pt.ORANGE)
+    nx.set_node_attributes(graph, 'color', pt.LIGHT_BLUE)
     nx.set_node_attributes(graph, 'shape', 'rect')
 
     layoutkw = {
@@ -937,7 +939,7 @@ def event_space():
     # import numpy as np
     from matplotlib_venn import venn3, venn2, venn3_circles
     plt.figure(figsize=(4, 4))
-    v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels = ('A', 'B', 'C'))
+    v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels=('A', 'B', 'C'))
     v.get_patch_by_id('100').set_alpha(1.0)
     v.get_patch_by_id('100').set_color('white')
     v.get_label_by_id('100').set_text('Unknown')
