@@ -903,7 +903,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     ###
     # Draw Edges
     # NEW WAY OF DRAWING EDGEES
-    edge_pos = layout_info['edge']['ctrl_pts']
+    edge_pos = layout_info['edge'].get('ctrl_pts', None)
     if edge_pos is not None:
         for edge, pts in edge_pos.items():
 
@@ -974,6 +974,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 lw = graphsize / 8
                 width =  graphsize / 15
                 width = ut.get_argval('--arrow-width', default=width)
+                lw = ut.get_argval('--line-width', default=lw)
                 #print('width = %r' % (width,))
             else:
                 width = .5
