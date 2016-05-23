@@ -155,7 +155,10 @@ class AnnotInference(object):
         print('thresh = %r' % (thresh,))
         return thresh
 
-    def make_inference(self, cm_list):
+    def make_clusters(self):
+        import networkx as nx
+        import itertools
+        cm_list = self.cm_list
         unique_nids, prob_names = self.make_prob_names()
         thresh = self.choose_thresh()
 
@@ -171,7 +174,6 @@ class AnnotInference(object):
         matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
         db_aid_nid_edges = list(zip(cm.daid_list, hacknn(cm.dnid_list)))
         query_aid_nid_edges = list(zip(ut.take(qaid_list, qxs), hacknn(ut.take(unique_nids, nxs))))
-        import networkx as nx
         G = nx.Graph()
         G.add_nodes_from(matchless_quries)
         G.add_edges_from(db_aid_nid_edges)
@@ -197,7 +199,6 @@ class AnnotInference(object):
                     cluster_aids[-1].append(x)
 
         # Make first part of inference output
-        import itertools
         qaid_set = set(qaid_list)
         next_new_nid = itertools.count(9001)
         cluster_tuples = []
@@ -225,6 +226,12 @@ class AnnotInference(object):
                 #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
                 tup = (aid, orig_nid, new_nid, error_flag)
                 cluster_tuples.append(tup)
+        return cluster_tuples
+
+    def make_inference(self):
+        cm_list = self.cm_list
+        unique_nids, prob_names = self.make_prob_names()
+        cluster_tuples = self.make_clusters()
 
         # Make pair list for output
         needs_review_list = []
