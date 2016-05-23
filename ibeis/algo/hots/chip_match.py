@@ -92,14 +92,29 @@ class AnnotInference(object):
     """
 
     def __init__(self, cm_list):
+        self.cm_list = cm_list
         self.needs_review_list = []
         self.cluster_tuples = []
         self.make_inference(cm_list)
 
-    def make_inference(self, cm_list):
+    def make_prob_annots(self):
+        cm_list = self.cm_list
+        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]))
+        aid2_didx = ut.make_index_lookup(unique_aids)
+        prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
+        for count, cm in enumerate(cm_list):
+            idx = aid2_didx[cm.qaid]
+            annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
+            prob_annots[idx][:] = annot_scores
+        prob_annots[np.diag_indices(len(prob_annots))] = np.inf
+        prob_annots += 1E-9
+        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
+        return unique_aids, prob_annots
+
+    def make_prob_names(self):
+        cm_list = self.cm_list
         # Consolodate information from a series of chip matches
         unique_nids = sorted(ut.list_union(*[cm.unique_nids for cm in cm_list]))
-        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]))
         #nid2_nidx = ut.make_index_lookup(unique_nids)
         # Populate matrix of raw name scores
         prob_names = np.zeros((len(cm_list), len(unique_nids)))
@@ -107,20 +122,13 @@ class AnnotInference(object):
             name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
             prob_names[count][:] = name_scores
 
-        if False:
-            aid2_didx = ut.make_index_lookup(unique_aids)
-            prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
-            for count, cm in enumerate(cm_list):
-                idx = aid2_didx[cm.qaid]
-                annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
-                prob_annots[idx][:] = annot_scores
-            prob_annots += 1E-9
-        else:
-            prob_annots = None
-
         # Normalize to row stochastic matrix
         prob_names /= prob_names.sum(axis=1)[:, None]
         #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
+        return unique_nids, prob_names
+
+    def make_inference(self, cm_list):
+        unique_nids, prob_names = self.make_prob_names()
         #prob_annots /= prob_annots.sum(axis=1)[:, None]
 
         # Find connected components
