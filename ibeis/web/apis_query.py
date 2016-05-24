@@ -141,20 +141,41 @@ def review_query_chips_test():
 
 @register_ibs_method
 @register_api('/test/query/chips/', methods=['GET'])
-def query_chips_test(ibs, pipecfg={}, echo_query_params=True):
-    from ibeis.algo.hots.chip_match import AnnotInference
+def query_chips_test(ibs, **kwargs):
+    """
+    CommandLine:
+        python -m ibeis.web.apis_query query_chips_test
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_()
+        >>> ibs = qreq_.ibs
+        >>> result_dict = ibs.query_chips_test()
+        >>> print(result_dict)
+    """
     from random import shuffle
-    # COmpile test data
+    # Compile test data
     aid_list = ibs.get_valid_aids()
     shuffle(aid_list)
     qaid_list = aid_list[:3]
     daid_list = aid_list[-10:]
+    result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
+    return result_dict
+
+
+@register_ibs_method
+@register_api('/api/query/chips/', methods=['GET'])
+def query_chips_graph(ibs, qaid_list, daid_list, query_config_dict={}, echo_query_params=True):
+    from ibeis.algo.hots.chip_match import AnnotInference
     cm_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list,
-                                     cfgdict=pipecfg, return_request=True)
+                                     cfgdict=query_config_dict, return_request=True)
     cm_dict = {
-        ibs.get_annot_uuids(cm.qaid): {
-            'qaid'              : cm.qaid,
-            'daid_list'         : cm.daid_list,
+        str(ibs.get_annot_uuids(cm.qaid)): {
+            # 'qaid'              : cm.qaid,
+            # 'daid_list'         : cm.daid_list,
+            'dannot_uuid_list'  : ibs.get_annot_uuids(cm.daid_list),
             'dnid_list'         : cm.dnid_list,
             'score_list'        : cm.score_list,
             'annot_score_list'  : cm.annot_score_list,
@@ -169,13 +190,13 @@ def query_chips_test(ibs, pipecfg={}, echo_query_params=True):
     annot_inference = AnnotInference(cm_list)
     inference_dict = annot_inference.make_annot_inference_dict(ibs)
     result_dict = {
-        'cm_dict'                  : cm_dict,
-        'inference_dict'           : inference_dict,
+        'cm_dict'        : cm_dict,
+        'inference_dict' : inference_dict,
     }
     if echo_query_params:
         result_dict['query_annot_uuid_list'] = ibs.get_annot_uuids(qaid_list)
         result_dict['database_annot_uuid_list'] = ibs.get_annot_uuids(daid_list)
-        result_dict['query_config_dict'] = pipecfg
+        result_dict['query_config_dict'] = query_config_dict
     return result_dict
 
 
@@ -283,6 +304,7 @@ def query_chips(ibs, qaid_list=None,
     from ibeis.algo.hots import match_chips4 as mc4
     # The qaid and daid objects are allowed to be None if qreq_ is
     # specified
+
     if qaid_list is None:
         qaid_list = qreq_.qaids
     if daid_list is None:

@@ -214,6 +214,8 @@ class AnnotInference(object):
             merge_case = len(nids) > 1
             new_name = len(nids) == 0
 
+            print('[chip_match > AnnotInference > make_inference] WARNING: EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
+            exemplar_flag = True
             error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
             strflags = ['split', 'merge', 'new']
             error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
@@ -228,7 +230,7 @@ class AnnotInference(object):
                     continue
                 orig_nid = orig_aid2_nid[aid]
                 #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
-                tup = (aid, orig_nid, new_nid, error_flag)
+                tup = (aid, orig_nid, new_nid, exemplar_flag, error_flag)
                 cluster_tuples.append(tup)
 
         # Make pair list for output
@@ -282,22 +284,45 @@ class AnnotInference(object):
         #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
 
     def make_annot_inference_dict(self, ibs):
-        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'error_flag_list']
+        import uuid
+
+        def convert_to_uuid(nid):
+            try:
+                text = ibs.get_name_texts(nid)
+                uuid_ = uuid.UUID(text)
+            except ValueError:
+                uuid_ = nid
+            return uuid_
+
+        # Compile the cluster_dict
+        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'exemplar_flag_list', 'error_flag_list']
         cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
         cluster_dict['annot_uuid_list'] = ibs.get_annot_uuids(cluster_dict['aid_list'])
-        cluster_dict.pop('aid_list')
+        # We store the name's UUID as the name's text
+        cluster_dict['orig_name_uuid_list'] = [convert_to_uuid(nid) for nid in cluster_dict['orig_nid_list']]
+        cluster_dict['new_name_uuid_list'] = [convert_to_uuid(nid) for nid in cluster_dict['new_nid_list']]
+        # Filter out only the keys we want to send back in the dictionary
+        key_list = ['annot_uuid_list', 'orig_name_uuid_list', 'new_name_uuid_list', 'exemplar_flag_list', 'error_flag_list']
+        cluster_dict = ut.dict_subset(cluster_dict, key_list)
 
-        col_list = ['qaid_list', 'daid_list', 'p_same_list', 'confidence_list', 'raw_score_list']
-        matching_dict = dict(zip(col_list, ut.listT(self.needs_review_list)))
-        matching_dict['qannot_uuid_list'] = ibs.get_annot_uuids(matching_dict['qaid_list'])
-        matching_dict['dannot_uuid_list'] = ibs.get_annot_uuids(matching_dict['daid_list'])
-        matching_dict['prior_matching_state_list'] = [
+        # Compile the annot_pair_dict
+        col_list = ['aid_1_list', 'aid_2_list', 'p_same_list', 'confidence_list', 'raw_score_list']
+        annot_pair_dict = dict(zip(col_list, ut.listT(self.needs_review_list)))
+        annot_pair_dict['annot_uuid_1_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_1_list'])
+        annot_pair_dict['annot_uuid_2_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_2_list'])
+        annot_pair_dict['prior_matching_state_list'] = [
             (p_same, 1.0 - p_same, 0.0)
-            for p_same in matching_dict['p_same_list']
+            for p_same in annot_pair_dict['p_same_list']
         ]
+        annot_pair_dict['review_pair_list'] = [{
+            'annot_uuid_1'         : tup[0],
+            'annot_uuid_2'         : tup[1],
+            'prior_matching_state' : tup[2],
+        } for tup in zip(annot_pair_dict['annot_uuid_1_list'], annot_pair_dict['annot_uuid_2_list'], annot_pair_dict['prior_matching_state_list'])]
+        # Filter out only the keys we want to send back in the dictionary
+        key_list = ['review_pair_list', 'confidence_list']
+        annot_pair_dict = ut.dict_subset(annot_pair_dict, key_list)
 
-        key_list = ['qannot_uuid_list', 'dannot_uuid_list', 'prior_matching_state_list', 'confidence_list']
-        annot_pair_dict = ut.dict_subset(matching_dict, key_list)
         inference_dict = ut.odict([
             ('cluster_dict', cluster_dict),
             ('annot_pair_dict', annot_pair_dict),

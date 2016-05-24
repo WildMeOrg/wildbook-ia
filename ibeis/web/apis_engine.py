@@ -210,7 +210,7 @@ def close_job_manager(ibs):
 @accessor_decors.default_decorator
 @register_api('/api/engine/start_identify_annots/', methods=['GET', 'POST'])
 def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
-                          pipecfg={}, callback_url=None):
+                          pipecfg={}, callback_url=None, callback_method=None):
     r"""
     REST:
         Method: GET
@@ -325,7 +325,75 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
     ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, qaid_list, daid_list, pipecfg)
+    jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, callback_method, qaid_list, daid_list, pipecfg)
+
+    #if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
+def start_identify_annots_query(ibs, query_annot_uuid_list,
+                                query_annot_name_uuid_list,
+                                user_confidence,
+                                database_annot_uuid_list=None,
+                                database_annot_name_uuid_list=None,
+                                matching_state_list=[],
+                                query_config_dict={},
+                                echo_query_params=True,
+                                callback_url=None,
+                                callback_method=None):
+    r"""
+    REST:
+        Method: GET
+        URL: /api/engine/query/graph/
+
+    Args:
+        qannot_uuid_list (list) : specifies the query annotations to
+            identify.
+        dannot_uuid_list (list) : specifies the annotations that the
+            algorithm is allowed to use for identification.  If not
+            specified all annotations are used.   (default=None)
+        pipecfg (dict) : dictionary of pipeline configuration arguments
+            (default=None)
+    """
+    # Check inputs
+    assert len(query_annot_uuid_list) == 1, 'Can only identify one query annotation at a time'
+    assert len(query_annot_uuid_list) == len(query_annot_name_uuid_list)
+    assert len(database_annot_uuid_list) == len(database_annot_name_uuid_list)
+
+    # Check UUIDs
+    ibs.web_check_uuids([], query_annot_uuid_list, database_annot_uuid_list)
+
+    #import ibeis
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
+    def ensure_uuid_list(list_):
+        if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
+            list_ = list(map(uuid.UUID, list_))
+        return list_
+
+    qannot_uuid_list = ensure_uuid_list(query_annot_uuid_list)
+    dannot_uuid_list = ensure_uuid_list(database_annot_uuid_list)
+
+    qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
+    if dannot_uuid_list is None:
+        daid_list = ibs.get_valid_aids()
+        #None
+    else:
+        if len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None:
+            # VERY HACK
+            daid_list = ibs.get_valid_aids()
+        else:
+            daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
+
+    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
+    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
+    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph', callback_url, callback_method, qaid_list, daid_list, query_config_dict)
 
     #if callback_url is not None:
     #    #import requests
@@ -337,7 +405,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
-def start_detect_image(ibs, image_uuid_list, callback_url=None):
+def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=None):
     """
     REST:
         Method: GET
@@ -360,7 +428,7 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None):
 
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, gid_list)
+    jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, gid_list)
 
     #if callback_url is not None:
     #    #import requests
@@ -573,7 +641,7 @@ class JobInterface(object):
         if jobiface.verbose:
             print('connect collect_url1 = %r' % (collect_url1,))
 
-    def queue_job(jobiface, action, callback_url=None, *args, **kwargs):
+    def queue_job(jobiface, action, callback_url=None, callback_method=None, *args, **kwargs):
         r"""
         IBEIS:
             This is just a function that lives in the main thread and ships off
@@ -587,7 +655,7 @@ class JobInterface(object):
             print = partial(ut.colorprint, color='blue')
             if jobiface.verbose >= 1:
                 print('----')
-            engine_request = {'action': action, 'args': args, 'kwargs': kwargs, 'callback_url': callback_url}
+            engine_request = {'action': action, 'args': args, 'kwargs': kwargs, 'callback_url': callback_url, 'callback_method': callback_method}
             if jobiface.verbose >= 2:
                 print('Queue job: %s' % (engine_request))
             # Flow of information tags:
@@ -846,6 +914,7 @@ def engine_loop(id_, dbdir=None):
             args   = engine_request['args']
             kwargs = engine_request['kwargs']
             callback_url = engine_request['callback_url']
+            callback_method = engine_request['callback_method']
 
             # Start working
             if VERBOSE_JOBS:
@@ -886,6 +955,7 @@ def engine_loop(id_, dbdir=None):
                 jobid=jobid,
                 engine_result=engine_result,
                 callback_url=callback_url,
+                callback_method=callback_method,
             )
             if VERBOSE_JOBS:
                 print('...done working. pushing result to collector')
@@ -941,6 +1011,7 @@ def collector_loop(dbdir):
                 # From the Engine
                 engine_result = collect_request['engine_result']
                 callback_url = collect_request['callback_url']
+                callback_method = collect_request['callback_method']
                 jobid = engine_result['jobid']
 
                 # OLD METHOD
@@ -960,14 +1031,25 @@ def collector_loop(dbdir):
                 ut.delete(lock_filepath)
 
                 if callback_url is not None:
+                    if callback_method is None:
+                        callback_method = 'post'
+                    else:
+                        callback_method = callback_method.lower()
                     if VERBOSE_JOBS:
-                        print('calling callback_url')
+                        print('calling callback_url using callback_method')
                     try:
                         import requests
                         # requests.get(callback_url)
-                        requests.post(callback_url, data={'jobid': jobid})
+                        if callback_method == 'post':
+                            requests.post(callback_url, data={'jobid': jobid})
+                        elif callback_method == 'get':
+                            requests.get(callback_url, params={'jobid': jobid})
+                        elif callback_method == 'put':
+                            requests.put(callback_url, data={'jobid': jobid})
+                        else:
+                            raise ValueError('callback_method %r unsupported' % (callback_method, ))
                     except Exception as ex:
-                        msg = 'ERROR in collector. Tried to call callback_url=%r' % (callback_url,)
+                        msg = 'ERROR in collector. Tried to call callback_url=%r with callback_method=%r' % (callback_url, callback_method, )
                         print(msg)
                         ut.printex(ex, msg)
                     #requests.post(callback_url)
