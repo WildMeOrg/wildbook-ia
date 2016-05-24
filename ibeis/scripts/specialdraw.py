@@ -29,9 +29,10 @@ def double_depcache_graph():
     pt.ensure_pylab_qt4()
     # pt.plt.xkcd()
     ibs = ibeis.opendb('testdb1')
-    reduced = 1
-    annot_graph = ibs.depc_annot.make_graph(reduced=reduced)
-    image_graph = ibs.depc_image.make_graph(reduced=reduced)
+    reduced = True
+    implicit = False
+    annot_graph = ibs.depc_annot.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=1)
+    image_graph = ibs.depc_image.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=1)
     graph = nx.compose_all([image_graph, annot_graph])
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
