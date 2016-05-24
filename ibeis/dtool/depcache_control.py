@@ -1323,27 +1323,25 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             nonmulti_graph.remove_edges_from(multi_edges)
 
             graph_tr = ut.nx_transitive_reduction(nonmulti_graph)
-            G = graph
-            G_tr = graph_tr
 
             # HACK IN STRUCTURE
             # Multi Edges
             # (doesn't quite work)
             if False:
-                for u, v, data in G.edges(data=True):
+                for u, v, data in graph.edges(data=True):
                     if data.get('ismulti'):
-                        new_parent = nx.shortest_path(G_tr, u, v)[-2]
-                        #G_tr[new_parent][v][0]['is_multi'] = True
+                        new_parent = nx.shortest_path(graph_tr, u, v)[-2]
+                        #graph_tr[new_parent][v][0]['is_multi'] = True
                         print("NEW MULTI")
                         print((new_parent, v))
-                        nx.set_edge_attributes(G_tr, 'ismulti',
+                        nx.set_edge_attributes(graph_tr, 'ismulti',
                                                {(new_parent, v, 0): True})
                         #print(v)
             else:
-                G_tr.add_edges_from(multi_data_edges)
+                graph_tr.add_edges_from(multi_data_edges)
 
             parents = ut.ddict(list)
-            for u, v, data in G.edges(data=True):
+            for u, v, data in graph.edges(data=True):
                 parents[v].append(u)
 
             for node, ps in parents.items():
@@ -1351,15 +1349,22 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                 nwise_parents = [(k, v) for k, v in num_connect.items() if v > 1]
 
                 for p, n in nwise_parents:
-                    new_parent = nx.shortest_path(G_tr, p, node)[-2]
+                    new_parent = nx.shortest_path(graph_tr, p, node)[-2]
                     for x in range(n - 1):
                         #import utool
                         #utool.embed()
-                        G_tr.add_edge(new_parent, node)
+                        graph_tr.add_edge(new_parent, node)
                     #G_tr[new_parent][v][0]['is_multi'] = True
-            nx.set_node_attributes(G_tr, 'color', _node_attrs(color_dict))
-            nx.set_node_attributes(G_tr, 'shape', _node_attrs(shape_dict))
-            graph = G_tr
+            nx.set_node_attributes(graph_tr, 'color', _node_attrs(color_dict))
+            nx.set_node_attributes(graph_tr, 'shape', _node_attrs(shape_dict))
+            graph = graph_tr
+
+        if not kwargs.get('taillabel', True):
+            ut.nx_delete_edge_attr(graph, 'taillabel')
+
+        if not kwargs.get('headlabel', True):
+            ut.nx_delete_edge_attr(graph, 'headlabel')
+
         return graph
 
     @property
