@@ -3,120 +3,6 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
 
 
-def event_space():
-    """
-    pip install matplotlib-venn
-    """
-    from matplotlib import pyplot as plt
-    # import numpy as np
-    from matplotlib_venn import venn3, venn2, venn3_circles
-    plt.figure(figsize=(4, 4))
-    v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels = ('A', 'B', 'C'))
-    v.get_patch_by_id('100').set_alpha(1.0)
-    v.get_patch_by_id('100').set_color('white')
-    v.get_label_by_id('100').set_text('Unknown')
-    v.get_label_by_id('A').set_text('Set "A"')
-    c = venn3_circles(subsets=(1, 1, 1, 1, 1, 1, 1), linestyle='dashed')
-    c[0].set_lw(1.0)
-    c[0].set_ls('dotted')
-    plt.show()
-
-    same = set(['comparable', 'incomparable', 'same'])
-    diff = set(['comparable', 'incomparable', 'diff'])
-    # comparable = set(['comparable', 'same', 'diff'])
-    # incomparable = set(['incomparable', 'same', 'diff'])
-    subsets = [same, diff]  # , comparable, incomparable]
-    set_labels = ('same', 'diff')  # , 'comparable', 'incomparable')
-    venn3(subsets=subsets, set_labels=set_labels)
-    plt.show()
-
-    import plottool as pt
-    pt.ensure_pylab_qt4()
-    from matplotlib_subsets import treesets_rectangles
-    tree = (
-        (120, 'Same', None), [
-            ((50, 'comparable', None), []),
-            ((50, 'incomparable', None), [])
-        ]
-        (120, 'Diff', None), [
-            ((50, 'comparable', None), []),
-            ((50, 'incomparable', None), [])
-        ]
-    )
-
-    treesets_rectangles(tree)
-    plt.show()
-
-    from matplotlib import pyplot as plt
-    from matplotlib_venn import venn2, venn2_circles  # NOQA
-
-    # Subset sizes
-    s = (
-        2,  # Ab
-        3,  # aB
-        1,  # AB
-    )
-
-    v = venn2(subsets=s, set_labels=('A', 'B'))
-
-    # Subset labels
-    v.get_label_by_id('10').set_text('A but not B')
-    v.get_label_by_id('01').set_text('B but not A')
-    v.get_label_by_id('11').set_text('A and B')
-
-    # Subset colors
-    v.get_patch_by_id('10').set_color('c')
-    v.get_patch_by_id('01').set_color('#993333')
-    v.get_patch_by_id('11').set_color('blue')
-
-    # Subset alphas
-    v.get_patch_by_id('10').set_alpha(0.4)
-    v.get_patch_by_id('01').set_alpha(1.0)
-    v.get_patch_by_id('11').set_alpha(0.7)
-
-    # Border styles
-    c = venn2_circles(subsets=s, linestyle='solid')
-    c[0].set_ls('dashed')  # Line style
-    c[0].set_lw(2.0)       # Line width
-
-    plt.show()
-    # plt.savefig('example_tree.pdf', bbox_inches='tight')
-    # plt.close()
-
-    # venn2(subsets=(25, 231+65, 8+15))
-
-    # # Find out the location of the two circles
-    # # (you can look up how its done in the first lines
-    # # of the venn2 function)
-
-    # from matplotlib_venn._venn2 import compute_venn2_areas, solve_venn2_circles
-    # subsets = (25, 231+65, 8+15)
-    # areas = compute_venn2_areas(subsets, normalize_to=1.0)
-    # centers, radii = solve_venn2_circles(areas)
-
-    # # Now draw the third circle.
-    # # Its area is (15+65)/(25+8+15) times
-    # # that of the first circle,
-    # # hence its radius must be
-
-    # r3 = radii[0]*sqrt((15+65.0)/(25+8+15))
-
-    # # Its position must be such that the intersection
-    # # area  with C1 is  15/(15+8+25) of C1's area.
-    # # The way to compute the distance between
-    # # the circles by area can be looked up in
-    # # solve_venn2_circles
-
-    # from matplotlib_venn._math import find_distance_by_area
-    # distance = find_distance_by_area(radii[0], r3,
-    #             15.0/(15+8+25)*np.pi*radii[0]*radii[0])
-    # ax = gca()
-    # ax.add_patch(Circle(centers[0] + np.array([distance, 0]),
-    #              r3, alpha=0.5, edgecolor=None,
-    #              facecolor='red', linestyle=None,
-    #              linewidth=0))
-
-
 def double_depcache_graph():
     r"""
     CommandLine:
@@ -586,6 +472,105 @@ def merge_viewpoint_graph():
     pass
 
 
+def setcover_example():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw setcover_example --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> result = setcover_example()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool as pt
+    from ibeis.viz import viz_graph
+    import networkx as nx
+    pt.ensure_pylab_qt4()
+    ibs = ibeis.opendb(defaultdb='testdb2')
+
+    if False:
+        # Select a good set
+        aids = ibs.get_name_aids(ibs.get_valid_nids())
+        # ibeis.testdata_aids('testdb2', a='default:mingt=2')
+        aids = [a for a in aids if len(a) > 1]
+        for a in aids:
+            print(ut.repr3(ibs.get_annot_stats_dict(a)))
+        print(aids[-2])
+    #aids = [78, 79, 80, 81, 88, 91]
+    aids = [78, 79, 81, 88, 91]
+    qreq_ = ibs.depc.new_request('vsone', aids, aids, cfgdict={})
+    cm_list = qreq_.execute()
+    from ibeis.algo.hots import chip_match
+    infr = chip_match.AnnotInference(cm_list)
+    unique_aids, prob_annots = infr.make_prob_annots()
+    import numpy as np
+    print(ut.hz_str('prob_annots = ', ut.array2string2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
+    # ut.setcover_greedy(candidate_sets_dict)
+    max_weight = 3
+    prob_annots[np.diag_indices(len(prob_annots))] = np.inf
+    prob_annots = prob_annots
+    thresh_points = np.sort(prob_annots[np.isfinite(prob_annots)])
+
+    # probably not the best way to go about searching for these thresholds
+    # but when you have a hammer...
+    if False:
+        quant = sorted(np.diff(thresh_points))[(len(thresh_points) - 1) // 2 ]
+        candset = {point: thresh_points[np.abs(thresh_points - point) < quant] for point in thresh_points}
+        check_thresholds = len(aids) * 2
+        thresh_points2 = np.array(ut.setcover_greedy(candset, max_weight=check_thresholds).keys())
+        thresh_points = thresh_points2
+
+    # pt.plot(sorted(thresh_points), 'rx')
+    # pt.plot(sorted(thresh_points2), 'o')
+
+    # prob_annots = prob_annots.T
+
+    # thresh_start = np.mean(thresh_points)
+    current_idxs = []
+    current_covers = []
+    current_val = np.inf
+    for thresh in thresh_points:
+        covering_sets = [np.where(row >= thresh)[0] for row in (prob_annots)]
+        candidate_sets_dict = {ax: others for ax, others in enumerate(covering_sets)}
+        soln_cover = ut.setcover_ilp(candidate_sets_dict, max_weight=max_weight)
+        exemplar_idxs = list(soln_cover.keys())
+        soln_weight = len(exemplar_idxs)
+        val = max_weight - soln_weight
+        # print('val = %r' % (val,))
+        # print('soln_weight = %r' % (soln_weight,))
+        if val < current_val:
+            current_val = val
+            current_covers = covering_sets
+            current_idxs = exemplar_idxs
+    exemplars = ut.take(aids, current_idxs)
+    ensure_edges = [(aids[ax], aids[ax2]) for ax, other_xs in enumerate(current_covers) for ax2 in other_xs]
+    graph = viz_graph.make_netx_graph_from_aid_groups(
+        ibs, [aids], allow_directed=True, ensure_edges=ensure_edges,
+        temp_nids=[1] * len(aids))
+    viz_graph.ensure_node_images(ibs, graph)
+
+    nx.set_node_attributes(graph, 'framewidth', False)
+    nx.set_node_attributes(graph, 'framewidth', {aid: 4.0 for aid in exemplars})
+    nx.set_edge_attributes(graph, 'color', pt.ORANGE)
+    nx.set_node_attributes(graph, 'color', pt.LIGHT_BLUE)
+    nx.set_node_attributes(graph, 'shape', 'rect')
+
+    layoutkw = {
+        'sep' : 1 / 10,
+        'prog': 'neato',
+        'overlap': 'false',
+        #'splines': 'ortho',
+        'splines': 'spline',
+    }
+    pt.show_nx(graph, layout='agraph', layoutkw=layoutkw)
+    pt.zoom_factory()
+
+
 def intraoccurrence_connected():
     r"""
     CommandLine:
@@ -944,6 +929,120 @@ def scalespace():
         pt.imshow(layer)
 
     pt.plt.grid(False)
+
+
+def event_space():
+    """
+    pip install matplotlib-venn
+    """
+    from matplotlib import pyplot as plt
+    # import numpy as np
+    from matplotlib_venn import venn3, venn2, venn3_circles
+    plt.figure(figsize=(4, 4))
+    v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels=('A', 'B', 'C'))
+    v.get_patch_by_id('100').set_alpha(1.0)
+    v.get_patch_by_id('100').set_color('white')
+    v.get_label_by_id('100').set_text('Unknown')
+    v.get_label_by_id('A').set_text('Set "A"')
+    c = venn3_circles(subsets=(1, 1, 1, 1, 1, 1, 1), linestyle='dashed')
+    c[0].set_lw(1.0)
+    c[0].set_ls('dotted')
+    plt.show()
+
+    same = set(['comparable', 'incomparable', 'same'])
+    diff = set(['comparable', 'incomparable', 'diff'])
+    # comparable = set(['comparable', 'same', 'diff'])
+    # incomparable = set(['incomparable', 'same', 'diff'])
+    subsets = [same, diff]  # , comparable, incomparable]
+    set_labels = ('same', 'diff')  # , 'comparable', 'incomparable')
+    venn3(subsets=subsets, set_labels=set_labels)
+    plt.show()
+
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+    from matplotlib_subsets import treesets_rectangles
+    tree = (
+        (120, 'Same', None), [
+            ((50, 'comparable', None), []),
+            ((50, 'incomparable', None), [])
+        ]
+        (120, 'Diff', None), [
+            ((50, 'comparable', None), []),
+            ((50, 'incomparable', None), [])
+        ]
+    )
+
+    treesets_rectangles(tree)
+    plt.show()
+
+    from matplotlib import pyplot as plt
+    from matplotlib_venn import venn2, venn2_circles  # NOQA
+
+    # Subset sizes
+    s = (
+        2,  # Ab
+        3,  # aB
+        1,  # AB
+    )
+
+    v = venn2(subsets=s, set_labels=('A', 'B'))
+
+    # Subset labels
+    v.get_label_by_id('10').set_text('A but not B')
+    v.get_label_by_id('01').set_text('B but not A')
+    v.get_label_by_id('11').set_text('A and B')
+
+    # Subset colors
+    v.get_patch_by_id('10').set_color('c')
+    v.get_patch_by_id('01').set_color('#993333')
+    v.get_patch_by_id('11').set_color('blue')
+
+    # Subset alphas
+    v.get_patch_by_id('10').set_alpha(0.4)
+    v.get_patch_by_id('01').set_alpha(1.0)
+    v.get_patch_by_id('11').set_alpha(0.7)
+
+    # Border styles
+    c = venn2_circles(subsets=s, linestyle='solid')
+    c[0].set_ls('dashed')  # Line style
+    c[0].set_lw(2.0)       # Line width
+
+    plt.show()
+    # plt.savefig('example_tree.pdf', bbox_inches='tight')
+    # plt.close()
+
+    # venn2(subsets=(25, 231+65, 8+15))
+
+    # # Find out the location of the two circles
+    # # (you can look up how its done in the first lines
+    # # of the venn2 function)
+
+    # from matplotlib_venn._venn2 import compute_venn2_areas, solve_venn2_circles
+    # subsets = (25, 231+65, 8+15)
+    # areas = compute_venn2_areas(subsets, normalize_to=1.0)
+    # centers, radii = solve_venn2_circles(areas)
+
+    # # Now draw the third circle.
+    # # Its area is (15+65)/(25+8+15) times
+    # # that of the first circle,
+    # # hence its radius must be
+
+    # r3 = radii[0]*sqrt((15+65.0)/(25+8+15))
+
+    # # Its position must be such that the intersection
+    # # area  with C1 is  15/(15+8+25) of C1's area.
+    # # The way to compute the distance between
+    # # the circles by area can be looked up in
+    # # solve_venn2_circles
+
+    # from matplotlib_venn._math import find_distance_by_area
+    # distance = find_distance_by_area(radii[0], r3,
+    #             15.0/(15+8+25)*np.pi*radii[0]*radii[0])
+    # ax = gca()
+    # ax.add_patch(Circle(centers[0] + np.array([distance, 0]),
+    #              r3, alpha=0.5, edgecolor=None,
+    #              facecolor='red', linestyle=None,
+    #              linewidth=0))
 
 
 if __name__ == '__main__':

@@ -99,7 +99,7 @@ def ensure_names_are_connected(graph, aids_list):
 
 
 def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
-                                    invis_edges=None, ensure_edges=None, temp_nids=None):
+                                    invis_edges=None, ensure_edges=None, temp_nids=None, allow_directed=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  image analysis api
@@ -146,7 +146,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
                 ensure_edges_.append(edge)
                 pass
                 #nx.set_edge_attributes(graph, 'weight', {edge: .001})
-            elif graph.has_edge(*redge):
+            elif (not allow_directed) and graph.has_edge(*redge):
                 ensure_edges_.append(redge)
                 #nx.set_edge_attributes(graph, 'weight', {redge: .001})
                 pass

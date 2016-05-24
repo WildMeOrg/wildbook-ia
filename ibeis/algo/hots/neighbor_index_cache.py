@@ -153,19 +153,61 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
+        .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_Feat(hesaff+sift)_Chip(sz700,width).cPkl
+
         .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl
     """
     flann_cachedir = qreq_.ibs.get_flann_cachedir()
     # Have uuid shelf conditioned on the baseline flann and feature parameters
     flann_cfgstr    = qreq_.qparams.flann_cfgstr
     feat_cfgstr     = qreq_.qparams.feat_cfgstr
-    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr))
+    chip_cfgstr     = qreq_.qparams.chip_cfgstr
+    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr, chip_cfgstr))
     #uuid_map_ext    = '.shelf'
     uuid_map_ext    = '.cPkl'
     uuid_map_prefix = 'uuid_map'
     uuid_map_fname  = ut.consensed_cfgstr(uuid_map_prefix, uuid_map_cfgstr) + uuid_map_ext
     uuid_map_fpath  = join(flann_cachedir, uuid_map_fname)
     return uuid_map_fpath
+
+
+def build_nnindex_cfgstr(qreq_, daid_list):
+    """
+    builds a string that  uniquely identified an indexer built with parameters
+    from the input query requested and indexing descriptor from the input
+    annotation ids
+
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        daid_list (list):
+
+    Returns:
+        str: nnindex_cfgstr
+
+    CommandLine:
+        python -m ibeis.algo.hots.neighbor_index_cache --test-build_nnindex_cfgstr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
+        >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
+        >>> result = str(nnindex_cfgstr)
+        >>> print(result)
+
+        _VUUIDS((6)ylydksaqdigdecdd)_FLANN(8_kdtrees)_FeatureWeight(detector=cnn,sz256,thresh=20,ksz=20,enabled=False)_FeatureWeight(detector=cnn,sz256,thresh=20,ksz=20,enabled=False)
+
+        _VUUIDS((6)ylydksaqdigdecdd)_FLANN(8_kdtrees)_FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
+    """
+    flann_cfgstr      = qreq_.qparams.flann_cfgstr
+    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
+    feat_cfgstr = qreq_.qparams.featweight_cfgstr
+    data_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
+    nnindex_cfgstr = ''.join((data_hashid, flann_cfgstr, featweight_cfgstr, feat_cfgstr))
+    return nnindex_cfgstr
 
 
 def clear_memcache():
@@ -551,41 +593,6 @@ def get_data_cfgstr(ibs, daid_list):
     return daids_hashid
 
 
-def build_nnindex_cfgstr(qreq_, daid_list):
-    """
-    builds a string that  uniquely identified an indexer built with parameters
-    from the input query requested and indexing descriptor from the input
-    annotation ids
-
-    Args:
-        qreq_ (QueryRequest):  query request object with hyper-parameters
-        daid_list (list):
-
-    Returns:
-        str: nnindex_cfgstr
-
-    CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-build_nnindex_cfgstr
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
-        >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
-        >>> result = str(nnindex_cfgstr)
-        >>> print(result)
-        _VUUIDS((6)ylydksaqdigdecdd)_FLANN(8_kdtrees)_FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
-    """
-    flann_cfgstr      = qreq_.qparams.flann_cfgstr
-    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
-    data_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
-    nnindex_cfgstr = ''.join((data_hashid, flann_cfgstr, featweight_cfgstr))
-    return nnindex_cfgstr
-
-
 def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
                        cfgstr, force_rebuild=False, verbose=True, memtrack=None):
     r"""
@@ -770,3 +777,15 @@ def background_flann_func(cachedir, daid_list, vecs_list, fgws_list, flann_param
     if len(visual_uuid_list) > min_reindex_thresh:
         UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     print('[BG] Finished Background FLANN')
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.hots.neighbor_index_cache
+        python -m ibeis.algo.hots.neighbor_index_cache --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

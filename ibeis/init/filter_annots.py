@@ -1324,9 +1324,8 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
     if num_names is not None:
         grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
-        with VerbosityContext('sample_per_name', 'sample_rule',
-                              'sample_offset'):
-            name_slice = slice(name_offset, name_offset + 1)
+        with VerbosityContext('num_names'):
+            name_slice = slice(name_offset, name_offset + num_names)
             avail_aids = ut.flatten(grouped_aids[name_slice])
 
     if sample_occur is True:

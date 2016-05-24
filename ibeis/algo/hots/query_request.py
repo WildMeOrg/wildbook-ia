@@ -689,6 +689,16 @@ class QueryRequest(object):
         return qreq_.get_external_qaids()
 
     @property
+    def dnids(qreq_):
+        """ TODO: save dnids in qreq_ state """
+        return qreq_.ibs.get_annot_nids(qreq_.daids)
+
+    @property
+    def qnids(qreq_):
+        """ TODO: save qnids in qreq_ state """
+        return qreq_.ibs.get_annot_nids(qreq_.qaids)
+
+    @property
     def extern_data_config2(qreq_):
         return qreq_.get_external_data_config2()
 

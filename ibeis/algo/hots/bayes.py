@@ -25,7 +25,7 @@ SPECIAL_BASIS_POOL = []
 # This will be confusing and inconsistent
 NAME_TTYPE = 'name'
 MATCH_TTYPE = 'same'
-SCORE_TTYPE = 'measurement'
+SCORE_TTYPE = 'evidence_match'
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
