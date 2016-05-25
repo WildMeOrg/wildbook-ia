@@ -173,22 +173,25 @@ def query_chips_graph(ibs, qaid_list, daid_list, query_config_dict={}, echo_quer
                                      cfgdict=query_config_dict, return_request=True)
     cm_dict = {
         str(ibs.get_annot_uuids(cm.qaid)): {
-            # 'qaid'              : cm.qaid,
-            # 'daid_list'         : cm.daid_list,
-            'dannot_uuid_list'  : ibs.get_annot_uuids(cm.daid_list),
-            'dnid_list'         : cm.dnid_list,
-            'score_list'        : cm.score_list,
-            'annot_score_list'  : cm.annot_score_list,
-            'fm_list'           : cm.fm_list,
-            'fsv_list'          : cm.fsv_list,
+            # 'qaid'                  : cm.qaid,
+            'qannot_uuid'           : ibs.get_annot_uuids(cm.qaid),
+            # 'daid_list'             : cm.daid_list,
+            'dannot_uuid_list'      : ibs.get_annot_uuids(cm.daid_list),
+            # 'dnid_list'             : cm.dnid_list,
+            'dname_uuid_list'       : None,
+            'score_list'            : cm.score_list,
+            'annot_score_list'      : cm.annot_score_list,
+            'fm_list'               : cm.fm_list,
+            'fsv_list'              : cm.fsv_list,
             # Non-corresponding lists to above
-            'unique_nid_list'   : cm.unique_nids,
-            'name_score_list'   : cm.name_score_list,
+            # 'unique_nid_list'       : cm.unique_nids,
+            'unique_name_uuid_list' : None,
+            'name_score_list'       : cm.name_score_list,
         }
         for cm in cm_list
     }
-    annot_inference = AnnotInference(cm_list)
-    inference_dict = annot_inference.make_annot_inference_dict(ibs)
+    annot_inference = AnnotInference(qreq_, cm_list)
+    inference_dict = annot_inference.make_annot_inference_dict()
     result_dict = {
         'cm_dict'        : cm_dict,
         'inference_dict' : inference_dict,

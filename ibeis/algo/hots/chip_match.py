@@ -391,6 +391,7 @@ class AnnotInference(object):
         annot_pair_dict['annot_uuid_2_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_2_list'])
         zipped = zip(annot_pair_dict['annot_uuid_1_list'], annot_pair_dict['annot_uuid_2_list'], annot_pair_dict['p_same_list'])
         annot_pair_dict['review_pair_list'] = [{
+            'annot_uuid_key'       : annot_uuid_1,
             'annot_uuid_1'         : annot_uuid_1,
             'annot_uuid_2'         : annot_uuid_2,
             'prior_matching_state' : {
