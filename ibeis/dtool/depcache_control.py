@@ -912,7 +912,8 @@ class _CoreDependencyCache(object):
             colnames (None): desired property (default = None)
             config (None): (default = None)
             read_extern: if False then only returns extern URI
-            hack_paths: if False then does not compute extern info just returns path that it will be located at
+            hack_paths: if False then does not compute extern info just returns
+                path that it will be located at
 
         Returns:
             list: prop_list
@@ -958,7 +959,9 @@ class _CoreDependencyCache(object):
                 table = depc[tablename]
                 extern_dpath = table.extern_dpath
                 ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
-                fname_list = table.get_extern_fnames(parent_rowids, config=config_, extern_col_index=0)
+                fname_list = table.get_extern_fnames(parent_rowids,
+                                                     config=config_,
+                                                     extern_col_index=0)
                 fpath_list = [join(extern_dpath, fname) for fname in fname_list]
                 return fpath_list
 
@@ -1258,8 +1261,12 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         CommandLine:
             python -m dtool --tf DependencyCache.make_graph --show --reduced
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show --reduced
-
+            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced
+            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced --testmode
+            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --testmode
+            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
+            python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1294,7 +1301,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             'node': 'circle',
             #'node': 'rect',
             'node': 'ellipse',
-            # 'root': 'rhombus',
+            #'root': 'rhombus',
             #'root': 'circle',
             #'root': 'circle',
             'root': 'ellipse',
@@ -1322,7 +1329,44 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             multi_edges = [(u, v) for u, v, d in multi_data_edges]
             nonmulti_graph.remove_edges_from(multi_edges)
 
+            # <ATTEMPT>
+            # The transitive reduction should respect impolicit edges,
+            # but the end result should not contain any implicit edges
+
+            # Transitive reduction wrt implicit edges
+            # For every node...
+            removed_in_edges = {}
+            for node in graph.nodes():
+                in_edges = list(graph.in_edges(node, data=True))
+                # if there is an implicit incoming edge
+                implicit_flags = [edge[2].get('implicit') for edge in in_edges]
+                explicit_flags = ut.not_list(implicit_flags)
+                implicit_edges = ut.compress(in_edges, implicit_flags)
+                flag = True
+                for edge in implicit_edges:
+                    # Ignore this edge if there is a common descendant
+                    if ut.nx_common_descendants(graph, node, edge[0]):
+                        removed_in_edges[node] = implicit_edges
+                        flag = False
+                if flag and any(implicit_edges):
+                    # then remove all non-implicit incoming edges
+                    remove_non_implicit = ut.compress(in_edges, explicit_flags)
+                    # remember this nodes removed in edges
+                    removed_in_edges[node] = remove_non_implicit
+            to_remove2 = ut.take_column(ut.flatten(removed_in_edges.values()), [0, 1])
+            nonmulti_graph.remove_edges_from(to_remove2)
+
             graph_tr = ut.nx_transitive_reduction(nonmulti_graph)
+
+            # Place old non-implicit structure on top of reduced implicit edges
+            for node in removed_in_edges.keys():
+                old_edges = removed_in_edges[node]
+                for edge in graph_tr.in_edges(node, data=True):
+                    data = edge[2]
+                    for old_edge in old_edges:
+                        # TODO: handle multiple old edges
+                        data.update(old_edge[2])
+                        data['implicit'] = False
 
             # HACK IN STRUCTURE
             # Multi Edges
@@ -1338,6 +1382,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                                                {(new_parent, v, 0): True})
                         #print(v)
             else:
+                pass
                 graph_tr.add_edges_from(multi_data_edges)
 
             parents = ut.ddict(list)
@@ -1359,11 +1404,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             nx.set_node_attributes(graph_tr, 'shape', _node_attrs(shape_dict))
             graph = graph_tr
 
-        if not kwargs.get('taillabel', True):
-            ut.nx_delete_edge_attr(graph, 'taillabel')
-
-        if not kwargs.get('headlabel', True):
-            ut.nx_delete_edge_attr(graph, 'headlabel')
+        if kwargs.get('remove_local_input_id', False):
+            ut.nx_delete_edge_attr(graph, 'local_input_id')
 
         return graph
 
