@@ -30,9 +30,8 @@ def double_depcache_graph():
     ibs = ibeis.opendb('testdb1')
     reduced = True
     implicit = True
-    remove_local_input_id = False
-    annot_graph = ibs.depc_annot.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=remove_local_input_id)
-    image_graph = ibs.depc_image.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=remove_local_input_id)
+    annot_graph = ibs.depc_annot.make_graph(reduced=reduced, implicit=implicit)
+    image_graph = ibs.depc_image.make_graph(reduced=reduced, implicit=implicit)
     to_rename = ut.isect(image_graph.nodes(), annot_graph.nodes())
     nx.relabel_nodes(annot_graph, {x: 'annot_' + x for x in to_rename}, copy=False)
     graph = nx.compose_all([image_graph, annot_graph])
@@ -68,7 +67,6 @@ def double_depcache_graph():
         'dpi': 96,
         # 'nodesep': 1,
     }
-
     ns = 1000
 
     ut.nx_set_default_node_attributes(graph, 'fontsize', 72)
@@ -78,13 +76,19 @@ def double_depcache_graph():
     ut.nx_set_default_node_attributes(graph, 'width', ns * ut.PHI)
     ut.nx_set_default_node_attributes(graph, 'height', ns * (1 / ut.PHI))
 
-    for u, v, d in graph.edges(data=True):
-        localid = d.get('local_input_id')
-        if localid:
-            # d['headlabel'] = localid
-            d['taillabel'] = localid
-            #d['label'] = localid
-            pass
+    #for u, v, d in graph.edge(data=True):
+    for u, vkd in graph.edge.items():
+        for v, dk in vkd.items():
+            for k, d in dk.items():
+                localid = d.get('local_input_id')
+                if localid:
+                    # d['headlabel'] = localid
+                    if localid not in ['1', '2']:
+                        d['taillabel'] = localid
+                    #d['label'] = localid
+                if d.get('taillabel') in {'1', '2'}:
+                    del d['taillabel']
+
     node_alias = {
         'chips': 'Chip',
         'images': 'Image',
@@ -104,6 +108,10 @@ def double_depcache_graph():
         'feat_neighbs': 'Nearest\nNeighbors',
         'neighbor_index': 'Neighbor\nIndex',
         'vsmany': 'Hots vsmany',
+        'annot_labeler': 'Annot Labeler',
+        'labeler': 'Labeler',
+        'localizations': 'Localizations',
+        'classifier': 'Classifier',
         'sver': 'Spatial\nVerification',
     }
     node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(),
@@ -111,8 +119,8 @@ def double_depcache_graph():
     nx.relabel_nodes(graph, node_alias, copy=False)
 
     fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
-    pt.gca().set_aspect('equal')
-    pt.figure()
+    #pt.gca().set_aspect('equal')
+    #pt.figure()
     pt.show_nx(graph, layoutkw=layoutkw, fontkw=fontkw)
     pt.zoom_factory()
 
