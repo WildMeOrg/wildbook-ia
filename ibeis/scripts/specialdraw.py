@@ -13,7 +13,6 @@ def double_depcache_graph():
 
         python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=5
 
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.specialdraw import *  # NOQA
@@ -30,10 +29,14 @@ def double_depcache_graph():
     # pt.plt.xkcd()
     ibs = ibeis.opendb('testdb1')
     reduced = True
-    implicit = False
-    annot_graph = ibs.depc_annot.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=1)
-    image_graph = ibs.depc_image.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=1)
+    implicit = True
+    remove_local_input_id = False
+    annot_graph = ibs.depc_annot.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=remove_local_input_id)
+    image_graph = ibs.depc_image.make_graph(reduced=reduced, implicit=implicit, remove_local_input_id=remove_local_input_id)
+    to_rename = ut.isect(image_graph.nodes(), annot_graph.nodes())
+    nx.relabel_nodes(annot_graph, {x: 'annot_' + x for x in to_rename}, copy=False)
     graph = nx.compose_all([image_graph, annot_graph])
+    #graph = nx.union_all([image_graph, annot_graph], rename=('image', 'annot'))
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='circle', color=pt.DARK_YELLOW)
     userdecision = ut.nx_makenode(graph, 'User decision', shape='rect',
@@ -41,6 +44,14 @@ def double_depcache_graph():
                                   color=pt.YELLOW, style='diagonals')
     #longcat = True
     longcat = False
+
+    edge = ('feat', 'neighbor_index')
+    data = graph.get_edge_data(*edge)[0]
+    print('data = %r' % (data,))
+    graph.remove_edge(*edge)
+    # hack
+    graph.add_edge('featweight', 'neighbor_index', **data)
+
     graph.add_edge('detections', userdecision, constraint=longcat)
     graph.add_edge(userdecision, 'annotations', constraint=longcat)
     # graph.add_edge(userdecision, 'annotations', implicit=True, color=[0, 0, 0])
@@ -95,7 +106,8 @@ def double_depcache_graph():
         'vsmany': 'Hots vsmany',
         'sver': 'Spatial\nVerification',
     }
-    node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(), graph.nodes()))
+    node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(),
+                                                            graph.nodes()))
     nx.relabel_nodes(graph, node_alias, copy=False)
 
     fontkw = dict(fontname='Ubuntu', fontweight='normal', fontsize=12)
