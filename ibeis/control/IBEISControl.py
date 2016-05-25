@@ -332,13 +332,11 @@ class IBEISController(BASE_CLASS):
         """
         ibs.show_depc_graph(ibs.depc_annot, *args, **kwargs)
 
-    def show_depc_table_input(ibs, depc, tablename, reduced=False):
-        depc[tablename].show_input_graph()
-
-    def show_depc_annot_table_input(ibs, *args, **kwargs):
+    def show_depc_annot_table_input(ibs, tablename, *args, **kwargs):
         """
         CommandLine:
             python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
 
         Example:
             >>> # SCRIPT
@@ -349,7 +347,7 @@ class IBEISController(BASE_CLASS):
             >>> ibs.show_depc_annot_table_input(tablename)
             >>> ut.show_if_requested()
         """
-        ibs.show_depc_table_input(ibs.depc_annot, *args, **kwargs)
+        ibs.depc_annot[tablename].show_input_graph()
 
     def get_cachestats_str(ibs):
         """

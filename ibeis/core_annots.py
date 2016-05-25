@@ -1211,6 +1211,7 @@ testmode = ut.get_argflag('--testmode')
 @register_preproc(
     #tablename='neighbor_index', parents=['annotations*'],
     #tablename='neighbor_index', parents=['annotations'],
+    #tablename='neighbor_index', parents=['feat*'],
     tablename='neighbor_index', parents=['feat*'],
     #tablename='neighbor_index', parents=['feat'],
     colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
@@ -1274,7 +1275,7 @@ def compute_neighbor_index(depc, fids_list, config):
 if testmode:
     # NOT YET READY
     @register_preproc(
-        tablename='feat_neighbs', parents=['feat', 'neighbor_index'],
+        tablename='feat_neighbs', parents=['featweight', 'neighbor_index'],
         colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
         #configclass=IndexerConfig,
         chunksize=1, fname='neighbors',
