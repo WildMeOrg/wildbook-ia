@@ -1062,6 +1062,9 @@ class _CoreDependencyCache(object):
         This is used for implicit cache invalidation because, if those
         properties change then this uuid also changes.
 
+        The depcache needs to know about stateful properties of dynamic root
+        objects in order to correctly compute their hashes.
+
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> root_rowids = ibs._get_all_aids()
