@@ -13,7 +13,7 @@ from ibeis.algo.hots import old_chip_match
 from ibeis.algo.hots import scoring
 from ibeis.algo.hots import name_scoring
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[chip_match]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[chip_match]')
 
 
 class NeedRecomputeError(Exception):
@@ -759,7 +759,38 @@ class _ChipMatchVisualization(object):
         #    ut.startfile(img_fpath)
         return img_fpath
 
+    @profile
     def render_single_annotmatch(cm, qreq_, aid, **kwargs):
+        """
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> kwargs = {}
+            >>> kwargs['dpi'] = ut.get_argval('--dpi', int, None)
+            >>> kwargs['draw_fmatches'] = False
+            >>> kwargs['vert'] = False
+            >>> kwargs['show_score'] = False
+            >>> kwargs['show_timedelta'] = False
+            >>> kwargs['draw_border'] = False
+            >>> kwargs['in_image'] = False
+            >>> kwargs['draw_lbl'] = False
+            >>> print('kwargs = %s' % (ut.dict_str(kwargs),))
+            >>> cm, qreq_ = ibeis.testdata_cm()
+            >>> aid = cm.get_top_aids()[0]
+            >>> import plottool as pt
+            >>> tt = ut.tic('render image')
+            >>> img = cm.render_single_annotmatch(qreq_, aid, **kwargs)
+            >>> ut.toc(tt)
+            >>> ut.quit_if_noshow()
+            >>> pt.imshow(img)
+            >>> ut.show_if_requested()
+        """
         import io
         import cv2
         import plottool as pt
@@ -773,17 +804,20 @@ class _ChipMatchVisualization(object):
             mpl.interactive(False)
         # Make new figure
         fnum = pt.ensure_fnum(kwargs.pop('fnum', None))
-        #fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        # Create figure --- this takes about 19% - 11% of the time depending on settings
         fig = pt.plt.figure(fnum)
         fig.clf()
-        # Draw Matches
+        #
+        # Draw Matches --- this takes about 48% - 67% of the time depending on settings
+        # wrapped call to show_matches2
         cm.show_single_annotmatch(qreq_, aid, colorbar_=False, fnum=fnum, **kwargs)
-        #if not kwargs.get('notitle', False):
-        #    pt.set_figtitle(cm.make_smaller_title())
-        # Save Figure
-        # Setting fig=fig might make the dpi and figsize code not work
+        # Write matplotlib axes to an image
+        axes_extents = pt.extract_axes_extents(fig)
+        assert len(axes_extents) == 1, 'more than one axes'
+        extent = axes_extents[0]
         with io.BytesIO() as stream:
-            fig.savefig(stream, **savekw)
+            # This call takes 23% - 15% of the time depending on settings
+            fig.savefig(stream, bbox_inches=extent, **savekw)
             stream.seek(0)
             data = np.fromstring(stream.getvalue(), dtype=np.uint8)
         image = cv2.imdecode(data, 1)
@@ -2049,6 +2083,7 @@ class ChipMatch(_ChipMatchVisualization,
         cm = cls(**dict_subset)
         return cm
 
+    @profile
     def to_json(cm):
         r"""
         Serialize ChipMatch object as JSON string

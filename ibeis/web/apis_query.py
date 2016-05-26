@@ -17,6 +17,25 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+def make_image(cm, qreq_):
+    """"
+    CommandLine:
+        python -m ibeis.web.apis_query make_image --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.algo.hots.chip_match import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
+        >>> image = make_image(cm, qreq_)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(image)
+        >>> ut.show_if_requested()
+    """
+    pass
+
+
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/query/recognition_query_aids/', methods=['GET'])
