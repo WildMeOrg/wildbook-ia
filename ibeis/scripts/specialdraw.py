@@ -34,6 +34,7 @@ def double_depcache_graph():
     image_graph = ibs.depc_image.make_graph(reduced=reduced, implicit=implicit)
     to_rename = ut.isect(image_graph.nodes(), annot_graph.nodes())
     nx.relabel_nodes(annot_graph, {x: 'annot_' + x for x in to_rename}, copy=False)
+    nx.relabel_nodes(image_graph, {x: 'image_' + x for x in to_rename}, copy=False)
     graph = nx.compose_all([image_graph, annot_graph])
     #graph = nx.union_all([image_graph, annot_graph], rename=('image', 'annot'))
     # userdecision = ut.nx_makenode(graph, 'user decision', shape='rect', color=pt.DARK_YELLOW, style='diagonals')
@@ -44,15 +45,15 @@ def double_depcache_graph():
     #longcat = True
     longcat = False
 
-    edge = ('feat', 'neighbor_index')
-    data = graph.get_edge_data(*edge)[0]
-    print('data = %r' % (data,))
-    graph.remove_edge(*edge)
-    # hack
-    graph.add_edge('featweight', 'neighbor_index', **data)
+    #edge = ('feat', 'neighbor_index')
+    #data = graph.get_edge_data(*edge)[0]
+    #print('data = %r' % (data,))
+    #graph.remove_edge(*edge)
+    ## hack
+    #graph.add_edge('featweight', 'neighbor_index', **data)
 
-    graph.add_edge('detections', userdecision, constraint=longcat)
-    graph.add_edge(userdecision, 'annotations', constraint=longcat)
+    graph.add_edge('detections', userdecision, constraint=longcat, color=pt.PINK)
+    graph.add_edge(userdecision, 'annotations', constraint=longcat, color=pt.PINK)
     # graph.add_edge(userdecision, 'annotations', implicit=True, color=[0, 0, 0])
     if not longcat:
         pass
@@ -83,16 +84,16 @@ def double_depcache_graph():
                 localid = d.get('local_input_id')
                 if localid:
                     # d['headlabel'] = localid
-                    if localid not in ['1', '2']:
+                    if localid not in ['1']:
                         d['taillabel'] = localid
                     #d['label'] = localid
-                if d.get('taillabel') in {'1', '2'}:
+                if d.get('taillabel') in {'1'}:
                     del d['taillabel']
 
     node_alias = {
         'chips': 'Chip',
         'images': 'Image',
-        'feat': 'Feats',
+        'feat': 'Feat',
         'featweight': 'Feat Weights',
         'thumbnails': 'Thumbnail',
         'detections': 'Detections',
@@ -113,6 +114,23 @@ def double_depcache_graph():
         'localizations': 'Localizations',
         'classifier': 'Classifier',
         'sver': 'Spatial\nVerification',
+        'Classifier': 'Existence',
+        'image_labeler': 'Image Labeler',
+    }
+    node_alias = {
+        'Classifier': 'existence',
+        'feat_neighbs': 'neighbors',
+        'sver': 'spatial_verification',
+        'Cropped_Chips': 'croped_chip',
+        'BC_DTW': 'dtw_distance',
+        'Block_Curvature': 'curvature',
+        'Trailing_Edge': 'trailing_edge',
+        'Notch_Tips': 'notch_tips',
+        'thumbnails': 'thumbnail',
+        'images': 'image',
+        'annotations': 'annotation',
+        'chips': 'chip',
+        #userdecision: 'User de'
     }
     node_alias = ut.delete_dict_keys(node_alias, ut.setdiff(node_alias.keys(),
                                                             graph.nodes()))
