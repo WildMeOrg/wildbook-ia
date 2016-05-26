@@ -302,7 +302,7 @@ def query_chips_test(ibs, **kwargs):
     from random import shuffle  # NOQA
     # Compile test data
     aid_list = ibs.get_valid_aids()
-    # shuffle(aid_list)
+    shuffle(aid_list)
     qaid_list = aid_list[:3]
     daid_list = aid_list[-10:]
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
