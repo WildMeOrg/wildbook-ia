@@ -21,25 +21,6 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def make_image(cm, qreq_):
-    """"
-    CommandLine:
-        python -m ibeis.web.apis_query make_image --show
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> import ibeis
-        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
-        >>> image = make_image(cm, qreq_)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.imshow(image)
-        >>> ut.show_if_requested()
-    """
-    pass
-
-
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/query/recognition_query_aids/', methods=['GET'])
@@ -146,13 +127,19 @@ def process_graph_match_html(ibs, **kwargs):
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
-        assert state in ['matched', 'notmatched', 'notcomparable'], 'matching_state_list has unrecognized states'
         return state
     import uuid
+    map_dict = {
+        'visuallysame'      : 'matched',
+        'visuallydifferent' : 'notmatched',
+        'cannottell'        : 'notcomparable',
+    }
     annot_uuid_1 = uuid.UUID(request.form['query-match-annot-uuid-1'])
     annot_uuid_2 = uuid.UUID(request.form['query-match-annot-uuid-2'])
     state = request.form.get('query-match-submit', '')
     state = sanitize(state)
+    state = map_dict[state]
+    assert state in ['matched', 'notmatched', 'notcomparable'], 'matching_state_list has unrecognized states'
     return (annot_uuid_1, annot_uuid_2, state, )
 
 
@@ -233,11 +220,11 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     root_path = dirname(abspath(__file__))
     css_file_list = [
         ['css', 'style.css'],
-        ['include', 'bootstrap', 'css', 'bootstrap.css'],
+        # ['include', 'bootstrap', 'css', 'bootstrap.css'],
     ]
     json_file_list = [
         ['javascript', 'script.js'],
-        ['include', 'bootstrap', 'js', 'bootstrap.js'],
+        # ['include', 'bootstrap', 'js', 'bootstrap.js'],
     ]
 
     if include_jquery:
@@ -265,6 +252,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
                          image_matches_src=image_matches_src,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
+                         view_orientation=view_orientation,
                          callback_url=callback_url,
                          callback_method=callback_method,
                          EMBEDDED_CSS=EMBEDDED_CSS,
