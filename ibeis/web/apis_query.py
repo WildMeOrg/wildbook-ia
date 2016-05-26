@@ -220,11 +220,11 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     root_path = dirname(abspath(__file__))
     css_file_list = [
         ['css', 'style.css'],
-        # ['include', 'bootstrap', 'css', 'bootstrap.css'],
+        ['include', 'bootstrap', 'css', 'bootstrap.css'],
     ]
     json_file_list = [
         ['javascript', 'script.js'],
-        # ['include', 'bootstrap', 'js', 'bootstrap.js'],
+        ['include', 'bootstrap', 'js', 'bootstrap.js'],
     ]
 
     if include_jquery:
