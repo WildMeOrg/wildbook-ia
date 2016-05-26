@@ -1,0 +1,66 @@
+<div class="ia-container">
+
+  {% if EMBEDDED_CSS %}
+    {{ EMBEDDED_CSS|safe }}
+  {% endif %}
+
+  <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-query-match-form">
+    <div id="ia-bbox-annotator"></div>
+    <div style="text-align: center; color: #aaa;">
+      <span>Note: A match is "Not Comparable" if it is not possible to realistically associate the animals (e.g. differing viewpoints, bad quality)</span>
+    </div>
+    <br/>
+    <input type="text" name="query-match-annot-uuid-1" value="{{ annot_uuid_1 }}" style="display: none;" readonly>
+    <input type="text" name="query-match-annot-uuid-2" value="{{ annot_uuid_2 }}" style="display: none;" readonly>
+    <div class="row">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-8" id="query-match-image-container">
+        <img class="query-match-image" src="{{ image_matches_src }}"/>
+        <br/>
+        <img class="query-match-image" id="query-match-image-clean" src="{{ image_clean_src }}"/>
+        {% if REFER_DST_STR %}
+          <a href="/{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
+        {% endif %}
+        <div class="row" id="query-match-buttons">
+          <div class="col-lg-4">
+            <input type="submit" name="query-match-submit" id="ia-turk-submit-match" class="btn btn-default" value="Matched">
+          </div>
+          <div class="col-lg-4">
+            <input type="submit" name="query-match-submit" id="ia-turk-submit-notmatch" class="btn btn-default" value="Not Matched">
+          </div>
+          <div class="col-lg-4">
+            <input type="submit" name="query-match-submit" id="ia-turk-submit-notcomparable" class="btn btn-danger" value="Not Comparable" onclick="return confirm('Are you sure you want to set this match as not comparable?')">
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-2"></div>
+    </div>
+  </form>
+
+  {% if EMBEDDED_JAVASCRIPT %}
+    {{ EMBEDDED_JAVASCRIPT|safe }}
+  {% else %}
+  {% endif %}
+
+  <script type="text/javascript" ia-dependency="javascript">
+    function fix_height()
+    {
+      var max_height = 0;
+      $("#query-match-image-container img").each(function(){
+        current_height = $(this).height();
+        console.log(current_height);
+        max_height = Math.max(max_height, current_height);
+      });
+      console.log(max_height);
+      $("#query-match-buttons").css("margin-top", max_height + "px");
+    }
+
+    $( window ).resize(function() {
+      fix_height();
+    });
+
+    $(".query-match-image").load(function() {
+      fix_height();
+    });
+  </script>
+</div>

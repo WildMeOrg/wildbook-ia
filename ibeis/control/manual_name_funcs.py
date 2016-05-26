@@ -930,6 +930,27 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def get_name_rowids_from_uuid(ibs, name_uuid_list, nid_hack=False, ensure=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        name_text_list (list):
+
+    Returns:
+        name_rowid_list (list):
+    """
+    name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,),
+                                 name_uuid_list, id_colname=NAME_UUID)
+    if nid_hack:
+        name_rowid_list = [
+            name_uuid if name_rowid is None else name_rowid
+            for name_uuid, name_rowid in zip(name_uuid_list, name_rowid_list)
+        ]
+    return name_rowid_list
+
+
+@register_ibs_method
 @register_api('/api/name/nids_with_gids/', methods=['GET'])
 def get_name_nids_with_gids(ibs, nid_list=None):
     if nid_list is None:

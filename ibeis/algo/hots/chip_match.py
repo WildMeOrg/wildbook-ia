@@ -1490,7 +1490,7 @@ class ChipMatch(_ChipMatchVisualization,
         cm.fsv_list     = None
         cm.fk_list      = None
         cm.fsv_col_lbls = None
-        cm.fs_list = None
+        cm.fs_list      = None
         # Hacks for norm
         cm.filtnorm_aids = None
         cm.filtnorm_fxs = None
@@ -2047,6 +2047,14 @@ class ChipMatch(_ChipMatchVisualization,
             >>> cm.show_single_namematch(qreq_, 1)
             >>> ut.show_if_requested()
         """
+        class_dict = ut.from_json(json_str)
+        return cls.from_dict(class_dict)
+
+    @classmethod
+    def from_dict(cls, class_dict):
+        r"""
+        Convert dict of arguments back to ChipMatch object
+        """
 
         def convert_numpy_lists(arr_list, dtype):
             return [np.array(arr, dtype=dtype) for arr in arr_list]
@@ -2054,7 +2062,6 @@ class ChipMatch(_ChipMatchVisualization,
         def convert_numpy(arr, dtype):
             return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
 
-        class_dict = ut.from_json(json_str)
         key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
         key_list.remove('autoinit')
         if ut.VERBOSE:

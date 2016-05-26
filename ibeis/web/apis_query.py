@@ -6,9 +6,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
+from os.path import join, dirname, abspath
+import numpy as np   # NOQA
 import utool as ut
+import vtool as vt
 import cv2  # NOQA
 import dtool
+from ibeis.web import appfuncs as appf
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -113,29 +117,162 @@ def query_chips_dict(ibs, *args, **kwargs):
     return ibs.query_chips(*args, **kwargs)
 
 
+@register_api('/api/review/query/graph/', methods=['POST'])
+def process_graph_match_html(ibs, **kwargs):
+    """
+    RESTful:
+        Method: POST
+        URL:    /api/review/query/graph/
+    """
+    def sanitize(state):
+        state = state.strip().lower()
+        state = ''.join(state.split())
+        assert state in ['matched', 'notmatched', 'notcomparable'], 'matching_state_list has unrecognized states'
+        return state
+    import uuid
+    annot_uuid_1 = uuid.UUID(request.form['query-match-annot-uuid-1'])
+    annot_uuid_2 = uuid.UUID(request.form['query-match-annot-uuid-2'])
+    state = request.form.get('query-match-submit', '')
+    state = sanitize(state)
+    return (annot_uuid_1, annot_uuid_2, state, )
+
+
+def make_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
+    """"
+    CommandLine:
+        python -m ibeis.web.apis_query make_image --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.web.apis_query import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
+        >>> aid = cm.get_top_aids()[0]
+        >>> image = make_image(aid, cm, qreq_)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(image)
+        >>> ut.show_if_requested()
+    """
+    render_config = {
+        'dpi'              : 150,
+        'draw_fmatches'    : draw_matches,
+        'vert'             : view_orientation == 'vertical',
+        'show_aidstr'      : False,
+        'show_name'        : False,
+        'show_exemplar'    : False,
+        'show_num_gt'      : False,
+        'show_timedelta'   : False,
+        'show_name_rank'   : False,
+        'show_score'       : False,
+        'show_annot_score' : False,
+        'show_name_score'  : False,
+        'draw_lbl'         : False,
+        'draw_border'      : False,
+    }
+    image = cm.render_single_annotmatch(qreq_, aid, **render_config)
+    image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
+    return image
+
+
+@register_api('/api/review/query/graph/', methods=['GET'])
+def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url,
+                            callback_method='POST', view_orientation='vertical',
+                            include_jquery=False):
+    from ibeis.algo.hots.chip_match import ChipMatch
+    # from ibeis.algo.hots.query_request import QueryRequest
+
+    view_orientation = view_orientation.lower()
+    if view_orientation not in ['vertical', 'horizontal']:
+        view_orientation = 'horizontal'
+
+    annot_uuid_1 = review_pair['annot_uuid_1']
+    aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
+    annot_uuid_2 = review_pair['annot_uuid_2']
+    aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
+    cm_dict['qaid'] = ibs.get_annot_aids_from_uuid(cm_dict['qannot_uuid'])
+    cm_dict['qnid'] = ibs.get_name_rowids_from_uuid(cm_dict['qname_uuid'], nid_hack=True)
+    cm_dict['daid_list'] = ibs.get_annot_aids_from_uuid(cm_dict['dannot_uuid_list'])
+    cm_dict['dnid_list'] = ibs.get_name_rowids_from_uuid(cm_dict['dname_uuid_list'], nid_hack=True)
+    cm_dict['unique_nids'] = ibs.get_name_rowids_from_uuid(cm_dict['unique_name_uuid_list'], nid_hack=True)
+
+    # print('review_pair = %r' % (review_pair, ))
+    # print('cm_dict = %r' % (cm_dict, ))
+    # print('query_config_dict = %r' % (query_config_dict, ))
+    # print('_internal_state = %r' % (_internal_state, ))
+
+    cm = ChipMatch.from_dict(cm_dict)
+    qreq_ = ibs.new_query_request([aid_1], [aid_2],
+                                  cfgdict=query_config_dict)
+
+    image_matches_src = appf.embed_image_html(make_image(aid_2, cm, qreq_,
+                                                         view_orientation=view_orientation))
+    image_clean_src = appf.embed_image_html(make_image(aid_2, cm, qreq_,
+                                                       view_orientation=view_orientation,
+                                                       draw_matches=False))
+
+    root_path = dirname(abspath(__file__))
+    css_file_list = [
+        ['css', 'style.css'],
+        ['include', 'bootstrap', 'css', 'bootstrap.css'],
+    ]
+    json_file_list = [
+        ['javascript', 'script.js'],
+        ['include', 'bootstrap', 'js', 'bootstrap.js'],
+    ]
+
+    if include_jquery:
+        json_file_list = [
+            ['javascript', 'jquery.min.js'],
+        ] + json_file_list
+
+    EMBEDDED_CSS = ''
+    EMBEDDED_JAVASCRIPT = ''
+
+    css_template_fmtstr = '<style type="text/css" ia-dependency="css">%s</style>\n'
+    json_template_fmtstr = '<script type="text/javascript" ia-dependency="javascript">%s</script>\n'
+    for css_file in css_file_list:
+        css_filepath_list = [root_path, 'static'] + css_file
+        with open(join(*css_filepath_list)) as css_file:
+            EMBEDDED_CSS += css_template_fmtstr % (css_file.read(), )
+
+    for json_file in json_file_list:
+        json_filepath_list = [root_path, 'static'] + json_file
+        with open(join(*json_filepath_list)) as json_file:
+            EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
+
+    return appf.template('turk', 'query_match_insert',
+                         image_clean_src=image_clean_src,
+                         image_matches_src=image_matches_src,
+                         annot_uuid_1=str(annot_uuid_1),
+                         annot_uuid_2=str(annot_uuid_2),
+                         callback_url=callback_url,
+                         callback_method=callback_method,
+                         EMBEDDED_CSS=EMBEDDED_CSS,
+                         EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
+
+
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
-    from ibeis.algo.hots.chip_match import ChipMatch
-    from ibeis.algo.hots.query_request import QueryRequest
     ibs = current_app.ibs
-    result_list = ibs.query_chips_test()
+    result_dict = ibs.query_chips_test()
 
-    result = result_list[0]
-    state_dict = result.pop('qreq_').__getstate__()
-    cm = ChipMatch(**result)
-    qreq_ = QueryRequest()
-    qreq_.__setstate__(state_dict)
-    aid = cm.get_top_aids()[0]
-    image = cm.render_single_annotmatch(qreq_, aid)
-    image
-    # callback_url = request.args.get('callback_url', url_for('process_detection_html'))
-    # callback_method = request.args.get('callback_method', 'POST')
-    # template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
-    # template_html = '''
-    #     <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
-    #     %s
-    # ''' % (template_html, )
-    # return template_html
+    review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][0]
+    annot_uuid_key = str(review_pair['annot_uuid_key'])
+    cm_dict = result_dict['cm_dict'][annot_uuid_key]
+    query_config_dict = result_dict['query_config_dict']
+    _internal_state = result_dict['inference_dict']['_internal_state']
+    callback_url = request.args.get('callback_url', url_for('process_graph_match_html'))
+    callback_method = request.args.get('callback_method', 'POST')
+    # view_orientation = request.args.get('view_orientation', 'vertical')
+    view_orientation = request.args.get('view_orientation', 'horizontal')
+
+    template_html = review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url, callback_method, view_orientation, include_jquery=True)
+    template_html = '''
+        <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
+        %s
+    ''' % (template_html, )
+    return template_html
     return 'done'
 
 
@@ -155,10 +292,10 @@ def query_chips_test(ibs, **kwargs):
         >>> result_dict = ibs.query_chips_test()
         >>> print(result_dict)
     """
-    from random import shuffle
+    from random import shuffle  # NOQA
     # Compile test data
     aid_list = ibs.get_valid_aids()
-    shuffle(aid_list)
+    # shuffle(aid_list)
     qaid_list = aid_list[:3]
     daid_list = aid_list[-10:]
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
@@ -166,31 +303,49 @@ def query_chips_test(ibs, **kwargs):
 
 
 @register_ibs_method
-@register_api('/api/query/chips/', methods=['GET'])
-def query_chips_graph(ibs, qaid_list, daid_list, query_config_dict={}, echo_query_params=True):
+@register_api('/api/query/graph/', methods=['GET'])
+def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None, query_config_dict={}, echo_query_params=True):
     from ibeis.algo.hots.chip_match import AnnotInference
+    import uuid
+
+    def convert_to_uuid(nid):
+        try:
+            text = ibs.get_name_texts(nid)
+            uuid_ = uuid.UUID(text)
+        except ValueError:
+            uuid_ = nid
+        return uuid_
+
     cm_list, qreq_ = ibs.query_chips(qaid_list=qaid_list, daid_list=daid_list,
                                      cfgdict=query_config_dict, return_request=True)
     cm_dict = {
         str(ibs.get_annot_uuids(cm.qaid)): {
             # 'qaid'                  : cm.qaid,
             'qannot_uuid'           : ibs.get_annot_uuids(cm.qaid),
+            # 'qnid'                  : cm.qnid,
+            'qname_uuid'            : convert_to_uuid(cm.qnid),
             # 'daid_list'             : cm.daid_list,
             'dannot_uuid_list'      : ibs.get_annot_uuids(cm.daid_list),
             # 'dnid_list'             : cm.dnid_list,
-            'dname_uuid_list'       : None,
+            'dname_uuid_list'       : [convert_to_uuid(nid) for nid in cm.dnid_list],
             'score_list'            : cm.score_list,
             'annot_score_list'      : cm.annot_score_list,
             'fm_list'               : cm.fm_list,
             'fsv_list'              : cm.fsv_list,
             # Non-corresponding lists to above
-            # 'unique_nid_list'       : cm.unique_nids,
-            'unique_name_uuid_list' : None,
+            # 'unique_nids'         : cm.unique_nids,
+            'unique_name_uuid_list' : [convert_to_uuid(nid) for nid in cm.unique_nids],
             'name_score_list'       : cm.name_score_list,
+            # Placeholders for the reinitialization of the ChipMatch object
+            'fk_list'               : None,
+            'H_list'                : None,
+            'fsv_col_lbls'          : None,
+            'filtnorm_aids'         : None,
+            'filtnorm_fxs'          : None,
         }
         for cm in cm_list
     }
-    annot_inference = AnnotInference(qreq_, cm_list)
+    annot_inference = AnnotInference(qreq_, cm_list, user_feedback)
     inference_dict = annot_inference.make_annot_inference_dict()
     result_dict = {
         'cm_dict'        : cm_dict,

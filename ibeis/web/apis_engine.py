@@ -339,7 +339,6 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
 def start_identify_annots_query(ibs, query_annot_uuid_list,
                                 query_annot_name_uuid_list,
-                                user_confidence,
                                 database_annot_uuid_list=None,
                                 database_annot_name_uuid_list=None,
                                 matching_state_list=[],
@@ -353,14 +352,27 @@ def start_identify_annots_query(ibs, query_annot_uuid_list,
         URL: /api/engine/query/graph/
 
     Args:
-        qannot_uuid_list (list) : specifies the query annotations to
+        query_annot_uuid_list (list) : specifies the query annotations to
             identify.
-        dannot_uuid_list (list) : specifies the annotations that the
+        query_annot_name_uuid_list (list) : specifies the query annotation names
+        database_annot_uuid_list (list) : specifies the annotations that the
             algorithm is allowed to use for identification.  If not
             specified all annotations are used.   (default=None)
-        pipecfg (dict) : dictionary of pipeline configuration arguments
-            (default=None)
+        database_annot_name_uuid_list (list) : specifies the database annotation
+            names (default=None)
+        matching_state_list (list of tuple) : the list of matching state
+            3-tuples corresponding to the query_annot_uuid_list (default=None)
+        query_config_dict (dict) : dictionary of algorithmic configuration
+            arguments.  (default=None)
+        echo_query_params (bool) : flag for if to return the original query
+            parameters with the result
     """
+    def sanitize(state):
+        state = state.strip().lower()
+        state = ''.join(state.split())
+        assert state in ['matched', 'notmatched', 'notcomparable'], 'matching_state_list has unrecognized states'
+        return state
+
     # Check inputs
     assert len(query_annot_uuid_list) == 1, 'Can only identify one query annotation at a time'
     assert len(query_annot_uuid_list) == len(query_annot_name_uuid_list)
@@ -391,14 +403,32 @@ def start_identify_annots_query(ibs, query_annot_uuid_list,
         else:
             daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
+    # Set names for query annotations
+    qname_list = [ str(_) for _ in query_annot_name_uuid_list ]
+    qnid_list = ibs.add_names(qname_list, query_annot_name_uuid_list)
+    ibs.set_annot_name_rowids(qaid_list, qnid_list)
+
+    # Set names for database annotations
+    dname_list = [ str(_) for _ in database_annot_name_uuid_list ]
+    dnid_list = ibs.add_names(dname_list, database_annot_name_uuid_list)
+    ibs.set_annot_name_rowids(daid_list, dnid_list)
+
+    # Convert annot UUIDs to aids for matching_state_list into user_feedback for query
+    state_list = map(sanitize, ut.take_column(matching_state_list, 2))
+    {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
+    user_feedback = {
+        'aid1'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 0)),
+        'aid2'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 1)),
+        'p_match'   : [ 1.0 if state == 'matched' else 0.0 for state in state_list ],
+        'p_nomatch' : [ 1.0 if state == 'notmatched' else 0.0 for state in state_list ],
+        'p_notcomp' : [ 1.0 if state == 'notcomparable' else 0.0 for state in state_list ],
+    }
+
     ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
     ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph', callback_url, callback_method, qaid_list, daid_list, query_config_dict)
-
-    #if callback_url is not None:
-    #    #import requests
-    #    #requests.
-    #    #callback_url
+    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph', callback_url, callback_method,
+                                               qaid_list, daid_list, user_feedback,
+                                               query_config_dict, echo_query_params)
     return jobid
 
 
