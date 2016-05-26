@@ -262,7 +262,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
     ibs = current_app.ibs
-    result_dict = ibs.query_chips_test()
+
+    use_bc_dtw = 'use_bc_dtw' in request.args
+    if use_bc_dtw:
+        query_config_dict = {
+            'pipeline_root' : 'BC_DTW'
+        }
+    else:
+        query_config_dict = {}
+    result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
 
     review_pair = result_dict['inference_dict']['annot_pair_dict']['review_pair_list'][0]
     annot_uuid_key = str(review_pair['annot_uuid_key'])
