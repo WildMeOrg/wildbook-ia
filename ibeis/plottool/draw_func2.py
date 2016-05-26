@@ -429,6 +429,69 @@ def udpate_adjust_subplots():
         adjust_subplots(**adjust_kw)
 
 
+def extract_axes_extents(fig):
+    import plottool as pt
+    def full_extent(axs, pad=0.0):
+        """Get the full extent of an axes, including axes labels, tick labels, and
+        titles."""
+        # For text objects, we need to draw the figure first, otherwise the extents
+        # are undefined.
+        items = []
+        for ax in axs:
+            ax.figure.canvas.draw()  # FIXME; is this necessary?
+            items += ax.get_xticklabels() + ax.get_yticklabels()
+            items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
+            items += [ax, ax.title]
+            #items += ax.lines
+            #items += ax.patches
+        bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
+        #mpl.transforms.Affine2D().scale(1.1)
+        #pad = .05
+        extent = bbox.expanded(1.0 + pad, 1.0 + pad)
+        return extent
+
+    # Group axes that belong together
+    atomic_axes = []
+    seen_ = set([])
+    for ax in fig.axes:
+        div = pt.get_plotdat(ax, DF2_DIVIDER_KEY, None)
+        if div is not None:
+            df2_div_axes = pt.get_plotdat_dict(ax).get('df2_div_axes', [])
+            seen_.add(ax)
+            seen_.update(set(df2_div_axes))
+            atomic_axes.append([ax] + df2_div_axes)
+            # TODO: pad these a bit
+        else:
+            if ax not in seen_:
+                atomic_axes.append([ax])
+                seen_.add(ax)
+
+    hack_axes_group_row = ut.get_argflag('--grouprows')
+    if hack_axes_group_row:
+        groupid_list = []
+        for axs in atomic_axes:
+            for ax in axs:
+                groupid = ax.colNum
+            groupid_list.append(groupid)
+
+        groupxs = ut.group_indices(groupid_list)[1]
+        new_groups = ut.lmap(ut.flatten, ut.apply_grouping(atomic_axes, groupxs))
+        atomic_axes = new_groups
+        #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
+        # save all rows of each column
+        pass
+
+    dpi_scale_trans_inv = fig.dpi_scale_trans.inverted()
+    axes_extents = [full_extent(axs).transformed(dpi_scale_trans_inv)
+                    for axs in atomic_axes]
+    return axes_extents
+
+    #savekw['transparent'] = True
+    #savekw['dpi'] = dpi
+    #savekw['edgecolor'] = 'none'
+    #fig.savefig(subpath, bbox_inches=extent, **savekw)
+
+
 def show_if_requested(N=1):
     """
     Used at the end of tests. Handles command line arguments for saving figures
@@ -471,9 +534,11 @@ def show_if_requested(N=1):
         fpath_ = fpath_.format(**arg_dict)
         fpath_ = ut.remove_chars(fpath_, ' \'"')
         dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
+        print('dpath = %r' % (dpath,))
         if not gotdpath and ut.is_developer():
             # HACK use utool profile here
-            dpath = ut.truepath('~/latex/crall-candidacy-2015')
+            print('USING DEV CAND DIR')
+            dpath = ut.truepath('~/latex/crall-cand')
 
         fpath = join(dpath, fpath_)
 
