@@ -1264,11 +1264,15 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
 
         CommandLine:
             python -m dtool --tf DependencyCache.make_graph --show --reduced
+
             python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced
+
             python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced --testmode
             python -m ibeis.control.IBEISControl show_depc_annot_graph --show --testmode
+
             python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
             python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
+
             python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
 
         Example:
@@ -1332,44 +1336,72 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             multi_edges = [(u, v) for u, v, d in multi_data_edges]
             nonmulti_graph.remove_edges_from(multi_edges)
 
+            # Hack to recognize that implicit edges on multi-input edges
+            # PROBABLY means that the implicit edge is also a multi edge This
+            # needs to be fixed by indicating which parent edge the implicit
+            # edge actually corresponds to.
+            multi_data_edges_ = []
+            for edge in multi_data_edges:
+                node = edge[1]
+                in_edges = list(nonmulti_graph.in_edges(node, data=True))
+                if len(in_edges) == 1:
+                    u, v, d = in_edges[0]
+                    # If there is only one implicit edge on a multi-edge, it very
+                    # likely means that the implicit edge should have the same
+                    # input-id as the multi-edge
+                    if d.get('implicit'):
+                        nonmulti_graph.remove_edge(u, v)
+                    # hack the multi-edge to reduce to the implicit version
+                    new_edge = (u, edge[1], edge[2])
+                    multi_data_edges_.append(new_edge)
+                else:
+                    multi_data_edges_.append(edge)
+            multi_data_edges = multi_data_edges_
+
             # <ATTEMPT>
             # The transitive reduction should respect impolicit edges,
             # but the end result should not contain any implicit edges
 
             # Transitive reduction wrt implicit edges
             # For every node...
-            removed_in_edges = {}
-            for node in graph.nodes():
-                in_edges = list(graph.in_edges(node, data=True))
-                # if there is an implicit incoming edge
-                implicit_flags = [edge[2].get('implicit') for edge in in_edges]
-                explicit_flags = ut.not_list(implicit_flags)
-                implicit_edges = ut.compress(in_edges, implicit_flags)
-                flag = True
-                for edge in implicit_edges:
-                    # Ignore this edge if there is a common descendant
-                    if ut.nx_common_descendants(graph, node, edge[0]):
-                        removed_in_edges[node] = implicit_edges
-                        flag = False
-                if flag and any(implicit_edges):
-                    # then remove all non-implicit incoming edges
-                    remove_non_implicit = ut.compress(in_edges, explicit_flags)
-                    # remember this nodes removed in edges
-                    removed_in_edges[node] = remove_non_implicit
-            to_remove2 = ut.take_column(ut.flatten(removed_in_edges.values()), [0, 1])
-            nonmulti_graph.remove_edges_from(to_remove2)
+            implicit_aware = 1
+
+            if implicit_aware:
+                removed_in_edges = {}
+                for node in graph.nodes():
+                    in_edges = list(graph.in_edges(node, data=True))
+                    # if there is an implicit incoming edge
+                    implicit_flags = [edge[2].get('implicit') for edge in in_edges]
+                    explicit_flags = ut.not_list(implicit_flags)
+                    implicit_edges = ut.compress(in_edges, implicit_flags)
+                    flag = True
+                    for edge in implicit_edges:
+                        # Ignore this edge if there is a common descendant
+                        if ut.nx_common_descendants(graph, node, edge[0]):
+                            pass
+                            #removed_in_edges[node] = implicit_edges
+                            #flag = False
+
+                    if flag and any(implicit_edges):
+                        # then remove all non-implicit incoming edges
+                        remove_non_implicit = ut.compress(in_edges, explicit_flags)
+                        # remember this nodes removed in edges
+                        removed_in_edges[node] = remove_non_implicit
+                to_remove2 = ut.take_column(ut.flatten(removed_in_edges.values()), [0, 1])
+                nonmulti_graph.remove_edges_from(to_remove2)
 
             graph_tr = ut.nx_transitive_reduction(nonmulti_graph)
 
-            # Place old non-implicit structure on top of reduced implicit edges
-            for node in removed_in_edges.keys():
-                old_edges = removed_in_edges[node]
-                for edge in graph_tr.in_edges(node, data=True):
-                    data = edge[2]
-                    for old_edge in old_edges:
-                        # TODO: handle multiple old edges
-                        data.update(old_edge[2])
-                        data['implicit'] = False
+            if implicit_aware:
+                # Place old non-implicit structure on top of reduced implicit edges
+                for node in removed_in_edges.keys():
+                    old_edges = removed_in_edges[node]
+                    for edge in graph_tr.in_edges(node, data=True):
+                        data = edge[2]
+                        for old_edge in old_edges:
+                            # TODO: handle multiple old edges
+                            data.update(old_edge[2])
+                            data['implicit'] = False
 
             # HACK IN STRUCTURE
             # Multi Edges
