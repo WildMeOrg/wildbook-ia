@@ -310,9 +310,9 @@ def query_chips_test(ibs, **kwargs):
     from random import shuffle  # NOQA
     # Compile test data
     aid_list = ibs.get_valid_aids()
-    shuffle(aid_list)
-    qaid_list = aid_list[:3]
-    daid_list = aid_list[-10:]
+    # shuffle(aid_list)
+    qaid_list = aid_list[:1]
+    daid_list = aid_list[-4:]
     result_dict = ibs.query_chips_graph(qaid_list, daid_list, **kwargs)
     return result_dict
 
@@ -345,8 +345,8 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None, query_confi
             'dname_uuid_list'       : [convert_to_uuid(nid) for nid in cm.dnid_list],
             'score_list'            : cm.score_list,
             'annot_score_list'      : cm.annot_score_list,
-            'fm_list'               : cm.fm_list,
-            'fsv_list'              : cm.fsv_list,
+            'fm_list'               : cm.fm_list if hasattr(cm, 'fm_list') else None,
+            'fsv_list'              : cm.fsv_list if hasattr(cm, 'fsv_list') else None,
             # Non-corresponding lists to above
             # 'unique_nids'         : cm.unique_nids,
             'unique_name_uuid_list' : [convert_to_uuid(nid) for nid in cm.unique_nids],
