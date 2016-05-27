@@ -183,13 +183,34 @@ def image_upload_zip(**kwargs):
 def hello_world(*args, **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-hello_world
+        python -m ibeis.web.apis --exec-hello_world
+        python -m ibeis.web.apis --exec-hello_world:1
+        python -m ibeis.web.apis --exec-hello_world:2
 
     Example:
-        >>> # SCRIPT
+        >>> # WEB_DOCTEST
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/')
+
+    Example1:
+        >>> # SLOW_DOCTEST
+        >>> #from ibeis.all_imports import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False, wait=10)
+
+    Example2:
+        >>> # SLOW_DOCTEST
+        >>> import requests
+        >>> import ibeis
+        >>> domain = 'http://127.0.0.1:5000'
+        >>> url = domain + '/api/test/helloworld/?test0=0'
+        >>> payload = {
+        >>>     'test1' : 'test1',
+        >>>     'test2' : None,  # NOTICE test2 DOES NOT SHOW UP
+        >>> }
+        >>> resp = requests.post(url, data=payload)
+        >>> print(resp)
     """
     print('------------------ HELLO WORLD ------------------')
     print('Args: %r' % (args,))
