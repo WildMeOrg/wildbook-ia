@@ -46,7 +46,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
 
         # Use this to visualize the featrow
         python -m plottool.viz_featrow --test-draw_feat_row --show
-        python -m plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121
+        python -m plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift
         python -m plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
 
     Example:
@@ -64,11 +64,13 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> nRows = 1
         >>> nCols = 2
         >>> px = 0
-        >>> hack = True
+        >>> hack = ut.get_argflag('--feat-all')
+        >>> sift = sift if not ut.get_argflag('--no-sift') else None
+        >>> draw_desc = sift is not None
         >>> kw = dict(
         >>>     prevsift=None, origsift=None, aid=None, info='', type_=None,
         >>>     shape_labels=False, vecfield=False, multicolored_arms=True,
-        >>>     draw_chip=hack, draw_unwarped=hack, draw_warped=True, draw_sift=True
+        >>>     draw_chip=hack, draw_unwarped=hack, draw_warped=True, draw_desc=draw_desc
         >>> )
         >>> # execute function
         >>> result = draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px,
