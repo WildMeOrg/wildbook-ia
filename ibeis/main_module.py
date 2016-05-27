@@ -326,7 +326,10 @@ def opendb_in_background(*args, **kwargs):
 
 def opendb_bg_web(*args, **kwargs):
     """
-    Wrapper around opendb_in_background
+    Wrapper around opendb_in_background, returns a nice web_ibs
+    object to execute web calls using normal python-like syntax
+
+    Accespts domain and port as kwargs
     """
     import utool as ut
     domain = kwargs.get('domain', ut.get_argval('--domain', type_=str, default=None))
@@ -357,14 +360,56 @@ def opendb_bg_web(*args, **kwargs):
         payload = ut.map_dict_vals(ut.to_json, kwargs)
         if type_ == 'post':
             resp = requests.post(baseurl + suffix, data=payload)
-            content = ut.from_json(resp._content)
+            json_content = resp._content
         elif type_ == 'get':
             resp = requests.get(baseurl + suffix, data=payload)
-            content = ut.from_json(resp.content)
-        response = content['response']
-        return response
+            json_content = resp.content
+        try:
+            content = ut.from_json(json_content)
+        except ValueError:
+            raise Exception('Expected JSON string but got json_content=%r' % (json_content,))
+        else:
+            print('content = %r' % (content,))
+            if content['status']['code'] != 200:
+                print(content['status']['message'])
+                raise Exception(content['status']['message'])
+        request_response = content['response']
+        return request_response
+
+    def wait_for_results(jobid, timeout=None):
+        """
+        Waits for results from an engine
+        """
+        import time
+        sleeptime = 1
+        timer = ut.tic()
+        while True:
+            print('jobid = %s' % (jobid,))
+            status_response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid=jobid)
+            if status_response['jobstatus'] == 'completed':
+                break
+            time.sleep(sleeptime)
+            sleeptime = 10
+            totaltime = ut.toc(timer)
+            if timeout is not None and totaltime > timeout:
+                raise Exception('Timeout error on jobid=%r' % (jobid,))
+        return status_response
+
+    def read_engine_results(jobid):
+        result_response = web_ibs.send_ibeis_request('/api/engine/job/result/', jobid=jobid)
+        return result_response
+
+    def send_request_and_wait(suffix, type_='post', timeout=None, **kwargs):
+        jobid = web_ibs.send_ibeis_request(suffix, type_=type_, **kwargs)
+        status_response = web_ibs.wait_for_results(jobid, timeout)  # NOQA
+        result_response = web_ibs.read_engine_results(jobid)
+        #>>> cmdict = ut.from_json(result_response['json_result'])[0]
+        return result_response
 
     web_ibs.send_ibeis_request = send_ibeis_request
+    web_ibs.wait_for_results = wait_for_results
+    web_ibs.read_engine_results = read_engine_results
+    web_ibs.send_request_and_wait = send_request_and_wait
     return web_ibs
 
 

@@ -4,10 +4,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.detect.orientation import model
 from ibeis.algo.detect.orientation import orientation
-from ibeis.algo.detect.orientation import tester
-from ibeis.algo.detect.orientation import utils
+#from ibeis.algo.detect.orientation import tester
+#from ibeis.algo.detect.orientation import utils
 import utool
-print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.detect.orientation]')
+print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.detect.__init__]')
 
 
 def reassign_submodule_attributes(verbose=True):

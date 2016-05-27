@@ -9,10 +9,11 @@ from flask import url_for, request, current_app  # NOQA
 from os.path import join, dirname, abspath
 import numpy as np   # NOQA
 import utool as ut
-import vtool as vt
-import cv2  # NOQA
+#import vtool as vt
+#import cv2  # NOQA
 import dtool
 from ibeis.web import appfuncs as appf
+ut.noinject('[apis_query]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -143,10 +144,12 @@ def process_graph_match_html(ibs, **kwargs):
     return (annot_uuid_1, annot_uuid_2, state, )
 
 
-def make_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
+def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
     """"
+    Create the review image for a pair of annotations
+
     CommandLine:
-        python -m ibeis.web.apis_query make_image --show
+        python -m ibeis.web.apis_query make_review_image --show
 
     Example:
         >>> # SCRIPT
@@ -154,8 +157,13 @@ def make_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
         >>> aid = cm.get_top_aids()[0]
-        >>> image = make_image(aid, cm, qreq_)
+        >>> tt = ut.tic('make image')
+        >>> image = make_review_image(aid, cm, qreq_)
+        >>> ut.toc(tt)
         >>> ut.quit_if_noshow()
+        >>> print('image.shape = %r' % (image.shape,))
+        >>> print('image.dtype = %r' % (image.dtype,))
+        >>> ut.print_object_size(image)
         >>> import plottool as pt
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
@@ -177,7 +185,7 @@ def make_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
         'draw_border'      : False,
     }
     image = cm.render_single_annotmatch(qreq_, aid, **render_config)
-    image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
+    #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
     return image
 
 
@@ -185,6 +193,55 @@ def make_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
 def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url,
                             callback_method='POST', view_orientation='vertical',
                             include_jquery=False):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        review_pair (?):
+        cm_dict (dict):
+        query_config_dict (dict):
+        _internal_state (?):
+        callback_url (?):
+        callback_method (unicode): (default = u'POST')
+        view_orientation (unicode): (default = u'vertical')
+        include_jquery (bool): (default = False)
+
+    CommandLine:
+        python -m ibeis.web.apis_query review_graph_match_html --show
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.apis_query import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
+        >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
+        >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
+        >>> query_config_dict = {}
+        >>> data = dict(
+        >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
+        >>>     query_config_dict=query_config_dict,
+        >>> )
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph', **data)
+        >>> status_response = web_ibs.wait_for_results(jobid)
+        >>> result_response = web_ibs.read_engine_results(jobid)
+        >>> inference_result = result_response['json_result']
+        >>> cm_dict = inference_result['cm_dict']
+        >>> quuid = quuid_list[0]
+        >>> review_pair = [quuid, duuid_list[1]]
+        >>> cm = cm_dict[str(quuid)]
+        >>> _internal_state =  None
+        >>> web_ibs.terminate2()
+        >>> callback_url = None
+        >>> callback_method = u'POST'
+        >>> view_orientation = u'vertical'
+        >>> include_jquery = False
+        >>> #result = review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url, callback_method, view_orientation, include_jquery)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     from ibeis.algo.hots.chip_match import ChipMatch
     # from ibeis.algo.hots.query_request import QueryRequest
 
@@ -211,11 +268,14 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     qreq_ = ibs.new_query_request([aid_1], [aid_2],
                                   cfgdict=query_config_dict)
 
-    image_matches_src = appf.embed_image_html(make_image(aid_2, cm, qreq_,
-                                                         view_orientation=view_orientation))
-    image_clean_src = appf.embed_image_html(make_image(aid_2, cm, qreq_,
-                                                       view_orientation=view_orientation,
-                                                       draw_matches=False))
+    image_matches = make_review_image(aid_2, cm, qreq_,
+                                      view_orientation=view_orientation)
+    image_matches_src = appf.embed_image_html(image_matches)
+
+    image_clean = make_review_image(aid_2, cm, qreq_,
+                                    view_orientation=view_orientation,
+                                    draw_matches=False)
+    image_clean_src = appf.embed_image_html(image_clean)
 
     root_path = dirname(abspath(__file__))
     css_file_list = [
@@ -282,7 +342,11 @@ def review_query_chips_test():
     # view_orientation = request.args.get('view_orientation', 'vertical')
     view_orientation = request.args.get('view_orientation', 'horizontal')
 
-    template_html = review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url, callback_method, view_orientation, include_jquery=True)
+    template_html = review_graph_match_html(ibs, review_pair, cm_dict,
+                                            query_config_dict, _internal_state,
+                                            callback_url, callback_method,
+                                            view_orientation,
+                                            include_jquery=True)
     template_html = '''
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
         %s

@@ -6,10 +6,6 @@ from os import listdir
 import utool as ut
 import numpy as np
 import cv2
-try:
-    from jpcnn.core import JPCNN_Network, JPCNN_Data
-except:
-    pass
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[orientation]')
 
@@ -68,6 +64,7 @@ def load_orientation(source_path='orientation',
 
 
 def train_orientation(output_path):
+    from jpcnn.core import JPCNN_Network, JPCNN_Data
     print('[orientation] Loading the Orientation training data')
     data_list, label_list = load_orientation()
 

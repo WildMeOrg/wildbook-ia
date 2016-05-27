@@ -9,6 +9,7 @@ import logging
 import socket
 from ibeis.control import controller_inject
 from ibeis.web import apis_engine
+from ibeis.web import job_engine
 from ibeis.web import appfuncs as appf
 import utool as ut
 
@@ -98,6 +99,7 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
 
     if start_job_queue:
         print('[web] opening job manager')
+        ibs.load_plugin_module(job_engine)
         ibs.load_plugin_module(apis_engine)
         #import time
         #time.sleep(1)
