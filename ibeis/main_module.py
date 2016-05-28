@@ -330,6 +330,22 @@ def opendb_bg_web(*args, **kwargs):
     object to execute web calls using normal python-like syntax
 
     Accespts domain and port as kwargs
+
+    Kwargs:
+        port, domain
+
+    CommandLine:
+        python -m ibeis.main_module opendb_bg_web
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.main_module import *  # NOQA
+        >>> print('Opening a web_ibs')
+        >>> web_ibs = opendb_bg_web()
+        >>> print('SUCESS Opened a web_ibs!')
+        >>> print(web_ibs)
+        >>> print('Now kill the web_ibs')
+        >>> web_ibs.terminate2()
     """
     import utool as ut
     domain = kwargs.get('domain', ut.get_argval('--domain', type_=str, default=None))
@@ -380,19 +396,11 @@ def opendb_bg_web(*args, **kwargs):
         """
         Waits for results from an engine
         """
-        import time
-        sleeptime = 1
-        timer = ut.tic()
-        while True:
-            print('jobid = %s' % (jobid,))
+        for _ in ut.delayed_retry_gen([1]):
+            print('Waiting for jobid = %s' % (jobid,))
             status_response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid=jobid)
             if status_response['jobstatus'] == 'completed':
                 break
-            time.sleep(sleeptime)
-            sleeptime = 10
-            totaltime = ut.toc(timer)
-            if timeout is not None and totaltime > timeout:
-                raise Exception('Timeout error on jobid=%r' % (jobid,))
         return status_response
 
     def read_engine_results(jobid):
@@ -410,6 +418,19 @@ def opendb_bg_web(*args, **kwargs):
     web_ibs.wait_for_results = wait_for_results
     web_ibs.read_engine_results = read_engine_results
     web_ibs.send_request_and_wait = send_request_and_wait
+
+    def wait_until_started():
+        """ waits until the web server responds to a request """
+        import requests
+        for count in ut.delayed_retry_gen([1], timeout=15):
+            if ut.VERBOSE:
+                print('Waiting for server to be up. count=%r' % (count,))
+            try:
+                web_ibs.send_ibeis_request('/api/test/helloworld/', type_='get')
+                break
+            except requests.ConnectionError:
+                pass
+    wait_until_started()
     return web_ibs
 
 

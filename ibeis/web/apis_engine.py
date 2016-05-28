@@ -159,7 +159,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> # WEB_DOCTEST
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
@@ -258,7 +258,7 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
             parameters with the result
 
     CommandLine:
-        python -m ibeis.web.apis_engine start_identify_annots_query --show
+        python -m ibeis.web.apis_engine start_identify_annots_query
 
         # Split mode
         ibeis --web
@@ -268,7 +268,7 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]

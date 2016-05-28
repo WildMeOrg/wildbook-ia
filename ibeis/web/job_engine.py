@@ -90,15 +90,18 @@ VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg')
 
 
 def update_proctitle(procname):
-    import setproctitle
-    print('CHANGING PROCESS TITLE')
-    old_title = setproctitle.getproctitle()
-    print('old_title = %r' % (old_title,))
-    #new_title = 'IBEIS_' + procname + ' ' + old_title
-    #new_title = procname + ' ' + old_title
-    new_title = 'ibeis_zmq_loop'
-    print('new_title = %r' % (new_title,))
-    setproctitle.setproctitle(new_title)
+    try:
+        import setproctitle
+        print('CHANGING PROCESS TITLE')
+        old_title = setproctitle.getproctitle()
+        print('old_title = %r' % (old_title,))
+        #new_title = 'IBEIS_' + procname + ' ' + old_title
+        #new_title = procname + ' ' + old_title
+        new_title = 'ibeis_zmq_loop'
+        print('new_title = %r' % (new_title,))
+        setproctitle.setproctitle(new_title)
+    except ImportError:
+        print('pip install setproctitle')
 
 
 @register_ibs_method
@@ -114,7 +117,7 @@ def initialize_job_manager(ibs):
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
         >>> import requests
-        >>> web_instance = ibeis.opendb_bg_web(db='testdb1', wait=10)
+        >>> web_instance = ibeis.opendb_bg_web(db='testdb1')
         >>> baseurl = 'http://127.0.1.1:5000'
         >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
         >>> payload = ut.map_dict_vals(ut.to_json, _payload)
@@ -163,7 +166,7 @@ def get_job_status(ibs, jobid):
         >>> # WEB_DOCTEST
         >>> from ibeis.web.job_engine import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> # Test get status of a job id that does not exist
         >>> response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid='badjob')
         >>> web_ibs.terminate2()
