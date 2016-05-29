@@ -103,11 +103,15 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
         ibs.load_plugin_module(apis_engine)
         #import time
         #time.sleep(1)
+        # No need to sleep, this call should block until engine is live.
         ibs.initialize_job_manager()
         #time.sleep(10)
 
     print('[web] starting tornado')
-    start_tornado(ibs, port, browser, url_suffix)
+    try:
+        start_tornado(ibs, port, browser, url_suffix)
+    except KeyboardInterrupt:
+        print('Caught ctrl+c in webserver. Gracefully exiting')
     print('[web] closing job manager')
     ibs.close_job_manager()
 

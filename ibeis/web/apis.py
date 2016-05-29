@@ -183,26 +183,24 @@ def image_upload_zip(**kwargs):
 def hello_world(*args, **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis --exec-hello_world
+        python -m ibeis.web.apis --exec-hello_world:0
         python -m ibeis.web.apis --exec-hello_world:1
-        python -m ibeis.web.apis --exec-hello_world:2
 
     Example:
         >>> # WEB_DOCTEST
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/')
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
+        >>> print('Server will run until control c')
+        >>> #web_ibs.terminate2()
 
     Example1:
-        >>> # SLOW_DOCTEST
-        >>> #from ibeis.all_imports import *  # NOQA
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False, wait=10)
-
-    Example2:
-        >>> # SLOW_DOCTEST
         >>> import requests
         >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
         >>> domain = 'http://127.0.0.1:5000'
         >>> url = domain + '/api/test/helloworld/?test0=0'
         >>> payload = {
@@ -211,8 +209,9 @@ def hello_world(*args, **kwargs):
         >>> }
         >>> resp = requests.post(url, data=payload)
         >>> print(resp)
+        >>> web_ibs.terminate2()
     """
-    print('------------------ HELLO WORLD ------------------')
+    print('+------------ HELLO WORLD ------------')
     print('Args: %r' % (args,))
     print('Kwargs: %r' % (kwargs,))
     print('request.args: %r' % (request.args,))
@@ -220,6 +219,7 @@ def hello_world(*args, **kwargs):
     print('request.url; %r' % (request.url,))
     print('request.environ: %s' % (ut.repr3(request.environ),))
     print('request: %s' % (ut.repr3(request.__dict__),))
+    print('L____________ HELLO WORLD ____________')
 
 
 if __name__ == '__main__':

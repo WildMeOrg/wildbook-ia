@@ -98,11 +98,6 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
 
 
 @register_ibs_method
-def close_job_manager(ibs):
-    ibs.job_manager = None
-
-
-@register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/start_identify_annots/', methods=['GET', 'POST'])
 def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,

@@ -107,10 +107,27 @@ def update_proctitle(procname):
 @register_ibs_method
 def initialize_job_manager(ibs):
     """
+    Starts a background zmq job engine. Initializes a zmq object in this thread
+    that can talk to the background processes.
+
     Run from the webserver
 
     CommandLine:
-        python -m ibeis.web.job_engine initialize_job_manager
+        python -m ibeis.web.job_engine --exec-initialize_job_manager:0
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.job_engine import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> from ibeis.web import apis_engine
+        >>> from ibeis.web import job_engine
+        >>> ibs.load_plugin_module(job_engine)
+        >>> ibs.load_plugin_module(apis_engine)
+        >>> ibs.initialize_job_manager()
+        >>> print('Initializqation success. Now closing')
+        >>> ibs.close_job_manager()
+        >>> print('Closing success.')
 
     Example:
         >>> # WEB_DOCTEST
@@ -130,18 +147,34 @@ def initialize_job_manager(ibs):
         >>> #print(text)
     """
     ibs.job_manager = ut.DynStruct()
-    ibs.job_manager.jobiface = JobInterface(0)
+    ibs.job_manager.jobiface = JobInterface(id_=0)
 
     if not ut.get_argflag('--fg'):
         ibs.job_manager.reciever = JobBackend()
         ibs.job_manager.reciever.initialize_background_processes(dbdir=ibs.get_dbdir())
 
     ibs.job_manager.jobiface.initialize_client_thread()
+    # Wait until the collector becomes live
+    while 0 and True:
+        result = ibs.get_job_status(-1)
+        print('result = %r' % (result,))
+        if result['status'] == 'ok':
+            break
+
     #import ibeis
     ##dbdir = '/media/raid/work/testdb1'
     #ibs = ibeis.opendb('testdb1', asproxy=True)
     #from ibeis.web import app
     #proc = ut.spawn_background_process(app.start_from_ibeis, ibs, port=5000)
+
+
+@register_ibs_method
+def close_job_manager(ibs):
+    # if hasattr(ibs, 'job_manager') and ibs.job_manager is not None:
+    #     pass
+    del ibs.job_manager.jobiface
+    del ibs.job_manager.reciever
+    ibs.job_manager = None
 
 
 @register_ibs_method
@@ -286,7 +319,7 @@ class JobBackend(object):
         if VERBOSE_JOBS:
             print('Killed external procs')
 
-    def initialize_background_processes(self, dbdir=None, wait=.5):
+    def initialize_background_processes(self, dbdir=None, wait=0):
         print = partial(ut.colorprint, color='fuchsia')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
@@ -296,7 +329,7 @@ class JobBackend(object):
             if wait != 0:
                 print('Waiting for background process (%s) to spin up' % (ut.get_funcname(func,)))
             proc = ut.spawn_background_process(func, *args, **kwargs)
-            time.sleep(wait)
+            # time.sleep(wait)
             assert proc.is_alive(), 'proc (%s) died too soon' % (ut.get_funcname(func,))
             return proc
 
@@ -326,13 +359,16 @@ class JobInterface(object):
         jobiface.id_ = id_
         jobiface.verbose = 2 if VERBOSE_JOBS else 1
 
-    def init(jobiface):
-        # Starts several new processes
-        jobiface.initialize_background_processes()
-        # Does not create a new process, but connects sockets on this process
-        jobiface.initialize_client_thread()
+    # def init(jobiface):
+    #     # Starts several new processes
+    #     jobiface.initialize_background_processes()
+    #     # Does not create a new process, but connects sockets on this process
+    #     jobiface.initialize_client_thread()
 
     def initialize_client_thread(jobiface):
+        """
+        Creates a ZMQ object in this thread. This talks to background processes.
+        """
         print = partial(ut.colorprint, color='blue')
         if jobiface.verbose:
             print('Initializing JobInterface')
@@ -485,30 +521,33 @@ def make_queue_loop(iface1, iface2, name=None):
             deal_sock.bind(iface2)
             if VERBOSE_JOBS:
                 print('bind %s_url2 = %r' % (name, iface2,))
-            if 1:
-                # the remainder of this function can be entirely replaced with
-                zmq.device(zmq.QUEUE, rout_sock, deal_sock)
-            else:
-                # but this shows what is really going on:
-                poller = zmq.Poller()
-                poller.register(rout_sock, zmq.POLLIN)
-                poller.register(deal_sock, zmq.POLLIN)
-                while True:
-                    evts = dict(poller.poll())
-                    # poll() returns a list of tuples [(socket, evt), (socket, evt)]
-                    # dict(poll()) turns this into {socket:evt, socket:evt}
-                    if rout_sock in evts:
-                        msg = rout_sock.recv_multipart()
-                        # ROUTER sockets prepend the identity of the jobiface,
-                        # for routing replies
-                        if VERBOSE_JOBS:
-                            print('ROUTER relayed %r via DEALER' % (msg,))
-                        deal_sock.send_multipart(msg)
-                    if deal_sock in evts:
-                        msg = deal_sock.recv_multipart()
-                        if VERBOSE_JOBS:
-                            print('DEALER relayed %r via ROUTER' % (msg,))
-                        rout_sock.send_multipart(msg)
+            try:
+                if 1:
+                    # the remainder of this function can be entirely replaced with
+                    zmq.device(zmq.QUEUE, rout_sock, deal_sock)
+                else:
+                    # but this shows what is really going on:
+                    poller = zmq.Poller()
+                    poller.register(rout_sock, zmq.POLLIN)
+                    poller.register(deal_sock, zmq.POLLIN)
+                    while True:
+                        evts = dict(poller.poll())
+                        # poll() returns a list of tuples [(socket, evt), (socket, evt)]
+                        # dict(poll()) turns this into {socket:evt, socket:evt}
+                        if rout_sock in evts:
+                            msg = rout_sock.recv_multipart()
+                            # ROUTER sockets prepend the identity of the jobiface,
+                            # for routing replies
+                            if VERBOSE_JOBS:
+                                print('ROUTER relayed %r via DEALER' % (msg,))
+                            deal_sock.send_multipart(msg)
+                        if deal_sock in evts:
+                            msg = deal_sock.recv_multipart()
+                            if VERBOSE_JOBS:
+                                print('DEALER relayed %r via ROUTER' % (msg,))
+                            rout_sock.send_multipart(msg)
+            except KeyboardInterrupt:
+                print('Caught ctrl+c in collector loop. Gracefully exiting')
             if VERBOSE_JOBS:
                 print('Exiting %s' % (loop_name,))
     ut.set_funcname(queue_loop, loop_name)
@@ -556,45 +595,48 @@ def engine_queue_loop():
         poller = zmq.Poller()
         poller.register(rout_sock, zmq.POLLIN)
         poller.register(deal_sock, zmq.POLLIN)
-        while True:
-            evts = dict(poller.poll())
-            if rout_sock in evts:
-                # HACK GET REQUEST FROM CLIENT
-                job_counter += 1
-                # CALLER: job_client
-                idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
+        try:
+            while True:
+                evts = dict(poller.poll())
+                if rout_sock in evts:
+                    # HACK GET REQUEST FROM CLIENT
+                    job_counter += 1
+                    # CALLER: job_client
+                    idents, engine_request = rcv_multipart_json(rout_sock, num=1, print=print)
 
-                #jobid = 'result_%s' % (id_,)
-                #jobid = 'result_%s' % (uuid.uuid4(),)
-                jobid = 'jobid-%04d' % (job_counter,)
-                if VERBOSE_JOBS:
-                    print('Creating jobid %r' % (jobid,))
+                    #jobid = 'result_%s' % (id_,)
+                    #jobid = 'result_%s' % (uuid.uuid4(),)
+                    jobid = 'jobid-%04d' % (job_counter,)
+                    if VERBOSE_JOBS:
+                        print('Creating jobid %r' % (jobid,))
 
-                # Reply immediately with a new jobid
-                reply_notify = {
-                    'jobid': jobid,
-                    'status': 'ok',
-                    'text': 'job accepted',
-                    'action': 'notification',
-                }
-                engine_request = engine_request
-                engine_request['jobid'] = jobid
-                if VERBOSE_JOBS:
-                    print('...notifying collector about new job')
-                # CALLS: collector_notify
-                collect_deal_sock.send_json(reply_notify)
-                if VERBOSE_JOBS:
-                    print('... notifying client that job was accepted')
-                # RETURNS: job_client_return
-                send_multipart_json(rout_sock, idents, reply_notify)
-                if VERBOSE_JOBS:
-                    print('... notifying backend engine to start')
-                # CALL: engine_
-                send_multipart_json(deal_sock, idents, engine_request)
-            if deal_sock in evts:
-                pass
+                    # Reply immediately with a new jobid
+                    reply_notify = {
+                        'jobid': jobid,
+                        'status': 'ok',
+                        'text': 'job accepted',
+                        'action': 'notification',
+                    }
+                    engine_request = engine_request
+                    engine_request['jobid'] = jobid
+                    if VERBOSE_JOBS:
+                        print('...notifying collector about new job')
+                    # CALLS: collector_notify
+                    collect_deal_sock.send_json(reply_notify)
+                    if VERBOSE_JOBS:
+                        print('... notifying client that job was accepted')
+                    # RETURNS: job_client_return
+                    send_multipart_json(rout_sock, idents, reply_notify)
+                    if VERBOSE_JOBS:
+                        print('... notifying backend engine to start')
+                    # CALL: engine_
+                    send_multipart_json(deal_sock, idents, engine_request)
+                if deal_sock in evts:
+                    pass
+        except KeyboardInterrupt:
+            print('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
         if VERBOSE_JOBS:
-            print('Exiting %s' % (loop_name,))
+            print('Exiting %s queue' % (loop_name,))
 
 
 def engine_loop(id_, dbdir=None):
@@ -632,31 +674,34 @@ def engine_loop(id_, dbdir=None):
             print('connect collect_url1 = %r' % (collect_url1,))
             print('engine is initialized')
 
-        while True:
-            idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
+        try:
+            while True:
+                idents, engine_request = rcv_multipart_json(engine_rout_sock, print=print)
 
-            action = engine_request['action']
-            jobid  = engine_request['jobid']
-            args   = engine_request['args']
-            kwargs = engine_request['kwargs']
-            callback_url = engine_request['callback_url']
-            callback_method = engine_request['callback_method']
+                action = engine_request['action']
+                jobid  = engine_request['jobid']
+                args   = engine_request['args']
+                kwargs = engine_request['kwargs']
+                callback_url = engine_request['callback_url']
+                callback_method = engine_request['callback_method']
 
-            engine_result = on_engine_request(ibs, jobid, action, args, kwargs)
+                engine_result = on_engine_request(ibs, jobid, action, args, kwargs)
 
-            # Store results in the collector
-            collect_request = dict(
-                idents=idents,
-                action='store',
-                jobid=jobid,
-                engine_result=engine_result,
-                callback_url=callback_url,
-                callback_method=callback_method,
-            )
-            if VERBOSE_JOBS:
-                print('...done working. pushing result to collector')
-            # CALLS: collector_store
-            collect_deal_sock.send_json(collect_request)
+                # Store results in the collector
+                collect_request = dict(
+                    idents=idents,
+                    action='store',
+                    jobid=jobid,
+                    engine_result=engine_result,
+                    callback_url=callback_url,
+                    callback_method=callback_method,
+                )
+                if VERBOSE_JOBS:
+                    print('...done working. pushing result to collector')
+                # CALLS: collector_store
+                collect_deal_sock.send_json(collect_request)
+        except KeyboardInterrupt:
+            print('Caught ctrl+c in engine loop. Gracefully exiting')
         # ----
         if VERBOSE_JOBS:
             print('Exiting engine loop')
@@ -717,20 +762,25 @@ def collector_loop(dbdir):
 
         collecter_data = {}
         awaiting_data = {}
-        while True:
-            # several callers here
-            # CALLER: collector_notify
-            # CALLER: collector_store
-            # CALLER: collector_request_status
-            # CALLER: collector_request_result
-            idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
-            try:
-                reply = on_collect_request(collect_request, collecter_data,
-                                           awaiting_data, shelve_path)
-            except Exception as ex:
-                print(ut.repr3(collect_request))
-                ut.printex(ex, 'ERROR in collection')
-            send_multipart_json(collect_rout_sock, idents, reply)
+        try:
+            while True:
+                # several callers here
+                # CALLER: collector_notify
+                # CALLER: collector_store
+                # CALLER: collector_request_status
+                # CALLER: collector_request_result
+                idents, collect_request = rcv_multipart_json(collect_rout_sock, print=print)
+                try:
+                    reply = on_collect_request(collect_request, collecter_data,
+                                               awaiting_data, shelve_path)
+                except Exception as ex:
+                    print(ut.repr3(collect_request))
+                    ut.printex(ex, 'ERROR in collection')
+                send_multipart_json(collect_rout_sock, idents, reply)
+        except KeyboardInterrupt:
+            print('Caught ctrl+c in collector loop. Gracefully exiting')
+        if VERBOSE_JOBS:
+            print('Exiting collector')
 
 
 def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_path):

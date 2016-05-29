@@ -351,6 +351,10 @@ def opendb_bg_web(*args, **kwargs):
     domain = kwargs.get('domain', ut.get_argval('--domain', type_=str, default=None))
     port = kwargs.get('port', 5000)
 
+    if 'wait' in kwargs:
+        print('NOTE: No need to specify wait param anymore. '
+              'This is automatically taken care of.')
+
     if domain is None:
         # Requesting a local test server
         _kw = dict(web=True, browser=False)
