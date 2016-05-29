@@ -371,6 +371,10 @@ def opendb_bg_web(*args, **kwargs):
         domain = 'http://' + domain
     baseurl = domain  + ':' + str(port)
 
+    web_ibs.domain = domain
+    web_ibs.port = port
+    web_ibs.baseurl = baseurl
+
     def send_ibeis_request(suffix, type_='post', **kwargs):
         """
         Posts a request to a url suffix

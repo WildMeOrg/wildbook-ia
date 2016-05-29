@@ -220,7 +220,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
 
 @register_ibs_method
-@accessor_decors.default_decorator
+# @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
 def start_identify_annots_query(ibs, query_annot_uuid_list=None,
                                 query_annot_name_uuid_list=None,
@@ -257,6 +257,7 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
 
         # Split mode
         ibeis --web
+        python -m ibeis.web.apis_engine start_identify_annots_query
         python -m ibeis.web.apis_engine start_identify_annots_query --show --domain=localhost
 
     Example:
@@ -273,7 +274,9 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
         >>>     query_config_dict=query_config_dict,
         >>> )
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph', **data)
+        >>> suffix = '/api/engine/query/graph'
+        >>> jobid = web_ibs.send_ibeis_request(suffix, type_='get', **data)
+        >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
         >>> inference_result = result_response['json_result']
@@ -291,10 +294,13 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
 
     # HACK
     if query_annot_uuid_list is None:
-        query_annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids()[0:1])
+        if True:
+            query_annot_uuid_list = []
+        else:
+            query_annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids()[0:1])
 
     # Check inputs
-    assert len(query_annot_uuid_list) == 1, 'Can only identify one query annotation at a time'
+    assert len(query_annot_uuid_list) == 1, 'Can only identify one query annotation at a time. Got %d ' % (len(query_annot_uuid_list),)
     if query_annot_name_uuid_list is not None:
         assert len(query_annot_uuid_list) == len(query_annot_name_uuid_list)
     if database_annot_uuid_list is not None and database_annot_name_uuid_list is not None:
