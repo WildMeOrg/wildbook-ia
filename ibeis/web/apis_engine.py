@@ -151,11 +151,23 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> ibs.close_job_manager()
 
     Example:
+        >>> from ibeis.web.apis_engine import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')  # , domain='http://52.33.105.88')
+        >>> aids = ibs.get_valid_aids()[0:2]
+        >>> qaids = aids[0:1]
+        >>> daids = aids
+        >>> query_config_dict = {
+        >>>     'pipeline_root' : 'BC_DTW'
+        >>> }
+        >>> cm_list = ibs.query_chips(qaids, daids, cfgdict=query_config_dict)
+
+    Example:
         >>> # WEB_DOCTEST
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
@@ -168,7 +180,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> bgserver = ensure_simple_server()
         >>> # --
         >>> jobid = web_ibs.send_ibeis_request('/api/engine/start_identify_annots/', **data)
-        >>> status_response = web_ibs.wait_for_results(jobid)
+        >>> status_response = web_ibs.wait_for_results(jobid, delays=[1, 5, 30])
         >>> print('status_response = %s' % (status_response,))
         >>> result_response = web_ibs.read_engine_results(jobid)
         >>> print('result_response = %s' % (result_response,))
@@ -257,7 +269,6 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
 
         # Split mode
         ibeis --web
-        python -m ibeis.web.apis_engine start_identify_annots_query
         python -m ibeis.web.apis_engine start_identify_annots_query --show --domain=localhost
 
     Example:
@@ -265,17 +276,18 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:3]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
-        >>> query_config_dict = {}
+        >>> query_config_dict = {
+        >>>     'pipeline_root' : 'BC_DTW'
+        >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
         >>>     query_config_dict=query_config_dict,
         >>> )
-        >>> suffix = '/api/engine/query/graph'
-        >>> jobid = web_ibs.send_ibeis_request(suffix, type_='get', **data)
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/', **data)
         >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)

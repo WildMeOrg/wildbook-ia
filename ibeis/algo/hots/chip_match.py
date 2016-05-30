@@ -86,6 +86,7 @@ class AnnotInference(object):
         >>> import ibeis
         >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', t='default:proot=BC_DTW', a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = AnnotInference(qreq_, cm_list)
@@ -99,6 +100,14 @@ class AnnotInference(object):
         >>> graph1 = self1.make_graph(show=True)
         >>> graph2 = self2.make_graph(show=True)
     """
+
+    def __init__(self, qreq_, cm_list, user_feedback=None):
+        self.qreq_ = qreq_
+        self.cm_list = cm_list
+        self.needs_review_list = []
+        self.cluster_tuples = []
+        self.user_feedback = user_feedback
+        self.make_inference()
 
     def simulate_user_feedback(self):
         qreq_ = self.qreq_
@@ -118,14 +127,6 @@ class AnnotInference(object):
         #correct_pairs = ut.flatten([list(ut.product([qaid], daids)) for qaid, daids in zip(qreq_.qaids, correct_daids)])
         #[correct_pairs]
         #user_feedback = {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
-
-    def __init__(self, qreq_, cm_list, user_feedback=None):
-        self.qreq_ = qreq_
-        self.cm_list = cm_list
-        self.needs_review_list = []
-        self.cluster_tuples = []
-        self.user_feedback = user_feedback
-        self.make_inference()
 
     def make_prob_annots(self):
         cm_list = self.cm_list
@@ -150,7 +151,11 @@ class AnnotInference(object):
         # Populate matrix of raw name scores
         prob_names = np.zeros((len(cm_list), len(unique_nids)))
         for count, cm in enumerate(cm_list):
-            name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
+            try:
+                name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
+            except AttributeError:
+                unique_nidxs = ut.take(cm.nid2_nidx, unique_nids)
+                name_scores = ut.take(cm.name_score_list, unique_nidxs)
             prob_names[count][:] = name_scores
 
         # Normalize to row stochastic matrix
@@ -166,10 +171,13 @@ class AnnotInference(object):
         #thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
         unique_nids, prob_names = self.make_prob_names()
 
+        if len(unique_nids) <= 2:
+            return .5
+
         nscores = np.sort(prob_names.flatten())
-        x = np.gradient(nscores).argmax()
-        x = (np.gradient(np.gradient(nscores)) ** 2).argmax()
-        thresh = nscores[x]
+        # x = np.gradient(nscores).argmax()
+        # x = (np.gradient(np.gradient(nscores)) ** 2).argmax()
+        # thresh = nscores[x]
 
         curve = nscores
         idx1 = vt.find_elbow_point(curve)
@@ -204,6 +212,9 @@ class AnnotInference(object):
         qreq_ = self.qreq_
 
         nodes = ut.unique(qreq_.qaids.tolist() + qreq_.daids.tolist())
+        if not hasattr(qreq_, 'dnids'):
+            qreq_.dnids = qreq_.ibs.get_annot_nids(qreq_.daids)
+            qreq_.qnids = qreq_.ibs.get_annot_nids(qreq_.qaids)
         dnid2_daids = ut.group_items(qreq_.daids, qreq_.dnids)
         grouped_aids = dnid2_daids.values()
         matched_daids = ut.take(dnid2_daids, matched_nids)

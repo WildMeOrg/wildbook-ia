@@ -212,24 +212,29 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> # WEB_DOCTEST
         >>> from ibeis.web.apis_query import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
-        >>> query_config_dict = {}
+        >>> query_config_dict = {
+        >>>     'pipeline_root' : 'BC_DTW'
+        >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
         >>>     query_config_dict=query_config_dict,
         >>> )
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph', **data)
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/', **data)
+        >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
         >>> inference_result = result_response['json_result']
         >>> cm_dict = inference_result['cm_dict']
         >>> quuid = quuid_list[0]
-        >>> review_pair = [quuid, duuid_list[1]]
         >>> cm = cm_dict[str(quuid)]
+        >>> cm_dict = inference_result['cm_dict']
+        >>> quuid = quuid_list[0]
+        >>> review_pair = [quuid, duuid_list[1]]
         >>> _internal_state =  None
         >>> web_ibs.terminate2()
         >>> callback_url = None
@@ -241,6 +246,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()
+        >>> web_ibs.terminate2()
     """
     from ibeis.algo.hots.chip_match import ChipMatch
     # from ibeis.algo.hots.query_request import QueryRequest

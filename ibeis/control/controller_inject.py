@@ -513,9 +513,6 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 @wraps(func)
                 #def translated_call(*args, **kwargs):
                 def translated_call(**kwargs):
-                    print('MAKING TRANSLATED CALL')
-                    print('**kwargs = %r' % (kwargs,))
-
                     def html_newlines(text):
                         r = '<br />\n'
                         text = text.replace(' ', '&nbsp;')

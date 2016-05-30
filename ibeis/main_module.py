@@ -381,6 +381,8 @@ def opendb_bg_web(*args, **kwargs):
         """
         import requests
         import utool as ut
+        if not suffix.endswith('/'):
+            raise Exception('YOU PROBABLY WANT A / AT THE END OF YOUR URL')
         payload = ut.map_dict_vals(ut.to_json, kwargs)
         if type_ == 'post':
             resp = requests.post(baseurl + suffix, data=payload)
@@ -400,11 +402,11 @@ def opendb_bg_web(*args, **kwargs):
         request_response = content['response']
         return request_response
 
-    def wait_for_results(jobid, timeout=None):
+    def wait_for_results(jobid, timeout=None, delays=[1, 3, 10]):
         """
         Waits for results from an engine
         """
-        for _ in ut.delayed_retry_gen([1]):
+        for _ in ut.delayed_retry_gen(delays):
             print('Waiting for jobid = %s' % (jobid,))
             status_response = web_ibs.send_ibeis_request('/api/engine/job/status/', jobid=jobid)
             if status_response['jobstatus'] == 'completed':
