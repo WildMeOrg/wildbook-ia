@@ -337,6 +337,7 @@ class IBEISController(BASE_CLASS):
         CommandLine:
             python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
             python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs --testmode
 
         Example:
             >>> # SCRIPT

@@ -144,10 +144,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         piperoot = cfgdict['pipeline_root']
     except Exception:
         piperoot = None
-    print('[qreq] piperoot = %r' % (piperoot,))
+    if ut.VERBOSE:
+        print('[qreq] piperoot = %r' % (piperoot,))
     # HACK FOR DEPC REQUESTS including flukes
     if isinstance(cfg, dtool.Config):
-        print('[qreq] dtool.Config HACK')
+        if ut.VERBOSE:
+            print('[qreq] dtool.Config HACK')
         tablename = cfg.get_config_name()
         cfgdict = dict(cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
@@ -155,12 +157,14 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
         # Hack to ensure that correct depcache style request gets called
-        print('[qreq] piperoot HACK')
+        if ut.VERBOSE:
+            print('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot)
     else:
-        print('[qreq] default hots config HACK')
+        if ut.VERBOSE:
+            print('[qreq] default hots config HACK')
         #if cfgdict.get('pipeline_root', None)
         DYNAMIC_K = False
         if DYNAMIC_K and 'K' not in cfgdict:

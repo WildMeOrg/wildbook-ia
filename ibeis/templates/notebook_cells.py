@@ -96,7 +96,7 @@ initialize = ('# Initialization (Code)', ut.codeblock(
     pt.custom_figure.LABEL_SIZE = 20
     pt.custom_figure.FIGTITLE_SIZE = 20
 
-    draw_case_kw = dict(show_in_notebook=True, annot_modes=[0, 1])
+    draw_case_kw = dict(show_in_notebook=True, annot_modes=[1])
 
     # Setup database specific parameter configurations
     db = '{dbname}'
@@ -680,10 +680,10 @@ investigate_specific_case = (
         test_result = ibeis.run_experiment(
             e='draw_cases',
             db=db,
-            a=a,
+            a=[a[0] + ',qsize=1'],
             #t=t,
-            t=[t[0], t[0] + 'SV=False'],
-            qaid_override=[2604],  # CHOOSE A SPECIFIC ANNOTATION
+            t=[t[0], t[0] + ':SV=False'],
+            # qaid_override=[2604],  # CHOOSE A SPECIFIC ANNOTATION
             figsize=(30, 8),
             **draw_case_kw)
         _ = test_result.draw_func()

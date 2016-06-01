@@ -1183,6 +1183,8 @@ class TestResult(object):
         if isinstance(filt_cfg, six.string_types):
             _combos = cfghelpers.parse_cfgstr_list2([filt_cfg], strict=False)
             filt_cfg = ut.flatten(_combos)[0]
+        if filt_cfg is None:
+            filt_cfg = {}
 
         qaids = testres.get_test_qaids() if qaids is None else qaids
         truth2_prop, prop2_mat = testres.get_truth2_prop(qaids)
