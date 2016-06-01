@@ -3,6 +3,58 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
 
 
+def multidb_montage():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw multidb_montage --save montage.jpg --dpath ~/slides --diskshow --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> multidb_montage()
+    """
+    import ibeis
+    import plottool as pt
+    import vtool as vt
+    import numpy as np
+    pt.ensure_pylab_qt4()
+    ibs1 = ibeis.opendb('PZ_MTEST')
+    ibs2 = ibeis.opendb('GZ_ALL')
+    ibs3 = ibeis.opendb('GIRM_Master1')
+
+    chip_lists = []
+    aids_list = []
+
+    for ibs in [ibs1, ibs2, ibs3]:
+        aids = ibs.sample_annots_general(minqual='good', sample_size=400)
+        aids_list.append(aids)
+
+    print(ut.depth_profile(aids_list))
+
+    for ibs, aids in zip([ibs1, ibs2, ibs3], aids_list):
+        chips = ibs.get_annot_chips(aids)
+        chip_lists.append(chips)
+
+    chip_list = ut.flatten(chip_lists)
+    np.random.shuffle(chip_list)
+
+    widescreen_ratio = 16 / 9
+    ratio = ut.PHI
+    ratio = widescreen_ratio
+
+    fpath = pt.get_save_directions()
+
+    #height = 6000
+    width = 6000
+    #width = int(height * ratio)
+    height = int(width / ratio)
+    dsize = (width, height)
+    dst = vt.montage(chip_list, dsize)
+    vt.imwrite(fpath, dst)
+    if ut.get_argflag('--show'):
+        pt.imshow(dst)
+
+
 def double_depcache_graph():
     r"""
     CommandLine:

@@ -71,12 +71,14 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2 --doboth  --show --notitle --trydrawline
 
         python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2,3,4,5 --doboth --rc=2,5 --show --chrlbl --trydrawline --qualtitle --no-figtitle --notitle
         --doboth
         --doboth --show
+
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=15419 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -123,6 +125,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
     for px, aid in enumerate(aid_list):
         print('px = %r' % (px,))
         _fig, _ax1 = viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
+        print('other_aids = %r' % (ibs.get_annot_contact_aids(aid),))
         ax = df2.gca()
         ax_list1.append(_ax1)
         if aid in sel_aids:
