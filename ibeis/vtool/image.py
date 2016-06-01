@@ -97,7 +97,7 @@ def imread_remote_url(img_fpath, **kwargs):
     return imgBGR
 
 
-def montage(img_list, dsize, rng=np.random):
+def montage(img_list, dsize, rng=np.random, method='random', return_debug=False):
     """
     Creates a montage / collage from a set of images
 
@@ -110,13 +110,19 @@ def montage(img_list, dsize, rng=np.random):
         >>> from vtool.image import *  # NOQA
         >>> img_list0 = testdata_imglist()
         >>> img_list1 = [resize_to_maxdims(img, (256, 256)) for img in img_list0]
-        >>> img_list = ut.flatten([img_list1] * 20)
+        >>> num = 4
+        >>> img_list = ut.flatten([img_list1] * num)
         >>> dsize = (700, 700)
         >>> rng = np.random.RandomState(42)
-        >>> dst = montage(img_list, dsize, rng)
+        >>> method = 'unused'
+        >>> #method = 'random'
+        >>> dst, debug_info = montage(img_list, dsize, rng, method=method,
+        >>>                           return_debug=True)
+        >>> place_img = debug_info.get('place_img_', np.ones((2, 2)))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.imshow(dst)
+        >>> pt.imshow(dst, pnum=(1, 2, 1))
+        >>> pt.imshow(place_img / place_img.max(), pnum=(1, 2, 2))
         >>> ut.show_if_requested()
 
     Example:
@@ -144,10 +150,24 @@ def montage(img_list, dsize, rng=np.random):
         >>> print('Writing to: %r' % (filepath, ))
         >>> imwrite(filepath, dst)
     """
+    import vtool as vt
     channels = 3
     shape = tuple(dsize[::-1]) + (channels,)
     dst = np.zeros(shape, dtype=np.uint8)
-    import vtool as vt
+
+    use_placement_prob = method == 'unused'
+
+    if use_placement_prob:
+        # TODO: place images in places that other images have not been placed yet
+        place_img = np.ones(shape[0:2], dtype=np.float)
+        #place_img[
+        #place_img = vt.gaussian_patch(shape[0:2], np.array(shape[0:2]) * .1)
+        #place_img = vt.gaussian_patch(shape[0:2], np.array(shape[0:2]) * .3)
+        temp_img = np.ones(shape[0:2], dtype=np.float)
+        # Enumerate valid 2d locations
+        xy_locs_ = np.meshgrid(np.arange(place_img.shape[1]),
+                               np.arange(place_img.shape[0]))
+        xy_locs = np.vstack((xy_locs_[0].flatten(), xy_locs_[1].flatten())).T
 
     for img in img_list:
         #np.ones(img.shape, dtype=np.uint8) * 255
@@ -157,6 +177,31 @@ def montage(img_list, dsize, rng=np.random):
         qh = (h / 3.0)
         tx_pdf = (-qw, dsize[0] + qw)
         ty_pdf = (-qh, dsize[1] + qh)
+        #txy_pdf = []
+
+        if use_placement_prob:
+            # Enumerate probability of valid 2d locations
+            # Renomralize place image
+            np.divide(place_img, place_img.sum(), out=place_img)
+            #import utool
+            #utool.embed()
+            if True:
+                window_frac = .125
+                w = h = int(round(min(dst.shape[0:2]) * window_frac))
+                element = cv2.getStructuringElement(cv2.MORPH_CROSS, (w, h))
+                place_img_ = place_img
+                place_img_ = cv2.erode(place_img_, element)
+                np.divide(place_img_, place_img_.sum(), out=place_img_)
+                xy_prob = place_img_.flatten()
+            else:
+                xy_prob = place_img.flatten()
+            xy_loc_idxs = np.arange(len(xy_locs))
+            #np.ones(img.shape, dtype=np.uint8) * 255
+            # overwrite tx_pdf with a better value
+            idx = rng.choice(xy_loc_idxs, size=1, replace=True, p=xy_prob)
+            tx, ty = xy_locs[idx][0]
+            tx_pdf = (tx, tx)
+            ty_pdf = (ty, ty)
 
         Aff = vt.random_affine_transform(
             tx_pdf=tx_pdf, ty_pdf=ty_pdf,
@@ -166,7 +211,35 @@ def montage(img_list, dsize, rng=np.random):
         cv2.warpAffine(img, Aff[0:2], dsize, dst=dst,
                        flags=cv2.INTER_LANCZOS4,
                        borderMode=cv2.BORDER_TRANSPARENT)
+
+        if use_placement_prob:
+            # Denote that an image has been placed here.
+            patch = vt.gaussian_patch(img.shape[0:2], np.array(img.shape[0:2]) * .3)
+            #np.add(patch, min(0, patch.min()), out=patch)
+            np.divide(patch, patch.max(), out=patch)
+            np.subtract(1, patch, out=patch)
+            #patch[:] = 0
+            # Reset temp image
+            temp_img[:] = 1
+            # Align patch with placement image
+            cv2.warpAffine(patch, Aff[0:2], dsize, dst=temp_img,
+                           flags=cv2.INTER_LANCZOS4,
+                           borderMode=cv2.BORDER_TRANSPARENT)
+            # Renormalize image
+            #np.add(temp_img, min(0, temp_img.min()), out=temp_img)
+            #np.divide(temp_img, temp_img.max(), out=temp_img)
+            np.clip(temp_img, 0, 1, out=temp_img)
+            # Blend with placement probability image
+            np.multiply(temp_img, place_img, out=place_img)
+
         #(255 - get_pixel_dist(dst, 0)) / 255
+    if return_debug:
+        debug_info = {}
+        if use_placement_prob:
+            debug_info['place_img'] = place_img
+            debug_info['place_img_'] = place_img_
+        return dst, debug_info
+
     return dst
 
 

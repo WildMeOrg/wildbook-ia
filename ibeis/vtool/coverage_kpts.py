@@ -89,9 +89,7 @@ def make_kpts_coverage_mask(
     chipshape = chipsize[::-1]
     # Warp patches onto a scaled image
     dstimg = warp_patch_onto_kpts(
-        kpts, patch, chipshape,
-        weights=weights,
-        out=out,
+        kpts, patch, chipshape, weights=weights, out=out,
         cov_scale_factor=cov_scale_factor,
         cov_agg_mode=cov_agg_mode,
         cov_remove_shape=cov_remove_shape,
@@ -216,7 +214,8 @@ def warp_patch_onto_kpts(
         # Transform the source image to the keypoint ellipse
         kpts_T = np.array([vt.translation_mat3x3(x, y) for (x, y) in vt.get_xys(kpts).T])
         if not cov_remove_scale:
-            kpts_S = np.array([vt.scale_mat3x3(np.sqrt(scale)) for scale in vt.get_scales(kpts).T])
+            kpts_S = np.array([vt.scale_mat3x3(np.sqrt(scale))
+                               for scale in vt.get_scales(kpts).T])
         # Adjust for the requested scale factor
         S2 = vt.scale_mat3x3(cov_scale_factor, cov_scale_factor)
         #perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
@@ -226,7 +225,8 @@ def warp_patch_onto_kpts(
             M_list = reduce(vt.matrix_multiply, (S2, kpts_T, T1))
     # </HACK>
     else:
-        M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, cov_scale_factor)
+        M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape,
+                                                            cov_scale_factor)
     affmat_list = M_list[:, 0:2, :]
     weight_list = weights
     # For each keypoint warp a gaussian scaled by the feature score into the image
@@ -292,7 +292,8 @@ def warped_patch_generator(
         yield warped
 
 
-def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_norm_01=True):
+def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3,
+                              gauss_norm_01=True):
     r"""
     2d gaussian image useful for plotting
 
@@ -325,6 +326,7 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
 
 
 def get_coverage_kpts_gridsearch_configs():
+    """ testing function """
     varied_dict = {
         'cov_agg_mode'           : ['max', 'sum'],
         #'cov_blur_ksize'         : [(19, 19), (5, 5)],
@@ -363,6 +365,8 @@ def get_coverage_kpts_gridsearch_configs():
 
 def gridsearch_kpts_coverage_mask():
     """
+    testing function
+
     CommandLine:
         python -m vtool.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
 
@@ -377,7 +381,8 @@ def gridsearch_kpts_coverage_mask():
     cfgdict_list, cfglbl_list = get_coverage_kpts_gridsearch_configs()
     kpts, chipsize, weights = testdata_coverage('easy1.png')
     imgmask_list = [
-        255 *  make_kpts_coverage_mask(kpts, chipsize, weights, return_patch=False, **cfgdict)
+        255 *  make_kpts_coverage_mask(kpts, chipsize, weights,
+                                       return_patch=False, **cfgdict)
         for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
     ]
     #NORMHACK = True
@@ -394,6 +399,7 @@ def gridsearch_kpts_coverage_mask():
 
 
 def testdata_coverage(fname=None):
+    """ testing function """
     import vtool as vt
     # build test data
     kpts, vecs = vt.dummy.get_testdata_kpts(fname, with_vecs=True)
@@ -416,6 +422,7 @@ def testdata_coverage(fname=None):
 
 def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
                       show_mask_kpts=False):
+    """ testing function """
     import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()

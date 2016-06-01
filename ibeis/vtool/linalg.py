@@ -517,6 +517,7 @@ def random_affine_args(zoom_pdf=None,
                        enable_stretch=False,
                        default_distribution='uniform',
                        scalar_anchor='reflect',  # 0
+                       txy_pdf=None,
                        rng=np.random):
     r"""
 
@@ -596,8 +597,14 @@ def random_affine_args(zoom_pdf=None,
 
     theta = param_distribution(theta_pdf)
     shear = param_distribution(shear_pdf)
-    tx = param_distribution(tx_pdf)
-    ty = param_distribution(ty_pdf)
+    if txy_pdf is not None:
+        assert tx_pdf is None, 'cannot specify both'
+        assert ty_pdf is None, 'cannot specify both'
+        xy_locs, xy_probs = txy_pdf
+        tx = param_distribution(tx_pdf)
+    else:
+        tx = param_distribution(tx_pdf)
+        ty = param_distribution(ty_pdf)
 
     flip = enable_flip and (rng.randint(2) > 0)  # flip half of the time
     if flip:
