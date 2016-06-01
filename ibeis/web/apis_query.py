@@ -571,12 +571,10 @@ def query_chips(ibs, qaid_list=None,
     else:
         # Check for consistency
         if qreq_ is not None:
-            ut.assert_lists_eq(
-                qreq_.qaids, qaid_list,
-                'qaids do not agree with qreq_', verbose=True)
-            ut.assert_lists_eq(
-                qreq_.daids, daid_list,
-                'daids do not agree with qreq_', verbose=True)
+            ut.assert_lists_eq(qreq_.qaids, qaid_list,
+                               'qaids do not agree with qreq_', verbose=True)
+            ut.assert_lists_eq(qreq_.daids, daid_list,
+                               'daids do not agree with qreq_', verbose=True)
         if qreq_ is None:
             qreq_ = ibs.new_query_request(qaid_list, daid_list,
                                           cfgdict=cfgdict, verbose=verbose)
@@ -591,6 +589,8 @@ def query_chips(ibs, qaid_list=None,
                 ibs,  qaid_list, daid_list, use_cache, use_bigcache,
                 cfgdict=cfgdict, qreq_=qreq_,
                 verbose=verbose, save_qcache=save_qcache, prog_hook=prog_hook)
+
+        assert isinstance(cm_list, list), 'Chip matches were not returned as a list'
 
     if return_cm_dict or return_cm_simple_dict:
         # Convert to cm_list

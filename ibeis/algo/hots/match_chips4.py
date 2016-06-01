@@ -36,8 +36,8 @@ def empty_query(ibs, qaids):
     Hack to give an empty query a query result object
 
     Args:
-        ibs (IBEISController):  ibeis controller object
-        qaids (?):
+        ibs (ibeis.IBEISController):  ibeis controller object
+        qaids (list):
 
     Returns:
         tuple: (qaid2_cm, qreq_)
@@ -72,6 +72,7 @@ def empty_query(ibs, qaids):
 
 
 def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
+    """ depricate """
     assert len(qreq_.qaids) > 0, ' no current query aids'
     if len(qreq_.daids) == 0:
         print('[mc4] WARNING no daids... returning empty query')
@@ -85,7 +86,7 @@ def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
 @profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, cfgdict=None, qreq_=None,
-                         verbose=pipeline.VERB_PIPELINE, save_qcache=None,
+                         verbose=None, save_qcache=None,
                          prog_hook=None):
     """
     The standard query interface.
@@ -96,7 +97,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     individually.  On an individual cache miss, it preforms the query.
 
     Args:
-        ibs (IBEISController) : ibeis control object
+        ibs (ibeis.IBEISController) : ibeis control object
         qaid_list (list): query annotation ids
         daid_list (list): database annotation ids
         use_cache (bool):
@@ -121,6 +122,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         >>> qaid2_cm = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache, qreq_=qreq_)
     """
     # Get flag defaults if necessary
+    if verbose is None:
+        verbose = pipeline.VERB_PIPELINE
     if use_cache is None:
         use_cache = USE_CACHE
     if save_qcache is None:
@@ -153,10 +156,11 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
             # Try and load directly from a big cache
             try:
                 qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+                cm_list = [qaid2_cm[qaid] for qaid in qaid_list]
             except (IOError, AttributeError):
                 pass
             else:
-                return qaid2_cm
+                return cm_list
     # ------------
     # Execute query request
     qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=verbose)
@@ -172,8 +176,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
 def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, batch_size=None):
     """
     Args:
-        ibs (IBEISController):
-        qreq_ (QueryRequest):
+        ibs (ibeis.IBEISController):
+        qreq_ (ibeis.QueryRequest):
         use_cache (bool):
 
     Returns:
@@ -262,7 +266,6 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         other = cm_ = qaid2_cm_[qaid]
         cm = qaid2_cm[qaid]
     """
-    #print('[q1] execute_query_and_save_L1()')
     if use_cache:
         if ut.VERBOSE:
             print('[mc4] cache-query is on')
@@ -344,25 +347,22 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
     else:
         hots_batch_size = batch_size
     chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
-    # Iterate over vsone queries in chunks. This ensures that we dont lose
-    # too much time if a qreq_ crashes after the 2000th nn index.
+    # Iterate over vsone queries in chunks.
+    # This minimizes lost computation if a qreq_ crashes
     nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
     qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
-    _qreq_iter = (
-        qreq_.shallowcopy(qaids=qaids)
-        for qaids in qaid_chunk_iter
-    )
-    sub_qreq_iter = ut.ProgressIter(
-        _qreq_iter, nTotal=nTotalChunks, freq=1,
-        lbl='[mc4] query chunk: ',
-        prog_hook=qreq_.prog_hook)
+    _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
+    sub_qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
+                                    lbl='[mc4] query chunk: ',
+                                    prog_hook=qreq_.prog_hook)
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')
-        sub_cm_list = pipeline.request_ibeis_query_L0(
-            ibs, sub_qreq_, verbose=verbose)
-        assert len(sub_qreq_.qaids) == len(sub_cm_list)
-        assert all([qaid == cm.qaid for qaid, cm in zip(sub_qreq_.qaids, sub_cm_list)])
+        sub_cm_list = pipeline.request_ibeis_query_L0(ibs, sub_qreq_,
+                                                      verbose=verbose)
+        assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
+        assert all([qaid == cm.qaid for qaid, cm in
+                    zip(sub_qreq_.qaids, sub_cm_list)]), 'not corresonding'
         if save_qcache:
             fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.qaids)
             _iter = zip(sub_cm_list, fpath_list)
@@ -381,7 +381,6 @@ if __name__ == '__main__':
     """
     python -m ibeis.algo.hots.match_chips4
     python -m ibeis.algo.hots.match_chips4 --allexamples --testslow
-    python -m ibeis.algo.hots.match_chips4 --test-execute_query_and_save_L1
     """
     import multiprocessing
     multiprocessing.freeze_support()

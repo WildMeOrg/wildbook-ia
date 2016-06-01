@@ -427,11 +427,13 @@ def get_query_result_info(qreq_):
     qaids = qreq_.qaids
     qnids = ibs.get_annot_name_rowids(qaids)
 
-    unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
+    import utool
+    with utool.embed_on_exception_context:
+        unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
 
-    unique_qnids, groupxs = vt.group_indices(qnids)
-    cm_group_list = ut.apply_grouping(cm_list, groupxs)
-    qnid2_aggnamescores = {}
+        unique_qnids, groupxs = vt.group_indices(qnids)
+        cm_group_list = ut.apply_grouping(cm_list, groupxs)
+        qnid2_aggnamescores = {}
 
     qnx2_nameres_info = []
 
