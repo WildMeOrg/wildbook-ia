@@ -20,7 +20,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis --tf autogen_ipynb --run --db lynx
 
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample
+        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
 
         python -m ibeis --tf autogen_ipynb --db PZ_MTEST
         # TODO: Add support for dbdir to be specified
@@ -81,6 +81,7 @@ def get_default_cell_template_list(ibs):
 
     noexample = ut.get_argflag('--noexample')
     asreport = ut.get_argflag('--asreport')
+    withtags = ut.get_argflag('--withtags')
 
     cell_template_list = []
 
@@ -121,9 +122,14 @@ def get_default_cell_template_list(ibs):
         cells.failure_type1_cases,
         cells.failure_type2_cases,
         cells.timedelta_distribution,
-        #cells.investigate_specific_case,
-        #cells.view_intereseting_tags,
     ]
+
+    if withtags:
+        cell_template_list += [
+            cells.investigate_specific_case,
+            cells.view_intereseting_tags,
+        ]
+
 
     if asreport:
         # Append our debug stuff at the bottom
