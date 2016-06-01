@@ -492,6 +492,37 @@ def extract_axes_extents(fig):
     #fig.savefig(subpath, bbox_inches=extent, **savekw)
 
 
+def get_save_directions():
+    from os.path import join
+    fpath = None
+    fpath_ = ut.get_argval('--save', type_=str, default=None)
+    if fpath_ is not None:
+        print('Figure save was requested')
+        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'],
+                                   type_hints={'t': list, 'a': list})
+        #import sys
+
+        #print(sys.argv)
+        #ut.print_dict(arg_dict)
+        # HACK
+        arg_dict = {
+            key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']')
+            if isinstance(val, list) else val
+            for key, val in arg_dict.items()
+        }
+        fpath_ = fpath_.format(**arg_dict)
+        fpath_ = ut.remove_chars(fpath_, ' \'"')
+        dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
+        print('dpath = %r' % (dpath,))
+        if not gotdpath and ut.is_developer():
+            # HACK use utool profile here
+            print('USING DEV CAND DIR')
+            dpath = ut.truepath('~/latex/crall-cand')
+
+        fpath = join(dpath, fpath_)
+    return fpath
+
+
 def show_if_requested(N=1):
     """
     Used at the end of tests. Handles command line arguments for saving figures
