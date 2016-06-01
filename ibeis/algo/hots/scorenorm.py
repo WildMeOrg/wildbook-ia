@@ -437,7 +437,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
         python -m ibeis.algo.hots.scorenorm --exec-get_training_featscores
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
@@ -458,7 +458,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
     tp_fsvs_list = []
     tn_fsvs_list = []
 
-    cm_list = [ cm_list[key] for key in sorted(cm_list.keys()) ]
+    #cm_list = [ cm_list[key] for key in sorted(cm_list.keys()) ]
     # Train on only positive examples
     trainable = [
         qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list) and

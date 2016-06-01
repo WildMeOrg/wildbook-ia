@@ -423,8 +423,10 @@ def get_query_result_info(qreq_):
         ibs = qreq_.depc.controller
     import vtool as vt
     cm_list = qreq_.execute()
+    #qreq_.ibs.query_chips(qreq_=qreq_, use_bigcache=False)
     qx2_cm = cm_list
     qaids = qreq_.qaids
+    #qaids2 = [cm.qaid for cm in cm_list]
     qnids = ibs.get_annot_name_rowids(qaids)
 
     import utool
