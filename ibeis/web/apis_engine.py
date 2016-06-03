@@ -234,10 +234,13 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 @register_ibs_method
 # @accessor_decors.default_decorator
 @register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
-def start_identify_annots_query(ibs, query_annot_uuid_list=None,
-                                query_annot_name_uuid_list=None,
+def start_identify_annots_query(ibs,
+                                query_annot_uuid_list=None,
+                                # query_annot_name_uuid_list=None,
+                                query_annot_name_list=None,
                                 database_annot_uuid_list=None,
-                                database_annot_name_uuid_list=None,
+                                # database_annot_name_uuid_list=None,
+                                database_annot_name_list=None,
                                 matching_state_list=[],
                                 query_config_dict={},
                                 echo_query_params=True,
@@ -251,11 +254,11 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
     Args:
         query_annot_uuid_list (list) : specifies the query annotations to
             identify.
-        query_annot_name_uuid_list (list) : specifies the query annotation names
+        query_annot_name_list (list) : specifies the query annotation names
         database_annot_uuid_list (list) : specifies the annotations that the
             algorithm is allowed to use for identification.  If not
             specified all annotations are used.   (default=None)
-        database_annot_name_uuid_list (list) : specifies the database annotation
+        database_annot_name_list (list) : specifies the database annotation
             names (default=None)
         matching_state_list (list of tuple) : the list of matching state
             3-tuples corresponding to the query_annot_uuid_list (default=None)
@@ -281,7 +284,7 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> query_config_dict = {
-        >>>     'pipeline_root' : 'BC_DTW'
+        >>>     #'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -305,18 +308,21 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
         return state
 
     # HACK
-    if query_annot_uuid_list is None:
-        if True:
-            query_annot_uuid_list = []
-        else:
-            query_annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids()[0:1])
+    # if query_annot_uuid_list is None:
+    #     if True:
+    #         query_annot_uuid_list = []
+    #     else:
+    #         query_annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids()[0:1])
+
+    dname_list = database_annot_name_list
+    qname_list = query_annot_name_list
 
     # Check inputs
     assert len(query_annot_uuid_list) == 1, 'Can only identify one query annotation at a time. Got %d ' % (len(query_annot_uuid_list),)
-    if query_annot_name_uuid_list is not None:
-        assert len(query_annot_uuid_list) == len(query_annot_name_uuid_list)
-    if database_annot_uuid_list is not None and database_annot_name_uuid_list is not None:
-        assert len(database_annot_uuid_list) == len(database_annot_name_uuid_list)
+    if qname_list is not None:
+        assert len(query_annot_uuid_list) == len(qname_list)
+    if database_annot_uuid_list is not None and dname_list is not None:
+        assert len(database_annot_uuid_list) == len(dname_list)
 
     # Check UUIDs
     ibs.web_check_uuids([], query_annot_uuid_list, database_annot_uuid_list)
@@ -332,31 +338,24 @@ def start_identify_annots_query(ibs, query_annot_uuid_list=None,
     qannot_uuid_list = ensure_uuid_list(query_annot_uuid_list)
     dannot_uuid_list = ensure_uuid_list(database_annot_uuid_list)
 
+    # Ensure annotations
     qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
-    if dannot_uuid_list is None:
+    if dannot_uuid_list is None or (len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None):
+        # VERY HACK
         daid_list = ibs.get_valid_aids()
-        #None
     else:
-        if len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None:
-            # VERY HACK
-            daid_list = ibs.get_valid_aids()
-        else:
-            daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
+        daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
-    if query_annot_name_uuid_list is None:
-        qnid_list = ibs.get_annot_nids(qaid_list)
-    else:
+    # Ensure names
+    # FIXME: THE QREQ STRUCTURE SHOULD HANDLE NAMES.
+    if qname_list is not None:
         # Set names for query annotations
-        qname_list = [ str(_) for _ in query_annot_name_uuid_list ]
-        qnid_list = ibs.add_names(qname_list, query_annot_name_uuid_list)
+        qnid_list = ibs.add_names(qname_list)
         ibs.set_annot_name_rowids(qaid_list, qnid_list)
 
-    if database_annot_name_uuid_list is None:
-        qnid_list = ibs.get_annot_nids(daid_list)
-    else:
+    if dname_list is not None:
         # Set names for database annotations
-        dname_list = [ str(_) for _ in database_annot_name_uuid_list ]
-        dnid_list = ibs.add_names(dname_list, database_annot_name_uuid_list)
+        dnid_list = ibs.add_names(dname_list)
         ibs.set_annot_name_rowids(daid_list, dnid_list)
 
     # Convert annot UUIDs to aids for matching_state_list into user_feedback for query

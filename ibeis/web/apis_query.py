@@ -389,7 +389,8 @@ def query_chips_test(ibs, **kwargs):
 
 @register_ibs_method
 @register_api('/api/query/graph/', methods=['GET'])
-def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None, query_config_dict={}, echo_query_params=True):
+def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
+                      query_config_dict={}, echo_query_params=True):
     from ibeis.algo.hots.chip_match import AnnotInference
     import uuid
 
@@ -413,6 +414,8 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None, query_confi
             'dannot_uuid_list'      : ibs.get_annot_uuids(cm.daid_list),
             # 'dnid_list'             : cm.dnid_list,
             'dname_uuid_list'       : [convert_to_uuid(nid) for nid in cm.dnid_list],
+            # FIXME: use qreq_ state not ibeis state
+            'dname_list'            : ibs.get_name_texts(cm.dnid_list),
             'score_list'            : cm.score_list,
             'annot_score_list'      : cm.annot_score_list,
             'fm_list'               : cm.fm_list if hasattr(cm, 'fm_list') else None,
@@ -420,6 +423,8 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None, query_confi
             # Non-corresponding lists to above
             # 'unique_nids'         : cm.unique_nids,
             'unique_name_uuid_list' : [convert_to_uuid(nid) for nid in cm.unique_nids],
+            # FIXME: use qreq_ state not ibeis state
+            'unique_name_list'      : ibs.get_name_texts(cm.unique_nids),
             'name_score_list'       : cm.name_score_list,
             # Placeholders for the reinitialization of the ChipMatch object
             'fk_list'               : None,
