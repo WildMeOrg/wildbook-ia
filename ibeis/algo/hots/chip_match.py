@@ -94,8 +94,13 @@ def prepare_dict(class_dict, ibs):
         qnid = -qaid if qnid == ibs.const.UNKNOWN_NAME_ROWID else qnid
         class_dict['qnid'] = qnid
     if 'unique_nids' not in class_dict and 'unique_name_list' in class_dict:
-        unique_nids = ibs.get_name_rowids_from_text(class_dict['unique_name_list'])
-        class_dict['unique_nids'] = unique_nids
+        # FIXME: there is no notion of which names belong to this nid
+        # unique_nids = ibs.get_name_rowids_from_text(class_dict['unique_name_list'])
+        # class_dict['unique_nids'] = unique_nids
+        dnid_list = class_dict['dnid_list']
+        # This will probably work... for the short term
+        unique_nids_, name_groupxs_ = vt.group_indices(np.array(dnid_list))
+        class_dict['unique_nids'] = unique_nids_
     return class_dict
 
 

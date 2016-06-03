@@ -278,11 +278,17 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     if view_orientation not in ['vertical', 'horizontal']:
         view_orientation = 'horizontal'
 
-    print('[!!!!] review_pair = %r' % (review_pair,))
-    #??? hack
-    review_pair = review_pair[0]
-    annot_uuid_1 = review_pair['annot_uuid_1']
-    annot_uuid_2 = review_pair['annot_uuid_2']
+    # unpack info
+    try:
+        annot_uuid_1 = review_pair['annot_uuid_1']
+        annot_uuid_2 = review_pair['annot_uuid_2']
+    except Exception:
+        #??? HACK
+        # FIXME:
+        print('[!!!!] review_pair = %r' % (review_pair,))
+        review_pair = review_pair[0]
+        annot_uuid_1 = review_pair['annot_uuid_1']
+        annot_uuid_2 = review_pair['annot_uuid_2']
     aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
 
@@ -343,6 +349,20 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
 
 @register_route('/test/review/query/chips/', methods=['GET'])
 def review_query_chips_test():
+    """
+    CommandLine:
+        python -m ibeis.web.apis_query review_query_chips_test --show
+
+    Example:
+        >>> # SCRIPT
+        >>> import ibeis
+        >>> #web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> #import webbrowser
+        >>> #webbrowser.open(web_ibs.baseurl + '/test/review/query/chips/?__format__=True')
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, url_suffix='/test/review/query/chips/?__format__=True')
+    """
     ibs = current_app.ibs
 
     use_bc_dtw = 'use_bc_dtw' in request.args
