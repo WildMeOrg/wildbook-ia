@@ -74,6 +74,31 @@ def check_arrs_eq(arr1, arr2):
         return False
 
 
+def prepare_dict(class_dict, ibs):
+    class_dict = class_dict.copy()
+    if 'qaid' not in class_dict and 'qannot_uuid' in class_dict:
+        class_dict['qaid'] = ibs.get_annot_aids_from_uuid(class_dict['qannot_uuid'])
+    if 'daid_list' not in class_dict and 'dannot_uuid_list' in class_dict:
+        class_dict['daid_list'] = ibs.get_annot_aids_from_uuid(class_dict['dannot_uuid_list'])
+    if 'dnid_list' not in class_dict and 'dannot_uuid_list' in class_dict:
+        daid_list = class_dict['daid_list']
+        dnid_list = ibs.get_name_rowids_from_text(class_dict['dname_list'])
+        # if anything is unknown need to set to be negative daid
+        dnid_list = [-daid if dnid == ibs.const.UNKNOWN_NAME_ROWID else dnid
+                     for daid, dnid in zip(daid_list, dnid_list)]
+        class_dict['dnid_list'] = dnid_list
+    if 'qnid' not in class_dict and 'qname' in class_dict:
+        qnid = ibs.get_name_rowids_from_text(class_dict['qname'])
+        # if anything is unknown need to set to be negative daid
+        qaid = class_dict['qaid']
+        qnid = -qaid if qnid == ibs.const.UNKNOWN_NAME_ROWID else qnid
+        class_dict['qnid'] = qnid
+    if 'unique_nids' not in class_dict and 'unique_name_list' in class_dict:
+        unique_nids = ibs.get_name_rowids_from_text(class_dict['unique_name_list'])
+        class_dict['unique_nids'] = unique_nids
+    return class_dict
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference(object):
     """ Make name inferences about a series of AnnotMatches
@@ -1121,6 +1146,19 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
     annotaions / names. This does not include algorithm specific feature
     matches.
     """
+
+    _attr_names = [
+        'qaid',
+        'qnid',
+        'daid_list',
+        'dnid_list',
+        'H_list',
+        'score_list',
+        'annot_score_list',
+        'unique_nids',
+        'name_score_list',
+    ]
+
     def __init__(cm, *args, **kwargs):
         cm.qaid = None
         cm.qnid = None
@@ -1163,6 +1201,32 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         cm.nid2_nidx = None  # maps onto cm.unique_nids
         cm.name_groupxs = None
 
+    def initialize(cm, qaid=None, daid_list=None, score_list=None,
+                   dnid_list=None, qnid=None,
+                   unique_nids=None, name_score_list=None,
+                   annot_score_list=None, autoinit=True):
+        """
+        qaid and daid_list are not optional. fm_list and fsv_list are strongly
+        encouraged and will probalby break things if they are not there.
+        """
+        cm.qaid         = qaid
+        cm.daid_list    = safeop(np.array, daid_list, dtype=hstypes.INDEX_TYPE)
+        cm.score_list   = safeop(np.array, score_list, dtype=hstypes.FLOAT_TYPE)
+        # name info
+        cm.qnid = qnid
+        cm.dnid_list = safeop(np.array, dnid_list, dtype=hstypes.INDEX_TYPE)
+        cm.unique_nids = safeop(np.array, unique_nids, dtype=hstypes.INDEX_TYPE)
+        cm.name_score_list = safeop(np.array, name_score_list, dtype=hstypes.FLOAT_TYPE)
+        cm.annot_score_list = safeop(np.array, annot_score_list, dtype=hstypes.FLOAT_TYPE)
+
+        # TODO: have subclass or dict for special scores
+        if autoinit:
+            cm._update_daid_index()
+            if cm.dnid_list is not None:
+                cm._update_unique_nid_index()
+            if DEBUG_CHIPMATCH:
+                cm.assert_self(verbose=True)
+
     def as_simple_dict(cm, keys=[]):
         state_dict = cm.__getstate__()
         keys = ['qaid', 'daid_list', 'score_list'] + keys
@@ -1181,6 +1245,37 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
             class_dict['qannot_uuid'] = ibs.get_annot_uuids(cm.qaid)
             class_dict['qname'] = ibs.get_name_texts(cm.qnid)
         return class_dict
+
+    @classmethod
+    def from_dict(cls, class_dict, ibs=None):
+        r"""
+        Convert dict of arguments back to ChipMatch object
+        """
+
+        def convert_numpy_lists(arr_list, dtype):
+            return [np.array(arr, dtype=dtype) for arr in arr_list]
+
+        def convert_numpy(arr, dtype):
+            return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
+
+        key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
+        key_list.remove('autoinit')
+        if ut.VERBOSE:
+            other_keys = list(set(class_dict.keys()) - set(key_list))
+            if len(other_keys) > 0:
+                print('Not unserializing extra attributes: %s' % (
+                    ut.list_str(other_keys)))
+
+        if ibs is not None:
+            class_dict = prepare_dict(class_dict, ibs)
+
+        dict_subset = ut.dict_subset(class_dict, key_list)
+        dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
+                                                  hstypes.FS_DTYPE)
+
+        cm = cls()
+        cm.initialize(**dict_subset)
+        return cm
 
     def _custom_str(cm):
         r"""
@@ -2130,27 +2225,7 @@ class ChipMatch(_ChipMatchVisualization,
                     ut.list_str(other_keys)))
 
         if ibs is not None:
-            class_dict = class_dict.copy()
-            if 'qaid' not in class_dict and 'qannot_uuid' in class_dict:
-                class_dict['qaid'] = ibs.get_annot_aids_from_uuid(class_dict['qannot_uuid'])
-            if 'daid_list' not in class_dict and 'dannot_uuid_list' in class_dict:
-                class_dict['daid_list'] = ibs.get_annot_aids_from_uuid(class_dict['dannot_uuid_list'])
-            if 'dnid_list' not in class_dict and 'dannot_uuid_list' in class_dict:
-                daid_list = class_dict['daid_list']
-                dnid_list = ibs.get_name_rowids_from_text(class_dict['dname_list'])
-                # if anything is unknown need to set to be negative daid
-                dnid_list = [-daid if dnid == ibs.const.UNKNOWN_NAME_ROWID else dnid
-                             for daid, dnid in zip(daid_list, dnid_list)]
-                class_dict['dnid_list'] = dnid_list
-            if 'qnid' not in class_dict and 'qname' in class_dict:
-                qnid = ibs.get_name_rowids_from_text(class_dict['qname'])
-                # if anything is unknown need to set to be negative daid
-                qaid = class_dict['qaid']
-                qnid = -qaid if qnid == ibs.const.UNKNOWN_NAME_ROWID else qnid
-                class_dict['qnid'] = qnid
-            if 'unique_nids' not in class_dict and 'unique_name_list' in class_dict:
-                unique_nids = ibs.get_name_rowids_from_text(class_dict['unique_name_list'])
-                class_dict['unique_nids'] = unique_nids
+            class_dict = prepare_dict(class_dict, ibs)
 
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'],

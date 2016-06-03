@@ -168,6 +168,7 @@ def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
     """
+
     render_config = {
         'dpi'              : 150,
         'draw_fmatches'    : draw_matches,
@@ -184,7 +185,11 @@ def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=
         'draw_lbl'         : False,
         'draw_border'      : False,
     }
-    image = cm.render_single_annotmatch(qreq_, aid, **render_config)
+
+    if hasattr(qreq_, 'render_single_result'):
+        image = qreq_.render_single_result(cm, aid, **render_config)
+    else:
+        image = cm.render_single_annotmatch(qreq_, aid, **render_config)
     #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
     return image
 
@@ -218,7 +223,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
-        >>>     #'pipeline_root' : 'BC_DTW'
+        >>>     'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -233,12 +238,12 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> quuid = quuid_list[0]
         >>> class_dict = auuid2_cm[str(quuid)]
         >>> # Get information in frontend
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> cm = match_obj = ibeis.ChipMatch.from_dict(class_dict, ibs=ibs)
+        >>> #ibs = ibeis.opendb('testdb1')
+        >>> #cm = match_obj = ibeis.ChipMatch.from_dict(class_dict, ibs=ibs)
         >>> #match_obj.print_rawinfostr()
         >>> # Make the dictionary a bit more managable
         >>> #match_obj.compress_top_feature_matches(num=2)
-        >>> class_dict = match_obj.to_dict(ibs=ibs)
+        >>> #class_dict = match_obj.to_dict(ibs=ibs)
         >>> cm_dict = class_dict
         >>> # Package for review
         >>> review_pair = {'annot_uuid_1': quuid, 'annot_uuid_2': duuid_list[1]}
@@ -259,8 +264,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
     """
-    from ibeis.algo.hots.chip_match import ChipMatch
+    from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
     # from ibeis.algo.hots.query_request import QueryRequest
+
+    proot = query_config_dict.get('pipeline_root', 'vsmany')
+    proot = query_config_dict.get('proot', proot)
+    if proot.upper() == 'BC_DTW':
+        cls = AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
+    else:
+        cls = ChipMatch
 
     view_orientation = view_orientation.lower()
     if view_orientation not in ['vertical', 'horizontal']:
@@ -274,7 +286,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
 
-    cm = ChipMatch.from_dict(cm_dict, ibs=ibs)
+    cm = cls.from_dict(cm_dict, ibs=ibs)
     qreq_ = ibs.new_query_request([aid_1], [aid_2],
                                   cfgdict=query_config_dict)
 
