@@ -196,7 +196,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     r"""
     Args:
         ibs (ibeis.IBEISController):  image analysis api
-        review_pair (?):
+        review_pair (dict): pair of annot uuids
         cm_dict (dict):
         query_config_dict (dict):
         _internal_state (?):
@@ -215,10 +215,10 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
-        >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
-        >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
+        >>> quuid_list = uuid_list[0:1]
+        >>> duuid_list = uuid_list
         >>> query_config_dict = {
-        >>>     'pipeline_root' : 'BC_DTW'
+        >>>     #'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -229,24 +229,35 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
         >>> inference_result = result_response['json_result']
-        >>> cm_dict = inference_result['cm_dict']
+        >>> auuid2_cm = inference_result['cm_dict']
         >>> quuid = quuid_list[0]
-        >>> cm = cm_dict[str(quuid)]
-        >>> cm_dict = inference_result['cm_dict']
-        >>> quuid = quuid_list[0]
-        >>> review_pair = [quuid, duuid_list[1]]
-        >>> _internal_state =  None
-        >>> web_ibs.terminate2()
-        >>> callback_url = None
+        >>> class_dict = auuid2_cm[str(quuid)]
+        >>> # Get information in frontend
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cm = match_obj = ibeis.ChipMatch.from_dict(class_dict, ibs=ibs)
+        >>> #match_obj.print_rawinfostr()
+        >>> # Make the dictionary a bit more managable
+        >>> #match_obj.compress_top_feature_matches(num=2)
+        >>> class_dict = match_obj.to_dict(ibs=ibs)
+        >>> cm_dict = class_dict
+        >>> # Package for review
+        >>> review_pair = {'annot_uuid_1': quuid, 'annot_uuid_2': duuid_list[1]}
         >>> callback_method = u'POST'
         >>> view_orientation = u'vertical'
         >>> include_jquery = False
-        >>> #result = review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url, callback_method, view_orientation, include_jquery)
-        >>> print(result)
+        >>> kw = dict(
+        >>>     review_pair=review_pair,
+        >>>     cm_dict=cm_dict,
+        >>>     query_config_dict=query_config_dict,
+        >>>     _internal_state=None,
+        >>>     callback_url = None,
+        >>> )
+        >>> html_str = web_ibs.send_ibeis_request('/api/review/query/graph/', type_='get', **kw)
+        >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
+        >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
-        >>> web_ibs.terminate2()
     """
     from ibeis.algo.hots.chip_match import ChipMatch
     # from ibeis.algo.hots.query_request import QueryRequest
@@ -255,22 +266,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _inter
     if view_orientation not in ['vertical', 'horizontal']:
         view_orientation = 'horizontal'
 
+    print('[!!!!] review_pair = %r' % (review_pair,))
+    #??? hack
+    review_pair = review_pair[0]
     annot_uuid_1 = review_pair['annot_uuid_1']
-    aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     annot_uuid_2 = review_pair['annot_uuid_2']
+    aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
-    cm_dict['qaid'] = ibs.get_annot_aids_from_uuid(cm_dict['qannot_uuid'])
-    cm_dict['qnid'] = ibs.get_name_rowids_from_uuid(cm_dict['qname_uuid'], nid_hack=True)
-    cm_dict['daid_list'] = ibs.get_annot_aids_from_uuid(cm_dict['dannot_uuid_list'])
-    cm_dict['dnid_list'] = ibs.get_name_rowids_from_uuid(cm_dict['dname_uuid_list'], nid_hack=True)
-    cm_dict['unique_nids'] = ibs.get_name_rowids_from_uuid(cm_dict['unique_name_uuid_list'], nid_hack=True)
 
-    # print('review_pair = %r' % (review_pair, ))
-    # print('cm_dict = %r' % (cm_dict, ))
-    # print('query_config_dict = %r' % (query_config_dict, ))
-    # print('_internal_state = %r' % (_internal_state, ))
-
-    cm = ChipMatch.from_dict(cm_dict)
+    cm = ChipMatch.from_dict(cm_dict, ibs=ibs)
     qreq_ = ibs.new_query_request([aid_1], [aid_2],
                                   cfgdict=query_config_dict)
 
@@ -410,6 +414,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
             'qannot_uuid'           : ibs.get_annot_uuids(cm.qaid),
             # 'qnid'                  : cm.qnid,
             'qname_uuid'            : convert_to_uuid(cm.qnid),
+            'qname'                 : ibs.get_name_texts(cm.qnid),
             # 'daid_list'             : cm.daid_list,
             'dannot_uuid_list'      : ibs.get_annot_uuids(cm.daid_list),
             # 'dnid_list'             : cm.dnid_list,
@@ -450,19 +455,11 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
 @register_ibs_method
 @register_api('/api/query/chips/', methods=['GET'])
-def query_chips(ibs, qaid_list=None,
-                daid_list=None,
-                cfgdict=None,
-                use_cache=None,
-                use_bigcache=None,
-                qreq_=None,
-                return_request=False,
-                verbose=pipeline.VERB_PIPELINE,
-                save_qcache=None,
-                prog_hook=None,
-                return_cm_dict=False,
-                return_cm_simple_dict=False,
-                ):
+def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
+                use_cache=None, use_bigcache=None, qreq_=None,
+                return_request=False, verbose=pipeline.VERB_PIPELINE,
+                save_qcache=None, prog_hook=None, return_cm_dict=False,
+                return_cm_simple_dict=False):
     r"""
     Submits a query request to the hotspotter recognition pipeline. Returns
     a list of QueryResult objects.

@@ -395,7 +395,7 @@ def opendb_bg_web(*args, **kwargs):
         except ValueError:
             raise Exception('Expected JSON string but got json_content=%r' % (json_content,))
         else:
-            print('content = %r' % (content,))
+            # print('content = %r' % (content,))
             if content['status']['code'] != 200:
                 print(content['status']['message'])
                 raise Exception(content['status']['message'])

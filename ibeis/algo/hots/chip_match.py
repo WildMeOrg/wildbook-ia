@@ -1169,6 +1169,19 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         simple_dict = ut.dict_subset(state_dict, keys)
         return simple_dict
 
+    def as_dict(cm, *args, **kwargs):
+        return cm.to_dict(*args, **kwargs)
+
+    def to_dict(cm, ibs=None):
+        class_dict = cm.__getstate__()
+        if ibs is not None:
+            assert ibs is not None, 'need ibs to convert uuids'
+            class_dict['dannot_uuid_list'] = ibs.get_annot_uuids(cm.daid_list)
+            class_dict['dname_list'] = ibs.get_name_texts(cm.dnid_list)
+            class_dict['qannot_uuid'] = ibs.get_annot_uuids(cm.qaid)
+            class_dict['qname'] = ibs.get_name_texts(cm.qnid)
+        return class_dict
+
     def _custom_str(cm):
         r"""
         Example:
@@ -1530,7 +1543,8 @@ class ChipMatch(_ChipMatchVisualization,
             #utool.embed()
             #assert id(cm.__class__) > id(ChipMatch)
             super(cm.__class__, cm).__init__(*args, **kwargs)
-            raise
+            if ut.STRICT:
+                raise
         cm.fm_list      = None
         cm.fsv_list     = None
         cm.fk_list      = None
@@ -2096,7 +2110,7 @@ class ChipMatch(_ChipMatchVisualization,
         return cls.from_dict(class_dict)
 
     @classmethod
-    def from_dict(cls, class_dict):
+    def from_dict(cls, class_dict, ibs=None):
         r"""
         Convert dict of arguments back to ChipMatch object
         """
@@ -2114,6 +2128,30 @@ class ChipMatch(_ChipMatchVisualization,
             if len(other_keys) > 0:
                 print('Not unserializing extra attributes: %s' % (
                     ut.list_str(other_keys)))
+
+        if ibs is not None:
+            class_dict = class_dict.copy()
+            if 'qaid' not in class_dict and 'qannot_uuid' in class_dict:
+                class_dict['qaid'] = ibs.get_annot_aids_from_uuid(class_dict['qannot_uuid'])
+            if 'daid_list' not in class_dict and 'dannot_uuid_list' in class_dict:
+                class_dict['daid_list'] = ibs.get_annot_aids_from_uuid(class_dict['dannot_uuid_list'])
+            if 'dnid_list' not in class_dict and 'dannot_uuid_list' in class_dict:
+                daid_list = class_dict['daid_list']
+                dnid_list = ibs.get_name_rowids_from_text(class_dict['dname_list'])
+                # if anything is unknown need to set to be negative daid
+                dnid_list = [-daid if dnid == ibs.const.UNKNOWN_NAME_ROWID else dnid
+                             for daid, dnid in zip(daid_list, dnid_list)]
+                class_dict['dnid_list'] = dnid_list
+            if 'qnid' not in class_dict and 'qname' in class_dict:
+                qnid = ibs.get_name_rowids_from_text(class_dict['qname'])
+                # if anything is unknown need to set to be negative daid
+                qaid = class_dict['qaid']
+                qnid = -qaid if qnid == ibs.const.UNKNOWN_NAME_ROWID else qnid
+                class_dict['qnid'] = qnid
+            if 'unique_nids' not in class_dict and 'unique_name_list' in class_dict:
+                unique_nids = ibs.get_name_rowids_from_text(class_dict['unique_name_list'])
+                class_dict['unique_nids'] = unique_nids
+
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'],
                                                      hstypes.FM_DTYPE)
@@ -2121,6 +2159,7 @@ class ChipMatch(_ChipMatchVisualization,
                                                       hstypes.FS_DTYPE)
         dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
                                                   hstypes.FS_DTYPE)
+
         cm = cls(**dict_subset)
         return cm
 
@@ -2177,9 +2216,6 @@ class ChipMatch(_ChipMatchVisualization,
         """
         json_str = ut.to_json(cm.__dict__)
         return json_str
-
-    def as_dict(cm):
-        return cm.__getstate__()
 
     # --- IO
 
@@ -2579,7 +2615,7 @@ class ChipMatch(_ChipMatchVisualization,
     # Testing Functions
     #------------------
 
-    def assert_self(cm, qreq_=None, strict=False, assert_feats=True,
+    def assert_self(cm, qreq_=None, ibs=None, strict=False, assert_feats=True,
                     verbose=ut.NOT_QUIET):
         def _assert_eq_len(list1_, list2_):
             if list1_ is not None:
@@ -2598,6 +2634,9 @@ class ChipMatch(_ChipMatchVisualization,
             cm.print_rawinfostr()
             raise
 
+        if ibs is None and qreq_ is not None:
+            ibs = qreq_.ibs
+
         testlog = TestLogger(verbose=verbose)
 
         with testlog.context('lookup score by daid'):
@@ -2611,8 +2650,8 @@ class ChipMatch(_ChipMatchVisualization,
                     testlog.log_failed('score mappings are NOT ok')
 
         with testlog.context('dnid_list = name(daid_list)'):
-            if strict or qreq_ is not None and cm.dnid_list is not None:
-                nid_list = qreq_.ibs.get_annot_name_rowids(cm.daid_list)
+            if strict or ibs is not None and cm.dnid_list is not None:
+                nid_list = ibs.get_annot_name_rowids(cm.daid_list)
                 if not np.all(cm.dnid_list == nid_list):
                     testlog.log_failed('annot aligned nids are NOT ok')
             else:
@@ -2632,13 +2671,13 @@ class ChipMatch(_ChipMatchVisualization,
                         testlog.log_failed('internal dnid name grouping is NOT consistent')
 
             with testlog.context('allsame(name(grouped(daid_list)))'):
-                if qreq_ is None:
+                if ibs is None:
                     testlog.skip_test()
                 else:
                     # this might fail if this result is old and the names have changed
                     grouped_aids = vt.apply_grouping(cm.daid_list, cm.name_groupxs)
-                    grouped_mapped_nids = qreq_.ibs.unflat_map(
-                        qreq_.ibs.get_annot_name_rowids, grouped_aids)
+                    grouped_mapped_nids = ibs.unflat_map(
+                        ibs.get_annot_name_rowids, grouped_aids)
                     for nids in grouped_mapped_nids:
                         if not ut.allsame(nids):
                             testlog.log_failed(
@@ -2655,7 +2694,7 @@ class ChipMatch(_ChipMatchVisualization,
                         )
                         break
 
-            if qreq_ is not None:
+            if ibs is not None:
                 testlog.start_test('daid_list - unique_nid alignment')
                 for nids, nid in zip(grouped_mapped_nids, cm.unique_nids):
                     if not np.all(nids == nid):

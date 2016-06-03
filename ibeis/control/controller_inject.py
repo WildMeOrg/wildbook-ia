@@ -291,8 +291,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     """
     #print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
-    funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs)
-    print('Calling: %s' % (funcstr,))
+    funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
+    print('[TRANSLATE] Calling: %s' % (funcstr,))
     assert len(args) == 0, 'There should not be any args=%r' % (args,)
 
     try:
@@ -699,8 +699,9 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
     print('[REMOTE] %s' % ('-' * 80, ))
     print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
     print('[REMOTE] \tMethod:  %r' % (remote_api_method, ))
-    print('[REMOTE] \tHeaders: %s' % (ut.dict_str(headers), ))
-    print('[REMOTE] \tKWArgs:  %s' % (ut.dict_str(kwargs), ))
+    if ut.DEBUG2 or ut.VERBOSE:
+        print('[REMOTE] \tHeaders: %s' % (ut.dict_str(headers), ))
+        print('[REMOTE] \tKWArgs:  %s' % (ut.dict_str(kwargs), ))
 
     # Make request to server
     try:
@@ -725,7 +726,9 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
     response = req.text
     converted = ut.from_json(value)
     response = converted.get('response', None)
-    print('response = %s' % (response,))
+    print('[REMOTE] got response')
+    if ut.DEBUG2:
+        print('response = %s' % (response,))
     return response
 
 
