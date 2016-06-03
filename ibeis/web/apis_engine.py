@@ -147,7 +147,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)
         >>> print(result)
         >>> import utool as ut
-        >>> print(ut.to_json(result))
+        >>> #print(ut.to_json(result))
         >>> ibs.close_job_manager()
 
     Example:
@@ -284,7 +284,7 @@ def start_identify_annots_query(ibs,
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> query_config_dict = {
-        >>>     #'pipeline_root' : 'BC_DTW'
+        >>>     'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,

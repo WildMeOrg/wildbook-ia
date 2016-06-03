@@ -463,7 +463,12 @@ class JobInterface(object):
     def get_unpacked_result(jobiface, jobid):
         reply = jobiface.get_job_result(jobid)
         json_result = reply['json_result']
-        result = ut.from_json(json_result)
+        try:
+            result = ut.from_json(json_result)
+        except TypeError as ex:
+            ut.printex(ex, keys=['json_result'], iswarning=True)
+            result = json_result
+            # raise
         #print('Job %r result = %s' % (jobid, ut.repr2(result, truncate=True),))
         return result
 
