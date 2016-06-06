@@ -697,7 +697,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         pt.adjust_subplots2(use_argv=True)
 
 
-def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True, draw_icon=True):
+def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
+                  do_per_annot=True, draw_icon=True, maxrank=5):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -705,7 +706,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
 
     CommandLine:
         python -m ibeis.dev -e draw_rank_cdf
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl:qsize=1 ctrl:qsize=3
         python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a ctrl --show
         python -m ibeis --tf -draw_rank_cdf -t candidacy_baseline -a ctrl --db PZ_MTEST --show
@@ -765,7 +767,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
+        >>> #ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> kwargs = ut.argparse_funckw(draw_rank_cdf)
         >>> result = draw_rank_cdf(ibs, testres, **kwargs)
         >>> ut.show_if_requested()
@@ -816,8 +819,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
     if verbose:
         testres.print_unique_annot_config_stats(ibs)
 
-    maxrank = 5
-    #maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
+    maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
 
     if maxrank is not None:
         maxpos = min(len(cfgx2_cumhist_percent.T), maxrank)
