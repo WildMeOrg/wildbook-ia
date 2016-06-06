@@ -361,7 +361,8 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 @profile
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     r"""
-    Returns a hacky cacheid for neighbor configs
+    Returns a hacky cacheid for neighbor configs.
+    DEPRICATE: This will be replaced by dtool caching
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
@@ -417,11 +418,12 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     else:
         nn_cfgstr      = qreq_.qparams.nn_cfgstr
 
+    chip_cfgstr    = qreq_.qparams.chip_cfgstr
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
     aug_cfgstr = ('aug_quryside' if qreq_.qparams.augment_queryside_hack
                   else '')
-    nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, feat_cfgstr,
+    nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
                               flann_cfgstr, aug_cfgstr])
 
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)

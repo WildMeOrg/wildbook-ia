@@ -59,9 +59,9 @@ from ibeis.algo.hots import neighbor_index
 (print, rrr, profile) = ut.inject2(__name__, '[core_annots]')
 
 
-register_preproc = register_preprocs['annot']
+derived_attribute = register_preprocs['annot']
 register_subprop = register_subprops['annot']
-# dtool.Config.register_func = register_preproc
+# dtool.Config.register_func = derived_attribute
 
 
 def testdata_core(defaultdb='testdb1', size=2):
@@ -96,7 +96,7 @@ class ChipConfig(dtool.Config):
 ChipImgType = dtool.ExternType(vt.imread, vt.imwrite, extkey='ext')
 
 
-@register_preproc(
+@derived_attribute(
     tablename='chips', parents=['annotations'],
     colnames=['img', 'width', 'height', 'M'],
     coltypes=[ChipImgType, int, int, np.ndarray],
@@ -261,7 +261,7 @@ class AnnotMaskConfig(dtool.Config):
     ]
 
 
-@register_preproc(
+@derived_attribute(
     tablename='annotmask', parents=['annotations'],
     colnames=['img', 'width', 'height'],
     coltypes=[('extern', vt.imread), int, int],
@@ -364,7 +364,7 @@ ProbchipImgType = dtool.ExternType(ut.partial(vt.imread, grayscale=True),
                                    vt.imwrite, extern_ext='.png')
 
 
-@register_preproc(
+@derived_attribute(
     tablename='probchip', parents=['annotations'],
     colnames=['img'],
     coltypes=[ProbchipImgType],
@@ -610,7 +610,7 @@ class FeatConfig(dtool.Config):
         return hesaff_param_dict
 
 
-@register_preproc(
+@derived_attribute(
     tablename='feat', parents=['chips'],
     colnames=['num_feats', 'kpts', 'vecs'],
     coltypes=[int, np.ndarray, np.ndarray],
@@ -777,7 +777,7 @@ class FeatWeightConfig(dtool.Config):
     #_parents = [FeatConfig, ProbchipConfig]
 
 
-@register_preproc(
+@derived_attribute(
     tablename='featweight', parents=['feat', 'probchip'],
     colnames=['fwg'],
     coltypes=[np.ndarray],
@@ -1022,7 +1022,7 @@ def test_cut(ibs, parent_rowids_T, score_list2):
                 print('diff = %r' % (diff,))
 
 
-@register_preproc(
+@derived_attribute(
     tablename='vsone', parents=['annotations', 'annotations'],
     colnames=['score', 'match'], coltypes=[float, ChipMatch],
     requestclass=VsOneRequest,
@@ -1208,7 +1208,7 @@ testmode = ut.get_argflag('--testmode')
 
 
 #if 1 or testmode:
-@register_preproc(
+@derived_attribute(
     #tablename='neighbor_index', parents=['annotations*'],
     #tablename='neighbor_index', parents=['annotations'],
     #tablename='neighbor_index', parents=['feat*'],
@@ -1275,7 +1275,7 @@ def compute_neighbor_index(depc, fids_list, config):
 
 if testmode:
     # NOT YET READY
-    @register_preproc(
+    @derived_attribute(
         tablename='feat_neighbs', parents=['featweight', 'neighbor_index'],
         colnames=['qfx2_idx', 'qfx2_dist'], coltypes=[np.ndarray, np.ndarray],
         #configclass=IndexerConfig,
@@ -1337,7 +1337,7 @@ if testmode:
             yield qfx2_idx, qfx2_dist
 
     # NOT YET READY
-    @register_preproc(
+    @derived_attribute(
         tablename='sver', parents=['feat_neighbs'],
         colnames=['chipmatch'], coltypes=[ChipMatch],
         #configclass=IndexerConfig,
@@ -1346,7 +1346,7 @@ if testmode:
     def compute_sver(depc, fid_list, config):
         pass
 
-    @register_preproc(
+    @derived_attribute(
         tablename='vsmany', parents=['sver'],
         colnames=['chipmatch'], coltypes=[ChipMatch],
         #configclass=IndexerConfig,
@@ -1365,7 +1365,7 @@ class LabelerConfig(dtool.Config):
     ]
 
 
-@register_preproc(
+@derived_attribute(
     tablename='labeler', parents=['annotations'],
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
     coltypes=[float, str, str, str, float, dict],

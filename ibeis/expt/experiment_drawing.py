@@ -19,7 +19,8 @@ def scorediff(ibs, testres, f=None, verbose=None):
         testres (ibeis.TestResult):  test result object
         f (None): (default = None)
         verbose (bool):  verbosity flag(default = None)
-CommandLine:
+
+    CommandLine:
         python -m ibeis.expt.experiment_drawing scorediff --db PZ_Master1 -a timectrl -t best --show
 
         python -m ibeis.expt.experiment_drawing scorediff --db humpbacks_fb \
@@ -698,7 +699,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
-                  do_per_annot=True, draw_icon=True, maxrank=5):
+                  do_per_annot=True, draw_icon=True, numranks=3):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -757,12 +758,6 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         ibeis draw_rank_cdf --db GZ_ALL -a ctrl -t default --show
         ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
 
-
-    Ignore:
-        [qreq_.query_config2_.chip_cfgstr for qreq_ in testres.cfgx2_qreq_]
-
-
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -813,18 +808,20 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     color_list = ut.take(color_list, sortx)
     marker_list = ut.take(marker_list, sortx)
     #
+    import utool
+    utool.embed()
 
     figtitle = testres.make_figtitle('Cumulative Rank Histogram')
 
     if verbose:
         testres.print_unique_annot_config_stats(ibs)
 
-    maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
+    numranks = ut.get_argval('--numranks', type_=int, default=numranks)
 
-    if maxrank is not None:
-        maxpos = min(len(cfgx2_cumhist_percent.T), maxrank)
+    if numranks is not None:
+        maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
         cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
-        edges_short = edges[0:min(len(edges), maxrank + 1)]
+        edges_short = edges[0:min(len(edges), numranks + 1)]
 
     #USE_ZOOM = ut.get_argflag('--use-zoom')
     USE_ZOOM = False
@@ -842,14 +839,14 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         #legend_loc='lower right',
         legend_loc='lower right',
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
-        xmin=.5, xmax=maxrank + .5,
+        xmin=.5, xmax=numranks + .5,
         #xpad=.05,
         #**FONTKW
     )
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
-        num_xticks=maxrank,
+        num_xticks=numranks,
         #legend_alpha=.85,
         legend_alpha=.92,
         use_legend=True, pnum=pnum_(), **cumhistkw)
@@ -858,9 +855,9 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
             cfgx2_cumhist_percent, edges=edges, label_list=label_list,
-            num_xticks=maxrank, use_legend=False, pnum=pnum_(), **cumhistkw)
+            num_xticks=numranks, use_legend=False, pnum=pnum_(), **cumhistkw)
         ax2 = pt.gca()
-        pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
+        pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
     #pt.set_figtitle(figtitle, size=14)
     pt.set_figtitle(figtitle)
 

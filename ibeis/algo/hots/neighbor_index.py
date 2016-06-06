@@ -33,6 +33,7 @@ def get_support_data(qreq_, daid_list):
     if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, config2_=qreq_.get_internal_data_config2(), ensure=True)
+        assert list(map(len, fgws_list)) == list(map(len, vecs_list)), 'bad corresponding vecs'
     else:
         fgws_list = None
     # </HACK:featweight>
@@ -468,26 +469,25 @@ class NeighborIndex(object):
         """
         flann_cfgstr_list = []
         use_params_hash = True
+        use_data_hash = True
         if use_params_hash:
             flann_defaults = vt.get_flann_params(nnindexer.flann_params['algorithm'])
-            flann_params_clean = flann_defaults.copy()
+            #flann_params_clean = flann_defaults.copy()
+            flann_params_clean = ut.sort_dict(flann_defaults)
             ut.updateif_haskey(flann_params_clean, nnindexer.flann_params)
             if noquery:
                 ut.delete_dict_keys(flann_params_clean, ['checks'])
             shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
-            short_params = dict([(shortnames.get(key, key), str(val)[0:7])
-                                 for key, val in six.iteritems(flann_params_clean)])
-            #  if key == 'algorithm'])  # or val != flann_defaults.get(key, None)])
+            short_params = ut.odict([(shortnames.get(key, key), str(val)[0:7])
+                                     for key, val in six.iteritems(flann_params_clean)])
             flann_valsig_ = ut.dict_str(
                 short_params, nl=False, explicit=True, strvals=True)
             flann_valsig_ = flann_valsig_.lstrip('dict').replace(' ', '')
             #flann_valsig_ = str(list(flann_params.values()))
             #flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
             flann_cfgstr_list.append('_FLANN(' + flann_valsig_ + ')')
-        use_data_hash = True
         if use_data_hash:
-            idx2_vec = nnindexer.idx2_vec
-            vecs_hashstr = ut.hashstr_arr(idx2_vec, '_VECS')
+            vecs_hashstr = ut.hashstr_arr(nnindexer.idx2_vec, '_VECS')
             flann_cfgstr_list.append(vecs_hashstr)
         flann_cfgstr = ''.join(flann_cfgstr_list)
         return flann_cfgstr
@@ -497,11 +497,10 @@ class NeighborIndex(object):
 
     def get_fpath(nnindexer, cachedir, cfgstr=None):
         _args2_fpath = ut.util_cache._args2_fpath
-        dpath  = cachedir
         prefix = nnindexer.get_prefix()
         cfgstr = nnindexer.get_cfgstr(noquery=True)
         ext    = nnindexer.ext
-        fpath  = _args2_fpath(dpath, prefix, cfgstr, ext, write_hashtbl=False)
+        fpath  = _args2_fpath(cachedir, prefix, cfgstr, ext, write_hashtbl=False)
         print('flann fpath = %r' % (fpath,))
         return fpath
 
@@ -695,8 +694,16 @@ class NeighborIndex(object):
             >>> print(result)
             qfx2_aid.shape = (1257, 4)
         """
-        qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
-        qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
+        try:
+            qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
+            qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
+        except Exception as ex:
+            ut.printex(ex, 'Error occurred in aid lookup. Dumping debug info. Are the neighbors idxs correct?')
+            print('qfx2_nnidx.shape = %r' % (qfx2_nnidx.shape,))
+            print('qfx2_nnidx.max() = %r' % (qfx2_nnidx.max(),))
+            print('qfx2_nnidx.min() = %r' % (qfx2_nnidx.min(),))
+            nnindexer.debug_nnindexer()
+            raise
         return qfx2_aid
 
     def get_nn_featxs(nnindexer, qfx2_nnidx):
@@ -746,9 +753,8 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         #nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
 
     def __nice__(self):
-        def safelen(l):
-            return None if l is None else len(l)
-        return ' nA=%r nV=%r' % (safelen(self.ax2_aid), safelen(self.idx2_vec))
+        return ' nA=%r nV=%r' % (ut.safelen(self.ax2_aid),
+                                 ut.safelen(self.idx2_vec))
 
     @staticmethod
     def get_support(depc, aid_list, config):
