@@ -373,6 +373,11 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False,
         #print('verbose = %r' % (verbose,))
         print('[pt.save_figure] saveax = %r' % (saveax,))
 
+    if False:
+        import plottool as pt
+        extent = pt.extract_axes_extents(fig)
+        savekw['bbox_inches'] = extent
+
     if saveax is not None and saveax is not False:
         if verbose > 0:
             print("\n[pt.save_figure] SAVING ONLY EXTENT saveax=%r\n" % (saveax,))

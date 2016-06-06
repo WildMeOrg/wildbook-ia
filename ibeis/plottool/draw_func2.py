@@ -429,8 +429,13 @@ def udpate_adjust_subplots():
         adjust_subplots(**adjust_kw)
 
 
-def extract_axes_extents(fig):
+def extract_axes_extents(fig, combine=False, pad=0.0):
     import plottool as pt
+
+    # Make sure we draw the axes first so we can
+    # extract positions from the text objects
+    fig.canvas.draw()
+
     def full_extent(axs, pad=0.0):
         """Get the full extent of an axes, including axes labels, tick labels, and
         titles."""
@@ -438,7 +443,7 @@ def extract_axes_extents(fig):
         # are undefined.
         items = []
         for ax in axs:
-            ax.figure.canvas.draw()  # FIXME; is this necessary?
+            #ax.figure.canvas.draw()  # FIXME; is this necessary?
             items += ax.get_xticklabels() + ax.get_yticklabels()
             items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
             items += [ax, ax.title]
@@ -479,17 +484,23 @@ def extract_axes_extents(fig):
         atomic_axes = new_groups
         #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
         # save all rows of each column
-        pass
 
     dpi_scale_trans_inv = fig.dpi_scale_trans.inverted()
-    axes_extents = [full_extent(axs).transformed(dpi_scale_trans_inv)
+    axes_extents = [full_extent(axs, pad).transformed(dpi_scale_trans_inv)
                     for axs in atomic_axes]
+    if combine:
+        if True:
+            # Grab include extents of figure text as well
+            # FIXME: This might break on OSX
+            # http://stackoverflow.com/questions/22667224/bbox-backend
+            renderer = fig.canvas.get_renderer()
+            for mpl_text in fig.texts:
+                bbox = mpl_text.get_window_extent(renderer=renderer)
+                extent = bbox.expanded(1.0 + pad, 1.0 + pad)
+                full_extent = extent.transformed(dpi_scale_trans_inv)
+                axes_extents.append(full_extent)
+        axes_extents = mpl.transforms.Bbox.union(axes_extents)
     return axes_extents
-
-    #savekw['transparent'] = True
-    #savekw['dpi'] = dpi
-    #savekw['edgecolor'] = 'none'
-    #fig.savefig(subpath, bbox_inches=extent, **savekw)
 
 
 def get_save_directions():
@@ -514,10 +525,10 @@ def get_save_directions():
         fpath_ = ut.remove_chars(fpath_, ' \'"')
         dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
         print('dpath = %r' % (dpath,))
-        if not gotdpath and ut.is_developer():
-            # HACK use utool profile here
-            print('USING DEV CAND DIR')
-            dpath = ut.truepath('~/latex/crall-cand')
+        #if False and not gotdpath and ut.is_developer():
+        #    # HACK use utool profile here
+        #    print('USING DEV CAND DIR')
+        #    dpath = ut.truepath('~/latex/crall-cand')
 
         fpath = join(dpath, fpath_)
     return fpath
@@ -566,10 +577,10 @@ def show_if_requested(N=1):
         fpath_ = ut.remove_chars(fpath_, ' \'"')
         dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
         print('dpath = %r' % (dpath,))
-        if not gotdpath and ut.is_developer():
-            # HACK use utool profile here
-            print('USING DEV CAND DIR')
-            dpath = ut.truepath('~/latex/crall-cand')
+        #if False and not gotdpath and ut.is_developer():
+        #    # HACK use utool profile here
+        #    print('USING DEV CAND DIR')
+        #    dpath = ut.truepath('~/latex/crall-cand')
 
         fpath = join(dpath, fpath_)
 
@@ -653,8 +664,18 @@ def show_if_requested(N=1):
                     vt.clipwhite_ondisk(subpath, subpath)
         else:
             # plt.tight_layout()
-            absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
-                                       figsize=False, dpi=dpi)
+            #bbox_inches=extent,
+            if False:
+                absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
+                                           figsize=False, dpi=dpi)
+            else:
+                savekw = {}
+                savekw['transparent'] = fpath.endswith('.png')
+                savekw['dpi'] = dpi
+                savekw['edgecolor'] = 'none'
+                savekw['bbox_inches'] = extract_axes_extents(fig, combine=True)  # replaces need for clipwhite
+                absfpath_ = ut.truepath(fpath)
+                fig.savefig(absfpath_, **savekw)
 
             if CLIP_WHITE:
                 # remove white borders
