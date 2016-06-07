@@ -260,12 +260,12 @@ class _CoreDependencyCache(object):
             root = depc.root_tablename
             children_, parents_ = list(zip(*depc.get_edges()))
             child_to_parents = ut.group_items(children_, parents_)
-            if ut.VERBOSE:
+            if ut.VERYVERBOSE:
                 print('root = %r' % (root,))
                 print('tablename = %r' % (tablename,))
                 print('child_to_parents = %s' % (ut.repr3(child_to_parents),))
             to_root = {tablename: ut.paths_to_root(tablename, root, child_to_parents)}
-            if ut.VERBOSE:
+            if ut.VERYVERBOSE:
                 print('to_root = %r' % (to_root,))
             from_root = ut.reverse_path(to_root, root, child_to_parents)
             dependency_levels_ = ut.get_levels(from_root)
@@ -553,6 +553,13 @@ class _CoreDependencyCache(object):
         return rowid_dict
 
     def _ensure_config(depc, tablekey, config):
+        """
+        Creates a full table configuration with all defaults using config
+
+        Args:
+            tablekey (str): name of the table to grab config from
+            config (dict): may be overspecified or underspecfied
+        """
         configclass = depc.configclass_dict.get(tablekey, None)
         #requestclass = depc.requestclass_dict.get(tablekey, None)
         if configclass is None:
@@ -574,6 +581,10 @@ class _CoreDependencyCache(object):
                 # configs
                 config_ = configclass(**config)
         return config_
+
+    #def get_relevant_subconfigs(depc, tablename, config):
+    #    depc._ensure_config(tablename, config)
+    #    pass
 
     def _get_parent_rowids(depc, table, rowid_dict):
         # FIXME to handle multiedges correctly
