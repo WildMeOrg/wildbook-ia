@@ -148,7 +148,7 @@ def testdata_expts(defaultdb='testdb1',
                    qaid_override=None,
                    daid_override=None,
                    initial_aids=None,
-                   ):
+                   use_cache=None):
     """
     Use this if you want data from an experiment.
     Command line interface to quickly get testdata for test_results.
@@ -156,6 +156,16 @@ def testdata_expts(defaultdb='testdb1',
     Command line flags can be used to specify db, aidcfg, pipecfg, qaid
     override, daid override (and maybe initial aids).
 
+
+    CommandLine:
+        python -m ibeis.init.main_helpers testdata_expts
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs, testres = ibeis.testdata_expts(defaultdb='PZ_MTEST', a='timectrl:qsize=2', t='invar:AI=[False],RI=False', use_cache=False)
+        >>> print('testres = %r' % (testres,))
     """
     if ut.VERBOSE:
         print('[main_helpers] testdata_expts')
@@ -185,17 +195,20 @@ def testdata_expts(defaultdb='testdb1',
     # Hack a cache here
     use_bigtest_cache3 = not ut.get_argflag(('--nocache', '--nocache-hs'))
     use_bigtest_cache3 &= ut.is_developer()
+    if use_cache is not None:
+        use_bigtest_cache3 &= use_cache
     use_bigtest_cache3 &= False
     #use_bigtest_cache3 = True
     if use_bigtest_cache3:
         from os.path import dirname, join
         cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))
-        load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(harness.run_test_configurations2)
+        _load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(harness.run_test_configurations2)
     else:
-        load_testres = harness.run_test_configurations2
-    testres_list = load_testres(
+        _load_testres = harness.run_test_configurations2
+    testres_list = _load_testres(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
-        daid_override=daid_override, initial_aids=initial_aids)
+        daid_override=daid_override, initial_aids=initial_aids,
+        use_cache=use_cache)
     testres = test_result.combine_testres_list(ibs, testres_list)
 
     if ut.VERBOSE:
@@ -344,7 +357,9 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
                                    ut.get_list_column(named_defaults_dict, 'qcfg')))
     # Allow command line override
-    aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list, default=default_aids, return_was_specified=True)
+    aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list,
+                                          default=default_aids,
+                                          return_was_specified=True)
 
     aidcfg = None
     have_aids = aids is not None
@@ -352,10 +367,9 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     #(not aid) or (sa and (not said))
     if need_expand:
         #base_cfg = annotation_configs.single_default
-        aidcfg_combo_list = cfghelpers.parse_cfgstr_list2([a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS, expand_nested=False, is_nestedcfgtype=False)
-        #aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
-        #                                             base_cfg, 'aids',
-        #                                             alias_keys=annotation_configs.ALIAS_KEYS)
+        aidcfg_combo_list = cfghelpers.parse_cfgstr_list2(
+            [a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS,
+            expand_nested=False, is_nestedcfgtype=False)
         aidcfg_combo = aidcfg_combo_list[0]
         if len(aidcfg_combo_list) != 1:
             raise AssertionError('Error: combinations not handled for single cfg setting')

@@ -1040,7 +1040,7 @@ def _init_config(ibs):
     # <GENERAL CONFIG>
     config_fpath = ut.unixjoin(ibs.get_dbdir(), 'general_config.cPkl')
     try:
-        general_config = ut.load_cPkl(config_fpath)
+        general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
     except IOError:
         general_config = {}
     current_species = general_config.get('current_species', None)

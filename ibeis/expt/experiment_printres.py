@@ -228,6 +228,14 @@ def print_results(ibs, testres):
     #            # Find the best rank over all configurations
     #            qx2_argmin_rank.append(bestCFG_X)
 
+    #@ut.memoize
+    #def get_new_hard_qx_list(testres):
+    #    """ Mark any query as hard if it didnt get everything correct """
+    #    rank_mat = testres.get_rank_mat()
+    #    is_new_hard_list = rank_mat.max(axis=1) > 0
+    #    new_hard_qx_list = np.where(is_new_hard_list)[0]
+    #    return new_hard_qx_list
+
     #        new_hard_qx_list = testres.get_new_hard_qx_list()
 
     #        for qx in new_hard_qx_list:

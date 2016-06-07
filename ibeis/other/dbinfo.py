@@ -869,48 +869,6 @@ def latex_dbstats(ibs_list, **kwargs):
 
     return tabular_str
 
-    #print('[dev stats]')
-    #print(tabular_str)
-    # Chip / Name / Image stats
-    # num_images = dbinfo_locals['num_images']
-    # num_annots = dbinfo_locals['num_annots']
-    #num_names = len(dbinfo_locals['valid_nids'])
-    #num_singlenames = len(dbinfo_locals['singleton_nxs'])
-    #num_multinames = len(dbinfo_locals['multiton_nxs'])
-    #num_multiannots = len(dbinfo_locals['multiton_aids'])
-    #multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
-
-    #(num_names, num_names_singleton, num_names_multiton, num_annots, num_singleton_annots, num_multiton_annots) = ut.dict_take(
-    #    dbinfo_locals, 'num_names, num_names_singleton, num_names_multiton, num_annots, num_singleton_annots, num_multiton_annots')
-
-    # tex_nImage = util_latex.latex_scalar(r'\# images', num_images)
-    # tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
-    #tex_multi_stats = util_latex.latex_get_stats(r'\# Annots per Name (multiton)', multiton_nid2_nannots)
-
-    #tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
-    #                                                          (ibs.cfg.feat_cfg.scale_min,
-    #                                                           ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
-
-    #(tex_nKpts, tex_kpts_stats, tex_scale_stats) = get_keypoint_stats(ibs)
-    #tex_title = util_latex.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
-    #tabular_body_list = [
-    #    tex_title,
-    #    '',
-    #    util_latex.latex_scalar(r'\# Names (multiton)',   dbinfo_locals['num_names_multiton']),
-    #    util_latex.latex_scalar(r'\# Names (singleton)',  dbinfo_locals['num_names_singleton']),
-    #    util_latex.latex_scalar(r'\# Names',              dbinfo_locals['num_names']),
-    #    '',
-    #    util_latex.latex_scalar(r'\# Annots (multiton)',  dbinfo_locals['num_multiton_annots']),
-    #    util_latex.latex_scalar(r'\# Annots (singleton)', dbinfo_locals['num_singleton_annots']),
-    #    util_latex.latex_scalar(r'\# Annots',             dbinfo_locals['num_names_singleton']),
-    #    #tex_multi_stats,
-    #    #'',
-    #    #tex_kpts_scale_thresh,
-    #    #tex_nKpts,
-    #    #tex_kpts_stats,
-    #    #tex_scale_stats,
-    #]
-
 
 def get_short_infostr(ibs):
     """ Returns printable database information
@@ -982,38 +940,75 @@ def test_name_consistency(ibs):
     assert all(map(ut.allsame, _nids_list))
 
 
-def get_keypoint_stats(ibs):
+def print_feature_info(testres):
     """
-    kp info
+    draws keypoint statistics for each test configuration
+
+    Args:
+        testres (ibeis.expt.test_result.TestResult): test result
+
+    Ignore:
+        import plottool as pt
+        pt.qt4ensure()
+        testres.draw_rank_cdf()
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs, testres = ibeis.testdata_expts(defaultdb='PZ_MTEST', a='timectrl', t='invar:AI=False')
+        >>> (tex_nKpts, tex_kpts_stats, tex_scale_stats) = feature_info(ibs)
+        >>> result = ('(tex_nKpts, tex_kpts_stats, tex_scale_stats) = %s' % (ut.repr2((tex_nKpts, tex_kpts_stats, tex_scale_stats)),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
     """
-    # from ut import util_latex
-    #from hsdev import dev_consistency
-    #dev_consistency.check_keypoint_consistency(ibs)
-    # Keypoint stats
-    #ibs.refresh_features()
     import vtool as vt
-    from ibeis.control.IBEISControl import IBEISController
-    assert(isinstance(ibs, IBEISController))
-    valid_aids = np.array(ibs.get_valid_aids())
-    cx2_kpts = ibs.get_annot_kpts(valid_aids)
-    #cx2_kpts = ibs.feats.cx2_kpts
-    # Check cx2_kpts
-    cx2_nFeats = list(map(len, cx2_kpts))
-    kpts = np.vstack(cx2_kpts)
-    print('[dbinfo] --- LaTeX --- ')
-    #_printopts = np.get_printoptions()
-    #np.set_printoptions(precision=3)
-    scales = vt.get_scales(kpts)
-    scales = np.array(sorted(scales))
-    tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
-    tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
-    tex_kpts_stats  = util_latex.latex_get_stats(r'\# kpts/chip', cx2_nFeats)
-    print(tex_nKpts)
-    print(tex_kpts_stats)
-    print(tex_scale_stats)
-    #np.set_printoptions(**_printopts)
-    print('[dbinfo] ---/LaTeX --- ')
-    return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
+    #ibs = testres.ibs
+    def print_feat_stats(kpts, vecs):
+        assert len(vecs) == len(kpts), 'disagreement'
+        print('keypoints and vecs agree')
+        flat_kpts = np.vstack(kpts)
+        num_kpts = list(map(len, kpts))
+        kpt_scale = vt.get_scales(flat_kpts)
+        num_kpts_stats = ut.get_stats(num_kpts)
+        scale_kpts_stats = ut.get_stats(kpt_scale)
+        print('Number of ' + prefix + ' keypoints: ' + ut.repr3(num_kpts_stats, nl=0, precision=2))
+        print('Scale of ' + prefix + ' keypoints: ' + ut.repr3(scale_kpts_stats, nl=0, precision=2))
+
+    for cfgx in range(testres.nConfig):
+        print('------------------')
+        ut.colorprint(testres.cfgx2_lbl[cfgx], 'yellow')
+        qreq_ = testres.cfgx2_qreq_[cfgx]
+        depc = qreq_.ibs.depc_annot
+        tablename = 'feat'
+        prefix_list = ['query', 'data']
+        config_pair = [qreq_.query_config2_, qreq_.data_config2_]
+        aids_pair = [qreq_.qaids, qreq_.daids]
+        for prefix, aids, config in zip(prefix_list, aids_pair, config_pair):
+            config_ = depc._ensure_config(tablename, config)
+            ut.colorprint(prefix + ' Config: ' + str(config_), 'blue')
+            # Get keypoints and SIFT descriptors for this config
+            kpts = depc.get(tablename, aids, 'kpts', config=config_)
+            vecs = depc.get(tablename, aids, 'vecs', config=config_)
+            # Check various stats of these pairs
+            print_feat_stats(kpts, vecs)
+
+    #kpts = np.vstack(cx2_kpts)
+    #print('[dbinfo] --- LaTeX --- ')
+    ##_printopts = np.get_printoptions()
+    ##np.set_printoptions(precision=3)
+    #scales = np.array(sorted(scales))
+    #tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
+    #tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
+    #tex_kpts_stats  = util_latex.latex_get_stats(r'\# kpts/chip', cx2_nFeats)
+    #print(tex_nKpts)
+    #print(tex_kpts_stats)
+    #print(tex_scale_stats)
+    ##np.set_printoptions(**_printopts)
+    #print('[dbinfo] ---/LaTeX --- ')
+    #return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):

@@ -6,19 +6,12 @@ from __future__ import absolute_import, division, print_function
 import sys
 import textwrap
 import numpy as np
-#import six
 import utool as ut
 from functools import partial
 from ibeis.expt import experiment_helpers
-#from ibeis.expt import experiment_configs
-#from ibeis.expt import experiment_printres
-#from ibeis.expt import experiment_drawing
 from os.path import dirname, join
 from ibeis.expt import test_result
-#from ibeis.expt import annotation_configs
-#from ibeis.expt import cfghelpers
-print, print_, printDBG, rrr, profile = ut.inject(
-    __name__, '[expt_harn]')
+print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
 
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
@@ -29,7 +22,27 @@ USE_BIG_TEST_CACHE = (not ut.get_argflag(('--no-use-testcache',
 USE_BIG_TEST_CACHE = False
 TEST_INFO = True
 
-DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))  # dont actually query. Just print labels and stuff
+# dont actually query. Just print labels and stuff
+DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))
+
+
+#def pre_test_expand(ibs, acfg_name_list, test_cfg_name_list,
+#                    use_cache=None, qaid_override=None,
+#                    daid_override=None, initial_aids=None):
+#    """ FIXME: incorporate into run_test_configs2 """
+#    # Generate list of database annotation configurations
+#    if len(acfg_name_list) == 0:
+#        raise ValueError('must give acfg name list')
+
+#    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
+#        ibs, acfg_name_list, qaid_override=qaid_override,
+#        daid_override=daid_override, initial_aids=initial_aids,
+#        use_cache=use_cache)
+
+#    # Generate list of query pipeline param configs
+#    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
+#        test_cfg_name_list, ibs=ibs)
+#    return expanded_aids_list, pipecfg_list
 
 
 def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
@@ -55,22 +68,22 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
         >>> use_cache = False
         >>> testres_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache)
     """
-    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
-    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
-
+    print('[harn] run_test_configurations2')
     # Generate list of database annotation configurations
     if len(acfg_name_list) == 0:
         raise ValueError('must give acfg name list')
 
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list, qaid_override=qaid_override,
-        daid_override=daid_override, initial_aids=initial_aids)
+        daid_override=daid_override, initial_aids=initial_aids,
+        use_cache=use_cache)
 
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
         test_cfg_name_list, ibs=ibs)
 
     cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
+    # NOTE: Can specify --pcfginfo or --acfginfo
 
     if ut.NOT_QUIET:
         ut.colorprint(textwrap.dedent("""
@@ -88,26 +101,12 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
 
     nAcfg = len(acfg_list)
 
+    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
+    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list,
                                          lbl='annot config',
                                          freq=1, autoadjust=False,
                                          enabled=ut.NOT_QUIET)
-
-    #if ut.get_argflag(('--pcfginfo', '--pipecfginfo')):
-    #    ut.colorprint('Requested PcfgInfo for tests... ', 'red')
-    #    for pcfgx, pipecfg in enumerate(pipecfg_list):
-    #        print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
-    #        print(pipecfg.get_cfgstr())
-    #        print('L___')
-    #    ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
-    #    sys.exit(1)
-
-    #if ut.get_argflag(('--acfginfo', '--aidcfginfo')):
-    #    # Print info about annots for the test
-    #    ut.colorprint('Requested AcfgInfo for tests... ', 'red')
-    #    annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
-    #    ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')
-    #    sys.exit(1)
 
     for acfgx, (qaids, daids) in enumerate(expanded_aids_iter):
         assert len(qaids) != 0, (
@@ -120,11 +119,10 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
                 testnameid,), 'turquoise')
         subindexer_partial = partial(ut.ProgressIter, parent_index=acfgx,
                                      parent_nTotal=nAcfg, enabled=ut.NOT_QUIET)
-        testres = run_test_configurations(
-            ibs, qaids, daids, pipecfg_list,
-            cfgx2_lbl, cfgdict_list, lbl,
-            testnameid, use_cache=use_cache,
-            subindexer_partial=subindexer_partial)
+        testres = make_single_testres(ibs, qaids, daids, pipecfg_list,
+                                      cfgx2_lbl, cfgdict_list, lbl, testnameid,
+                                      use_cache=use_cache,
+                                      subindexer_partial=subindexer_partial)
         if DRY_RUN:
             continue
         testres.acfg = acfg
@@ -160,15 +158,12 @@ def get_big_test_cache_info(ibs, cfgx2_qreq_):
 
 
 @profile
-def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
-                            cfgdict_list, lbl, testnameid,
-                            use_cache=None,
-                            subindexer_partial=ut.ProgressIter):
+def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
+                        cfgdict_list, lbl, testnameid, use_cache=None,
+                        subindexer_partial=ut.ProgressIter):
     """
-
     CommandLine:
         python -m ibeis.expt.harness --exec-run_test_configurations2
-
     """
     cfgslice = None
     if cfgslice is not None:
@@ -177,7 +172,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     dbname = ibs.get_dbname()
 
     if ut.NOT_QUIET:
-        print('Constructing query requests')
+        print('[harn] Make single testres')
 
     cfgx2_qreq_ = [
         ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
@@ -199,7 +194,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             pass
         else:
             if ut.NOT_QUIET:
-                ut.colorprint('Experiment Harness Cache Hit... Returning', 'turquoise')
+                ut.colorprint('[harn] single testres cache hit... returning', 'turquoise')
             return testres
 
     if ibs.table_cache:
@@ -251,6 +246,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 else:
                     _need_compute = False
             if _need_compute:
+                assert not ibs.table_cache
                 if ibs.table_cache:
                     if (len(prev_feat_cfgstr is not None and
                             prev_feat_cfgstr != qreq_.qparams.feat_cfgstr)):

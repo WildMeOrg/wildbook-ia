@@ -349,7 +349,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
         icon = ibs.get_database_icon()
         if icon is not None:
-            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0),
+                            as_artist=1, max_asize=(1000, 2000))
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
@@ -699,7 +700,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
-                  do_per_annot=True, draw_icon=True, numranks=3):
+                  do_per_annot=True, draw_icon=True, numranks=3, kind='bar',
+                  cdfzoom=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -708,43 +710,18 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     CommandLine:
         python -m ibeis.dev -e draw_rank_cdf
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl:qsize=1 ctrl:qsize=3
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a ctrl --show
-        python -m ibeis --tf -draw_rank_cdf -t candidacy_baseline -a ctrl --db PZ_MTEST --show
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show
-        \
-           --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
-        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
         #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
         python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
         python -m ibeis --tf draw_rank_cdf -t best -a timectrl --db PZ_Master1 --show
 
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:sv_on=[True,False] -a timectrlhard ---acfginfo --veryverbtd
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,affine,cv2-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,cv2-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
-
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd
-        python -m ibeis --tf draw_match_cases --db PZ_Master1 -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd
-
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_Master1 --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl -t default:lnbnn_on=True default:lnbnn_on=False,normonly_on=True default:lnbnn_on=False,bar_l2_on=True
-
-        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl -t default:K=1,resize_dim=[width,area],dim_size=[450,550] --show
-        ibeis --tf autogen_ipynb --db GZ_ALL --ipynb -a ctrl:size=100 -t default:K=1,resize_dim=[width,area],dim_size=[450,550] --noexample
-
-        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl \
-            -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
-             default:K=1,resize_dim=[area],dim_size=[450,550,600,650] \
-            --show
-
-        ibeis --tf draw_rank_cdf --db GZ_ALL -a ctrl \
-            -t default:K=1,resize_dim=[width],dim_size=[700,750] \
-            --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
+            -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
+            --acfginfo --veryverbtd
 
         ibeis --tf draw_match_cases --db GZ_ALL -a ctrl \
             -t default:K=1,resize_dim=[width],dim_size=[700,750] \
@@ -762,7 +739,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> #ibs, testres = main_helpers.testdata_expts('seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
+        >>> #ibs, testres = main_helpers.testdata_expts(
+        >>> #    'seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> kwargs = ut.argparse_funckw(draw_rank_cdf)
         >>> result = draw_rank_cdf(ibs, testres, **kwargs)
@@ -780,7 +758,11 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     join_acfgs = True
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key, join_acfgs=join_acfgs)
-    label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
+
+    #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
+    label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs)
+    #label_list = [l1 + l2 for l1, l2 in zip(label_list, label_list2)]
+
     label_list = [
         ('%6.2f%%' % (percent,)) +
         #ut.scalar_str(percent, precision=2)
@@ -800,18 +782,15 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         label_list = ut.take(label_list, test_cfgx_slice)
         color_list = ut.take(color_list, test_cfgx_slice)
         marker_list = ut.take(marker_list, test_cfgx_slice)
+
     # Order cdf list by rank0
     #sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
-    sortx = vt.argsort_multiarray(cfgx2_cumhist_percent.T)[::-1]
+    sortx = vt.argsort_records(cfgx2_cumhist_percent.T)[::-1]
     label_list = ut.take(label_list, sortx)
     cfgx2_cumhist_percent = np.array(ut.take(cfgx2_cumhist_percent, sortx))
     color_list = ut.take(color_list, sortx)
     marker_list = ut.take(marker_list, sortx)
     #
-    import utool
-    utool.embed()
-
-    figtitle = testres.make_figtitle('Cumulative Rank Histogram')
 
     if verbose:
         testres.print_unique_annot_config_stats(ibs)
@@ -823,9 +802,9 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
         edges_short = edges[0:min(len(edges), numranks + 1)]
 
-    #USE_ZOOM = ut.get_argflag('--use-zoom')
-    USE_ZOOM = False
-    pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
+    if cdfzoom is None:
+        cdfzoom = ut.get_argflag('--cdfzoom')
+    pnum_ = pt.make_pnum_nextgen(nRows=cdfzoom + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
     #target_label = '% groundtrue matches ≤ rank'
@@ -833,13 +812,27 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
     num_yticks = 8 if ymin == 30 else 11
 
+    kind = ut.get_argval('--kind', default=kind)
+    if kind is None:
+        kind = 'bar'
+    elif kind == 'cmc':
+        kind = 'plot'
+
+    if kind == 'plot':
+        figtitle = testres.make_figtitle('Cumulative Match Curve (CMC)')
+    else:
+        figtitle = testres.make_figtitle('Cumulative Rank Histogram')
+
+    xpad = .9 if kind == 'plot' else .5
+
     cumhistkw = dict(
         xlabel='rank', ylabel=target_label, color_list=color_list,
         marker_list=marker_list, fnum=fnum,
         #legend_loc='lower right',
         legend_loc='lower right',
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
-        xmin=.5, xmax=numranks + .5,
+        xmin=xpad,
+        kind=kind,
         #xpad=.05,
         #**FONTKW
     )
@@ -849,15 +842,23 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         num_xticks=numranks,
         #legend_alpha=.85,
         legend_alpha=.92,
-        use_legend=True, pnum=pnum_(), **cumhistkw)
+        #legendsize=12,
+        xmax=numranks + 1 - xpad,
+        use_legend=not cdfzoom,
+        pnum=pnum_(), **cumhistkw)
 
-    if USE_ZOOM:
+    if cdfzoom:
+        numranks2 = len(cfgx2_cumhist_percent.T)
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
             cfgx2_cumhist_percent, edges=edges, label_list=label_list,
-            num_xticks=numranks, use_legend=False, pnum=pnum_(), **cumhistkw)
+            num_xticks=numranks2, use_legend=cdfzoom, pnum=pnum_(),
+            xmax=numranks2 + 1 - xpad,
+            **cumhistkw)
         ax2 = pt.gca()
-        pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
+        #pt.zoom_effect01(ax1, ax2, 1, numranks2, fc='w')
+        #pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
+        pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
     #pt.set_figtitle(figtitle, size=14)
     pt.set_figtitle(figtitle)
 
@@ -866,12 +867,16 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         #ax = pt.gca()
         #ax.get_xlim()
         pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
+        pass
         #ax.get_ylim()
-    fig = pt.gcf()
+
+    #ax = pt.gca()
+    #ax.grid(True)
+    #fig = pt.gcf()
     #import utool as ut
     # HACK FOR FIGSIZE
-    fig.set_size_inches(15, 7)
-    if ut.get_argflag('--contextadjust'):
+    #fig.set_size_inches(15, 7)
+    if ut.get_argflag('--contextadjust') or True:
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
         pt.adjust_subplots2(use_argv=True)
     #pt.set_figtitle(figtitle, size=10)
@@ -1026,7 +1031,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
                      show_in_notebook=False, annot_modes=None, figsize=None,
-                     case_pos_list=None, verbose=None, **kwargs):
+                     case_pos_list=None, verbose=None, interact=None, **kwargs):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -1082,7 +1087,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         ut.colorprint('[expt] Drawing individual results', 'yellow')
     # FIXME: make save work
     cfgx2_qreq_ = testres.cfgx2_qreq_
-    SHOW = ut.get_argflag('--show')
+    if interact is None:
+        interact = ut.get_argflag('--show')
     cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
     filt_cfg = f
     if case_pos_list is None:
@@ -1165,8 +1171,8 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
-    if SHOW:
-        _iter = ut.InteractiveIter(qx_list, enabled=SHOW, custom_actions=custom_actions)
+    if interact:
+        _iter = ut.InteractiveIter(qx_list, enabled=interact, custom_actions=custom_actions)
     else:
         _iter = ut.ProgIter(qx_list, lbl='drawing cases')
 
@@ -1206,7 +1212,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             if show_in_notebook:
                 fnum = fnum + 1
             else:
-                fnum = cfgx if SHOW else 1
+                fnum = cfgx if interact else 1
             #cm = cm.extend_results(qreq_)
             # Get row and column index
             cfgstr = testres.get_cfgstr(cfgx)
@@ -1221,7 +1227,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             qres_fname = query_lbl + '.png'
 
             analysis_fpath = join(individ_results_dpath, qres_fname)
-            if SHOW or show_in_notebook or not ut.checkpath(analysis_fpath):
+            if interact or show_in_notebook or not ut.checkpath(analysis_fpath):
                 bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (
                     count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
                 print('bar_label = %r' % (bar_label,))
@@ -1238,7 +1244,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     show_kwargs['annot_mode'] = annot_mode
                     if show_in_notebook:
                         fnum = fnum + 1
-                    if SHOW:
+                    if interact:
                         cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
                     else:
                         cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)

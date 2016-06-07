@@ -68,7 +68,7 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
 @getter_1to1
 def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None, extra_tries=1):
     return ibs.depc_annot.get_rowids('feat', aid_list, config=config2_,
-                               ensure=ensure, eager=eager)
+                                     ensure=ensure, eager=eager)
 
 
 @register_ibs_method
@@ -184,7 +184,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> ut.assert_inbounds(nFeats_list[2], 1300, 1343)
     """
     return ibs.depc_annot.get('feat', aid_list, 'num_feats', config=config2_,
-                        ensure=ensure, eager=eager)
+                              ensure=ensure, eager=eager)
 
 
 def testdata_ibs():

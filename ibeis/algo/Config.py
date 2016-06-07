@@ -1338,7 +1338,8 @@ def _default_named_config(cfg, cfgname):
         cfg.query_cfg.flann_cfg.trees = 8
         cfg.query_cfg.nn_cfg.checks = 316
     else:
-        print('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
+        if ut.VERBOSE:
+            print('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
 
 
 if __name__ == '__main__':

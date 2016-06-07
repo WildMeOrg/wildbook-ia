@@ -441,6 +441,9 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     nn_cachedir = qreq_.ibs.get_neighbor_cachedir()
     # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
     ut.ensuredir(nn_cachedir)
+    if ut.VERBOSE:
+        print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
+        pass
     return nn_cachedir, nn_mid_cacheid_list
 
 

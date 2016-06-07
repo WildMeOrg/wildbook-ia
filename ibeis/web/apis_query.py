@@ -195,9 +195,10 @@ def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=
 
 
 @register_api('/api/review/query/graph/', methods=['GET'])
-def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict, _internal_state, callback_url,
-                            callback_method='POST', view_orientation='vertical',
-                            include_jquery=False):
+def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
+                            _internal_state, callback_url,
+                            callback_method='POST',
+                            view_orientation='vertical', include_jquery=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  image analysis api

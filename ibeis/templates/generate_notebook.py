@@ -130,7 +130,6 @@ def get_default_cell_template_list(ibs):
             cells.view_intereseting_tags,
         ]
 
-
     if asreport:
         # Append our debug stuff at the bottom
         cell_template_list += [cells.IGNOREAFTER]

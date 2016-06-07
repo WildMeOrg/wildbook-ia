@@ -6,7 +6,6 @@ Rename to annot_cfgdef
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-from ibeis.expt import cfghelpers
 import numpy as np  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[aidcfg]')
 
@@ -169,7 +168,7 @@ def partition_acfg_list(acfg_list):
     _acfg_list = [compress_aidcfg(acfg) for acfg in acfg_list]
 
     flat_acfg_list = flatten_acfg_list(_acfg_list)
-    tup = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
+    tup = ut.partition_varied_cfg_list(flat_acfg_list)
     flat_nonvaried_dict, flat_varied_acfg_list = tup
     nonvaried_dict = unflatten_acfgdict(flat_nonvaried_dict)
     varied_acfg_list = [unflatten_acfgdict(acfg)
@@ -177,27 +176,29 @@ def partition_acfg_list(acfg_list):
     return nonvaried_dict, varied_acfg_list
 
 
-def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
+def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
     """
         >>> from ibeis.expt.annotation_configs import *  # NOQA
 
     """
     #print(ut.list_str(varied_acfg_list, nl=2))
     for acfg in acfg_list:
-        assert acfg['qcfg']['_cfgname'] == acfg['dcfg']['_cfgname'], (
+        assert acfg['qcfg'][mainkey] == acfg['dcfg'][mainkey], (
             'should be the same for now')
-    cfgname_list = [acfg['qcfg']['_cfgname'] for acfg in acfg_list]
+    cfgname_list = [acfg['qcfg'][mainkey] for acfg in acfg_list]
+    if checkname and ut.allsame(cfgname_list):
+        cfgname_list = [None] * len(cfgname_list)
 
     # Hack to make common params between q and d appear the same
     _acfg_list = [compress_aidcfg(acfg) for acfg in acfg_list]
 
     flat_acfg_list = flatten_acfg_list(_acfg_list)
-    nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(
+    nonvaried_dict, varied_acfg_list = ut.partition_varied_cfg_list(
         flat_acfg_list)
 
     SUPER_HACK = True
     if SUPER_HACK:
-        # SUPER HACK, recompress remake the varied list after knownig what is varied
+        # SUPER HACK, recompress remake the varied list after knowing what is varied
         _varied_keys = list(set(ut.flatten(
             [list(ut.flatten(
                 [list(x.keys())
@@ -208,14 +209,14 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
             compress_aidcfg(acfg, force_noncommon=_varied_keys)
             for acfg in acfg_list]
         flat_acfg_list = flatten_acfg_list(_acfg_list)
-        nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(
+        nonvaried_dict, varied_acfg_list = ut.partition_varied_cfg_list(
             flat_acfg_list)
 
     shortened_cfg_list = [
         #{shorten_to_alias_labels(key): val for key, val in _dict.items()}
         ut.map_dict_keys(shorten_to_alias_labels, _dict)
         for _dict in varied_acfg_list]
-    nonlbl_keys = cfghelpers.INTERNAL_CFGKEYS
+    nonlbl_keys = ut.INTERNAL_CFGKEYS
     nonlbl_keys = [prefix +  key for key in nonlbl_keys
                    for prefix in ['', 'q', 'd']]
     # hack for sorting by q/d stuff first
@@ -226,10 +227,13 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
                      for k in keys]
         return ut.sortedby(keys, sortorder)[::-1]
 
-    shortened_lbl_list = [
-        cfghelpers.get_cfg_lbl(cfg, name, nonlbl_keys, key_order=get_key_order(cfg))
+    cfglbl_list = [
+        ut.get_cfg_lbl(cfg, name, nonlbl_keys, key_order=get_key_order(cfg))
         for cfg, name in zip(shortened_cfg_list, cfgname_list)]
-    return shortened_lbl_list
+
+    if checkname:
+        cfglbl_list = [x.lstrip(':') for x in cfglbl_list]
+    return cfglbl_list
 
 
 def shorten_to_alias_labels(key):
@@ -241,6 +245,9 @@ def shorten_to_alias_labels(key):
 
 
 def flatten_acfg_list(acfg_list):
+    """
+    Returns a new config where subconfig params are prefixed by subconfig keys
+    """
     flat_acfg_list = []
     for acfg in acfg_list:
         flat_dict = {
@@ -267,7 +274,7 @@ def compress_acfg_list_for_printing(acfg_list):
         >>> print(result)
     """
     flat_acfg_list = flatten_acfg_list(acfg_list)
-    tup = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
+    tup = ut.partition_varied_cfg_list(flat_acfg_list)
     nonvaried_dict, varied_acfg_list = tup
     nonvaried_compressed_dict = compress_aidcfg(
         unflatten_acfgdict(nonvaried_dict), filter_nones=True)

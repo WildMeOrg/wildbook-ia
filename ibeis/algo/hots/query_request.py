@@ -126,7 +126,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
         from ibeis.expt import cfghelpers
         cfg_list = [qcfg.__dict__, dcfg.__dict__]
-        nonvaried_cfg, varied_cfg_list = cfghelpers.partition_varied_cfg_list(
+        nonvaried_cfg, varied_cfg_list = ut.partition_varied_cfg_list(
             cfg_list, recursive=True)
         qvaried, dvaried = varied_cfg_list
     """

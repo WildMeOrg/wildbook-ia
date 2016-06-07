@@ -2,7 +2,7 @@
 """
 Helper module that helps expand parameters for grid search
 
-TODO: move to utool?
+DEPRICATE: Most of this can likely be replaced by util_gridsearch
 TODO: rectify with versions in util_gridsearch
 
 It turns out a lot of the commandlines made possible here can be generatd by
@@ -10,22 +10,8 @@ using bash brace expansion.
 http://www.linuxjournal.com/content/bash-brace-expansion
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool as ut  # NOQA
-from six.moves import zip, map  # NOQA
-import re
+import utool as ut
 print, rrr, profile = ut.inject2(__name__, '[cfghelpers]')
-
-
-#INTERNAL_CFGKEYS = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
-
-#NAMEVARSEP = '^'
-NAMEVARSEP = ':'
-
-
-INTERNAL_CFGKEYS = ut.INTERNAL_CFGKEYS
-get_varied_cfg_lbls = ut.get_varied_cfg_lbls
-partition_varied_cfg_list = ut.partition_varied_cfg_list
-get_cfg_lbl = ut.get_cfg_lbl
 
 
 def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
@@ -58,41 +44,9 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
                        alias_keys=None, valid_keys=None, offset=0,
                        strict=True):
     """
-    Args:
-        cfgname (str): config name
-        cfgopt_strs (str): mini-language defining key variations
-        base_cfg (dict): specifies the default cfg to customize
-        cfgtype (?):
-        alias_keys (None): (default = None)
-        valid_keys (None): if base_cfg is not specied, this defines the valid
-            keys (default = None)
-        offset (int): (default = 0)
-        strict (bool): (default = True)
-
-    Returns:
-        list: cfg_combo - list of config dicts defining customized configs
-            based on cfgopt_strs. customized configs always are given an
-            _cfgindex, _cfgstr, and _cfgname key.
-
-    CommandLine:
-        python -m ibeis.expt.cfghelpers --exec-_customize_base_cfg
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.cfghelpers import *  # NOQA
-        >>> cfgname = 'default'
-        >>> cfgopt_strs = 'dsize=1000,per_name=[1,2]'
-        >>> base_cfg = '?'
-        >>> cfgtype = '?'
-        >>> alias_keys = None
-        >>> valid_keys = None
-        >>> offset = 0
-        >>> strict = True
-        >>> cfg_combo = customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, offset, strict)
-        >>> result = ('cfg_combo = %s' % (str(cfg_combo),))
-        >>> print(result)
+    DEPRICATE
     """
-
+    import re
     cfg = base_cfg.copy()
     # Parse dict out of a string
     #ANYTHING_NOT_BRACE = r'[^\[\]]*\]'
@@ -131,7 +85,7 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
         cfg_['_cfgindex'] = combox
     for cfg_ in cfg_combo:
         if len(cfgopt_strs) > 0:
-            cfg_['_cfgstr'] = cfg_['_cfgname'] + NAMEVARSEP + cfgopt_strs
+            cfg_['_cfgstr'] = cfg_['_cfgname'] + ut.NAMEVARSEP + cfgopt_strs
         else:
             cfg_['_cfgstr'] = cfg_['_cfgname']
     return cfg_combo
@@ -143,6 +97,8 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                        metadata=None):
     r"""
     Parses config strings. By looking up name in a dict of configs
+
+    DEPRICATE
 
     Args:
         cfgstr_list (list):
@@ -307,252 +263,6 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
                                          strict=False)
     cfg_list = ut.flatten(cfg_combos_list)
     return cfg_list
-
-
-#def parse_cfgstr_name_options(cfgstr):
-#    r"""
-#    Args:
-#        cfgstr (str):
-
-#    Returns:
-#        tuple: (cfgname, cfgopt_strs, subx)
-
-#    CommandLine:
-#        python -m ibeis.expt.cfghelpers --test-parse_cfgstr_name_options
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfgstr = 'default' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
-#        >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
-#        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
-#        >>> print(result)
-#        (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', None)
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfgstr = 'default[0:1]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
-#        >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
-#        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
-#        >>> print(result)
-#        (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', slice(0, 1, None))
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfgstr = 'default[0]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
-#        >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
-#        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
-#        >>> print(result)
-#        (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', [0])
-
-#    """
-#    import re
-#    #cfgname_regex = ut.named_field('cfgname', r'[^\[:]+')  # name is not optional
-#    cfgname_regex = ut.named_field('cfgname', r'[^\[:]*')  # name is optional
-#    subx_regex = r'\[' + ut.named_field('subx', r'[^\]]*') + r'\]'
-#    cfgopt_regex = re.escape(NAMEVARSEP) + ut.named_field('cfgopt', '.*')
-#    regex_str = cfgname_regex + ('(%s)?' % (subx_regex,)) + ('(%s)?' % (cfgopt_regex,))
-#    match = re.match(regex_str, cfgstr)
-#    assert match is not None, 'parsing of cfgstr failed'
-#    groupdict = match.groupdict()
-#    cfgname = groupdict['cfgname']
-#    cfgopt_strs = groupdict.get('cfgopt', None)
-#    subx_str = groupdict.get('subx', None)
-#    if cfgopt_strs is None:
-#        cfgopt_strs = ''
-#    subx = ut.fuzzy_subset(subx_str)
-#    ##regex_str = ut.negative_lookbehind(r'\:')
-#    #cfgstr_split = cfgstr.split(NAMEVARSEP)
-#    #cfgname_fmt = cfgstr_split[0]
-#    #cfgopt_strs =  NAMEVARSEP.join(cfgstr_split[1:])
-#    #if cfgname_fmt.endswith(']'):
-#    #    # Parse out subindexes
-#    #    cfgname, subx_str = cfgname_fmt.split('[')
-#    #else:
-#    #    cfgname = cfgname_fmt
-#    #subx = None
-#    return cfgname, cfgopt_strs, subx
-
-
-#def lookup_base_cfg_list(cfgname, named_defaults_dict, metadata=None):
-#    if named_defaults_dict is None:
-#        base_cfg_list = [{}]
-#    else:
-#        try:
-#            base_cfg_list = named_defaults_dict[cfgname]
-#        except KeyError as ex:
-#            ut.printex(ex, 'Unknown configuration name', keys=['cfgname'])
-#            raise
-#    if ut.is_funclike(base_cfg_list):
-#        # make callable function
-#        base_cfg_list = base_cfg_list(metadata)
-#    if not isinstance(base_cfg_list, list):
-#        base_cfg_list = [base_cfg_list]
-#    return base_cfg_list
-
-#def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
-#    r"""
-#    Args:
-#        cfg_list (list):
-#        default_cfg (None): (default = None)
-
-#    Returns:
-#        list: cfglbl_list
-
-#    CommandLine:
-#        python -m ibeis.expt.cfghelpers --exec-get_varied_cfg_lbls
-
-#    Example:
-#        >>> # DISABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfg_list = [{'_cfgname': 'test', 'f': 1, 'b': 1},
-#        >>>             {'_cfgname': 'test', 'f': 2, 'b': 1},
-#        >>>             {'_cfgname': 'test', 'f': 3, 'b': 1, 'z': 4}]
-#        >>> default_cfg = None
-#        >>> cfglbl_list = get_varied_cfg_lbls(cfg_list, default_cfg)
-#        >>> result = ('cfglbl_list = %s' % (str(cfglbl_list),))
-#        >>> print(result)
-#        cfglbl_list = ['test:f=1', 'test:f=2', 'test:f=3,z=4']
-#    """
-#    cfgname_list = [cfg[mainkey] for cfg in cfg_list]
-#    nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, default_cfg)
-#    cfglbl_list = [
-#        get_cfg_lbl(cfg, name)
-#        for cfg, name in zip(varied_cfg_list, cfgname_list)]
-#    return cfglbl_list
-
-
-#def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
-#    r"""
-#    TODO: partition nested configs
-
-#    CommandLine:
-#        python -m ibeis.expt.cfghelpers --exec-partition_varied_cfg_list
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
-#        >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list)
-#        >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
-#        >>> print(result)
-#        nonvaried_cfg = {'b': 1}
-#        varied_cfg_list = [{'f': 1}, {'f': 2}, {'f': 3, 'z': 4}]
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3':1}, 'b2': 1}, 'e1': 1}]
-#        >>> print(ut.list_str(cfg_list, nl=True))
-#        >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
-#        >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
-#        >>> print(result)
-#        nonvaried_cfg = {'f1': {'a2': {'x3': 1}, 'b2': 1}, 'q1': 1}
-#        varied_cfg_list = [{'f1': {'a2': {'y3': 2}}}, {'e1': 1, 'f1': {'a2': {'y3': 1}}}]
-#    """
-#    if default_cfg is None:
-#        nonvaried_cfg = reduce(ut.dict_intersection, cfg_list)
-#    else:
-#        nonvaried_cfg = reduce(ut.dict_intersection, [default_cfg] + cfg_list)
-#    nonvaried_keys = list(nonvaried_cfg.keys())
-#    varied_cfg_list = [
-#        ut.delete_dict_keys(cfg.copy(), nonvaried_keys)
-#        for cfg in cfg_list]
-#    if recursive:
-#        # Find which varied keys have dict values
-#        varied_keys = list(set([key for cfg in varied_cfg_list for key in cfg]))
-#        varied_vals_list = [[cfg[key] for cfg in varied_cfg_list if key in cfg] for key in varied_keys]
-#        for key, varied_vals in zip(varied_keys, varied_vals_list):
-#            if len(varied_vals) == len(cfg_list):
-#                if all([isinstance(val, dict) for val in varied_vals]):
-#                    nonvaried_subdict, varied_subdicts = partition_varied_cfg_list(varied_vals, recursive=recursive)
-#                    nonvaried_cfg[key] = nonvaried_subdict
-#                    for cfg, subdict in zip(varied_cfg_list, varied_subdicts):
-#                        cfg[key] = subdict
-#    return nonvaried_cfg, varied_cfg_list
-
-
-#def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
-#    r"""
-#    Formats a flat configuration dict into a short string label
-
-#    Args:
-#        cfg (dict):
-#        name (str): (default = None)
-#        nonlbl_keys (list): (default = INTERNAL_CFGKEYS)
-
-#    Returns:
-#        str: cfg_lbl
-
-#    CommandLine:
-#        python -m ibeis.expt.cfghelpers --exec-get_cfg_lbl
-
-#    Example:
-#        >>> # DISABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfg = {'_cfgname': 'test', 'var1': 'val1', 'var2': 'val2'}
-#        >>> name = None
-#        >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
-#        >>> cfg_lbl = get_cfg_lbl(cfg, name, nonlbl_keys)
-#        >>> result = ('cfg_lbl = %s' % (str(cfg_lbl),))
-#        >>> print(result)
-#        cfg_lbl = test:var1=val1,var2=val2
-
-#    Example:
-#        >>> # DISABLE_DOCTEST
-#        >>> from ibeis.expt.cfghelpers import *  # NOQA
-#        >>> cfg = {'_cfgname': 'test:K=[1,2,3]', 'K': '1'}
-#        >>> name = None
-#        >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
-#        >>> cfg_lbl = get_cfg_lbl(cfg, name, nonlbl_keys)
-#        >>> result = ('cfg_lbl = %s' % (str(cfg_lbl),))
-#        >>> print(result)
-#        cfg_lbl = test:K=1
-#    """
-#    if name is None:
-#        name = cfg.get('_cfgname', '')
-#    _search = ['dict(', ')', ' ']
-#    _repl = [''] * len(_search)
-
-#    # remove keys that should not belong to the label
-#    _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
-#    _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True, key_order=key_order)
-#    _lbl = ut.multi_replace(_lbl, _search, _repl).rstrip(',')
-#    if NAMEVARSEP in name:
-#        # hack for when name contains a little bit of the _lbl
-#        # VERY HACKY TO PARSE OUT PARTS OF THE GIVEN NAME.
-#        hacked_name, _cfgstr, _ = parse_cfgstr_name_options(name)
-#        _cfgstr_options_list = re.split(
-#            r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), _cfgstr)
-#        #cfgstr_options_list = cfgopt_strs.split(',')
-#        _cfg_options = ut.parse_cfgstr_list(
-#            _cfgstr_options_list, smartcast=False, oldmode=False)
-#        #
-#        ut.delete_keys(_cfg_options, cfg.keys())
-#        _preflbl = ut.dict_str(_cfg_options, explicit=True, nl=False, strvals=True)
-#        _preflbl = ut.multi_replace(_preflbl, _search, _repl).rstrip(',')
-#        hacked_name += NAMEVARSEP + _preflbl
-#        ###
-#        cfg_lbl = hacked_name + _lbl
-#    else:
-#        cfg_lbl = name + NAMEVARSEP + _lbl
-#    return cfg_lbl
-
-
-#def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, cfg_combos, strict):
-#    try:
-#        cfg_combo = customize_base_cfg(
-#            cfgname, cfgopt_strs, base_cfg, cfgtype,
-#            alias_keys=alias_keys, valid_keys=valid_keys,
-#            offset=len(cfg_combos), strict=strict)
-#        return cfg_combo
-#    except Exception as ex:
-#        ut.printex(ex, 'Parse Error CfgstrList2',
-#                   keys=['cfgname', 'cfgopt_strs', 'base_cfg',
-#                         'cfgtype', 'alias_keys', 'valid_keys'])
-#        raise
 
 
 if __name__ == '__main__':

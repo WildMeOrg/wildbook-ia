@@ -250,7 +250,6 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     """
     Returns location and name of the ~~annot~~ data cache
     """
-    from ibeis.expt import cfghelpers
     from os.path import dirname, join
     # Make loading aids a big faster for experiments
     if ut.is_developer():
@@ -268,10 +267,8 @@ def get_acfg_cacheinfo(ibs, aidcfg):
         aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
     else:
         relevant_aidcfg = copy.deepcopy(aidcfg)
-        ut.delete_dict_keys(relevant_aidcfg['qcfg'],
-                            cfghelpers.INTERNAL_CFGKEYS)
-        ut.delete_dict_keys(relevant_aidcfg['dcfg'],
-                            cfghelpers.INTERNAL_CFGKEYS)
+        ut.delete_dict_keys(relevant_aidcfg['qcfg'], ut.INTERNAL_CFGKEYS)
+        ut.delete_dict_keys(relevant_aidcfg['dcfg'], ut.INTERNAL_CFGKEYS)
         aid_cachestr = (
             ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(relevant_aidcfg)))
     acfg_cacheinfo = (acfg_cachedir, acfg_cachename, aid_cachestr)
@@ -299,6 +296,72 @@ def expand_single_acfg(ibs, aidcfg, verbose=None):
     if verbose:
         print('L___ EXPAND_SINGLE_ACFG ___')
     return aids
+
+
+def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
+    qaids_, daids_ = expanded_aids
+
+    partitioned_sets = ibs.partition_annots_into_corresponding_groups(
+        qaids_, daids_)
+    tup = partitioned_sets
+    query_group, data_group, unknown_group, distract_group = tup
+
+    unknown_flags  = ibs.unflat_map(
+        ibs.get_annot_tag_filterflags, unknown_group,
+        filter_kw=dict(none_match=['.*error.*']))
+    #data_flags  = ibs.unflat_map(
+    #    ibs.get_annot_tag_filterflags, data_group,
+    #    filter_kw=dict(none_match=['.*error.*']))
+    query_flags = ibs.unflat_map(
+        ibs.get_annot_tag_filterflags, query_group,
+        filter_kw=dict(none_match=['.*error.*']))
+
+    query_noterror_flags = list(map(all, ut.list_zipflatten(
+        query_flags,
+        #data_flags,
+    )))
+    unknown_noterror_flags = list(map(all, unknown_flags))
+
+    filtered_queries = ut.flatten(
+        ut.compress(query_group, query_noterror_flags))
+    filtered_unknown = ut.flatten(
+        ut.compress(unknown_group, unknown_noterror_flags))
+
+    filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
+
+    expanded_aids = (filtered_qaids_, daids_)
+
+    if verbose:
+        ut.colorprint('+---------------------', 'red')
+        ibs.print_annotconfig_stats(filtered_qaids_, daids_)
+        ut.colorprint('L___ HACKED_EXPAND_ACFGS ___', 'red')
+    return expanded_aids
+
+
+def hack_extra(ibs, expanded_aids):
+    # SUCH HACK to get a larger database
+    from ibeis.expt import annotation_configs
+    _aidcfg = annotation_configs.default['dcfg']
+    _aidcfg['sample_per_name'] = 1
+    _aidcfg['sample_size'] = 500
+    _aidcfg['min_pername'] = 1
+    _aidcfg['require_viewpoint'] = True
+    _aidcfg['exclude_reference'] = True
+    _aidcfg['view'] = 'right'
+    prefix = 'hack'
+    qaids = expanded_aids[0]
+    daids = expanded_aids[1]
+
+    _extra_aids =  ibs.get_valid_aids()
+    _extra_aids = ibs.remove_groundtrue_aids(
+        _extra_aids, (qaids + daids))
+    _extra_aids = filter_annots_independent(
+        ibs, _extra_aids, _aidcfg, prefix)
+    _extra_aids = sample_annots(
+        ibs, _extra_aids, _aidcfg, prefix)
+    daids = sorted(daids + _extra_aids)
+    expanded_aids = (qaids, daids)
+    return expanded_aids
 
 
 def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None, verbose=None):
@@ -346,6 +409,35 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
         [list(ut.merge_dicts(*acfg.values()).keys())
          for acfg in varied_acfg_list])))
 
+    # HACK: determine unconstrained min / max nannots
+    if False:
+        import copy
+        acfg_combo2 = copy.deepcopy(acfg_combo)
+
+        unconstrained_expansions = []
+        for combox, acfg in enumerate(acfg_combo2):
+            qcfg = acfg['qcfg']
+            dcfg = acfg['dcfg']
+            with ut.Indenter('[PRE %d] ' % (combox,)):
+                expanded_aids = expand_acfgs(ibs, acfg, initial_aids=initial_aids,
+                                             use_cache=use_cache,
+                                             hack_exclude_keys=hack_exclude_keys,
+                                             verbose=verbose)
+                unconstrained_expansions.append(expanded_aids)
+
+        if any(ut.take_column(ut.take_column(acfg_combo, 'dcfg'), 'force_const_size')):
+            unconstrained_lens = np.array([(len(q), len(d)) for q, d in unconstrained_expansions])
+            #max_dlen = unconstrained_lens.T[1].max()
+            min_dlen = unconstrained_lens.T[1].min()
+
+            for acfg in acfg_combo:
+                dcfg = acfg['dcfg']
+                # TODO: make sample size annot_sample_size
+                # sample size is #annots
+                if dcfg['sample_size'] is None:
+                    dcfg['_orig_sample_size'] = dcfg['sample_size']
+                    dcfg['sample_size'] = min_dlen
+
     for combox, acfg in enumerate(acfg_combo):
         qcfg = acfg['qcfg']
         dcfg = acfg['dcfg']
@@ -366,29 +458,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
                                          hack_exclude_keys=hack_exclude_keys,
                                          verbose=verbose)
 
-            if dcfg.get('hack_extra', None):
-                # SUCH HACK to get a larger database
-                assert False
-                _aidcfg = annotation_configs.default['dcfg']
-                _aidcfg['sample_per_name'] = 1
-                _aidcfg['sample_size'] = 500
-                _aidcfg['min_pername'] = 1
-                _aidcfg['require_viewpoint'] = True
-                _aidcfg['exclude_reference'] = True
-                _aidcfg['view'] = 'right'
-                prefix = 'hack'
-                qaids = expanded_aids[0]
-                daids = expanded_aids[1]
-
-                _extra_aids =  ibs.get_valid_aids()
-                _extra_aids = ibs.remove_groundtrue_aids(
-                    _extra_aids, (qaids + daids))
-                _extra_aids = filter_annots_independent(
-                    ibs, _extra_aids, _aidcfg, prefix)
-                _extra_aids = sample_annots(
-                    ibs, _extra_aids, _aidcfg, prefix)
-                daids = sorted(daids + _extra_aids)
-                expanded_aids = (qaids, daids)
+            #if dcfg.get('hack_extra', None):
+            #    assert False
+            #    expanded_aids = hack_extra(ibs, expanded_aids)
 
             qsize = len(expanded_aids[0])
             dsize = len(expanded_aids[1])
@@ -423,42 +495,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
             REMOVE_LABEL_ERRORS = qcfg.get('hackerrors', True)
             #ut.is_developer() or ut.get_argflag('--noerrors')
             if REMOVE_LABEL_ERRORS:
-                qaids_, daids_ = expanded_aids
-
-                partitioned_sets = ibs.partition_annots_into_corresponding_groups(
-                    qaids_, daids_)
-                tup = partitioned_sets
-                query_group, data_group, unknown_group, distract_group = tup
-
-                unknown_flags  = ibs.unflat_map(
-                    ibs.get_annot_tag_filterflags, unknown_group,
-                    filter_kw=dict(none_match=['.*error.*']))
-                #data_flags  = ibs.unflat_map(
-                #    ibs.get_annot_tag_filterflags, data_group,
-                #    filter_kw=dict(none_match=['.*error.*']))
-                query_flags = ibs.unflat_map(
-                    ibs.get_annot_tag_filterflags, query_group,
-                    filter_kw=dict(none_match=['.*error.*']))
-
-                query_noterror_flags = list(map(all, ut.list_zipflatten(
-                    query_flags,
-                    #data_flags,
-                )))
-                unknown_noterror_flags = list(map(all, unknown_flags))
-
-                filtered_queries = ut.flatten(
-                    ut.compress(query_group, query_noterror_flags))
-                filtered_unknown = ut.flatten(
-                    ut.compress(unknown_group, unknown_noterror_flags))
-
-                filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
-
-                expanded_aids = (filtered_qaids_, daids_)
-
-                if verbose:
-                    ut.colorprint('+---------------------', 'red')
-                    ibs.print_annotconfig_stats(filtered_qaids_, daids_)
-                    ut.colorprint('L___ HACKED_EXPAND_ACFGS ___', 'red')
+                expanded_aids = hack_remove_label_errors(ibs, expanded_aids, verbose)
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)

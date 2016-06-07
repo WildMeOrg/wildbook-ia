@@ -204,9 +204,12 @@ def build_nnindex_cfgstr(qreq_, daid_list):
     """
     flann_cfgstr      = qreq_.qparams.flann_cfgstr
     featweight_cfgstr = qreq_.qparams.featweight_cfgstr
-    feat_cfgstr = qreq_.qparams.featweight_cfgstr
+    feat_cfgstr = qreq_.qparams.feat_cfgstr
+    chip_cfgstr = qreq_.qparams.chip_cfgstr
+    # FIXME; need to include probchip (or better yet just use depcache)
+    #probchip_cfgstr = qreq_.qparams.chip_cfgstr
     data_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
-    nnindex_cfgstr = ''.join((data_hashid, flann_cfgstr, featweight_cfgstr, feat_cfgstr))
+    nnindex_cfgstr = ''.join((data_hashid, flann_cfgstr, featweight_cfgstr, feat_cfgstr, chip_cfgstr))
     return nnindex_cfgstr
 
 
@@ -443,11 +446,11 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     # neighbor memory cache
     if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
-        if veryverbose or ut.VERYVERBOSE:
+        if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
             print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
     else:
-        if veryverbose or ut.VERYVERBOSE:
+        if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
             print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
         # Write to inverse uuid
         nnindexer = request_diskcached_ibeis_nnindexer(
