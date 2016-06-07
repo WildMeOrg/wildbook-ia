@@ -424,29 +424,35 @@ def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
     return unique_edge_xs
 
 
-def argsort_multiarray(arrays, reverse=False):
+def argsort_records(arrays, reverse=False):
     r"""
+    Sorts arrays that form records.
+    Same as lexsort(arrays[::-1]) --- ie. rows are reversed.
+
     Args:
-        arrays (ndarray):
+        arrays (ndarray): array of records
         reverse (bool): (default = False)
 
     Returns:
-        ndarray: sortx
+        ndarray: sortx - sorted indicies
 
     CommandLine:
-        python -m vtool.other --exec-argsort_multiarray
+        python -m vtool.other --exec-argsort_records
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
-        >>> arrays = np.array([[1, 1, 1, 2, 2, 2, 3, 4, 5, 5, 5],
-        >>>                    [2, 0, 2, 6, 4, 3, 2, 5, 6, 6, 6],
-        >>>                    [1, 1, 0, 2, 3, 4, 5, 6, 7, 7, 7]],)
+        >>> arrays = np.array([
+        >>>     [1, 1, 1, 2, 2, 2, 3, 4, 5],
+        >>>     [2, 0, 2, 6, 4, 3, 2, 5, 6],
+        >>>     [1, 1, 0, 2, 3, 4, 5, 6, 7],
+        >>> ],)
         >>> reverse = False
-        >>> sortx = argsort_multiarray(arrays, reverse)
+        >>> sortx = argsort_records(arrays, reverse)
         >>> result = ('sortx = %s' % (str(sortx),))
+        >>> print('lxsrt = %s' % (np.lexsort(arrays[::-1]),))
         >>> print(result)
-        sortx = [ 1  2  0  5  4  3  6  7  8  9 10]
+        sortx = [ 1  2  0  5  4  3  6  7  8]
     """
     sorting_records = np.rec.fromarrays(arrays)
     sort_stride = (-reverse * 2) + 1
