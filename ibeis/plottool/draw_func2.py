@@ -293,6 +293,7 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
     CommandLine:
         python -m plottool.draw_func2 --exec-overlay_icon --show --icon zebra.png
         python -m plottool.draw_func2 --exec-overlay_icon --show --icon lena.png
+        python -m plottool.draw_func2 --exec-overlay_icon --show --icon lena.png --artist
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -305,8 +306,9 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         >>> bbox_alignment = (0, 0)
         >>> max_dsize = None  # (128, None)
         >>> max_asize = (60, 40)
+        >>> as_artist = not ut.get_argflag('--noartist')
         >>> result = overlay_icon(icon, coords, coord_type, bbox_alignment,
-        >>>                       max_asize, max_dsize)
+        >>>                       max_asize, max_dsize, as_artist)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -344,8 +346,26 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
     #'figure points' #'figure pixels' #'figure fraction' #'axes points'
     #'axes pixels' #'axes fraction' #'data' #'offset points' #'polar'
 
-    if not as_artist:
+    if as_artist:
+        # Hack while I am trying to get constant size images working
+        if ut.get_argval('--save'):
+            #zoom = 1.0
+            zoom = 1.0
+        else:
+            zoom = .5
+        zoom = ut.get_argval('--overlay-zoom', default=zoom)
+        imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
+        ab = mpl.offsetbox.AnnotationBbox(
+            imagebox, xy,
+            xybox=(0., 0.),
+            xycoords='data',
+            #xycoords='axes fraction',
+            boxcoords="offset points",
+            box_alignment=bbox_alignment, pad=0.0)
+        ax.add_artist(ab)
+    else:
         img_size = vt.get_size(icon)
+        print('img_size = %r' % (img_size,))
         if max_asize is not None:
             dsize, ratio = vt.resized_dims_and_ratio(img_size, max_asize)
             width, height = dsize
@@ -369,21 +389,6 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         print('current_aspect = %r' % (ax.get_aspect(),))
         #x - width // 2, x + width // 2,
         #y - height // 2, y + height // 2])
-    else:
-        # Hack while I am trying to get constant size images working
-        if ut.get_argval('--save'):
-            zoom = 1.0
-        else:
-            zoom = .5
-        imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
-        ab = mpl.offsetbox.AnnotationBbox(
-            imagebox, xy,
-            xybox=(0., 0.),
-            xycoords='data',
-            #xycoords='axes fraction',
-            boxcoords="offset points",
-            box_alignment=bbox_alignment, pad=0.0)
-        ax.add_artist(ab)
 
 
 def update_figsize():
@@ -669,8 +674,9 @@ def show_if_requested(N=1):
                 absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
                                            figsize=False, dpi=dpi)
             else:
+                noalpha = ut.get_argflag('--noalpha')
                 savekw = {}
-                savekw['transparent'] = fpath.endswith('.png')
+                savekw['transparent'] = fpath.endswith('.png') and not noalpha
                 savekw['dpi'] = dpi
                 savekw['edgecolor'] = 'none'
                 savekw['bbox_inches'] = extract_axes_extents(fig, combine=True)  # replaces need for clipwhite

@@ -25,10 +25,10 @@ FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=10)
 LEGEND_SIZE = ut.get_argval('--legendsize', default=8)
 
 # UNCOMMENT FOR PRESENTATIONS
-#LABEL_SIZE = ut.get_argval('--labelsize', default=14)
-#TITLE_SIZE = ut.get_argval('--titlesize', default=18)
-#FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
-#LEGEND_SIZE = ut.get_argval('--legendsize', default=14)
+LABEL_SIZE = ut.get_argval('--labelsize', default=14)
+TITLE_SIZE = ut.get_argval('--titlesize', default=18)
+FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
+LEGEND_SIZE = ut.get_argval('--legendsize', default=14)
 
 
 def customize_figure(fig, docla):

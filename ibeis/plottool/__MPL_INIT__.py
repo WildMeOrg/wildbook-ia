@@ -89,7 +89,9 @@ def _init_mpl_rcparams():
     import matplotlib as mpl
     from matplotlib import style
     #http://matplotlib.org/users/style_sheets.html
-    style.use('ggplot')
+    nogg = ut.get_argflag('--nogg')
+    if not nogg:
+        style.use('ggplot')
     #style.use(['ggplot'])
     #print('style.available = %r' % (style.available,))
     #style.use(['bmh'])
@@ -113,8 +115,8 @@ def _init_mpl_rcparams():
     for key in mpl_keypress_shortcuts:
         mpl.rcParams[key] = ''
 
-    CUSTOM_GGPLOT = True
-    if CUSTOM_GGPLOT:
+    CUSTOM_GGPLOT = 1
+    if CUSTOM_GGPLOT and not nogg:
         ggplot_style = style.library['ggplot']  # NOQA
         # print('ggplot_style = %r' % (ggplot_style,))
         custom_gg = {

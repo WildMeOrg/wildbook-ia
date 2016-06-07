@@ -454,7 +454,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
 
 def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
                       edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
-                      num_xticks=None, **kwargs):
+                      num_xticks=None, kind='bar', **kwargs):
     r"""
 
     CommandLine:
@@ -477,7 +477,6 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
         >>> ut.show_if_requested()
     """
-
     num_cdfs = len(cdf_list)
     num_data = len(cdf_list[0])
     if color_list is None:
@@ -501,14 +500,13 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
 
     fig = multi_plot(
         x_data, cdf_list,
-        kind='bar',
+        kind=kind,
         label_list=label_list, color_list=color_list, marker_list=marker_list,
         markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
         num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
         use_legend=use_legend,
         **kwargs
     )
-
     return fig
 
 
@@ -602,16 +600,49 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
 
 def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     """
-    ax1 : the main axes
-    ax1 : the zoomed axes
-    (xmin,xmax) : the limits of the colored area in both plot axes.
-
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
     be marked.  The keywords parameters will be used ti create
     patches.
 
+    Args:
+        ax1 (mpl.axes): the main axes
+        ax2 (mpl.axes): the zoomed axes
+        (xmin,xmax) : the limits of the colored area in both plot axes.
+
+    Returns:
+        tuple: (c1, c2, bbox_patch1, bbox_patch2, p)
+
     References:
         matplotlib.org/users/annotations_guide.html
+
+    CommandLine:
+        python -m plottool.plots zoom_effect01 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> import plottool as pt
+        >>> cdf_list = np.array(
+        >>>     [[10, 15, 40, 42, 50, 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
+        >>>      [20, 30, 31, 66, 75, 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
+        >>> edges = list(range(0, len(cdf_list[0]) + 1))
+        >>> label_list = ['custom', 'custom:sv_on=False']
+        >>> fnum = 1
+        >>> numranks = len(cdf_list[0])
+        >>> top = 3
+        >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, xmin=.9, num_xticks=numranks, fnum=fnum, pnum=(2, 1, 1), kind='plot', ymin=0, ymax=100)
+        >>> ax1 = pt.gca()
+        >>> plot_rank_cumhist(cdf_list.T[0:top].T, label_list, edges=edges[0:top + 1], xmin=.9, num_xticks=top, fnum=fnum, pnum=(2, 1, 2), kind='plot', ymin=0, ymax=100)
+        >>> ax2 = pt.gca()
+        >>> xmin = 1
+        >>> xmax = top
+        >>> (c1, c2, bbox_patch1, bbox_patch2, p) = zoom_effect01(ax1, ax2, xmin, xmax)
+        >>> result = ('(c1, c2, bbox_patch1, bbox_patch2, p) = %s' % (ut.repr2((c1, c2, bbox_patch1, bbox_patch2, p)),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+
     """
     from matplotlib.transforms import (
         Bbox, TransformedBbox, blended_transform_factory)
@@ -624,8 +655,8 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
                      prop_lines, prop_patches=None):
         if prop_patches is None:
             prop_patches = prop_lines.copy()
-            prop_patches["alpha"] = prop_patches.get("alpha", 1) * .01  # * 0.05
-        prop_patches["alpha"] = .1
+            prop_patches['alpha'] = prop_patches.get('alpha', 1) * .01  # * 0.05
+        prop_patches['alpha'] = .1
 
         c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
         c1.set_clip_on(False)
