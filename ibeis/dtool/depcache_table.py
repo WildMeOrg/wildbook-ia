@@ -37,6 +37,9 @@ STORE_CFGDICT = True
 
 
 class ExternType(ut.NiceRepr):
+    """
+    Type to denote an external resource not saved in an SQL table
+    """
     def __init__(self, read_func, write_func, extern_ext=None, extkey=None):
         self.write_func = write_func
         self.read_func = read_func
@@ -47,7 +50,8 @@ class ExternType(ut.NiceRepr):
         ext = None
         ext = self.extkey if self.extkey else ext
         ext = self.extern_ext if self.extern_ext and ext else ext
-        return '(%s, %s, %s)' % (ut.get_funcname(self.read_func), ut.get_funcname(self.write_func), ext)
+        return '(%s, %s, %s)' % (ut.get_funcname(self.read_func),
+                                 ut.get_funcname(self.write_func), ext)
 
 
 class ExternalStorageException(Exception):
@@ -98,7 +102,6 @@ def make_extern_io_funcs(table, cls):
 
 def ensure_config_table(db):
     """ SQL definition of configuration table. """
-    #from dtool import base
     config_addtable_kw = ut.odict(
         [
             ('tablename', CONFIG_TABLE,),
@@ -126,6 +129,156 @@ def ensure_config_table(db):
                 db.add_table(**new_state)
             else:
                 raise NotImplementedError('Need to be able to modify tables')
+
+
+@ut.reloadable_class
+class _TableConfigHelper(object):
+    """ helper for configuration table """
+
+    def get_parent_rowids(table, rowid_list):
+        """
+        Args:
+            rowid_list (list): native table rowids
+
+        Returns:
+            parent_rowids (list of tuples): tuples of parent rowids
+        """
+        parent_rowids = table.get_internal_columns(
+            rowid_list, table.parent_id_colnames, unpack_scalars=True,
+            keepwrap=True)
+        return parent_rowids
+
+    def get_row_parent_rowid_map(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+
+        parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
+        key = parent_rowid_dict.keys()[0]
+        val = parent_rowid_dict.values()[0]
+        """
+        parent_rowids = table.get_parent_rowids(rowid_list)
+        parent_rowid_dict = dict(zip(table.parent_id_tablenames,
+                                     ut.list_transpose(parent_rowids)))
+        return parent_rowid_dict
+
+    def get_config_history(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+
+        parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
+        key = parent_rowid_dict.keys()[0]
+        val = parent_rowid_dict.values()[0]
+        """
+        tbl_cfgids = table.get_row_cfgid(rowid_list)
+        cfgid2_rowids = ut.group_items(rowid_list, tbl_cfgids)
+        unique_cfgids = cfgid2_rowids.keys()
+        unique_configs = table.get_config_from_rowid(unique_cfgids)
+        #print('unique_configs = %r' % (unique_configs,))
+        parent_rowids = table.get_parent_rowids(rowid_list)
+        ret_list = [unique_configs]
+        depc = table.depc
+        for tblname, ids in zip(table.parent_id_tablenames,
+                                ut.list_transpose(parent_rowids)):
+            if tblname == depc.root:
+                continue
+            parent_tbl = depc[tblname]
+            ancestor_configs = parent_tbl.get_config_history(ids)
+            ret_list.extend(ancestor_configs)
+        return ret_list
+
+    def get_ancestor_rowids(table, rowid_list, target_table):
+        parent_rowids = table.get_parent_rowids(rowid_list)
+        depc = table.depc
+        for tblname, ids in zip(table.parent_id_tablenames,
+                                ut.list_transpose(parent_rowids)):
+            if tblname == target_table:
+                return ids
+            parent_tbl = depc[tblname]
+            ancestor_ids = parent_tbl.get_ancestor_rowids(ids, target_table)
+            if ancestor_ids is not None:
+                return ancestor_ids
+        return None  # Base case
+
+    def get_row_cfgid(table, rowid_list):
+        """
+        >>> from dtool.depcache_table import *  # NOQA
+        """
+        config_rowids = table.get_internal_columns(rowid_list, (CONFIG_ROWID,))
+        return config_rowids
+
+    def get_row_configs(table, rowid_list):
+        config_rowids = table.get_row_cfgid(rowid_list)
+        return table.get_config_from_rowid(config_rowids)
+
+    def get_row_cfghashid(table, rowid_list):
+        config_rowids = table.get_row_cfgid(rowid_list)
+        config_hashids = table.get_config_hashid(config_rowids)
+        return config_hashids
+
+    def get_row_cfgstr(table, rowid_list):
+        config_rowids = table.get_row_cfgid(rowid_list)
+        cfgstr_list = table.db.get(
+            CONFIG_TABLE, colnames=(CONFIG_STRID,), id_iter=config_rowids,
+            id_colname=CONFIG_ROWID)
+        return cfgstr_list
+
+    def get_config_rowid(table, config=None, _debug=None):
+        if isinstance(config, int):
+            config_rowid = config
+        else:
+            config_rowid = table.add_config(config, _debug)
+        return config_rowid
+
+    def get_config_hashid(table, config_rowid_list):
+        hashid_list = table.db.get(
+            CONFIG_TABLE, colnames=(CONFIG_HASHID,), id_iter=config_rowid_list,
+            id_colname=CONFIG_ROWID)
+        return hashid_list
+
+    def get_config_rowid_from_hashid(table, config_hashid_list):
+        config_rowid_list = table.db.get(
+            CONFIG_TABLE, colnames=(CONFIG_ROWID,),
+            id_iter=config_hashid_list,
+            id_colname=CONFIG_HASHID)
+        return config_rowid_list
+
+    def get_config_from_rowid(table, config_rowids):
+        assert STORE_CFGDICT
+        cfgdict_list = table.db.get(
+            CONFIG_TABLE, colnames=(CONFIG_DICT,), id_iter=config_rowids,
+            id_colname=CONFIG_ROWID)
+        return [table.configclass(**dict_) for dict_ in cfgdict_list]
+
+    @profile
+    def add_config(table, config, _debug=None):
+        try:
+            # assume config is AlgoRequest or TableConfig
+            config_strid = config.get_cfgstr()
+        except AttributeError:
+            config_strid = ut.to_json(config)
+        config_hashid = ut.hashstr27(config_strid)
+        if table.depc._debug or _debug:
+            print('config_strid = %r' % (config_strid,))
+            print('config_hashid = %r' % (config_hashid,))
+        get_rowid_from_superkey = table.get_config_rowid_from_hashid
+        if STORE_CFGDICT:
+            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID, CONFIG_DICT)
+            if hasattr(config, 'config'):
+                # Hack for requests
+                config = config.config
+            cfgdict = config.__getstate__()
+            param_list = [(config_hashid, table.tablename, config_strid, cfgdict)]
+        else:
+            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID)
+            param_list = [(config_hashid, table.tablename, config_strid)]
+        config_rowid_list = table.db.add_cleanly(
+            CONFIG_TABLE, colnames, param_list,
+            get_rowid_from_superkey)
+        config_rowid = config_rowid_list[0]
+        if table.depc._debug:
+            print('config_rowid_list = %r' % (config_rowid_list,))
+            #print('config_rowid = %r' % (config_rowid,))
+        return config_rowid
 
 
 @ut.reloadable_class
@@ -492,6 +645,9 @@ class _TableGeneralHelper(ut.NiceRepr):
     @ut.memoize
     def compute_order(table):
         """
+        CommandLine:
+            python -m dtool.depcache_table compute_order --show
+
         Example:
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
@@ -502,7 +658,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> tablename = 'neighbs'
             >>> table = depc[tablename]
             >>> compute_order = table.compute_order
-            >>> print('compute_order = %s' % (ut.repr3(compute_order),))
+            >>> print('compute_order = %s' % (ut.repr3(compute_order, nl=1),))
 
         Example:
             >>> from dtool.depcache_control import *  # NOQA
@@ -919,156 +1075,6 @@ class _TableGeneralHelper(ut.NiceRepr):
 
 
 @ut.reloadable_class
-class _TableConfigHelper(object):
-    """ helper for configuration table """
-
-    def get_parent_rowids(table, rowid_list):
-        """
-        Args:
-            rowid_list (list): native table rowids
-
-        Returns:
-            parent_rowids (list of tuples): tuples of parent rowids
-        """
-        parent_rowids = table.get_internal_columns(
-            rowid_list, table.parent_id_colnames, unpack_scalars=True,
-            keepwrap=True)
-        return parent_rowids
-
-    def get_row_parent_rowid_map(table, rowid_list):
-        """
-        >>> from dtool.depcache_table import *  # NOQA
-
-        parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
-        key = parent_rowid_dict.keys()[0]
-        val = parent_rowid_dict.values()[0]
-        """
-        parent_rowids = table.get_parent_rowids(rowid_list)
-        parent_rowid_dict = dict(zip(table.parent_id_tablenames,
-                                     ut.list_transpose(parent_rowids)))
-        return parent_rowid_dict
-
-    def get_config_history(table, rowid_list):
-        """
-        >>> from dtool.depcache_table import *  # NOQA
-
-        parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
-        key = parent_rowid_dict.keys()[0]
-        val = parent_rowid_dict.values()[0]
-        """
-        tbl_cfgids = table.get_row_cfgid(rowid_list)
-        cfgid2_rowids = ut.group_items(rowid_list, tbl_cfgids)
-        unique_cfgids = cfgid2_rowids.keys()
-        unique_configs = table.get_config_from_rowid(unique_cfgids)
-        #print('unique_configs = %r' % (unique_configs,))
-        parent_rowids = table.get_parent_rowids(rowid_list)
-        ret_list = [unique_configs]
-        depc = table.depc
-        for tblname, ids in zip(table.parent_id_tablenames,
-                                ut.list_transpose(parent_rowids)):
-            if tblname == depc.root:
-                continue
-            parent_tbl = depc[tblname]
-            ancestor_configs = parent_tbl.get_config_history(ids)
-            ret_list.extend(ancestor_configs)
-        return ret_list
-
-    def get_ancestor_rowids(table, rowid_list, target_table):
-        parent_rowids = table.get_parent_rowids(rowid_list)
-        depc = table.depc
-        for tblname, ids in zip(table.parent_id_tablenames,
-                                ut.list_transpose(parent_rowids)):
-            if tblname == target_table:
-                return ids
-            parent_tbl = depc[tblname]
-            ancestor_ids = parent_tbl.get_ancestor_rowids(ids, target_table)
-            if ancestor_ids is not None:
-                return ancestor_ids
-        return None  # Base case
-
-    def get_row_cfgid(table, rowid_list):
-        """
-        >>> from dtool.depcache_table import *  # NOQA
-        """
-        config_rowids = table.get_internal_columns(rowid_list, (CONFIG_ROWID,))
-        return config_rowids
-
-    def get_row_configs(table, rowid_list):
-        config_rowids = table.get_row_cfgid(rowid_list)
-        return table.get_config_from_rowid(config_rowids)
-
-    def get_row_cfghashid(table, rowid_list):
-        config_rowids = table.get_row_cfgid(rowid_list)
-        config_hashids = table.get_config_hashid(config_rowids)
-        return config_hashids
-
-    def get_row_cfgstr(table, rowid_list):
-        config_rowids = table.get_row_cfgid(rowid_list)
-        cfgstr_list = table.db.get(
-            CONFIG_TABLE, colnames=(CONFIG_STRID,), id_iter=config_rowids,
-            id_colname=CONFIG_ROWID)
-        return cfgstr_list
-
-    def get_config_rowid(table, config=None, _debug=None):
-        if isinstance(config, int):
-            config_rowid = config
-        else:
-            config_rowid = table.add_config(config, _debug)
-        return config_rowid
-
-    def get_config_hashid(table, config_rowid_list):
-        hashid_list = table.db.get(
-            CONFIG_TABLE, colnames=(CONFIG_HASHID,), id_iter=config_rowid_list,
-            id_colname=CONFIG_ROWID)
-        return hashid_list
-
-    def get_config_rowid_from_hashid(table, config_hashid_list):
-        config_rowid_list = table.db.get(
-            CONFIG_TABLE, colnames=(CONFIG_ROWID,),
-            id_iter=config_hashid_list,
-            id_colname=CONFIG_HASHID)
-        return config_rowid_list
-
-    def get_config_from_rowid(table, config_rowids):
-        assert STORE_CFGDICT
-        cfgdict_list = table.db.get(
-            CONFIG_TABLE, colnames=(CONFIG_DICT,), id_iter=config_rowids,
-            id_colname=CONFIG_ROWID)
-        return [table.configclass(**dict_) for dict_ in cfgdict_list]
-
-    @profile
-    def add_config(table, config, _debug=None):
-        try:
-            # assume config is AlgoRequest or TableConfig
-            config_strid = config.get_cfgstr()
-        except AttributeError:
-            config_strid = ut.to_json(config)
-        config_hashid = ut.hashstr27(config_strid)
-        if table.depc._debug or _debug:
-            print('config_strid = %r' % (config_strid,))
-            print('config_hashid = %r' % (config_hashid,))
-        get_rowid_from_superkey = table.get_config_rowid_from_hashid
-        if STORE_CFGDICT:
-            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID, CONFIG_DICT)
-            if hasattr(config, 'config'):
-                # Hack for requests
-                config = config.config
-            cfgdict = config.__getstate__()
-            param_list = [(config_hashid, table.tablename, config_strid, cfgdict)]
-        else:
-            colnames = (CONFIG_HASHID, CONFIG_TABLENAME, CONFIG_STRID)
-            param_list = [(config_hashid, table.tablename, config_strid)]
-        config_rowid_list = table.db.add_cleanly(
-            CONFIG_TABLE, colnames, param_list,
-            get_rowid_from_superkey)
-        config_rowid = config_rowid_list[0]
-        if table.depc._debug:
-            print('config_rowid_list = %r' % (config_rowid_list,))
-            #print('config_rowid = %r' % (config_rowid,))
-        return config_rowid
-
-
-@ut.reloadable_class
 class _TableComputeHelper(object):
     """ helper for computing functions """
 
@@ -1256,8 +1262,8 @@ class _TableComputeHelper(object):
         ]
         return fname_list
 
-    def _raw_call():
-        pass
+    #def _raw_call():
+    #    pass
 
     @profile
     def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
