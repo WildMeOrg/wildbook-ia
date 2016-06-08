@@ -121,8 +121,6 @@ def cluster_timespace(X_data, thresh, km_per_sec=.02):
         >>>     (0, 42.862946, -73.804977),  # CP2
         >>>     (0, 42.849809, -73.758486),  # CP3
         >>> ])
-        >>> #import scipy.cluster.hierarchy
-        >>> #scipy.cluster.hierarchy.dendrogram(linkage_mat, orientation='top')
         >>> thresh = 5.0  # kilometers
         >>> X_labels = cluster_timespace(X_data, thresh)
         >>> print(X_labels)
@@ -130,9 +128,6 @@ def cluster_timespace(X_data, thresh, km_per_sec=.02):
     # Compute pairwise distances between all inputs
     dist_func = functools.partial(timespace_distance, km_per_sec=km_per_sec)
     condenced_dist_mat = distance.pdist(X_data, dist_func)
-    #dist_mat = distance.squareform(condenced_dist_mat)
-    #print(np.array_repr(dist_mat, precision=1, max_line_width=1000, suppress_small=1))
-    #print(np.array_repr(dist_mat.T, precision=1, max_line_width=1000, suppress_small=1))
     # Compute heirarchical linkages
     linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat,
                                                   method='single')
