@@ -3,12 +3,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import numpy as np
 import vtool as vt
-from six.moves import zip, map, range  # NOQA
+from six.moves import zip, map, range
 from scipy.spatial import distance
 import scipy.cluster.hierarchy
 import sklearn.cluster
 #from sklearn.cluster import MeanShift, estimate_bandwidth
-from scipy.spatial.distance import pdist
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
 
 
@@ -372,52 +371,61 @@ def filter_and_relabel(labels, label_gids, min_imgs_per_occurence, occur_unixtim
 def timespace_distance(pt1, pt2):
     (sec1, lat1, lon1) = pt1
     (sec2, lat2, lon2) = pt2
-    km_dist = vt.haversine((lat1, lon1), (lat1, lon2))
+    km_dist = vt.haversine((lat1, lon1), (lat2, lon2))
     km_per_sec = .002  # conversion ratio for reasonable animal walking speed
-    sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)
+    #sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)
+    sec_dist = np.abs(sec1 - sec2) * km_per_sec
     timespace_dist = km_dist + sec_dist
     return timespace_dist
 
 
 def timespace_pdist(X_data):
     if X_data.shape[1] == 3:
-        return pdist(X_data, timespace_distance)
-    if X_data.shape[1] == 3:
-        return pdist(X_data, 'euclidian')
+        return distance.pdist(X_data, timespace_distance)
+    if X_data.shape[1] == 1:
+        return distance.pdist(X_data, 'euclidian')
 
 
 def cluster_timespace(X_data, thresh):
     """
-        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.linkage.html
+    References:
+        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/
+            scipy.cluster.hierarchy.linkage.html
+
+    CommandLine:
+        python -m ibeis.algo.preproc.preproc_occurrence cluster_timespace --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+        >>> X_data = testdata_gps()
+        >>> thresh = 10
+        >>> X_labels = cluster_timespace(X_data, thresh)
+        >>> fnum = pt.ensure_fnum(None)
+        >>> fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        >>> hier.dendrogram(linkage_mat, orientation='top')
+        >>> plot_annotaiton_gps(X_data)
+        >>> ut.show_if_requested()
+
     """
     condenced_dist_mat = distance.pdist(X_data, timespace_distance)
-    linkage_mat        = scipy.cluster.hierarchy.linkage(
-        condenced_dist_mat, method='centroid')
-    X_labels           = scipy.cluster.hierarchy.fcluster(
-        linkage_mat, thresh, criterion='inconsistent',
-        depth=2, R=None, monocrit=None)
+    # Compute heirarchical linkages
+    linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat,
+                                                  method='centroid')
+    # Cluster linkages
+    X_labels = scipy.cluster.hierarchy.fcluster(linkage_mat, thresh,
+                                                criterion='inconsistent',
+                                                depth=2, R=None, monocrit=None)
     return X_labels
 
 
 def testdata_gps():
     r"""
-    CommandLine:
-        python -m ibeis.algo.preproc.preproc_occurrence --exec-testdata_gps --show
+    Simple data to test GPS algorithm.
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
-        >>> X_data, linkage_mat = testdata_gps()
-        >>> ut.quit_if_noshow()
-        >>> # plot
-        >>> import plottool as pt
-        >>> fnum = pt.ensure_fnum(None)
-        >>> fig = pt.figure(fnum=fnum, doclf=True, docla=True)
-        >>> hier.dendrogram(linkage_mat, orientation='top')
-        >>> #fig.show()
-        >>> plot_annotaiton_gps(X_data)
-        >>> ut.show_if_requested()
-
+    Returns:
+        X_name (ndarray): Nx1 matrix denoting groundtruth locations
+        X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)
     """
     lon = np.array([4.54, 104.0, -14.9, 56.26, 103.46, 103.37, 54.22, 23.3,
                     25.53, 23.31, 118.0, 103.53, 54.40, 103.48, 6.14, 7.25,
@@ -443,47 +451,48 @@ def testdata_gps():
         (0, 42.862946, -73.804977),  # CP2
         (0, 42.849809, -73.758486),  # CP3
     ])
+    return X_name, X_data
 
-    timespace_distance(X_data[1], X_data[0])
+    #timespace_distance(X_data[1], X_data[0])
 
-    from scipy.cluster.hierarchy import fcluster
-    #import numpy as np
-    #np.set_printoptions(precision=8, threshold=1000, linewidth=200)
+    #from scipy.cluster.hierarchy import fcluster
+    ##import numpy as np
+    ##np.set_printoptions(precision=8, threshold=1000, linewidth=200)
 
-    condenced_dist_mat = distance.pdist(X_data, timespace_distance)
-    #linkage_methods = [
-    #    'single',
-    #    'complete',
-    #    'average',
-    #    'weighted',
-    #    'centroid',
-    #    'median',
-    #    'ward',
-    #]
-    # Linkage matrixes are interpeted incrementally starting from the first row
-    # They are unintuitive, but not that difficult to grasp
-    linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat, method='single')
-    #print(linkage_mat)
-    #hier.leaves_list(linkage_mat)
-    # FCluster forms flat clusters from the heirarchical linkage matrix
-    #fcluster_criterions = [
-    #    'inconsistent',  # use a threshold
-    #    'distance',  # cophentic distance greter than t
-    #    'maxclust',
-    #    'monogrit',
-    #    'maxclust_monocrit',
-    #]
-    # depth has no meaning outside inconsistent criterion
-    #R = hier.inconsistent(linkage_mat) # calcualted automagically in fcluster
-    thresh = .8
-    depth = 2
-    R = None  # calculated automatically for 'inconsistent' criterion
-    monocrit = None
-    X_labels = fcluster(linkage_mat, thresh, criterion='inconsistent',
-                        depth=depth, R=R, monocrit=monocrit)
+    #condenced_dist_mat = distance.pdist(X_data, timespace_distance)
+    ##linkage_methods = [
+    ##    'single',
+    ##    'complete',
+    ##    'average',
+    ##    'weighted',
+    ##    'centroid',
+    ##    'median',
+    ##    'ward',
+    ##]
+    ## Linkage matrixes are interpeted incrementally starting from the first row
+    ## They are unintuitive, but not that difficult to grasp
+    #linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat, method='single')
+    ##print(linkage_mat)
+    ##hier.leaves_list(linkage_mat)
+    ## FCluster forms flat clusters from the heirarchical linkage matrix
+    ##fcluster_criterions = [
+    ##    'inconsistent',  # use a threshold
+    ##    'distance',  # cophentic distance greter than t
+    ##    'maxclust',
+    ##    'monogrit',
+    ##    'maxclust_monocrit',
+    ##]
+    ## depth has no meaning outside inconsistent criterion
+    ##R = hier.inconsistent(linkage_mat) # calcualted automagically in fcluster
+    #thresh = .8
+    #depth = 2
+    #R = None  # calculated automatically for 'inconsistent' criterion
+    #monocrit = None
+    #X_labels = fcluster(linkage_mat, thresh, criterion='inconsistent',
+    #                    depth=depth, R=R, monocrit=monocrit)
 
-    print(X_labels)
-    return X_data, linkage_mat
+    #print(X_labels)
+    #return X_data, linkage_mat
 
 
 def plot_annotaiton_gps(X_data):
