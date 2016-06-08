@@ -141,6 +141,9 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         python occurrence_blackbox.py --lat 42.727985 42.657414 42.658333 42.654384 --lon -73.683994 -73.774448 -73.770993 -73.768919 --sec 0 0 0 0
+        # Should return
+        X_labels = [2, 1, 1, 1]
+
     """
     import argparse
     parser = argparse.ArgumentParser(description='Compute agglomerative cluster')
