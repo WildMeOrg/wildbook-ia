@@ -187,9 +187,12 @@ def testdata_depc3():
         python -m dtool.example_depcache2 testdata_depc3 --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from dtool.example_depcache2 import *  # NOQA
         >>> depc = testdata_depc3()
+        >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
+        >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
+        >>> depc.print_all_tables()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> depc.show_graph()
@@ -204,27 +207,39 @@ def testdata_depc3():
 
     # put the test cache in the dtool repo
     dtool_repo = dirname(ut.get_module_dir(dtool))
-    cache_dpath = join(dtool_repo, 'DEPCACHE2')
+    cache_dpath = join(dtool_repo, 'DEPCACHE3')
 
     root = 'annot'
-
     depc = dtool.DependencyCache(
-        root_tablename=root, cache_dpath=cache_dpath, use_globals=False)
+        root_tablename=root, get_root_uuid=ut.identity,
+        cache_dpath=cache_dpath, use_globals=False)
 
     # ----------
-    dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
-    def dummy_func(depc, *args, **kwargs):
-        return None
+    #dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
 
-    depc.register_preproc(tablename='indexer', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='neighbs', parents=['annot', 'indexer'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vocab', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='smk_vec', parents=['annot', 'vocab'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='vsone', parents=['annot', 'annot'], **dummy_cols)(dummy_func)
-    #depc.register_preproc(tablename='viewpoint_classifier', parents=['annot*'], **dummy_cols)(dummy_func)
-    #depc.register_preproc(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'], **dummy_cols)(dummy_func)
+    def register_dummy_config(tablename, parents):
+        config_param = tablename + '_param'
+        def dummy_func(depc, *args, **kwargs):
+            config = kwargs.get('config')
+            param_val = config[config_param]
+            for row_arg in zip(*args):
+                yield (repr(row_arg) + repr(param_val)),
+                #yield (np.array([row_arg]),)
+        from dtool import base
+        configclass = base.dict_as_config({config_param: 42}, tablename)
+        dummy_cols = dict(colnames=['data'], coltypes=[str], configclass=configclass)
+        depc.register_preproc(tablename=tablename, parents=parents, **dummy_cols)(dummy_func)
+
+    register_dummy_config(tablename='labeler', parents=['annot'])
+    register_dummy_config(tablename='indexer', parents=['annot*'])
+    register_dummy_config(tablename='neighbs', parents=['annot', 'indexer'])
+    register_dummy_config(tablename='vocab', parents=['annot*'])
+    register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'])
+    register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
+    register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
+    register_dummy_config(tablename='vsone', parents=['annot', 'annot'])
+    #register_dummy_config(tablename='viewpoint_classifier', parents=['annot*'])
+    #register_dummy_config(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'])
 
     depc.initialize()
     return depc
@@ -263,7 +278,8 @@ def testdata_depc_image():
     # ----------
     dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
     def dummy_func(depc, *args, **kwargs):
-        return None
+        for row_arg in zip(*args):
+            yield (np.array([42]),)
 
     depc.register_preproc(tablename='detector', parents=['image*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='detection', parents=['image', 'detector'], **dummy_cols)(dummy_func)
@@ -296,7 +312,8 @@ def testdata_depc_annot():
     cache_dpath = join(dtool_repo, 'DEPCACHE2')
     dummy_cols = dict(colnames=['data'], coltypes=[np.ndarray])
     def dummy_func(depc, *args, **kwargs):
-        return None
+        for row_arg in zip(*args):
+            yield (np.array([42]),)
 
     # NOTE: Consider the smk_match.
     # It would be really cool if we could say that the vocab
