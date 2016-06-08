@@ -155,6 +155,9 @@ class _CoreDependencyCache(object):
         table.subproperties[propname] = preproc_func
 
     def close(depc):
+        """
+        Close all managed SQL databases
+        """
         for fname, db in depc.fname_to_db.items():
             db.close()
 
@@ -236,7 +239,6 @@ class _CoreDependencyCache(object):
 
         CommandLine:
             python -m dtool.depcache_control --exec-get_dependencies
-            python -m dtool.depcache_control --exec-get_dependencies:0
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -911,7 +913,7 @@ class _CoreDependencyCache(object):
                      read_extern=True, onthefly=False, num_retries=1,
                      hack_paths=False):
         """
-        Primary function to load or compute values in the dependency cache.
+        Access dependant properties the primary objects.
 
         Gets the data in `colnames` of `tablename` that correspond to
         `root_rowids` using `config`.  if colnames is None, all columns are
@@ -1127,7 +1129,7 @@ class _CoreDependencyCache(object):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     """
-    To use this class a user must:
+    Currently, to use this class a user must:
         * on root modification, call depc.on_root_modified
         * use decorators to register relevant functions
     """
@@ -1157,9 +1159,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         #depc._root_asobject = root_asobject
         depc._use_globals = use_globals
         depc.default_fname = default_fname
-        depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
         depc.get_root_uuid = get_root_uuid
-        # depc._debug = True
+        depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
 
     def get_tablenames(depc):
         return list(depc.cachetable_dict.keys())
@@ -1189,8 +1190,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             print('fname = %r' % (fname,))
             db.print_schema()
 
-    def print_table_csv(depc, tablename):
-        depc[tablename]
+    #def print_table_csv(depc, tablename):
+    #    depc[tablename]
 
     def print_all_tables(depc):
         for tablename, table in depc.cachetable_dict.items():
@@ -1204,6 +1205,9 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             depc.fname_to_db[fname].print_table_csv('config')
 
     def get_edges(depc, data=False):
+        """
+        edges for networkx structure
+        """
         if data:
             def get_edgedata(tablekey, parentkey, parent_data):
                 if parent_data['ismulti'] or parent_data['isnwise']:
@@ -1271,7 +1275,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     @ut.memoize
     def make_graph(depc, **kwargs):
         """
-        Helper "fluff" function
+        Constructs a networkx representation of the dependency graph
 
         CommandLine:
             python -m dtool --tf DependencyCache.make_graph --show --reduced

@@ -182,7 +182,6 @@ def testdata_depc2():
 def testdata_depc3():
     """
     Example of local registration
-    sudo pip install freetype-py
 
     CommandLine:
         python -m dtool.example_depcache2 testdata_depc3 --show
@@ -196,9 +195,8 @@ def testdata_depc3():
         >>> depc.show_graph()
         >>> depc['smk_match'].show_input_graph()
         >>> depc['vsone'].show_input_graph()
-        >>> depc['vocab'].show_input_graph()
         >>> depc['neighbs'].show_input_graph()
-        >>> depc['viewpoint_classification'].show_input_graph()
+        >>> #depc['viewpoint_classification'].show_input_graph()
         >>> print(depc['smk_match'].compute_order)
         >>> ut.show_if_requested()
     """
@@ -225,9 +223,8 @@ def testdata_depc3():
     depc.register_preproc(tablename='inv_index', parents=['smk_vec*'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='smk_match', parents=['smk_vec', 'inv_index'], **dummy_cols)(dummy_func)
     depc.register_preproc(tablename='vsone', parents=['annot', 'annot'], **dummy_cols)(dummy_func)
-
-    depc.register_preproc(tablename='viewpoint_classifier', parents=['annot*'], **dummy_cols)(dummy_func)
-    depc.register_preproc(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'], **dummy_cols)(dummy_func)
+    #depc.register_preproc(tablename='viewpoint_classifier', parents=['annot*'], **dummy_cols)(dummy_func)
+    #depc.register_preproc(tablename='viewpoint_classification', parents=['annot', 'viewpoint_classifier'], **dummy_cols)(dummy_func)
 
     depc.initialize()
     return depc
