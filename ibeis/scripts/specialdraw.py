@@ -173,7 +173,7 @@ def double_depcache_graph():
         'Classifier': 'existence',
         'feat_neighbs': 'neighbors',
         'sver': 'spatial_verification',
-        'Cropped_Chips': 'croped_chip',
+        'Cropped_Chips': 'cropped_chip',
         'BC_DTW': 'dtw_distance',
         'Block_Curvature': 'curvature',
         'Trailing_Edge': 'trailing_edge',

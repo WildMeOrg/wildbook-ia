@@ -268,8 +268,8 @@ def start_identify_annots_query(ibs,
             parameters with the result
 
     CommandLine:
+        # Normal mode
         python -m ibeis.web.apis_engine start_identify_annots_query
-
         # Split mode
         ibeis --web
         python -m ibeis.web.apis_engine start_identify_annots_query --show --domain=localhost
@@ -284,7 +284,7 @@ def start_identify_annots_query(ibs,
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> query_config_dict = {
-        >>>    # 'pipeline_root' : 'BC_DTW'
+        >>>    'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -302,8 +302,8 @@ def start_identify_annots_query(ibs,
 
     """
     valid_states = {
-        'match': ['match', 'matched'],
-        'nonmatch': ['nonmatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
+        'match': ['matched'],  # ['match', 'matched'],
+        'nonmatch': ['notmatched'],  # ['nonmatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
         'noncomp' :  ['notcomparable'],
     }
     prefered_states = ut.take_column(valid_states.values(), 0)

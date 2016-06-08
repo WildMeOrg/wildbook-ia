@@ -1195,7 +1195,7 @@ class IndexerConfig(dtool.Config):
     _sub_config_list = [
         #FeatConfig,
         #ChipConfig,  # TODO: infer chip config from feat config
-        FeatWeightConfig,
+        #FeatWeightConfig,
     ]
 
     def get_flann_params(cfg):
