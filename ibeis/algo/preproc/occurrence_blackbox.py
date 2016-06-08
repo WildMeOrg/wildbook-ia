@@ -123,7 +123,9 @@ def cluster_timespace(X_data, thresh, km_per_sec=.02):
         >>> ])
         >>> thresh = 5.0  # kilometers
         >>> X_labels = cluster_timespace(X_data, thresh)
-        >>> print(X_labels)
+        >>> result = ('X_labels = %r' % (X_labels,))
+        >>> print(result)
+        X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)
     """
     # Compute pairwise distances between all inputs
     dist_func = functools.partial(timespace_distance, km_per_sec=km_per_sec)
