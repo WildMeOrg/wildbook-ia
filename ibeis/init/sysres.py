@@ -414,6 +414,10 @@ def get_ibsdb_list(workdir=None):
     return ibsdb_list
 
 
+list_dbs = get_ibsdb_list
+get_available_databases = get_ibsdb_list
+
+
 def ensure_wd_peter2():
     """
     publish to lev:Leviathan:/media/hdd/PUBLIC/databases

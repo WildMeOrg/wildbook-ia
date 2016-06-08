@@ -301,10 +301,18 @@ def start_identify_annots_query(ibs,
         >>> web_ibs.terminate2()
 
     """
+    valid_states = {
+        'match': ['match', 'matched'],
+        'nonmatch': ['nonmatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
+        'noncomp' :  ['notcomparable'],
+    }
+    prefered_states = ut.take_column(valid_states.values(), 0)
+    flat_states = ut.flatten(valid_states.values())
+
     def sanitize(state):
         state = state.strip().lower()
         state = ''.join(state.split())
-        assert state in ['matched', 'notmatched', 'notcomparable'], 'matching_state_list has unrecognized states'
+        assert state in flat_states, 'matching_state_list has unrecognized states. Should be one of %r' % (prefered_states,)
         return state
 
     # HACK
@@ -364,9 +372,9 @@ def start_identify_annots_query(ibs,
     user_feedback = {
         'aid1'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 0)),
         'aid2'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 1)),
-        'p_match'   : [ 1.0 if state == 'matched' else 0.0 for state in state_list ],
-        'p_nomatch' : [ 1.0 if state == 'notmatched' else 0.0 for state in state_list ],
-        'p_notcomp' : [ 1.0 if state == 'notcomparable' else 0.0 for state in state_list ],
+        'p_match'   : [1.0 if state in valid_states['match'] else 0.0 for state in state_list],
+        'p_nomatch' : [1.0 if state in valid_states['nonmatch'] else 0.0 for state in state_list],
+        'p_notcomp' : [1.0 if state in valid_states['notcomp'] else 0.0 for state in state_list],
     }
 
     ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)

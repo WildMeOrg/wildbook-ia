@@ -41,7 +41,7 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
 def get_dbinfo(ibs, verbose=True,
                with_imgsize=False,
                with_bytes=False,
-               with_contrib=True,
+               with_contrib=False,
                with_agesex=False,
                with_header=True,
                short=False,
@@ -77,7 +77,16 @@ def get_dbinfo(ibs, verbose=True,
         >>> # SCRIPT
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> defaultdb = 'testdb1'
+        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb, a='default:minqual=ok,view=primary,view_ext1=1')
+        >>> kwargs = ut.get_kwdefaults(get_dbinfo)
+        >>> kwargs['verbose'] = False
+        >>> kwargs['aid_list'] = aid_list
+        >>> kwargs = ut.parse_dict_from_argv(kwargs)
+        >>> output = get_dbinfo(ibs, **kwargs)
+        >>> result = (output['info_str'])
+        >>> print(result)
+        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
         >>> # <HACK FOR FILTERING>
         >>> #from ibeis.expt import cfghelpers
         >>> #from ibeis.expt import annotation_configs
@@ -87,15 +96,8 @@ def get_dbinfo(ibs, verbose=True,
         >>> #named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
         >>> #                               ut.get_list_column(named_defaults_dict, 'qcfg')))
         >>> #acfg = cfghelpers.parse_argv_cfg(('--annot-filter', '-a'), named_defaults_dict=named_qcfg_defaults, default=None)[0]
-        >>> aid_list = ibs.get_valid_aids()
+        >>> #aid_list = ibs.get_valid_aids()
         >>> # </HACK FOR FILTERING>
-        >>> kwargs = ut.get_kwdefaults(get_dbinfo)
-        >>> kwargs['verbose'] = False
-        >>> kwargs['aid_list'] = aid_list
-        >>> kwargs = ut.parse_dict_from_argv(kwargs)
-        >>> output = get_dbinfo(ibs, **kwargs)
-        >>> result = (output['info_str'])
-        >>> print(result)
 
     Example1:
         >>> # ENABLE_DOCTEST
