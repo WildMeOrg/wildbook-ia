@@ -9,35 +9,72 @@ import utool as ut
 ut.noinject(__name__, '[colorfuncs]')
 
 
+def _test_base01(channels):
+    tests01 = {
+        'is_float': all([ut.is_float(c) for c in channels]),
+        'is_01': all([c >= 0.0 and c <= 1.0 for c in channels]),
+    }
+    return tests01
+
+
+def _test_base255(channels):
+    tests255 = {
+        #'is_int': all([ut.is_int(c) for c in channels]),
+        'is_255': all([c >= 0.0 and c <= 255.0 for c in channels]),
+    }
+    return tests255
+
+
+def is_base01(channels):
+    """ check if a color is in base 01 """
+    return all(_test_base01(channels).values())
+
+
+def is_base255(channels):
+    """ check if a color is in base 01 """
+    return all(_test_base255(channels).values())
+
+
 def assert_base01(channels):
     try:
-        assert all([ut.is_float(channel) for channel in channels]), (
-            'channels must be floats')
-        assert all([channel <= 1.0 for channel in channels]), (
-            'channels must be in 0-1')
+        tests01 = _test_base01(channels)
+        assert tests01['is_float'], ('channels must be floats')
+        assert tests01['is_01'], ('channels must be in 0-1')
     except AssertionError as ex:
-        ut.printex(ex, key_list=['channels'])
+        ut.printex(ex, key_list=['channels', 'tests01'])
+        raise
+
+
+def assert_base255(channels):
+    try:
+        tests255 = _test_base255(channels)
+        assert tests255['is_255'], ('channels must be in 0-255')
+    except AssertionError as ex:
+        ut.printex(ex, key_list=['channels', 'tests255'])
         raise
 
 
 def to_base01(color255):
+    """ converts base 255 color to base 01 color """
     color01 = [channel / 255.0 for channel in color255]
     return color01
 
 
 def to_base255(color01):
+    """ converts base 01 color to base 255 color """
     assert_base01(color01)
     color255 = list(map(int, [round(channel * 255.0) for channel in color01]))
     return color255
 
 
 def ensure_base255(color):
-    try:
-        assert_base01(color)
-    except AssertionError:
-        return color
+    """ always returns a base 255 color """
+    if is_base01(color):
+        color255 = to_base255(color)
     else:
-        return to_base255(color)
+        color255 = color
+    assert_base255(color255)
+    return color255
 
 
 def brighten_rgb(rgb, amount):
