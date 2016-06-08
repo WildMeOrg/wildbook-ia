@@ -1216,7 +1216,6 @@ testmode = ut.get_argflag('--testmode')
     # tablename='neighbor_index', parents=['feat*'],
     #tablename='neighbor_index', parents=['feat'],
     colnames=['indexer'], coltypes=[neighbor_index.NeighborIndex2],
-    #ismulti=True,
     configclass=IndexerConfig,
     chunksize=1, fname='indexer',
 )
