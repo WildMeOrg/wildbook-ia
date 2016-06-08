@@ -44,6 +44,9 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         """
         Overwrites default DictLike update for only keys that exist.
 
+        CommandLine:
+            python -m dtool.base update --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
@@ -54,15 +57,24 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         """
         # FIXME: currently can't update subconfigs based on namespaces
         # and non-namespaced vars are in the context of the root level.
-        self_keys = set(cfg.__dict__.keys())
+        #self_keys = set(cfg.__dict__.keys())
+        self_keys = set(cfg.keys())
+        #self_keys.append(cfg.get_varnames())
         name = cfg.get_config_name()
         prefix = name + '_'
         for key, val in six.iteritems(kwargs):
             # update only existing keys or namespace prefixed keys
+            key_alias = None
             if key.startswith(prefix):
-                key = key[len(prefix):]
+                key_alias = key[len(prefix):]
             if key in self_keys:
-                setattr(cfg, key, val)
+                #print("SETTING")
+                #setattr(cfg, key, val)
+                cfg.setitem(key, val)
+            if key_alias in self_keys:
+                #print("SETTING")
+                cfg.setitem(key, val)
+                #setattr(cfg, key, val)
 
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
@@ -336,11 +348,13 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 def dict_as_config(default_cfgdict, tablename):
     # TODO: use Config.from_dict instead
     import dtool
+    param_info_list = [ut.ParamInfo(key, val)
+                       for key, val in default_cfgdict.items()]
     class UnnamedConfig(dtool.Config):
-        def get_param_info_list(cfg):
-            #print('default_cfgdict = %r' % (default_cfgdict,))
-            return [ut.ParamInfo(key, val)
-                    for key, val in default_cfgdict.items()]
+        _param_info_list = param_info_list
+        #def get_param_info_list(cfg):
+        #    #print('default_cfgdict = %r' % (default_cfgdict,))
+        #    return param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')
     return UnnamedConfig
 

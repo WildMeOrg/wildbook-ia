@@ -581,7 +581,9 @@ class _CoreDependencyCache(object):
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
+                print('**config = %r' % (config,))
                 config_ = configclass(**config)
+                print('config_ = %r' % (config_,))
         return config_
 
     #def get_relevant_subconfigs(depc, tablename, config):
@@ -606,7 +608,7 @@ class _CoreDependencyCache(object):
         parent_rowids = depc._get_parent_rowids(table, rowid_dict)
         if _debug:
             print('   * tablekey = %r' % (tablekey,))
-            print('   * config_ = %r' % (config_,))
+            print('   * (ensured) config_ = %r' % (config_,))
             print('   * config_rowid = %r' % (table.get_config_rowid(config_),))
             print('   * parent_rowids = %s' % (ut.trunc_repr(parent_rowids),))
         _recompute = recompute_all or (tablekey == tablename and recompute)
@@ -969,6 +971,8 @@ class _CoreDependencyCache(object):
                     recompute=False, recompute_all=False, eager=True,
                     nInput=None)
                 config_ = depc._ensure_config(tablename, config)
+                if _debug:
+                    print(' * (ensured) config_ = %r' % (config_,))
                 table = depc[tablename]
                 extern_dpath = table.extern_dpath
                 ut.ensuredir(extern_dpath, verbose=False or table.depc._debug)
@@ -1140,7 +1144,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                  root_getters=None,
                  use_globals=True):
         if default_fname is None:
-            default_fname = ':memory:'
+            default_fname = root_tablename + '_primary_cache'
+            #default_fname = ':memory:'
         depc.root_getters = root_getters
         # Root of all dependencies
         depc.root_tablename = root_tablename
@@ -1159,6 +1164,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         #depc._root_asobject = root_asobject
         depc._use_globals = use_globals
         depc.default_fname = default_fname
+        if get_root_uuid is None:
+            print('WARNING NEED UUID FUNCTION')
+            # HACK
+            get_root_uuid = ut.identity
         depc.get_root_uuid = get_root_uuid
         depc._debug = ut.get_argflag(('--debug-depcache', '--debug-depc'))
 
@@ -1193,10 +1202,14 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     #def print_table_csv(depc, tablename):
     #    depc[tablename]
 
+    def print_table(depc, tablename):
+        depc[tablename].print_table()
+
     def print_all_tables(depc):
         for tablename, table in depc.cachetable_dict.items():
-            db = table.db
-            db.print_table_csv(tablename)
+            table.print_table()
+            #db = table.db
+            #db.print_table_csv(tablename)
 
     def print_config_tables(depc):
         for fname in depc.fname_to_db:

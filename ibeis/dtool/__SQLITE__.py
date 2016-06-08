@@ -9,6 +9,7 @@ import io
 import uuid
 import numpy as np
 import utool as ut
+from six.moves import input
 ut.noinject(__name__, '[dtool.__SQLITE__]')
 
 
@@ -70,9 +71,11 @@ def REGISTER_SQLITE3_TYPES():
     def _read_uuid_from_sqlite3(blob):
         try:
             return uuid.UUID(bytes_le=blob)
-        except ValueError:
+        except ValueError as ex:
+            ut.printex(ex, keys=['blob'])
+            raise
             print('WARNING: COULD NOT PARSE UUID %r, GIVING RANDOM' % (blob, ))
-            raw_input('continue... [enter]')
+            input('continue... [enter]')
             return uuid.uuid4()
 
     if six.PY2:

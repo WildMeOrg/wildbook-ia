@@ -4,6 +4,8 @@ Module contining DependencyCacheTable
 
 python -m dtool.depcache_control --exec-make_graph --show
 python -m dtool.depcache_control --exec-make_graph --show --reduce
+
+TODO: change ismulti to ismulti
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -689,9 +691,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         ]
         #compute_order = [[node[0] for node in nodes]
         #                 for nodes in ordered_compute_nodes]
-        #import utool
-        #utool.embed()
-
         flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
         topsort = list(nx.topological_sort(expanded_input_graph))
         toprank = ut.dict_take(ut.make_index_lookup(topsort), flat_node_order_)
@@ -772,7 +771,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             requestable_col_attrs[colname] = rattr
         return requestable_col_attrs
 
-    def _update_internal_datacol(table):
+    def _infer_datacol(table):
         """
         Constructs the columns needed to represent relationship to data
 
@@ -780,7 +779,7 @@ class _TableGeneralHelper(ut.NiceRepr):
         datatypes
 
         CommandLine:
-            python -m dtool.depcache_table --exec-_update_internal_datacol --show
+            python -m dtool.depcache_table --exec-_infer_datacol --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -789,7 +788,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> depc = testdata_depc()
             >>> for table in depc.tables:
             >>>     print('----')
-            >>>     table._update_internal_datacol()
+            >>>     table._infer_datacol()
             >>>     print(table)
             >>>     print('table.data_col_attrs = %s' %
             >>>           ut.repr3(table.data_col_attrs, nl=8))
@@ -880,13 +879,38 @@ class _TableGeneralHelper(ut.NiceRepr):
                 colattr['read_func'] = read_func
                 colattr['sqltype'] = sqltype
             data_col_attrs.append(colattr)
-        # Set new internal data properties of the table
-        table.data_col_attrs = data_col_attrs
-        table._assert_self()
+        return data_col_attrs
 
-    def _update_internal_parentcol(table):
+    def _infer_parentcol(table):
         """
-        constructs the columns needed to represent relationship to parent
+        construct columns to represent relationship to parent
+
+        CommandLine:
+            python -m dtool.depcache_table _infer_parentcol --show
+
+        Returns:
+            list: list of dictionaries for each parent
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> table = depc['indexer']
+            >>> table = depc['neighbs']
+            >>> parent_col_attrs = table._infer_parentcol()
+            >>> result = ('parent_col_attrs = %s' % (ut.repr2(parent_col_attrs, nl=2),))
+            >>> print(result)
+
+        Ignore:
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> depc.d.get_indexer_data([1, 2, 3])
+            >>> import uuid
+            >>> depc.d.get_indexer_data([uuid.UUID('a01eda32-e4e0-b139-3274-e91d1b3e9ecf')])
+
+
         """
         parent_tablenames = table.parent_tablenames
         parent_col_attrs = []
@@ -936,14 +960,22 @@ class _TableGeneralHelper(ut.NiceRepr):
             if column_ismulti:
                 # Case when dependencies are many to one hash of set items
                 colname = prefix + '_setuuid'
-                sqltype = 'TEXT NOT NULL'
-                extra_cols = [
-                    {'intern_colname': prefix + '_setsize', 'sqltype':
-                     'INTEGER NOT NULL'},
-                    {'intern_colname': prefix + '_setfpath', 'sqltype':
-                     'TEXT'},
-                ]
+                sqltype = 'UUID NOT NULL'
+                INPUT_SIZE_SUFFIX = 'setsize'
+                extra_cols = []
+                extra_cols += [{
+                    'intern_colname': prefix + '_' + INPUT_SIZE_SUFFIX,
+                    'sqltype': 'INTEGER NOT NULL',
+                    #'doc': 'size of an input set for this model',
+                }]
+                # File that maintains manifest of model inputs
+                #INPUT_FPATH_SUFFIX = 'setfpath'
+                #extra_cols += [{
+                #'intern_colname': prefix + '_' + INPUT_FPATH_SUFFIX,
+                #'sqltype': 'TEXT'
+                #}]
                 colattr['extra_cols'] = extra_cols
+                #colattr['issuper'] = True
             else:
                 # Normal case when dependencies are one to one
                 colname = prefix + '_rowid'
@@ -954,36 +986,45 @@ class _TableGeneralHelper(ut.NiceRepr):
         parent_col_attrs = [
             ut.order_dict_by(colattr, ['intern_colname', 'sqltype'])
             for colattr in parent_col_attrs]
-        table.parent_col_attrs = parent_col_attrs
+        return parent_col_attrs
 
-    def _update_internal_allcol(table):
-        r"""
-        Build column definitions convinient for sql
-
+    def print_internal_info(table, all_attrs=False):
+        """
         CommandLine:
-            python -m dtool.depcache_table --exec-_update_internal_allcol
+            python -m dtool.depcache_table --exec-print_internal_info
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablenames = ['vsone', 'spam', 'notch', 'vsmany', 'chip',
-            >>>               'multitest']
-            >>> for table in ut.take(depc, ): #depc.tables:
-            >>>     print('----')
-            >>>     table._update_internal_allcol()
-            >>>     print(table)
-            >>>     ut.colorprint('table.internal_col_attrs = %s' %
-            >>>                   (ut.repr3(table.internal_col_attrs, nl=1,
-            >>>                             sorted_=False)), 'python')
-            >>>     print('table.parent_col_attrs = %s' % (
-            >>>             ut.repr3(table.parent_col_attrs, nl=2),))
-            >>>     print('table.data_col_attrs = %s' % (
-            >>>               ut.repr3(table.data_col_attrs, nl=2),))
-            >>>     for a in ut.get_instance_attrnames(
-            >>>               table, with_properties=True, default=False):
-            >>>         print('  table.%s = %r' % (a, getattr(table, a)))
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> tablenames = ['neighbs', 'indexer']
+            >>> for table in ut.take(depc, tablenames): # .tables:
+            >>>     table.print_internal_info()
+        """
+        print('----')
+        print(table)
+        # Print the other infered attrs
+        print('table.parent_col_attrs = %s' % (
+                ut.repr3(table.parent_col_attrs, nl=2),))
+        print('table.data_col_attrs = %s' % (
+                  ut.repr3(table.data_col_attrs, nl=2),))
+        # Print the infered allcol attrs
+        ut.colorprint('table.internal_col_attrs = %s' %
+                      (ut.repr3(table.internal_col_attrs, nl=1,
+                                sorted_=False)), 'python')
+        add_table_kw = table._get_addtable_kw()
+        print('table.add_table_kw = %s' % (ut.repr2(add_table_kw, nl=2),))
+        if all_attrs:
+            # Print all attributes
+            for a in ut.get_instance_attrnames(
+                      table, with_properties=True, default=False):
+                print('  table.%s = %r' % (a, getattr(table, a)))
+
+    def _infer_allcol(table):
+        r"""
+        Combine information from parentcol and datacol
+        Build column definitions that will directly define SQL columns
         """
         internal_col_attrs = []
 
@@ -1020,9 +1061,28 @@ class _TableGeneralHelper(ut.NiceRepr):
             ('issuper', True),
         ])
         colattr['intern_colx'] = len(internal_col_attrs)
+        internal_col_attrs.append(colattr)
+
+        # Append quick access column
+        if table.ismulti:
+            # Append model uuid column
+            colattr = ut.odict()
+            colattr['intern_colname'] = table.model_uuid_colname
+            colattr['sqltype'] = 'UUID NOT NULL'
+            colattr['intern_colx'] = len(internal_col_attrs)
+            internal_col_attrs.append(colattr)
+
+            # Append model uuid column
+            colattr = ut.odict()
+            colattr['intern_colname'] = table.is_augmented_colname
+            colattr['sqltype'] = 'INTEGER DEFAULT 0'
+            colattr['intern_colx'] = len(internal_col_attrs)
+            internal_col_attrs.append(colattr)
+        else:
+            # Append primary rowid column
+            pass
 
         # Append data columns
-        internal_col_attrs.append(colattr)
         for data_colattr in table.data_col_attrs:
             colname = data_colattr['colname']
             if data_colattr.get('isnested', False):
@@ -1058,20 +1118,7 @@ class _TableGeneralHelper(ut.NiceRepr):
                 colattr['intern_colx'] = len(internal_col_attrs)
                 colattr['isextra'] = True
                 internal_col_attrs.append(colattr)
-
-        table.internal_col_attrs = internal_col_attrs
-
-    def _get_addtable_kw(table):
-        coldef_list = [(colattr['intern_colname'], colattr['sqltype'])
-                       for colattr in table.internal_col_attrs]
-        add_table_kw = ut.odict([
-            ('tablename', table.tablename,),
-            ('coldef_list', coldef_list,),
-            ('docstr', table.docstr,),
-            ('superkeys', [table.superkey_colnames],),
-            ('dependson', table.parents()),
-        ])
-        return add_table_kw
+        return internal_col_attrs
 
 
 @ut.reloadable_class
@@ -1083,6 +1130,28 @@ class _TableComputeHelper(object):
                         dirty_preproc_args, config_rowid, config):
         """
         Converts output from ``preproc_func`` to data that can be stored in SQL
+
+        CommandLine:
+            python -m dtool.depcache_table prepare_storage
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3()
+            >>> depc.clear_all()
+            >>> tablename = 'labeler'
+            >>> tablename = 'indexer'
+            >>> config = {tablename + '_param': None, 'foo': 'bar'}
+            >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=0)
+            >>> data = depc.get('labeler', [1, 2, 3], 'data', config=config, _debug=0)
+            >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=0)
+            >>> data = depc.get('indexer', [[1, 2, 3]], 'data', config=config, _debug=0)
+            >>> table = depc[tablename]
+            >>> table.print_table()
+            >>> table.print_internal_info()
+            >>> table.print_configs()
+            >>> #ut.vd(depc.cache_dpath)
         """
         if table.default_to_unpack:
             # Hack for tables explicilty specified with a single column
@@ -1097,22 +1166,63 @@ class _TableComputeHelper(object):
                                                         config_rowid, config,
                                                         proptup_gen)
         # Concatenate data with internal rowids / config-id
-        for parent_id_, data_cols, args_ in zip(dirty_parent_ids, proptup_gen,
-                                                dirty_preproc_args):
+        for ids_, data_cols, args_ in zip(dirty_parent_ids, proptup_gen,
+                                          dirty_preproc_args):
             try:
                 if ALLOW_NONE_YIELD and data_cols is None:
                     yield None
-                    continue
+                else:
+                    multi_parent_flags = table.get_parent_col_attr('ismulti')
+                    multi_id_names = ut.compress(table.get_parent_col_attr('intern_colname'), multi_parent_flags)
+                    multi_ids = ut.compress(ids_, multi_parent_flags)
+                    multi_args = ut.compress(args_, multi_parent_flags)
 
-                multi_parent_flags = table.get_parent_col_attr('ismulti')
-                multi_args = ut.compress(args_, multi_parent_flags)
-                parent_extra = tuple(ut.flatten([(len(arg), 'not stored')
-                                                 for arg in multi_args]))
-                yield parent_id_ + (config_rowid,) + data_cols + parent_extra
+                    if table.ismulti:
+                        multi_setsizes = []
+                        manifest_data = {}
+                        for multi_id, arg_, name in zip(multi_ids, multi_args, multi_id_names):
+                            assert table.ismulti, 'only valid for models'
+                            # TODO: need to get back to root ids
+                            manifest_data.update(**{
+                                name + '_multi_id': multi_id,
+                                name + '_primary_ids': 'FIXME' + str(arg_),
+                                name + '_model_input': arg_,
+                            })
+                            multi_setsizes.append(len(arg_))
+                        #ut.load_json(manifest_fpath)
+                        #utool.embed()
+                        # Assign a UUID to computed models
+                        #import uuid
+                        #model_uuid = uuid.uuid4()
+                        model_uuid = ut.hashable_to_uuid((multi_ids, config.get_cfgstr()))
+                        manifest_data['config'] = config
+                        manifest_data['model_uuid'] = model_uuid
+                        manifest_data['augmented'] = False
+
+                        manifest_fname = table.tablename + '_model_input_manifest_' + str(model_uuid) + '.json'
+                        manifest_fpath = join(table.dpath, manifest_fname)
+                        ut.save_json(manifest_fpath, manifest_data, pretty=0)
+
+                        # TODO: hash all input UUIDs and the full config together
+                        quick_access_tup = (model_uuid, 0)
+                        # Give the setsize and setfpath data if needed
+                        parent_extra = tuple(ut.flatten(zip(multi_setsizes,)))
+                    else:
+                        quick_access_tup = tuple()
+                        parent_extra = tuple()
+                    #parent_extra = tuple(ut.flatten(zip(multi_setsizes, multi_setfpaths)))
+                    #parent_extra = tuple(ut.flatten([(len(arg), fname)
+                    #                                 for arg, fname in zip(multi_args, multi_fpaths)]))
+                    row_tup = ids_ + (config_rowid,) + quick_access_tup + data_cols + parent_extra
+                    print('row_tup = %r' % (row_tup,))
+                    yield row_tup
             except Exception as ex:
                 ut.printex(ex, 'cat error', keys=[
                     'config_rowid', 'data_cols', 'parent_rowids'])
                 raise
+
+    def get_model_rowid(table, multi_setfpaths):
+        pass
 
     @profile
     def _prepare_storage_nested(table, proptup_gen):
@@ -1269,8 +1379,20 @@ class _TableComputeHelper(object):
     def _compute_dirty_rows(table, parent_ids_, preproc_args, config_rowid,
                             isdirty_list, config, verbose=True):
         """
-        Does work of computing and caching dirty rowids
-        >>> from dtool.depcache_table import *  # NOQA
+        Execute registered functions and cache results
+
+        CommandLine:
+            python -m dtool.depcache_table _compute_dirty_rows
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3()
+            >>> depc.clear_all()
+            >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
+            >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
+            >>> depc.print_all_tables()
         """
         dirty_parent_ids  = ut.compress(parent_ids_, isdirty_list)
         dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
@@ -1300,6 +1422,18 @@ class _TableComputeHelper(object):
         insertable_flags = [not colattr.get('isprimary')
                             for colattr in table.internal_col_attrs]
         colnames = tuple(ut.compress(intern_colnames, insertable_flags))
+        #def unfinished_features():
+        #    if table._asobject:
+        #        # Convinience
+        #        argsT = [table.depc.get_obj(parent, rowids)
+        #                 for parent, rowids in zip(table.parents(),
+        #                                           dirty_parent_ids_chunk)]
+        #        onthefly = None
+        #        if table.default_onthefly or onthefly:
+        #            assert not table.ismulti, ('cannot onthefly multi tables')
+        #            proptup_gen = [tuple([None] * len(table.data_col_attrs))
+        #                           for _ in range(len(dirty_parent_ids_chunk))]
+        #    pass
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
             for dirty_chunk in prog_iter:
@@ -1308,26 +1442,18 @@ class _TableComputeHelper(object):
                 # Pack arguments into column-wise order to send to the func
                 argsT = zip(*dirty_preproc_args_chunk)
                 argsT = list(argsT)  # TODO: remove
-                if table._asobject:
-                    # Convinience
-                    argsT = [table.depc.get_obj(parent, rowids)
-                             for parent, rowids in zip(table.parents(),
-                                                       dirty_parent_ids_chunk)]
                 # HACK extract config if given a request
                 config_ = config.config if hasattr(config, 'config') else config
                 # call registered worker function
-                onthefly = None
-                if table.default_onthefly or onthefly:
-                    assert not table.ismulti, ('cannot onthefly multi tables')
-                    proptup_gen = [tuple([None] * len(table.data_col_attrs))
-                                   for _ in range(len(dirty_parent_ids_chunk))]
-                else:
-                    proptup_gen = table.preproc_func(table.depc, *argsT,
-                                                     config=config_)
+                proptup_gen = table.preproc_func(table.depc, *argsT,
+                                                 config=config_)
                 DEBUG_LIST_MODE = True
                 if DEBUG_LIST_MODE:
                     proptup_gen = list(proptup_gen)
-                    assert len(proptup_gen) == nChunkInput
+                    num_output = len(proptup_gen)
+                    assert num_output == nChunkInput, (
+                        'Input and output sizes do not agree. '
+                        'num_output=%r, num_input=%r' % (num_output, nChunkInput,))
                 # Append rowids and rectify nested and external columns
                 dirty_params_iter = table.prepare_storage(
                     dirty_parent_ids_chunk, proptup_gen, dirty_preproc_args_chunk,
@@ -1422,15 +1548,15 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         table._asobject = asobject
         table.default_onthefly = default_onthefly
         # SQL Internals
-        table.parent_col_attrs = None
-        table.data_col_attrs = None
-        table.internal_col_attrs = None
+        #table.parent_col_attrs = None
+        #table.data_col_attrs = None
+        #table.internal_col_attrs = None
         table.sqldb_fpath = None
         table.rm_extern_on_delete = rm_extern_on_delete
         # Update internals
-        table._update_internal_parentcol()
-        table._update_internal_datacol()
-        table._update_internal_allcol()
+        table.parent_col_attrs = table._infer_parentcol()
+        table.data_col_attrs = table._infer_datacol()
+        table.internal_col_attrs = table._infer_allcol()
         # Check for errors
         table._assert_self()
 
@@ -1466,6 +1592,44 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                     table.clear_table()
                 else:
                     raise NotImplementedError('Need to be able to modify tables')
+
+    def _get_addtable_kw(table):
+        """
+        Information that defines the SQL table
+
+        CommandLine:
+            python -m dtool.depcache_table _get_addtable_kw
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> table1 = depc['indexer']
+            >>> table2 = depc['neighbs']
+            >>> add_table_kw1 = table1._get_addtable_kw()
+            >>> add_table_kw2 = table2._get_addtable_kw()
+            >>> result1 = ('%s.add_table_kw = %s' % (table1.tablename, ut.repr2(add_table_kw1, nl=2),))
+            >>> result2 = ('%s.add_table_kw = %s' % (table2.tablename, ut.repr2(add_table_kw2, nl=2),))
+            >>> print(result1)
+            >>> print(result2)
+        """
+        coldef_list = [(colattr['intern_colname'], colattr['sqltype'])
+                       for colattr in table.internal_col_attrs]
+        superkeys = [table.superkey_colnames]
+        #if table.ismulti:
+        #    superkeys += [(table.model_uuid_colname,)]
+        add_table_kw = ut.odict([
+            ('tablename', table.tablename,),
+            ('coldef_list', coldef_list,),
+            ('docstr', table.docstr,),
+            ('superkeys', superkeys,),
+            ('dependson', table.parents()),
+        ])
+        return add_table_kw
+
+    def print_table(table):
+        table.db.print_table_csv(table.tablename)
 
     def print_info(table, with_colattrs=True, with_graphattrs=True):
         """ debug function """
@@ -1532,6 +1696,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         """
         Deletes all data in this table
         """
+        # TODO: need to clear one-to-one dependencies as well
         print('Clearing data in %r' % (table,))
         table.db.drop_table(table.tablename)
         table.db.add_table(**table._get_addtable_kw())
@@ -1581,6 +1746,14 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
     @property
     def superkey_colnames(table):
         return table.parent_id_colnames + (CONFIG_ROWID,)
+
+    @property
+    def model_uuid_colname(table):
+        return 'model_uuid'
+
+    @property
+    def is_augmented_colname(table):
+        return 'augment_bit'
 
     @property
     def parent_id_colnames(table):
@@ -1799,6 +1972,12 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         extern_dname = 'extern_' + table.tablename
         extern_dpath = join(cache_dpath, extern_dname)
         return extern_dpath
+
+    @property
+    def dpath(table):
+        from os.path import dirname
+        dpath = dirname(table.db.fpath)
+        return dpath
 
     @profile
     def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
