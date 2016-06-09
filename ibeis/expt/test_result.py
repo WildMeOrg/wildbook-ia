@@ -933,6 +933,8 @@ class TestResult(object):
                 ut.printex(ex)
                 raise
         if with_size:
+            if ut.get_argflag('--hack_size_nl'):
+                title_aug += '\n'
             if testres.has_constant_qaids():
                 title_aug += ' #qaids=%r' % (len(testres.qaids),)
             elif testres.has_constant_length_qaids():

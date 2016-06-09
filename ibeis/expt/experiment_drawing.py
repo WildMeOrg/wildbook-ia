@@ -70,8 +70,12 @@ def scorediff(ibs, testres, f=None, verbose=None):
         ymax = max(max(succ_hist), max(fail_hist)) * 1.1
 
         fnum = pt.next_fnum()
-        pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score', autolabel=False, color='blue', title='Success Cases', ymax=ymax, pnum=(1, 2, 1), fnum=fnum)
-        pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score', autolabel=False, title='Failure Cases', ymax=ymax, pnum=(1, 2, 2), fnum=fnum)
+        pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score',
+                          autolabel=False, color='blue', title='Success Cases',
+                          ymax=ymax, pnum=(1, 2, 1), fnum=fnum)
+        pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score',
+                          autolabel=False, title='Failure Cases', ymax=ymax,
+                          pnum=(1, 2, 2), fnum=fnum)
 
         from plottool.abstract_interaction import AbstractInteraction
 
@@ -819,9 +823,11 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         kind = 'plot'
 
     if kind == 'plot':
-        figtitle = testres.make_figtitle('Cumulative Match Curve (CMC)')
+        plotname = ('Cumulative Match Curve (CMC)')
     else:
-        figtitle = testres.make_figtitle('Cumulative Rank Histogram')
+        plotname = ('Cumulative Rank Histogram')
+    plotname = ut.get_argval('--plotname', default=plotname)
+    figtitle = testres.make_figtitle(plotname)
 
     xpad = .9 if kind == 'plot' else .5
 
