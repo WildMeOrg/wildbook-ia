@@ -176,6 +176,9 @@ class _TableConfigHelper(object):
         unique_cfgids = cfgid2_rowids.keys()
         unique_configs = table.get_config_from_rowid(unique_cfgids)
         #print('unique_configs = %r' % (unique_configs,))
+        # TODO: need fix for many-to-one edges here
+        # When getting configs of parents, should we assume that all in the set
+        # have the same config? For now yes...
         parent_rowids = table.get_parent_rowids(rowid_list)
         ret_list = [unique_configs]
         depc = table.depc
@@ -1147,7 +1150,12 @@ class _TableComputeHelper(object):
             >>> data = depc.get('labeler', [1, 2, 3], 'data', config=config, _debug=0)
             >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=0)
             >>> data = depc.get('indexer', [[1, 2, 3]], 'data', config=config, _debug=0)
+            >>> rowids = depc.get_rowids('indexer', [[1, 2, 3]],  config=config, _debug=0)
             >>> table = depc[tablename]
+            >>> model_uuid_list = table.get_internal_columns(rowids, ('model_uuid',))
+            >>> model_uuid = model_uuid_list[0]
+            >>> rowids2 = table.get_model_rowids(model_uuid_list)
+            >>> assert rowids == rowids2, 'bad rowid computation'
             >>> table.print_table()
             >>> table.print_internal_info()
             >>> table.print_configs()
@@ -1165,6 +1173,9 @@ class _TableComputeHelper(object):
             proptup_gen = table._prepare_storage_extern(dirty_parent_ids,
                                                         config_rowid, config,
                                                         proptup_gen)
+        if table.ismulti:
+            manifest_dpath = table.dpath
+            ut.ensuredir(manifest_dpath)
         # Concatenate data with internal rowids / config-id
         for ids_, data_cols, args_ in zip(dirty_parent_ids, proptup_gen,
                                           dirty_preproc_args):
@@ -1189,19 +1200,16 @@ class _TableComputeHelper(object):
                                 name + '_model_input': arg_,
                             })
                             multi_setsizes.append(len(arg_))
-                        #ut.load_json(manifest_fpath)
-                        #utool.embed()
-                        # Assign a UUID to computed models
-                        #import uuid
-                        #model_uuid = uuid.uuid4()
+
+                        # Make a new model uuid
+                        # TODO: maybe we should not do this here
                         model_uuid = ut.hashable_to_uuid((multi_ids, config.get_cfgstr()))
                         manifest_data['config'] = config
                         manifest_data['model_uuid'] = model_uuid
                         manifest_data['augmented'] = False
 
-                        manifest_fname = table.tablename + '_model_input_manifest_' + str(model_uuid) + '.json'
-                        manifest_fpath = join(table.dpath, manifest_fname)
-                        ut.save_json(manifest_fpath, manifest_data, pretty=0)
+                        manifest_fpath = table.get_model_manifest_fpath(model_uuid)
+                        ut.save_json(manifest_fpath, manifest_data, pretty=1)
 
                         # TODO: hash all input UUIDs and the full config together
                         quick_access_tup = (model_uuid, 0)
@@ -1221,8 +1229,53 @@ class _TableComputeHelper(object):
                     'config_rowid', 'data_cols', 'parent_rowids'])
                 raise
 
-    def get_model_rowid(table, multi_setfpaths):
-        pass
+    def get_model_manifest_fname(table, model_uuid):
+        manifest_fname = 'input_manifest_%s.json' % (model_uuid,)
+        return manifest_fname
+
+    def get_model_manifest_fpath(table, model_uuid):
+        manifest_fname = table.get_model_manifest_fname(model_uuid)
+        manifest_fpath = join(table.dpath, manifest_fname)
+        return manifest_fpath
+
+    def get_model_inputs(table, model_uuid):
+        """
+        Example:
+            >>> table.get_model_uuid([2])
+            [UUID('5b66772c-e654-dd9a-c9de-0ccc1bb6861c')]
+        """
+        assert table.ismulti, 'must be a model'
+        manifest_fpath = table.get_model_manifest_fpath(model_uuid)
+        manifest_data = ut.load_json(manifest_fpath)
+        return manifest_data
+
+    def get_model_uuid(table, rowids):
+        """
+        Example:
+            >>> table.get_model_uuid([2])
+            [UUID('5b66772c-e654-dd9a-c9de-0ccc1bb6861c')]
+        """
+        assert table.ismulti, 'must be a model'
+        model_uuid_list = table.get_internal_columns(rowids, ('model_uuid',))
+        return model_uuid_list
+
+    def get_model_rowids(table, model_uuid_list):
+        """
+        Get the rowid of a model given its uuid
+
+        Example:
+            >>> import uuid
+            >>> table.get_model_rowids([uuid.UUID('5b66772c-e654-dd9a-c9de-0ccc1bb6861c')])
+            [2]
+        """
+        assert table.ismulti, 'must be a model'
+        colnames = (table.rowid_colname,)
+        andwhere_colnames = (table.model_uuid_colname,)
+        params_iter = list(zip(model_uuid_list))
+        rowid_list = table.db.get_where2(table.tablename, colnames,
+                                         params_iter, andwhere_colnames,
+                                         eager=True, nInput=len(model_uuid_list))
+        return rowid_list
 
     @profile
     def _prepare_storage_nested(table, proptup_gen):
@@ -1813,6 +1866,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
 
     @profile
     def _rectify_ids(table, parent_rowids):
+        """
+        Removes Nones, and turns many-to-one sets of rowids into hashable
+        UUIDS.
+        """
         if ALLOW_NONE_YIELD:
             # Force entire row to be none if any are none
             anyNone_flags = [x is None or any(ut.flag_None_items(x))
@@ -1864,9 +1921,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
             ]
         else:
             parent_ids_ = valid_parent_ids_
-        return parent_ids_, preproc_args, idxs1, idxs2
+        rectify_tup = parent_ids_, preproc_args, idxs1, idxs2
+        return rectify_tup
 
     def _unrectify_ids(table, rowid_list_, parent_rowids, idxs1, idxs2):
+        """
+        Ensures that output is the same length as input. Inserts necessary Nones
+        """
         if ALLOW_NONE_YIELD:
             rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
         else:
@@ -1897,23 +1958,25 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
             python -m dtool.depcache_table --exec-get_rowid
 
         Example5:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> # Test get behavior for multi (model) tables
             >>> depc = testdata_depc()
-            >>> table = depc['multitest']
-            >>> config = table.configclass()
+            >>> #table = depc['multitest']
+            >>> table = depc['chip']
             >>> exec(ut.execstr_funckw(table.get_rowid), globals())
+            >>> config = table.configclass()
             >>> _debug = True
-            >>> depc.get_rowids('chip', [1, 2, 3, 4, 5])
-            >>> depc.get_rowids('spam', [2, 3])
-            >>> parent_rowids = [((1, 2, 3, 4), 3, (1, 2,), 1), (None, None, None, 1),
-            >>>                  ((1, 2, 3, 4, 5), None, (1, 2,), 1), ((1, 2,), 1, (2, 3,), 1)]
+            >>> #depc.get_rowids('chip', [1, 2, 3, 4, 5])
+            >>> #depc.get_rowids('spam', [2, 3])
+            >>> parent_rowids = list(zip([1, None, None, 2]))
+            >>> #parent_rowids = [((1, 2, 3, 4), 3, (1, 2,), 1), (None, None, None, 1),
+            >>> #                 ((1, 2, 3, 4, 5), None, (1, 2,), 1), ((1, 2,), 1, (2, 3,), 1)]
             >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
             >>> result = ('rowids = %r' % (rowids,))
-            >>> indexer = table.get_row_data(rowids)
-            >>> print('indexer = %r' % (indexer,))
+            >>> #indexer = table.get_row_data(rowids)
+            >>> #print('indexer = %r' % (indexer,))
             >>> print(result)
             rowids = [1, None, None, 2]
         """
@@ -1925,8 +1988,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                 print('[deptbl.get_rowid] config = %r' % (config,))
                 print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
-        (parent_ids_, preproc_args,
-         idxs1, idxs2) = table._rectify_ids(parent_rowids)
+        rectify_tup = table._rectify_ids(parent_rowids)
+        (parent_ids_, preproc_args, idxs1, idxs2) = rectify_tup
         if recompute:
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
@@ -1975,9 +2038,16 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
 
     @property
     def dpath(table):
-        from os.path import dirname
-        dpath = dirname(table.db.fpath)
+        #assert table.ismulti, 'only valid for models'
+        dname = table.tablename + '_storage'
+        dpath = join(table.depc.cache_dpath, dname)
+        #ut.ensuredir(dpath)
         return dpath
+
+    #def dpath(table):
+    #    from os.path import dirname
+    #    dpath = dirname(table.db.fpath)
+    #    return dpath
 
     @profile
     def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
@@ -2286,6 +2356,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
     @profile
     def get_internal_columns(table, tbl_rowids, colnames=None, eager=True,
                              nInput=None, unpack_scalars=True, keepwrap=False):
+        """ Access data in this table using the table PRIMARY KEY rowids (not
+        depc PRIMARY ids) """
         prop_list = table.db.get(
             table.tablename, colnames, tbl_rowids,
             id_colname=table.rowid_colname, eager=eager, nInput=nInput,
