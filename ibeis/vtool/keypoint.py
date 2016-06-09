@@ -1484,7 +1484,7 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> kpts = vt.dummy.get_dummy_kpts()[0:2]
         >>> # Shrink x and y scales a bit
         >>> kpts.T[2:4] /= 2
-        >>> kpts[1][3] *= 10  # increase skew
+        >>> kpts[1][3] *= 3  # increase skew
         >>> # Set random orientation
         >>> kpts.T[5] = TAU * np.array([.2, .6])
         >>> invVR_mats = get_invVR_mats3x3(kpts)
@@ -1497,6 +1497,9 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> pt.show_kpts(np.vstack([kpts, kpts2]), ori=1, eig=True, ori_color='green', rect=True)
         >>> # Redraw oriented to show difference
         >>> pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1, eig=True, ori_color='green', rect=True)
+        >>> ax = pt.gca()
+        >>> ax.set_aspect('auto')
+        >>>
         >>> pt.dark_background()
         >>> ut.show_if_requested()
 
