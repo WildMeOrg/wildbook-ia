@@ -98,8 +98,6 @@ def detect_opencv_keypoints():
     import cv2
     import vtool as vt
     import numpy as np  # NOQA
-    import plottool as pt
-    pt.qt4ensure()
 
     #img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
     img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
@@ -109,21 +107,6 @@ def detect_opencv_keypoints():
     def from_cv2_kpts(cv2_kp):
         kp = (cv2_kp.pt[0], cv2_kp.pt[1], cv2_kp.size, 0, cv2_kp.size, cv2_kp.angle)
         return kp
-
-    #class HarrisWrapper(object):
-    #    def __init__(self):
-    #        self.blockSize = 2
-    #        self.ksize = 3
-    #        self.k = .04
-    #        #self.borderType
-
-    #    def detect(self, img, *args, **kwargs):
-    #        # This is not a detector it is just a intensity image
-    #        return cv2.cornerHarris(img, self.blockSize, self.ksize, self.k)
-
-    #    @classmethod
-    #    def create(cls):
-    #        return cls()
 
     print('\n'.join(ut.search_module(cv2, 'create', recursive=True)))
 
@@ -222,96 +205,106 @@ def detect_opencv_keypoints():
     print(ut.depth_profile(list(type_to_desc.values())))
     print('type_to_desc = ' + ut.repr3(type_to_desc, truncate=True))
 
-    if True:
-        class Keypoints(ut.NiceRepr):
-            """
-            Convinence class for dealing with keypoints
-            """
-            def __init__(self, kparr, info=None):
-                self.kparr = kparr
-                if info is None:
-                    info = {}
-                self.info = info
 
-            def add_info(self, key, val):
-                self.info[key] = val
+def test_mser():
+    import cv2
+    import vtool as vt
+    import plottool as pt
+    import numpy as np
+    pt.qt4ensure()
+    class Keypoints(ut.NiceRepr):
+        """
+        Convinence class for dealing with keypoints
+        """
+        def __init__(self, kparr, info=None):
+            self.kparr = kparr
+            if info is None:
+                info = {}
+            self.info = info
 
-            def __nice__(self):
-                return ' ' + str(len(self.kparr))
+        def add_info(self, key, val):
+            self.info[key] = val
 
-            @property
-            def scale(self):
-                return vt.get_scales(self.kparr)
+        def __nice__(self):
+            return ' ' + str(len(self.kparr))
 
-            @property
-            def eccentricity(self):
-                return vt.get_kpts_eccentricity(self.kparr)
+        @property
+        def scale(self):
+            return vt.get_scales(self.kparr)
 
-            def compress(self, flags, inplace=False):
-                subarr = self.kparr.compress(flags, axis=0)
-                info = {key: ut.compress(val, flags) for key, val in self.info.items()}
-                return Keypoints(subarr, info)
-        key = 'MSER'
-        # http://docs.opencv.org/master/d3/d28/classcv_1_1MSER.html#gsc.tab=0
-        # http://stackoverflow.com/questions/17647500/exact-meaning-of-the-parameters-given-to-initialize-mser-in-opencv-2-4-x
-        factory = detect_factory[key]
-        img_area = np.product(np.array(vt.get_size(imgGray)))
-        _max_area = (img_area // 100)
-        _delta = 8
-        _min_diversity = .5
+        @property
+        def eccentricity(self):
+            return vt.get_kpts_eccentricity(self.kparr)
 
-        extractor = factory(_delta=_delta, _max_area=_max_area, _min_diversity=_min_diversity)
-        # bboxes are x,y,w,h
-        regions, bboxes = extractor.detectRegions(imgGray)
-        # ellipse definition from [Fitzgibbon95]
-        # http://www.bmva.org/bmvc/1995/bmvc-95-050.pdf p518
-        # ell = [c_x, c_y, R_x, R_y, theta]
-        # (cx, cy) = conic center
-        # Rx and Ry = conic radii
-        # theta is the counterclockwise angle
-        fitz_ellipses = [cv2.fitEllipse(mser) for mser in regions]
+        def compress(self, flags, inplace=False):
+            subarr = self.kparr.compress(flags, axis=0)
+            info = {key: ut.compress(val, flags) for key, val in self.info.items()}
+            return Keypoints(subarr, info)
 
-        # http://answers.opencv.org/question/19015/how-to-use-mser-in-python/
-        #hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
-        #hull_ells = [cv2.fitEllipse(hull[:, 0]) for hull in hulls]
-        invVR_mats = []
-        for ell in fitz_ellipses:
-            ((cx, cy), (rx, ry), degrees) = ell
-            theta = np.radians(degrees)  # opencv lives in radians
-            # Hack, I think my ellipses are drawn with a radius sqrt(3)
-            # larger than they should be due to perdoch
-            rx /= np.sqrt(3)
-            ry /= np.sqrt(3)
-            S = vt.scale_mat3x3(rx, ry)
-            T = vt.translation_mat3x3(cx, cy)
-            R = vt.rotation_mat3x3(theta)
-            invVR = T.dot(R.dot(S))
-            invVR_mats.append(invVR)
-        invVR_mats = np.array(invVR_mats)
-        #_oris = vt.get_invVR_mats_oris(invVR_mats)
-        kpts2_ = vt.flatten_invV_mats_to_kpts(invVR_mats)
+    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
+    imgBGR = vt.imread(img_fpath)
+    imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+    # http://docs.opencv.org/master/d3/d28/classcv_1_1MSER.html#gsc.tab=0
+    # http://stackoverflow.com/questions/17647500/exact-meaning-of-the-parameters-given-to-initialize-mser-in-opencv-2-4-x
+    factory = cv2.MSER_create
+    img_area = np.product(np.array(vt.get_size(imgGray)))
+    _max_area = (img_area // 10)
+    _delta = 8
+    _min_diversity = .5
 
-        self = Keypoints(kpts2_)
-        self.add_info('regions', regions)
-        flags = (self.eccentricity < .5)
-        #flags = self.scale < np.mean(self.scale)
-        #flags = self.scale < np.median(self.scale)
-        self = self.compress(flags)
-        import plottool as pt
-        pt.clf()
-        pt.interact_keypoints.ishow_keypoints(imgBGR, self.kparr, None, ell_alpha=.4, color='distinct')
-        #import plottool as pt
-        vis = imgBGR.copy()
-        pt.update()
+    extractor = factory(_delta=_delta, _max_area=_max_area, _min_diversity=_min_diversity)
+    # bboxes are x,y,w,h
+    regions, bboxes = extractor.detectRegions(imgGray)
+    # ellipse definition from [Fitzgibbon95]
+    # http://www.bmva.org/bmvc/1995/bmvc-95-050.pdf p518
+    # ell = [c_x, c_y, R_x, R_y, theta]
+    # (cx, cy) = conic center
+    # Rx and Ry = conic radii
+    # theta is the counterclockwise angle
+    fitz_ellipses = [cv2.fitEllipse(mser) for mser in regions]
 
-        #regions, bbox = mser.detectRegions(gray)
-        hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in self.info['regions']]
-        cv2.polylines(vis, hulls, 1, (0, 255, 0))
-        for region in self.info['regions']:
-            ell = cv2.fitEllipse(region)
-            cv2.ellipse(vis, ell, (255))
-        pt.imshow(vis)
-        pt.update()
+    # http://answers.opencv.org/question/19015/how-to-use-mser-in-python/
+    #hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
+    #hull_ells = [cv2.fitEllipse(hull[:, 0]) for hull in hulls]
+    invVR_mats = []
+    for ell in fitz_ellipses:
+        ((cx, cy), (dx, dy), degrees) = ell
+        theta = np.radians(degrees)  # opencv lives in radians
+        # Convert diameter to radians
+        rx = dx / 2
+        ry = dy / 2
+        S = vt.scale_mat3x3(rx, ry)
+        T = vt.translation_mat3x3(cx, cy)
+        R = vt.rotation_mat3x3(theta)
+        invVR = T.dot(R.dot(S))
+        invVR_mats.append(invVR)
+    invVR_mats = np.array(invVR_mats)
+    #_oris = vt.get_invVR_mats_oris(invVR_mats)
+    kpts2_ = vt.flatten_invV_mats_to_kpts(invVR_mats)
+
+    self = Keypoints(kpts2_)
+    self.add_info('regions', regions)
+    flags = (self.eccentricity < .9)
+    #flags = self.scale < np.mean(self.scale)
+    #flags = self.scale < np.median(self.scale)
+    self = self.compress(flags)
+    import plottool as pt
+    #pt.interact_keypoints.ishow_keypoints(imgBGR, self.kparr, None, ell_alpha=.4, color='distinct', fnum=2)
+    #import plottool as pt
+    vis = imgBGR.copy()
+
+    for region in self.info['regions']:
+        vis[region.T[1], region.T[0], :] = 0
+
+    #regions, bbox = mser.detectRegions(gray)
+    #hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in self.info['regions']]
+    #cv2.polylines(vis, hulls, 1, (0, 255, 0))
+    #for region in self.info['regions']:
+    #    ell = cv2.fitEllipse(region)
+    #    cv2.ellipse(vis, ell, (255))
+    pt.interact_keypoints.ishow_keypoints(vis, self.kparr, None, ell_alpha=.4, color='distinct', fnum=2)
+    #pt.imshow(vis, fnum=2)
+    pt.update()
 
     #extractor = extract_factory['DAISY']()
 
