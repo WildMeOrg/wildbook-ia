@@ -42,7 +42,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
 
     Args:
         ax (mpl.Axes):
-        kpts (ndarray): keypoints
+        kpts (ndarray): keypoints [[x, y, a, c, d, theta], ...]
         scale_factor (float):
         offset (tuple):
         rotation (float):
@@ -60,7 +60,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         python -m plottool.mpl_keypoint --test-draw_keypoints --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from plottool.mpl_keypoint import *  # NOQA
         >>> from plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA
         >>> import plottool as pt
@@ -221,7 +221,43 @@ class HomographyTransform(mpl.transforms.Transform):
 
 
 def get_invVR_aff2Ds(kpts, H=None):
-    """ Returns matplotlib keypoint transformations (circle -> ellipse) """
+    """
+    Returns matplotlib keypoint transformations (circle -> ellipse)
+
+    Example:
+        >>> # Test CV2 ellipse vs mine using MSER
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='zebra.png'))
+        >>> imgBGR = vt.imread(img_fpath)
+        >>> imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+        >>> mser = cv2.MSER_create()
+        >>> regions, bboxs = mser.detectRegions(imgGray)
+        >>> region = regions[0]
+        >>> bbox = bboxes[0]
+        >>> vis = imgBGR.copy()
+        >>> vis[region.T[1], region.T[0], :] = 0
+        >>> hull = cv2.convexHull(region.reshape(-1, 1, 2))
+        >>> cv2.polylines(vis, [hull], 1, (0, 255, 0))
+        >>> ell = cv2.fitEllipse(region)
+        >>> cv2.ellipse(vis, ell, (255))
+        >>> ((cx, cy), (rx, ry), degrees) = ell
+        >>> # Convert diameter to radians
+        >>> rx /= 2
+        >>> ry /= 2
+        >>> # Make my version of ell
+        >>> theta = np.radians(degrees)  # opencv lives in radians
+        >>> S = vt.scale_mat3x3(rx, ry)
+        >>> T = vt.translation_mat3x3(cx, cy)
+        >>> R = vt.rotation_mat3x3(theta)
+        >>> #R = np.eye(3)
+        >>> invVR = T.dot(R).dot(S)
+        >>> kpts = vt.flatten_invV_mats_to_kpts(np.array([invVR]))
+        >>> pt.imshow(vis)
+        >>> # MINE IS MUCH LARGER (by factor of 2)) WHY?
+        >>> # we start out with a unit circle not a half circle
+        >>> pt.draw_keypoints(pt.gca(), kpts, pts=True, ori=True, eig=True, rect=True)
+    """
     #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
     invVR_mats = ktool.get_invVR_mats3x3(kpts)
     if H is None:
