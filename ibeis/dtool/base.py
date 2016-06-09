@@ -435,7 +435,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
              nx.algorithms.dijkstra_path(subgraph, start, request.tablename)
              for start in dependency_order]
         graph = depc.graph
-        root = nx.topological_sort(graph)[0]
+        root = list(nx.topological_sort(graph))[0]
         edges = graph.edges()
         #parent_to_children = ut.edges_to_adjacency_list(edges)
         child_to_parents = ut.edges_to_adjacency_list([t[::-1] for t in edges])
