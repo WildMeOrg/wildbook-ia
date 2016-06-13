@@ -1433,6 +1433,9 @@ class MainWindowBackend(GUIBACK_BASE):
             'Knorm': 5,
             'min_pername': 1,
             'max_pername': 1,
+            'exemplars_per_name': 1,
+            'method': 'randomize',
+            'seed': 42,
         })
         #ibswgt = None
         dlg = guitool.ConfigConfirmWidget.as_dialog(
@@ -1448,11 +1451,23 @@ class MainWindowBackend(GUIBACK_BASE):
 
         min_pername = updated_config['min_pername']
         max_pername = updated_config['max_pername']
-        aid_list = ibs.filter_annots_general(min_pername=min_pername,
-                                             max_pername=max_pername,
-                                             minqual='ok')
-        #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
-        #aid_list = ut.compress(new_aid_list, new_flag_list)
+        aid_list = ibs.filter_annots_general(
+            min_pername=min_pername,
+            max_pername=max_pername,
+            minqual='ok')
+        if updated_config['method'] == 'randomize':
+            import numpy as np
+            rng = np.random.RandomState(int(updated_config['seed']))
+            grouped_aids = ibs.group_annots_by_name(aid_list)[0]
+            grouped_aids2 = [
+                ut.random_sample(aids, updated_config['exemplars_per_name'], rng=rng)
+                for aids in grouped_aids
+            ]
+            aid_list = ut.flatten(grouped_aids2)
+        else:
+            new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(
+                aid_list, updated_config['exemplars_per_name'])
+            aid_list = ut.compress(new_aid_list, new_flag_list)
         daid_list = qaid_list = aid_list
         #len(aids)
         cfgdict = {
