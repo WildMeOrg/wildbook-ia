@@ -257,6 +257,55 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         self_list = [cls(**new_vals) for new_vals in new_vals_list]
         return self_list
 
+    @classmethod
+    def from_dict(cls, dict_, tablename=None):
+        r"""
+        Args:
+            dict_ (dict_):  a dictionary
+            tablename (None): (default = None)
+
+        Returns:
+            list: param_info_list
+
+        CommandLine:
+            python -m dtool.base Config.from_dict --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> cls = Config
+            >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
+            >>> tablename = None
+            >>> config = cls.from_dict(dict_, tablename)
+            >>> print(config)
+            >>> ut.quit_if_noshow()
+            >>> import guitool
+            >>> guitool.ensure_qapp()  # must be ensured before any embeding
+            >>> dlg = guitool.ConfigConfirmWidget.as_dialog(
+            >>>     title='Confirm Merge Query',
+            >>>     msg='Confirm',
+            >>>     config=config)
+            >>> dlg.resize(700, 500)
+            >>> self = dlg.widget
+            >>> dlg.show()
+            >>> import plottool as pt
+            >>> guitool.qtapp_loop(qwin=dlg)
+            >>> updated_config = self.config  # NOQA
+            >>> print('updated_config = %r' % (updated_config,))
+        """
+        if tablename is None:
+            tablename = 'Unknown'
+        param_info_list = [
+            ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
+            for key, val in dict_.items()]
+        class UnnamedConfig(cls):
+            def get_param_info_list(cfg):
+                #print('default_cfgdict = %r' % (default_cfgdict,))
+                return param_info_list
+        UnnamedConfig.__name__ = str(tablename + 'Config')
+        config = UnnamedConfig()
+        return config
+
     def __getstate__(cfg):
         """
         Example:
@@ -285,6 +334,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
 
 def dict_as_config(default_cfgdict, tablename):
+    # TODO: use Config.from_dict instead
     import dtool
     class UnnamedConfig(dtool.Config):
         def get_param_info_list(cfg):
