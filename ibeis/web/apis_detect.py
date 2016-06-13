@@ -124,10 +124,17 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
     ibs.web_check_uuids(image_uuid_list=[image_uuid])
     gid = ibs.get_image_gids_from_uuid(image_uuid)
 
+    if gid is None:
+        return 'INVALID IMAGE UUID'
+
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
     image = ibs.get_images(gid)
     image_src = appf.embed_image_html(image)
     width, height = ibs.get_image_sizes(gid)
+
+    if width <= 0 or width is None or height <= 0 or height is None:
+        vals = (image_uuid, width, height, )
+        raise IOError('Image %r for review has either no width or no height (w = %s, h = %s)' % vals)
 
     annotation_list = []
     for result in result_list:
