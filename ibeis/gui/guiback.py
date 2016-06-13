@@ -1427,16 +1427,19 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
         ibs = back.ibs
         #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        pername = int(back.user_input('Enter pername merge number'))
-        aid_list = ibs.filter_annots_general(min_pername=pername, max_pername=pername, minqual='ok')
+        K = int(back.user_input('Enter K'))
+        Knorm = int(back.user_input('Enter Knorm'))
+        min_pername = int(back.user_input('Enter min_pername'))
+        max_pername = int(back.user_input('Enter max_pername'))
+        aid_list = ibs.filter_annots_general(min_pername=min_pername, max_pername=max_pername, minqual='ok')
         #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
         #aid_list = ut.compress(new_aid_list, new_flag_list)
         daid_list = qaid_list = aid_list
         #len(aids)
         cfgdict = {
             'can_match_samename': False,
-            #'K': 3,
-            'Knorm': 6,
+            'K': K,
+            'Knorm': Knorm,
             #'prescore_method': 'csum',
             #'score_method': 'csum'
         }
