@@ -1427,7 +1427,7 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
         ibs = back.ibs
         #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        aid_list = ibs.filter_annots_general(min_pername=2, minqual='ok')
+        aid_list = ibs.filter_annots_general(min_pername=2, max_pername=2, minqual='ok')
         #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
         #aid_list = ut.compress(new_aid_list, new_flag_list)
         daid_list = qaid_list = aid_list
@@ -2222,8 +2222,8 @@ class MainWindowBackend(GUIBACK_BASE):
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)
 
-    def user_input(back, **kwargs):
-        return guitool.user_input(parent=back.front, **kwargs)
+    def user_input(back, msg='user input', **kwargs):
+        return guitool.user_input(parent=back.front, msg=msg, **kwargs)
 
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
