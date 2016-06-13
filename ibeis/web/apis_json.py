@@ -246,7 +246,7 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
 @register_api('/api/image/annot/uuids/json/', methods=['GET'])
 def get_image_annot_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    aids_list = ibs.get_iamge_aids(gid_list)
+    aids_list = ibs.get_image_aids(gid_list)
     annot_uuid_list = [
         ibs.get_annot_uuids(aids_list)
         for aid_list in aids_list
