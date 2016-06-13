@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-(print, rrr, profile) = utool.inject2(__name__, '[clustering2]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[clustering2]')
 
 
 CLUSTERS_FNAME = 'akmeans_centroids'
@@ -294,7 +294,9 @@ def initialize_centroids(nCentroids, data, initmethod='akmeans++'):
 def refine_akmeans(data, centroids, max_iters=5,
                    flann_params={}, cache_dir='default', cfgstr='',
                    use_data_hash=True, akmeans_cfgstr=None):
-    """ Refines the approximates centroids """
+    """
+    Cached refinement of approximates centroids
+    """
     print('[akmeans.precompute] refining:')
     if cache_dir == 'default':
         cache_dir = utool.get_app_resource_dir('vtool')
@@ -327,22 +329,27 @@ def refine_akmeans(data, centroids, max_iters=5,
 #    pass
 
 
-def akmeans_iterations(data, centroids, max_iters,
-                        flann_params, ave_unchanged_thresh, ave_unchanged_iterwin):
-    """ Helper function which continues the iterations of akmeans
+def akmeans_iterations(data, centroids, max_iters, flann_params,
+                       ave_unchanged_thresh, ave_unchanged_iterwin):
+    """
+    Helper function which continues the iterations of akmeans
 
-    >>> from vtool.clustering2 import *  # NOQA
-    >>> import numpy as np
-    >>> rng = np.random.RandomState(42)
-    >>> data = rng.randn(100, 2)
-    >>> nCentroids = 5
-    >>> flann_params = {}
-    >>> max_iters = 100
-    >>> ave_unchanged_thresh = 100
-    >>> ave_unchanged_iterwin = 100
-    >>> centroids = initialize_centroids(nCentroids, data)
-    >>> centroids = akmeans_iterations(data, centroids, max_iters, flann_params, ave_unchanged_thresh, ave_unchanged_iterwin)
-    >>> plot_centroids(data, centroids)
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import numpy as np
+        >>> rng = np.random.RandomState(42)
+        >>> data = rng.randn(100, 2)
+        >>> nCentroids = 5
+        >>> flann_params = {}
+        >>> max_iters = 100
+        >>> ave_unchanged_thresh = 100
+        >>> ave_unchanged_iterwin = 100
+        >>> centroids = initialize_centroids(nCentroids, data)
+        >>> centroids = akmeans_iterations(data, centroids, max_iters, flann_params, ave_unchanged_thresh, ave_unchanged_iterwin)
+        >>> ut.quit_if_noshow()
+        >>> plot_centroids(data, centroids)
+        >>> ut.show_if_requested()
     """
     nData = data.shape[0]
     nCentroids = centroids.shape[0]

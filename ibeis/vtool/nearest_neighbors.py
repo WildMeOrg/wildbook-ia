@@ -282,8 +282,6 @@ def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None)
     num_dpts = len(dpts)
     if flann is None:
         flann = pyflann.FLANN()
-    if not quiet:
-        print('...flann cache miss.')
     if verbose or (not quiet and num_dpts > 1E6):
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     if num_dpts == 0:
@@ -327,6 +325,8 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         except Exception as ex:
             utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
+    if not quiet:
+        print('...flann cache miss.')
     flann = build_flann_index(dpts, flann_params, verbose=verbose, quiet=quiet, flann=flann)
     if verbose:
         print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
