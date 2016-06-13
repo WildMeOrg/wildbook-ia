@@ -313,18 +313,18 @@ class APIItemModel(API_MODEL_BASE):
 
             #ut.embed()
             # <NUMPY MULTIARRAY SORT>
-            with ut.embed_on_exception_context:
-                if type_ is float:
-                    values = np.array(ut.replace_nones(values, np.nan))
-                    #values = np.array(values)
-                    values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
-                import vtool as vt
-                sortx = vt.argsort_multiarray([values, id_list], reverse=reverse)
-                #sorting_records = np.rec.fromarrays([values, id_list])
-                #sort_stride = (-reverse * 2) + 1
-                #sortx = sorting_records.argsort()[::sort_stride]
-                # </NUMPY MULTIARRAY SORT>
-                nodes = ut.take(children, sortx)
+            #with ut.embed_on_exception_context:
+            if type_ is float:
+                values = np.array(ut.replace_nones(values, np.nan))
+                #values = np.array(values)
+                values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
+            import vtool as vt
+            sortx = vt.argsort_records([values, id_list], reverse=reverse)
+            #sorting_records = np.rec.fromarrays([values, id_list])
+            #sort_stride = (-reverse * 2) + 1
+            #sortx = sorting_records.argsort()[::sort_stride]
+            # </NUMPY MULTIARRAY SORT>
+            nodes = ut.take(children, sortx)
 
             #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
             #nodes = [child for (value, id_, child) in sorted_pairs]
