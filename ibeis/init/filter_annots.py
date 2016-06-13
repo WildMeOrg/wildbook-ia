@@ -1018,6 +1018,15 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                 aids for aids in grouped_aids_ if len(aids) >= min_pername])
         avail_aids = sorted(avail_aids)
 
+    max_pername = aidcfg['max_pername']
+    if max_pername is not None:
+        grouped_aids_ = ibs.group_annots_by_name(avail_aids,
+                                                 distinguish_unknowns=True)[0]
+        with VerbosityContext('max_pername'):
+            avail_aids = ut.flatten([
+                aids for aids in grouped_aids_ if len(aids) <= max_pername])
+        avail_aids = sorted(avail_aids)
+
     avail_aids = sorted(avail_aids)
 
     VerbosityContext.endfilter()

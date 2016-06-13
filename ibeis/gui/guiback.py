@@ -499,10 +499,13 @@ class MainWindowBackend(GUIBACK_BASE):
         #ibs.cfg.other_cfg.ranks_lt = 2
         # Overwrite
         ranks_lt = kwargs.pop('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2))
-        filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
+        kwargs = kwargs.copy()
+        filter_reviewed = kwargs.pop('filter_reviewed', None)
         if filter_reviewed is None:
-            # only filter big queries if not specified
-            filter_reviewed = len(cm_list) > 6
+            filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
+            if filter_reviewed is None:
+                # only filter big queries if not specified
+                filter_reviewed = len(cm_list) > 6
         print('REVIEW QUERIES')
         print('**kwargs = %s' % (ut.repr3(kwargs),))
         print('filter_reviewed = %s' % (filter_reviewed,))
@@ -1416,6 +1419,35 @@ class MainWindowBackend(GUIBACK_BASE):
                              query_msg=query_msg, cfgdict=cfgdict,
                              custom_qaid_list_title='Merge Candidates')
 
+    def run_merge_checks_multitons(back):
+        r"""
+        Checks for missed matches within a group of annotations.
+        Only uses annotations with more 2 annots per id.
+        """
+        pass
+        ibs = back.ibs
+        #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        K = int(back.user_input('Enter K'))
+        Knorm = int(back.user_input('Enter Knorm'))
+        min_pername = int(back.user_input('Enter min_pername'))
+        max_pername = int(back.user_input('Enter max_pername'))
+        aid_list = ibs.filter_annots_general(min_pername=min_pername, max_pername=max_pername, minqual='ok')
+        #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
+        #aid_list = ut.compress(new_aid_list, new_flag_list)
+        daid_list = qaid_list = aid_list
+        #len(aids)
+        cfgdict = {
+            'can_match_samename': False,
+            'K': K,
+            'Knorm': Knorm,
+            #'prescore_method': 'csum',
+            #'score_method': 'csum'
+        }
+        query_msg = 'Checking for MERGE cases (this is an special query)'
+        back.compute_queries(qaid_list=qaid_list, daid_list=daid_list,
+                             query_msg=query_msg, cfgdict=cfgdict,
+                             custom_qaid_list_title='Merge2 Candidates')
+
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
@@ -1423,6 +1455,7 @@ class MainWindowBackend(GUIBACK_BASE):
                         use_visual_selection=False, cfgdict={},
                         query_msg=None,
                         custom_qaid_list_title=None,
+                        daid_list=None,
                         **kwargs):
         """
         MAIN QUERY FUNCTION
@@ -1512,7 +1545,11 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             print('Unknown daids_mode=%r' % (daids_mode,))
 
-        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaid_list)
+        if daid_list is None:
+            daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaid_list)
+        else:
+            print('Using custom daids')
+
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
         if len(daid_list) == 0:
@@ -2189,8 +2226,8 @@ class MainWindowBackend(GUIBACK_BASE):
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)
 
-    def user_input(back, **kwargs):
-        return guitool.user_input(parent=back.front, **kwargs)
+    def user_input(back, msg='user input', **kwargs):
+        return guitool.user_input(parent=back.front, msg=msg, **kwargs)
 
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)

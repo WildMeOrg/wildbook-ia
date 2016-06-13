@@ -309,7 +309,9 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         >>> undirected_tags = get_aidpair_tags(ibs, aid1_list, aid2_list, directed=False)
         >>> tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
         >>> print(ut.list_str(tagged_pairs))
-        >>> print(ut.dict_str(ut.groupby_tags(tagged_pairs, undirected_tags), nl=2))
+        >>> tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
+        >>> print(ut.dict_str(tag_dict, nl=2))
+        >>> print(ut.dict_str(ut.map_dict_vals(len, tag_dict)))
     """
     aid_pairs = np.vstack([aid1_list, aid2_list]).T
     if directed:
