@@ -499,10 +499,13 @@ class MainWindowBackend(GUIBACK_BASE):
         #ibs.cfg.other_cfg.ranks_lt = 2
         # Overwrite
         ranks_lt = kwargs.pop('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2))
-        filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
+        kwargs = kwargs.copy()
+        filter_reviewed = kwargs.pop('filter_reviewed', None)
         if filter_reviewed is None:
-            # only filter big queries if not specified
-            filter_reviewed = len(cm_list) > 6
+            filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
+            if filter_reviewed is None:
+                # only filter big queries if not specified
+                filter_reviewed = len(cm_list) > 6
         print('REVIEW QUERIES')
         print('**kwargs = %s' % (ut.repr3(kwargs),))
         print('filter_reviewed = %s' % (filter_reviewed,))
