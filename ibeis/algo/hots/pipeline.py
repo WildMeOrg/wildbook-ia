@@ -421,12 +421,16 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     chip_cfgstr    = qreq_.qparams.chip_cfgstr
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
+    single_name_condition   = qreq_.qparams.single_name_condition
     aug_cfgstr = ('aug_quryside' if qreq_.qparams.augment_queryside_hack
                   else '')
     nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
                               flann_cfgstr, aug_cfgstr])
 
-    query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
+    if single_name_condition:
+        query_hashid_list = qreq_.ibs.get_annot_semantic_uuids(internal_qaids)
+    else:
+        query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
     if HACK_KCFG:
         kbase = qreq_.qparams.K + int(qreq_.qparams.Knorm)
@@ -448,7 +452,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
 
 @profile
-def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, verbose):
+def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_condition, verbose):
     # Cant do this here because of get_nn_aids. bleh
     # Could make this slightly more efficient
     #qreq_.load_indexer(verbose=verbose)
@@ -470,9 +474,12 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, verbose):
                  qreq_.prog_hook.next_subhook())
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
                                 prog_hook=prog_hook, **PROGKW)
-    nns_list = [
-        qreq_.indexer.knn(qfx2_vec, num_neighbors)
-        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+    if single_name_condition:
+        pass
+    else:
+        nns_list = [
+            qreq_.indexer.knn(qfx2_vec, num_neighbors)
+            for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
 
     if verbose:
         plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
@@ -486,6 +493,7 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     """
     K      = qreq_.qparams.K
     Knorm  = qreq_.qparams.Knorm
+    single_name_condition   = qreq_.qparams.single_name_condition
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
@@ -501,7 +509,7 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     use_cache = USE_NN_MID_CACHE
     nns_list = ut.tryload_cache_list_with_compute(
         use_cache, nn_cachedir, 'neighbs4', nn_mid_cacheid_list,
-        cachemiss_nn_compute_fn, qreq_, Kpad_list, K, Knorm, verbose)
+        cachemiss_nn_compute_fn, qreq_, Kpad_list, K, Knorm, single_name_condition, verbose)
     return nns_list
 
 

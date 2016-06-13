@@ -1419,6 +1419,31 @@ class MainWindowBackend(GUIBACK_BASE):
                              query_msg=query_msg, cfgdict=cfgdict,
                              custom_qaid_list_title='Merge Candidates')
 
+    def run_merge_checks_multitons(back):
+        r"""
+        Checks for missed matches within a group of annotations.
+        Only uses annotations with more 2 annots per id.
+        """
+        pass
+        ibs = back.ibs
+        #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        aid_list = ibs.filter_annots_general(min_pername=2, minqual='ok')
+        #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
+        #aid_list = ut.compress(new_aid_list, new_flag_list)
+        daid_list = qaid_list = aids
+        #len(aids)
+        cfgdict = {
+            'can_match_samename': False,
+            #'K': 3,
+            'Knorm': 6,
+            #'prescore_method': 'csum',
+            #'score_method': 'csum'
+        }
+        query_msg = 'Checking for MERGE cases (this is an special query)'
+        back.compute_queries(qaid_list=qaid_list, daid_list=daid_list,
+                             query_msg=query_msg, cfgdict=cfgdict,
+                             custom_qaid_list_title='Merge2 Candidates')
+
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
@@ -1426,6 +1451,7 @@ class MainWindowBackend(GUIBACK_BASE):
                         use_visual_selection=False, cfgdict={},
                         query_msg=None,
                         custom_qaid_list_title=None,
+                        daid_list=None,
                         **kwargs):
         """
         MAIN QUERY FUNCTION
@@ -1515,7 +1541,11 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             print('Unknown daids_mode=%r' % (daids_mode,))
 
-        daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaid_list)
+        if daid_list is None:
+            daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaid_list)
+        else:
+            print('Using custom daids')
+
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
         if len(daid_list) == 0:

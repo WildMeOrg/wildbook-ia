@@ -74,6 +74,7 @@ INTRAGROUP_DEFAULTS = {
     'min_timedelta'       : None,
     # minimum number of aids for each name in sample
     'min_pername'         : None,
+    'max_pername'         : None,
     'min_spacedelta'      : None,
     'min_spacetimedelta'  : None,
 }

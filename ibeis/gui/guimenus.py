@@ -204,6 +204,12 @@ def setup_actions_menu(mainwin, back):
         name='actionRunMergeChecks',
         text='Run Merge Checks (Exemplars vs Exemplars)',
         slot_fn=back.run_merge_checks)
+    mainwin.mergeMenu = guitool.newMenu(mainwin, menu, 'mergeMenu', 'Other Merge Checks')
+    mainwin.mergeMenu.newAction(
+        name='actionRunMergeChecks2',
+        text='Run Merge Checks (multitons)',
+        slot_fn=back.run_merge_checks_multitons
+    )
     menu.addSeparator()  # ---------
     if not const.SIMPLIFY_INTERFACE:
         menu.newAction(
