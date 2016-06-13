@@ -1430,7 +1430,7 @@ class MainWindowBackend(GUIBACK_BASE):
         aid_list = ibs.filter_annots_general(min_pername=2, minqual='ok')
         #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
         #aid_list = ut.compress(new_aid_list, new_flag_list)
-        daid_list = qaid_list = aids
+        daid_list = qaid_list = aid_list
         #len(aids)
         cfgdict = {
             'can_match_samename': False,
