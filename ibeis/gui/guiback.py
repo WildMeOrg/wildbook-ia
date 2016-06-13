@@ -1427,19 +1427,38 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
         ibs = back.ibs
         #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        K = int(back.user_input('Enter K'))
-        Knorm = int(back.user_input('Enter Knorm'))
-        min_pername = int(back.user_input('Enter min_pername'))
-        max_pername = int(back.user_input('Enter max_pername'))
-        aid_list = ibs.filter_annots_general(min_pername=min_pername, max_pername=max_pername, minqual='ok')
+        import dtool
+        config = dtool.Config.from_dict({
+            'K': 1,
+            'Knorm': 5,
+            'min_pername': 1,
+            'max_pername': 1,
+        })
+        #ibswgt = None
+        dlg = guitool.ConfigConfirmWidget.as_dialog(
+            title='Confirm Merge Query',
+            msg='Confirm',
+            config=config)
+        self = dlg.widget
+        dlg.resize(700, 500)
+        dlg.exec_()
+        print('config = %r' % (config,))
+        updated_config = self.config  # NOQA
+        print('updated_config = %r' % (updated_config,))
+
+        min_pername = updated_config['min_pername']
+        max_pername = updated_config['max_pername']
+        aid_list = ibs.filter_annots_general(min_pername=min_pername,
+                                             max_pername=max_pername,
+                                             minqual='ok')
         #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
         #aid_list = ut.compress(new_aid_list, new_flag_list)
         daid_list = qaid_list = aid_list
         #len(aids)
         cfgdict = {
             'can_match_samename': False,
-            'K': K,
-            'Knorm': Knorm,
+            'K': updated_config['K'],
+            'Knorm': updated_config['Knorm'],
             #'prescore_method': 'csum',
             #'score_method': 'csum'
         }
