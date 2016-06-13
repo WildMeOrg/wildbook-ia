@@ -103,7 +103,11 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
         flag, modname = modname
         if ut.get_argflag(flag):
             continue
-    ut.import_modname(modname)
+    try:
+        ut.import_modname(modname)
+    except ImportError as ex:
+        ut.printex(ex, iswarning=True)
+
 
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.  THE Long term solution is to get these

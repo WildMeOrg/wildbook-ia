@@ -130,6 +130,13 @@ def module_stdinfo_dict(module, versionattr='__version__', version=None, libdep=
     return infodict
 
 
+@checkinfo('1.5.3')
+def pynmea2_version():
+    # for web
+    import pynmea2
+    return module_stdinfo_dict(pynmea2)
+
+
 @checkinfo('6.0.8')
 def pip_version():
     import pip
