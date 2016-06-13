@@ -192,8 +192,11 @@ def adjust_hsv_of_rgb255(rgb255, *args, **kwargs):
         >>>     color_list = [to_base01(rgb), to_base01(new_rgb)]
         >>>     testshow_colors(color_list)
     """
+    print('rgb255 = %r' % (rgb255,))
     rgb = to_base01(rgb255)
+    print('rgb = %r' % (rgb,))
     new_rgb = adjust_hsv_of_rgb(rgb, *args, **kwargs)
+    print('new_rgb = %r' % (new_rgb,))
     new_rgb255 = to_base255(new_rgb)
     return new_rgb255
 
@@ -238,7 +241,7 @@ def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
         print(1 + np.array([-.1, 0.0, .1, .5, .9, 1.0, 1.1]) % 1.0)
     """
     assert_base01(rgb)
-    assert_base01([sat_adjust, val_adjust])
+    #assert_base01([sat_adjust, val_adjust])
     numpy_input = isinstance(rgb, np.ndarray)
     # For some reason numpy input does not work well
     if numpy_input:
