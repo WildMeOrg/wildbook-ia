@@ -243,6 +243,13 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
     return annot_uuid_list
 
 
+@register_api('/api/image/uris_original/json/', methods=['GET'])
+def get_image_uris_original_json(ibs, image_uuid_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    uri_list = ibs.get_image_uris_original(gid_list)
+    return uri_list
+
+
 @register_api('/api/image/json/', methods=['DELETE'])
 def delete_images_json(ibs, image_uuid_list):
     """
