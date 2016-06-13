@@ -1427,7 +1427,8 @@ class MainWindowBackend(GUIBACK_BASE):
         pass
         ibs = back.ibs
         #qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
-        aid_list = ibs.filter_annots_general(min_pername=2, max_pername=2, minqual='ok')
+        pername = int(back.user_input('Enter pername merge number'))
+        aid_list = ibs.filter_annots_general(min_pername=pername, max_pername=pername, minqual='ok')
         #new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(aid_list, 1)
         #aid_list = ut.compress(new_aid_list, new_flag_list)
         daid_list = qaid_list = aid_list
