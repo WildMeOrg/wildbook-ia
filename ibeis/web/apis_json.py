@@ -243,11 +243,191 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
     return annot_uuid_list
 
 
+@register_api('/api/image/annot/uuids/json/', methods=['GET'])
+def get_image_annot_uuids_json(ibs, image_uuid_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    aids_list = ibs.get_iamge_aids(gid_list)
+    annot_uuid_list = [
+        ibs.get_annot_uuids(aids_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuid_list
+
+
 @register_api('/api/image/uris_original/json/', methods=['GET'])
 def get_image_uris_original_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     uri_list = ibs.get_image_uris_original(gid_list)
     return uri_list
+
+
+@register_api('/api/annot/json/', methods=['GET'])
+def get_valid_annot_uuids_json(ibs, **kwargs):
+    aid_list = ibs.get_valid_aids(**kwargs)
+    return ibs.get_annot_uuids(aid_list)
+
+
+@register_api('/api/annot/bboxes/json/', methods=['GET'])
+def get_annot_bboxes_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_bboxes(aid_list, **kwargs)
+
+
+@register_api('/api/annot/detect/confidence/json/', methods=['GET'])
+def get_annot_detect_confidence_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_detect_confidence(aid_list, **kwargs)
+
+
+@register_api('/api/annot/exemplar/flags/json/', methods=['GET'])
+def get_annot_exemplar_flags_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_exemplar_flags(aid_list, **kwargs)
+
+
+@register_api('/api/annot/thetas/json/', methods=['GET'])
+def get_annot_thetas_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_thetas(aid_list, **kwargs)
+
+
+@register_api('/api/annot/verts/json/', methods=['GET'])
+def get_annot_verts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_verts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/verts/rotated/json/', methods=['GET'])
+def get_annot_rotated_verts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_rotated_verts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/yaws/json/', methods=['GET'])
+def get_annot_yaws_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_yaws(aid_list, **kwargs)
+
+
+@register_api('/api/annot/notes/json/', methods=['GET'])
+def get_annot_notes_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_notes(aid_list, **kwargs)
+
+
+@register_api('/api/annot/num_verts/json/', methods=['GET'])
+def get_annot_num_verts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_num_verts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/name/uuids/json/', methods=['GET'])
+def get_annot_name_rowids_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list, **kwargs)
+    return ibs.get_name_uuids(nid_list)
+
+
+@register_api('/api/annot/name/texts/json/', methods=['GET'])
+def get_annot_name_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_name_texts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/species/json/', methods=['GET'])
+def get_annot_species_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_species(aid_list, **kwargs)
+
+
+@register_api('/api/annot/species/texts/json/', methods=['GET'])
+def get_annot_species_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_species_texts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/image/names/json/', methods=['GET'])
+def get_annot_image_names_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_image_names(aid_list, **kwargs)
+
+
+@register_api('/api/annot/image/unixtimes/json/', methods=['GET'])
+def get_annot_image_unixtimes_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_image_unixtimes(aid_list, **kwargs)
+
+
+@register_api('/api/annot/image/gps/json/', methods=['GET'])
+def get_annot_image_gps_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_image_gps(aid_list, **kwargs)
+
+
+@register_api('/api/annot/image/paths/json/', methods=['GET'])
+def get_annot_image_paths_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_image_paths(aid_list, **kwargs)
+
+
+@register_api('/api/annot/image/uuids/json/', methods=['GET'])
+def get_annot_image_uuids_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_image_uuids(aid_list, **kwargs)
+
+
+@register_api('/api/annot/qualities/json/', methods=['GET'])
+def get_annot_qualities_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_qualities(aid_list, **kwargs)
+
+
+@register_api('/api/annot/quality/texts/json/', methods=['GET'])
+def get_annot_quality_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_quality_texts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/yaw_texts/json/', methods=['GET'])
+def get_annot_yaw_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_yaw_texts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/sex/json/', methods=['GET'])
+def get_annot_sex_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_sex(aid_list, **kwargs)
+
+
+@register_api('/api/annot/sex/texts/json/', methods=['GET'])
+def get_annot_sex_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_sex_texts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/age/min/json/', methods=['GET'])
+def get_annot_age_months_est_min_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_age_months_est_min(aid_list, **kwargs)
+
+
+@register_api('/api/annot/age/max/json/', methods=['GET'])
+def get_annot_age_months_est_max_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_age_months_est_max(aid_list, **kwargs)
+
+
+@register_api('/api/annot/age/min/texts/json/', methods=['GET'])
+def get_annot_age_months_est_min_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_age_months_est_min_texts(aid_list, **kwargs)
+
+
+@register_api('/api/annot/age/max/texts/json/', methods=['GET'])
+def get_annot_age_months_est_max_texts_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_age_months_est_max_texts(aid_list, **kwargs)
 
 
 @register_api('/api/image/json/', methods=['DELETE'])
