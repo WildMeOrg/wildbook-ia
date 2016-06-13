@@ -1468,6 +1468,9 @@ class MainWindowBackend(GUIBACK_BASE):
             new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(
                 aid_list, updated_config['exemplars_per_name'])
             aid_list = ut.compress(new_aid_list, new_flag_list)
+
+        ibs.print_annot_stats(aid_list)
+
         daid_list = qaid_list = aid_list
         #len(aids)
         cfgdict = {
