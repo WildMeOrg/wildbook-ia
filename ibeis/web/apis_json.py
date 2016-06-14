@@ -254,6 +254,19 @@ def get_image_annot_uuids_json(ibs, image_uuid_list):
     return annot_uuid_list
 
 
+@register_api('/api/annot/exemplar/flags/json/', methods=['POST'])
+def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
+                                                  annot_name_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    if annot_name_list is not None:
+        # Set names for query annotations
+        nid_list = ibs.add_names(annot_name_list)
+        ibs.set_annot_name_rowids(aid_list, nid_list)
+    new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(aid_list, **kwargs)
+    new_annot_uuid_list = ibs.get_annot_uuids(new_aid_list)
+    return new_annot_uuid_list, new_flag_list
+
+
 @register_api('/api/image/uris_original/json/', methods=['GET'])
 def get_image_uris_original_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
