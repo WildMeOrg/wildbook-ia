@@ -781,29 +781,27 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         bold (bool):
 
     Returns:
-        ?: combo
+        QtGui.QComboBox: combo
 
     CommandLine:
-        python -m guitool.guitool_components --test-newComboBox
+        python -m guitool.guitool_components --test-newComboBox --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
-        >>> # build test data
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> exec(ut.execstr_funckw(newComboBox), globals())
         >>> parent = None
-        >>> options = None
-        >>> changed = None
-        >>> default = None
-        >>> visible = True
-        >>> enabled = True
-        >>> bgcolor = None
-        >>> fgcolor = None
-        >>> bold = False
+        >>> options = ['red', 'blue']
         >>> # execute function
-        >>> combo = newComboBox(parent, options, changed, default, visible, enabled, bgcolor, fgcolor, bold)
+        >>> combo = newComboBox(parent, options)
         >>> # verify results
         >>> result = str(combo)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> combo.show()
+        >>> guitool.qtapp_loop(qwin=combo, freq=10)
     """
 
     # Check for tuple option formating

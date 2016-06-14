@@ -56,6 +56,13 @@ def ensure_qtapp():
         if not QUIET:
             print('[guitool] Init new QApplication')
         QAPP = GuitoolApplication(sys.argv)
+        #QAPP.setStyle('plastique')
+        #QAPP.setStyle('windows')
+        #QAPP.setStyle('cleanlooks')
+        #QAPP.setStyle('motif')
+        #QAPP.setDesktopSettingsAware(True)
+        #QAPP.setStyle('cde')
+        #"windows", "motif", "cde", "plastique" and "cleanlooks" and depending on the platform, "windowsxp", "windowsvista" and "macintosh"
         #print('QAPP = %r' % QAPP)
         assert QAPP is not None
         IS_ROOT_WINDOW = True

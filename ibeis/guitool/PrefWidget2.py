@@ -13,21 +13,6 @@ ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
 
 VERBOSE_CONFIG = ut.VERBOSE or ut.get_argflag('--verbconf')
 
-
-def report_thread_error(fn):
-    """ Decorator to help catch errors that QT wont report """
-    def report_thread_error_wrapper(*args, **kwargs):
-        try:
-            ret = fn(*args, **kwargs)
-            return ret
-        except Exception as ex:
-            print('\n\n *!!* Thread Raised Exception: ' + str(ex))
-            print('\n\n *!!* Thread Exception Traceback: \n\n' + traceback.format_exc())
-            sys.stdout.flush()
-            et, ei, tb = sys.exc_info()
-            raise
-    return report_thread_error_wrapper
-
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -43,6 +28,23 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 
+def report_thread_error(fn):
+    """
+    Decorator to help catch errors that QT wont report
+    """
+    def report_thread_error_wrapper(*args, **kwargs):
+        try:
+            ret = fn(*args, **kwargs)
+            return ret
+        except Exception as ex:
+            print('\n\n *!!* Thread Raised Exception: ' + str(ex))
+            print('\n\n *!!* Thread Exception Traceback: \n\n' + traceback.format_exc())
+            sys.stdout.flush()
+            et, ei, tb = sys.exc_info()
+            raise
+    return report_thread_error_wrapper
+
+
 def qindexstr(index):
     return 'QIndex(%r, %r)' % (index.row(), index.column())
 
@@ -52,9 +54,14 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
     A delegate that decides what the editor should be for each row in a
     specific column
 
+    CommandLine:
+        python -m guitool.PrefWidget2 newConfigWidget --show
+        python -m guitool.PrefWidget2 newConfigWidget --show --verbconf
+
     References:
         http://stackoverflow.com/questions/28037126/how-to-use-qcombobox-as-delegate-with-qtableview
         http://www.qtcentre.org/threads/41409-PyQt-QTableView-with-comboBox
+        http://stackoverflow.com/questions/28680150/qtableview-data-in-background--cell-is-edited
     """
     def __init__(self, parent):
         super(ConfigValueDelegate, self).__init__(parent)
@@ -63,21 +70,69 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
         # Get Item Data
         # value = index.data(QtCore.Qt.DisplayRole).toInt()[0]
         leafNode = index.internalPointer()
+        if VERBOSE_CONFIG and False:
+            print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode.is_combo:
+            curent_value = six.text_type(index.model().data(index))
             # fill style options with item data
             style = QtGui.QApplication.style()
             opt = QtGui.QStyleOptionComboBox()
-            curent_value = six.text_type(index.model().data(index))
-            # print('curent_value = %r' % (curent_value,))
+            #optdict = {key: getattr(opt, key) for key in dir(opt)}
+            #import utool
+            #utool.embed()
+            #print(dir(opt))
+            #print('opt = %s' % (ut.repr3(optdict),))
             opt.currentText = curent_value
             opt.rect = option.rect
+            opt.editable = False
+
+            #style.State                      style.StateFlag                  style.State_NoChange             style.State_Sibling
+            #style.State_Active               style.State_FocusAtBorder        style.State_None                 style.State_Small
+            #style.State_AutoRaise            style.State_HasFocus             style.State_Off                  style.State_Sunken
+            #style.State_Bottom               style.State_Horizontal           style.State_On                   style.State_Top
+            #style.State_Children             style.State_Item                 style.State_Open                 style.State_UpArrow
+            #style.State_DownArrow            style.State_KeyboardFocusChange  style.State_Raised               style.State_Window
+            #style.State_Editing              style.State_Mini                 style.State_ReadOnly
+            #style.State_Enabled              style.State_MouseOver            style.State_Selected
+
+            #opt.state |= style.State_Raised
+            #opt.state |= style.State_AutoRaise
+            #opt.state |= style.State_Active
+            #opt.state |= style.State_Editing
+
+            if leafNode.qt_is_editable():
+                opt.state |= style.State_Enabled
+            #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
+            #'currentIcon': <PyQt4.QtGui.QIcon object at 0x7fb19681b8a0>,
+            #'currentText': '',
+            #'direction': 0,
+            #'editable': False,
+            #'fontMetrics': <PyQt4.QtGui.QFontMetrics object at 0x7fb1959665f0>,
+            #'frame': True,
+            #'iconSize': PyQt4.QtCore.QSize(-1, -1),
+            #'init': <built-in method init of QStyleOptionComboBox object at 0x7fb195966230>,
+            #'initFrom': <built-in method initFrom of QStyleOptionComboBox object at 0x7fb195966230>,
+            #'palette': <PyQt4.QtGui.QPalette object at 0x7fb1959666e0>,
+            #'popupRect': PyQt4.QtCore.QRect(),
+            #'rect': PyQt4.QtCore.QRect(),
+            #'state': <PyQt4.QtGui.State object at 0x7fb195966848>,
+            #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
+            #'type': 983044,
+            #'version': 1,
             # draw item data as ComboBox
-            style.drawComplexControl(QtGui.QStyle.CC_ComboBox, opt, painter)
-            style.drawControl(QtGui.QStyle.CE_ComboBoxLabel, opt, painter)
+            element = QtGui.QStyle.CE_ItemViewItem
+            element = QtGui.QStyle.CE_ComboBoxLabel
+            control = QtGui.QStyle.CC_ComboBox
+
+            style.drawComplexControl(control, opt, painter)
+            style.drawControl(element, opt, painter)
         else:
             return super(ConfigValueDelegate, self).paint(painter, option, index)
 
     def createEditor(self, parent, option, index):
+        """
+        Creates different editors for different types of data
+        """
         leafNode = index.internalPointer()
         if VERBOSE_CONFIG:
             print('\n\n')
@@ -90,15 +145,33 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
                 print('[DELEGATE] * current_value = %r' % (curent_value,))
             editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
+            editor.setAutoFillBackground(True)
             return editor
-        # elif leafNode is not None and leafNode.type_ is float:
-        #     editor = QtGui.QDoubleSpinBox(parent)
-        #     editor.setMinimum(0.0)
-        #     editor.setMaximum(1.0)
-        #     editor.setSingleStep(0.1)
-        #     return editor
+        elif leafNode is not None and leafNode.type_ is float:
+            editor = QtGui.QDoubleSpinBox(parent)
+            # TODO: min / max
+            if False:
+                editor.setMinimum(0.0)
+                editor.setMaximum(1.0)
+            editor.setSingleStep(0.1)
+            editor.setAutoFillBackground(True)
+            editor.setHidden(False)
+            return editor
+        elif leafNode is not None and leafNode.type_ is int:
+            # TODO: Find a way for the user to enter a None into int boxes
+            editor = QtGui.QSpinBox(parent)
+            if False:
+                editor.setMinimum(0)
+                editor.setMaximum(1)
+            editor.setSingleStep(1)
+            editor.setAutoFillBackground(True)
+            editor.setHidden(False)
+            return editor
         else:
-            return super(ConfigValueDelegate, self).createEditor(parent, option, index)
+            editor = super(ConfigValueDelegate, self).createEditor(parent, option, index)
+            editor.setAutoFillBackground(True)
+            return editor
+
             # return None
 
     def setEditorData(self, editor, index):
@@ -133,12 +206,19 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
             print('[DELEGATE] Commit Data with combo_idx=%r' % (combo_idx,))
         self.commitData.emit(self.sender())
 
-    # def updateEditorGeometry(self, editor, option, index):
-    #     editor.setGeometry(option.rect)
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
+
+    #def editorChanged(self, index):
+    #    check = self.editor.itemText(index)
+    #    id_seq = self.parent.selectedIndexes[0][0]
+    #    update.updateCheckSeq(self.parent.db, id_seq, check)
 
 
 class QConfigModel(QAbstractItemModel):
-    """ Convention states only items with column index 0 can have children """
+    """
+    Convention states only items with column index 0 can have children
+    """
     @report_thread_error
     def __init__(self, parent=None, rootNode=None):
         super(QConfigModel, self).__init__(parent)
@@ -167,8 +247,10 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def data(self, qtindex, role=Qt.DisplayRole):
-        """ Returns the data stored under the given role
-        for the item referred to by the qtindex. """
+        """
+        Returns the data stored under the given role
+        for the item referred to by the qtindex.
+        """
         if not qtindex.isValid():
             return QVariantHack()
         # Specify CheckState Role:
@@ -189,7 +271,9 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def setData(self, qtindex, value, role=Qt.EditRole):
-        """Sets the role data for the item at qtindex to value."""
+        """
+        Sets the role data for the item at qtindex to value.
+        """
         if role == Qt.EditRole:
             data = value
         elif role == Qt.CheckStateRole:
@@ -201,13 +285,10 @@ class QConfigModel(QAbstractItemModel):
         leafPref = self.index2Pref(qtindex)
         old_data = leafPref.qt_get_data(qtindex.column())
         if VERBOSE_CONFIG:
-            # print('[setData] role = %r' % role)
             print('[setData] old_data = %r' % (old_data,))
             print('[setData] value = %r' % value)
             print('[setData] type(data) = %r' % type(data))
             print('[setData] type(value) = %r' % type(value))
-            # print('[setData] old_data != data = %r' % (old_data != data,))
-        # if old_data != data:
         result = leafPref.qt_set_data(data)
         if VERBOSE_CONFIG:
             if result:
@@ -221,8 +302,10 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def index(self, row, col, parent=QModelIndex()):
-        """Returns the index of the item in the model specified
-        by the given row, column and parent index."""
+        """
+        Returns the index of the item in the model specified
+        by the given row, column and parent index.
+        """
         if parent.isValid() and parent.column() != 0:
             return QModelIndex()
         parentPref = self.index2Pref(parent)
@@ -234,8 +317,10 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def parent(self, index=None):
-        """Returns the parent of the model item with the given index.
-        If the item has no parent, an invalid QModelIndex is returned."""
+        """
+        Returns the parent of the model item with the given index.
+        If the item has no parent, an invalid QModelIndex is returned.
+        """
         if index is None:  # Overload with QObject.parent()
             return QObject.parent(self)
         if not index.isValid():
@@ -248,7 +333,9 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def flags(self, index):
-        """Returns the item flags for the given index."""
+        """
+        Returns the item flags for the given index.
+        """
         if index.column() == 0:
             # The First Column is just a label and unchangable
             flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -267,6 +354,9 @@ class QConfigModel(QAbstractItemModel):
 
     @report_thread_error
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """
+        Fills in column headers in table / tree views
+        """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if section == 0:
                 return QVariantHack('Config Key')
@@ -279,6 +369,9 @@ BOOL_AS_COMBO = False
 
 
 class ConfigNodeWrapper(ut.NiceRepr):
+    """
+    Wraps a dtool.Config object for internal qt use
+    """
     def __init__(self, name=None, config=None, parent=None, param_info=None):
         self.name = name
         self.config = config
@@ -289,6 +382,9 @@ class ConfigNodeWrapper(ut.NiceRepr):
         self._populate_children()
 
     def make_tree_strlist(self, indent='', verbose=False):
+        """
+        Creates tree structured printable represntation
+        """
         if self.parent is None:
             typestr = 'Root'
         elif self.children is None:
@@ -305,6 +401,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if self.is_leaf():
             strlist += [
                 indent + '┃     value = %r' % (self.value,),
+                indent + '┃     default = %r' % (self.default,),
             ]
         if verbose:
             strlist += [
@@ -318,7 +415,6 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if True:
             strlist += [
                 indent + '└──',
-
             ]
         for child in self.iter_children():
             childstr = child.make_tree_strlist(indent=indent + '|  ')
@@ -337,6 +433,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
 
     def _populate_children(self):
         if hasattr(self.config, 'items'):
+            # Non-leaf
             self.children = []
             param_info_dict = self.config.get_param_info_dict()
             for key, val in self.config.items():
@@ -344,8 +441,18 @@ class ConfigNodeWrapper(ut.NiceRepr):
                 child_item = ConfigNodeWrapper(key, val, self, param_info)
                 self.children.append(child_item)
         else:
+            # Populate leaf
             self.value = self.config
+            # Mark original value
+            self.default = self.value
             self.children = None
+
+    def _reset_to_default(self):
+        if self.is_leaf():
+            self.value = self.default
+        else:
+            for child in self.children:
+                child._reset_to_default()
 
     def iter_children(self):
         if self.children is None:
@@ -416,7 +523,9 @@ class ConfigNodeWrapper(ut.NiceRepr):
         return data
 
     def qt_set_data(self, qvar):
-        """ Sets backend data using QVariants """
+        """
+        Sets backend data using QVariants
+        """
         if VERBOSE_CONFIG:
             print('[Wrapper] Attempting to set data')
         if not self.is_leaf():
@@ -493,6 +602,8 @@ class EditConfigWidget(QWidget):
 
     def default_config(self):
         print('Defaulting')
+        self.rootNode._reset_to_default()
+        self.refresh_layout()
 
     def print_internals(self):
         print('Print Internals')
@@ -510,6 +621,7 @@ def newConfigWidget(config):
 
     CommandLine:
         python -m guitool.PrefWidget2 newConfigWidget --show
+        python -m guitool.PrefWidget2 newConfigWidget --show --verbconf
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -519,11 +631,13 @@ def newConfigWidget(config):
         >>> import dtool
         >>> class ExampleConfig(dtool.Config):
         >>>     _param_info_list = [
-        >>>         ut.ParamInfo('str_option2', 'hello'),
-        >>>         ut.ParamInfo('int_option2', 456),
-        >>>         ut.ParamInfo('bool_option2', False),
-        >>>         ut.ParamInfo('hidden_option', 'foobar', hideif=lambda cfg: not cfg['bool_option2']),
-        >>>         ut.ParamInfo('combo_option', 'one', valid_values=['oneA', 'twoB', 'threeC'])
+        >>>         ut.ParamInfo('str_option', 'hello'),
+        >>>         ut.ParamInfo('int_option', 42),
+        >>>         ut.ParamInfo('float_option', 42.),
+        >>>         ut.ParamInfo('combo_option', 'up', valid_values=['up', 'down', 'strange', 'charm', 'top', 'bottom']),
+        >>>         ut.ParamInfo('bool_option', False),
+        >>>         ut.ParamInfo('hidden_str', 'foobar', hideif=lambda cfg: not cfg['bool_option']),
+        >>>         ut.ParamInfo('hidden_combo', 'one', valid_values=['oneA', 'twoB', 'threeC'], hideif=lambda cfg: not cfg['bool_option']),
         >>>     ]
         >>> config = ExampleConfig()
         >>> widget = newConfigWidget(config)
