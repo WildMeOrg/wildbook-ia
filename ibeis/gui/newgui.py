@@ -625,7 +625,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Give the frontend the new control
             ibswgt.ibs = ibs
             with ut.Timer('update special'):
-                ibs.update_special_imagesets()
+                if not ibs.readonly:
+                    ibs.update_special_imagesets()
             # Update the api models to use the new control
             with ut.Timer('make headers'):
                 header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
@@ -684,7 +685,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt._change_imageset(-1)
 
             # Update species with ones enabled in database
-            ibswgt.update_species_available()
+            if not ibs.readonly:
+                ibswgt.update_species_available()
 
     def update_species_available(ibswgt, reselect=False, reselect_new_name=None, deleting=False):
         ibs = ibswgt.ibs

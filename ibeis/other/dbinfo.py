@@ -72,6 +72,11 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
 
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA --loadbackup=0
+
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
     Example1:
         >>> # SCRIPT
@@ -207,12 +212,14 @@ def get_dbinfo(ibs, verbose=True,
         nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
     associated_nids = ut.compress(valid_nids, list(map(len, nx2_aids)))
 
+    ibs.check_name_mapping_consistency(nx2_aids)
+
     # Occurrence Info
     def compute_annot_occurrence_ids(ibs, aid_list):
         from ibeis.algo.preproc import preproc_occurrence
         gid_list = ibs.get_annot_gids(aid_list)
         gid2_aids = ut.group_items(aid_list, gid_list)
-        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(ibs, gid_list)
+        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=4 * 60 * 60, verbose=False)
         occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
         occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
         return occurid2_aids
@@ -232,7 +239,19 @@ def get_dbinfo(ibs, verbose=True,
     singlesight_annot_stats = ut.get_stats(list(map(len, singlesight_encounters)), use_median=True, use_sum=True)
     resight_name_stats = ut.get_stats(list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True)
 
-    ibs.check_name_mapping_consistency(nx2_aids)
+    try:
+        aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0)
+        undirected_tags = ibs.get_aidpair_tags(aid_pairs.T[0], aid_pairs.T[1], directed=False)
+        tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
+        tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
+        pair_tag_info = ut.map_dict_vals(len, tag_dict)
+
+        num_reviewed_pairs = sum(ibs.get_annot_pair_is_reviewed(aid_pairs.T[0], aid_pairs.T[1]))
+        pair_tag_info['num_reviewed'] = num_reviewed_pairs
+    except Exception:
+        pair_tag_info = {}
+
+    #print(ut.dict_str(pair_tag_info))
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
@@ -507,8 +526,9 @@ def get_dbinfo(ibs, verbose=True,
 
     occurrence_block_lines = [
         ('--' * num_tabs),
-        ('# Occurrence Resights (name) = %s' % (align_dict2(resight_name_stats),)),
-        ('# Occurence Singlesights (annots) = %s' % (align_dict2(singlesight_annot_stats),)),
+        ('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
+        ('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
+        ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
     ] if not short else []
 
     annot_per_qualview_block_lines = [

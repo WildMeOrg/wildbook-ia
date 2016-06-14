@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from ibeis import constants as const
-from ibeis import params
 from os.path import split, splitext, join, exists
 import datetime
-import utool as ut
 import distutils
+import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[sql-helpers]')
 
 # =======================
 # Helper Functions
 # =======================
-VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
+VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 #AUTODUMP = ut.get_argflag('--auto-dump')
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
@@ -121,6 +119,7 @@ def revert_to_backup(ibs):
     db_path = ibs.get_db_core_path()
     ibs.disconnect_sqldatabase()
     backup_dir = ibs.backupdir
+
     ut.move(db_path, ut.get_nonconflicting_path(db_path + 'revertfrom.%d.orig'))
     # Carefull may invalidate the cache
     fname, ext = splitext(db_path)
@@ -131,6 +130,38 @@ def revert_to_backup(ibs):
 
 def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP):
     database_backup(db_dir, db_fname, backup_dir, max_keep=max_keep, manual=False)
+
+
+def get_backupdir(db_dir, db_fname):
+    r"""
+    CommandLine:
+        python -m _sql_helpers get_backupdir --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control._sql_helpers import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> db_dir = ibs.get_ibsdir()
+        >>> db_fname = ibs.sqldb_fname
+        >>> backup_dir = ibs.backupdir
+        >>> result = get_backupdir(db_dir, db_fname)
+    """
+    pass
+
+
+def get_backup_fpaths(ibs):
+    fname, ext = splitext(ibs.sqldb_fname)
+    backups = sorted(ut.glob(ibs.backupdir, '*%s' % ext))
+    #backup_info = [ut.get_file_info(fpath) for fpath in backups]
+    modified = [ut.get_file_info(fpath)['last_modified'] for fpath in backups]
+    unixtimes = [ut.util_time.exiftime_to_unixtime(tag) for tag in modified]
+    backups = ut.sortedby(backups, unixtimes)
+    return backups
+    #backup_uuids = [ut.get_file_uuid(fpath) for fpath in backups]
+    #backup_hashes = [ut.get_file_hash(fpath) for fpath in backups]
+    #backup_bytes = [ut.get_file_nBytes(fpath) for fpath in backups]
+    pass
 
 
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
@@ -149,13 +180,16 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
         print('[ensure_daily_database_backup] Daily backup of database: %r -> %r' % (src_fpath, dst_fpath, ))
         ut.copy(src_fpath, dst_fpath)
         # Clean-up old database backups
-        path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
-        if len(path_list) > max_keep:
-            path_delete_list = path_list[:-1 * max_keep]
-            for path_delete in path_delete_list:
-                print('[ensure_daily_database_backup] Deleting old backup %r' % path_delete)
-                ut.remove_file(path_delete, verbose=False)
+        remove_old_backups(backup_dir, ext, max_keep)
 
+
+def remove_old_backups(backup_dir, ext, max_keep):
+    path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
+    if len(path_list) > max_keep:
+        path_delete_list = path_list[:-1 * max_keep]
+        for path_delete in path_delete_list:
+            print('[ensure_daily_database_backup] Deleting old backup %r' % path_delete)
+            ut.remove_file(path_delete, verbose=False)
 
 # ========================
 # Schema Updater Functions
@@ -191,6 +225,8 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     Args:
         schema_spec (module): module of schema specifications
     """
+    from ibeis import constants as const
+    from ibeis import params
     #print('[SQL_] ensure_correct_version')
     force_incremental = params.args.force_incremental_db_update
     want_base_version = version_expected == const.BASE_DATABASE_VERSION

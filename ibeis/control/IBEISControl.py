@@ -261,6 +261,7 @@ class IBEISController(BASE_CLASS):
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
+        ibs.readonly = None
         ibs.depc_annot = None
         ibs.depc_image = None
         #ibs.allow_override = 'override+warn'
@@ -280,7 +281,7 @@ class IBEISController(BASE_CLASS):
         ibs._send_wildbook_request(wbaddr)
         ibs._init_sql(request_dbversion=request_dbversion)
         ibs._init_config()
-        if not ut.get_argflag('--noclean'):
+        if not ut.get_argflag('--noclean') and not ibs.readonly:
             # ibs._init_burned_in_species()
             ibs._clean_species()
         ibs.job_manager = None
@@ -515,7 +516,14 @@ class IBEISController(BASE_CLASS):
         from ibeis.control import _sql_helpers
         from ibeis.control import DB_SCHEMA
         # Before load, ensure database has been backed up for the day
-        if not ut.get_argflag('--nobackup'):
+        backup_idx = ut.get_argval('--loadbackup', type_=int, default=None)
+        sqldb_fpath = None
+        if backup_idx is not None:
+            backups = _sql_helpers.get_backup_fpaths(ibs)
+            print('backups = %r' % (backups,))
+            sqldb_fpath = backups[backup_idx]
+            print('CHOSE BACKUP sqldb_fpath = %r' % (sqldb_fpath,))
+        if backup_idx is None and not ut.get_argflag('--nobackup'):
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
                                                           ibs.sqldb_fname,
@@ -532,22 +540,32 @@ class IBEISController(BASE_CLASS):
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
-        new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
-            ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.2')
-        ibs.db_version_expected = new_version
-        ibs.sqldb_fname = new_fname
+        if backup_idx is None:
+            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
+                ibs.get_dbname(), ibs.get_ibsdir(),
+                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.2')
+            ibs.db_version_expected = new_version
+            ibs.sqldb_fname = new_fname
+        if sqldb_fpath is None:
+            assert backup_idx is None
+            sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
+            readonly = None
+        else:
+            readonly = True
         ibs.db = dtool.SQLDatabaseController(
-            ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=const.__STR__,
-            inmemory=False, )
-        # Ensure correct schema versions
-        _sql_helpers.ensure_correct_version(
-            ibs,
-            ibs.db,
-            ibs.db_version_expected,
-            DB_SCHEMA,
-            verbose=ut.VERBOSE,
-        )
+            fpath=sqldb_fpath, text_factory=const.__STR__,
+            inmemory=False, readonly=readonly)
+        ibs.readonly = ibs.db.readonly
+
+        if backup_idx is None:
+            # Ensure correct schema versions
+            _sql_helpers.ensure_correct_version(
+                ibs,
+                ibs.db,
+                ibs.db_version_expected,
+                DB_SCHEMA,
+                verbose=ut.VERBOSE,
+            )
         #import sys
         #sys.exit(1)
 

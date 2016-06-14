@@ -282,6 +282,7 @@ def filterflags_annot_tags(ibs, aid_list, **kwargs):
     return flags
 
 
+@register_ibs_method
 def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     r"""
     Args:
@@ -337,6 +338,8 @@ def filter_aidpairs_by_tags(ibs, has_any=None, has_all=None, min_num=None, max_n
     """
     list(zip(aid_pairs, undirected_tags))
     """
+    #annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
+
     filtered_annotmatch_rowids = filter_annotmatch_by_tags(
         ibs, None, has_any=has_any, has_all=has_all, min_num=min_num,
         max_num=max_num)
