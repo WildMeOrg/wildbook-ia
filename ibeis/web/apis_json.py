@@ -248,7 +248,7 @@ def get_image_annot_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     aids_list = ibs.get_image_aids(gid_list)
     annot_uuid_list = [
-        ibs.get_annot_uuids(aids_list)
+        ibs.get_annot_uuids(aid_list)
         for aid_list in aids_list
     ]
     return annot_uuid_list
