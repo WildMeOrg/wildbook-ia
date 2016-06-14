@@ -106,7 +106,7 @@ def ibeis_compute_occurrences(ibs, gid_list):
     return flat_imgsetids, flat_gids
 
 
-def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=False):
+def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=False, verbose=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -172,9 +172,9 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
     """
     # Config info
     gid_list = np.unique(gid_list)
-
-    print('[occur] Computing %r occurrences on %r images.' % (
-        cluster_algo, len(gid_list)))
+    if verbose:
+        print('[occur] Computing %r occurrences on %r images.' % (
+            cluster_algo, len(gid_list)))
     if len(gid_list) == 0:
         print('[occur] WARNING: len(gid_list) == 0. '
               'No images to compute occurrences with')
@@ -206,13 +206,14 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
         min_imgs_per_occurence = cfgdict.get('min_imgs_per_occurence', 1)
         occur_labels, occur_gids = filter_and_relabel(
             labels, label_gids, min_imgs_per_occurence, occur_unixtimes)
-        print('[occur] Found %d clusters.' % len(occur_labels))
-        if len(label_gids) > 0:
-            print('Cluster size stats:')
+        if verbose:
+            print('[occur] Found %d clusters.' % len(occur_labels))
+        if len(label_gids) > 0 and verbose:
+            print('[occur] Cluster image size stats:')
             ut.print_dict(
                 ut.get_stats(list(map(len, occur_gids)), use_median=True,
                              use_sum=True),
-                'occur stats')
+                'occur image stats')
     return occur_labels, occur_gids
 
 

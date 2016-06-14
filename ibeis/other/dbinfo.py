@@ -190,7 +190,7 @@ def get_dbinfo(ibs, verbose=True,
         valid_aids_set = set(valid_aids)
         gx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in gx2_aids]
 
-    gx2_nAnnots = np.array(map(len, gx2_aids))
+    gx2_nAnnots = np.array(list(map(len, gx2_aids)))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
     gx2_nAnnots_stats  = ut.get_stats_str(gx2_nAnnots, newlines=True, use_median=True)
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
@@ -205,7 +205,32 @@ def get_dbinfo(ibs, verbose=True,
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
         nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
-    associated_nids = ut.compress(valid_nids, map(len, nx2_aids))
+    associated_nids = ut.compress(valid_nids, list(map(len, nx2_aids)))
+
+    # Occurrence Info
+    def compute_annot_occurrence_ids(ibs, aid_list):
+        from ibeis.algo.preproc import preproc_occurrence
+        gid_list = ibs.get_annot_gids(aid_list)
+        gid2_aids = ut.group_items(aid_list, gid_list)
+        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(ibs, gid_list)
+        occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
+        occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
+        return occurid2_aids
+
+    occurid2_aids = compute_annot_occurrence_ids(ibs, aid_list)
+    occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
+    occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
+    nid2_occurxs = ut.ddict(list)
+    for occurx, nids in enumerate(occur_unique_nids):
+        for nid in nids:
+            nid2_occurxs[nid].append(occurx)
+
+    nid2_occurx_single = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1}
+    nid2_occurx_resight = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1}
+    singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
+
+    singlesight_annot_stats = ut.get_stats(list(map(len, singlesight_encounters)), use_median=True, use_sum=True)
+    resight_name_stats = ut.get_stats(list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True)
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
@@ -480,6 +505,12 @@ def get_dbinfo(ibs, verbose=True,
         ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
     ] if not short else []
 
+    occurrence_block_lines = [
+        ('--' * num_tabs),
+        ('# Occurrence Resights (name) = %s' % (align_dict2(resight_name_stats),)),
+        ('# Occurence Singlesights (annots) = %s' % (align_dict2(singlesight_annot_stats),)),
+    ] if not short else []
+
     annot_per_qualview_block_lines = [
         None if short else '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
         None if short else '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
@@ -513,6 +544,7 @@ def get_dbinfo(ibs, verbose=True,
         name_block_lines +
         annot_block_lines +
         annot_per_basic_block_lines +
+        occurrence_block_lines +
         annot_per_qualview_block_lines +
         annot_per_agesex_block_lines +
         img_block_lines +
