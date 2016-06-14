@@ -294,6 +294,11 @@
   filter: alpha(opacity=1);
 }
 
+#query-match-score
+{
+   font-size: 15px;
+}
+
 /*.ui-rotatable-handle, .ui-resizable-handle, .ia-label-text-box
 {
   visibility: hidden !important;
