@@ -115,8 +115,9 @@ class AnnotInference(object):
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> import ibeis
         >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', t='default:proot=BC_DTW', a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
+        >>> #qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:dsize=20,excluderef=True,qnum_names=5,qsize=1,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
+        >>> #qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', t='default:proot=BC_DTW', a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = AnnotInference(qreq_, cm_list)
@@ -317,7 +318,10 @@ class AnnotInference(object):
         # Make first part of inference output
         qaid_list = [cm.qaid for cm in cm_list]
         qaid_set = set(qaid_list)
-        next_new_nid = itertools.count(9001)
+        #start_nid = 9001
+        # Find an nid that doesn't exist in the database
+        start_nid = len(self.qreq_.ibs._get_all_known_name_rowids()) + 1
+        next_new_nid = itertools.count(start_nid)
         cluster_tuples = []
         for aids, nids in zip(cluster_aids, cluster_nids):
             other_nid_clusters = cluster_nids[:]
@@ -327,12 +331,34 @@ class AnnotInference(object):
             merge_case = len(nids) > 1
             new_name = len(nids) == 0
 
-            print('[chip_match > AnnotInference > make_inference] WARNING: EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
-            exemplar_flag = True
+            #print('[chip_match > AnnotInference > make_inference] WARNING: EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
             error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
             strflags = ['split', 'merge', 'new']
             error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
             #error_flag = split_case or merge_case
+
+            # <HACK>
+            ibs = self.qreq_.ibs
+            viewpoint_texts = ibs.get_annot_yaw_texts(aids)
+            view_to_aids = ut.group_items(aids, viewpoint_texts)
+            num_wanted_exemplars_per_view = 4
+            hack_set_these_qaids_as_exemplars = set([])
+            for view, aids_ in view_to_aids.items():
+                heuristic_exemplar_aids = set(aids) - qaid_set
+                heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
+                num_needed_exemplars = num_wanted_exemplars_per_view - len(heuristic_exemplar_aids)
+                # Choose the best query annots to fill out exemplars
+                if len(heuristic_non_exemplar_aids) == 0:
+                    continue
+                quality_ints = ibs.get_annot_qualities(heuristic_non_exemplar_aids)
+                okish = ibs.const.QUALITY_TEXT_TO_INT[ibs.const.QUAL_OK] - .1
+                quality_ints = [x if x is None else okish for x in quality_ints]
+                aids_ = ut.sortedby(heuristic_non_exemplar_aids, quality_ints)[::-1]
+                chosen = aids_[:num_needed_exemplars]
+                for qaid_ in chosen:
+                    hack_set_these_qaids_as_exemplars.add(qaid_)
+
+            # </HACK>
 
             if not error_flag and not new_name:
                 new_nid = nids[0]
@@ -342,9 +368,11 @@ class AnnotInference(object):
                 if aid not in qaid_set:
                     continue
                 orig_nid = orig_aid2_nid[aid]
+                exemplar_flag = aid in hack_set_these_qaids_as_exemplars
                 #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
                 tup = (aid, orig_nid, new_nid, exemplar_flag, error_flag)
                 cluster_tuples.append(tup)
+
         return cluster_tuples
 
     def make_inference(self):
@@ -375,9 +403,10 @@ class AnnotInference(object):
                 daid = daids[scorex]
                 import scipy.special
                 # SUPER HACK: these are not probabilities
-                # TODO: set a and b based on dbsize
-                # python -m plottool.draw_func2 --exec-plot_func --show --range=0,1 --func="lambda x: scipy.special.expit(2 * x - 2)"
-                a = 2.0
+                # TODO: set a and b based on dbsize and param configuration
+                # python -m plottool.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
+                #a = 2.0
+                a = 1.5
                 b = 2
                 p_same = scipy.special.expit(b * raw_score - a)
                 #confidence = scores[scorex]
