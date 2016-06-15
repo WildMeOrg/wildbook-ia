@@ -304,7 +304,7 @@ def start_identify_annots_query(ibs,
     valid_states = {
         'match': ['matched'],  # ['match', 'matched'],
         'nonmatch': ['notmatched'],  # ['nonmatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
-        'noncomp' :  ['notcomparable'],
+        'notcomp' :  ['notcomparable'],
     }
     prefered_states = ut.take_column(valid_states.values(), 0)
     flat_states = ut.flatten(valid_states.values())
