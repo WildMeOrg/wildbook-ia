@@ -84,12 +84,21 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     if img_dict is None:
         img_dict = nx.get_node_attributes(graph, 'image')
 
+    if verbose is None:
+        verbose = ut.VERBOSE
+
+    use_image = kwargs.get('use_image', True)
+
+    if verbose:
+        print('Getting layout')
     layout_info = get_nx_layout(graph, layout, layoutkw=layoutkw,
                                 verbose=verbose)
 
+    if verbose:
+        print('Drawing graph')
     # zoom = kwargs.pop('zoom', .4)
     framewidth = kwargs.pop('framewidth', 1.0)
-    draw_network2(graph, layout_info, ax, **kwargs)
+    draw_network2(graph, layout_info, ax, verbose=verbose, **kwargs)
     ax.grid(False)
     pt.plt.axis('equal')
     ax.axesPatch.set_facecolor('white')
@@ -120,12 +129,15 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     ax.set_xticks([])
     ax.set_yticks([])
 
-    if img_dict is not None and len(img_dict) > 0:
+    if use_image and img_dict is not None and len(img_dict) > 0:
+        if verbose:
+            print('Drawing images')
         node_list = sorted(img_dict.keys())
         pos_list = ut.dict_take(node_pos, node_list)
         img_list = ut.dict_take(img_dict, node_list)
         size_list = ut.dict_take(node_size, node_list)
-        color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
+        #color_list = ut.dict_take(nx.get_node_attributes(graph, 'color'), node_list, None)
+        color_list = ut.dict_take(nx.get_node_attributes(graph, 'framecolor'), node_list, None)
         framewidth_list = ut.dict_take(nx.get_node_attributes(graph, 'framewidth'),
                                        node_list, framewidth)
         # TODO; frames without images
@@ -134,6 +146,9 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
                                                   framewidth_list=framewidth_list)
         imgdat['node_list'] = node_list
         layout_info['imgdat'] = imgdat
+    else:
+        if verbose:
+            print('Not drawing images')
 
     if title is not None:
         pt.set_title(title)
@@ -157,9 +172,7 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     #print('[viz_graph] drawing %d images' % len(img_list))
     # Thumb stackartist
     import plottool as pt
-    ax  = pt.gca()
-    artist_list = []
-    offset_img_list = []
+    #ax  = pt.gca()
 
     # Ensure all images have been read
     img_list_ = [vt.convert_colorspace(vt.imread(img), 'RGB')
@@ -171,6 +184,8 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     as_offset_image = False
 
     if as_offset_image:
+        offset_img_list = []
+        artist_list = []
         # THIS DOES NOT DO WHAT I WANT
         # Scales the image with data coords
         from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -191,34 +206,17 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     else:
         # THIS DOES EXACTLY WHAT I WANT
         # Ties the image to data coords
-        for pos, img, size, color, framewidth in zip(pos_list, img_list_,
-                                                     size_list_, color_list,
-                                                     framewidth_list):
+        #for pos, img, size, color, framewidth in zip(pos_list, img_list_,
+        #                                             size_list_, color_list,
+        #                                             framewidth_list):
+        for pos, img, size in zip(pos_list, img_list_, size_list_):
             bbox = vt.bbox_from_center_wh(pos, size)
             extent = vt.extent_from_bbox(bbox)
             pt.plt.imshow(img, extent=extent)
-            if framewidth > 0:
-                alpha = 1.0
-                if color is None:
-                    color = pt.BLACK
-                    alpha = 0.0
-                if framewidth is True:
-                    figsize = ut.get_argval('--figsize', type_=list, default=None)
-                    if figsize is not None:
-                        # HACK
-                        graphsize = max(figsize)
-                        framewidth = graphsize / 4
-                    else:
-                        framewidth = 3.0
-                lw = framewidth
-                patch = pt.make_bbox(bbox, bbox_color=color, ax=ax, lw=lw, alpha=alpha)
-                artist_list.append(patch)
-    for artist in artist_list:
-        ax.add_artist(artist)
 
     imgdat = {
-        'offset_img_list': offset_img_list,
-        'artist_list': artist_list,
+        #'offset_img_list': offset_img_list,
+        #'artist_list': artist_list,
     }
     return imgdat
 
@@ -776,7 +774,7 @@ def _get_node_size(graph, node, node_size):
 
 
 def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
-                  hacknode=False, **kwargs):
+                  hacknode=False, verbose=None, **kwargs):
     """
     fancy way to draw networkx graphs without directly using networkx
 
@@ -814,7 +812,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         if node_color is None:
             node_color = pt.NEUTRAL_BLUE
         xy = node_pos[node]
-        if 'image' in nattrs:
+        using_image = kwargs.get('use_image', True) and 'image' in nattrs
+        if using_image:
             if hacknode:
                 alpha_ = 0.7
             else:
@@ -882,13 +881,37 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             patch = pt.cartoon_stacked_rects(xy_bl, width, height, **patch_kw)
             patch.xy = xy
 
+        if True:
+            framewidth = nattrs.get('framewidth', 0)
+            if framewidth > 0:
+                framecolor = nattrs.get('framecolor', node_color)
+                if isinstance(framecolor, six.string_types) and framecolor.startswith('#'):
+                    import matplotlib.colors as colors
+                    framecolor = colors.hex2color(framecolor[0:7])
+                print('framecolor = %r' % (framecolor,))
+                alpha = 1.0
+                if framecolor is None:
+                    framecolor = pt.BLACK
+                    alpha = 0.0
+                if framewidth is True:
+                    figsize = ut.get_argval('--figsize', type_=list, default=None)
+                    if figsize is not None:
+                        # HACK
+                        graphsize = max(figsize)
+                        framewidth = graphsize / 4
+                    else:
+                        framewidth = 3.0
+                lw = framewidth
+                frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw, alpha=alpha)
+                ax.add_patch(frame)
+
         patch_dict[node] = patch
         x, y = xy
         text = str(node)
         if label is not None:
             #text += ': ' + str(label)
             text = label
-        if hacknode or 'image' not in nattrs:
+        if hacknode or not using_image:
             pt.ax_absolute_text(x, y, text, ha='center', va='center',
                                 fontproperties=font_prop)
         node_patch_list.append(patch)
@@ -1059,6 +1082,10 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
             ax.add_patch(patch)
+
+    if verbose:
+        print('Adding %r node patches ' % (len(node_patch_list,)))
+        print('Adding %r edge patches ' % (len(edge_patch_list,)))
 
     use_collections = False
     if use_collections:

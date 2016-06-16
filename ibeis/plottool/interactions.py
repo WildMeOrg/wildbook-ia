@@ -144,6 +144,7 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
     """
     References:
         https://gist.github.com/tacaswell/3144287
+        http://stackoverflow.com/questions/11551049/matplotlib-plot-zooming-with-scroll-wheel
     """
     if ax is None:
         ax = pt.gca()
@@ -188,6 +189,74 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
 
     #return the function
     return zoom_fun
+
+
+def pan_factory(ax):
+    self = PanEvents(ax)
+    ax = self.ax
+    fig = ax.get_figure()  # get the figure of interest
+    self.cidBP = fig.canvas.mpl_connect('button_press_event', self.pan_on_press)
+    self.cidBR = fig.canvas.mpl_connect('button_release_event', self.pan_on_release)
+    self.cidBM = fig.canvas.mpl_connect('motion_notify_event', self.pan_on_motion)
+    # attach the call back
+    return self
+
+
+class PanEvents(object):
+    def __init__(self, ax=None):
+        self.press = None
+        self.cur_xlim = None
+        self.cur_ylim = None
+        self.x0 = None
+        self.y0 = None
+        self.x1 = None
+        self.y1 = None
+        self.xpress = None
+        self.ypress = None
+        self.xzoom = True
+        self.yzoom = True
+        self.cidBP = None
+        self.cidBR = None
+        self.cidBM = None
+        self.cidKeyP = None
+        self.cidKeyR = None
+        self.cidScroll = None
+        self.ax = ax
+        #if ax is None:
+        #    import plottool as pt
+        #    ax = pt.gca()
+        #self.ax = ax
+        #self.connect()
+
+    def pan_on_press(self, event):
+        ax = self.ax
+        if event.inaxes != ax:
+            return
+        self.cur_xlim = ax.get_xlim()
+        self.cur_ylim = ax.get_ylim()
+        self.press = self.x0, self.y0, event.xdata, event.ydata
+        self.x0, self.y0, self.xpress, self.ypress = self.press
+
+    def pan_on_release(self, event):
+        ax = self.ax
+        self.press = None
+        ax.figure.canvas.draw()
+
+    def pan_on_motion(self, event):
+        ax = self.ax
+        if self.press is None:
+            return
+        if event.inaxes != ax:
+            return
+        dx = event.xdata - self.xpress
+        dy = event.ydata - self.ypress
+        self.cur_xlim -= dx
+        self.cur_ylim -= dy
+        ax.set_xlim(self.cur_xlim)
+        ax.set_ylim(self.cur_ylim)
+
+        ax.figure.canvas.draw()
+        ax.figure.canvas.flush_events()
 
 
 if __name__ == '__main__':

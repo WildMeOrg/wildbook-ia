@@ -70,6 +70,10 @@ class AbstractInteraction(object):
         self.is_down = {}
         self.is_drag = {}
         self.is_running = False
+
+        self.pan_event_list = []
+        self.zoom_event_list = []
+
         self.fig = getattr(self, 'fig', None)
 
         for button in self.MOUSE_BUTTONS.values():
@@ -79,6 +83,19 @@ class AbstractInteraction(object):
         autostart = kwargs.get('autostart', False)
         if autostart:
             self.start()
+
+    def enable_pan_and_zoom(self, ax):
+        self.enable_pan(ax)
+        self.enable_zoom(ax)
+
+    def enable_pan(self, ax):
+        from plottool.interactions import PanEvents
+        event = PanEvents(ax)
+        self.pan_event_list.append(event)
+
+    def enable_zoom(self, ax):
+        from plottool.interactions import zoom_factory
+        self.zoom_event_list.append(zoom_factory(ax))
 
     def _start_interaction(self):
         #self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
@@ -176,6 +193,9 @@ class AbstractInteraction(object):
                     self.on_drag_start(event)
         if any(self.is_drag.values()):
             self.on_drag(event)
+
+        for pan in self.pan_event_list:
+            pan.pan_on_motion(event)
         #print('event = %r' % (event.__dict__,))
         pass
 
@@ -228,6 +248,9 @@ class AbstractInteraction(object):
         else:
             self.on_click_outside(event)
 
+        for pan in self.pan_event_list:
+            pan.pan_on_press(event)
+
     def on_click_release(self, event):
         if self.debug > 0:
             print('[pt.a] on_release')
@@ -244,6 +267,8 @@ class AbstractInteraction(object):
         #    self.is_down['right'] = False
         #if event.button == self.MIDDLE_BUTTON:
         #    self.is_down['middle'] = False
+        for pan in self.pan_event_list:
+            pan.pan_on_release(event)
 
     def on_click_inside(self, event, ax):
         pass
@@ -411,54 +436,55 @@ class AbstractPagedInteraction(AbstractInteraction):
         self.draw()
 
 
-def zoom_factory(ax, zoomable_list, base_scale=1.1):
-    """
-    TODO: make into interaction
+# moved to interactions.py
+#def zoom_factory(ax, zoomable_list, base_scale=1.1):
+#    """
+#    TODO: make into interaction
 
-    References:
-        https://gist.github.com/tacaswell/3144287
-    """
-    def zoom_fun(event):
-        #print('zooming')
-        # get the current x and y limits
-        cur_xlim = ax.get_xlim()
-        cur_ylim = ax.get_ylim()
-        xdata = event.xdata  # get event x location
-        ydata = event.ydata  # get event y location
-        if xdata is None or ydata is None:
-            return
-        if event.button == 'up':
-            # deal with zoom in
-            scale_factor = 1 / base_scale
-        elif event.button == 'down':
-            # deal with zoom out
-            scale_factor = base_scale
-        else:
-            raise NotImplementedError('event.button=%r' % (event.button,))
-            # deal with something that should never happen
-            scale_factor = 1
-            print(event.button)
-        for zoomable in zoomable_list:
-            zoom = zoomable.get_zoom()
-            new_zoom = zoom / (scale_factor ** (1.2))
-            zoomable.set_zoom(new_zoom)
-        # Get distance from the cursor to the edge of the figure frame
-        x_left = xdata - cur_xlim[0]
-        x_right = cur_xlim[1] - xdata
-        y_top = ydata - cur_ylim[0]
-        y_bottom = cur_ylim[1] - ydata
-        ax.set_xlim([xdata - x_left * scale_factor, xdata + x_right * scale_factor])
-        ax.set_ylim([ydata - y_top * scale_factor, ydata + y_bottom * scale_factor])
+#    References:
+#        https://gist.github.com/tacaswell/3144287
+#    """
+#    def zoom_fun(event):
+#        #print('zooming')
+#        # get the current x and y limits
+#        cur_xlim = ax.get_xlim()
+#        cur_ylim = ax.get_ylim()
+#        xdata = event.xdata  # get event x location
+#        ydata = event.ydata  # get event y location
+#        if xdata is None or ydata is None:
+#            return
+#        if event.button == 'up':
+#            # deal with zoom in
+#            scale_factor = 1 / base_scale
+#        elif event.button == 'down':
+#            # deal with zoom out
+#            scale_factor = base_scale
+#        else:
+#            raise NotImplementedError('event.button=%r' % (event.button,))
+#            # deal with something that should never happen
+#            scale_factor = 1
+#            print(event.button)
+#        for zoomable in zoomable_list:
+#            zoom = zoomable.get_zoom()
+#            new_zoom = zoom / (scale_factor ** (1.2))
+#            zoomable.set_zoom(new_zoom)
+#        # Get distance from the cursor to the edge of the figure frame
+#        x_left = xdata - cur_xlim[0]
+#        x_right = cur_xlim[1] - xdata
+#        y_top = ydata - cur_ylim[0]
+#        y_bottom = cur_ylim[1] - ydata
+#        ax.set_xlim([xdata - x_left * scale_factor, xdata + x_right * scale_factor])
+#        ax.set_ylim([ydata - y_top * scale_factor, ydata + y_bottom * scale_factor])
 
-        # ----
-        ax.figure.canvas.draw()  # force re-draw
+#        # ----
+#        ax.figure.canvas.draw()  # force re-draw
 
-    fig = ax.get_figure()  # get the figure of interest
-    # attach the call back
-    fig.canvas.mpl_connect('scroll_event', zoom_fun)
+#    fig = ax.get_figure()  # get the figure of interest
+#    # attach the call back
+#    fig.canvas.mpl_connect('scroll_event', zoom_fun)
 
-    #return the function
-    return zoom_fun
+#    #return the function
+#    return zoom_fun
 
 
 def pretty_hotkey_map(hotkeys):
