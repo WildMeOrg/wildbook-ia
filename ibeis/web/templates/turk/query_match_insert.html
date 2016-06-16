@@ -14,7 +14,7 @@
     <input type="text" name="query-match-annot-uuid-2" value="{{ annot_uuid_2 }}" style="display: none;" readonly>
     <div class="row">
       <div class="col-lg-2"></div>
-      <div class="col-lg-8" id="query-match-image-container">
+      <div class="col-lg-8">
         <span id="query-match-score">Score: {{ match_score }}</span>
       </div>
       <div class="col-lg-2"></div>
@@ -82,6 +82,7 @@
         max_height = Math.max(max_height, current_height);
       });
       $("#query-match-buttons").css("margin-top", max_height + "px");
+      $("#query-match-image-container").css("height", max_height + "px");
     }
 
     $( window ).resize(function() {
