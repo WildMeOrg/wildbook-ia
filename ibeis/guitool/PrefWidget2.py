@@ -120,7 +120,7 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
             #'type': 983044,
             #'version': 1,
             # draw item data as ComboBox
-            element = QtGui.QStyle.CE_ItemViewItem
+            #element = QtGui.QStyle.CE_ItemViewItem
             element = QtGui.QStyle.CE_ComboBoxLabel
             control = QtGui.QStyle.CC_ComboBox
 
