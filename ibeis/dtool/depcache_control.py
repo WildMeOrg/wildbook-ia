@@ -21,10 +21,10 @@ SUBPROP_REGISTER = defaultdict(list)
 
 REG_PREPROC_DOC = """
 Args:
-    tablename (str):
-    parents (list): (default = None)
-    colnames (list): (default = None)
-    coltypes (list): (default = None)
+    tablename (str): name of the node (corrsponds to SQL table)
+    parents (list): tables this node depends on
+    colnames (list): data returned by this table
+    coltypes (list): types of data returned by this table
     chunksize (int): (default = None)
     configclass (dtool.TableConfig): derivative of dtool.TableConfig.
         if None, a default class will be constructed for you. (default = None)
@@ -99,6 +99,8 @@ class _CoreDependencyCache(object):
         if depc._debug:
             print('[depc] Registering tablename=%r' % (tablename,))
             print('[depc]  * preproc_func=%r' % (preproc_func,))
+        # ----------
+        # Sanitize inputs
         if isinstance(tablename, six.string_types):
             tablename = six.text_type(tablename)
         if parents is None:
@@ -107,7 +109,6 @@ class _CoreDependencyCache(object):
             colnames = 'data'
             if coltypes is None:
                 coltypes = np.ndarray
-
         # Check if just a single column is given
         if not ut.isiterable(colnames):
             colnames = [colnames]
@@ -115,7 +116,6 @@ class _CoreDependencyCache(object):
             default_to_unpack = True
         else:
             default_to_unpack = False
-
             colnames = ut.lmap(six.text_type, colnames)
         if coltypes is None:
             raise ValueError('must specify coltypes of %s' % (tablename,))
@@ -124,30 +124,37 @@ class _CoreDependencyCache(object):
             fname = depc.default_fname
         if configclass is None:
             # Make a default config with no parameters
-            default_cfgdict = configclass
-            configclass = base.dict_as_config({}, tablename)
+            configclass = {}
         if isinstance(configclass, dict):
             # Dynamically make config class
             default_cfgdict = configclass
-            configclass = base.dict_as_config(default_cfgdict, tablename)
+            configclass = base.make_configclass(default_cfgdict, tablename)
+        # ----------
+        # Register a new table and configuration
         if requestclass is not None:
             depc.requestclass_dict[tablename] = requestclass
-
         depc.fname_to_db[fname] = None
         table = depcache_table.DependencyCacheTable(
-            depc=depc,
-            parent_tablenames=parents,
-            tablename=tablename,
-            data_colnames=colnames,
-            data_coltypes=coltypes,
-            preproc_func=preproc_func,
-            fname=fname,
-            default_to_unpack=default_to_unpack,
-            **kwargs
+            depc=depc, parent_tablenames=parents, tablename=tablename,
+            data_colnames=colnames, data_coltypes=coltypes,
+            preproc_func=preproc_func, fname=fname,
+            default_to_unpack=default_to_unpack, **kwargs
         )
         depc.cachetable_dict[tablename] = table
         depc.configclass_dict[tablename] = configclass
         return table
+
+    @ut.apply_docstr(REG_PREPROC_DOC)
+    def register_preproc(depc, *args, **kwargs):
+        """
+        Decorator for registration of cachables
+        """
+        def register_preproc_wrapper(func):
+            check_register(args, kwargs)
+            kwargs['preproc_func'] = func
+            depc._register_prop(*args, **kwargs)
+            return func
+        return register_preproc_wrapper
 
     def _register_subprop(depc, tablename, propname=None, preproc_func=None):
         """ subproperties are always recomputeed on the fly """
@@ -166,7 +173,7 @@ class _CoreDependencyCache(object):
         """
         Creates all registered tables
         """
-        print('[depc] Initialize %s depcache' % (depc.root.upper(),))
+        print('[depc] Initialize %s depcache in %r' % (depc.root.upper(), depc.cache_dpath))
         _debug = depc._debug if _debug is None else _debug
         if depc._use_globals:
             reg_preproc = PREPROC_REGISTER[depc.root]
@@ -181,6 +188,11 @@ class _CoreDependencyCache(object):
                 depc._register_subprop(*args_, **kwargs_)
 
         ut.ensuredir(depc.cache_dpath)
+
+        # Memory filestore
+        #if False:
+        #    # http://docs.pyfilesystem.org/en/latest/getting_started.html
+        #    pip install fs
 
         for fname in depc.fname_to_db.keys():
             if fname == ':memory:':
@@ -224,7 +236,7 @@ class _CoreDependencyCache(object):
                 setattr(wobj, funcname, func)
             dfmtstr = 'get_{tablename}_{colname}'
             for colname in table.data_colnames:
-                get_prop = ut.partial(depc.get_property, table.tablename, colnames=colname)
+                get_prop = ut.partial(depc.get, table.tablename, colnames=colname)
                 attrname = dfmtstr.format(tablename=table.tablename, colname=colname)
                 # Set flat version
                 setattr(d, attrname, get_prop)
@@ -280,90 +292,6 @@ class _CoreDependencyCache(object):
             raise
 
         return dependency_levels
-
-    def get_dependants(depc, tablename):
-        """
-        gets level dependences table to the leaves. ie ancestors
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'chip'
-            >>> result = ut.repr3(depc.get_dependants(tablename), nl=1)
-            >>> print(result)
-
-            [
-                ['chip'],
-                ['keypoint'],
-                ['fgweight', 'nnindexer', 'descriptor'],
-                ['spam'],
-                ['multitest'],
-                ['multitest_score'],
-            ]
-        """
-        # get_descendant_levels
-        edges = depc.get_edges()
-        children_, parents_ = list(zip(*edges))
-        parent_to_children = ut.group_items(parents_, children_)
-        to_leafs = {tablename: ut.path_to_leafs(tablename, parent_to_children)}
-        dependency_levels_ = ut.get_levels(to_leafs)
-        dependency_levels = ut.longest_levels(dependency_levels_)
-        return dependency_levels
-
-    def get_all_ancestor_rowids(depc, tablename, native_rowids):
-        r"""
-        Gets the root_rowids of the root table associated with the
-        `native_rowids` of `tablename.
-
-        Args:
-            tablename (str):
-            root_rowids (list):
-            config (None): (default = None)
-
-        Returns:
-            dict: rowid_dict
-
-        CommandLine:
-            python -m dtool.depcache_control --exec-get_all_ancestor_rowids
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'spam'
-            >>> target_root_rowids = [4, 9, 7]
-            >>> native_rowids = depc.get_rowids(tablename, target_root_rowids)
-            >>> rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
-            >>> root_rowids = list(rowid_dict[depc.root])
-            >>> print(ut.repr3(rowid_dict, nl=1))
-            >>> assert root_rowids == target_root_rowids
-        """
-        if depc._debug:
-            print('[depc.descendant] GET ANSCESTOR ROWIDS %s ' % (tablename,))
-        #get_native_property
-        dependency_levels = depc.get_dependencies(tablename)
-        rowid_dict = {}
-        rowid_dict[tablename] = native_rowids
-
-        # FIXME: not implemented very efficiently
-        # Can do shortest existing path instead
-
-        for level_keys in dependency_levels[::-1]:
-            for tablekey in level_keys:
-                if tablekey == depc.root:
-                    break
-                table = depc[tablekey]
-                child_rowids = rowid_dict[tablekey]
-                colnames = table.parent_id_colnames
-                parent_rowids_listT = table.get_internal_columns(
-                    child_rowids, colnames, keepwrap=True)
-                parent_rowids_list = list(zip(*parent_rowids_listT))
-                for parent_key, parent_rowids in zip(table.parent, parent_rowids_list):
-                    rowid_dict[parent_key] = parent_rowids
-        return rowid_dict
 
     def get_all_descendant_rowids(depc, tablename, root_rowids, config=None,
                                   ensure=True, eager=True, nInput=None,
@@ -544,9 +472,9 @@ class _CoreDependencyCache(object):
                         config, recompute, recompute_all, _debug)
                 except Exception as ex:
                     table = depc[tablekey]  # NOQA
-                    ut.printex(ex, 'error expanding rowids',
-                               keys=['tablename', 'tablekey', 'rowid_dict',
-                                     'config', 'table', 'dependency_levels'])
+                    keys = ['tablename', 'tablekey', 'rowid_dict', 'config',
+                            'table', 'dependency_levels']
+                    ut.printex(ex, 'error expanding rowids', keys=keys)
                     raise
                 rowid_dict[tablekey] = child_rowids
         if _debug:
@@ -618,6 +546,19 @@ class _CoreDependencyCache(object):
         if _debug:
             print('   * level_rowids = %s' % (ut.trunc_repr(level_rowids),))
         return level_rowids
+
+    def _get_parent_input(depc, tablename, root_rowids, config, ensure=True,
+                          _debug=None, recompute=False, recompute_all=False,
+                          eager=True, nInput=None):
+        # Get ancestor rowids that are descendants of root
+        table = depc[tablename]
+        rowid_dict = depc.get_all_descendant_rowids(
+            tablename, root_rowids, config=config, ensure=ensure,
+            eager=eager, nInput=nInput, recompute=recompute,
+            recompute_all=recompute_all, _debug=ut.countdown_flag(_debug),
+            levels_up=1)
+        parent_rowids = depc._get_parent_rowids(table, rowid_dict)
+        return parent_rowids
 
     # -----------------------------
     # STATE GETTERS
@@ -872,50 +813,122 @@ class _CoreDependencyCache(object):
             print(' * return rowid_list = %s' % (ut.trunc_repr(rowid_list),))
         return rowid_list
 
-    def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
+    def get_rowids_exi(depc, tablename, input_tuple, **kwargs):
         """
-        ancestor_tablename = depc.root
-        native_rowids = cid_list
-        tablename = const.CHIP_TABLE
+        CommandLine:
+            python -m dtool.depcache_control get_rowids_exi --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3(True)
+            >>> exec(ut.execstr_funckw(depc.get), globals())
+            >>> kwargs = {}
+            >>> root_rowids = [1, 2, 3]
+            >>> root_rowids2 = [4, 5, 6, 7, 8]
+            >>> root_rowids3 = root_rowids2
+            >>> _debug = True
+            >>> tablename = 'vocab'
+            >>> tablename = 'vocab'
+            >>> tablename = 'labeler'
+            >>> tablename = 'smk_match'
+            >>> input_tuple = (root_rowids, root_rowids2, root_rowids3)
+            >>> #tablename = 'vsone'
+            >>> #input_tuple = (root_rowids, root_rowids)
+            >>> target_table = depc[tablename]
+            >>> inputs = target_table.rootmost_inputs.total_expand()
+            >>> depc.get_rowids_exi(tablename, input_tuple)
+            >>> depc.print_all_tables()
         """
-        if ancestor_tablename is None:
-            ancestor_tablename = depc.root
-        # rowid_dict = depc.get_all_ancestor_rowids(tablename, native_rowids)
-        # ancestor_rowids = list(rowid_dict[ancestor_tablename])
-        table = depc[tablename]
-        ancestor_rowids = table.get_ancestor_rowids(native_rowids, ancestor_tablename)
-        return ancestor_rowids
+        target_table = depc[tablename]
+        inputs = target_table.rootmost_inputs.total_expand()
+        if isinstance(input_tuple, list):
+            input_tuple = (input_tuple,)
+        assert len(inputs) == len(input_tuple)
+        kwargs_ = kwargs.copy()
+        config = kwargs_.pop('config', {})
+        # rectify input depth
+        rectified_input = []
+        for x, d in zip(input_tuple, inputs.expected_input_depth()):
+            if d == 0:
+                if not ut.isiterable(x):
+                    rectified_input.append([x])
+                else:
+                    rectified_input.append(x)
+            else:
+                #if ut.list_depth(x) > 1:
+                #    assert len(x) == 1
+                #    rectified_input.append(x[0])
+                if ut.list_depth(x) == 0:
+                    rectified_input.append([x])
+                else:
+                    rectified_input.append(x)
+            #assert ut.list_depth(rectified_input[-1]) == 0, 'bad input depth'
 
-    def _get_parent_input(depc, tablename, root_rowids, config, ensure=True,
-                          _debug=None, recompute=False, recompute_all=False,
-                          eager=True, nInput=None):
-        # Get ancestor rowids that are descendants of root
-        table = depc[tablename]
-        rowid_dict = depc.get_all_descendant_rowids(
-            tablename, root_rowids, config=config, ensure=ensure,
-            eager=eager, nInput=nInput, recompute=recompute,
-            recompute_all=recompute_all, _debug=ut.countdown_flag(_debug),
-            levels_up=1)
-        parent_rowids = depc._get_parent_rowids(table, rowid_dict)
-        return parent_rowids
+        rowid_dict = {}
+        for node, rowids in zip(inputs.rmi_list, rectified_input):
+            rowid_dict[node] = rowids
 
-    def _parse_sqlkw(kwargs):
-        default_sqlkw = dict(
-            _debug=None, ensure=True, recompute=False, recompute_all=False,
-            eager=True, nInput=None, read_extern=True, onthefly=False,
-        )
-        otherkw = kwargs.copy()
-        sqlkw = {key: otherkw.pop(key, val) for key, val in default_sqlkw.items()}
-        return sqlkw, otherkw
+        compute_edges = inputs.flat_compute_rmi_edges()
+        # TODO: split into get parents and then get nodes
+        #input_nodes, output_edge = compute_edges[4]
+        for input_nodes, output_edge in compute_edges:
+            ut.colorprint('output_edge = %r' % (output_edge,), 'yellow')
+            #_expand_level_rowids2
+            tablekey = output_edge.tablename
+            table = depc[tablekey]
+            # Get table configuration
+            config_ = depc._ensure_config(tablekey, config)
+            # ensure correct ordering to the table
+            input_tablekeys = [n.tablename for n in input_nodes]
+            sortx = ut.list_alignment(table.parent_id_tablenames, input_tablekeys)
+            input_nodes_ = ut.take(input_nodes, sortx)
+            input_multi_flags = [node.ismulti and node in inputs.rmi_list for node in input_nodes_]
+
+            # Args currently go in like this:
+            # args  = [..., (pid_{i,1}, pid_{i,2}, ..., pid_{i,M}), ...]
+            # They get converted into
+            # argsT = [... (pid_{1,j}, ... pid_{N,j}) ...]
+            # i = row, j = col
+            sig_multi_flags = table.get_parent_col_attr('ismulti')
+            parent_rowidsT = ut.take(rowid_dict, input_nodes_)
+            #[[rowidsT] if flag else rowidsT for flag, rowidsT in zip(sig_multi_flags, parent_rowidsT)]
+            parent_rowids_  = []
+            # TODO: will need to figure out which columns to zip and which columns to product
+            # (ie take product over ones that have 1 item, and zip ones that have equal amount of items)
+            for flag1, flag2, rowidsT in zip(sig_multi_flags, input_multi_flags, parent_rowidsT):
+                if flag1 and flag2:
+                    parent_rowids_.append(rowidsT)
+                elif flag1 and not flag2:
+                    parent_rowids_.append([rowidsT])
+                elif not flag1 and flag2:
+                    assert len(rowidsT) == 1
+                    parent_rowids_.append(rowidsT[0])
+                else:
+                    parent_rowids_.append(rowidsT)
+            # Assume that we are either given corresponding lists or single values
+            # that must be broadcast.
+            rowlens = list(map(len, parent_rowids_))
+            maxlen = max(rowlens)
+            parent_rowids2_ = [r * maxlen if len(r) == 1 else r for r in parent_rowids_]
+            parent_rowids = list(zip(*parent_rowids2_))
+            #parent_rowids = list(ut.product(*parent_rowids_))
+
+            _recompute = kwargs_.get('recompute', False)
+            output_rowids = table.get_rowid(parent_rowids, config=config_,
+                                            recompute=_recompute,  **kwargs_)
+            rowid_dict[output_edge] = output_rowids
+            #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
+        rowids = rowid_dict[output_edge]
 
     @ut.accepts_scalar_input2(argx_list=[1])
-    def get_property(depc, tablename, root_rowids, colnames=None, config=None,
-                     ensure=True, _debug=None, recompute=False,
-                     recompute_all=False, eager=True, nInput=None,
-                     read_extern=True, onthefly=False, num_retries=1,
-                     hack_paths=False):
+    def get(depc, tablename, root_rowids, colnames=None, config=None,
+            ensure=True, _debug=None, recompute=False, recompute_all=False,
+            eager=True, nInput=None, read_extern=True, onthefly=False,
+            num_retries=1, hack_paths=False):
         """
-        Access dependant properties the primary objects.
+        Access dependant properties the primary objects using primary ids.
 
         Gets the data in `colnames` of `tablename` that correspond to
         `root_rowids` using `config`.  if colnames is None, all columns are
@@ -934,18 +947,32 @@ class _CoreDependencyCache(object):
             list: prop_list
 
         CommandLine:
-            python -m dtool.depcache_control --exec-get_property
+            python -m dtool.depcache_control --exec-get
+
+        Setup:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3(True)
+            >>> exec(ut.execstr_funckw(depc.get), globals())
+            >>> root_rowids = [1, 2, 3]
+            >>> _debug = True
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> exec(ut.execstr_funckw(depc.get_property), globals())
-            >>> _debug = True
-            >>> tablename = 'keypoint'
-            >>> root_rowids = [1, 2, 3]
-            >>> prop_list = depc.get_property(
+            >>> tablename = 'labeler'
+            >>> prop_list = depc.get(
+            >>>     tablename, root_rowids, colnames, config, ensure, _debug,
+            >>>     recompute, recompute_all, read_extern, eager, nInput)
+            >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
+            >>> print(result)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> tablename = 'vocab'
+            >>> tablename = 'smk_match'
+            >>> table = depc[tablename]
+            >>> prop_list = depc.get(
             >>>     tablename, root_rowids, colnames, config, ensure, _debug,
             >>>     recompute, recompute_all, read_extern, eager, nInput)
             >>> result = ('prop_list = %s' % (ut.repr2(prop_list),))
@@ -1008,15 +1035,11 @@ class _CoreDependencyCache(object):
                 print('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
         return prop_list
 
-    def get_config_history(depc, tablename, root_rowids, config=None):
-        # Vectorized get of properties
-        tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config)
-        return depc[tablename].get_config_history(tbl_rowids)
-
-    get = get_property
-
-    def get_native_property(depc, tablename, tbl_rowids, colnames=None,
-                            _debug=None, read_extern=True):
+    def get_native(depc, tablename, tbl_rowids, colnames=None, _debug=None,
+                   read_extern=True):
+        """
+        Uses internal table rowids to get data. This is faster if you have them
+        """
         _debug = depc._debug if _debug is None else _debug
         with ut.Indenter('[GetNative %s]' % (tablename,), enabled=_debug):
             if _debug:
@@ -1028,7 +1051,10 @@ class _CoreDependencyCache(object):
                                            read_extern=read_extern)
         return prop_list
 
-    get_native = get_native_property
+    def get_config_history(depc, tablename, root_rowids, config=None):
+        # Vectorized get of properties
+        tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config)
+        return depc[tablename].get_config_history(tbl_rowids)
 
     def new_request(depc, tablename, qaids, daids, cfgdict=None):
         """ creates a request for data that can be executed later """
@@ -1040,6 +1066,19 @@ class _CoreDependencyCache(object):
 
     def get_root_rowids(depc, tablename, native_rowids):
         return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
+
+    def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
+        """
+        ancestor_tablename = depc.root; native_rowids = cid_list; tablename = const.CHIP_TABLE
+        """
+        if ancestor_tablename is None:
+            ancestor_tablename = depc.root
+        table = depc[tablename]
+        ancestor_rowids = table.get_ancestor_rowids(native_rowids, ancestor_tablename)
+        return ancestor_rowids
+
+    get_native_property = get_native
+    get_property = get
 
     # -----------------------------
     # STATE MODIFIERS
@@ -1182,18 +1221,6 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     @property
     def tablenames(depc):
         return depc.get_tablenames()
-
-    @ut.apply_docstr(REG_PREPROC_DOC)
-    def register_preproc(depc, *args, **kwargs):
-        """
-        Decorator for registration of cachables
-        """
-        def register_preproc_wrapper(func):
-            check_register(args, kwargs)
-            kwargs['preproc_func'] = func
-            depc._register_prop(*args, **kwargs)
-            return func
-        return register_preproc_wrapper
 
     def print_schemas(depc):
         for fname, db in depc.fname_to_db.items():

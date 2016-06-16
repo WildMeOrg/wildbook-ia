@@ -318,36 +318,14 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         """
         if tablename is None:
             tablename = 'Unknown'
-
-        def rectify_item(key, val):
-            if val is None:
-                return ut.ParamInfo(key, val)
-            elif isinstance(val, ut.ParamInfo):
-                if val.varname is None:
-                    # Copy and assign a new varname
-                    pi = copy.deepcopy(val)
-                    pi.varname = key
-                else:
-                    pi = val
-                    assert pi.varname == key, (
-                        'Given varname=%r does not match key=%r' % (pi.varname, key))
-                return pi
-            else:
-                return ut.ParamInfo(key, val, type_=type(val))
-
-        param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
-        #ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
-        #for key, val in dict_.items()]
-        class UnnamedConfig(cls):
-            def get_param_info_list(cfg):
-                #print('default_cfgdict = %r' % (default_cfgdict,))
-                return param_info_list
-        UnnamedConfig.__name__ = str(tablename + 'Config')
+        UnnamedConfig = make_configclass(dict_, tablename)
         config = UnnamedConfig()
         return config
 
     def __getstate__(cfg):
         """
+        FIXME
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
@@ -360,6 +338,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             >>> assert cfg is not cfg2
         """
         return cfg.asdict()
+        #return cfg.__dict__
 
     def __setstate__(cfg, state):
         cfg.initialize_params()
@@ -373,16 +352,29 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     #    return config_name
 
 
-def dict_as_config(default_cfgdict, tablename):
-    # TODO: use Config.from_dict instead
+def make_configclass(dict_, tablename):
+    """ Creates a custom config class from a dict """
     import dtool
-    param_info_list = [ut.ParamInfo(key, val)
-                       for key, val in default_cfgdict.items()]
+
+    def rectify_item(key, val):
+        if val is None:
+            return ut.ParamInfo(key, val)
+        elif isinstance(val, ut.ParamInfo):
+            if val.varname is None:
+                # Copy and assign a new varname
+                pi = copy.deepcopy(val)
+                pi.varname = key
+            else:
+                pi = val
+                assert pi.varname == key, (
+                    'Given varname=%r does not match key=%r' % (pi.varname, key))
+            return pi
+        else:
+            return ut.ParamInfo(key, val, type_=type(val))
+
+    param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
     class UnnamedConfig(dtool.Config):
         _param_info_list = param_info_list
-        #def get_param_info_list(cfg):
-        #    #print('default_cfgdict = %r' % (default_cfgdict,))
-        #    return param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')
     return UnnamedConfig
 

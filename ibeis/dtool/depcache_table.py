@@ -174,6 +174,10 @@ class _TableConfigHelper(object):
         tbl_cfgids = table.get_row_cfgid(rowid_list)
         cfgid2_rowids = ut.group_items(rowid_list, tbl_cfgids)
         unique_cfgids = cfgid2_rowids.keys()
+        unique_cfgids = ut.filter_Nones(unique_cfgids)
+        if len(unique_cfgids) == 0:
+            return None
+        # TODO: handle uuids of multi input
         unique_configs = table.get_config_from_rowid(unique_cfgids)
         #print('unique_configs = %r' % (unique_configs,))
         # TODO: need fix for many-to-one edges here
@@ -188,7 +192,8 @@ class _TableConfigHelper(object):
                 continue
             parent_tbl = depc[tblname]
             ancestor_configs = parent_tbl.get_config_history(ids)
-            ret_list.extend(ancestor_configs)
+            if ancestor_configs is not None:
+                ret_list.extend(ancestor_configs)
         return ret_list
 
     def get_ancestor_rowids(table, rowid_list, target_table):
@@ -252,7 +257,7 @@ class _TableConfigHelper(object):
         cfgdict_list = table.db.get(
             CONFIG_TABLE, colnames=(CONFIG_DICT,), id_iter=config_rowids,
             id_colname=CONFIG_ROWID)
-        return [table.configclass(**dict_) for dict_ in cfgdict_list]
+        return [None if dict_ is None else table.configclass(**dict_) for dict_ in cfgdict_list]
 
     @profile
     def add_config(table, config, _debug=None):
@@ -284,6 +289,117 @@ class _TableConfigHelper(object):
             print('config_rowid_list = %r' % (config_rowid_list,))
             #print('config_rowid = %r' % (config_rowid,))
         return config_rowid
+
+
+@ut.reloadable_class
+class _TableDebugHelper(object):
+    """
+    Contains printing and debug things
+    """
+
+    def print_internal_info(table, all_attrs=False):
+        """
+        CommandLine:
+            python -m dtool.depcache_table --exec-print_internal_info
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> tablenames = ['neighbs', 'indexer']
+            >>> for table in ut.take(depc, tablenames): # .tables:
+            >>>     table.print_internal_info()
+        """
+        print('----')
+        print(table)
+        # Print the other infered attrs
+        print('table.parent_col_attrs = %s' % (
+                ut.repr3(table.parent_col_attrs, nl=2),))
+        print('table.data_col_attrs = %s' % (
+                  ut.repr3(table.data_col_attrs, nl=2),))
+        # Print the infered allcol attrs
+        ut.colorprint('table.internal_col_attrs = %s' %
+                      (ut.repr3(table.internal_col_attrs, nl=1,
+                                sorted_=False)), 'python')
+        add_table_kw = table._get_addtable_kw()
+        print('table.add_table_kw = %s' % (ut.repr2(add_table_kw, nl=2),))
+        if all_attrs:
+            # Print all attributes
+            for a in ut.get_instance_attrnames(
+                      table, with_properties=True, default=False):
+                print('  table.%s = %r' % (a, getattr(table, a)))
+
+    def print_table(table):
+        table.db.print_table_csv(table.tablename)
+        if table.ismulti:
+            table.print_model_manifests()
+
+    def print_info(table, with_colattrs=True, with_graphattrs=True):
+        """ debug function """
+        print('TABLE ATTRIBUTES')
+        print('table.tablename = %r' % (table.tablename,))
+        print('table.isinteractive = %r' % (table.isinteractive,))
+        print('table.default_onthefly = %r' % (table.default_onthefly,))
+        print('table.rm_extern_on_delete = %r' % (table.rm_extern_on_delete,))
+        print('table.chunksize = %r' % (table.chunksize,))
+        print('table.fname = %r' % (table.fname,))
+        print('table.docstr = %r' % (table.docstr,))
+        print('table.data_colnames = %r' % (table.data_colnames,))
+        print('table.data_coltypes = %r' % (table.data_coltypes,))
+        if with_graphattrs:
+            print('TABLE GRAPH ATTRIBUTES')
+            print('table.children = %r' % (table.children,))
+            print('table.parent = %r' % (table.parent,))
+            print('table.configclass = %r' % (table.configclass,))
+            print('table.requestclass = %r' % (table.requestclass,))
+        if with_colattrs:
+            nl = 1
+            print('TABEL COLUMN ATTRIBUTES')
+            print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=nl),))
+            print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs, nl=nl),))
+            print('table.internal_data_col_attrs = %s' % (ut.repr3(table.internal_data_col_attrs, nl=nl),))
+            print('table.internal_parent_col_attrs = %s' % (ut.repr3(table.internal_parent_col_attrs, nl=nl),))
+            print('table.internal_col_attrs = %s' % (ut.repr3(table.internal_col_attrs, nl=nl),))
+
+    def print_schemadef(table):
+        print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
+
+    def print_configs(table):
+        """
+        CommandLine:
+            python -m dtool.depcache_table --exec-print_configs
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> table = depc['keypoint']
+            >>> config = table.configclass()
+            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
+            >>> config = table.configclass(adapt_shape=False)
+            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
+            >>> table.print_configs()
+            >>> table = depc['chip']
+            >>> rowids = depc.get_rowids('spam', [1, 2])
+            >>> table.print_configs()
+        """
+        text = table.db.get_table_csv(CONFIG_TABLE,
+                                      params_iter=[(table.tablename,)],
+                                      andwhere_colnames=(CONFIG_TABLENAME,))
+        print(text)
+
+    def print_csv(table):
+        print(table.db.get_table_csv(table.tablename))
+
+    def print_model_manifests(table):
+        print('manifests')
+        rowids = table._get_all_rowids()
+        uuids = table.get_model_uuid(rowids)
+        for rowid, uuid in zip(rowids, uuids):
+            print('rowid = %r' % (rowid,))
+            print(ut.repr3(table.get_model_inputs(uuid), nl=1))
 
 
 @ut.reloadable_class
@@ -352,6 +468,26 @@ class _TableGeneralHelper(ut.NiceRepr):
     #    return
 
     @property
+    def extern_dpath(table):
+        cache_dpath = table.depc.cache_dpath
+        extern_dname = 'extern_' + table.tablename
+        extern_dpath = join(cache_dpath, extern_dname)
+        return extern_dpath
+
+    @property
+    def dpath(table):
+        #assert table.ismulti, 'only valid for models'
+        dname = table.tablename + '_storage'
+        dpath = join(table.depc.cache_dpath, dname)
+        #ut.ensuredir(dpath)
+        return dpath
+
+    #def dpath(table):
+    #    from os.path import dirname
+    #    dpath = dirname(table.db.fpath)
+    #    return dpath
+
+    @property
     @ut.memoize
     def ismulti(table):
         # TODO: or has multi parent
@@ -365,41 +501,108 @@ class _TableGeneralHelper(ut.NiceRepr):
     def requestclass(table):
         return table.depc.requestclass_dict.get(table.tablename, None)
 
-    def print_schemadef(table):
-        print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
-
-    def print_configs(table):
-        """
-        CommandLine:
-            python -m dtool.depcache_table --exec-print_configs
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> table = depc['keypoint']
-            >>> config = table.configclass()
-            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
-            >>> config = table.configclass(adapt_shape=False)
-            >>> rowids = table.get_rowids_from_root([1, 2], config=config)
-            >>> table.print_configs()
-            >>> table = depc['chip']
-            >>> rowids = depc.get_rowids('spam', [1, 2])
-            >>> table.print_configs()
-        """
-        text = table.db.get_table_csv(CONFIG_TABLE,
-                                      params_iter=[(table.tablename,)],
-                                      andwhere_colnames=(CONFIG_TABLENAME,))
-        print(text)
-
-    def print_csv(table):
-        print(table.db.get_table_csv(table.tablename))
-
     def new_request(table, qaids, daids, cfgdict=None):
         request = table.depc.new_request(table.tablename, qaids, daids,
                                          cfgdict=cfgdict)
         return request
+
+    # --- Standard Properties
+
+    @property
+    def internal_data_col_attrs(table):
+        flags = table.get_intern_col_attr('isdata')
+        return ut.compress(table.internal_col_attrs, flags)
+
+    @property
+    def internal_parent_col_attrs(table):
+        flags = table.get_intern_col_attr('isparent')
+        return ut.compress(table.internal_col_attrs, flags)
+
+    # --- / Standard Properties
+
+    @ut.memoize
+    def get_parent_col_attr(table, key):
+        return ut.dict_take_column(table.parent_col_attrs, key)
+
+    @ut.memoize
+    def get_intern_data_col_attr(table, key):
+        return ut.dict_take_column(table.internal_data_col_attrs, key)
+
+    @ut.memoize
+    def get_intern_parent_col_attr(table, key):
+        return ut.dict_take_column(table.internal_parent_col_attrs, key)
+
+    @ut.memoize
+    def get_intern_col_attr(table, key):
+        return ut.dict_take_column(table.internal_col_attrs, key)
+
+    @ut.memoize
+    def get_data_col_attr(table, key):
+        return ut.dict_take_column(table.data_col_attrs, key)
+
+    @property
+    @ut.memoize
+    def parent_id_tablenames(table):
+        tablenames = tuple([parent_colattr['parent_table']
+                            for parent_colattr in table.parent_col_attrs])
+        return tablenames
+
+    @property
+    @ut.memoize
+    def parent_id_prefix(table):
+        prefixes = tuple([parent_colattr['prefix']
+                          for parent_colattr in table.parent_col_attrs])
+        return prefixes
+
+    @property
+    def extern_columns(table):
+        colnames = table.get_data_col_attr('colname')
+        flags = table.get_data_col_attr('is_extern')
+        return ut.compress(colnames, flags)
+
+    @property
+    def rowid_colname(table):
+        """ rowid of this table used by other dependant tables """
+        return table.tablename + '_rowid'
+
+    @property
+    def superkey_colnames(table):
+        return table.parent_id_colnames + (CONFIG_ROWID,)
+
+    @property
+    def model_uuid_colname(table):
+        return 'model_uuid'
+
+    @property
+    def is_augmented_colname(table):
+        return 'augment_bit'
+
+    @property
+    def parent_id_colnames(table):
+        return tuple([colattr['intern_colname']
+                      for colattr in table.parent_col_attrs])
+
+    def get_rowids_from_root(table, root_rowids, config=None):
+        return table.depc.get_rowids(table.tablename, root_rowids,
+                                     config=config)
+
+    @property
+    @ut.memoize
+    def parent(table):
+        return ut.odict([(parent_colattr['parent_table'], parent_colattr)
+                         for parent_colattr in table.parent_col_attrs])
+        #return tuple([parent_colattr['parent_table']
+        #              for parent_colattr in table.parent_col_attrs])
+
+    @ut.memoize
+    def parents(table, data=None):
+        if data:
+            return [(parent_colattr['parent_table'], parent_colattr)
+                    for parent_colattr in table.parent_col_attrs]
+        else:
+            return [parent_colattr['parent_table']
+                    for parent_colattr in table.parent_col_attrs]
+
     @property
     def children(table):
         graph = table.depc.explicit_graph
@@ -412,7 +615,7 @@ class _TableGeneralHelper(ut.NiceRepr):
         children_tablenames = nx.ancestors(graph, table.tablename)
         return children_tablenames
 
-    def show_input_graph(table):
+    def show_input_graph(table, inter=None):
         """
         CommandLine:
             python -m dtool.depcache_table show_input_graph --show
@@ -430,24 +633,31 @@ class _TableGeneralHelper(ut.NiceRepr):
         """
         import plottool as pt
         from plottool.interactions import ExpandableInteraction
-        expanded_input_graph = table.expanded_input_graph
-        inter = ExpandableInteraction(nCols=2)
+        #exi_graph = table.expanded_input_graph
+        autostart = inter is None
+        if inter is None:
+            inter = ExpandableInteraction(nCols=2)
         graph = table.depc.explicit_graph
         nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
 
-        #for node in expanded_input_graph.node:
+        #for node in exi_graph.node:
         #    if isinstance(node, tuple):
-        #        if expanded_input_graph.node.get('label') is None:
+        #        if exi_graph.node.get('label') is None:
         #            label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
-        #            expanded_input_graph.node[node]['label'] = label
+        #            exi_graph.node[node]['label'] = label
+
+        inputs = table.rootmost_inputs
 
         plot_kw = {'fontname': 'Ubuntu'}
         inter.append_plot(
-            ut.partial(pt.show_nx, G, title='Dependency Subgraph', **plot_kw))
-        inter.append_plot(
-            ut.partial(pt.show_nx, expanded_input_graph, title='Expanded Input', **plot_kw))
-        inter.start()
+            ut.partial(pt.show_nx, G, title='Dependency Subgraph (%s)' % (table.tablename), **plot_kw))
+        inter = inputs.show_exi_graph(inter)
+        #inter.append_plot(
+        #    ut.partial(pt.show_nx, exi_graph, title='Expanded Input (%s)' % (table.tablename,), **plot_kw))
+        if autostart:
+            inter.start()
+        return inter
 
     @property
     @ut.memoize
@@ -476,175 +686,38 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> print('table.compute_order = %s' % ut.repr2(table.compute_order, nl=2))
             >>> ut.show_if_requested()
         """
-        # FIXME: this does not work correctly when
-        # The nesting of non-1-to-1 dependencies is greater than 2 (I think)
-        # algorithm for finding inputs does not work.
-
-        def condense_accum_ids(rinput_path_id):
-            # Hack to condense and consolidate graph sources
-            prev = None
-            compressed = []
-            for item in rinput_path_id:
-                if item == '1' and prev is not None:
-                    pass  # done append ones
-                elif item != prev:
-                    compressed.append(item)
-                prev = item
-            if len(compressed) > 1 and compressed[0] == '1':
-                compressed = compressed[1:]
-            compressed = tuple(compressed)
-            return compressed
-
-        def accumulate_input_ids(edge_list):
-            edge_data = ut.take_column(edge_list, 3)
-            toaccum_list = ut.dict_take_column(edge_data, 'local_input_id')
-            accum_ids_ = ut.cumsum(zip(toaccum_list), tuple())
-            accum_ids = ut.lmap(condense_accum_ids, accum_ids_)
-            ut.dict_set_column(edge_data, 'accum_id', accum_ids)
-            return accum_ids
-
+        from dtool import input_helpers
         graph = table.depc.explicit_graph.copy()
-        sources = list(ut.nx_source_nodes(graph))
-        assert len(sources) == 1
-        source = sources[0]
         target = table.tablename
-
-        graph = graph.subgraph(ut.nx_all_nodes_between(graph, source, target))
-        # Remove superfluous data
-        ut.nx_delete_edge_attr(graph, ['edge_type', 'isnwise', 'nwise_idx',
-                                       'parent_colx', 'ismulti'])
-
-        # Hack multi edges stars to uniquely identify stars
-        count = ord('a')
-        for edge in graph.edges(keys=True, data=True):
-            dat = edge[3]
-            if dat['local_input_id'] == '*':
-                dat['local_input_id'] = '*' + chr(count)
-                dat['taillabel'] = '*' + chr(count)
-                count += 1
-
-        # Append dummy input/output nodes
-        source_input = 'source_input'
-        target_output = 'target_output'
-        graph.add_edge(source_input, source, local_input_id='s', taillabel='1')
-        graph.add_edge(target, target_output, local_input_id='t', taillabel='1')
-
-        # Find all paths from the table to the source.
-        paths_to_source   = ut.all_multi_paths(graph, source_input,
-                                               target_output, data=True)
-
-        accumulate_order = ut.reverse_path_edges
-        #accumulate_order = ut.identity
-
-        # Build expanded input graph
-        # The inputs to this table can be derived from this graph.
-        # The output is a new expanded input graph.
-        exi_graph = graph.__class__()
-        for path in paths_to_source:
-
-            # Accumlate unique identifiers along the reversed(?) path
-            edge_list = accumulate_order(path)
-            accumulate_input_ids(edge_list)
-
-            # A node's output(?) on this path determines its expanded id
-            exi_nodes = [(v, d['accum_id']) for u, v, k, d in edge_list[:-1]]
-            # A node's input(?) on this path determines its expanded id
-            #exi_nodes = [(u, d['accum_id']) for u, v, k, d in edge_list[1:]]
-
-            exi_node_to_label = {
-                # remove hacked in * ids
-                #node: node[0] + '[' + ','.join([str(x)[0] for x in node[1]]) + ']'
-                node: node[0] + '[' + ','.join([str(x) for x in node[1]]) + ']'
-                for node in exi_nodes
-            }
-            exi_graph.add_nodes_from(exi_nodes)
-            nx.set_node_attributes(exi_graph, 'label', exi_node_to_label)
-
-            # Undo any accumulation ordering and remove dummy nodes
-            old_edges = accumulate_order(edge_list[1:-1])
-            new_edges = accumulate_order(list(ut.itertwo(exi_nodes)))
-            for new_edge, old_edge in zip(new_edges, old_edges):
-                u2, v2 = new_edge[:2]
-                d = old_edge[3]
-                taillabel = d['taillabel']
-                if not exi_graph.has_edge(u2, v2):
-                    exi_graph.add_edge(u2, v2, taillabel=taillabel)
-
-        sink_nodes = list(ut.nx_sink_nodes(exi_graph))
-        source_nodes = list(ut.nx_source_nodes(exi_graph))
-        assert len(sink_nodes) == 1, 'can only have one sink node'
-        sink_node = sink_nodes[0]
-
-        # Color Rootmost inputs
-
-        # First identify if a node is root_specifiable
-        for node in exi_graph.nodes():
-            root_specifiable = False
-            for edge in exi_graph.in_edges(node, keys=True):
-                edata = exi_graph.get_edge_data(*edge)
-                if edata.get('taillabel').startswith('*'):
-                    if node != sink_node:
-                        root_specifiable = True
-            if exi_graph.in_degree(node) == 0:
-                root_specifiable = True
-            if root_specifiable:
-                exi_graph.node[node]['color'] = [1, .7, .6]
-                exi_graph.node[node]['root_specifiable'] = True
-            else:
-                exi_graph.node[node]['root_specifiable'] = False
-
-        # Need to specify any combo of red nodes such that
-        # 1) for each path from a (leaf) to the (root) there is exactly one
-        # red node along that path.
-        # This garentees that all inputs are gievn.
-        path_list = [nx.shortest_path(exi_graph, source_node, sink_node)
-                     for source_node in source_nodes]
-        rootmost_nodes = set([])
-        for path in path_list:
-            flags = [exi_graph.node[node]['root_specifiable'] for node in path]
-            valid_nodes = ut.compress(path, flags)
-            rootmost_nodes.add(valid_nodes[-1])
-            print('valid_nodes = %r' % (valid_nodes,))
-        print('rootmost_nodes = %r' % (rootmost_nodes,))
-        # Rootmost nodes are the ones specifiable by default when computing
-        # the normal property.
-        for node in rootmost_nodes:
-            exi_graph.node[node]['color'] = [1, 0, 0]
-            exi_graph.node[node]['rootmost'] = True
-        exi_graph.node[sink_node]['color'] = [0, 1, 0]
+        exi_graph = input_helpers.make_expanded_input_graph(graph, target)
         return exi_graph
 
     @property
-    @ut.memoize
-    def rootmost_expanded_inputs(table):
+    def rootmost_inputs(table):
         """
         CommandLine:
-            python -m dtool.depcache_table rootmost_expanded_inputs --show
+            python -m dtool.depcache_table rootmost_inputs --show
 
         Example:
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache2 import *  # NOQA
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> depc = testdata_depc_annot()
+            >>> depc = testdata_depc3()
             >>> #tablename = 'multitest_score'
-            >>> tablename = 'featweight'
+            >>> tablename = 'smk_match'
             >>> table = depc[tablename]
-            >>> compute_order = table.rootmost_expanded_inputs
-            >>> print('rootmost_expanded_inputs = %s' % (ut.repr3(compute_order),))
+            >>> inputs = table.rootmost_inputs
+            >>> result = ('inputs = %s' % (inputs,))
+            >>> print('compute_order = %s' % (ut.repr2(inputs.get_compute_order(), nl=1)))
+            >>> print(result)
+            inputs = <TableInput [annot[t], vocab[t], inv_index[t]]>
         """
-        expanded_input_graph = table.expanded_input_graph
-        #expanded_input_graph
-        attrs = ut.nx_get_default_node_attributes(expanded_input_graph,
-                                                  'rootmost', False)
-        rootmost_node_lbls = [node for node, v in attrs.items() if v]
-        # hack for labels
-        rootmost_nodes = [node[0] for node in rootmost_node_lbls]
-        ranks = ut.nx_dag_node_rank(table.depc.graph, rootmost_nodes)
-        sortx = ut.argsort(ranks)
-        # TODO Need to make tiebreaker attribute
-        rootmost_expanded_inputs = ut.take(rootmost_node_lbls, sortx)
-        return rootmost_expanded_inputs
+        from dtool import input_helpers
+        exi_graph = table.expanded_input_graph
+        #depc_graph = table.depc.graph
+        rootmost_inputs = input_helpers.get_rootmost_inputs(exi_graph, table)
+        return rootmost_inputs
 
     @property
     @ut.memoize
@@ -677,68 +750,40 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> compute_order = table.compute_order
             >>> print('compute_order = %s' % (ut.repr3(compute_order, nl=1),))
         """
-        expanded_input_graph = table.expanded_input_graph
-        rootmost_expanded_input = table.rootmost_expanded_inputs
-        #import networkx as nx
-        sink = list(ut.nx_sink_nodes(expanded_input_graph))[0]
-        #compute_order_ = [nx.shortest_path(expanded_input_graph, source, sink)
-        #                  for source in rootmost_expanded_input]
-        unordered_compute_nodes = [
-            list(ut.nx_all_nodes_between(expanded_input_graph, source, sink))
-            for source in rootmost_expanded_input
-        ]
-        ordered_compute_nodes = [
-            ut.take(nodes, ut.argsort(ut.nx_dag_node_rank(expanded_input_graph,
-                                                          nodes)))
-            for nodes in unordered_compute_nodes
-        ]
-        #compute_order = [[node[0] for node in nodes]
-        #                 for nodes in ordered_compute_nodes]
-        flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
-        topsort = list(nx.topological_sort(expanded_input_graph))
-        toprank = ut.dict_take(ut.make_index_lookup(topsort), flat_node_order_)
-        sortx = ut.argsort(toprank)
-        flat_node_order = ut.take(flat_node_order_, sortx)
+        #expanded_input_graph = table.expanded_input_graph
+        #rootmost_inputs = table.rootmost_inputs
+        #ordered_compute_nodes = [rmi.compute_order() for rmi in rootmost_inputs]
+        ##compute_order = [[node[0] for node in nodes]
+        ##                 for nodes in ordered_compute_nodes]
+        #flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
+        #topsort = list(nx.topological_sort(expanded_input_graph))
+        #toprank = ut.dict_take(ut.make_index_lookup(topsort), flat_node_order_)
+        #sortx = ut.argsort(toprank)
+        #flat_node_order = ut.take(flat_node_order_, sortx)
 
-        # Compute which branches in the tree each node belongs to
-        node_to_branchids = ut.group_items(*zip(*[
-            #(node, s[1])
-            (s[1], node)
-            for s, t in ut.product(ut.nx_source_nodes(expanded_input_graph),
-                                   ut.nx_sink_nodes(expanded_input_graph))
-            for node in ut.nx_all_nodes_between(expanded_input_graph, s, t)
-        ]))
-        branch_ids = ut.lmap(tuple, ut.dict_take(node_to_branchids, flat_node_order))
-        tablenames = ut.take_column(flat_node_order, 0)
-        #rinput_ids = ut.take_column(flat_node_order, 1)
+        ## Compute which branches in the tree each node belongs to
+        #node_to_branchids = ut.group_items(*zip(*[
+        #    #(node, s[1])
+        #    (s[1], node)
+        #    for s, t in ut.product(ut.nx_source_nodes(expanded_input_graph),
+        #                           ut.nx_sink_nodes(expanded_input_graph))
+        #    for node in ut.nx_all_nodes_between(expanded_input_graph, s, t)
+        #]))
+        #branch_ids = ut.lmap(tuple, ut.dict_take(node_to_branchids, flat_node_order))
+        #tablenames = ut.take_column(flat_node_order, 0)
+        #rootmost_exi_branches = ut.dict_take(node_to_branchids, rootmost_inputs)
+        #rootmost_exi_branches = ut.lmap(tuple, rootmost_exi_branches)
+        #rootmost_tables = ut.take_column(rootmost_inputs, 0)
+        #input_compute_ids = list(zip(rootmost_tables, rootmost_exi_branches))
 
-        #def make_new_flat_order(list_):
-        #    groupxs = ut.group_indices(list(map(str, list_)))[1]
-        #    min_groupxs = ut.argsort(ut.argsort([min(xs) for xs in groupxs]))
-        #    gidxs = [[mx] * len(xs) for mx, xs in zip(min_groupxs, groupxs)]
-        #    new_idxs = ut.ungroup(gidxs, groupxs)
-        #    return new_idxs
-        #branch_idxs = make_new_flat_order(branch_ids)
-        #order_idxs = list(range(len(branch_idxs)))
-        #rinput_idxs = make_new_flat_order(rinput_ids)
+        #depend_compute_ids = list(zip(tablenames, branch_ids))
 
-        rootmost_expanded_input_branchids = ut.dict_take(node_to_branchids, rootmost_expanded_input)
-        rootmost_expanded_input_branchids = ut.lmap(tuple, rootmost_expanded_input_branchids)
-        rootmost_tables = ut.take_column(rootmost_expanded_input, 0)
-        input_compute_ids = list(zip(rootmost_tables, rootmost_expanded_input_branchids))
-
-        depend_compute_ids = list(zip(tablenames, branch_ids))
-
-        # Compute order specifies the expected input order of the signature arguments
-        # in input_compute_ids. They are paired with an id that states
-        # to which items in the compute order the input will be applied.
-        # depend_compute_ids specify the table dependencies. They are paired with an
-        # id that specifies where its input must come from.
-
-        compute_order = {
-            'input_compute_ids': input_compute_ids,
-            'depend_compute_ids': depend_compute_ids,
-        }
+        #compute_order = {
+        #    'input_compute_ids': input_compute_ids,
+        #    'depend_compute_ids': depend_compute_ids,
+        #}
+        rootmost_inputs = table.rootmost_inputs
+        compute_order = rootmost_inputs.get_compute_order()
         return compute_order
 
     @ut.memoize
@@ -991,39 +1036,6 @@ class _TableGeneralHelper(ut.NiceRepr):
             for colattr in parent_col_attrs]
         return parent_col_attrs
 
-    def print_internal_info(table, all_attrs=False):
-        """
-        CommandLine:
-            python -m dtool.depcache_table --exec-print_internal_info
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache2 import testdata_depc3
-            >>> depc = testdata_depc3()
-            >>> tablenames = ['neighbs', 'indexer']
-            >>> for table in ut.take(depc, tablenames): # .tables:
-            >>>     table.print_internal_info()
-        """
-        print('----')
-        print(table)
-        # Print the other infered attrs
-        print('table.parent_col_attrs = %s' % (
-                ut.repr3(table.parent_col_attrs, nl=2),))
-        print('table.data_col_attrs = %s' % (
-                  ut.repr3(table.data_col_attrs, nl=2),))
-        # Print the infered allcol attrs
-        ut.colorprint('table.internal_col_attrs = %s' %
-                      (ut.repr3(table.internal_col_attrs, nl=1,
-                                sorted_=False)), 'python')
-        add_table_kw = table._get_addtable_kw()
-        print('table.add_table_kw = %s' % (ut.repr2(add_table_kw, nl=2),))
-        if all_attrs:
-            # Print all attributes
-            for a in ut.get_instance_attrnames(
-                      table, with_properties=True, default=False):
-                print('  table.%s = %r' % (a, getattr(table, a)))
-
     def _infer_allcol(table):
         r"""
         Combine information from parentcol and datacol
@@ -1141,7 +1153,7 @@ class _TableComputeHelper(object):
             >>> # DISABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache2 import *  # NOQA
-            >>> depc = testdata_depc3()
+            >>> depc = testdata_depc3(in_memory=False)
             >>> depc.clear_all()
             >>> tablename = 'labeler'
             >>> tablename = 'indexer'
@@ -1159,6 +1171,7 @@ class _TableComputeHelper(object):
             >>> table.print_table()
             >>> table.print_internal_info()
             >>> table.print_configs()
+            >>> table.print_model_manifests()
             >>> #ut.vd(depc.cache_dpath)
         """
         if table.default_to_unpack:
@@ -1184,7 +1197,8 @@ class _TableComputeHelper(object):
                     yield None
                 else:
                     multi_parent_flags = table.get_parent_col_attr('ismulti')
-                    multi_id_names = ut.compress(table.get_parent_col_attr('intern_colname'), multi_parent_flags)
+                    parent_colnames = table.get_parent_col_attr('intern_colname')
+                    multi_id_names = ut.compress(parent_colnames, multi_parent_flags)
                     multi_ids = ut.compress(ids_, multi_parent_flags)
                     multi_args = ut.compress(args_, multi_parent_flags)
 
@@ -1197,7 +1211,7 @@ class _TableComputeHelper(object):
                             manifest_data.update(**{
                                 name + '_multi_id': multi_id,
                                 name + '_primary_ids': 'FIXME' + str(arg_),
-                                name + '_model_input': arg_,
+                                name + '_model_input': list(arg_),
                             })
                             multi_setsizes.append(len(arg_))
 
@@ -1219,10 +1233,12 @@ class _TableComputeHelper(object):
                         quick_access_tup = tuple()
                         parent_extra = tuple()
                     #parent_extra = tuple(ut.flatten(zip(multi_setsizes, multi_setfpaths)))
-                    #parent_extra = tuple(ut.flatten([(len(arg), fname)
-                    #                                 for arg, fname in zip(multi_args, multi_fpaths)]))
-                    row_tup = ids_ + (config_rowid,) + quick_access_tup + data_cols + parent_extra
-                    print('row_tup = %r' % (row_tup,))
+                    #parent_extra = tuple(ut.flatten([(len(arg), fname) for arg,
+                    #                                 fname in zip(multi_args,
+                    #                                              multi_fpaths)]))
+                    row_tup = (ids_ + (config_rowid,) + quick_access_tup +
+                               data_cols + parent_extra)
+                    #print('row_tup = %r' % (row_tup,))
                     yield row_tup
             except Exception as ex:
                 ut.printex(ex, 'cat error', keys=[
@@ -1441,7 +1457,7 @@ class _TableComputeHelper(object):
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache2 import *  # NOQA
-            >>> depc = testdata_depc3()
+            >>> depc = testdata_depc3(in_memory=False)
             >>> depc.clear_all()
             >>> data = depc.get('labeler', [1, 2, 3], 'data', _debug=True)
             >>> data = depc.get('indexer', [[1, 2, 3]], 'data', _debug=True)
@@ -1461,7 +1477,8 @@ class _TableComputeHelper(object):
                     continue
                 parent_table = table.depc[parname]
                 ut.take_column(parent_ids_, x)
-                parent_history = parent_table.get_config_history(ut.take_column(parent_ids_, x))
+                rowid_list = ut.take_column(parent_ids_, x)
+                parent_history = parent_table.get_config_history(rowid_list)
                 print('parent_history = %r' % (parent_history,))
 
         chunksize = nInput if table.chunksize is None else table.chunksize
@@ -1494,14 +1511,25 @@ class _TableComputeHelper(object):
                 if nChunkInput == 0:
                     return
                 dirty_parent_ids_chunk, dirty_preproc_args_chunk = zip(*dirty_chunk)
+                #dirty_parent_ids_chunk, dirty_preproc_args_chunk = list(zip(*dirty_chunk))
                 # Pack arguments into column-wise order to send to the func
                 argsT = zip(*dirty_preproc_args_chunk)
                 argsT = list(argsT)  # TODO: remove
                 # HACK extract config if given a request
                 config_ = config.config if hasattr(config, 'config') else config
                 # call registered worker function
-                proptup_gen = table.preproc_func(table.depc, *argsT,
-                                                 config=config_)
+                if table.func_is_single:
+                    # Function is written in a way that only accepts a single
+                    # row of input at a time
+                    proptup_gen = (
+                        table.preproc_func(table.depc, *argrow, config=config_)
+                        for argrow in zip(*argsT))
+                else:
+                    # Function is written in a way that only accepts
+                    # multiple inputs at once and generates output
+                    proptup_gen = table.preproc_func(table.depc, *argsT,
+                                                     config=config_)
+
                 DEBUG_LIST_MODE = True
                 if DEBUG_LIST_MODE:
                     proptup_gen = list(proptup_gen)
@@ -1533,7 +1561,7 @@ class _TableComputeHelper(object):
 
 
 @ut.reloadable_class
-class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfigHelper):
+class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableComputeHelper, _TableConfigHelper):
     r"""
     An individual node in the dependency graph.
 
@@ -1565,8 +1593,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, isinteractive=False, default_to_unpack=False,
-                 default_onthefly=False, rm_extern_on_delete=False):
-        """ recieves kwargs from depc._register_prop """
+                 default_onthefly=False, rm_extern_on_delete=False,
+                 func_is_single=False):
+        """
+        recieves kwargs from depc._register_prop
+        """
         try:
             table.db = None
         except Exception:
@@ -1589,6 +1620,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         # Behavior
         table.on_delete = None
         table.default_to_unpack = default_to_unpack
+        table.func_is_single = func_is_single
 
         #table.store_modification_time = True
         # Use the filesystem to accomplish this
@@ -1603,9 +1635,6 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         table._asobject = asobject
         table.default_onthefly = default_onthefly
         # SQL Internals
-        #table.parent_col_attrs = None
-        #table.data_col_attrs = None
-        #table.internal_col_attrs = None
         table.sqldb_fpath = None
         table.rm_extern_on_delete = rm_extern_on_delete
         # Update internals
@@ -1683,142 +1712,6 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         ])
         return add_table_kw
 
-    def print_table(table):
-        table.db.print_table_csv(table.tablename)
-
-    def print_info(table, with_colattrs=True, with_graphattrs=True):
-        """ debug function """
-        print('TABLE ATTRIBUTES')
-        print('table.tablename = %r' % (table.tablename,))
-        print('table.isinteractive = %r' % (table.isinteractive,))
-        print('table.default_onthefly = %r' % (table.default_onthefly,))
-        print('table.rm_extern_on_delete = %r' % (table.rm_extern_on_delete,))
-        print('table.chunksize = %r' % (table.chunksize,))
-        print('table.fname = %r' % (table.fname,))
-        print('table.docstr = %r' % (table.docstr,))
-        print('table.data_colnames = %r' % (table.data_colnames,))
-        print('table.data_coltypes = %r' % (table.data_coltypes,))
-        if with_graphattrs:
-            print('TABLE GRAPH ATTRIBUTES')
-            print('table.children = %r' % (table.children,))
-            print('table.parent = %r' % (table.parent,))
-            print('table.configclass = %r' % (table.configclass,))
-            print('table.requestclass = %r' % (table.requestclass,))
-        if with_colattrs:
-            nl = 1
-            print('TABEL COLUMN ATTRIBUTES')
-            print('table.data_col_attrs = %s' % (ut.repr3(table.data_col_attrs, nl=nl),))
-            print('table.parent_col_attrs = %s' % (ut.repr3(table.parent_col_attrs, nl=nl),))
-            print('table.internal_data_col_attrs = %s' % (ut.repr3(table.internal_data_col_attrs, nl=nl),))
-            print('table.internal_parent_col_attrs = %s' % (ut.repr3(table.internal_parent_col_attrs, nl=nl),))
-            print('table.internal_col_attrs = %s' % (ut.repr3(table.internal_col_attrs, nl=nl),))
-
-    # --- Standard Properties
-
-    @property
-    def internal_data_col_attrs(table):
-        flags = table.get_intern_col_attr('isdata')
-        return ut.compress(table.internal_col_attrs, flags)
-
-    @property
-    def internal_parent_col_attrs(table):
-        flags = table.get_intern_col_attr('isparent')
-        return ut.compress(table.internal_col_attrs, flags)
-
-    # --- / Standard Properties
-
-    @ut.memoize
-    def get_parent_col_attr(table, key):
-        return ut.dict_take_column(table.parent_col_attrs, key)
-
-    @ut.memoize
-    def get_intern_data_col_attr(table, key):
-        return ut.dict_take_column(table.internal_data_col_attrs, key)
-
-    @ut.memoize
-    def get_intern_parent_col_attr(table, key):
-        return ut.dict_take_column(table.internal_parent_col_attrs, key)
-
-    @ut.memoize
-    def get_intern_col_attr(table, key):
-        return ut.dict_take_column(table.internal_col_attrs, key)
-
-    @ut.memoize
-    def get_data_col_attr(table, key):
-        return ut.dict_take_column(table.data_col_attrs, key)
-
-    def clear_table(table):
-        """
-        Deletes all data in this table
-        """
-        # TODO: need to clear one-to-one dependencies as well
-        print('Clearing data in %r' % (table,))
-        table.db.drop_table(table.tablename)
-        table.db.add_table(**table._get_addtable_kw())
-
-    @property
-    @ut.memoize
-    def parent(table):
-        return ut.odict([(parent_colattr['parent_table'], parent_colattr)
-                         for parent_colattr in table.parent_col_attrs])
-        #return tuple([parent_colattr['parent_table']
-        #              for parent_colattr in table.parent_col_attrs])
-
-    @ut.memoize
-    def parents(table, data=None):
-        if data:
-            return [(parent_colattr['parent_table'], parent_colattr)
-                    for parent_colattr in table.parent_col_attrs]
-        else:
-            return [parent_colattr['parent_table']
-                    for parent_colattr in table.parent_col_attrs]
-
-    @property
-    @ut.memoize
-    def parent_id_tablenames(table):
-        tablenames = tuple([parent_colattr['parent_table']
-                            for parent_colattr in table.parent_col_attrs])
-        return tablenames
-
-    @property
-    @ut.memoize
-    def parent_id_prefix(table):
-        prefixes = tuple([parent_colattr['prefix']
-                          for parent_colattr in table.parent_col_attrs])
-        return prefixes
-
-    @property
-    def extern_columns(table):
-        colnames = table.get_data_col_attr('colname')
-        flags = table.get_data_col_attr('is_extern')
-        return ut.compress(colnames, flags)
-
-    @property
-    def rowid_colname(table):
-        """ rowid of this table used by other dependant tables """
-        return table.tablename + '_rowid'
-
-    @property
-    def superkey_colnames(table):
-        return table.parent_id_colnames + (CONFIG_ROWID,)
-
-    @property
-    def model_uuid_colname(table):
-        return 'model_uuid'
-
-    @property
-    def is_augmented_colname(table):
-        return 'augment_bit'
-
-    @property
-    def parent_id_colnames(table):
-        return tuple([colattr['intern_colname']
-                      for colattr in table.parent_col_attrs])
-
-    def get_rowids_from_root(table, root_rowids, config=None):
-        return table.depc.get_rowids(table.tablename, root_rowids,
-                                     config=config)
-
     # ----------------------
     # --- GETTERS NATIVE ---
     # ----------------------
@@ -1827,7 +1720,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         return table.db.get_all_rowids(table.tablename)
 
     @profile
-    def add_rows_from_parent(table, parent_ids_, preproc_args,
+    def ensure_rows(table, parent_ids_, preproc_args,
                              config=None, verbose=True, _debug=None):
         """
         Lazy addition
@@ -1868,9 +1761,36 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
 
     @profile
     def _rectify_ids(table, parent_rowids):
-        """
+        r"""
         Removes Nones, and turns many-to-one sets of rowids into hashable
         UUIDS.
+
+        Setup:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3()
+            >>> depc.clear_all()
+            >>> tablename = 'vocab'
+            >>> tablename = 'indexer'
+            >>> table = depc[tablename]
+            >>> parent_rowids = [[1, 2, 3]]
+
+        Example:
+            >>> rectify_tup = table._rectify_ids(parent_rowids)
+            >>> parent_ids_, preproc_args, idxs1, idxs2 = rectify_tup
+            >>> result = ('parent_ids_ = %r' % (parent_ids_,)) + '\n'
+            >>> result += ('preproc_args = %r' % (preproc_args,))
+            >>> print(result)
+            parent_ids_ = [(UUID('356a192b-7913-b04c-5457-4d18c28d46e6'),)]
+            preproc_args = [[1, 2, 3]]
+
+        Example1:
+            >>> rowids = depc.get_rowids(tablename, parent_rowids)
+            >>> model_uuid_list = table.get_internal_columns(rowids, ('model_uuid',))
+            >>> model_uuid = model_uuid_list[0]
+            >>> print('model_uuid = %r' % (model_uuid,))
+            >>> rowids2 = table.get_model_rowids(model_uuid_list)
         """
         if ALLOW_NONE_YIELD:
             # Force entire row to be none if any are none
@@ -1940,8 +1860,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
     def get_rowid(table, parent_rowids, config=None, ensure=True,
                   eager=True, nInput=None, recompute=False, _debug=None):
         r"""
-        get feat rowids of chip under the current state configuration if
-        ensure is True, this function is equivalent to add_rows_from_parent
+        Returns the rowids of derived properties.  If they do not exist it
+        computes them.
 
         Args:
             parent_rowids (list): list of tuples with the parent rowids as the
@@ -1990,19 +1910,23 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                 print('[deptbl.get_rowid] config = %r' % (config,))
                 print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
+        # Ensure inputs are in the correct format / remove Nones
         rectify_tup = table._rectify_ids(parent_rowids)
         (parent_ids_, preproc_args, idxs1, idxs2) = rectify_tup
+        # Do the getting / adding work
         if recompute:
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None)
             table.delete_rows(rowid_list_)
         if ensure or recompute:
-            rowid_list_ = table.add_rows_from_parent(
-                parent_ids_, preproc_args, config=config)
+            # Compute properties if they do not exist
+            rowid_list_ = table.ensure_rows(parent_ids_, preproc_args,
+                                            config=config)
         else:
             rowid_list_ = table._get_rowid(
                 parent_ids_, config=config, eager=eager, nInput=nInput)
+        # Map outputs to correspond with inputs
         rowid_list = table._unrectify_ids(rowid_list_, parent_rowids, idxs1,
                                           idxs2)
         return rowid_list
@@ -2010,6 +1934,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
     @profile
     def _get_rowid(table, parent_ids_, config=None, eager=True, nInput=None,
                    _debug=None):
+        """
+        Returns rowids using parent superkeys. Does not add non-existing
+        properties.
+        """
         colnames = (table.rowid_colname,)
         config_rowid = table.get_config_rowid(config=config)
         _debug = table.depc._debug if _debug is None else _debug
@@ -2031,25 +1959,14 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
 
-    @property
-    def extern_dpath(table):
-        cache_dpath = table.depc.cache_dpath
-        extern_dname = 'extern_' + table.tablename
-        extern_dpath = join(cache_dpath, extern_dname)
-        return extern_dpath
-
-    @property
-    def dpath(table):
-        #assert table.ismulti, 'only valid for models'
-        dname = table.tablename + '_storage'
-        dpath = join(table.depc.cache_dpath, dname)
-        #ut.ensuredir(dpath)
-        return dpath
-
-    #def dpath(table):
-    #    from os.path import dirname
-    #    dpath = dirname(table.db.fpath)
-    #    return dpath
+    def clear_table(table):
+        """
+        Deletes all data in this table
+        """
+        # TODO: need to clear one-to-one dependencies as well
+        print('Clearing data in %r' % (table,))
+        table.db.drop_table(table.tablename)
+        table.db.add_table(**table._get_addtable_kw())
 
     @profile
     def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
@@ -2191,11 +2108,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
             >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # take small data
             >>> print(ut.repr2(prop_list0, nl=1))
-
             [
-                [372, (545, 372), '/home/joncrall/code/dtool/DEPCACHE/extern_chip/chip_chip_id=1_pyrappzicqoskdjq.png'],
-                [2453, (1707, 2453), '/home/joncrall/code/dtool/DEPCACHE/extern_chip/chip_chip_id=2_pyrappzicqoskdjq.png'],
-                [390, (520, 390), '/home/joncrall/code/dtool/DEPCACHE/extern_chip/chip_chip_id=3_pyrappzicqoskdjq.png'],
+                [372, (545, 372), 'chip_chip_id=1_pyrappzicqoskdjq.png'],
+                [2453, (1707, 2453), 'chip_chip_id=2_pyrappzicqoskdjq.png'],
+                [390, (520, 390), 'chip_chip_id=3_pyrappzicqoskdjq.png'],
             ]
         """
         _debug = table.depc._debug if _debug is None else _debug
@@ -2228,11 +2144,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         extern_flags = [colattr.get('is_extern', False)
                         for colattr in requested_colattrs]
         extern_resolve_colxs_ = ut.compress(nested_offsets_start, extern_flags)
-        extern_read_funcs = ut.take_column(ut.compress(requested_colattrs, extern_flags), 'read_func')
+        extern_colattrs = ut.compress(requested_colattrs, extern_flags)
+        extern_read_funcs = ut.take_column(extern_colattrs, 'read_func')
         # TODO: this can be cleaned up
         nesting_xs = [x1 if x2 - x1 == 1 else list(range(x1, x2))
                       for x1, x2 in zip(nested_offsets_start, nested_offsets_end)]
-        intern_colnames = ut.unflat_take(ut.take_column(table.internal_col_attrs, 'intern_colname'), intern_colxs)
+        intern_colnames_ = ut.take_column(table.internal_col_attrs, 'intern_colname')
+        intern_colnames = ut.unflat_take(intern_colnames_, intern_colxs)
         extern_resolve_colxs = list(zip(extern_resolve_colxs_, extern_read_funcs))
         flat_intern_colnames = tuple(ut.flatten(intern_colnames))
 
