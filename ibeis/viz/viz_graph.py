@@ -99,7 +99,8 @@ def ensure_names_are_connected(graph, aids_list):
 
 
 def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
-                                    invis_edges=None, ensure_edges=None, temp_nids=None, allow_directed=False):
+                                    invis_edges=None, ensure_edges=None,
+                                    temp_nids=None, allow_directed=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  image analysis api
@@ -357,11 +358,14 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
                                 ensure_edges=None, with_images=True,
+                                split_check=None,
                                 temp_nids=None, **kwargs):
     """
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
             --aids=1,2,3,4,5,6,7,8,9 --show
+
+        python -m ibeis --tf make_name_graph_interaction --db LEWA_splits --nids=1 --show --split
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -369,17 +373,38 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         >>> import ibeis
         >>> import plottool as pt
         >>> exec(ut.execstr_funckw(make_name_graph_interaction), globals())
-        >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> defaultdb='testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
-        >>> nids = None if aids is not None else ibs.get_valid_nids()[0:5]
+        >>> aids = ut.get_argval('--aids', type_=list, default=None)
+        >>> nids = ut.get_argval('--nids', type_=list, default=ibs.get_valid_nids()[0:5])
+        >>> nids = None if aids is not None else nids
         >>> with_all = not ut.get_argflag('--no-with-all')
         >>> make_name_graph_interaction(ibs, nids, aids, with_all=with_all)
+        >>> #pt.zoom_factory()
         >>> ut.show_if_requested()
     """
     import plottool as pt
     from plottool.abstract_interaction import AbstractInteraction
     print('aids = %r' % (aids,))
+
+    if split_check is None:
+        split_check = ut.get_argflag('--split')
+
+    def exec_split_check(ibs, aid_list):
+        cfgdict = {
+            'can_match_samename': True,
+            'K': 3,
+            'Knorm': 3,
+            'prescore_method': 'csum',
+            'score_method': 'csum'
+        }
+        qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        from ibeis.algo.hots import graph_identification
+        infr = graph_identification.AnnotInference(qreq_, cm_list)
+        graph = infr.make_graph()
+        #print("BUILT SPLIT GRAPH")
+        return graph, infr
 
     class NameGraphInteraction(AbstractInteraction):
         def __init__(self, ibs, nids=None, aids=None, selected_aids=[]):
@@ -405,12 +430,24 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.get_name_aids(nids)
             else:
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
-            self.graph = make_netx_graph_from_aid_groups(ibs, aids_list,
-                                                         invis_edges=invis_edges,
-                                                         ensure_edges=ensure_edges,
-                                                         temp_nids=temp_nids)
+
+            self.graph = make_netx_graph_from_aid_groups(
+                ibs, aids_list, invis_edges=invis_edges,
+                ensure_edges=ensure_edges, temp_nids=temp_nids)
+            aid_list = ut.flatten(aids_list)
+            if split_check:
+                self.infr_graph = exec_split_check(aid_list)
+                ut.graph_info(self.graph, 1)
+                ut.graph_info(self.infr_graph, 1)
+            graph, infr = exec_split_check(ibs, aid_list)
+            #self.graph = make_netx_graph_from_aid_groups(
+            #    ibs, aids_list, invis_edges=invis_edges,
+            #    ensure_edges=ensure_edges, temp_nids=temp_nids)
+            pass
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
+            import utool
+            utool.embed()
             self._aids2 = sorted(list(self.graph.nodes()))
             self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 

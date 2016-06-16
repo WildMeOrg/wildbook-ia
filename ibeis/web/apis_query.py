@@ -228,7 +228,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
-        >>> #    'pipeline_root' : 'BC_DTW'
+        >>>     'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -303,7 +303,9 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
                                   cfgdict=query_config_dict)
 
     # Get score
-    match_score = cm.aid2_score[aid_2]
+    idx = cm.daid2_idx[aid_2]
+    match_score = cm.name_score_list[idx]
+    #match_score = cm.aid2_score[aid_2]
 
     image_matches = make_review_image(aid_2, cm, qreq_,
                                       view_orientation=view_orientation)
