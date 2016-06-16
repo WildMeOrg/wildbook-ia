@@ -200,7 +200,7 @@ def compress_normvec_uint8(arr_float):
     # rvec_max = 128
     # rvec_pseudo_max = rvec_max * 2 = 256
     # TODO: not sure if rounding or floor is the correct operation
-    return np.clip(np.round(arr_float * 256.0), -128, 128).astype(np.int8)
+    return np.clip(np.round(arr_float * 255.0), -127, 127).astype(np.int8)
     #return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),
     #               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(np.int8)
 
