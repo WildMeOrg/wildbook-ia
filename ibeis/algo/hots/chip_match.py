@@ -224,7 +224,7 @@ class AnnotInference(object):
         thresh = nscores[idx2]
         #print('thresh = %r' % (thresh,))
         #thresh = .999
-        #thresh = .1
+        thresh = .1
         return thresh
 
     def make_graph(self, show=False):
