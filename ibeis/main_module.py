@@ -348,8 +348,9 @@ def opendb_bg_web(*args, **kwargs):
         >>> web_ibs.terminate2()
     """
     import utool as ut
-    domain = kwargs.get('domain', ut.get_argval('--domain', type_=str, default=None))
-    port = kwargs.get('port', 5000)
+    kwargs = kwargs.copy()
+    domain = kwargs.pop('domain', ut.get_argval('--domain', type_=str, default=None))
+    port = kwargs.pop('port', 5000)
 
     if 'wait' in kwargs:
         print('NOTE: No need to specify wait param anymore. '
@@ -436,7 +437,7 @@ def opendb_bg_web(*args, **kwargs):
             if ut.VERBOSE:
                 print('Waiting for server to be up. count=%r' % (count,))
             try:
-                web_ibs.send_ibeis_request('/api/test/helloworld/', type_='get')
+                web_ibs.send_ibeis_request('/api/test/heartbeat/', type_='get')
                 break
             except requests.ConnectionError:
                 pass

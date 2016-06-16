@@ -254,7 +254,7 @@ class AnnotInference(object):
                 edge_weights.append(score)
                 edges.append((qidx, didx))
 
-        model = PottsModel(len(unique_aids), edges, edge_weights, n_labels=2)
+        model = PottsModel(len(unique_aids), edges, edge_weights, n_labels=2)  # NOQA
 
         #unique_aids, prob_annots = infr.make_prob_annots()
         #prob_annots2 = prob_annots.copy()
@@ -458,7 +458,10 @@ class AnnotInference(object):
             feedback_lookup = ut.make_index_lookup(keys)
             user_feedback = infr.user_feedback
             p_bg = 0
-            p_same_list = user_feedback['p_match'] * (1 - user_feedback['p_notcomp']) + p_bg * user_feedback['p_notcomp']
+            user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
+            part1 = user_feedback['p_match'] * (1 - user_feedback['p_notcomp'])
+            part2 = p_bg * user_feedback['p_notcomp']
+            p_same_list = part1 + part2
         else:
             feedback_lookup = {}
         infr.user_feedback
