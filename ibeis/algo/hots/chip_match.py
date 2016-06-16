@@ -121,10 +121,10 @@ class AnnotInference(object):
         >>> ibs = qreq_.ibs
         >>> cm_list = qreq_.execute()
         >>> self1 = AnnotInference(qreq_, cm_list)
-        >>> inf_dict1 = self1.make_annot_inference_dict()
+        >>> inf_dict1 = self1.make_annot_inference_dict(True)
         >>> user_feedback =  self1.simulate_user_feedback()
         >>> self2 = AnnotInference(qreq_, cm_list, user_feedback)
-        >>> inf_dict2 = self2.make_annot_inference_dict()
+        >>> inf_dict2 = self2.make_annot_inference_dict(True)
         >>> print('inference_dict = ' + ut.repr3(inf_dict1, nl=3))
         >>> print('inference_dict2 = ' + ut.repr3(inf_dict2, nl=3))
         >>> ut.quit_if_noshow()
@@ -222,7 +222,9 @@ class AnnotInference(object):
             pt.plot(idx2, curve[idx2], 'ro')
             pt.plot(idx3, curve[idx3], 'go')
         thresh = nscores[idx2]
-        print('thresh = %r' % (thresh,))
+        #print('thresh = %r' % (thresh,))
+        #thresh = .999
+        #thresh = .1
         return thresh
 
     def make_graph(self, show=False):
@@ -232,6 +234,7 @@ class AnnotInference(object):
         unique_nids, prob_names = self.make_prob_names()
         thresh = self.choose_thresh()
 
+        # Simply cut any edge with a weight less than a threshold
         qaid_list = [cm.qaid for cm in cm_list]
         postcut = prob_names > thresh
         qxs, nxs = np.where(postcut)
@@ -339,6 +342,7 @@ class AnnotInference(object):
             #error_flag = split_case or merge_case
 
             # <HACK>
+            # SET EXEMPLARS
             ibs = self.qreq_.ibs
             viewpoint_texts = ibs.get_annot_yaw_texts(aids)
             view_to_aids = ut.group_items(aids, viewpoint_texts)
@@ -358,7 +362,6 @@ class AnnotInference(object):
                 chosen = aids_[:num_needed_exemplars]
                 for qaid_ in chosen:
                     hack_set_these_qaids_as_exemplars.add(qaid_)
-
             # </HACK>
 
             if not error_flag and not new_name:
@@ -367,7 +370,8 @@ class AnnotInference(object):
                 new_nid = six.next(next_new_nid)
             for aid in aids:
                 if aid not in qaid_set:
-                    continue
+                    if len(error_flag) == 0:
+                        continue
                 orig_nid = orig_aid2_nid[aid]
                 exemplar_flag = aid in hack_set_these_qaids_as_exemplars
                 #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
@@ -448,24 +452,31 @@ class AnnotInference(object):
         #prob_annots = None
         #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
 
-    def make_annot_inference_dict(self):
+    def make_annot_inference_dict(self, internal=False):
         #import uuid
 
         def convert_to_name_uuid(nid):
-            try:
-                text = ibs.get_name_texts(nid)
-                #uuid_ = uuid.UUID(text)
-            except ValueError:
-                text = str(nid)
-                #uuid_ = nid
+            #try:
+            text = ibs.get_name_texts(nid, apply_fix=False)
+            if text is None:
+                text = 'NEWNAME_%s' % (str(nid),)
+            #uuid_ = uuid.UUID(text)
+            #except ValueError:
+            #    text = 'NEWNAME_%s' % (str(nid),)
+            #    #uuid_ = nid
             return text
+        ibs = self.qreq_.ibs
+
+        if internal:
+            get_annot_uuids = ut.identity
+        else:
+            get_annot_uuids = ibs.get_annot_uuids
             #return uuid_
 
-        ibs = self.qreq_.ibs
         # Compile the cluster_dict
         col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'exemplar_flag_list', 'error_flag_list']
         cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
-        cluster_dict['annot_uuid_list'] = ibs.get_annot_uuids(cluster_dict['aid_list'])
+        cluster_dict['annot_uuid_list'] = get_annot_uuids(cluster_dict['aid_list'])
         # We store the name's UUID as the name's text
         #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']]
         #cluster_dict['new_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['new_nid_list']]
@@ -479,8 +490,8 @@ class AnnotInference(object):
         # Compile the annot_pair_dict
         col_list = ['aid_1_list', 'aid_2_list', 'p_same_list', 'confidence_list', 'raw_score_list']
         annot_pair_dict = dict(zip(col_list, ut.listT(self.needs_review_list)))
-        annot_pair_dict['annot_uuid_1_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_1_list'])
-        annot_pair_dict['annot_uuid_2_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_2_list'])
+        annot_pair_dict['annot_uuid_1_list'] = get_annot_uuids(annot_pair_dict['aid_1_list'])
+        annot_pair_dict['annot_uuid_2_list'] = get_annot_uuids(annot_pair_dict['aid_2_list'])
         zipped = zip(annot_pair_dict['annot_uuid_1_list'], annot_pair_dict['annot_uuid_2_list'], annot_pair_dict['p_same_list'])
         annot_pair_dict['review_pair_list'] = [{
             'annot_uuid_key'       : annot_uuid_1,
