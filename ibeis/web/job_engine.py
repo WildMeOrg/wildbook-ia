@@ -43,6 +43,10 @@ Notes:
     We can test these separately by first starting the background server
         python -m ibeis.web.job_engine test_job_engine --bg
 
+        Alternative:
+            python -m ibeis.web.job_engine test_job_engine --bg --no-engine
+            python -m ibeis.web.job_engine test_job_engine --bg --only-engine --fg-engine
+
     And then running the forground process
         python -m ibeis.web.job_engine test_job_engine --fg
 """
@@ -190,7 +194,7 @@ def get_job_status(ibs, jobid):
         # Start job queue in its own process
         python -m ibeis.web.job_engine test_job_engine --bg
         # Start web server in its own process
-        ./dev.py --web
+        ./main.py --web --fg
         pass
         # Run foreground process
         python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
@@ -302,6 +306,7 @@ class JobBackend(object):
         only_engine = ut.get_argflag('--only-engine')
         self.spawn_collector = not only_engine
         self.spawn_engine = not ut.get_argflag('--no-engine')
+        self.fg_engine = ut.get_argflag('--fg-engine')
         self.spawn_queue = not only_engine
 
     def __del__(self):
@@ -339,8 +344,16 @@ class JobBackend(object):
         if self.spawn_collector:
             self.collect_proc = _spawner(collector_loop, dbdir)
         if self.spawn_engine:
-            self.engine_procs = [_spawner(engine_loop, i, dbdir)
-                                  for i in range(self.num_engines)]
+            if self.fg_engine:
+                print('ENGINE IS IN DEBUG FOREGROUND MODE')
+                # Spawn engine in foreground process
+                assert self.num_engines == 1, 'fg engine only works with one engine'
+                engine_loop(0, dbdir)
+                assert False, 'should never see this'
+            else:
+                # Normal case
+                self.engine_procs = [_spawner(engine_loop, i, dbdir)
+                                      for i in range(self.num_engines)]
         # wait for processes to spin up
         if self.spawn_queue:
             assert self.engine_queue_proc.is_alive(), 'engine died too soon'
@@ -728,7 +741,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         # check for ibs func
         action_func = getattr(ibs, action)
         if VERBOSE_JOBS:
-            print('resolving to ibeis function')
+            print('resolving action=%r to ibeis function=%r' % (action, action_func))
     try:
         result = action_func(*args, **kwargs)
         exec_status = 'ok'
