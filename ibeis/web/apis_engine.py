@@ -278,7 +278,7 @@ def start_identify_annots_query(ibs,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', domain='localhost')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:3]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
@@ -294,6 +294,7 @@ def start_identify_annots_query(ibs,
         >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
+        >>> print('result_response = %s' % (ut.repr3(result_response),))
         >>> inference_result = result_response['json_result']
         >>> cm_dict = inference_result['cm_dict']
         >>> quuid = quuid_list[0]

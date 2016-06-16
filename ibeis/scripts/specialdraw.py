@@ -596,8 +596,8 @@ def setcover_example():
     aids = [78, 79, 81, 88, 91]
     qreq_ = ibs.depc.new_request('vsone', aids, aids, cfgdict={})
     cm_list = qreq_.execute()
-    from ibeis.algo.hots import chip_match
-    infr = chip_match.AnnotInference(cm_list)
+    from ibeis.algo.hots import graph_identification
+    infr = graph_identification.AnnotInference(cm_list)
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
     print(ut.hz_str('prob_annots = ', ut.array2string2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))

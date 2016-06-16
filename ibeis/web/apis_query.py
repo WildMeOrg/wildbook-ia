@@ -215,6 +215,9 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     CommandLine:
         python -m ibeis.web.apis_query review_graph_match_html --show
 
+        ibeis --web
+        python -m ibeis.web.apis_query review_graph_match_html --show --domain=localhost
+
     Example:
         >>> # WEB_DOCTEST
         >>> from ibeis.web.apis_query import *  # NOQA
@@ -225,7 +228,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
-        >>>     'pipeline_root' : 'BC_DTW'
+        >>> #    'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -236,6 +239,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
         >>> inference_result = result_response['json_result']
+        >>> print('inference_result = %r' % (inference_result,))
         >>> auuid2_cm = inference_result['cm_dict']
         >>> quuid = quuid_list[0]
         >>> class_dict = auuid2_cm[str(quuid)]
@@ -367,7 +371,8 @@ def review_query_chips_test():
         >>> #webbrowser.open(web_ibs.baseurl + '/test/review/query/chips/?__format__=True')
         >>> # DISABLE_DOCTEST
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, url_suffix='/test/review/query/chips/?__format__=True')
+        >>> web_ibs = ibeis.opendb_bg_web(
+        >>>     browser=true, url_suffix='/test/review/query/chips/?__format__=true')
     """
     ibs = current_app.ibs
 
@@ -414,7 +419,7 @@ def query_chips_test(ibs, **kwargs):
         >>> # SLOW_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_()
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
         >>> ibs = qreq_.ibs
         >>> result_dict = ibs.query_chips_test()
         >>> print(result_dict)
@@ -433,7 +438,7 @@ def query_chips_test(ibs, **kwargs):
 @register_api('/api/query/graph/', methods=['GET'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
-    from ibeis.algo.hots.chip_match import AnnotInference
+    from ibeis.algo.hots.graph_identification import AnnotInference
     import uuid
 
     def convert_to_uuid(nid):
