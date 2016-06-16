@@ -195,12 +195,33 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
     """
     if invVR_aff2Ds is None:
         invVR_aff2Ds = [mpl.transforms.Affine2D() for _ in range(len(sifts))]
+    if isinstance(invVR_aff2Ds, (list, np.ndarray)):
+        invVR_aff2Ds = [mpl.transforms.Affine2D(matrix=aff_) for aff_ in invVR_aff2Ds]
     colltup_list = [get_sift_collection(sift, aff, **kwargs)
                     for sift, aff in zip(sifts, invVR_aff2Ds)]
     ax.invert_xaxis()
     _set_colltup_list_transform(colltup_list, ax.transData)
     _draw_colltup_list(ax, colltup_list)
     ax.invert_xaxis()
+
+
+def draw_sift_on_patch(patch, sift, **kwargs):
+    import plottool as pt
+    pt.imshow(patch)
+    ax = pt.gca()
+    half_size = patch.shape[0] / 2
+    invVR = np.array([[half_size, 0, half_size], [0, half_size, half_size], [0, 0, 1]])
+    invVR_aff2Ds = np.array([invVR])
+    sifts = np.array([sift])
+    return draw_sifts(ax, sifts, invVR_aff2Ds)
+
+
+def render_sift_on_patch(patch, sift):
+    import plottool as pt
+    with pt.RenderingContext() as render:
+        draw_sift_on_patch(patch, sift)
+    rendered = render.image
+    return rendered
 
 
 if __name__ == '__main__':

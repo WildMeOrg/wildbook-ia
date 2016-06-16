@@ -434,6 +434,52 @@ def udpate_adjust_subplots():
         adjust_subplots(**adjust_kw)
 
 
+def render_figure_to_image(fig, **savekw):
+    import io
+    import cv2
+    import plottool as pt
+    # Pop save kwargs from kwargs
+    #save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
+    image = {}
+    # Write matplotlib axes to an image
+    axes_extents = pt.extract_axes_extents(fig)
+    assert len(axes_extents) == 1, 'more than one axes'
+    extent = axes_extents[0]
+    with io.BytesIO() as stream:
+        # This call takes 23% - 15% of the time depending on settings
+        fig.savefig(stream, bbox_inches=extent, **savekw)
+        stream.seek(0)
+        data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+    image = cv2.imdecode(data, 1)
+    return image
+
+
+class RenderingContext(object):
+    def __init__(self):
+        pass
+
+    def __enter__(self):
+        import plottool as pt
+        tmp_fnum = -1
+        import matplotlib as mpl
+        self.fig = pt.figure(fnum=tmp_fnum)
+        self.was_interactive = mpl.is_interactive()
+        if self.was_interactive:
+            mpl.interactive(False)
+        return self
+
+    def __exit__(self, type_, value, trace):
+        if trace is not None:
+            #print('[util_time] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
+        # Ensure that this figure will not pop up
+        import plottool as pt
+        self.image = pt.render_figure_to_image(self.fig)
+        pt.plt.close(self.fig)
+        if self.was_interactive:
+            mpl.interactive(self.was_interactive)
+
+
 def extract_axes_extents(fig, combine=False, pad=0.0):
     import plottool as pt
 
