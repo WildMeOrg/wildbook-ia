@@ -307,19 +307,22 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         """
         if tablename is None:
             tablename = 'Unknown'
-        param_info_list = [
-            ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
-            for key, val in dict_.items()]
-        class UnnamedConfig(cls):
-            def get_param_info_list(cfg):
-                #print('default_cfgdict = %r' % (default_cfgdict,))
-                return param_info_list
-        UnnamedConfig.__name__ = str(tablename + 'Config')
+        UnnamedConfig = make_configclass(dict_, tablename)
+        #param_info_list = [
+        #    ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
+        #    for key, val in dict_.items()]
+        #class UnnamedConfig(cls):
+        #    def get_param_info_list(cfg):
+        #        #print('default_cfgdict = %r' % (default_cfgdict,))
+        #        return param_info_list
+        #UnnamedConfig.__name__ = str(tablename + 'Config')
         config = UnnamedConfig()
         return config
 
     def __getstate__(cfg):
         """
+        FIXME
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
@@ -332,6 +335,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             >>> assert cfg is not cfg2
         """
         return cfg.asdict()
+        #return cfg.__dict__
 
     def __setstate__(cfg, state):
         cfg.initialize_params()
@@ -345,16 +349,13 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     #    return config_name
 
 
-def dict_as_config(default_cfgdict, tablename):
-    # TODO: use Config.from_dict instead
+def make_configclass(dict_, tablename):
+    """ Creates a custom config class from a dict """
     import dtool
-    param_info_list = [ut.ParamInfo(key, val)
-                       for key, val in default_cfgdict.items()]
+    param_info_list = [ut.ParamInfo(key, val, type_=type(val))
+                       for key, val in dict_.items()]
     class UnnamedConfig(dtool.Config):
         _param_info_list = param_info_list
-        #def get_param_info_list(cfg):
-        #    #print('default_cfgdict = %r' % (default_cfgdict,))
-        #    return param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')
     return UnnamedConfig
 
