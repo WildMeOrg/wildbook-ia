@@ -1249,6 +1249,81 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
     #print(labels)
     return labels
 
+#def alpha_expansion_cut(graph):
+    # https://github.com/amueller/gco_python/blob/master/example.py
+    #    import pygco
+    #prob_annots2 = prob_annots.copy()
+    #finite_probs = (prob_annots2[np.isfinite(prob_annots2)])
+    #mean = finite_probs.mean()
+    ## make symmetric
+    #prob_annots2[~np.isfinite(prob_annots2)] = finite_probs.max() * 2
+    #prob_annots2 = (prob_annots2.T + prob_annots2) / 2
+    #int_factor = 100 / mean
+    #pairwise_cost = (prob_annots2 * int_factor).astype(np.int32)
+    #n_labels = 2
+    #unary_cost = np.ones((prob_annots.shape[0], n_labels)).astype(np.int32)
+    #u, v = np.meshgrid(np.arange(prob_annots.shape[0]).astype(np.int32), np.arange(len(prob_annots)).astype(np.int32))
+    #edges = np.vstack((u.flatten(), v.flatten(), pairwise_cost.flatten())).T.astype(np.int32)
+
+    #import pygco
+    #n_iter = 5
+    #algorithm = 'expansion'
+    #unary_cost = np.ascontiguousarray(unary_cost)
+    ##pairwise_cost = np.ascontiguousarray(pairwise_cost)
+    #pairwise_cost = np.eye(n_labels).astype(np.int32)
+    #edges = np.ascontiguousarray(edges)
+    #pygco.cut_from_graph(edges, unary_cost, pairwise_cost, n_iter, algorithm)
+    #pairwise_cost = prob_annots
+    pass
+
+
+def example_binary():
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from pygco import cut_simple, cut_from_graph
+    # generate trivial data
+    x = np.ones((10, 10))
+    x[:, 5:] = -1
+    x_noisy = x + np.random.normal(0, 0.8, size=x.shape)
+    x_thresh = x_noisy > .0
+
+    # create unaries
+    unaries = x_noisy
+    # as we convert to int, we need to multipy to get sensible values
+    unaries = (10 * np.dstack([unaries, -unaries]).copy("C")).astype(np.int32)
+    unaries[:] = 0
+    # create potts pairwise
+    pairwise = -10 * np.eye(2, dtype=np.int32)
+
+    # do simple cut
+    result = cut_simple(unaries, pairwise)
+
+    # use the gerneral graph algorithm
+    # first, we construct the grid graph
+    inds = np.arange(x.size).reshape(x.shape)
+    horz = np.c_[inds[:, :-1].ravel(), inds[:, 1:].ravel()]
+    vert = np.c_[inds[:-1, :].ravel(), inds[1:, :].ravel()]
+    edges = np.vstack([horz, vert]).astype(np.int32)
+
+    # we flatten the unaries
+    result_graph = cut_from_graph(edges, unaries.reshape(-1, 2), pairwise)
+
+    # plot results
+    plt.subplot(231, title="original")
+    plt.imshow(x, interpolation='nearest')
+    plt.subplot(232, title="noisy version")
+    plt.imshow(x_noisy, interpolation='nearest')
+    plt.subplot(233, title="rounded to integers")
+    plt.imshow(unaries[:, :, 0], interpolation='nearest')
+    plt.subplot(234, title="thresholding result")
+    plt.imshow(x_thresh, interpolation='nearest')
+    plt.subplot(235, title="cut_simple")
+    plt.imshow(result, interpolation='nearest')
+    plt.subplot(236, title="cut_from_graph")
+    plt.imshow(result_graph.reshape(x.shape), interpolation='nearest')
+
+    plt.show()
+
 
 if __name__ == '__main__':
     """
