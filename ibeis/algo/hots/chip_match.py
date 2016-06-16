@@ -125,11 +125,12 @@ class AnnotInference(object):
         >>> user_feedback =  self1.simulate_user_feedback()
         >>> self2 = AnnotInference(qreq_, cm_list, user_feedback)
         >>> inf_dict2 = self2.make_annot_inference_dict()
-        >>> print('inference_dict = ' + ut.repr3(inf_dict1, nl=2))
-        >>> print('inference_dict2 = ' + ut.repr3(inf_dict2, nl=2))
+        >>> print('inference_dict = ' + ut.repr3(inf_dict1, nl=3))
+        >>> print('inference_dict2 = ' + ut.repr3(inf_dict2, nl=3))
         >>> ut.quit_if_noshow()
         >>> graph1 = self1.make_graph(show=True)
         >>> graph2 = self2.make_graph(show=True)
+        >>> ut.show_if_requested()
     """
 
     def __init__(self, qreq_, cm_list, user_feedback=None):
@@ -286,7 +287,7 @@ class AnnotInference(object):
             nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
             nx.set_node_attributes(graph, 'label', {node: 'n%r' % (node[1],) for node in name_nodes})
             nx.set_node_attributes(graph, 'color', {node: pt.LIGHT_GREEN for node in name_nodes})
-            pt.show_nx(graph, layoutkw={'prog': 'neato'})
+            pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)
         return graph
 
     def make_clusters(self):
@@ -381,6 +382,15 @@ class AnnotInference(object):
         cluster_tuples = self.make_clusters()
 
         # Make pair list for output
+        if self.user_feedback is not None:
+            keys = list(zip(self.user_feedback['aid1'], self.user_feedback['aid2']))
+            feedback_lookup = ut.make_index_lookup(keys)
+            user_feedback = self.user_feedback
+            p_bg = 0
+            p_same_list = user_feedback['p_match'] * (1 - user_feedback['p_notcomp']) + p_bg * user_feedback['p_notcomp']
+        else:
+            feedback_lookup = {}
+        self.user_feedback
         needs_review_list = []
         num_top = 4
         for cm, row in zip(cm_list, prob_names):
@@ -415,6 +425,13 @@ class AnnotInference(object):
                 #confidence = p_same if confidence > thresh else p_diff
                 #tup = (cm.qaid, daid, decision, confidence, raw_score)
                 confidence = (2 * np.abs(0.5 - p_same)) ** 2
+                #if self.user_feedback is not None:
+                #    import utool
+                #    utool.embed(
+                key = (cm.qaid, daid)
+                fb_idx = feedback_lookup.get(key)
+                if fb_idx is not None:
+                    confidence = p_same_list[fb_idx]
                 tup = (cm.qaid, daid, p_same, confidence, raw_score)
                 needs_review_list.append(tup)
 
@@ -425,22 +442,24 @@ class AnnotInference(object):
         self.needs_review_list = needs_review_list
         self.cluster_tuples = cluster_tuples
 
-        print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
-        print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
+        #print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
+        #print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
 
         #prob_annots = None
         #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
 
     def make_annot_inference_dict(self):
-        import uuid
+        #import uuid
 
-        def convert_to_uuid(nid):
+        def convert_to_name_uuid(nid):
             try:
                 text = ibs.get_name_texts(nid)
-                uuid_ = uuid.UUID(text)
+                #uuid_ = uuid.UUID(text)
             except ValueError:
-                uuid_ = nid
-            return uuid_
+                text = str(nid)
+                #uuid_ = nid
+            return text
+            #return uuid_
 
         ibs = self.qreq_.ibs
         # Compile the cluster_dict
@@ -448,10 +467,13 @@ class AnnotInference(object):
         cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
         cluster_dict['annot_uuid_list'] = ibs.get_annot_uuids(cluster_dict['aid_list'])
         # We store the name's UUID as the name's text
-        cluster_dict['orig_name_uuid_list'] = [convert_to_uuid(nid) for nid in cluster_dict['orig_nid_list']]
-        cluster_dict['new_name_uuid_list'] = [convert_to_uuid(nid) for nid in cluster_dict['new_nid_list']]
+        #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']]
+        #cluster_dict['new_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['new_nid_list']]
+        cluster_dict['orig_name_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']]
+        cluster_dict['new_name_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['new_nid_list']]
         # Filter out only the keys we want to send back in the dictionary
-        key_list = ['annot_uuid_list', 'orig_name_uuid_list', 'new_name_uuid_list', 'exemplar_flag_list', 'error_flag_list']
+        #key_list = ['annot_uuid_list', 'orig_name_uuid_list', 'new_name_uuid_list', 'exemplar_flag_list', 'error_flag_list']
+        key_list = ['annot_uuid_list', 'orig_name_list', 'new_name_list', 'exemplar_flag_list', 'error_flag_list']
         cluster_dict = ut.dict_subset(cluster_dict, key_list)
 
         # Compile the annot_pair_dict
