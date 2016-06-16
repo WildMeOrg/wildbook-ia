@@ -1,4 +1,5 @@
-r"""
+# -*- coding: utf-8 -*-
+"""
 Helpers for graph plotting
 
 References:
@@ -153,7 +154,7 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
 
     TODO: look into DraggableAnnotation
     """
-    print('[viz_graph] drawing %d images' % len(img_list))
+    #print('[viz_graph] drawing %d images' % len(img_list))
     # Thumb stackartist
     import plottool as pt
     ax  = pt.gca()
@@ -482,7 +483,10 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
                 for key, val in kwargs.items()]
     args = ' '.join(argparts)
     splines = kwargs['splines']
-    print('args = %r' % (args,))
+    if verbose is None:
+        verbose = ut.VERBOSE
+    if verbose:
+        print('args = %r' % (args,))
     # Convert to agraph format
     graph_ = graph.copy()
 
@@ -562,7 +566,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
                 anode.attr['pos'] = new_ptstr
 
     # Run layout
-    print('prog = %r' % (prog,))
+    #print('prog = %r' % (prog,))
     if ut.VERBOSE or verbose > 0:
         print('BEFORE LAYOUT\n' + str(agraph))
     agraph.layout(prog=prog, args=args)
@@ -612,9 +616,9 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
             # Route the implicit edges (must use neato)
 
             control_node = pygraphviz.Node(agraph, node)
-            print('control_node = %r' % (control_node,))
+            #print('control_node = %r' % (control_node,))
             node1_attr1 = parse_anode_layout_attrs(control_node)
-            print('node1_attr1 = %r' % (node1_attr1,))
+            #print('node1_attr1 = %r' % (node1_attr1,))
 
             implicit_kw = kwargs.copy()
             implicit_kw['overlap'] = 'true'
@@ -622,7 +626,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
             argparts = ['-G%s=%s' % (key, str(val))
                         for key, val in implicit_kw.items()]
             args = ' '.join(argparts)
-            print('args = %r' % (args,))
+            #print('args = %r' % (args,))
 
             #import utool
             #utool.embed()
