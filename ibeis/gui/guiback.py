@@ -1203,6 +1203,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 if refresh:
                     back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
                 print('[back] finished detection')
+            back.user_info(msg='Detection is done')
         else:
             raise ValueError('Detector not recognized')
 
@@ -1389,17 +1390,16 @@ class MainWindowBackend(GUIBACK_BASE):
                             ranks_lt=ranks_lt,
                             query_title='Annot Splits')
 
-        if False:
-            from ibeis.viz import viz_graph
-            import imp
-            imp.reload(viz_graph)
-
-            self = viz_graph.make_name_graph_interaction(ibs, aids=aid_list,
-                                                         with_all=False,
-                                                         split_check=True,
-                                                         with_images=True,
-                                                         prog='neato',
-                                                         augment_graph=False)
+        #if False:
+        #    from ibeis.viz import viz_graph
+        #    import imp
+        #    imp.reload(viz_graph)
+        #    self = viz_graph.make_name_graph_interaction(ibs, aids=aid_list,
+        #                                                 with_all=False,
+        #                                                 split_check=True,
+        #                                                 with_images=True,
+        #                                                 prog='neato',
+        #                                                 augment_graph=False)
 
     def run_merge_checks(back):
         r"""
@@ -1587,6 +1587,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if daids_mode == const.VS_EXEMPLARS_KEY:
             query_title += ' vs exemplars'
+            back.set_exemplars_from_quality_and_viewpoint()
         elif daids_mode == const.INTRA_OCCUR_KEY:
             query_title += ' intra imageset'
         elif daids_mode == 'all':

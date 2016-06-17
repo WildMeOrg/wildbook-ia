@@ -220,6 +220,7 @@ class AnnotInference(object):
         #import itertools
         cm_list = infr.cm_list
         hack = True
+        hack = False
         if hack:
             cm_list = cm_list[:10]
         qaid_list = [cm.qaid for cm in cm_list]
@@ -232,7 +233,9 @@ class AnnotInference(object):
         # Construct K-broken graph
         edges = []
         edge_weights = []
-        top = (infr.qreq_.qparams.K + 1) * 2
+        #top = (infr.qreq_.qparams.K + 1) * 2
+        #top = (infr.qreq_.qparams.K) * 2
+        top = (infr.qreq_.qparams.K + 2)
         for count, cm in enumerate(cm_list):
             qidx = aid2_aidx[cm.qaid]
             score_list = cm.annot_score_list
@@ -247,24 +250,23 @@ class AnnotInference(object):
                 edges.append((qidx, didx))
 
         # make symmetric
-        e2w = dict(zip(edges, edge_weights))
-        rkeys = [(v, u) for u, v in e2w.keys()]
-        skeys = [e for e in rkeys if e in e2w]
-        for e in skeys:
-            e2w[e[::-1]] = (e2w[e] + e2w[e[::-1]]) / 2
-            #e2w[e[::-1]] = max(e2w[e], e2w[e[::-1]])
-        for e in skeys:
-            del e2w[e]
+        directed_edges = dict(zip(edges, edge_weights))
+        # Find edges that point in both directions
+        undirected_edges = {}
+        for (u, v), w in directed_edges.items():
+            if (v, u) in undirected_edges:
+                undirected_edges[(v, u)] += w
+                undirected_edges[(v, u)] /= 2
+            else:
+                undirected_edges[(u, v)] = w
 
-        edges = list(e2w.keys())
-        edge_weights = list(e2w.values())
+        edges = list(undirected_edges.keys())
+        edge_weights = list(undirected_edges.values())
         nodes = list(range(len(unique_aids)))
 
         nid_labeling = infr.qreq_.ibs.get_annot_nids(unique_aids)
         labeling = ut.rebase_labels(nid_labeling)
 
-        # Construct a networkx graph based on matches
-        import plottool as pt
         import networkx as nx
         from ibeis.viz import viz_graph
         set_node_attrs = nx.set_node_attributes
@@ -276,20 +278,31 @@ class AnnotInference(object):
         graph.add_edges_from(edges)
 
         # Important properties
+        nid_list = infr.qreq_.ibs.get_annot_nids(unique_aids)
+        labeling = ut.rebase_labels(nid_list)
+
         set_node_attrs(graph, 'name_label', dict(zip(nodes, labeling)))
         set_edge_attrs(graph, 'weight', dict(zip(edges, edge_weights)))
 
         # Visualization properties
+        import plottool as pt
         ax2_aid = ut.invert_dict(aid2_aidx)
         set_node_attrs(graph, 'aid', ax2_aid)
         viz_graph.ensure_node_images(infr.qreq_.ibs, graph)
-        set_node_attrs(graph, 'framewidth', dict(zip(nodes, [2.0] * len(nodes))))
-        set_node_attrs(graph, 'framecolor', dict(zip(nodes, [pt.ORANGE] * len(nodes))))
+        set_node_attrs(graph, 'framewidth', dict(zip(nodes, [3.0] * len(nodes))))
+        set_node_attrs(graph, 'framecolor', dict(zip(nodes, [pt.DARK_BLUE] * len(nodes))))
         ut.color_nodes(graph, labelattr='name_label')
+
+        edge_colors = pt.scores_to_color(np.array(edge_weights), cmap_='viridis')
+        #import utool
+        #utool.embed()
+        #edge_colors = [pt.color_funcs.ensure_base255(color) for color in edge_colors]
+        #print('edge_colors = %r' % (edge_colors,))
+        set_edge_attrs(graph, 'color', dict(zip(edges, edge_colors)))
 
         # Build inference model
         from ibeis.algo.hots import graph_iden
-        graph_iden.rrr()
+        #graph_iden.rrr()
         model = graph_iden.InfrModel(graph)
         #model = graph_iden.InfrModel(len(nodes), edges, edge_weights, labeling=labeling)
         infr.model = model
@@ -297,13 +310,10 @@ class AnnotInference(object):
     def infer_cut(infr):
         model = infr.model
         labeling, params = model.run_inference2(max_labels=5)
-
         #import networkx as nx
         #from ibeis.viz import viz_graph
         graph_ = infr.model.update_graph()
         return graph_
-
-        #pt.rrrr()
 
     def simulate_user_feedback(infr):
         qreq_ = infr.qreq_
@@ -318,11 +328,6 @@ class AnnotInference(object):
             ('p_notcomp', np.array([0.0] * len(aid_pairs))),
         ])
         return user_feedback
-        #dnid2_daids = ut.group_items(qreq_.daids, qreq_.dnids)
-        #correct_daids = ut.take(dnid2_daids, qreq_.qnids)
-        #correct_pairs = ut.flatten([list(ut.product([qaid], daids)) for qaid, daids in zip(qreq_.qaids, correct_daids)])
-        #[correct_pairs]
-        #user_feedback = {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
 
     def make_prob_annots(infr):
         cm_list = infr.cm_list
@@ -336,7 +341,8 @@ class AnnotInference(object):
             prob_annots[idx][:] = annot_scores
         prob_annots[np.diag_indices(len(prob_annots))] = np.inf
         prob_annots += 1E-9
-        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
+        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names,
+        #precision=2, max_line_width=140, suppress_small=True)))
         return unique_aids, prob_annots
 
     @ut.memoize
@@ -357,7 +363,8 @@ class AnnotInference(object):
 
         # Normalize to row stochastic matrix
         prob_names /= prob_names.sum(axis=1)[:, None]
-        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
+        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names,
+        #precision=2, max_line_width=140, suppress_small=True)))
         return unique_nids, prob_names
 
     def choose_thresh(infr):
@@ -444,7 +451,8 @@ class AnnotInference(object):
             part1 = user_feedback['p_match'] * (1 - user_feedback['p_notcomp'])
             part2 = p_bg * user_feedback['p_notcomp']
             p_same_list = part1 + part2
-            for aid1, aid2, p_same in zip(user_feedback['aid1'], user_feedback['aid2'], p_same_list):
+            for aid1, aid2, p_same in zip(user_feedback['aid1'],
+                                          user_feedback['aid2'], p_same_list):
                 if p_same > .5:
                     if not graph.has_edge(aid1, aid2):
                         graph.add_edge(aid1, aid2)
@@ -453,12 +461,17 @@ class AnnotInference(object):
                         graph.remove_edge(aid1, aid2)
         if show:
             import plottool as pt
-            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PINK for aid in qreq_.daids})
-            nx.set_node_attributes(graph, 'color', {aid: pt.TRUE_BLUE for aid in qreq_.qaids})
-            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PURPLE
-                                                    for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
-            nx.set_node_attributes(graph, 'label', {node: 'n%r' % (node[1],) for node in name_nodes})
-            nx.set_node_attributes(graph, 'color', {node: pt.LIGHT_GREEN for node in name_nodes})
+            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PINK
+                                                    for aid in qreq_.daids})
+            nx.set_node_attributes(graph, 'color', {aid: pt.TRUE_BLUE
+                                                    for aid in qreq_.qaids})
+            nx.set_node_attributes(graph, 'color', {
+                aid: pt.LIGHT_PURPLE
+                for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
+            nx.set_node_attributes(graph, 'label', {node: 'n%r' % (node[1],)
+                                                    for node in name_nodes})
+            nx.set_node_attributes(graph, 'color', {node: pt.LIGHT_GREEN
+                                                    for node in name_nodes})
         if show:
             import plottool as pt
             pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)
@@ -506,7 +519,8 @@ class AnnotInference(object):
             merge_case = len(nids) > 1
             new_name = len(nids) == 0
 
-            #print('[chip_match > AnnotInference > make_inference] WARNING: EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
+            #print('[chip_match > AnnotInference > make_inference] WARNING:
+            #      EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
             error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
             strflags = ['split', 'merge', 'new']
             error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
@@ -522,7 +536,8 @@ class AnnotInference(object):
             for view, aids_ in view_to_aids.items():
                 heuristic_exemplar_aids = set(aids) - qaid_set
                 heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
-                num_needed_exemplars = num_wanted_exemplars_per_view - len(heuristic_exemplar_aids)
+                num_needed_exemplars = (num_wanted_exemplars_per_view -
+                                        len(heuristic_exemplar_aids))
                 # Choose the best query annots to fill out exemplars
                 if len(heuristic_non_exemplar_aids) == 0:
                     continue
@@ -534,7 +549,6 @@ class AnnotInference(object):
                 for qaid_ in chosen:
                     hack_set_these_qaids_as_exemplars.add(qaid_)
             # </HACK>
-
             if not error_flag and not new_name:
                 new_nid = nids[0]
             else:
@@ -548,7 +562,6 @@ class AnnotInference(object):
                 #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
                 tup = (aid, orig_nid, new_nid, exemplar_flag, error_flag)
                 cluster_tuples.append(tup)
-
         return cluster_tuples
 
     def make_inference(infr):
@@ -624,7 +637,8 @@ class AnnotInference(object):
         #print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
 
         #prob_annots = None
-        #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
+        #print(ut.array2string2prob_names precision=2, max_line_width=100,
+        #      suppress_small=True))
 
     def make_annot_inference_dict(infr, internal=False):
         #import uuid
@@ -648,35 +662,49 @@ class AnnotInference(object):
             #return uuid_
 
         # Compile the cluster_dict
-        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'exemplar_flag_list', 'error_flag_list']
+        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list',
+                    'exemplar_flag_list', 'error_flag_list']
         cluster_dict = dict(zip(col_list, ut.listT(infr.cluster_tuples)))
         cluster_dict['annot_uuid_list'] = get_annot_uuids(cluster_dict['aid_list'])
         # We store the name's UUID as the name's text
-        #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']]
-        #cluster_dict['new_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['new_nid_list']]
-        cluster_dict['orig_name_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']]
-        cluster_dict['new_name_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['new_nid_list']]
+        #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid)
+        #                                       for nid in cluster_dict['orig_nid_list']]
+        #cluster_dict['new_name_uuid_list'] = [convert_to_name_uuid(nid)
+        # for nid in cluster_dict['new_nid_list']]
+        cluster_dict['orig_name_list'] = [convert_to_name_uuid(nid)
+                                          for nid in cluster_dict['orig_nid_list']]
+        cluster_dict['new_name_list'] = [convert_to_name_uuid(nid)
+                                         for nid in cluster_dict['new_nid_list']]
         # Filter out only the keys we want to send back in the dictionary
-        #key_list = ['annot_uuid_list', 'orig_name_uuid_list', 'new_name_uuid_list', 'exemplar_flag_list', 'error_flag_list']
-        key_list = ['annot_uuid_list', 'orig_name_list', 'new_name_list', 'exemplar_flag_list', 'error_flag_list']
+        #key_list = ['annot_uuid_list', 'orig_name_uuid_list',
+        #            'new_name_uuid_list', 'exemplar_flag_list',
+        #            'error_flag_list']
+        key_list = ['annot_uuid_list', 'orig_name_list', 'new_name_list',
+                    'exemplar_flag_list', 'error_flag_list']
         cluster_dict = ut.dict_subset(cluster_dict, key_list)
 
         # Compile the annot_pair_dict
-        col_list = ['aid_1_list', 'aid_2_list', 'p_same_list', 'confidence_list', 'raw_score_list']
+        col_list = ['aid_1_list', 'aid_2_list', 'p_same_list',
+                    'confidence_list', 'raw_score_list']
         annot_pair_dict = dict(zip(col_list, ut.listT(infr.needs_review_list)))
         annot_pair_dict['annot_uuid_1_list'] = get_annot_uuids(annot_pair_dict['aid_1_list'])
         annot_pair_dict['annot_uuid_2_list'] = get_annot_uuids(annot_pair_dict['aid_2_list'])
-        zipped = zip(annot_pair_dict['annot_uuid_1_list'], annot_pair_dict['annot_uuid_2_list'], annot_pair_dict['p_same_list'])
-        annot_pair_dict['review_pair_list'] = [{
-            'annot_uuid_key'       : annot_uuid_1,
-            'annot_uuid_1'         : annot_uuid_1,
-            'annot_uuid_2'         : annot_uuid_2,
-            'prior_matching_state' : {
-                'p_match'   : p_same,
-                'p_nomatch' : 1.0 - p_same,
-                'p_notcomp' : 0.0,
+        zipped = zip(annot_pair_dict['annot_uuid_1_list'],
+                     annot_pair_dict['annot_uuid_2_list'],
+                     annot_pair_dict['p_same_list'])
+        annot_pair_dict['review_pair_list'] = [
+            {
+                'annot_uuid_key'       : annot_uuid_1,
+                'annot_uuid_1'         : annot_uuid_1,
+                'annot_uuid_2'         : annot_uuid_2,
+                'prior_matching_state' : {
+                    'p_match'   : p_same,
+                    'p_nomatch' : 1.0 - p_same,
+                    'p_notcomp' : 0.0,
+                }
             }
-        } for (annot_uuid_1, annot_uuid_2, p_same) in zipped]
+            for (annot_uuid_1, annot_uuid_2, p_same) in zipped
+        ]
         # Filter out only the keys we want to send back in the dictionary
         key_list = ['review_pair_list', 'confidence_list']
         annot_pair_dict = ut.dict_subset(annot_pair_dict, key_list)
