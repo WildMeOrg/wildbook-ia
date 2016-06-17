@@ -167,60 +167,46 @@ class InfrModel(ut.NiceRepr):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInference(object):
-    """
-    Make name inferences about a series of AnnotMatches
+class AnnotInference2(object):
 
-    CommandLine:
-        python -m ibeis.algo.hots.graph_iden AnnotInference --show --no-cnn
+    def __init__(self, ibs, aids, nids, current_nids=None):
+        self.ibs = ibs
+        self.aids = aids
+        self.orig_name_labels = nids
+        if current_nids is None:
+            current_nids = nids
+        self.current_name_labels = current_nids
 
-    Example:
-        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-        >>> import ibeis
-        >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
-        >>> # a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
-        >>> a='default:dsize=20,excluderef=True,qnum_names=5,qsize=1,min_pername=3,qsample_per_name=1,dsample_per_name=2'
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a=a, verbose=0, use_cache=False)
-        >>> # a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
-        >>> ibs = qreq_.ibs
-        >>> cm_list = qreq_.execute()
-        >>> self1 = AnnotInference(qreq_, cm_list)
-        >>> inf_dict1 = self1.make_annot_inference_dict(True)
-        >>> user_feedback =  self1.simulate_user_feedback()
-        >>> self2 = AnnotInference(qreq_, cm_list, user_feedback)
-        >>> inf_dict2 = self2.make_annot_inference_dict(True)
-        >>> print('inference_dict = ' + ut.repr3(inf_dict1, nl=3))
-        >>> print('inference_dict2 = ' + ut.repr3(inf_dict2, nl=3))
-        >>> ut.quit_if_noshow()
-        >>> graph1 = self1.make_graph(show=True)
-        >>> graph2 = self2.make_graph(show=True)
-        >>> ut.show_if_requested()
-    """
+    def exec_split_check(self):
+        #from ibeis.algo.hots import graph_iden
+        ibs = self.ibs
+        aid_list = self.aids
+        cfgdict = {
+            'can_match_samename': True,
+            'K': 3,
+            'Knorm': 3,
+            'prescore_method': 'csum',
+            'score_method': 'csum'
+        }
+        # TODO: use current nids
+        qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        self.cm_list = cm_list
+        self.qreq_ = qreq_
+        #infr = graph_iden.AnnotInference(qreq_, cm_list)
+        #infr.initialize_graph_and_model()
+        #print("BUILT SPLIT GRAPH")
+        #return infr
 
-    def __init__(infr, qreq_, cm_list, user_feedback=None):
-        infr.qreq_ = qreq_
-        infr.cm_list = cm_list
-        infr.needs_review_list = []
-        infr.cluster_tuples = []
-        infr.user_feedback = user_feedback
-        infr.make_inference()
+    def initialize_graph(self):
+        self.graph = None
 
-    def initialize_graph_and_model(infr):
-        """ Unused in internal split stuff
-
-        pt.qt4ensure()
-        layout_info = pt.show_nx(graph, as_directed=False, fnum=1,
-                                 layoutkw=dict(prog='neato'), use_image=True,
-                                 verbose=0)
-        ax = pt.gca()
-        pt.zoom_factory()
-        pt.interactions.PanEvents()
-        """
+    def construct_graph2(infr):
         #import networkx as nx
         #import itertools
         cm_list = infr.cm_list
         hack = True
-        hack = False
+        #hack = False
         if hack:
             cm_list = cm_list[:10]
         qaid_list = [cm.qaid for cm in cm_list]
@@ -248,6 +234,9 @@ class AnnotInference(object):
                 didx = aid2_aidx[daid]
                 edge_weights.append(score)
                 edges.append((qidx, didx))
+
+        # Maybe just K-break graph here?
+        # Condense graph?
 
         # make symmetric
         directed_edges = dict(zip(edges, edge_weights))
@@ -289,8 +278,9 @@ class AnnotInference(object):
         ax2_aid = ut.invert_dict(aid2_aidx)
         set_node_attrs(graph, 'aid', ax2_aid)
         viz_graph.ensure_node_images(infr.qreq_.ibs, graph)
-        set_node_attrs(graph, 'framewidth', dict(zip(nodes, [3.0] * len(nodes))))
-        set_node_attrs(graph, 'framecolor', dict(zip(nodes, [pt.DARK_BLUE] * len(nodes))))
+        n_nodes = len(nodes)
+        set_node_attrs(graph, 'framewidth', dict(zip(nodes, [3.0] * n_nodes)))
+        set_node_attrs(graph, 'framecolor', dict(zip(nodes, [pt.DARK_BLUE] * n_nodes)))
         ut.color_nodes(graph, labelattr='name_label')
 
         edge_colors = pt.scores_to_color(np.array(edge_weights), cmap_='viridis')
@@ -299,7 +289,20 @@ class AnnotInference(object):
         #edge_colors = [pt.color_funcs.ensure_base255(color) for color in edge_colors]
         #print('edge_colors = %r' % (edge_colors,))
         set_edge_attrs(graph, 'color', dict(zip(edges, edge_colors)))
+        return graph
 
+    def initialize_graph_and_model(infr):
+        """ Unused in internal split stuff
+
+        pt.qt4ensure()
+        layout_info = pt.show_nx(graph, as_directed=False, fnum=1,
+                                 layoutkw=dict(prog='neato'), use_image=True,
+                                 verbose=0)
+        ax = pt.gca()
+        pt.zoom_factory()
+        pt.interactions.PanEvents()
+        """
+        graph = infr.construct_graph2()
         # Build inference model
         from ibeis.algo.hots import graph_iden
         #graph_iden.rrr()
@@ -314,6 +317,48 @@ class AnnotInference(object):
         #from ibeis.viz import viz_graph
         graph_ = infr.model.update_graph()
         return graph_
+
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class AnnotInference(object):
+    """
+    Make name inferences about a series of AnnotMatches
+
+    CommandLine:
+        python -m ibeis.algo.hots.graph_iden AnnotInference --show --no-cnn
+
+    Example:
+        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> import ibeis
+        >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
+        >>> # a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
+        >>> a='default:dsize=20,excluderef=True,qnum_names=5,qsize=1,min_pername=3,qsample_per_name=1,dsample_per_name=2'
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a=a, verbose=0, use_cache=False)
+        >>> # a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
+        >>> ibs = qreq_.ibs
+        >>> cm_list = qreq_.execute()
+        >>> self1 = AnnotInference(qreq_, cm_list)
+        >>> inf_dict1 = self1.make_annot_inference_dict(True)
+        >>> user_feedback =  self1.simulate_user_feedback()
+        >>> self2 = AnnotInference(qreq_, cm_list, user_feedback)
+        >>> inf_dict2 = self2.make_annot_inference_dict(True)
+        >>> print('inference_dict = ' + ut.repr3(inf_dict1, nl=3))
+        >>> print('inference_dict2 = ' + ut.repr3(inf_dict2, nl=3))
+        >>> ut.quit_if_noshow()
+        >>> graph1 = self1.make_graph(show=True)
+        >>> graph2 = self2.make_graph(show=True)
+        >>> ut.show_if_requested()
+    """
+
+    def __init__(infr, qreq_, cm_list, user_feedback=None):
+        infr.qreq_ = qreq_
+        infr.cm_list = cm_list
+        infr.needs_review_list = []
+        infr.cluster_tuples = []
+        infr.user_feedback = user_feedback
+        infr.make_inference()
+
 
     def simulate_user_feedback(infr):
         qreq_ = infr.qreq_

@@ -12,6 +12,8 @@ import utool as ut
 import vtool as vt
 import numpy as np  # NOQA
 import itertools
+from plottool.abstract_interaction import AbstractInteraction
+import plottool as pt
 #import sys
 #from os.path import join
 try:
@@ -282,7 +284,7 @@ def ensure_node_images(ibs, graph):
 
 def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
                        zoom=None, prog='neato', as_directed=False,
-                       augment_graph=True, layoutkw=None, framewidth=3.0, **kwargs):
+                       augment_graph=True, layoutkw=None, framewidth=True, **kwargs):
     r"""
     DEPRICATE or improve
 
@@ -352,10 +354,219 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
     return plotinfo
 
 
+class AnnotGraphInteraction(AbstractInteraction):
+    def __init__(self, ibs, aids=None, selected_aids=[], use_image=True,
+                 nids=None, temp_nids=None):
+        super(AnnotGraphInteraction, self).__init__()
+        self.ibs = ibs
+        self.aids = aids
+        self.selected_aids = selected_aids
+        self.use_image = use_image
+        from ibeis.algo.hots import graph_iden
+        self.infr = graph_iden.AnnotInference2(aids, nids, temp_nids)
+
+    def make_hud(self):
+        """ Creates heads up display """
+        import plottool as pt
+        hl_slot, hr_slot = pt.make_bbox_positioner(
+            y=.02, w=.10, h=.03, xpad=.05, startx=0, stopx=1)
+        # Create buttons
+        self.append_button('Auto Infer', callback=self.make_inference, rect=hl_slot(0))
+        self.append_button('Break', callback=self.break_links, rect=hl_slot(1))
+        self.append_button('Link', callback=self.make_links, rect=hl_slot(2))
+        self.append_button('Accept', callback=self.confirm, rect=hr_slot(0))
+        self.append_button('Deselect', callback=self.unselect_all, rect=hr_slot(1))
+        self.append_button('Show', callback=self.show_selected, rect=hr_slot(2))
+        #self.append_button(next_text, callback=next_callback, rect=next_rect)
+
+    def make_inference(self, event):
+        print('self.selected_aids = %r' % (self.selected_aids,))
+        self.infer_cut()
+        self.show_page()
+
+    def break_links(self, event):
+        print('self.selected_aids = %r' % (self.selected_aids,))
+
+    def make_links(self, event):
+        print('self.selected_aids = %r' % (self.selected_aids,))
+
+    def unselect_all(self, event):
+        print('self.selected_aids = %r' % (self.selected_aids,))
+        for aid in self.selected_aids[:]:
+            self.toggle_selected_aid(aid)
+
+    def confirm(self, event):
+        print('Not done yet')
+
+    def show_selected(self, event):
+        import plottool as pt
+        print('show_selected')
+        from ibeis.viz import viz_chip
+        fnum = pt.ensure_fnum(None)
+        print('fnum = %r' % (fnum,))
+        pt.figure(fnum=fnum)
+        viz_chip.show_many_chips(self.ibs, self.selected_aids)
+        pt.update()
+        #fig.canvas.update()
+        #pt.iup()
+
+    def update_netx_graph(self):
+
+        #self.graph = make_netx_graph_from_aid_groups(
+        #    ibs, aids_list, invis_edges=invis_edges,
+        #    ensure_edges=ensure_edges, temp_nids=temp_nids)
+        pass
+        # TODO: allow for a subset of grouped aids to be shown
+        #self.graph = make_netx_graph_from_nids(ibs, nids)
+
+    def plot(self, fnum, pnum):
+        self.update_netx_graph()
+        #if split_check:
+
+        node2_aid = nx.get_node_attributes(self.infr.model.graph, 'aid')
+        node2_label = {
+            node: '%d:aid=%r' % (node, aid)
+            for node, aid in node2_aid.items()
+        }
+        nx.set_node_attributes(self.infr.model.graph, 'label', node2_label)
+        #{self.infr.model.graph}
+        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
+        self.plotinfo = pt.show_nx(self.infr.model.graph,
+                                   as_directed=False, fnum=self.fnum,
+                                   layoutkw=layoutkw,
+                                   use_image=self.use_image, verbose=0)
+
+        ax = pt.gca()
+        self.enable_pan_and_zoom(ax)
+        #ax.autoscale()
+
+        for aid in self.selected_aids:
+            self.highlight_aid(aid)
+        self.make_hud()
+        #self.static_plot(fnum, pnum)
+
+    def highlight_aid(self, aid, color=None):
+        import plottool as pt
+        if color is None:
+            color = pt.ORANGE
+        node = self.aid2_node[aid]
+        frame = self.plotinfo['patch_frame_dict'][node]
+        frame.set_facecolor(color)
+        frame.set_edgecolor(color)
+
+    def toggle_images(self):
+        self.use_image = not self.use_image
+        self.show_page()
+
+    def toggle_selected_aid(self, aid):
+        import plottool as pt
+        if aid in self.selected_aids:
+            self.selected_aids.remove(aid)
+            #self.highlight_aid(aid, pt.WHITE)
+            self.highlight_aid(aid, pt.DARK_BLUE)
+        else:
+            self.selected_aids.append(aid)
+            self.highlight_aid(aid, pt.ORANGE)
+        self.draw()
+
+    def on_key_press(self, event):
+        print(event)
+
+        if event.key == 'r':
+            self.show_page()
+            self.draw()
+
+        if event.key == 'i':
+            ut.embed()
+
+        if len(self.selected_aids) == 2:
+            ibs = self.ibs
+            aid1, aid2 = self.selected_aids
+            _rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
+            if _rowid is None:
+                _rowid = ibs.get_annotmatch_rowid_from_superkey([aid2], [aid1])
+            rowid = _rowid  # NOQA
+
+    def mark_pair_truth(self, truth):
+        if len(len(self.selected_aids)) != 2:
+            print('This funciton only work if exactly 2 are selected')
+            return
+        aid1, aid2 = self.selected_aids
+        print('aid2 = %r' % (aid2,))
+        print('aid1 = %r' % (aid1,))
+
+    @ut.debug_function_exceptions
+    def on_click_inside(self, event, ax):
+        self.ax = ax
+        self.event = event
+        event = self.event
+        #print(ax)
+        #print(event.x)
+        #print(event.y)
+        pos = self.plotinfo['node']['pos']
+        nodes = list(pos.keys())
+        pos_list = ut.dict_take(pos, nodes)
+
+        # TODO: FIXME
+        #x = 10
+        #y = 10
+        import numpy as np  # NOQA
+        x, y = event.xdata, event.ydata
+        point = np.array([x, y])
+        pos_list = np.array(pos_list)
+        index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
+        #print('dist = %r' % (dist,))
+        node = nodes[index]
+        aid = self.node2_aid[node]
+        context_shown = False
+
+        CHECK_PAIR = True
+        if CHECK_PAIR:
+            if self.event.button == 3 and not context_shown:
+                if len(self.selected_aids) != 2:
+                    print('This funciton only work if exactly 2 are selected')
+                else:
+                    from ibeis.gui import inspect_gui
+                    context_shown = True
+                    aid1, aid2 = (self.selected_aids)
+                    qres = None
+                    qreq_ = None
+                    options = inspect_gui.get_aidpair_context_menu_options(
+                        self.ibs, aid1, aid2, qres, qreq_=qreq_)
+                    self.show_popup_menu(options, event)
+
+        SELECT_ANNOT = dist < 35
+        if SELECT_ANNOT:
+            #print(ut.obj_str(ibs.get_annot_info(aid, default=True,
+            #                                    name=False, gname=False)))
+
+            if self.event.button == 1:
+                self.toggle_selected_aid(aid)
+
+            if self.event.button == 3 and not context_shown:
+                # right click
+                from ibeis.viz.interact import interact_chip
+                context_shown = True
+                #refresh_func = functools.partial(viz.show_name, ibs, nid,
+                #fnum=fnum, sel_aids=sel_aids)
+                refresh_func = None
+                config2_ = None
+                options = interact_chip.build_annot_context_options(
+                    self.ibs, aid, refresh_func=refresh_func,
+                    with_interact_name=False,
+                    config2_=config2_)
+                self.show_popup_menu(options, event)
+        else:
+            if self.event.button == 3:
+                options = [
+                    ('Toggle images', self.toggle_images),
+                ]
+                self.show_popup_menu(options, event)
+
+
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
                                 ensure_edges=None, use_image=True,
-                                split_check=None,
                                 temp_nids=None, **kwargs):
     """
     CommandLine:
@@ -380,277 +591,38 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         >>> #pt.zoom_factory()
         >>> ut.show_if_requested()
     """
-    import plottool as pt
-    from plottool.abstract_interaction import AbstractInteraction
-    print('aids = %r' % (aids,))
-
-    if split_check is None:
-        split_check = ut.get_argflag('--split')
-
-    def exec_split_check(ibs, aid_list):
-        cfgdict = {
-            'can_match_samename': True,
-            'K': 3,
-            'Knorm': 3,
-            'prescore_method': 'csum',
-            'score_method': 'csum'
-        }
-        qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
-        cm_list = qreq_.execute()
-        from ibeis.algo.hots import graph_iden
-        infr = graph_iden.AnnotInference(qreq_, cm_list)
-        infr.initialize_graph_and_model()
-        #print("BUILT SPLIT GRAPH")
-        return infr
-
-    class NameGraphInteraction(AbstractInteraction):
-        def __init__(self, ibs, nids=None, aids=None, selected_aids=[]):
-            super(NameGraphInteraction, self).__init__()
-            self.ibs = ibs
-            self.selected_aids = selected_aids
-            self._nids = nids if nids is not None else []
-            self._aids = aids if aids is not None else []
-            self.use_image = use_image
-            self._aids2 = None
-
-        def make_hud(self):
-            """ Creates heads up display """
-            import plottool as pt
-            hl_slot, hr_slot = pt.make_bbox_positioners(
-                y=.02, w=.10, h=.03, xpad=.05, startx=0, stopx=1)
-            # Create buttons
-            self.append_button('Auto Infer', callback=self.make_inference, rect=hl_slot(0))
-            self.append_button('Break', callback=self.break_links, rect=hl_slot(1))
-            self.append_button('Link', callback=self.make_links, rect=hl_slot(2))
-            self.append_button('Accept', callback=self.confirm, rect=hr_slot(0))
-            self.append_button('Deselect', callback=self.unselect_all, rect=hr_slot(1))
-            self.append_button('Show', callback=self.show_selected, rect=hr_slot(2))
-            #self.append_button(next_text, callback=next_callback, rect=next_rect)
-
-        def make_inference(self, event):
-            print('self.selected_aids = %r' % (self.selected_aids,))
-            self.infer_cut()
-            self.show_page()
-
-        def break_links(self, event):
-            print('self.selected_aids = %r' % (self.selected_aids,))
-
-        def make_links(self, event):
-            print('self.selected_aids = %r' % (self.selected_aids,))
-
-        def unselect_all(self, event):
-            print('self.selected_aids = %r' % (self.selected_aids,))
-            for aid in self.selected_aids[:]:
-                self.toggle_selected_aid(aid)
-
-        def confirm(self, event):
-            print('Not done yet')
-
-        def show_selected(self, event):
-            import plottool as pt
-            print('show_selected')
-            from ibeis.viz import viz_chip
-            fnum = pt.ensure_fnum(None)
-            print('fnum = %r' % (fnum,))
-            pt.figure(fnum=fnum)
-            viz_chip.show_many_chips(self.ibs, self.selected_aids)
-            pt.update()
-            #fig.canvas.update()
-            #pt.iup()
-
-        def update_netx_graph(self):
-            nids_list = []
-
-            if self._aids2 is not None:
-                nids2 = ibs.get_annot_nids(self._aids2)
-                nids_list += [nids2]
-
-            if with_all:
-                nids_list += [ibs.get_annot_nids(self._aids)]
-                nids_list += [self._nids]
-                nids = list(set(ut.flatten(nids_list)))
-                aids_list = ibs.get_name_aids(nids)
-            else:
-                aids_list = ibs.group_annots_by_name(self._aids)[0]
-
-            self.graph = make_netx_graph_from_aid_groups(
-                ibs, aids_list, invis_edges=invis_edges,
-                ensure_edges=ensure_edges, temp_nids=temp_nids)
-            aid_list = ut.flatten(aids_list)
-            if split_check:
-                self.infr = exec_split_check(ibs, aid_list)
-                ut.graph_info(self.graph, 1)
-                ut.graph_info(self.infr.model.graph, 1)
-                self._aids2 = sorted(list(self.graph.nodes()))
-                self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
-                graph = self.infr.model.graph
-                node_to_aid = nx.get_node_attributes(graph, 'aid')
-            else:
-                graph = self.graph
-                node_to_aid = dict(zip(graph.nodes(), graph.nodes()))
-                #self._aids2 = sorted(list(self.graph.nodes()))
-                #self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
-
-            node_list = sorted(list(graph.nodes()))
-            self._aids2 = [node_to_aid.get(node, node) for node in node_list]
-            self.aid2_node = dict(zip(self._aids2, node_list))
-            self.node2_aid = node_to_aid
-
-            #self.graph = make_netx_graph_from_aid_groups(
-            #    ibs, aids_list, invis_edges=invis_edges,
-            #    ensure_edges=ensure_edges, temp_nids=temp_nids)
-            pass
-            # TODO: allow for a subset of grouped aids to be shown
-            #self.graph = make_netx_graph_from_nids(ibs, nids)
-
-        def plot(self, fnum, pnum):
-            self.update_netx_graph()
-            #if split_check:
-
-            #{self.infr.model.graph}
-            if split_check:
-                layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
-                self.plotinfo = pt.show_nx(self.infr.model.graph,
-                                           as_directed=False, fnum=self.fnum,
-                                           layoutkw=layoutkw,
-                                           use_image=self.use_image, verbose=0)
-                #ax = pt.gca()
-                #pt.zoom_factory()
-            else:
-                self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
-                                                   fnum=self.fnum,
-                                                   use_image=self.use_image,
-                                                   **kwargs)
-            ax = pt.gca()
-            self.enable_pan_and_zoom(ax)
-            ax.autoscale()
-
-            for aid in self.selected_aids:
-                self.highlight_aid(aid)
-
-            self.make_hud()
-            #self.static_plot(fnum, pnum)
-
-        def highlight_aid(self, aid, color=pt.ORANGE):
-            node = self.aid2_node[aid]
-            #import utool
-            #utool.embed()
-            frame = self.plotinfo['patch_frame_dict'][node]
-            frame.set_facecolor(color)
-            frame.set_edgecolor(color)
-
-        def toggle_images(self):
-            self.use_image = not self.use_image
-            self.show_page()
-
-        def toggle_selected_aid(self, aid):
-            if aid in self.selected_aids:
-                self.selected_aids.remove(aid)
-                #self.highlight_aid(aid, pt.WHITE)
-                self.highlight_aid(aid, pt.DARK_BLUE)
-            else:
-                self.selected_aids.append(aid)
-                self.highlight_aid(aid, pt.ORANGE)
-            self.draw()
-
-        def on_key_press(self, event):
-            print(event)
-
-            if event.key == 'r':
-                self.show_page()
-                self.draw()
-
-            if event.key == 'i':
-                ut.embed()
-
-            if len(self.selected_aids) == 2:
-                ibs = self.ibs
-                aid1, aid2 = self.selected_aids
-                _rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
-                if _rowid is None:
-                    _rowid = ibs.get_annotmatch_rowid_from_superkey([aid2], [aid1])
-                rowid = _rowid  # NOQA
-
-        def mark_pair_truth(self, truth):
-            if len(len(self.selected_aids)) != 2:
-                print('This funciton only work if exactly 2 are selected')
-                return
-            aid1, aid2 = self.selected_aids
-            print('aid2 = %r' % (aid2,))
-            print('aid1 = %r' % (aid1,))
-
-        @ut.debug_function_exceptions
-        def on_click_inside(self, event, ax):
-            self.ax = ax
-            self.event = event
-            event = self.event
-            #print(ax)
-            #print(event.x)
-            #print(event.y)
-            pos = self.plotinfo['node']['pos']
-            nodes = list(pos.keys())
-            pos_list = ut.dict_take(pos, nodes)
-
-            # TODO: FIXME
-            #x = 10
-            #y = 10
-            import numpy as np  # NOQA
-            x, y = event.xdata, event.ydata
-            point = np.array([x, y])
-            pos_list = np.array(pos_list)
-            index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
-            #print('dist = %r' % (dist,))
-            node = nodes[index]
-            aid = self.node2_aid[node]
-            context_shown = False
-
-            CHECK_PAIR = True
-            if CHECK_PAIR:
-                if self.event.button == 3 and not context_shown:
-                    if len(self.selected_aids) != 2:
-                        print('This funciton only work if exactly 2 are selected')
-                    else:
-                        from ibeis.gui import inspect_gui
-                        context_shown = True
-                        aid1, aid2 = (self.selected_aids)
-                        qres = None
-                        qreq_ = None
-                        options = inspect_gui.get_aidpair_context_menu_options(
-                            ibs, aid1, aid2, qres, qreq_=qreq_)
-                        self.show_popup_menu(options, event)
-
-            SELECT_ANNOT = dist < 35
-            if SELECT_ANNOT:
-                #print(ut.obj_str(ibs.get_annot_info(aid, default=True,
-                #                                    name=False, gname=False)))
-
-                if self.event.button == 1:
-                    self.toggle_selected_aid(aid)
-
-                if self.event.button == 3 and not context_shown:
-                    # right click
-                    from ibeis.viz.interact import interact_chip
-                    context_shown = True
-                    #refresh_func = functools.partial(viz.show_name, ibs, nid,
-                    #fnum=fnum, sel_aids=sel_aids)
-                    refresh_func = None
-                    config2_ = None
-                    options = interact_chip.build_annot_context_options(
-                        ibs, aid, refresh_func=refresh_func,
-                        with_interact_name=False,
-                        config2_=config2_)
-                    self.show_popup_menu(options, event)
-            else:
-                if self.event.button == 3:
-                    options = [
-                        ('Toggle images', self.toggle_images),
-                    ]
-                    self.show_popup_menu(options, event)
-
-    self = NameGraphInteraction(ibs, nids, aids, selected_aids=selected_aids)
+    if aids is None and nids is not None:
+        aids = ut.flatten(ibs.get_name_aids(nids))
+    elif nids is not None and aids is not None:
+        aids += ibs.get_name_aids(nids)
+        aids = ut.unique(aids)
+    nids = np.unique(ibs.get_annot_name_rowids(aids))
+    if with_all:
+        aids = ut.flatten(ibs.get_name_aids(nids))
+    self = AnnotGraphInteraction(ibs, aids, selected_aids=selected_aids,
+                                 nids=nids, temp_nids=temp_nids,
+                                 use_image=use_image)
     self.show_page()
-    #self.make_hud()
     self.show()
+    return self
+
+    #infr.exec_split_check()
+    #if split_check:
+    #infr = exec_split_check(ibs, aid_list)
+    #ut.graph_info(graph, 1)
+    #ut.graph_info(infr.model.graph, 1)
+    #_aids2 = sorted(list(graph.nodes()))
+    #aid2_node = {key: val for val, key in enumerate(aid_list)}
+    #graph = infr.model.graph
+    #node_to_aid = nx.get_node_attributes(graph, 'aid')
+    #node_to_aid = dict(zip(graph.nodes(), graph.nodes()))
+    #self._aids2 = sorted(list(self.graph.nodes()))
+    #self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
+
+    #node_list = sorted(list(graph.nodes()))
+    #_aids2 = [node_to_aid.get(node, node) for node in node_list]
+    #aid2_node = dict(zip(_aids2, node_list))
+    #node2_aid = node_to_aid
 
     #ax = self.fig.axes[0]
     #for index in range(len(ax.artists)):
@@ -664,8 +636,6 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     #bbox = artist.patch
 
     #ax.figure.canvas.draw()  # force re-draw
-
-    return self
 
 
 if __name__ == '__main__':
