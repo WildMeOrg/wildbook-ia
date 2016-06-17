@@ -274,6 +274,18 @@ def get_image_uris_original_json(ibs, image_uuid_list):
     return uri_list
 
 
+@register_api('/api/image/json/', methods=['GET'])
+def get_valid_image_uuids_json(ibs, **kwargs):
+    gid_list = ibs.get_valid_gids(**kwargs)
+    return ibs.get_image_uuids(gid_list)
+
+
+@register_api('/api/image/src/json/<gid>/', methods=['GET'])
+def image_src_api_json(ibs, image_uuid, **kwargs):
+    gid = ibs.get_image_gids_from_uuid(image_uuid)
+    return ibs.get_image_uuids(gid, **kwargs)
+
+
 @register_api('/api/annot/json/', methods=['GET'])
 def get_valid_annot_uuids_json(ibs, **kwargs):
     aid_list = ibs.get_valid_aids(**kwargs)
