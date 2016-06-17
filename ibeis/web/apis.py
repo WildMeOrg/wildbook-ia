@@ -26,6 +26,15 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the image file of image <gid>
 
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.app import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_ibeis_request('/api/image/src/', type_='get', gid=1)
+        >>> print(resp)
+        >>> web_ibs.terminate2()
+
     RESTful:
         Method: GET
         URL:    /api/image/src/<gid>/
