@@ -675,6 +675,7 @@ def review_tagged_splits():
 
     CommandLine:
         python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show
+        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show --db
 
     Example:
         >>> from ibeis.gui.guiback import *  # NOQA

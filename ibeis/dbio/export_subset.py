@@ -1254,7 +1254,11 @@ def check_merge(ibs_src, ibs_dst):
 
 
 def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
-    """ new way of merging using the non-hacky sql table merge that is only working due to major hacks
+    """
+    New way of merging using the non-hacky sql table merge.
+    However, its only workings due to major hacks.
+
+    FIXME: annotmatch table
 
     CommandLine:
         python -m ibeis merge_databases2

@@ -228,7 +228,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
-        >>> #    'pipeline_root' : 'BC_DTW'
+        >>>    # 'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -269,16 +269,62 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> import plottool as pt
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> # This starts off using web to get information, but finishes the rest in python
+        >>> from ibeis.web.apis_query import *  # NOQA
+        >>> import ibeis
+        >>> ut.exec_funckw(review_graph_match_html, globals())
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
+        >>> quuid_list = uuid_list[0:1]
+        >>> duuid_list = uuid_list
+        >>> query_config_dict = {
+        >>>    # 'pipeline_root' : 'BC_DTW'
+        >>> }
+        >>> data = dict(
+        >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
+        >>>     query_config_dict=query_config_dict,
+        >>> )
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/', **data)
+        >>> status_response = web_ibs.wait_for_results(jobid)
+        >>> result_response = web_ibs.read_engine_results(jobid)
+        >>> web_ibs.terminate2()
+        >>> # NOW WORK IN THE FRONTEND
+        >>> inference_result = result_response['json_result']
+        >>> auuid2_cm = inference_result['cm_dict']
+        >>> quuid = quuid_list[0]
+        >>> class_dict = auuid2_cm[str(quuid)]
+        >>> # Get information in frontend
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cm = ibeis.ChipMatch.from_dict(class_dict, ibs=ibs)
+        >>> cm.print_rawinfostr()
+        >>> # Make the dictionary a bit more managable
+        >>> cm.compress_top_feature_matches(num=1)
+        >>> cm.print_rawinfostr()
+        >>> class_dict = cm.to_dict(ibs=ibs)
+        >>> cm_dict = class_dict
+        >>> # Package for review ( CANT CALL DIRECTLY BECAUSE OF OUT OF CONTEXT )
+        >>> review_pair = {'annot_uuid_1': quuid, 'annot_uuid_2': duuid_list[1]}
+        >>> x = review_graph_match_html(ibs, review_pair, cm_dict,
+        >>>                             query_config_dict, _internal_state=None,
+        >>>                             callback_url=None)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.render_html(html_str)
+        >>> ut.show_if_requested()
     """
-    from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
+    from ibeis.algo.hots import chip_match
     # from ibeis.algo.hots.query_request import QueryRequest
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
     if proot.upper() == 'BC_DTW':
-        cls = AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
+        cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
-        cls = ChipMatch
+        cls = chip_match.ChipMatch
 
     view_orientation = view_orientation.lower()
     if view_orientation not in ['vertical', 'horizontal']:
@@ -303,7 +349,9 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
                                   cfgdict=query_config_dict)
 
     # Get score
-    match_score = cm.aid2_score[aid_2]
+    idx = cm.daid2_idx[aid_2]
+    match_score = cm.name_score_list[idx]
+    #match_score = cm.aid2_score[aid_2]
 
     image_matches = make_review_image(aid_2, cm, qreq_,
                                       view_orientation=view_orientation)
@@ -314,7 +362,11 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
                                     draw_matches=False)
     image_clean_src = appf.embed_image_html(image_clean)
 
-    root_path = dirname(abspath(__file__))
+    if False:
+        from ibeis.web import apis_query
+        root_path = dirname(abspath(apis_query.__file__))
+    else:
+        root_path = dirname(abspath(__file__))
     css_file_list = [
         ['css', 'style.css'],
         ['include', 'bootstrap', 'css', 'bootstrap.css'],
@@ -438,7 +490,7 @@ def query_chips_test(ibs, **kwargs):
 @register_api('/api/query/graph/', methods=['GET'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
-    from ibeis.algo.hots.graph_identification import AnnotInference
+    from ibeis.algo.hots.graph_iden import AnnotInference
     import uuid
 
     def convert_to_uuid(nid):

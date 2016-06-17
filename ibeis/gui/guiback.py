@@ -1389,6 +1389,18 @@ class MainWindowBackend(GUIBACK_BASE):
                             ranks_lt=ranks_lt,
                             query_title='Annot Splits')
 
+        if False:
+            from ibeis.viz import viz_graph
+            import imp
+            imp.reload(viz_graph)
+
+            self = viz_graph.make_name_graph_interaction(ibs, aids=aid_list,
+                                                         with_all=False,
+                                                         split_check=True,
+                                                         with_images=True,
+                                                         prog='neato',
+                                                         augment_graph=False)
+
     def run_merge_checks(back):
         r"""
         Checks for missed matches within a group of annotations

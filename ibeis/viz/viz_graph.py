@@ -99,10 +99,11 @@ def ensure_names_are_connected(graph, aids_list):
 
 
 def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
-                                    invis_edges=None, ensure_edges=None, temp_nids=None, allow_directed=False):
+                                    invis_edges=None, ensure_edges=None,
+                                    temp_nids=None, allow_directed=False):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (ibeis.IBEISController): image analysis api
         aids_list (list):
 
     Example:
@@ -267,11 +268,16 @@ def augment_graph_mst(ibs, graph):
 
 
 def ensure_node_images(ibs, graph):
-    aid_list = sorted(list(graph.nodes()))
+    node_to_aid = nx.get_node_attributes(graph, 'aid')
+    node_list = sorted(list(graph.nodes()))
+    aid_list = [node_to_aid.get(node, node) for node in node_list]
+    #aid_list = sorted(list(graph.nodes()))
     imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
                                                config=dict(dim_size=200),
                                                read_extern=False)
-    nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
+    nx.set_node_attributes(graph, 'image', dict(zip(node_list, imgpath_list)))
+    if True:
+        nx.set_node_attributes(graph, 'shape', 'rect')
 
 
 def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
@@ -340,28 +346,31 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
                           framewidth=framewidth,
                           )
 
-    offset_img_list = []
-    if with_images:
-        offset_img_list = plotinfo['imgdat']['offset_img_list']
-        artist_list = plotinfo['imgdat']['artist_list']
-        aid_list_ = plotinfo['imgdat']['node_list']
-        for artist, aid in zip(artist_list, aid_list_):
-            pt.set_plotdat(artist, 'aid', aid)
+    #offset_img_list = []
+    #if with_images:
+    #    offset_img_list = plotinfo['imgdat']['offset_img_list']
+    #    artist_list = plotinfo['imgdat']['artist_list']
+    #    aid_list_ = plotinfo['imgdat']['node_list']
+    #    for artist, aid in zip(artist_list, aid_list_):
+    #        pt.set_plotdat(artist, 'aid', aid)
     # TODO; make part of interaction
-    pt.zoom_factory(ax, offset_img_list)
+    #pt.zoom_factory(ax, offset_img_list)
     #pt.plt.tight_layout()
-    ax.autoscale()
+    #ax.autoscale()
     return plotinfo
 
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
                                 ensure_edges=None, with_images=True,
+                                split_check=None,
                                 temp_nids=None, **kwargs):
     """
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
             --aids=1,2,3,4,5,6,7,8,9 --show
+
+        python -m ibeis --tf make_name_graph_interaction --db LEWA_splits --nids=1 --show --split
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -369,17 +378,40 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         >>> import ibeis
         >>> import plottool as pt
         >>> exec(ut.execstr_funckw(make_name_graph_interaction), globals())
-        >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> defaultdb='testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
-        >>> nids = None if aids is not None else ibs.get_valid_nids()[0:5]
+        >>> aids = ut.get_argval('--aids', type_=list, default=None)
+        >>> nids = ut.get_argval('--nids', type_=list, default=ibs.get_valid_nids()[0:5])
+        >>> nids = None if aids is not None else nids
         >>> with_all = not ut.get_argflag('--no-with-all')
         >>> make_name_graph_interaction(ibs, nids, aids, with_all=with_all)
+        >>> #pt.zoom_factory()
         >>> ut.show_if_requested()
     """
     import plottool as pt
     from plottool.abstract_interaction import AbstractInteraction
     print('aids = %r' % (aids,))
+
+    if split_check is None:
+        split_check = ut.get_argflag('--split')
+
+    def exec_split_check(ibs, aid_list):
+        cfgdict = {
+            'can_match_samename': True,
+            'K': 3,
+            'Knorm': 3,
+            'prescore_method': 'csum',
+            'score_method': 'csum'
+        }
+        qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        from ibeis.algo.hots import graph_iden
+        infr = graph_iden.AnnotInference(qreq_, cm_list)
+        import utool
+        utool.embed()
+        infr.initialize_graph_and_model()
+        #print("BUILT SPLIT GRAPH")
+        return infr
 
     class NameGraphInteraction(AbstractInteraction):
         def __init__(self, ibs, nids=None, aids=None, selected_aids=[]):
@@ -405,23 +437,53 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.get_name_aids(nids)
             else:
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
-            self.graph = make_netx_graph_from_aid_groups(ibs, aids_list,
-                                                         invis_edges=invis_edges,
-                                                         ensure_edges=ensure_edges,
-                                                         temp_nids=temp_nids)
+
+            self.graph = make_netx_graph_from_aid_groups(
+                ibs, aids_list, invis_edges=invis_edges,
+                ensure_edges=ensure_edges, temp_nids=temp_nids)
+            aid_list = ut.flatten(aids_list)
+            if split_check:
+                self.infr = exec_split_check(ibs, aid_list)
+                ut.graph_info(self.graph, 1)
+                ut.graph_info(self.infr.graph, 1)
+                self._aids2 = sorted(list(self.graph.nodes()))
+                self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
+                graph = self.infr.graph
+            else:
+                graph = self.graph
+                #self._aids2 = sorted(list(self.graph.nodes()))
+                #self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
+
+            node_to_aid = nx.get_node_attributes(graph, 'aid')
+            node_list = sorted(list(graph.nodes()))
+            self._aids2 = [node_to_aid.get(node, node) for node in node_list]
+            self.aid2_node = dict(zip(self._aids2, node_list))
+
+            #self.graph = make_netx_graph_from_aid_groups(
+            #    ibs, aids_list, invis_edges=invis_edges,
+            #    ensure_edges=ensure_edges, temp_nids=temp_nids)
+            pass
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
-            self._aids2 = sorted(list(self.graph.nodes()))
-            self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 
         def plot(self, fnum, pnum):
             from ibeis.viz.viz_graph import viz_netx_chipgraph
             self.update_netx_graph()
-            self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
-                                               fnum=self.fnum,
-                                               with_images=self.with_images,
-                                               **kwargs)
-            self.ax = pt.gca()
+            if split_check:
+                self.plotinfo = pt.show_nx(self.infr_graph, as_directed=False,
+                                           fnum=self.fnum,
+                                           layoutkw=dict(prog='neato'),
+                                           use_image=True, verbose=0)
+                #ax = pt.gca()
+                #pt.zoom_factory()
+            else:
+                self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
+                                                   fnum=self.fnum,
+                                                   with_images=self.with_images,
+                                                   **kwargs)
+            ax = pt.gca()
+            self.enable_pan_and_zoom(ax)
+            ax.autoscale()
 
             # FIXME: this doesn't work anymore
             for aid in self.selected_aids:
@@ -432,7 +494,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
 
         def highlight_aid(self, aid, color=pt.ORANGE):
             ax = self.ax
-            index = self.aid2_index[aid]
+            index = self.aid2_node[aid]
             try:
                 artist = ax.artists[index]
                 import matplotlib as mpl
@@ -453,7 +515,8 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         def toggle_selected_aid(self, aid):
             if aid in self.selected_aids:
                 self.selected_aids.remove(aid)
-                self.highlight_aid(aid, pt.WHITE)
+                #self.highlight_aid(aid, pt.WHITE)
+                self.highlight_aid(aid, pt.DARK_BLUE)
             else:
                 self.selected_aids.append(aid)
                 self.highlight_aid(aid, pt.ORANGE)

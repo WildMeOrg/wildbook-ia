@@ -8,15 +8,174 @@ print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
+class InfrModel(ut.NiceRepr):
+
+    def __init__(model, graph):
+        #def __init__(model, n_nodes, edges, edge_weights=None, n_labels=None,
+        model.graph = graph
+        model._update_state()
+
+    def _update_state(model):
+        import networkx as nx
+        nodes = sorted(list(model.graph.nodes()))
+        edges = list(model.graph.edges())
+        edge2_weights = nx.get_edge_attributes(model.graph, 'weight')
+        node2_labeling = nx.get_node_attributes(model.graph, 'name_label')
+        edge_weights = ut.take(edge2_weights, edges)
+        labeling = ut.take(node2_labeling, nodes)
+        n_nodes = len(nodes)
+        # Model state
+        model.n_nodes = n_nodes
+        model.edges = edges
+        model.edge_weights = edge_weights
+        # Model parameters
+        model.labeling = np.zeros(model.n_nodes, dtype=np.int32)
+        model._update_labels(labeling=labeling)
+        model._update_weights()
+
+    def __nice__(self):
+        return '(n_nodes=%r, n_labels=%r)' % (self.n_nodes, self.n_labels)
+        #return '(n_nodes=%r, n_labels=%r, nrg=%r)' % (self.n_nodes,
+        #self.n_labels, self.total_energy)
+
+    def _update_labels(model, n_labels=None, unaries=None, labeling=None):
+        if labeling is not None:
+            n_labels_ = max(labeling) + 1
+            assert n_labels is None or n_labels == n_labels_
+            n_labels = n_labels_
+        if n_labels is None:
+            n_labels = 2
+        if unaries is None:
+            unaries = np.zeros((model.n_nodes, n_labels), dtype=np.int32)
+        # Update internals
+        model.pairwise_potts = -1 * np.eye(n_labels, dtype=np.int32)
+        model.n_labels = n_labels
+        model.unaries = unaries
+        if model.labeling.max() >= n_labels:
+            model.labeling = np.zeros(model.n_nodes, dtype=np.int32)
+
+    def _update_weights(model, thresh=None):
+        int_factor = 100
+        edge_weights = np.array(model.edge_weights)
+        if thresh is None:
+            thresh = model.estimate_threshold()
+        else:
+            if isinstance(thresh, six.string_types):
+                thresh = model.estimate_threshold(method=thresh)
+            #np.mean(edge_weights)
+        weights = (edge_weights - thresh) * int_factor
+        weights = weights.astype(np.int32)
+        edges_ = np.array(model.edges).astype(np.int32)
+        edges_ = vt.atleast_nd(edges_, 2)
+        edges_.shape = (edges_.shape[0], 2)
+        weighted_edges = np.vstack((edges_.T, weights)).T
+        weighted_edges = np.ascontiguousarray(weighted_edges)
+        # Update internals
+        model.thresh = thresh
+        model.weighted_edges = weighted_edges
+        model.weights = weights
+
+    @property
+    def total_energy(model):
+        pairwise_potts = model.pairwise_potts
+        wedges = model.weighted_edges
+        unary_idxs = (model.labeling,)
+        pairwise_idxs = (model.labeling[wedges.T[0]],
+                         model.labeling[wedges.T[1]])
+        _unary_energies = model.unaries[unary_idxs]
+        _potts_energies = pairwise_potts[pairwise_idxs]
+        unary_energy = _unary_energies.sum()
+        pairwise_energy = (wedges.T[2] * _potts_energies).sum()
+        total_energy = unary_energy + pairwise_energy
+        return total_energy
+
+    def estimate_threshold(model, method=None):
+        """
+            import plottool as pt
+            idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
+            pt.plot(curve)
+            pt.plot(idx1, curve[idx1], 'bo')
+            pt.plot(idx2, curve[idx2], 'ro')
+            pt.plot(idx3, curve[idx3], 'go')
+        """
+        if method is None:
+            method = 'mean'
+        curve = sorted(model.edge_weights)
+        if method == 'mean':
+            thresh = np.mean(curve)
+        elif method == 'elbow':
+            idx1 = vt.find_elbow_point(curve)
+            idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
+            thresh = curve[idx2]
+        else:
+            raise ValueError('method = %r' % (method,))
+        return thresh
+
+    def run_inference(model, thresh=None, n_labels=None, n_iter=5, algorithm='expansion'):
+        import pygco
+        if n_labels is not None:
+            model._update_labels(n_labels)
+        if thresh is not None:
+            model._update_weights(thresh=thresh)
+        if model.n_labels <= 0:
+            raise ValueError('cannot run inference with zero labels')
+        if model.n_labels == 1:
+            labeling = np.zeros(model.n_nodes, dtype=np.int32)
+        else:
+            cutkw = dict(n_iter=n_iter, algorithm=algorithm)
+            labeling = pygco.cut_from_graph(model.weighted_edges, model.unaries,
+                                            model.pairwise_potts, **cutkw)
+            model.labeling = labeling
+        #print('model.total_energy = %r' % (model.total_energy,))
+        return labeling
+
+    def run_inference2(model, max_labels=5):
+        cut_params = ut.all_dict_combinations({
+            'n_labels': list(range(1, max_labels)),
+        })
+        cut_energies = []
+        cut_labeling = []
+        for params in cut_params:
+            model.run_inference(**params)
+            nrg = model.total_energy
+            complexity = .1 * model.n_nodes * model.thresh * params['n_labels']
+            nrg2 = nrg + complexity
+            print('complexity = %r' % (complexity,))
+            print('nrg = %r' % (nrg,))
+            print('nrg2 = %r' % (nrg2,))
+            cut_energies.append(nrg2)
+            cut_labeling.append(model.labeling)
+
+        best_paramx = np.argmin(cut_energies)
+        print('best_paramx = %r' % (best_paramx,))
+        params = cut_params[best_paramx]
+        print('params = %r' % (params,))
+        labeling = model.run_inference(**params)
+        return labeling, params
+
+    def update_graph(model):
+        uv_list = np.array(list(model.graph.edges()))
+        u_labels = model.labeling[uv_list.T[0]]
+        v_labels = model.labeling[uv_list.T[1]]
+        graph_ = model.graph.copy()
+        # Remove edges between all annotations with different labels
+        cut_edges = uv_list[u_labels != v_labels]
+        for (u, v) in cut_edges:
+            graph_.remove_edge(u, v)
+        #list(nx.connected_components(graph_.to_undirected()))
+        return graph_
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference(object):
     """
     Make name inferences about a series of AnnotMatches
 
     CommandLine:
-        python -m ibeis.algo.hots.graph_identification AnnotInference --show --no-cnn
+        python -m ibeis.algo.hots.graph_iden AnnotInference --show --no-cnn
 
     Example:
-        >>> from ibeis.algo.hots.graph_identification import *  # NOQA
+        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
         >>> import ibeis
         >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
         >>> # a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2',
@@ -38,17 +197,117 @@ class AnnotInference(object):
         >>> ut.show_if_requested()
     """
 
-    def __init__(self, qreq_, cm_list, user_feedback=None):
-        self.qreq_ = qreq_
-        self.cm_list = cm_list
-        self.needs_review_list = []
-        self.cluster_tuples = []
-        self.user_feedback = user_feedback
-        self.make_inference()
+    def __init__(infr, qreq_, cm_list, user_feedback=None):
+        infr.qreq_ = qreq_
+        infr.cm_list = cm_list
+        infr.needs_review_list = []
+        infr.cluster_tuples = []
+        infr.user_feedback = user_feedback
+        infr.make_inference()
 
-    def simulate_user_feedback(self):
-        qreq_ = self.qreq_
-        aid_pairs = np.array(ut.take_column(self.needs_review_list, [0, 1]))
+    def initialize_graph_and_model(infr):
+        """ Unused in internal split stuff
+
+        pt.qt4ensure()
+        layout_info = pt.show_nx(graph, as_directed=False, fnum=1,
+                                 layoutkw=dict(prog='neato'), use_image=True,
+                                 verbose=0)
+        ax = pt.gca()
+        pt.zoom_factory()
+        pt.interactions.PanEvents()
+        """
+        #import networkx as nx
+        #import itertools
+        cm_list = infr.cm_list
+        hack = True
+        if hack:
+            cm_list = cm_list[:10]
+        qaid_list = [cm.qaid for cm in cm_list]
+        daids_list = [cm.daid_list for cm in cm_list]
+        unique_aids = sorted(ut.list_union(*daids_list + [qaid_list]))
+        if hack:
+            unique_aids = sorted(ut.isect(unique_aids, qaid_list))
+        aid2_aidx = ut.make_index_lookup(unique_aids)
+
+        # Construct K-broken graph
+        edges = []
+        edge_weights = []
+        top = (infr.qreq_.qparams.K + 1) * 2
+        for count, cm in enumerate(cm_list):
+            qidx = aid2_aidx[cm.qaid]
+            score_list = cm.annot_score_list
+            sortx = ut.argsort(score_list)[::-1]
+            score_list = ut.take(score_list, sortx)[:top]
+            daid_list = ut.take(cm.daid_list, sortx)[:top]
+            for score, daid in zip(score_list, daid_list):
+                if daid not in qaid_list:
+                    continue
+                didx = aid2_aidx[daid]
+                edge_weights.append(score)
+                edges.append((qidx, didx))
+
+        # make symmetric
+        e2w = dict(zip(edges, edge_weights))
+        rkeys = [(v, u) for u, v in e2w.keys()]
+        skeys = [e for e in rkeys if e in e2w]
+        for e in skeys:
+            e2w[e[::-1]] = (e2w[e] + e2w[e[::-1]]) / 2
+            #e2w[e[::-1]] = max(e2w[e], e2w[e[::-1]])
+        for e in skeys:
+            del e2w[e]
+
+        edges = list(e2w.keys())
+        edge_weights = list(e2w.values())
+        nodes = list(range(len(unique_aids)))
+
+        nid_labeling = infr.qreq_.ibs.get_annot_nids(unique_aids)
+        labeling = ut.rebase_labels(nid_labeling)
+
+        # Construct a networkx graph based on matches
+        import plottool as pt
+        import networkx as nx
+        from ibeis.viz import viz_graph
+        set_node_attrs = nx.set_node_attributes
+        set_edge_attrs = nx.set_edge_attributes
+
+        # Create match-based graph structure
+        graph = nx.DiGraph()
+        graph.add_nodes_from(nodes)
+        graph.add_edges_from(edges)
+
+        # Important properties
+        set_node_attrs(graph, 'name_label', dict(zip(nodes, labeling)))
+        set_edge_attrs(graph, 'weight', dict(zip(edges, edge_weights)))
+
+        # Visualization properties
+        ax2_aid = ut.invert_dict(aid2_aidx)
+        set_node_attrs(graph, 'aid', ax2_aid)
+        viz_graph.ensure_node_images(infr.qreq_.ibs, graph)
+        set_node_attrs(graph, 'framewidth', dict(zip(nodes, [2.0] * len(nodes))))
+        set_node_attrs(graph, 'framecolor', dict(zip(nodes, [pt.ORANGE] * len(nodes))))
+        ut.color_nodes(graph, labelattr='name_label')
+
+        # Build inference model
+        from ibeis.algo.hots import graph_iden
+        graph_iden.rrr()
+        model = graph_iden.InfrModel(graph)
+        #model = graph_iden.InfrModel(len(nodes), edges, edge_weights, labeling=labeling)
+        infr.model = model
+
+    def infer_cut(infr):
+        model = infr.model
+        labeling, params = model.run_inference2(max_labels=5)
+
+        #import networkx as nx
+        #from ibeis.viz import viz_graph
+        graph_ = infr.model.update_graph()
+        return graph_
+
+        #pt.rrrr()
+
+    def simulate_user_feedback(infr):
+        qreq_ = infr.qreq_
+        aid_pairs = np.array(ut.take_column(infr.needs_review_list, [0, 1]))
         nid_pairs = qreq_.ibs.get_annot_nids(aid_pairs)
         truth = nid_pairs.T[0] == nid_pairs.T[1]
         user_feedback = ut.odict([
@@ -65,13 +324,14 @@ class AnnotInference(object):
         #[correct_pairs]
         #user_feedback = {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
 
-    def make_prob_annots(self):
-        cm_list = self.cm_list
-        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]))
-        aid2_didx = ut.make_index_lookup(unique_aids)
+    def make_prob_annots(infr):
+        cm_list = infr.cm_list
+        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] +
+                                           [[cm.qaid for cm in cm_list]]))
+        aid2_aidx = ut.make_index_lookup(unique_aids)
         prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
         for count, cm in enumerate(cm_list):
-            idx = aid2_didx[cm.qaid]
+            idx = aid2_aidx[cm.qaid]
             annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
             prob_annots[idx][:] = annot_scores
         prob_annots[np.diag_indices(len(prob_annots))] = np.inf
@@ -80,8 +340,8 @@ class AnnotInference(object):
         return unique_aids, prob_annots
 
     @ut.memoize
-    def make_prob_names(self):
-        cm_list = self.cm_list
+    def make_prob_names(infr):
+        cm_list = infr.cm_list
         # Consolodate information from a series of chip matches
         unique_nids = sorted(ut.list_union(*[cm.unique_nids for cm in cm_list]))
         #nid2_nidx = ut.make_index_lookup(unique_nids)
@@ -100,12 +360,12 @@ class AnnotInference(object):
         #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
         return unique_nids, prob_names
 
-    def choose_thresh(self):
+    def choose_thresh(infr):
         #prob_annots /= prob_annots.sum(axis=1)[:, None]
         # Find connected components
         #thresh = .25
         #thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
-        unique_nids, prob_names = self.make_prob_names()
+        unique_nids, prob_names = infr.make_prob_names()
 
         if len(unique_nids) <= 2:
             return .5
@@ -118,9 +378,9 @@ class AnnotInference(object):
         curve = nscores
         idx1 = vt.find_elbow_point(curve)
         idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
-        idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
         if False:
             import plottool as pt
+            idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
             pt.plot(curve)
             pt.plot(idx1, curve[idx1], 'bo')
             pt.plot(idx2, curve[idx2], 'ro')
@@ -128,27 +388,28 @@ class AnnotInference(object):
         thresh = nscores[idx2]
         #print('thresh = %r' % (thresh,))
         #thresh = .999
-        thresh = .1
+        #thresh = .1
         return thresh
 
-    def make_graph(self, show=False):
+    def make_graph(infr, show=False):
         import networkx as nx
         import itertools
-        cm_list = self.cm_list
-        unique_nids, prob_names = self.make_prob_names()
-        thresh = self.choose_thresh()
+        cm_list = infr.cm_list
+        unique_nids, prob_names = infr.make_prob_names()
+        thresh = infr.choose_thresh()
 
         # Simply cut any edge with a weight less than a threshold
         qaid_list = [cm.qaid for cm in cm_list]
         postcut = prob_names > thresh
         qxs, nxs = np.where(postcut)
         if False:
-            print(ut.hz_str('prob_names = ', ut.array2string2((prob_names), precision=2, max_line_width=140, suppress_small=True)))
-            print(ut.hz_str('postcut = ', ut.array2string2((postcut).astype(np.int), precision=2, max_line_width=140, suppress_small=True)))
+            kw = dict(precision=2, max_line_width=140, suppress_small=True)
+            print(ut.hz_str('prob_names = ', ut.array2string2((prob_names), **kw)))
+            print(ut.hz_str('postcut = ', ut.array2string2((postcut).astype(np.int), **kw)))
         matching_qaids = ut.take(qaid_list, qxs)
         matched_nids = ut.take(unique_nids, nxs)
 
-        qreq_ = self.qreq_
+        qreq_ = infr.qreq_
 
         nodes = ut.unique(qreq_.qaids.tolist() + qreq_.daids.tolist())
         if not hasattr(qreq_, 'dnids'):
@@ -158,7 +419,8 @@ class AnnotInference(object):
         grouped_aids = dnid2_daids.values()
         matched_daids = ut.take(dnid2_daids, matched_nids)
         name_cliques = [list(itertools.combinations(aids, 2)) for aids in grouped_aids]
-        aid_matches = [list(ut.product([qaid], daids)) for qaid, daids in zip(matching_qaids, matched_daids)]
+        aid_matches = [list(ut.product([qaid], daids)) for qaid, daids in
+                       zip(matching_qaids, matched_daids)]
 
         graph = nx.Graph()
         graph.add_nodes_from(nodes)
@@ -176,10 +438,12 @@ class AnnotInference(object):
 
         graph.add_edges_from(db_aid_nid_edges)
 
-        if self.user_feedback is not None:
-            user_feedback = ut.map_dict_vals(np.array, self.user_feedback)
+        if infr.user_feedback is not None:
+            user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
             p_bg = 0.0
-            p_same_list = user_feedback['p_match'] * (1 - user_feedback['p_notcomp']) + p_bg * user_feedback['p_notcomp']
+            part1 = user_feedback['p_match'] * (1 - user_feedback['p_notcomp'])
+            part2 = p_bg * user_feedback['p_notcomp']
+            p_same_list = part1 + part2
             for aid1, aid2, p_same in zip(user_feedback['aid1'], user_feedback['aid2'], p_same_list):
                 if p_same > .5:
                     if not graph.has_edge(aid1, aid2):
@@ -191,18 +455,21 @@ class AnnotInference(object):
             import plottool as pt
             nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PINK for aid in qreq_.daids})
             nx.set_node_attributes(graph, 'color', {aid: pt.TRUE_BLUE for aid in qreq_.qaids})
-            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
+            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PURPLE
+                                                    for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
             nx.set_node_attributes(graph, 'label', {node: 'n%r' % (node[1],) for node in name_nodes})
             nx.set_node_attributes(graph, 'color', {node: pt.LIGHT_GREEN for node in name_nodes})
+        if show:
+            import plottool as pt
             pt.show_nx(graph, layoutkw={'prog': 'neato'}, verbose=False)
         return graph
 
-    def make_clusters(self):
+    def make_clusters(infr):
         import itertools
         import networkx as nx
-        cm_list = self.cm_list
+        cm_list = infr.cm_list
 
-        graph = self.make_graph()
+        graph = infr.make_graph()
 
         # hack for orig aids
         orig_aid2_nid = {}
@@ -228,7 +495,7 @@ class AnnotInference(object):
         qaid_set = set(qaid_list)
         #start_nid = 9001
         # Find an nid that doesn't exist in the database
-        start_nid = len(self.qreq_.ibs._get_all_known_name_rowids()) + 1
+        start_nid = len(infr.qreq_.ibs._get_all_known_name_rowids()) + 1
         next_new_nid = itertools.count(start_nid)
         cluster_tuples = []
         for aids, nids in zip(cluster_aids, cluster_nids):
@@ -247,7 +514,7 @@ class AnnotInference(object):
 
             # <HACK>
             # SET EXEMPLARS
-            ibs = self.qreq_.ibs
+            ibs = infr.qreq_.ibs
             viewpoint_texts = ibs.get_annot_yaw_texts(aids)
             view_to_aids = ut.group_items(aids, viewpoint_texts)
             num_wanted_exemplars_per_view = 4
@@ -284,22 +551,24 @@ class AnnotInference(object):
 
         return cluster_tuples
 
-    def make_inference(self):
-        cm_list = self.cm_list
-        unique_nids, prob_names = self.make_prob_names()
-        cluster_tuples = self.make_clusters()
+    def make_inference(infr):
+        cm_list = infr.cm_list
+        unique_nids, prob_names = infr.make_prob_names()
+        cluster_tuples = infr.make_clusters()
 
         # Make pair list for output
-        if self.user_feedback is not None:
-            keys = list(zip(self.user_feedback['aid1'], self.user_feedback['aid2']))
+        if infr.user_feedback is not None:
+            keys = list(zip(infr.user_feedback['aid1'], infr.user_feedback['aid2']))
             feedback_lookup = ut.make_index_lookup(keys)
-            user_feedback = self.user_feedback
-            user_feedback = ut.map_dict_vals(np.array, self.user_feedback)
+            user_feedback = infr.user_feedback
             p_bg = 0
-            p_same_list = user_feedback['p_match'] * (1 - user_feedback['p_notcomp']) + p_bg * user_feedback['p_notcomp']
+            user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
+            part1 = user_feedback['p_match'] * (1 - user_feedback['p_notcomp'])
+            part2 = p_bg * user_feedback['p_notcomp']
+            p_same_list = part1 + part2
         else:
             feedback_lookup = {}
-        self.user_feedback
+        infr.user_feedback
         needs_review_list = []
         num_top = 4
         for cm, row in zip(cm_list, prob_names):
@@ -334,7 +603,7 @@ class AnnotInference(object):
                 #confidence = p_same if confidence > thresh else p_diff
                 #tup = (cm.qaid, daid, decision, confidence, raw_score)
                 confidence = (2 * np.abs(0.5 - p_same)) ** 2
-                #if self.user_feedback is not None:
+                #if infr.user_feedback is not None:
                 #    import utool
                 #    utool.embed(
                 key = (cm.qaid, daid)
@@ -348,8 +617,8 @@ class AnnotInference(object):
         sortx = ut.argsort(ut.take_column(needs_review_list, 3))
         needs_review_list = ut.take(needs_review_list, sortx)
 
-        self.needs_review_list = needs_review_list
-        self.cluster_tuples = cluster_tuples
+        infr.needs_review_list = needs_review_list
+        infr.cluster_tuples = cluster_tuples
 
         #print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
         #print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
@@ -357,7 +626,7 @@ class AnnotInference(object):
         #prob_annots = None
         #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
 
-    def make_annot_inference_dict(self, internal=False):
+    def make_annot_inference_dict(infr, internal=False):
         #import uuid
 
         def convert_to_name_uuid(nid):
@@ -370,7 +639,7 @@ class AnnotInference(object):
             #    text = 'NEWNAME_%s' % (str(nid),)
             #    #uuid_ = nid
             return text
-        ibs = self.qreq_.ibs
+        ibs = infr.qreq_.ibs
 
         if internal:
             get_annot_uuids = ut.identity
@@ -380,7 +649,7 @@ class AnnotInference(object):
 
         # Compile the cluster_dict
         col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'exemplar_flag_list', 'error_flag_list']
-        cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
+        cluster_dict = dict(zip(col_list, ut.listT(infr.cluster_tuples)))
         cluster_dict['annot_uuid_list'] = get_annot_uuids(cluster_dict['aid_list'])
         # We store the name's UUID as the name's text
         #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid) for nid in cluster_dict['orig_nid_list']]
@@ -394,7 +663,7 @@ class AnnotInference(object):
 
         # Compile the annot_pair_dict
         col_list = ['aid_1_list', 'aid_2_list', 'p_same_list', 'confidence_list', 'raw_score_list']
-        annot_pair_dict = dict(zip(col_list, ut.listT(self.needs_review_list)))
+        annot_pair_dict = dict(zip(col_list, ut.listT(infr.needs_review_list)))
         annot_pair_dict['annot_uuid_1_list'] = get_annot_uuids(annot_pair_dict['aid_1_list'])
         annot_pair_dict['annot_uuid_2_list'] = get_annot_uuids(annot_pair_dict['aid_2_list'])
         zipped = zip(annot_pair_dict['annot_uuid_1_list'], annot_pair_dict['annot_uuid_2_list'], annot_pair_dict['p_same_list'])
@@ -424,8 +693,8 @@ class AnnotInference(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.graph_identification
-        python -m ibeis.algo.hots.graph_identification --allexamples
+        python -m ibeis.algo.hots.graph_iden
+        python -m ibeis.algo.hots.graph_iden --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

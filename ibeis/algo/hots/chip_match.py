@@ -74,7 +74,40 @@ def check_arrs_eq(arr1, arr2):
         return False
 
 
-def prepare_dict(class_dict, ibs):
+def safe_check_lens_eq(arr1, arr2, msg=None):
+    """
+    safe_check_lens_eq(None, 1)
+    safe_check_lens_eq([3], [2, 4])
+    """
+    if msg is None:
+        msg = 'outer lengths do not correspond'
+    if arr1 is None or arr2 is None:
+        return True
+    else:
+        assert len(arr1) == len(arr2), msg + '(%r != %r)' % (len(arr1), len(arr2))
+
+
+def safe_check_nested_lens_eq(arr1, arr2):
+    """
+    safe_check_nested_lens_eq(None, 1)
+    safe_check_nested_lens_eq([[3, 4]], [[2, 4]])
+    safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1, 2]])
+    safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1]])
+    """
+    if arr1 is None or arr2 is None:
+        return True
+    else:
+        safe_check_lens_eq(arr1, arr2, 'outer lengths do not correspond')
+        for count, (x, y) in enumerate(zip(arr1, arr2)):
+            assert len(x) == len(y), (
+                'inner lengths at position=%r do not correspond (%r != %r)' %
+                (count, len(x), len(y)))
+
+
+def prepare_dict_uuids(class_dict, ibs):
+    """
+    Hacks to ensure proper uuid conversion
+    """
     class_dict = class_dict.copy()
     if 'qaid' not in class_dict and 'qannot_uuid' in class_dict:
         class_dict['qaid'] = ibs.get_annot_aids_from_uuid(class_dict['qannot_uuid'])
@@ -216,10 +249,12 @@ class _ChipMatchVisualization(object):
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
-            >>> ut.quit_if_noshow()
             >>> daid = cm.groundtruth_daids[0]
+            >>> ut.quit_if_noshow()
             >>> cm.show_single_annotmatch(qreq_, daid)
             >>> ut.show_if_requested()
+
+            cm.compress_top_feature_matches(num=1)
         """
         from ibeis.viz import viz_matches
         if aid2 is not None:
@@ -922,7 +957,7 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
                     ut.list_str(other_keys)))
 
         if ibs is not None:
-            class_dict = prepare_dict(class_dict, ibs)
+            class_dict = prepare_dict_uuids(class_dict, ibs)
 
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
@@ -1865,8 +1900,11 @@ class ChipMatch(_ChipMatchVisualization,
         Convert dict of arguments back to ChipMatch object
         """
 
-        def convert_numpy_lists(arr_list, dtype):
-            return [np.array(arr, dtype=dtype) for arr in arr_list]
+        def convert_numpy_lists(arr_list, dtype, dims=None):
+            new_arrs = [np.array(arr, dtype=dtype) for arr in arr_list]
+            if dims is not None:
+                new_arrs = [vt.atleast_nd(arr, dims) for arr in new_arrs]
+            return new_arrs
 
         def convert_numpy(arr, dtype):
             return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
@@ -1880,15 +1918,18 @@ class ChipMatch(_ChipMatchVisualization,
                     ut.list_str(other_keys)))
 
         if ibs is not None:
-            class_dict = prepare_dict(class_dict, ibs)
+            class_dict = prepare_dict_uuids(class_dict, ibs)
 
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'],
-                                                     hstypes.FM_DTYPE)
+                                                     hstypes.FM_DTYPE, dims=2)
         dict_subset['fsv_list'] = convert_numpy_lists(dict_subset['fsv_list'],
-                                                      hstypes.FS_DTYPE)
+                                                      hstypes.FS_DTYPE, dims=2)
         dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
                                                   hstypes.FS_DTYPE)
+        safe_check_nested_lens_eq(dict_subset['fm_list'], dict_subset['fsv_list'])
+        safe_check_lens_eq(dict_subset['score_list'], dict_subset['fsv_list'])
+        safe_check_lens_eq(dict_subset['score_list'], dict_subset['fm_list'])
 
         cm = cls(**dict_subset)
         return cm

@@ -222,6 +222,13 @@ def hello_world(*args, **kwargs):
     print('L____________ HELLO WORLD ____________')
 
 
+@register_api('/api/test/heartbeat/', methods=['GET', 'POST', 'DELETE', 'PUT'])
+def heartbeat(*args, **kwargs):
+    """
+    """
+    return True
+
+
 if __name__ == '__main__':
     """
     CommandLine:
