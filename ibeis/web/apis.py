@@ -37,13 +37,15 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
         fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
         if fresh:
-            import os
-            os.remove(gpath)
+            #import os
+            #os.remove(gpath)
+            ut.delete(gpath)
             gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     else:
         gpath = ibs.get_image_paths(gid)
 
     # Load image
+    assert gpath is not None, 'image path should not be None'
     image = vt.imread(gpath, orient='auto')
     image = appf.resize_via_web_parameters(image)
     image = image[:, :, ::-1]

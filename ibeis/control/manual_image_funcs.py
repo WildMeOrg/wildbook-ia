@@ -783,7 +783,7 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/image/thumbpath/', methods=['GET'])
-def get_image_thumbpath(ibs, gid_list, **config):
+def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     r"""
     Returns:
         list_ (list): the thumbnail path of each gid
@@ -804,7 +804,7 @@ def get_image_thumbpath(ibs, gid_list, **config):
     # to where the depcache expects them. I think the depcache will then
     # override them but this may cause unexpected results.
     thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
-                               read_extern=False, ensure=False, hack_paths=True)
+                               read_extern=False, ensure=ensure_paths, hack_paths=not ensure_paths)
     #except dtool.ExternalStorageException:
     #    # TODO; this check might go in dtool itself
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
