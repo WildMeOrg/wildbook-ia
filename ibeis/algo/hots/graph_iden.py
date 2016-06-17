@@ -4,6 +4,11 @@ import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
 import six
+import networkx as nx
+nx.set_edge_attrs = nx.set_edge_attributes
+nx.get_edge_attrs = nx.get_edge_attributes
+nx.set_node_attrs = nx.set_node_attributes
+nx.get_node_attrs = nx.get_node_attributes
 print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
 
 
@@ -17,20 +22,30 @@ class InfrModel(ut.NiceRepr):
 
     def _update_state(model):
         import networkx as nx
-        nodes = sorted(list(model.graph.nodes()))
-        edges = list(model.graph.edges())
-        edge2_weights = nx.get_edge_attributes(model.graph, 'weight')
-        node2_labeling = nx.get_node_attributes(model.graph, 'name_label')
-        edge_weights = ut.take(edge2_weights, edges)
-        labeling = ut.take(node2_labeling, nodes)
-        n_nodes = len(nodes)
+        name_label_key = 'name_label'
+        weight_key = 'weight'
+        # Get nx graph properties
+        external_nodes = sorted(list(model.graph.nodes()))
+        external_edges = list(model.graph.edges())
+        edge2_weights = nx.get_edge_attrs(model.graph, weight_key)
+        node2_labeling = nx.get_node_attrs(model.graph, name_label_key)
+        edge_weights = ut.dict_take(edge2_weights, external_edges, 0)
+        external_labeling = ut.take(node2_labeling, external_nodes)
+        # Map to internal ids for pygco
+        internal_nodes = ut.rebase_labels(external_nodes)
+        extern2_intern = dict(zip(external_nodes, internal_nodes))
+        internal_edges = ut.unflat_take(extern2_intern, external_edges)
+        internal_labeling = ut.rebase_labels(external_labeling)
+        n_nodes = len(internal_nodes)
         # Model state
         model.n_nodes = n_nodes
-        model.edges = edges
+        model.extern2_intern = extern2_intern
+        model.intern2_extern = ut.invert_dict(extern2_intern)
+        model.edges = internal_edges
         model.edge_weights = edge_weights
         # Model parameters
         model.labeling = np.zeros(model.n_nodes, dtype=np.int32)
-        model._update_labels(labeling=labeling)
+        model._update_labels(labeling=internal_labeling)
         model._update_weights()
 
     def __nice__(self):
@@ -89,6 +104,13 @@ class InfrModel(ut.NiceRepr):
         total_energy = unary_energy + pairwise_energy
         return total_energy
 
+    @property
+    def node_to_label(model):
+        # External nodes to label
+        nodes = ut.take(model.intern2_extern, range(model.n_nodes))
+        extern_node2_new_label = dict(zip(nodes, model.labeling))
+        return extern_node2_new_label
+
     def estimate_threshold(model, method=None):
         """
             import plottool as pt
@@ -111,7 +133,8 @@ class InfrModel(ut.NiceRepr):
             raise ValueError('method = %r' % (method,))
         return thresh
 
-    def run_inference(model, thresh=None, n_labels=None, n_iter=5, algorithm='expansion'):
+    def run_inference(model, thresh=None, n_labels=None, n_iter=5,
+                      algorithm='expansion'):
         import pygco
         if n_labels is not None:
             model._update_labels(n_labels)
@@ -131,7 +154,7 @@ class InfrModel(ut.NiceRepr):
 
     def run_inference2(model, max_labels=5):
         cut_params = ut.all_dict_combinations({
-            'n_labels': list(range(1, max_labels)),
+            'n_labels': list(range(1, max_labels + 1)),
         })
         cut_energies = []
         cut_labeling = []
@@ -150,37 +173,155 @@ class InfrModel(ut.NiceRepr):
         print('best_paramx = %r' % (best_paramx,))
         params = cut_params[best_paramx]
         print('params = %r' % (params,))
-        labeling = model.run_inference(**params)
+        labeling = cut_labeling[best_paramx]
+        model.labeling = labeling
+        #labeling = model.run_inference(**params)
         return labeling, params
 
-    def update_graph(model):
-        uv_list = np.array(list(model.graph.edges()))
-        u_labels = model.labeling[uv_list.T[0]]
-        v_labels = model.labeling[uv_list.T[1]]
-        graph_ = model.graph.copy()
+    def get_cut_edges(model):
+        extern_uv_list = np.array(list(model.graph.edges()))
+        intern_uv_list = ut.unflat_take(model.extern2_intern, extern_uv_list)
+        intern_uv_list = np.array(intern_uv_list)
+        u_labels = model.labeling[intern_uv_list.T[0]]
+        v_labels = model.labeling[intern_uv_list.T[1]]
         # Remove edges between all annotations with different labels
-        cut_edges = uv_list[u_labels != v_labels]
-        for (u, v) in cut_edges:
-            graph_.remove_edge(u, v)
-        #list(nx.connected_components(graph_.to_undirected()))
-        return graph_
+        cut_edges = extern_uv_list[u_labels != v_labels]
+        cut_edges = [tuple(uv.tolist()) for uv in cut_edges]
+        return cut_edges
+        #for (u, v) in cut_edges:
+        #    graph_.remove_edge(u, v)
+        ##list(nx.connected_components(graph_.to_undirected()))
+        #return graph_
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference2(object):
 
-    def __init__(self, ibs, aids, nids, current_nids=None):
-        self.ibs = ibs
-        self.aids = aids
-        self.orig_name_labels = nids
+    def __init__(infr, ibs, aids, nids, current_nids=None, user_feedback=None):
+        infr.ibs = ibs
+        infr.aids = aids
+        infr.orig_name_labels = nids
         if current_nids is None:
             current_nids = nids
-        self.current_name_labels = current_nids
+        assert nids is not None, 'cant be none'
+        assert len(aids) == len(nids)
+        assert len(aids) == len(current_nids)
+        infr.current_name_labels = current_nids
+        infr.graph = None
+        if user_feedback is None:
+            user_feedback = {}
+        infr.user_feedback = {
+            lbl: x.tolist() if isinstance(x, np.ndarray) else x
+            for lbl, x in user_feedback.items()
+        }
 
-    def exec_split_check(self):
+    def add_feedback(infr, aid1, aid2, state):
+        infr.user_feedback['aid1'].append(aid1)
+        infr.user_feedback['aid2'].append(aid2)
+        if state == 'match':
+            infr.user_feedback['p_match'].append(1.0)
+            infr.user_feedback['p_nomatch'].append(0.0)
+            infr.user_feedback['p_notcomp'].append(0.0)
+        elif state == 'nonmatch':
+            infr.user_feedback['p_match'].append(0.0)
+            infr.user_feedback['p_nomatch'].append(1.0)
+            infr.user_feedback['p_notcomp'].append(0.0)
+
+    def initialize_graph(infr):
+        infr.graph = graph = nx.DiGraph()
+        graph.add_nodes_from(infr.aids)
+
+        node2_aid = {aid: aid for aid in infr.aids}
+        node2_nid = {aid: nid for aid, nid in
+                     zip(infr.aids, infr.current_name_labels)}
+        assert len(node2_nid) == len(node2_aid), '%r - %r' % (
+            len(node2_nid), len(node2_aid))
+        nx.set_node_attrs(graph, 'aid', node2_aid)
+        nx.set_node_attrs(graph, 'name_label', node2_nid)
+
+        infr.ensure_name_labels_are_connected_mst(infr.graph)
+
+        infr.initialize_visual_node_attrs()
+
+    def initialize_visual_node_attrs(infr):
+        import networkx as nx
+        import plottool as pt
+        graph = infr.graph
+        node_to_aid = nx.get_node_attrs(graph, 'aid')
+        nodes = list(graph.nodes())
+        aid_list = [node_to_aid.get(node, node) for node in nodes]
+        #aid_list = sorted(list(graph.nodes()))
+        imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
+                                               config=dict(dim_size=200),
+                                               read_extern=False)
+        nx.set_node_attrs(graph, 'framewidth', 3.0)
+        nx.set_node_attrs(graph, 'framecolor', pt.DARK_BLUE)
+        nx.set_node_attrs(graph, 'shape', 'rect')
+        nx.set_node_attrs(graph, 'image', dict(zip(nodes, imgpath_list)))
+        infr.update_graph_visual_attributes()
+
+    def update_graph_visual_attributes(infr):
+        import plottool as pt
+        edge2_weight = nx.get_edge_attrs(infr.graph, 'weight')
+        #edge2_weight = nx.get_edge_attrs(infr.graph, 'score')
+        edges = list(edge2_weight.keys())
+        edge_weights = np.array(list(edge2_weight.values()))
+        edge_colors = pt.scores_to_color(edge_weights, cmap_='viridis')
+        #import utool
+        #utool.embed()
+        #edge_colors = [pt.color_funcs.ensure_base255(color) for color in edge_colors]
+        #print('edge_colors = %r' % (edge_colors,))
+        nx.set_edge_attrs(infr.graph, 'color', dict(zip(edges, edge_colors)))
+        ut.color_nodes(infr.graph, labelattr='name_label')
+
+    def ensure_name_labels_are_connected_mst(infr, graph):
+        """
+        Use minimum spannning tree to ensure all names are connected
+        """
+        import networkx as nx
+        node2_label = nx.get_node_attrs(graph, 'name_label')
+        label2_nodes = ut.group_items(node2_label.keys(), node2_label.values())
+
+        # TODO: allow mst edges to change
+        mst_edges = nx.get_edge_attrs(graph, '_mst_edge')
+        graph.remove_edges_from(mst_edges.keys())
+
+        aug_graph = graph.copy().to_undirected()
+
+        # Find that don't exist in the original graph
+        nodes_list = list(label2_nodes.values())
+        unflat_edges = [list(ut.product(nodes, nodes)) for nodes in nodes_list]
+        node_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+        orig_edges = ut.setdiff_ordered(aug_graph.edges(), mst_edges.keys())
+        new_edges = ut.setdiff_ordered(node_pairs, orig_edges)
+
+        preweighted_edges = nx.get_edge_attrs(aug_graph, 'weight')
+        orig_edges = ut.setdiff(aug_graph.edges(), list(preweighted_edges.keys()))
+
+        # randomness gets rid of all notdes connecting to one
+        # visually looks better
+        rng = np.random.RandomState(42)
+
+        aug_graph.add_edges_from(new_edges)
+        # Ensure the largest possible set of original edges is in the MST
+        nx.set_edge_attributes(aug_graph, 'weight',
+                               dict([(edge, 1.0 + rng.randint(1, 100))
+                                     for edge in new_edges]))
+        nx.set_edge_attributes(aug_graph, 'weight',
+                               dict([(edge, 0.1) for edge in orig_edges]))
+        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
+            for edge in mst_sub_graph.edges():
+                redge = edge[::-1]
+                if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
+                    attr_dict = {'p_comp': 0.0, '_mst_edge': True}
+                    graph.add_edge(*redge, attr_dict=attr_dict)
+        return graph
+
+    def exec_split_check(infr):
         #from ibeis.algo.hots import graph_iden
-        ibs = self.ibs
-        aid_list = self.aids
+        ibs = infr.ibs
+        aid_list = infr.aids
         cfgdict = {
             'can_match_samename': True,
             'K': 3,
@@ -191,39 +332,27 @@ class AnnotInference2(object):
         # TODO: use current nids
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         cm_list = qreq_.execute()
-        self.cm_list = cm_list
-        self.qreq_ = qreq_
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
         #infr = graph_iden.AnnotInference(qreq_, cm_list)
         #infr.initialize_graph_and_model()
         #print("BUILT SPLIT GRAPH")
         #return infr
 
-    def initialize_graph(self):
-        self.graph = None
-
-    def construct_graph2(infr):
+    def score_edges(infr):
+        infr.exec_split_check()
         #import networkx as nx
         #import itertools
         cm_list = infr.cm_list
-        hack = True
-        #hack = False
-        if hack:
-            cm_list = cm_list[:10]
         qaid_list = [cm.qaid for cm in cm_list]
-        daids_list = [cm.daid_list for cm in cm_list]
-        unique_aids = sorted(ut.list_union(*daids_list + [qaid_list]))
-        if hack:
-            unique_aids = sorted(ut.isect(unique_aids, qaid_list))
-        aid2_aidx = ut.make_index_lookup(unique_aids)
 
         # Construct K-broken graph
         edges = []
-        edge_weights = []
+        edge_scores = []
         #top = (infr.qreq_.qparams.K + 1) * 2
         #top = (infr.qreq_.qparams.K) * 2
         top = (infr.qreq_.qparams.K + 2)
         for count, cm in enumerate(cm_list):
-            qidx = aid2_aidx[cm.qaid]
             score_list = cm.annot_score_list
             sortx = ut.argsort(score_list)[::-1]
             score_list = ut.take(score_list, sortx)[:top]
@@ -231,15 +360,14 @@ class AnnotInference2(object):
             for score, daid in zip(score_list, daid_list):
                 if daid not in qaid_list:
                     continue
-                didx = aid2_aidx[daid]
-                edge_weights.append(score)
-                edges.append((qidx, didx))
+                edge_scores.append(score)
+                edges.append((cm.qaid, daid))
 
         # Maybe just K-break graph here?
         # Condense graph?
 
         # make symmetric
-        directed_edges = dict(zip(edges, edge_weights))
+        directed_edges = dict(zip(edges, edge_scores))
         # Find edges that point in both directions
         undirected_edges = {}
         for (u, v), w in directed_edges.items():
@@ -250,74 +378,41 @@ class AnnotInference2(object):
                 undirected_edges[(u, v)] = w
 
         edges = list(undirected_edges.keys())
-        edge_weights = list(undirected_edges.values())
-        nodes = list(range(len(unique_aids)))
-
-        nid_labeling = infr.qreq_.ibs.get_annot_nids(unique_aids)
-        labeling = ut.rebase_labels(nid_labeling)
-
-        import networkx as nx
-        from ibeis.viz import viz_graph
-        set_node_attrs = nx.set_node_attributes
-        set_edge_attrs = nx.set_edge_attributes
+        edge_scores = np.array(list(undirected_edges.values()))
 
         # Create match-based graph structure
-        graph = nx.DiGraph()
-        graph.add_nodes_from(nodes)
-        graph.add_edges_from(edges)
+        infr.graph.add_edges_from(edges)
+        nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
+        nx.set_edge_attrs(infr.graph, 'weight', dict(zip(edges, edge_scores)))
 
-        # Important properties
-        nid_list = infr.qreq_.ibs.get_annot_nids(unique_aids)
-        labeling = ut.rebase_labels(nid_list)
+        #import scipy.special
+        #a = 1.5
+        #b = 2
+        #p_same = scipy.special.expit(b * edge_scores - a)
+        #confidence = (2 * np.abs(0.5 - p_same)) ** 2
 
-        set_node_attrs(graph, 'name_label', dict(zip(nodes, labeling)))
-        set_edge_attrs(graph, 'weight', dict(zip(edges, edge_weights)))
+    def infer_cut(infr, max_labels=5):
+        from ibeis.algo.hots import graph_iden
+        infr.score_edges()
+        model = graph_iden.InfrModel(infr.graph)
+        infr.model = model
+        model = infr.model
+        labeling, params = model.run_inference2(max_labels=max_labels)
 
-        # Visualization properties
-        import plottool as pt
-        ax2_aid = ut.invert_dict(aid2_aidx)
-        set_node_attrs(graph, 'aid', ax2_aid)
-        viz_graph.ensure_node_images(infr.qreq_.ibs, graph)
-        n_nodes = len(nodes)
-        set_node_attrs(graph, 'framewidth', dict(zip(nodes, [3.0] * n_nodes)))
-        set_node_attrs(graph, 'framecolor', dict(zip(nodes, [pt.DARK_BLUE] * n_nodes)))
-        ut.color_nodes(graph, labelattr='name_label')
+        graph = infr.graph.copy()
+        nx.set_node_attrs(graph, 'name_label', model.node_to_label)
+        cut_edges = infr.model.get_cut_edges()
 
-        edge_colors = pt.scores_to_color(np.array(edge_weights), cmap_='viridis')
-        #import utool
-        #utool.embed()
-        #edge_colors = [pt.color_funcs.ensure_base255(color) for color in edge_colors]
-        #print('edge_colors = %r' % (edge_colors,))
-        set_edge_attrs(graph, 'color', dict(zip(edges, edge_colors)))
+        print('cut_edges = %r' % (cut_edges,))
+        nx.set_edge_attrs(graph, 'color', {edge: 'red' for edge in cut_edges})
+        for (u, v) in cut_edges:
+            graph.remove_edge(u, v)
+        infr.ensure_name_labels_are_connected_mst(graph)
+        infr.graph = graph
         return graph
 
-    def initialize_graph_and_model(infr):
-        """ Unused in internal split stuff
-
-        pt.qt4ensure()
-        layout_info = pt.show_nx(graph, as_directed=False, fnum=1,
-                                 layoutkw=dict(prog='neato'), use_image=True,
-                                 verbose=0)
-        ax = pt.gca()
-        pt.zoom_factory()
-        pt.interactions.PanEvents()
-        """
-        graph = infr.construct_graph2()
-        # Build inference model
-        from ibeis.algo.hots import graph_iden
-        #graph_iden.rrr()
-        model = graph_iden.InfrModel(graph)
-        #model = graph_iden.InfrModel(len(nodes), edges, edge_weights, labeling=labeling)
-        infr.model = model
-
-    def infer_cut(infr):
-        model = infr.model
-        labeling, params = model.run_inference2(max_labels=5)
-        #import networkx as nx
-        #from ibeis.viz import viz_graph
-        graph_ = infr.model.update_graph()
-        return graph_
-
+    def reset_cut(infr):
+        infr.initialize_graph()
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -358,7 +453,6 @@ class AnnotInference(object):
         infr.cluster_tuples = []
         infr.user_feedback = user_feedback
         infr.make_inference()
-
 
     def simulate_user_feedback(infr):
         qreq_ = infr.qreq_

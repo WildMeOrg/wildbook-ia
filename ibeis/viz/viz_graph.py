@@ -8,8 +8,10 @@ WindowsDepends:
     graphviz-2.38.msi
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import six
 import utool as ut
 import vtool as vt
+import dtool
 import numpy as np  # NOQA
 import itertools
 from plottool.abstract_interaction import AbstractInteraction
@@ -354,41 +356,104 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
     return plotinfo
 
 
+class InferenceConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('min_labels', 1),
+        ut.ParamInfo('max_labels', 5),
+    ]
+
+
 class AnnotGraphInteraction(AbstractInteraction):
-    def __init__(self, ibs, aids=None, selected_aids=[], use_image=True,
-                 nids=None, temp_nids=None):
+    def __init__(self, infr, selected_aids=[],
+                 use_image=True, temp_nids=None):
         super(AnnotGraphInteraction, self).__init__()
-        self.ibs = ibs
-        self.aids = aids
+        self.infr = infr
         self.selected_aids = selected_aids
         self.use_image = use_image
-        from ibeis.algo.hots import graph_iden
-        self.infr = graph_iden.AnnotInference2(aids, nids, temp_nids)
+        self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
+        self.aid2_node = ut.invert_dict(self.node2_aid)
+        node2_label = {
+            node: '%d:aid=%r' % (node, aid)
+            for node, aid in self.node2_aid.items()
+        }
+        nx.set_node_attributes(self.infr.graph, 'label', node2_label)
+        self.config = InferenceConfig()
 
     def make_hud(self):
         """ Creates heads up display """
         import plottool as pt
-        hl_slot, hr_slot = pt.make_bbox_positioner(
-            y=.02, w=.10, h=.03, xpad=.05, startx=0, stopx=1)
-        # Create buttons
-        self.append_button('Auto Infer', callback=self.make_inference, rect=hl_slot(0))
-        self.append_button('Break', callback=self.break_links, rect=hl_slot(1))
-        self.append_button('Link', callback=self.make_links, rect=hl_slot(2))
-        self.append_button('Accept', callback=self.confirm, rect=hr_slot(0))
-        self.append_button('Deselect', callback=self.unselect_all, rect=hr_slot(1))
-        self.append_button('Show', callback=self.show_selected, rect=hr_slot(2))
-        #self.append_button(next_text, callback=next_callback, rect=next_rect)
+        hl_slot, hr_slot = pt.make_bbox_positioners(
+            y=.01, w=.10, h=.03, xpad=.01, startx=0, stopx=1)
 
-    def make_inference(self, event):
-        print('self.selected_aids = %r' % (self.selected_aids,))
-        self.infer_cut()
+        hl_slot2, hr_slot2 = pt.make_bbox_positioners(
+            y=.05, w=.10, h=.03, xpad=.01, startx=0, stopx=1)
+
+        def make_position_gen(slot_):
+            gen_ = (slot_(x) for x in itertools.count(0))
+            def gennext_():
+                return six.next(gen_)
+            return gennext_
+
+        hl_next = make_position_gen(hl_slot)
+        hr_next = make_position_gen(hr_slot)
+        hl_next2 = make_position_gen(hl_slot2)
+        hr_next2 = make_position_gen(hr_slot2)
+
+        # Create buttons
+        r_next = hl_next
+        self.append_button('Mark: Match', callback=self.make_links, rect=r_next())
+        self.append_button('Mark: Non-Match', callback=self.break_links, rect=r_next())
+
+        r_next = hr_next
+        self.append_button('Accept', callback=self.confirm, rect=r_next())
+        self.append_button('Cut', callback=self.cut, rect=r_next())
+        self.append_button('Uncut', callback=self.uncut, rect=r_next())
+
+        r_next = hr_next2
+        self.append_button('Params', callback=self.edit_config, rect=r_next())
+        r_next = hl_next2
+        self.append_button('Deselect', callback=self.unselect_all, rect=r_next())
+        self.append_button('Show', callback=self.show_selected, rect=r_next())
+        self.append_button('Thresh', callback=None, rect=r_next())
+        self.append_button('Reset', callback=None, rect=r_next())
+
+    def edit_config(self, event):
+        import guitool
+        guitool.ensure_qtapp()
+        from guitool import PrefWidget2
+        self.widget = PrefWidget2.newConfigWidget(self.config)
+        self.widget.show()
+        #dlg = guitool.ConfigConfirmWidget.as_dialog(None,
+        #                                            title='Confirm Import Images',
+        #                                            msg='New Settings',
+        #                                            config=self.config)
+        #dlg.resize(700, 500)
+        #self = dlg.widget
+        #dlg.exec_()
+        #print('self.config = %r' % (self.config,))
+        #updated_config = dlg.widget.config  # NOQA
+        #print('updated_config = %r' % (updated_config,))
+        #print('self.config = %r' % (self.config,))
+
+    def cut(self, event):
+        self.infr.infer_cut(self.config['max_labels'])
+        self.show_page()
+
+    def uncut(self, event):
+        self.infr.reset_cut()
         self.show_page()
 
     def break_links(self, event):
-        print('self.selected_aids = %r' % (self.selected_aids,))
+        print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
+        import itertools
+        for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
+            self.infr.add_feedback(aid1, aid2, 'nonmatch')
 
     def make_links(self, event):
-        print('self.selected_aids = %r' % (self.selected_aids,))
+        print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
+        import itertools
+        for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
+            self.infr.add_feedback(aid1, aid2, 'match')
 
     def unselect_all(self, event):
         print('self.selected_aids = %r' % (self.selected_aids,))
@@ -405,33 +470,15 @@ class AnnotGraphInteraction(AbstractInteraction):
         fnum = pt.ensure_fnum(None)
         print('fnum = %r' % (fnum,))
         pt.figure(fnum=fnum)
-        viz_chip.show_many_chips(self.ibs, self.selected_aids)
+        viz_chip.show_many_chips(self.infr.ibs, self.selected_aids)
         pt.update()
         #fig.canvas.update()
         #pt.iup()
 
-    def update_netx_graph(self):
-
-        #self.graph = make_netx_graph_from_aid_groups(
-        #    ibs, aids_list, invis_edges=invis_edges,
-        #    ensure_edges=ensure_edges, temp_nids=temp_nids)
-        pass
-        # TODO: allow for a subset of grouped aids to be shown
-        #self.graph = make_netx_graph_from_nids(ibs, nids)
-
     def plot(self, fnum, pnum):
-        self.update_netx_graph()
-        #if split_check:
-
-        node2_aid = nx.get_node_attributes(self.infr.model.graph, 'aid')
-        node2_label = {
-            node: '%d:aid=%r' % (node, aid)
-            for node, aid in node2_aid.items()
-        }
-        nx.set_node_attributes(self.infr.model.graph, 'label', node2_label)
-        #{self.infr.model.graph}
+        self.infr.update_graph_visual_attributes()
         layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
-        self.plotinfo = pt.show_nx(self.infr.model.graph,
+        self.plotinfo = pt.show_nx(self.infr.graph,
                                    as_directed=False, fnum=self.fnum,
                                    layoutkw=layoutkw,
                                    use_image=self.use_image, verbose=0)
@@ -439,7 +486,6 @@ class AnnotGraphInteraction(AbstractInteraction):
         ax = pt.gca()
         self.enable_pan_and_zoom(ax)
         #ax.autoscale()
-
         for aid in self.selected_aids:
             self.highlight_aid(aid)
         self.make_hud()
@@ -480,7 +526,7 @@ class AnnotGraphInteraction(AbstractInteraction):
             ut.embed()
 
         if len(self.selected_aids) == 2:
-            ibs = self.ibs
+            ibs = self.infr.ibs
             aid1, aid2 = self.selected_aids
             _rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
             if _rowid is None:
@@ -532,10 +578,14 @@ class AnnotGraphInteraction(AbstractInteraction):
                     qres = None
                     qreq_ = None
                     options = inspect_gui.get_aidpair_context_menu_options(
-                        self.ibs, aid1, aid2, qres, qreq_=qreq_)
+                        self.infr.ibs, aid1, aid2, qres, qreq_=qreq_)
                     self.show_popup_menu(options, event)
 
-        SELECT_ANNOT = dist < 35
+        bbox = vt.bbox_from_center_wh(self.plotinfo['node']['pos'][node],
+                                      self.plotinfo['node']['size'][node])
+        SELECT_ANNOT = vt.point_inside_bbox(point, bbox)
+        #SELECT_ANNOT = dist < 35
+
         if SELECT_ANNOT:
             #print(ut.obj_str(ibs.get_annot_info(aid, default=True,
             #                                    name=False, gname=False)))
@@ -552,7 +602,7 @@ class AnnotGraphInteraction(AbstractInteraction):
                 refresh_func = None
                 config2_ = None
                 options = interact_chip.build_annot_context_options(
-                    self.ibs, aid, refresh_func=refresh_func,
+                    self.infr.ibs, aid, refresh_func=refresh_func,
                     with_interact_name=False,
                     config2_=config2_)
                 self.show_popup_menu(options, event)
@@ -596,11 +646,41 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     elif nids is not None and aids is not None:
         aids += ibs.get_name_aids(nids)
         aids = ut.unique(aids)
-    nids = np.unique(ibs.get_annot_name_rowids(aids))
+
     if with_all:
+        nids = ut.unique(ibs.get_annot_name_rowids(aids))
         aids = ut.flatten(ibs.get_name_aids(nids))
-    self = AnnotGraphInteraction(ibs, aids, selected_aids=selected_aids,
-                                 nids=nids, temp_nids=temp_nids,
+
+    aids = aids[0:10]
+
+    nids = ibs.get_annot_name_rowids(aids)
+    #from ibeis.algo.hots import graph_iden
+    #infr = graph_iden.AnnotInference2(aids, nids, temp_nids)  # NOQA
+    #import utool
+    #utool.embed()
+
+    rowids1 = ibs.get_annotmatch_rowids_from_aid1(aids)
+    rowids2 = ibs.get_annotmatch_rowids_from_aid2(aids)
+    annotmatch_rowids = ut.unique(ut.flatten(rowids1 + rowids2))
+    aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
+    aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
+    truth = np.array(ibs.get_annotmatch_truth(annotmatch_rowids))
+    user_feedback = ut.odict([
+        ('aid1', aids1),
+        ('aid2', aids2),
+        ('p_match', truth == ibs.const.TRUTH_MATCH),
+        ('p_nomatch', truth == ibs.const.TRUTH_NOT_MATCH),
+        ('p_notcomp', truth == ibs.const.TRUTH_UNKNOWN),
+    ])
+
+    from ibeis.algo.hots import graph_iden
+    infr = graph_iden.AnnotInference2(ibs, aids, nids, temp_nids,
+                                      user_feedback=user_feedback)
+    infr.initialize_graph()
+    if ut.get_argflag('--cut'):
+        infr.infer_cut()
+
+    self = AnnotGraphInteraction(infr, selected_aids=selected_aids,
                                  use_image=use_image)
     self.show_page()
     self.show()
