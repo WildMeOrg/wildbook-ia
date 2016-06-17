@@ -408,6 +408,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.append_button('Accept', callback=self.confirm, rect=r_next())
         self.append_button('Cut', callback=self.cut, rect=r_next())
         self.append_button('Uncut', callback=self.uncut, rect=r_next())
+        self.append_button('Split Check', callback=self.splitcheck, rect=r_next())
 
         r_next = hr_next2
         self.append_button('Params', callback=self.edit_config, rect=r_next())
@@ -434,6 +435,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         #updated_config = dlg.widget.config  # NOQA
         #print('updated_config = %r' % (updated_config,))
         #print('self.config = %r' % (self.config,))
+
+    def splitcheck(self, event):
+        pass
 
     def cut(self, event):
         self.infr.infer_cut(self.config['max_labels'])
