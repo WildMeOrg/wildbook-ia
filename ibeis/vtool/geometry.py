@@ -389,6 +389,15 @@ def scaled_verts_from_bbox(bbox, theta, sx, sy):
     return new_verts
 
 
+def point_inside_bbox(point, bbox):
+    x, y = point
+    tl_x, br_x, tl_y, br_y = extent_from_bbox(bbox)
+    inside_x = np.logical_and(tl_x < x, x < br_x)
+    inside_y = np.logical_and(tl_y < y, y < br_y)
+    flag = np.logical_and(inside_x, inside_y)
+    return flag
+
+
 if __name__ == '__main__':
     """
     CommandLine:
