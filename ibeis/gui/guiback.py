@@ -1739,6 +1739,8 @@ class MainWindowBackend(GUIBACK_BASE):
     def imageset_reviewed_all_images(back, refresh=True, all_image_bypass=False):
         """
         Sets all imagesets as reviwed and ships them to wildbook
+
+        commit step
         """
         imgsetid = back.get_selected_imgsetid()
         if imgsetid is not None or all_image_bypass:

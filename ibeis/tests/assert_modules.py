@@ -130,17 +130,37 @@ def module_stdinfo_dict(module, versionattr='__version__', version=None, libdep=
     return infodict
 
 
-@checkinfo('1.5.3')
-def pynmea2_version():
-    # for web
-    import pynmea2
-    return module_stdinfo_dict(pynmea2)
+def reg_std_version_check(version, modname):
+    def checkstdmod_version():
+        mod = ut.import_modname(modname)
+        return module_stdinfo_dict(mod)
+    ut.set_funcname(checkstdmod_version, '%s_version' % (modname,))
+    func = checkinfo(version)(checkstdmod_version)
+    return func
 
 
-@checkinfo('6.0.8')
-def pip_version():
-    import pip
-    return module_stdinfo_dict(pip)
+reg_std_version_check('1.5.3', 'pynmea2')
+reg_std_version_check(None, 'wget')
+reg_std_version_check(None, 'pygco')
+reg_std_version_check('6.0.8', 'pip')
+reg_std_version_check('1.1.1', 'utool')
+
+
+# @checkinfo('1.1.1')
+# def utool_version():
+#     import utool
+#     return module_stdinfo_dict(utool)
+
+# @checkinfo('1.5.3')
+# def pynmea2_version():
+#     # for web
+#     import pynmea2
+#     return module_stdinfo_dict(pynmea2)
+
+# @checkinfo('6.0.8')
+# def pip_version():
+#     import pip
+#     return module_stdinfo_dict(pip)
 
 
 @checkinfo(None)
@@ -171,12 +191,6 @@ def pyrf_version():
     else:
         libdep = ut.get_dynlib_dependencies(pyrf.RF_CLIB._name)
     return module_stdinfo_dict(pyrf, libdep=libdep)
-
-
-@checkinfo('1.1.1')
-def utool_version():
-    import utool
-    return module_stdinfo_dict(utool)
 
 
 @checkinfo('1.0.1')
