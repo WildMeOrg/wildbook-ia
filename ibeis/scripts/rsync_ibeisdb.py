@@ -20,6 +20,7 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=
     print('  * remote_uri=%r' % (remote_uri,))
     print('  * mode=%r' % (mode))
     import ibeis
+    assert dbname is not None, 'must specify a database name'
     # Excluded temporary and cached data
     exclude_dirs = list(map(ut.ensure_unixslash, ibeis.const.EXCLUDE_COPY_REL_DIRS))
     # Specify local workdir
@@ -49,7 +50,8 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=
 def rsync_ibsdb_main():
     import sys
     default_user = ut.get_user_name()
-    default_db = 'MUGU_Master'
+    # default_db = 'MUGU_Master'
+    default_db = None
 
     # Get positional commandline arguments
     cmdline_varags = ut.get_cmdline_varargs()
@@ -66,14 +68,18 @@ def rsync_ibsdb_main():
               '%s --db <db=%s> --user <user=%s>' %
               (valid_modes, default_db, default_user,))
         sys.exit(1)
+
+    varargs_dict = dict(enumerate(cmdline_varags))
+
+    mode = varargs_dict.get(0, None)
+    default_db = varargs_dict.get(1, None)
+
     user = ut.get_argval('--user', type_=str, default=default_user)
     port = ut.get_argval('--port', type_=int, default=22)
     dbname = ut.get_argval(('--db', '--dbname'), type_=str, default=default_db)
     workdir = ut.get_argval(('--workdir', '--dbname'), type_=str, default=None,
                             help_='local work dir override')
     dry_run = ut.get_argflag(('--dryrun', '--dry-run', '--dry'))
-
-    mode = cmdline_varags[0]
 
     assert mode in valid_modes, 'mode=%r must be in %r' % (mode, valid_modes)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
