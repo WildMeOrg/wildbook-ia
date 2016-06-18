@@ -360,6 +360,9 @@ class InferenceConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('min_labels', 1),
         ut.ParamInfo('max_labels', 5),
+        ut.ParamInfo('thresh_method', 'elbow', valid_values=[
+            'elbow', 'mean', 'median', 'custom']),
+        ut.ParamInfo('thresh', .5, hideif=lambda cfg: cfg['thresh_method'] != 'custom'),
     ]
 
 
@@ -378,6 +381,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         }
         nx.set_node_attributes(self.infr.graph, 'label', node2_label)
         self.config = InferenceConfig()
+        self.show_cuts = True
 
     def make_hud(self):
         """ Creates heads up display """
@@ -408,7 +412,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.append_button('Accept', callback=self.confirm, rect=r_next())
         self.append_button('Cut', callback=self.cut, rect=r_next())
         self.append_button('Uncut', callback=self.uncut, rect=r_next())
-        self.append_button('Split Check', callback=self.splitcheck, rect=r_next())
+        self.append_button('Compute Scores', callback=self.compute_scores,
+                           rect=r_next())
+        self.append_button('ApplyFeedback', callback=self.applyfeedback, rect=r_next())
 
         r_next = hr_next2
         self.append_button('Params', callback=self.edit_config, rect=r_next())
@@ -436,11 +442,19 @@ class AnnotGraphInteraction(AbstractInteraction):
         #print('updated_config = %r' % (updated_config,))
         #print('self.config = %r' % (self.config,))
 
-    def splitcheck(self, event):
-        pass
+    def applyfeedback(self, event):
+        self.infr.apply_feedback()
+        self.show_page()
+
+    def compute_scores(self, event):
+        self.infr.score_edges()
+        self.infr.weight_edges()
+        self.show_page()
 
     def cut(self, event):
-        self.infr.infer_cut(self.config['max_labels'])
+        keys = ['min_labels', 'max_labels']
+        infrkw = ut.dict_subset(self.config, keys)
+        self.infr.infer_cut(**infrkw)
         self.show_page()
 
     def uncut(self, event):
@@ -452,12 +466,16 @@ class AnnotGraphInteraction(AbstractInteraction):
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
             self.infr.add_feedback(aid1, aid2, 'nonmatch')
+        self.infr.apply_feedback()
+        self.show_page()
 
     def make_links(self, event):
         print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
             self.infr.add_feedback(aid1, aid2, 'match')
+        self.infr.apply_feedback()
+        self.show_page()
 
     def unselect_all(self, event):
         print('self.selected_aids = %r' % (self.selected_aids,))
@@ -466,6 +484,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def confirm(self, event):
         print('Not done yet')
+        print(self.infr.current_name_labels)
 
     def show_selected(self, event):
         import plottool as pt
@@ -481,7 +500,8 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def plot(self, fnum, pnum):
         self.infr.update_graph_visual_attributes()
-        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
+        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72,
+                        draw_implicit=self.show_cuts)
         self.plotinfo = pt.show_nx(self.infr.graph,
                                    as_directed=False, fnum=self.fnum,
                                    layoutkw=layoutkw,
@@ -491,16 +511,29 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.enable_pan_and_zoom(ax)
         #ax.autoscale()
         for aid in self.selected_aids:
-            self.highlight_aid(aid)
+            self.highlight_aid(aid, pt.ORANGE)
         self.make_hud()
         #self.static_plot(fnum, pnum)
 
     def highlight_aid(self, aid, color=None):
         import plottool as pt
-        if color is None:
-            color = pt.ORANGE
         node = self.aid2_node[aid]
         frame = self.plotinfo['patch_frame_dict'][node]
+        framewidth = self.infr.graph.node[node]['framewidth']
+        def fix_color(color):
+            if isinstance(color, six.string_types) and color.startswith('#'):
+                import matplotlib.colors as colors
+                color = colors.hex2color(color[0:7])
+            return color
+        if color is True:
+            color = pt.ORANGE
+        if color is None:
+            color = pt.DARK_BLUE
+            color = self.infr.graph.node[node]['color']
+            color = fix_color(color)
+            frame.set_linewidth(framewidth)
+        else:
+            frame.set_linewidth(framewidth * 2)
         frame.set_facecolor(color)
         frame.set_edgecolor(color)
 
@@ -513,7 +546,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         if aid in self.selected_aids:
             self.selected_aids.remove(aid)
             #self.highlight_aid(aid, pt.WHITE)
-            self.highlight_aid(aid, pt.DARK_BLUE)
+            self.highlight_aid(aid, color=None)
         else:
             self.selected_aids.append(aid)
             self.highlight_aid(aid, pt.ORANGE)
@@ -521,6 +554,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def on_key_press(self, event):
         print(event)
+        infr = self.infr  # NOQA
 
         if event.key == 'r':
             self.show_page()
@@ -672,9 +706,9 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     user_feedback = ut.odict([
         ('aid1', aids1),
         ('aid2', aids2),
-        ('p_match', truth == ibs.const.TRUTH_MATCH),
-        ('p_nomatch', truth == ibs.const.TRUTH_NOT_MATCH),
-        ('p_notcomp', truth == ibs.const.TRUTH_UNKNOWN),
+        ('p_match', (truth == ibs.const.TRUTH_MATCH).astype(np.float)),
+        ('p_nomatch', (truth == ibs.const.TRUTH_NOT_MATCH).astype(np.float)),
+        ('p_notcomp', (truth == ibs.const.TRUTH_UNKNOWN).astype(np.float)),
     ])
 
     from ibeis.algo.hots import graph_iden
