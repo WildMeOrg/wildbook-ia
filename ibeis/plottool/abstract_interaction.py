@@ -85,13 +85,13 @@ class AbstractInteraction(object):
             self.start()
 
     def enable_pan_and_zoom(self, ax):
-        self.enable_pan(ax)
         self.enable_zoom(ax)
+        self.enable_pan(ax)
 
     def enable_pan(self, ax):
         from plottool.interactions import PanEvents
-        event = PanEvents(ax)
-        self.pan_event_list.append(event)
+        pan = PanEvents(ax)
+        self.pan_event_list.append(pan)
 
     def enable_zoom(self, ax):
         from plottool.interactions import zoom_factory

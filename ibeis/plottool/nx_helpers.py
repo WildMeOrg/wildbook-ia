@@ -39,6 +39,13 @@ def dump_nx_ondisk(graph, fpath):
     agraph.draw(ut.truepath(fpath))
 
 
+def fix_color(color):
+    if isinstance(color, six.string_types) and color.startswith('#'):
+        import matplotlib.colors as colors
+        color = colors.hex2color(color[0:7])
+    return color
+
+
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
             ax=None, pos=None, img_dict=None, title=None, layoutkw=None,
             verbose=None, **kwargs):
@@ -98,7 +105,8 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         print('Drawing graph')
     # zoom = kwargs.pop('zoom', .4)
     framewidth = kwargs.pop('framewidth', 1.0)
-    draw_network2(graph, layout_info, ax, verbose=verbose, **kwargs)
+    patch_dict = draw_network2(graph, layout_info, ax, verbose=verbose, **kwargs)
+    layout_info.update(patch_dict)
     ax.grid(False)
     pt.plt.axis('equal')
     ax.axesPatch.set_facecolor('white')
@@ -591,7 +599,8 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
         for key, val in edge_attrs.items():
             edge_layout_attrs[key][edge] = val
 
-    if orig_graph is not None:
+    if orig_graph is not None and kwargs.get('draw_implicit', True):
+        # ADD IN IMPLICIT EDGES
         layout_edges = set(ut.nx_edges(graph_, keys=True))
         orig_edges = set(ut.nx_edges(orig_graph, keys=True))
         implicit_edges = list(orig_edges - layout_edges)
@@ -783,14 +792,16 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     """
     import plottool as pt
 
+    patch_dict = {
+        'patch_frame_dict': {},
+        'node_patch_dict': {},
+        'edge_patch_dict': {},
+        'arrow_patch_list': {},
+    }
+
     font_prop = pt.parse_fontkw(**kwargs)
     #print('font_prop = %r' % (font_prop,))
     #print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
-
-    node_patch_list = []
-    edge_patch_list = []
-
-    patch_dict = {}
 
     # print('layout_info = %r' % (layout_info,))
     node_pos = layout_info['node']['pos']
@@ -888,7 +899,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 if isinstance(framecolor, six.string_types) and framecolor.startswith('#'):
                     import matplotlib.colors as colors
                     framecolor = colors.hex2color(framecolor[0:7])
-                print('framecolor = %r' % (framecolor,))
+                #print('framecolor = %r' % (framecolor,))
                 alpha = 1.0
                 if framecolor is None:
                     framecolor = pt.BLACK
@@ -903,9 +914,9 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         framewidth = 3.0
                 lw = framewidth
                 frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw, alpha=alpha)
-                ax.add_patch(frame)
+                patch_dict['patch_frame_dict'][node] = frame
 
-        patch_dict[node] = patch
+        #patch_dict[node] = patch
         x, y = xy
         text = str(node)
         if label is not None:
@@ -914,7 +925,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         if hacknode or not using_image:
             pt.ax_absolute_text(x, y, text, ha='center', va='center',
                                 fontproperties=font_prop)
-        node_patch_list.append(patch)
+        patch_dict['node_patch_dict'][node] = (patch)
 
     def get_default_edge_data(graph, edge):
         data = graph.get_edge_data(*edge)
@@ -1026,6 +1037,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             if not as_directed and end_pt is not None:
                 pass
 
+            lw = data.get('lw', lw)
+
             patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
                                           edgecolor=color,
                                           alpha=alpha,
@@ -1049,7 +1062,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                                                     length_includes_head=True,
                                                     color=color,
                                                     head_starts_at_zero=True)
-                ax.add_patch(patch1)
+                #ax.add_patch(patch1)
+                patch_dict['arrow_patch_list'][edge] = (patch1)
 
             taillabel = layout_info['edge']['taillabel'][edge]
             #ha = 'left'
@@ -1081,16 +1095,23 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 ax.annotate(label, xy=label_pos, xycoords='data',
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
-            ax.add_patch(patch)
+            patch_dict['edge_patch_dict'][edge] = patch
+            #ax.add_patch(patch)
 
     if verbose:
-        print('Adding %r node patches ' % (len(node_patch_list,)))
-        print('Adding %r edge patches ' % (len(edge_patch_list,)))
+        print('Adding %r node patches ' % (len(patch_dict['node_patch_dict'],)))
+        print('Adding %r edge patches ' % (len(patch_dict['edge_patch_dict'],)))
+
+    for frame in patch_dict['patch_frame_dict'].values():
+        ax.add_patch(frame)
+
+    for patch1 in patch_dict['arrow_patch_list'].values():
+        ax.add_patch(patch1)
 
     use_collections = False
     if use_collections:
-        edge_coll = mpl.collections.PatchCollection(edge_patch_list)
-        node_coll = mpl.collections.PatchCollection(node_patch_list)
+        edge_coll = mpl.collections.PatchCollection(patch_dict['edge_patch_dict'].values())
+        node_coll = mpl.collections.PatchCollection(patch_dict['node_patch_dict'].values())
         #coll.set_facecolor(fcolor)
         #coll.set_alpha(alpha)
         #coll.set_linewidth(lw)
@@ -1099,14 +1120,15 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         ax.add_collection(node_coll)
         ax.add_collection(edge_coll)
     else:
-        for patch in node_patch_list:
+        for patch in patch_dict['node_patch_dict'].values():
             if isinstance(patch, mpl.collections.PatchCollection):
                 ax.add_collection(patch)
             else:
                 ax.add_patch(patch)
         if not hacknoedge:
-            for patch in edge_patch_list:
+            for patch in patch_dict['edge_patch_dict'].values():
                 ax.add_patch(patch)
+    return patch_dict
 
 
 # def arrowed_spines(ax=None, arrow_length=20, labels=('', ''), arrowprops=None):

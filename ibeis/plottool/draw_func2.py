@@ -2178,7 +2178,8 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
                     custom=False, val2_customcolor=None, score_range=None,
                     cmap_range=(.1, .9)):
     """
-    Other good colormaps are 'spectral', 'gist_rainbow', 'gist_ncar', 'Set1', 'Set2', 'Accent'
+    Other good colormaps are 'spectral', 'gist_rainbow', 'gist_ncar', 'Set1',
+    'Set2', 'Accent'
     # TODO: plasma
 
     Args:
