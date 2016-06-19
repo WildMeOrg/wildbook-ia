@@ -1744,16 +1744,36 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] finished computing imagesets')
 
     @blocking_slot()
-    def imageset_reviewed_all_images(back, refresh=True, all_image_bypass=False):
+    def imageset_reviewed_all_images(back, refresh=True):
         """
         Sets all imagesets as reviwed and ships them to wildbook
 
         commit step
         """
         imgsetid = back.get_selected_imgsetid()
-        if imgsetid is not None or all_image_bypass:
+        if back.contains_special_imagesets([imgsetid]):
+            back.user_info(msg=ut.codeblock(
+                '''
+                This operation is only allowed for OCCURRENCES.
+                Tried to send a special iamgeset to wildbook as an occurrence.
+                Special image sets are living entities and are never truely complete.
+                '''
+            ), title='Warning')
+        elif imgsetid is not None:
             # Set all images to be reviewed
             gid_list = back.ibs.get_valid_gids(imgsetid=imgsetid)
+
+            confirm_kw = dict(use_msg=ut.codeblock(
+                '''
+                Have you finished ALL detections, Intra Occurrence
+                Identitifications, and Vs-Exemplar Identifications?
+
+                Selecting YES will remove this occurrence and send it to wildbook.
+                ''')
+                , title='Complete Occurrence?',
+                default='Yes')
+            if not back.are_you_sure(**confirm_kw):
+                raise guiexcept.UserCancel
             #gid_list = ibs.get_imageset_gids(imgsetid)
             back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
             # Set imageset to be processed
