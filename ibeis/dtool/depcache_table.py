@@ -1836,9 +1836,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
         if delete_extern is None:
             delete_extern = table.rm_extern_on_delete
         if ut.NOT_QUIET:
-            print('Requested delete of %d rows from %s' % (
-                len(rowid_list), table.tablename))
-            print('delete_extern = %r' % (delete_extern,))
+            if ut.VERBOSE or len(rowid_list) > 0:
+                print('Requested delete of %d rows from %s' % (
+                    len(rowid_list), table.tablename))
+            # print('delete_extern = %r' % (delete_extern,))
         depc = table.depc
 
         # TODO:
@@ -1858,11 +1859,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                 for fpath in fpath_list
             ]
             if delete_extern:
-                print('abs_fpath_list = %r' % (abs_fpath_list,))
-                print('deleting internal files')
+                if ut.VERBOSE or len(abs_fpath_list) > 0:
+                    print('abs_fpath_list = %r' % (abs_fpath_list,))
+                    print('deleting internal files')
                 ut.remove_file_list(abs_fpath_list)
             else:
-                print('would delete abs_fpath_list = %r' % (abs_fpath_list,))
+                if ut.VERBOSE or len(abs_fpath_list) > 0:
+                    print('would delete abs_fpath_list = %r' % (abs_fpath_list,))
 
         # DELETE EXPLICITLY DEFINED CHILDREN
         # (TODO: handle implicit definitions)
@@ -1891,8 +1894,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableComputeHelper, _TableConfi
                     child_table.delete_rows(child_rowids)
 
         if ut.NOT_QUIET:
-            print('Deleting %d non-None rows from %s' % (
-                len(ut.filter_Nones(rowid_list)), table.tablename))
+            non_none_rowids = ut.filter_Nones(rowid_list)
+            if ut.VERBOSE or len(non_none_rowids) > 0:
+                print('Deleting %d non-None rows from %s' % (
+                    len(non_none_rowids), table.tablename))
 
         # Finalize: Delete rows from this table
         table.db.delete_rowids(table.tablename, rowid_list)
