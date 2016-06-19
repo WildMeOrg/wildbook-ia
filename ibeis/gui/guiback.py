@@ -1740,6 +1740,8 @@ class MainWindowBackend(GUIBACK_BASE):
         #back.ibs.delete_all_imagesets()
         back.ibs.compute_occurrences()
         back.ibs.update_special_imagesets()
+        if not back.are_you_sure('About to automatically group any ungrouped images into occurrences. Click Yes to continue.'):
+            raise guiexcept.UserCancel
         print('[back] about to finish computing imagesets')
         back.front.imageset_tabwgt._close_all_tabs()
         if refresh:
@@ -2146,6 +2148,26 @@ class MainWindowBackend(GUIBACK_BASE):
         return gid_list
 
     @blocking_slot()
+    def import_button_click(back):
+        msg = 'How do you want to import images?'
+        ans = back.user_option(msg=msg, title='Import Images',
+                               options=[
+                                   'Directory',
+                                   'Files',
+                                   'Smart XML'],
+                               use_cache=False, default='Directory')
+        if ans == 'Directory':
+            back.import_images_from_dir()
+        elif ans == 'Files':
+            back.import_images_from_file()
+        elif ans == 'Smart XML':
+            back.import_images_from_dir_with_smart()
+        elif ans is None:
+            pass
+        else:
+            raise Exception('Unknown anser=%r' % (ans,))
+
+    @blocking_slot()
     def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True,
                                clock_offset=True, return_dir=False, defaultdir=None):
         """ File -> Import Images From Directory"""
@@ -2166,7 +2188,9 @@ class MainWindowBackend(GUIBACK_BASE):
             return gid_list
 
     @blocking_slot()
-    def import_images_from_dir_with_smart(back, dir_=None, size_filter=None, refresh=True, smart_xml_fpath=None, defaultdir=None):
+    def import_images_from_dir_with_smart(back, dir_=None, size_filter=None,
+                                          refresh=True, smart_xml_fpath=None,
+                                          defaultdir=None):
         """ File -> Import Images From Directory with smart
 
         Args:
@@ -2201,10 +2225,12 @@ class MainWindowBackend(GUIBACK_BASE):
         gid_list, add_dir_ = back.import_images_from_dir(
             dir_=dir_, size_filter=size_filter, refresh=False,
             clock_offset=False, return_dir=True, defaultdir=defaultdir)
-        back._group_images_with_smartxml(gid_list, refresh=refresh, smart_xml_fpath=smart_xml_fpath,
+        back._group_images_with_smartxml(gid_list, refresh=refresh,
+                                         smart_xml_fpath=smart_xml_fpath,
                                          defaultdir=dirname(add_dir_))
 
-    def _group_images_with_smartxml(back, gid_list, refresh=True, smart_xml_fpath=None, defaultdir=None):
+    def _group_images_with_smartxml(back, gid_list, refresh=True,
+                                    smart_xml_fpath=None, defaultdir=None):
         """
         Clusters the newly imported images with smart xml file
         """
@@ -2276,7 +2302,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if ut.get_argflag('-y') or ut.get_argflag('--yes'):
             # DONT ASK WHEN SPECIFIED
             return True
-        ans = back.user_option(msg=msg, title=title, options=['No', 'Yes'],
+        ans = back.user_option(msg=msg, title=title, options=['Yes', 'No'],
                                use_cache=False, default=default)
         print('[back] User answered: %r' % (ans,))
         return ans == 'Yes'

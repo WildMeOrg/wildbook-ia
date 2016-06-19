@@ -510,7 +510,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.import_button = _NEWBUT(
             '1) Import',
-            back.import_images_from_dir,
+            # back.import_images_from_dir,
+            back.import_button_click,
             bgcolor=(235, 200, 200), fontkw=primary_fontkw)
 
         ibswgt.imageset_button = _NEWBUT(
