@@ -1668,6 +1668,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @backreport
     def incremental_query(back, refresh=True, **kwargs):
         r"""
+        DEPRICATE
 
         Runs each query against the current database and allows for user
         interaction to add exemplars one at a time.
@@ -1728,18 +1729,6 @@ class MainWindowBackend(GUIBACK_BASE):
         #TODO fix names tree thingie
         back.front.set_table_tab(NAMES_TREE)
         iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
-
-    #@blocking_slot()
-    #def review_detections(back, **kwargs):
-    #    from plottool.interact_multi_image import MultiImageInteraction
-    #    imgsetid = back.get_selected_imgsetid()
-    #    ibs = back.ibs
-    #    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-    #    gpath_list = ibs.get_image_paths(gid_list)
-    #    bboxes_list = ibs.get_image_annotation_bboxes(gid_list)
-    #    thetas_list = ibs.get_image_annotation_thetas(gid_list)
-    #    multi_image_interaction = MultiImageInteraction(gpath_list, bboxes_list=bboxes_list, thetas_list=thetas_list)
-    #    back.multi_image_interaction = multi_image_interaction
 
     @blocking_slot()
     def compute_occurrences(back, refresh=True):
@@ -1865,7 +1854,6 @@ class MainWindowBackend(GUIBACK_BASE):
             return
         back.ibs.delete_cache()
         print('[back] finished delete_cache')
-        pass
 
     @slot_()
     @backreport
@@ -1877,7 +1865,6 @@ class MainWindowBackend(GUIBACK_BASE):
             return
         back.ibs.delete_thumbnails()
         print('[back] finished delete_thumbnails')
-        pass
 
     @slot_()
     @backreport
@@ -1886,7 +1873,6 @@ class MainWindowBackend(GUIBACK_BASE):
         if not back.are_you_sure(msg):
             return
         ut.delete(ut.get_app_resource_dir('ibeis', 'global_cache'))
-        pass
 
     @slot_()
     @backreport
@@ -1897,7 +1883,6 @@ class MainWindowBackend(GUIBACK_BASE):
                                           'cached query results?')):
             return
         ut.delete(back.ibs.qresdir)
-        pass
 
     @blocking_slot()
     def dev_reload(back):
@@ -2095,27 +2080,6 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] backup_database')
         back.ibs.backup_database()
 
-    #@blocking_slot()
-    #def import_images(back, gpath_list=None, dir_=None, refresh=True, clock_offset=True):
-    #    """ File -> Import Images (ctrl + i)"""
-    #    print('[back] import_images')
-    #    if back.ibs is None:
-    #        raise ValueError('back.ibs is None! must open IBEIS database first')
-    #    reply = None
-    #    if gpath_list is None and dir_ is None:
-    #        reply = back.user_option(
-    #            msg='Import specific files or whole directory?',
-    #            title='Import Images',
-    #            options=['Files', 'Directory'],
-    #            use_cache=False)
-    #    if reply == 'Files' or gpath_list is not None:
-    #        gid_list = back.import_images_from_file(gpath_list=gpath_list,
-    #                                                refresh=refresh, clock_offset=True)
-    #    if reply == 'Directory' or dir_ is not None:
-    #        gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh,
-    #                                               clock_offset=True)
-    #    return gid_list
-
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,
                                 clock_offset=True):
@@ -2177,24 +2141,6 @@ class MainWindowBackend(GUIBACK_BASE):
             return gid_list, dir_
         else:
             return gid_list
-
-        #print('')
-
-    #@blocking_slot()
-    #def import_images_with_smart(back, gpath_list=None, dir_=None, refresh=True):
-    #    """ File -> Import Images with smart"""
-    #    print('[back] import_images_with_smart')
-    #    gid_list = back.import_images(gpath_list=gpath_list, dir_=dir_, refresh=refresh,
-    #                                  clock_offset=False)
-    #    back._group_images_with_smartxml(gid_list, refresh=refresh)
-
-    #@blocking_slot()
-    #def import_images_from_file_with_smart(back, gpath_list=None, refresh=True, as_annots=False):
-    #    """ File -> Import Images From File with smart"""
-    #    print('[back] import_images_from_file_with_smart')
-    #    gid_list = back.import_images_from_file(gpath_list=gpath_list, refresh=refresh,
-    #                                            as_annots=as_annots, clock_offset=False)
-    #    back._group_images_with_smartxml(gid_list, refresh=refresh)
 
     @blocking_slot()
     def import_images_from_dir_with_smart(back, dir_=None, size_filter=None, refresh=True, smart_xml_fpath=None, defaultdir=None):

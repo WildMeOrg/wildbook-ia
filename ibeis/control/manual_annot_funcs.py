@@ -537,7 +537,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     #ibs.update_annot_visual_uuids(aid_list)
 
     # Invalidate image thumbnails, quiet_delete_thumbs causes no output on deletion from ut
-    ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs)
+    config2_ = {'thumbsize': 221}
+    ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
     return aid_list
 
 
@@ -556,7 +557,8 @@ def get_annot_rows(ibs, aid_list):
                 'annot_verts', ANNOT_YAW, 'annot_detect_confidence',
                 'annot_note', 'name_rowid', 'species_rowid',
                 'annot_visual_uuid', 'annot_semantic_uuid')
-    rows_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list, unpack_scalars=False)
+    rows_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list,
+                           unpack_scalars=False)
     return rows_list
 
 
@@ -630,6 +632,7 @@ def delete_annots(ibs, aid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> from os.path import exists
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs.delete_empty_nids()
@@ -640,18 +643,23 @@ def delete_annots(ibs, aid_list):
         >>> nid_list = [nid] * num_add
         >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
         ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> new_aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, nid_list=nid_list)
+        >>> new_aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list,
+        >>>                               nid_list=nid_list)
         >>> ibs.get_annot_nids(new_aid_list)
         >>> ut.assert_lists_eq(ibs.get_annot_nids(new_aid_list), nid_list)
         >>> assert ibs.get_name_aids(nid) == new_aid_list, 'annots should all have same name'
         >>> assert new_aid_list == ibs.get_name_aids(nid), 'inverse name mapping should work'
-        >>> before_gids = ibs.get_image_aids(gid_list)
-        >>> print('BEFORE gids: ' + str(before_gids))
+        >>> thumpaths = ibs.get_image_thumbpath(gid_list, ensure_paths=True)
+        >>> assert any(ut.lmap(exists, thumpaths)), 'thumbs should be there'
+        >>> before_aids = ibs.get_image_aids(gid_list)
+        >>> print('BEFORE gids: ' + str(before_aids))
         >>> result = ibs.delete_annots(new_aid_list)
         >>> assert ibs.get_name_aids(nid) == [], 'annots should be removed'
-        >>> after_gids = ibs.get_image_aids(gid_list)
-        >>> assert after_gids != before_gids, 'the invalidators must have bugs'
-        >>> print('AFTER gids: ' + str(after_gids))
+        >>> after_aids = ibs.get_image_aids(gid_list)
+        >>> thumpaths = ibs.get_image_thumbpath(gid_list, ensure_paths=False)
+        >>> assert not any(ut.lmap(exists, thumpaths)), 'thumbs should be gone'
+        >>> assert after_aids != before_aids, 'the invalidators must have bugs'
+        >>> print('AFTER gids: ' + str(after_aids))
         >>> valid_aids = ibs.get_valid_aids()
         >>> assert  [aid not in valid_aids for aid in new_aid_list], 'should no longer be valid aids'
         >>> print(result)
@@ -660,9 +668,14 @@ def delete_annots(ibs, aid_list):
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d annotations' % len(aid_list))
+    # FIXME: Need to reliabely delete thumbnails
+    # config2_ = {'draw_annots': True, 'thumbsize': 221}
+    # MEGA HACK FOR QT
+    config2_ = {'thumbsize': 221}
+    gid_list_ = ibs.get_annot_gids(aid_list)
+    ibs.delete_image_thumbs(gid_list_, **config2_)
     # Delete chips and features first
     #ibs.delete_annot_relations(aid_list)
-    # image thumbs are deleted in here too, this needs to be fixed
     ibs.delete_annot_chips(aid_list)
     ibs.depc_annot.delete_root(aid_list)
     # TODO:
