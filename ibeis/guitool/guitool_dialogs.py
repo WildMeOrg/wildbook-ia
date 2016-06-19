@@ -32,13 +32,13 @@ def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
     if ut.get_argflag('-y') or ut.get_argflag('--yes'):
         # DONT ASK WHEN SPECIFIED
         return True
-    ans = user_option(parent=parent, msg=msg, title=title, options=['No', 'Yes'],
+    ans = user_option(parent=parent, msg=msg, title=title, options=['Yes', 'No'],
                            use_cache=False, default=default)
     return ans == 'Yes'
 
 
 def user_option(parent=None, msg='msg', title='user_option',
-                options=['No', 'Yes'], use_cache=False, default=None):
+                options=['Yes', 'No'], use_cache=False, default=None):
     """
     Prompts user with several options with ability to save decision
 
@@ -84,10 +84,17 @@ def user_option(parent=None, msg='msg', title='user_option',
             return reply
     # Create message box
     msgbox = _newMsgBox(msg, title, parent)
-    _addOptions(msgbox, options)
+    #     _addOptions(msgbox, options)
+    # def _addOptions(msgbox, options):
+    #msgbox.addButton(QtGui.QMessageBox.Close)
+    options = list(options)[::-1]
+    for opt in options:
+        role = QtGui.QMessageBox.ApplyRole
+        msgbox.addButton(QtGui.QPushButton(opt), role)
     # Set default button
     if default is not None:
-        assert default in options, 'default=%r is not in options=%r' % (default, options)
+        assert default in options, (
+            'default=%r is not in options=%r' % (default, options))
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)
@@ -549,13 +556,6 @@ def _clear_scope(qobj, scope_title='_scope_list'):
 def _enforce_scope(qobj, scoped_obj, scope_title='_scope_list'):
     """ Helper for ensuring qt objects are not garbage collected """
     _get_scope(qobj, scope_title).append(scoped_obj)
-
-
-def _addOptions(msgbox, options):
-    #msgbox.addButton(QtGui.QMessageBox.Close)
-    for opt in options:
-        role = QtGui.QMessageBox.ApplyRole
-        msgbox.addButton(QtGui.QPushButton(opt), role)
 
 
 def _cacheReply(msgbox):
