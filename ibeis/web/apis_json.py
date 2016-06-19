@@ -398,7 +398,11 @@ def get_annot_image_paths_json(ibs, annot_uuid_list, **kwargs):
 @register_api('/api/annot/image/uuids/json/', methods=['GET'])
 def get_annot_image_uuids_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_uuids(aid_list, **kwargs)
+    image_uuid_list = [
+        None if aid is None else ibs.get_annot_image_uuids(aid, **kwargs)
+        for aid in aid_list
+    ]
+    return image_uuid_list
 
 
 @register_api('/api/annot/qualities/json/', methods=['GET'])
