@@ -1298,6 +1298,8 @@ class _TableComputeHelper(object):
         try:
             for dirty_chunk in prog_iter:
                 nChunkInput = len(dirty_chunk)
+                if len(nChunkInput) == 0:
+                    return
                 dirty_parent_ids_chunk, dirty_preproc_args_chunk = zip(*dirty_chunk)
                 # Pack arguments into column-wise order to send to the func
                 argsT = zip(*dirty_preproc_args_chunk)
