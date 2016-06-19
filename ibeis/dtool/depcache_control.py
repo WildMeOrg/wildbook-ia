@@ -1062,7 +1062,8 @@ class _CoreDependencyCache(object):
         Deletes the rowids of `tablename` that correspond to `root_rowids`
         using `config`.
         """
-        rowid_list = depc.get_rowids(tablename, root_rowids, config=config, ensure=False)
+        rowid_list = depc.get_rowids(tablename, root_rowids, config=config,
+                                     ensure=False)
         table = depc[tablename]
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
