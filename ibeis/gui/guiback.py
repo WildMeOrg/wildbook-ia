@@ -6,6 +6,8 @@ gui components is written or called from here
 
 TODO:
     open_database should not allow you to open subfolders
+
+    python -m utool.util_inspect check_module_usage --pat="guiback.py"
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
@@ -349,10 +351,6 @@ class MainWindowBackend(GUIBACK_BASE):
     def show(back):
         back.mainwin.show()
 
-    def select_bbox(back, gid, **kwargs):
-        bbox = interact.iselect_bbox(back.ibs, gid)
-        return bbox
-
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
@@ -519,20 +517,14 @@ class MainWindowBackend(GUIBACK_BASE):
         back.qres_wgt.raise_()
 
     #----------------------
-    # State Management Functions (ewww... state)
+    # State Management Functions
     #----------------------
 
-    #@ut.indent_func
-    def update_window_title(back):
-        pass
-
-    #@ut.indent_func
     def refresh_state(back):
         """ Blanket refresh function. Try not to call this """
         back.front.update_tables()
         back.ibswgt.update_species_available(reselect=True)
 
-    #@ut.indent_func
     def connect_ibeis_control(back, ibs):
         if ut.VERBOSE:
             print('[back] connect_ibeis(ibs=%r)' % (ibs,))
@@ -594,18 +586,6 @@ class MainWindowBackend(GUIBACK_BASE):
             raise guiexcept.InvalidRequest('There are no selected ImageSets')
         imgsetid = back.sel_imgsetids[0]
         return imgsetid
-
-    @ut.indent_func
-    def get_selected_qres(back):
-        """
-        UNUSED DEPRICATE
-
-        selected query result """
-        if len(back.sel_cm) > 0:
-            cm = back.sel_cm[0]
-            return cm
-        else:
-            return None
 
     #--------------------------------------------------------------------------
     # Selection Functions
@@ -809,13 +789,6 @@ class MainWindowBackend(GUIBACK_BASE):
         back._set_selection(sel_nids=nid, sel_imgsetids=imgsetid, **kwargs)
         if show and show_name:
             back.show_name(nid, **kwargs)
-
-    @backblock
-    def select_qres_aid(back, aid, imgsetid=None, show=True, **kwargs):
-        """ Table Click -> Result Table """
-        imgsetid = cast_from_qt(imgsetid)
-        aid = cast_from_qt(aid)
-        print('[back] select result aid=%r, imgsetid=%r' % (aid, imgsetid))
 
     #--------------------------------------------------------------------------
     # Action menu slots
@@ -1058,20 +1031,6 @@ class MainWindowBackend(GUIBACK_BASE):
         back.ibs.update_special_imagesets()
         back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
 
-    @blocking_slot()
-    def select_next(back):
-        """ Action -> Next"""
-        print('[back] select_next')
-        raise NotImplementedError()
-        pass
-
-    @blocking_slot()
-    def select_prev(back):
-        """ Action -> Prev"""
-        print('[back] select_prev')
-        raise NotImplementedError()
-        pass
-
     #--------------------------------------------------------------------------
     # Batch menu slots
     #--------------------------------------------------------------------------
@@ -1207,8 +1166,9 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             raise ValueError('Detector not recognized')
 
-    def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None):
-        species = back.get_selected_species()
+    def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None, species=None):
+        if species is None:
+            species = back.get_selected_species()
 
         valid_kw = dict(
             imgsetid=imgsetid,
@@ -1560,33 +1520,14 @@ class MainWindowBackend(GUIBACK_BASE):
         # the database annotation ids to be searched
         query_title = ''
 
-        if qaid_list is None:
-            if use_visual_selection:
-                # old style Actions->Query execution
-                qaid_list = back.get_selected_aids()
-                query_title += 'selection'
-            else:
-                # if not visual selection, then qaids are selected by imageset
-                qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
-                query_title += 'imageset=' + back.ibs.get_imageset_text(imgsetid)
-        else:
-            if custom_qaid_list_title is None:
-                custom_qaid_list_title = 'custom'
-            query_title += custom_qaid_list_title
-        if use_prioritized_name_subset:
-            # you do get unknowns back in this list
-            HACK = back.ibs.cfg.other_cfg.enable_custom_filter
-            #True
-            if not HACK:
-                new_aid_list, new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
-                    aid_list=qaid_list, annots_per_view=2, verbose=True)
-                qaid_list = ut.compress(new_aid_list, new_flag_list)
-            else:
-                qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
-            query_title += ' priority_subset'
+        # The query is either a specific selection or everything from this
+        # image set that matches the appropriate filters.
+        ibs = back.ibs
 
+        # Set title variables
         if daids_mode == const.VS_EXEMPLARS_KEY:
             query_title += ' vs exemplars'
+            # Automatic setting of exemplars
             back.set_exemplars_from_quality_and_viewpoint()
         elif daids_mode == const.INTRA_OCCUR_KEY:
             query_title += ' intra imageset'
@@ -1595,51 +1536,129 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             print('Unknown daids_mode=%r' % (daids_mode,))
 
-        if daid_list is None:
-            daid_list = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaid_list)
+        if qaid_list is None:
+            if use_visual_selection:
+                # old style Actions->Query execution
+                qaid_list = back.get_selected_aids()
+                grouped_qaids = {None: qaid_list}
+                query_title += 'selection'
+            else:
+                qaid_list = ibs.get_valid_aids(imgsetid=imgsetid, is_known=query_is_known, minqual='poor')
+                grouped_qaids = ibs.group_annots_by_prop(qaid_list, ibs.get_annot_species)
+                # if not visual selection, then qaids are selected by imageset
+                # qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
+                query_title += 'imageset=' + back.ibs.get_imageset_text(imgsetid)
         else:
+            grouped_qaids = {None: qaid_list}
+            if custom_qaid_list_title is None:
+                custom_qaid_list_title = 'custom'
+            query_title += custom_qaid_list_title
+
+        if use_prioritized_name_subset:
+            # you do get unknowns back in this list
+            HACK = back.ibs.cfg.other_cfg.enable_custom_filter
+            print('HACK = %r' % (HACK,))
+            #True
+            new_grouped_qaids = {}
+            for key, qaids in grouped_qaids.items():
+                if not HACK:
+                    new_aid_list, new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
+                        aid_list=qaids, annots_per_view=2, verbose=True)
+                    qaids = ut.compress(new_aid_list, new_flag_list)
+                else:
+                    qaids = back.ibs.get_prioritized_name_subset(qaids, annots_per_name=2)
+                new_grouped_qaids[key] = qaids
+            grouped_qaids = new_grouped_qaids
+            query_title += ' priority_subset'
+
+        grouped_daids = {}
+        if daid_list is None:
+            for key, qaids in grouped_qaids.items():
+                daids = back.get_selected_daids(imgsetid=imgsetid, daids_mode=daids_mode, qaid_list=qaids)
+                grouped_daids[key] = daids
+        else:
+            grouped_daids[None] = daid_list
             print('Using custom daids')
 
-        if len(qaid_list) == 0:
-            raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
-        if len(daid_list) == 0:
-            raise guiexcept.InvalidRequest('No database annotations. Is the species correctly set?')
-
+        key_list = list(grouped_qaids.keys())
         FILTER_HACK = True
         if FILTER_HACK:
-            if not use_visual_selection:
-                qaid_list = back.ibs.filter_aids_custom(qaid_list)
-            daid_list = back.ibs.filter_aids_custom(daid_list)
-        qreq_ = back.ibs.new_query_request(qaid_list, daid_list,
-                                           cfgdict=cfgdict)
-        back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict,
-                                  query_msg=query_msg)
-        #if not ut.WIN32:
-        #    progbar = guitool.newProgressBar(back.mainwin)
-        #else:
-        progbar = guitool.newProgressBar(None)  # back.front)
-        progbar.setWindowTitle('querying')
-        progbar.utool_prog_hook.set_progress(0)
-        # Doesn't seem to work correctly
-        #progbar.utool_prog_hook.show_indefinite_progress()
-        progbar.utool_prog_hook.force_event_update()
-        cm_list = back.ibs.query_chips(qreq_=qreq_,
-                                       prog_hook=progbar.utool_prog_hook)
-        progbar.close()
-        del progbar
-        # HACK IN IMAGESET INFO
-        if daids_mode == const.INTRA_OCCUR_KEY:
-            for cm in cm_list:
-                #if cm is not None:
-                cm.imgsetid = imgsetid
-        print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
-        # Filter duplicate names if running vsexemplar
-        filter_duplicate_namepair_matches = (daids_mode == const.VS_EXEMPLARS_KEY)
+            for key in key_list:
+                qaids = grouped_qaids[key]
+                daids = grouped_daids[key]
 
-        back.review_queries(
-            cm_list,
-            filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-            qreq_=qreq_, query_title=query_title, **kwargs)
+                if not use_visual_selection:
+                    qaids = back.ibs.filter_aids_custom(qaids)
+                daids = back.ibs.filter_aids_custom(daids)
+                grouped_qaids[key] = qaids
+                grouped_daids[key] = daids
+
+        bad_query_flag = True
+        for key in key_list:
+            qaids = grouped_qaids[key]
+            daids = grouped_daids[key]
+            if len(qaids) > 0 and len(daids) > 0:
+                bad_query_flag = False
+            else:
+                print('WARNING: key = %r is a bad query')
+                del grouped_qaids[key]
+                del grouped_daids[key]
+
+        key_list = list(grouped_qaids.keys())
+        if bad_query_flag:
+            raise guiexcept.InvalidRequest(
+                'Is the database empty? Are species labels assigned correctly? '
+                'There are no pairs of query and database annotations with the same species')
+            # if len(qaid_list) == 0:
+            #     raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
+            # if len(daid_list) == 0:
+            #     raise guiexcept.InvalidRequest('No database annotations. Is the species correctly set?')
+
+        # back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict,
+        #                           query_msg=query_msg)
+        msg_str = 'About to begin %d identification runs' % len(grouped_qaids)
+        confirm_kw = dict(use_msg=msg_str, title='Begin Identification?',
+                          default='Yes')
+        if not back.are_you_sure(**confirm_kw):
+            raise guiexcept.UserCancel
+
+        query_results = {}
+        for key in key_list:
+            qaids = grouped_qaids[key]
+            daids = grouped_daids[key]
+            qreq_ = back.ibs.new_query_request(qaids, daids,
+                                               cfgdict=cfgdict)
+            #if not ut.WIN32:
+            #    progbar = guitool.newProgressBar(back.mainwin)
+            #else:
+            progbar = guitool.newProgressBar(None)  # back.front)
+            progbar.setWindowTitle('querying')
+            progbar.utool_prog_hook.set_progress(0)
+            # Doesn't seem to work correctly
+            #progbar.utool_prog_hook.show_indefinite_progress()
+            progbar.utool_prog_hook.force_event_update()
+            cm_list = back.ibs.query_chips(qreq_=qreq_,
+                                           prog_hook=progbar.utool_prog_hook)
+            query_results[key] = (cm_list, qreq_)
+            progbar.close()
+            del progbar
+
+            # HACK IN IMAGESET INFO
+            if daids_mode == const.INTRA_OCCUR_KEY:
+                for cm in cm_list:
+                    #if cm is not None:
+                    cm.imgsetid = imgsetid
+
+        for key in key_list:
+            (cm_list, qreq_) = query_results[key]
+            print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
+            # Filter duplicate names if running vsexemplar
+            filter_duplicate_namepair_matches = (daids_mode == const.VS_EXEMPLARS_KEY)
+
+            back.review_queries(
+                cm_list,
+                filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+                qreq_=qreq_, query_title=query_title + ' ' + str(key), **kwargs)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
@@ -2266,15 +2285,6 @@ class MainWindowBackend(GUIBACK_BASE):
     # Helper functions
     #--------------------------------------------------------------------------
 
-    def popup_annot_info(back, aid_list, **kwargs):
-        if not isinstance(aid_list, list):
-            aid_list = [aid_list]
-        ibs = back.ibs
-        gid_list  = ibs.get_annot_gids(aid_list)
-        imgsetids_list = ibs.get_image_imgsetids(gid_list)
-        for aid, gid, imgsetids in zip(aid_list, gid_list, imgsetids_list):
-            back.user_info(msg='aid=%r, gid=%r, imgsetids=%r' % (aid, gid, imgsetids))
-
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)
 
@@ -2304,10 +2314,6 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def get_work_directory(back):
         return sysres.get_workdir()
-
-    def user_select_new_dbdir(back):
-        raise NotImplementedError()
-        pass
 
     def _eidfromkw(back, kwargs):
         if 'imgsetid' not in kwargs:

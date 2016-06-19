@@ -126,18 +126,6 @@ def setup_file_menu(mainwin, back):
 def setup_view_menu(mainwin, back):
     mainwin.menuView = guitool.newMenu(mainwin, mainwin.menubar, 'menuView', 'View')
     menu = mainwin.menuView
-    #mainwin.menuActions.addSeparator()
-    #mainwin.menuActions.addSeparator()
-    #mainwin.menuActions.newAction(
-    #    name='actionNext',
-    #    text='Select Next',
-    #    shortcut='Ctrl+N',
-    #    slot_fn=back.select_next)
-    #mainwin.menuActions.newAction(
-    #    name='actionPrev',
-    #    text='Select Previous',
-    #    shortcut='Ctrl+P',
-    #    slot_fn=back.select_prev)
     menu.addSeparator()
     menu.newAction(
         name='actionExpandNamesTree',
