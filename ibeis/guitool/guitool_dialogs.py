@@ -361,8 +361,9 @@ class ResizableMessageBox(QtGui.QMessageBox):
                 textEdit.setMaximumWidth(16777215)
                 textEdit.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         except RuntimeError as ex:
-            msg = 'Closing seems to cause C++ errors. Unsure how to fix properly.'
-            ut.printex(ex, msg, iswarning=True, keys=['event', 'event.type()'])
+            if ut.VERBOSE:
+                msg = 'Closing seems to cause C++ errors. Unsure how to fix properly.'
+                ut.printex(ex, msg, iswarning=True, keys=['event', 'event.type()'])
 
         return result
 
