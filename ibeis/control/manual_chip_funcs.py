@@ -16,7 +16,7 @@ from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_chips]')
+print, rrr, profile = ut.inject2(__name__, '[manual_chips]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -271,8 +271,6 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
         Method: DELETE
         URL:    /api/annot_chip/
     """
-    gid_list_ = ibs.get_annot_gids(aid_list)
-    ibs.delete_image_thumbs(gid_list_)
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
     print(thumbpath_list)
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
