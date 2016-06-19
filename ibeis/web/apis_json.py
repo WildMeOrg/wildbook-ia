@@ -280,6 +280,12 @@ def get_valid_image_uuids_json(ibs, **kwargs):
     return ibs.get_image_uuids(gid_list)
 
 
+@register_api('/api/name/json/', methods=['GET'])
+def get_valid_name_uuids_json(ibs, **kwargs):
+    nid_list = ibs.get_valid_nids(**kwargs)
+    return ibs.get_name_uuids(nid_list)
+
+
 @register_api('/api/annot/json/', methods=['GET'])
 def get_valid_annot_uuids_json(ibs, **kwargs):
     aid_list = ibs.get_valid_aids(**kwargs)
@@ -414,6 +420,13 @@ def get_imageset_annot_uuids_json(ibs, imageset_uuid_list):
         for aid_list in aids_list
     ]
     return annot_uuids_list
+
+
+@register_api('/api/imageset/annot/aids/json/', methods=['GET'])
+def get_imageset_annot_aids_json(ibs, imageset_uuid_list):
+    imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    aids_list = ibs.get_imageset_aids(imgsetid_list)
+    return aids_list
 
 
 @register_api('/api/annot/qualities/json/', methods=['GET'])
