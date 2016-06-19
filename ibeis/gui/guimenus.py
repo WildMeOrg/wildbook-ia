@@ -525,10 +525,10 @@ def setup_depricated_menu(mainwin, back):
     #    #shortcut='Ctrl+4',
     #    slot_fn=back.compute_queries)
     menu.addSeparator()  # ---------
-    menu.newAction(
-        text='Query: Incremental',
-        slot_fn=back.incremental_query
-    )
+    # menu.newAction(
+    #     text='Query: Incremental',
+    #     slot_fn=back.incremental_query
+    # )
     menu.newAction(
         text='Import Cropped Images As Annotations (select file(s))',
         slot_fn=back.import_images_as_annots_from_file)

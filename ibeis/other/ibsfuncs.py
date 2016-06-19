@@ -4874,6 +4874,12 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
              statwrap(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
                                     use_nan=True, use_median=True)))]
 
+    # if kwargs.pop('per_name_dict', True or forceall):
+    #     keyval_list += [
+    #         (prefix + 'per_name_dict',
+    #          ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
+    #                                 use_nan=True, use_median=True))]
+
     if kwargs.pop('per_qual', False or forceall):
         keyval_list += [(prefix + 'per_qual',
                          statwrap(ibs.get_annot_qual_stats(aids)))]
@@ -4908,6 +4914,12 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
         keyval_list += [
             (prefix + 'aid_per_image',
              statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+
+    if kwargs.pop('species_hist', False or forceall):
+        keyval_list += [
+            (prefix + 'species_hist',
+             ut.dict_hist(ibs.get_annot_species_texts(aids)))
+        ]
 
     if kwargs.pop('case_tag_hist', False or forceall):
         keyval_list += [

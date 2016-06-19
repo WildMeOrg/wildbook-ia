@@ -429,12 +429,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
-        _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
+        # _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
         _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt, verticalStretch=1)
 
         primary_fontkw = dict(bold=True, pointSize=11)
         secondary_fontkw = dict(bold=False, pointSize=9)
-        advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
+        # advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
         identify_color = (255, 150, 0)
 
         ibswgt.tablename_to_status_widget_index = {
@@ -470,15 +470,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #                               fontkw=primary_fontkw)
 
         # Define special intra-occurrence function
-        ibswgt.back.special_query_funcs['intra_occurrence'] = ut.overrideable_partial(
-            back.compute_queries, query_is_known=None,
-            daids_mode=const.INTRA_OCCUR_KEY,
-            use_prioritized_name_subset=False,
-            cfgdict={'can_match_samename': False, 'use_k_padding': False})
+        # ibswgt.back.special_query_funcs['intra_occurrence'] = ut.overrideable_partial(
 
         ibswgt.batch_intra_occurrence_query_button = _NEWBUT(
             '4) ID Encounters',
-            ibswgt.back.special_query_funcs['intra_occurrence'],
+            # ibswgt.back.special_query_funcs['intra_occurrence'],
+            functools.partial(
+                back.compute_queries,
+                daids_mode=const.INTRA_OCCUR_KEY,
+                query_is_known=None,
+                use_prioritized_name_subset=False,
+                cfgdict={'can_match_samename': False, 'use_k_padding': False}
+            ),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color,
                                                      -0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0),
@@ -490,8 +493,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             '5) ID Exemplars',
             functools.partial(
                 back.compute_queries,
+                daids_mode=const.VS_EXEMPLARS_KEY,
                 use_prioritized_name_subset=True,
-                query_is_known=None, daids_mode=const.VS_EXEMPLARS_KEY,
+                query_is_known=None,
                 cfgdict={'can_match_samename': False, 'use_k_padding': False},
             ),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color,
