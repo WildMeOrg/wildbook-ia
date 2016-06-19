@@ -78,11 +78,11 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
         'algo'                   : 'pyrf',
         'species'                : species,
         'sensitivity'            : 0.2,
-        'classifier_sensitivity' : 0.64,
-        'localizer_grid'         : False,
-        'localizer_sensitivity'  : 0.16,
-        'labeler_sensitivity'    : 0.42,
-        'detector_sensitivity'   : 0.08,
+        # 'classifier_sensitivity' : 0.64,
+        # 'localizer_grid'         : False,
+        # 'localizer_sensitivity'  : 0.16,
+        # 'labeler_sensitivity'    : 0.42,
+        # 'detector_sensitivity'   : 0.08,
     }
     if USE_LOCALIZATIONS:
         results_list = depc.get_property('localizations', gid_list, None, config=config)
@@ -363,11 +363,11 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
     config = {
         'algo'                   : 'yolo',
         'sensitivity'            : 0.2,
-        'classifier_sensitivity' : 0.64,
-        'localizer_grid'         : False,
-        'localizer_sensitivity'  : 0.16,
-        'labeler_sensitivity'    : 0.42,
-        'detector_sensitivity'   : 0.08,
+        # 'classifier_sensitivity' : 0.64,
+        # 'localizer_grid'         : False,
+        # 'localizer_sensitivity'  : 0.16,
+        # 'labeler_sensitivity'    : 0.42,
+        # 'detector_sensitivity'   : 0.08,
     }
     if USE_LOCALIZATIONS:
         results_list = depc.get_property('localizations', gid_list, None, config=config)
