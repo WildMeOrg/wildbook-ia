@@ -280,16 +280,16 @@ def get_valid_image_uuids_json(ibs, **kwargs):
     return ibs.get_image_uuids(gid_list)
 
 
-@register_api('/api/image/src/json/<gid>/', methods=['GET'])
-def image_src_api_json(ibs, image_uuid, **kwargs):
-    gid = ibs.get_image_gids_from_uuid(image_uuid)
-    return ibs.get_image_uuids(gid, **kwargs)
-
-
 @register_api('/api/annot/json/', methods=['GET'])
 def get_valid_annot_uuids_json(ibs, **kwargs):
     aid_list = ibs.get_valid_aids(**kwargs)
     return ibs.get_annot_uuids(aid_list)
+
+
+@register_api('/api/imageset/json/', methods=['GET'])
+def get_valid_imageset_uuids_json(ibs, **kwargs):
+    imgsetid_list = ibs.get_valid_imgsetids(**kwargs)
+    return ibs.get_imageset_uuid(imgsetid_list)
 
 
 @register_api('/api/annot/bboxes/json/', methods=['GET'])
@@ -398,7 +398,22 @@ def get_annot_image_paths_json(ibs, annot_uuid_list, **kwargs):
 @register_api('/api/annot/image/uuids/json/', methods=['GET'])
 def get_annot_image_uuids_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_uuids(aid_list, **kwargs)
+    image_uuid_list = [
+        None if aid is None else ibs.get_annot_image_uuids(aid, **kwargs)
+        for aid in aid_list
+    ]
+    return image_uuid_list
+
+
+@register_api('/api/imageset/annot/uuids/json/', methods=['GET'])
+def get_imageset_annot_uuids_json(ibs, imageset_uuid_list):
+    imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    aids_list = ibs.get_imageset_aids(imgsetid_list)
+    annot_uuids_list = [
+        ibs.get_annot_uuids(aid_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuids_list
 
 
 @register_api('/api/annot/qualities/json/', methods=['GET'])

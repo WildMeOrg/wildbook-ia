@@ -583,6 +583,24 @@ def get_imageset_text(ibs, imgsetid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/imageset/imgsetids_from_uuid/', methods=['GET'])
+def get_imageset_imgsetids_from_uuid(ibs, imageset_uuid_list):
+    r"""
+    Returns:
+        list_ (list): a list of imgsetids corresponding to each imageset imagesettext
+    #FIXME: make new naming scheme for non-primary-key-getters
+    get_imageset_imgsetids_from_text_from_text
+
+    RESTful:
+        Method: GET
+        URL:    /api/imageset/imgsetids_from_text/
+    """
+    imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), imageset_uuid_list, id_colname='imageset_uuid')
+    return imgsetid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/imageset/imgsetids_from_text/', methods=['GET'])
 def get_imageset_imgsetids_from_text(ibs, imagesettext_list, ensure=True):
     r"""

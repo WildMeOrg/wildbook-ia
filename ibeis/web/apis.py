@@ -12,6 +12,8 @@ from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
 import vtool as vt
+import uuid
+import six
 print, rrr, profile = ut.inject2(__name__, '[apis]')
 
 
@@ -66,6 +68,38 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
     # return send_file(gpath, mimetype='application/unknown')
+
+
+# Special function that is a route only to ignore the JSON response, but is
+# actually (and should be) an API call
+@register_route('/api/image/src/json/<image_uuid>/', methods=['GET'], __api_prefix_check__=False)
+def image_src_api_json(image_uuid=None, **kwargs):
+    r"""
+    Returns the image file of image <gid>
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.app import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
+        >>> web_ibs.send_ibeis_request('/api/image/src/', type_='get', gid=1)
+        >>> print(resp)
+        >>> web_ibs.terminate2()
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/src/<gid>/
+    """
+    ibs = current_app.ibs
+    try:
+        if isinstance(image_uuid, six.string_types):
+            image_uuid = uuid.UUID(image_uuid)
+        gid = ibs.get_image_gids_from_uuid(image_uuid)
+        return image_src_api(gid, **kwargs)
+    except:
+        from ibeis.control.controller_inject import translate_ibeis_webreturn
+        return translate_ibeis_webreturn(None, success=False, code=500,
+                                         message='Invalid image UUID')
 
 
 @register_api('/api/upload/image/', methods=['POST'])
