@@ -298,7 +298,7 @@ class MainWindowBackend(GUIBACK_BASE):
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
         back.front = back.mainwin.ibswgt
-        back.web_instance = None
+        back.web_ibs = None
         back.wb_server_running = None
         back.ibswgt = back.front  # Alias
         # connect signals and other objects
@@ -369,7 +369,9 @@ class MainWindowBackend(GUIBACK_BASE):
         if web:
             import webbrowser
             back.start_web_server_parallel(browser=False)
-            url = 'http://%s/turk/detection?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
+            # url = 'http://%s/turk/detection?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
+            url = 'http://%s/turk/detection?gid=%s' % (WEB_DOMAIN, gid, )
+            # url = 'http://%s/turk/detection?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
             webbrowser.open(url)
         else:
             kwargs.update({
@@ -1165,9 +1167,17 @@ class MainWindowBackend(GUIBACK_BASE):
                 if refresh:
                     back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
                 print('[back] finished detection')
-            back.user_info(msg='Detection is done')
         else:
             raise ValueError('Detector not recognized')
+        show_after = True
+        if show_after:
+            back.user_info(msg='Detection has finished. Launching web review')
+            import webbrowser
+            back.start_web_server_parallel(browser=False)
+            url = 'http://%s/turk/detection?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            webbrowser.open(url)
+        else:
+            back.user_info(msg='Detection has finished.')
 
     def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None, species=None):
         if species is None:
@@ -2014,17 +2024,21 @@ class MainWindowBackend(GUIBACK_BASE):
     def start_web_server_parallel(back, browser=True):
         import ibeis
         ibs = back.ibs
-        if back.web_instance is None:
+        if back.web_ibs is None:
             print('[guiback] Starting web service')
-            back.web_instance = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=browser)
+            # back.web_ibs = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=browser)
+            back.web_ibs = ibeis.opendb_bg_web(dbdir=ibs.get_dbdir(), web=True,
+                                               browser=browser,
+                                               start_job_queue=False)
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
 
     def kill_web_server_parallel(back):
-        if back.web_instance is not None:
+        if back.web_ibs is not None:
             print('[guiback] Stopping web service')
-            back.web_instance.terminate()
-            back.web_instance = None
+            # back.web_ibs.terminate()
+            back.web_ibs.terminate2()
+            back.web_ibs = None
         else:
             print('[guiback] CANNOT TERMINATE WEB SERVER: WEB INSTANCE NOT RUNNING')
 

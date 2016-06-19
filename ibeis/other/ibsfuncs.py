@@ -1236,6 +1236,7 @@ def delete_all_annotations(ibs):
 def delete_thumbnails(ibs):
     gid_list = ibs.get_valid_gids()
     ibs.delete_image_thumbs(gid_list)
+    ibs.delete_annot_imgthumbs(ibs.get_valid_aids())
 
 
 @register_ibs_method

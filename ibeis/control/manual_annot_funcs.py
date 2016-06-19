@@ -671,9 +671,7 @@ def delete_annots(ibs, aid_list):
     # FIXME: Need to reliabely delete thumbnails
     # config2_ = {'draw_annots': True, 'thumbsize': 221}
     # MEGA HACK FOR QT
-    config2_ = {'thumbsize': 221}
-    gid_list_ = ibs.get_annot_gids(aid_list)
-    ibs.delete_image_thumbs(gid_list_, **config2_)
+    ibs.delete_annot_imgthumbs(aid_list)
     # Delete chips and features first
     #ibs.delete_annot_relations(aid_list)
     ibs.delete_annot_chips(aid_list)
@@ -681,6 +679,15 @@ def delete_annots(ibs, aid_list):
     # TODO:
     # delete parent rowid column if exists in annot table
     return ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)
+
+
+@register_ibs_method
+@accessor_decors.deleter
+def delete_annot_imgthumbs(ibs, aid_list):
+    # MEGA HACK FOR QT
+    config2_ = {'thumbsize': 221}
+    gid_list_ = ibs.get_annot_gids(aid_list)
+    ibs.delete_image_thumbs(gid_list_, **config2_)
 
 
 # ==========
@@ -2593,6 +2600,7 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_THETA,), val_list, id_iter)
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
+        ibs.delete_annot_imgthumbs(aid_list)
     ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'theta')
 
@@ -2630,6 +2638,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
+        ibs.delete_annot_imgthumbs(aid_list)
     ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'verts')
 
