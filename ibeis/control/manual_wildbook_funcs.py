@@ -130,9 +130,9 @@ def download_tomcat():
     print('Grabbing tomcat')
     # FIXME: need to make a stable link
     if ut.WIN32:
-        tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24-windows-x86.zip'
+        tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36-windows-x86.zip'
     else:
-        tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.zip'
+        tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36.zip'
     zip_fpath = ut.grab_file_url(tomcat_binary_url, appname='ibeis')
     # Download tomcat into the IBEIS resource directory
     tomcat_dpath = join(dirname(zip_fpath), 'tomcat')
@@ -540,7 +540,7 @@ def testdata_wildbook_server():
     # Very hacky and specific testdata script.
     #if ut.is_developer():
     #    tomcat_dpath = join(os.environ['CODE_DIR'],
-    #                        'Wildbook/tmp/apache-tomcat-8.0.24')
+    #                        'Wildbook/tmp/apache-tomcat-8.0.36')
     #else:
     #    tomcat_dpath = '/var/lib/tomcat'
     import ibeis
@@ -749,7 +749,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         wildbook_base_url = ('http://' + username + ':' + password + '@' +
                              wildbook_base_url.replace('http://', ''))
     url_args_fmtstr = '&'.join([
-        'imagesetID={annot_uuid!s}',
+        'annotID={annot_uuid!s}',
         'individualID={name_text!s}',
     ])
     submit_namchange_url_fmtstr = (

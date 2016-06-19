@@ -1079,8 +1079,11 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs.cfg.detect_cfg.species_text = species_text
         ibs.cfg.save()
 
-        # TODO: incorporate this as a signal in guiback which connects to a slot in guifront
-        back.front.detect_button.setEnabled(ibs.has_species_detector(species_text))
+        # TODO: incorporate this as a signal in guiback which connects to a
+        # slot in guifront
+        # back.front.detect_button.setEnabled(
+        #     ibs.has_species_detector(species_text)
+        # )
 
     def get_selected_species(back):
         species_text = back.ibs.cfg.detect_cfg.species_text
