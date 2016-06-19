@@ -543,7 +543,7 @@ def compute_detections(depc, gid_list, config=None):
         zipped = [
             [bbox, theta, species, viewpoint, conf * score]
             for bbox, theta, species, viewpoint, conf, score in zipped
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and max(bbox[2], bbox[3]) / min(bbox[2], bbox[3]) < 20.0
         ]
         if len(zipped) == 0:
             detect_list = list(empty_list)
