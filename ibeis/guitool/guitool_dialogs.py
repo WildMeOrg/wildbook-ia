@@ -38,7 +38,8 @@ def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
 
 
 def user_option(parent=None, msg='msg', title='user_option',
-                options=['Yes', 'No'], use_cache=False, default=None):
+                options=['Yes', 'No'], use_cache=False, default=None,
+                detailed_msg=None):
     """
     Prompts user with several options with ability to save decision
 
@@ -64,11 +65,12 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_option'
-        >>> options = ['No', 'Yes']
+        >>> options = ['Yes', 'No']
         >>> use_cache = False
         >>> default = 'Yes'
         >>> # execute function
-        >>> reply = user_option(parent, msg, title, options, use_cache, default)
+        >>> detailed_msg = 'hi'
+        >>> reply = user_option(parent, msg, title, options, use_cache, default, detailed_msg)
         >>> result = str(reply)
         >>> print(result)
         >>> ut.quit_if_noshow()
@@ -83,7 +85,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         if reply is not None:
             return reply
     # Create message box
-    msgbox = _newMsgBox(msg, title, parent)
+    msgbox = _newMsgBox(msg, title, parent, resizable=detailed_msg is not None)
     #     _addOptions(msgbox, options)
     # def _addOptions(msgbox, options):
     #msgbox.addButton(QtGui.QMessageBox.Close)
@@ -101,6 +103,9 @@ def user_option(parent=None, msg='msg', title='user_option',
     if use_cache:
         # Add a remember me option if caching is on
         dontPrompt = _cacheReply(msgbox)
+
+    if detailed_msg is not None:
+        msgbox.setDetailedText(detailed_msg)
     # Wait for output
     optx = msgbox.exec_()
     if optx == QtGui.QMessageBox.Cancel:
@@ -333,6 +338,22 @@ def _register_msgbox(msgbox):
     msgbox.destroyed.connect(_close_msgbox)
 
 
+def _newMsgBox(msg='', title='', parent=None, options=None, cache_reply=False, resizable=False):
+    if resizable:
+        msgbox = ResizableMessageBox(parent)
+    else:
+        msgbox = QtGui.QMessageBox(parent)
+    #msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    #std_buts = QtGui.QMessageBox.Close
+    #std_buts = QtGui.QMessageBox.NoButton
+    std_buts = QtGui.QMessageBox.Cancel
+    msgbox.setStandardButtons(std_buts)
+    msgbox.setWindowTitle(title)
+    msgbox.setText(msg)
+    msgbox.setModal(parent is not None)
+    return msgbox
+
+
 class ResizableMessageBox(QtGui.QMessageBox):
     """
     References:
@@ -563,19 +584,6 @@ def _cacheReply(msgbox):
     dontPrompt.blockSignals(True)
     msgbox.addButton(dontPrompt, QtGui.QMessageBox.ActionRole)
     return dontPrompt
-
-
-def _newMsgBox(msg='', title='', parent=None, options=None, cache_reply=False):
-    msgbox = QtGui.QMessageBox(parent)
-    #msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    #std_buts = QtGui.QMessageBox.Close
-    #std_buts = QtGui.QMessageBox.NoButton
-    std_buts = QtGui.QMessageBox.Cancel
-    msgbox.setStandardButtons(std_buts)
-    msgbox.setWindowTitle(title)
-    msgbox.setText(msg)
-    msgbox.setModal(parent is not None)
-    return msgbox
 
 
 def _getQtImageNameFilter():
